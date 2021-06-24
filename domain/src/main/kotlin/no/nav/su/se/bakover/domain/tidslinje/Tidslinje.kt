@@ -21,7 +21,7 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
         o2.opprettet.instant.compareTo(o1.opprettet.instant)
     }
 
-    val tidslinje = lagTidslinje()
+    val tidslinje: List<T> = lagTidslinje()
         .sortedWith(stigendeFraOgMed)
 
     init {

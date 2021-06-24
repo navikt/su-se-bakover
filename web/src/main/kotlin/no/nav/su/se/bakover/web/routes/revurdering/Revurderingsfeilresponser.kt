@@ -65,6 +65,45 @@ internal object Revurderingsfeilresponser {
         "Inntekt må revurderes siden det finnes EPS inntekt og flere bosituasjonsperioder",
         "eps_inntekt_med_flere_perioder_må_revurderes",
     )
+    val epsFormueMedFlereBosituasjonsperioderMåRevurderes = BadRequest.errorJson(
+        "Formue må revurderes siden det finnes EPS formue og flere bosituasjonsperioder",
+        "eps_formue_med_flere_perioder_må_revurderes",
+    )
+
+    val formueListeKanIkkeVæreTom = BadRequest.errorJson(
+        "Formueliste kan ikke være tom",
+        "formueliste_kan_ikke_være_tom",
+    )
+
+    val depositumKanIkkeVæreHøyereEnnInnskudd = BadRequest.errorJson(
+        "Depositum kan ikke være høyere enn innskudd",
+        "depositum_kan_ikke_være_høyere_enn_innskudd",
+    )
+
+    val ikkeLovMedOverlappendePerioder = BadRequest.errorJson(
+        "Ikke lov med overlappende perioder",
+        "ikke_lov_med_overlappende_perioder",
+    )
+
+    val epsFormueperiodeErUtenforBosituasjonPeriode = BadRequest.errorJson(
+        "Ikke lov med formueperiode utenfor bosituasjonperioder",
+        "ikke_lov_med_formueperiode_utenfor_bosituasjonperiode",
+    )
+
+    val formuePeriodeErUtenforBehandlingsperioden = BadRequest.errorJson(
+        "Ikke lov med formueperiode utenfor behandlingsperioden",
+        "ikke_lov_med_formueperiode_utenfor_behandlingsperioden",
+    )
+
+    val måHaEpsHvisManHarSattEpsFormue = BadRequest.errorJson(
+        "Ikke lov med formue for eps hvis man ikke har eps",
+        "ikke_lov_med_formue_for_eps_hvis_man_ikke_har_eps",
+    )
+
+    val formueSomFørerTilOpphørMåRevurderes = BadRequest.errorJson(
+        "Formue som fører til opphør må revurderes",
+        "formue_som_fører_til_opphør_må_revurderes",
+    )
 
     fun ugyldigPeriode(ugyldigPeriode: UgyldigPeriode): Resultat {
         return BadRequest.errorJson(

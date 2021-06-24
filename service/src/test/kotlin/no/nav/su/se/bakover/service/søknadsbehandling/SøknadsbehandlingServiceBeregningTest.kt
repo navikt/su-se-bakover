@@ -71,7 +71,7 @@ class SøknadsbehandlingServiceBeregningTest {
                 ),
             ),
         ),
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
     )
 
     @Test
@@ -127,7 +127,7 @@ class SøknadsbehandlingServiceBeregningTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
         response shouldBe expected.right()

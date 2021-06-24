@@ -27,15 +27,13 @@ import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.bosituasjon
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.expectedBosituasjonJson
 import no.nav.su.se.bakover.web.routes.grunnlag.FradragsgrunnlagJsonTest.Companion.expectedFradragsgrunnlagJson
 import no.nav.su.se.bakover.web.routes.grunnlag.FradragsgrunnlagJsonTest.Companion.fradragsgrunnlag
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.expectedVurderingUføreJson
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.vurderingsperiodeUføre
-import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJsonTest.Companion.uføregrunnlag
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.vedtak
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import no.nav.su.se.bakover.web.routes.vedtak.toJson
@@ -67,12 +65,11 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(uføregrunnlag),
                 fradragsgrunnlag = listOf(fradragsgrunnlag),
                 bosituasjon = listOf(bosituasjon)
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
                 ),
             ),
@@ -104,7 +101,22 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": $expectedVurderingUføreJson,
                   "fradrag": [$expectedFradragsgrunnlagJson],
-                  "bosituasjon": $expectedBosituasjonJson
+                  "bosituasjon": $expectedBosituasjonJson,
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -136,7 +148,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -170,7 +182,22 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -202,7 +229,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -236,7 +263,22 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -268,7 +310,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -302,7 +344,22 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -335,7 +392,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -373,7 +430,22 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -406,7 +478,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -444,7 +516,22 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -477,7 +564,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.Vurdert,
@@ -516,7 +603,22 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "Vurdert",
@@ -549,7 +651,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -588,7 +690,22 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -621,7 +738,7 @@ internal class RevurderingJsonTest {
             skalFøreTilBrevutsending = false,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -657,7 +774,22 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -695,7 +827,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -741,7 +873,22 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -779,7 +926,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -825,7 +972,22 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -863,7 +1025,7 @@ internal class RevurderingJsonTest {
             skalFøreTilBrevutsending = false,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -906,7 +1068,22 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -940,7 +1117,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -980,7 +1157,22 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": {
+         "resultat": "MåInnhenteMerInformasjon",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -1014,7 +1206,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -1054,7 +1246,22 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -1088,7 +1295,7 @@ internal class RevurderingJsonTest {
             skalFøreTilBrevutsending = true,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -1125,7 +1332,22 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",

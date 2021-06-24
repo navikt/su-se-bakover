@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
@@ -91,7 +90,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         ).tilAttestering(Saksbehandler("saksa"), "")
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -129,7 +128,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
         val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
@@ -163,9 +162,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             )
         }
 
-        val grunnlagServiceMock = mock<GrunnlagService> {
-            on { lagreBosituasjongrunnlag(any(), any()) }.doNothing()
-        }
+        val grunnlagServiceMock = mock<GrunnlagService>()
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
@@ -237,7 +234,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         ).tilAttestering(Saksbehandler("saksa"), "")
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -287,7 +284,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
         val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -322,9 +319,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             )
         }
 
-        val grunnlagServiceMock = mock<GrunnlagService> {
-            on { lagreBosituasjongrunnlag(any(), any()) }.doNothing()
-        }
+        val grunnlagServiceMock = mock<GrunnlagService>()
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,

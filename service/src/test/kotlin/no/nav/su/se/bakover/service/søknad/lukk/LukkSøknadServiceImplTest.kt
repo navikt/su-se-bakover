@@ -40,7 +40,6 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
@@ -172,7 +171,6 @@ internal class LukkSøknadServiceImplTest {
     fun `trekker en søknad uten mangler`() {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
-            on { oppdaterSøknad(any()) }.doNothing()
             on { harSøknadPåbegyntBehandling(any()) } doReturn false
         }
         val sakServiceMock = mock<SakService> {
@@ -190,9 +188,7 @@ internal class LukkSøknadServiceImplTest {
             on { hentPerson(any()) } doReturn person.right()
         }
 
-        val observerMock: EventObserver = mock {
-            on { handle(any()) }.doNothing()
-        }
+        val observerMock: EventObserver = mock()
 
         val actual = LukkSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
@@ -249,7 +245,6 @@ internal class LukkSøknadServiceImplTest {
     fun `lukker avvist søknad uten brev`() {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
-            on { oppdaterSøknad(any()) }.doNothing()
             on { harSøknadPåbegyntBehandling(any()) } doReturn false
         }
 
@@ -307,7 +302,6 @@ internal class LukkSøknadServiceImplTest {
     fun `lukker avvist søknad med brev`() {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
-            on { oppdaterSøknad(any()) }.doNothing()
             on { harSøknadPåbegyntBehandling(any()) } doReturn false
         }
 
@@ -393,7 +387,6 @@ internal class LukkSøknadServiceImplTest {
 
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn treDagerGammelSøknad
-            on { oppdaterSøknad(any()) }.doNothing()
             on { harSøknadPåbegyntBehandling(any()) } doReturn true
         }
         val sakServiceMock = mock<SakService>()
@@ -432,7 +425,6 @@ internal class LukkSøknadServiceImplTest {
     fun `en søknad med behandling skal ikke bli trukket`() {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
-            on { oppdaterSøknad(any()) }.doNothing()
             on { harSøknadPåbegyntBehandling(any()) } doReturn true
         }
         val sakServiceMock = mock<SakService>()
@@ -696,7 +688,6 @@ internal class LukkSøknadServiceImplTest {
     fun `Kan ikke sende brevbestilling og kan ikke lukke oppgave`() {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
-            on { oppdaterSøknad(any()) }.doNothing()
             on { harSøknadPåbegyntBehandling(any()) } doReturn false
         }
         val sakServiceMock = mock<SakService> {
@@ -778,7 +769,6 @@ internal class LukkSøknadServiceImplTest {
 
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn søknad
-            on { oppdaterSøknad(any()) }.doNothing()
             on { harSøknadPåbegyntBehandling(any()) } doReturn false
         }
         val sakServiceMock = mock<SakService> {
@@ -867,7 +857,6 @@ internal class LukkSøknadServiceImplTest {
 
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
-            on { oppdaterSøknad(any()) }.doNothing()
             on { harSøknadPåbegyntBehandling(any()) } doReturn false
         }
         val sakServiceMock = mock<SakService> {

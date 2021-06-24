@@ -50,7 +50,7 @@ class GrunnlagBosituasjonEpsRoutesTest {
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.EMPTY,
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
     )
 
     @Test

@@ -20,7 +20,9 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -29,6 +31,7 @@ import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.test.create
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -40,7 +43,7 @@ internal class RevurderingTest {
         lagRevurdering(
             periode = periode,
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -52,6 +55,7 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
+                formue = innvilgetFormueVilkår(periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -61,10 +65,11 @@ internal class RevurderingTest {
                     begrunnelse = null,
                 ),
             ),
-        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(20000, periode)))).orNull()!!.let {
-            it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
-            (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.UFØRHET)
-        }
+        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(20000, periode)))).orNull()!!
+            .let {
+                it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
+                (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.UFØRHET)
+            }
     }
 
     @Test
@@ -73,7 +78,7 @@ internal class RevurderingTest {
         lagRevurdering(
             periode = periode,
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -85,6 +90,7 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
+                formue = innvilgetFormueVilkår(periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -94,9 +100,10 @@ internal class RevurderingTest {
                     begrunnelse = null,
                 ),
             ),
-        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(20000, periode)))).orNull()!!.let {
-            it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
-        }
+        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(20000, periode)))).orNull()!!
+            .let {
+                it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
+            }
     }
 
     @Test
@@ -105,7 +112,7 @@ internal class RevurderingTest {
         lagRevurdering(
             periode = periode,
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -117,6 +124,7 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
+                formue = innvilgetFormueVilkår(periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -135,6 +143,7 @@ internal class RevurderingTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
                 Grunnlag.Fradragsgrunnlag(
                     fradrag = FradragFactory.ny(
@@ -144,6 +153,7 @@ internal class RevurderingTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
             ),
         ).beregn(
@@ -162,7 +172,7 @@ internal class RevurderingTest {
         lagRevurdering(
             periode = periode,
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -174,6 +184,7 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
+                formue = innvilgetFormueVilkår(periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -194,7 +205,7 @@ internal class RevurderingTest {
         lagRevurdering(
             periode = periode,
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -206,6 +217,7 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
+                formue = innvilgetFormueVilkår(periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -226,7 +238,7 @@ internal class RevurderingTest {
         lagRevurdering(
             periode = periode,
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -238,6 +250,7 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
+                formue = innvilgetFormueVilkår(periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -261,7 +274,7 @@ internal class RevurderingTest {
         lagRevurdering(
             periode = periode,
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -273,6 +286,7 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
+                formue = innvilgetFormueVilkår(periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -301,7 +315,7 @@ internal class RevurderingTest {
         lagRevurdering(
             periode = periode,
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -313,6 +327,7 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
+                formue = innvilgetFormueVilkår(periode),
             ),
             fradrag = listOf(
                 Grunnlag.Fradragsgrunnlag(
@@ -323,6 +338,7 @@ internal class RevurderingTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
             ),
             bosituasjon = listOf(
@@ -352,11 +368,12 @@ internal class RevurderingTest {
             periode = periode,
             uføregrad = Uføregrad.parse(100),
             forventetInntekt = 0,
+            opprettet = fixedTidspunkt,
         )
         lagRevurdering(
             periode = periode,
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -368,6 +385,7 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
+                formue = innvilgetFormueVilkår(periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -386,6 +404,7 @@ internal class RevurderingTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
             ),
         ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(14000, periode)))).orNull()!!.let {
@@ -401,11 +420,12 @@ internal class RevurderingTest {
             periode = periode,
             uføregrad = Uføregrad.parse(100),
             forventetInntekt = 0,
+            opprettet = fixedTidspunkt,
         )
         lagRevurdering(
             periode = periode,
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -417,6 +437,7 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
+                formue = innvilgetFormueVilkår(periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -435,6 +456,7 @@ internal class RevurderingTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
                 Grunnlag.Fradragsgrunnlag(
                     fradrag = FradragFactory.ny(
@@ -444,6 +466,7 @@ internal class RevurderingTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
             ),
         ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(14000, periode)))).orNull()!!.let {
@@ -474,7 +497,7 @@ internal class RevurderingTest {
         forhåndsvarsel = null,
         behandlingsinformasjon = mock(),
         vilkårsvurderinger = vilkårsvurderinger,
-        grunnlagsdata = vilkårsvurderinger.grunnlagsdata.copy(
+        grunnlagsdata = Grunnlagsdata(
             bosituasjon = bosituasjon,
             fradragsgrunnlag = fradrag,
         ),

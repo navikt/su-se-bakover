@@ -47,7 +47,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils
@@ -68,7 +67,6 @@ internal class StatistikkServiceImplTest {
     @Test
     fun `Gyldig sak publiserer till kafka`() {
         val kafkaPublisherMock: KafkaPublisher = mock {
-            on { publiser(any(), any()) }.doNothing()
         }
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), fixedClock).publiser(StatistikkSchemaValidatorTest.gyldigSak)
@@ -80,9 +78,7 @@ internal class StatistikkServiceImplTest {
 
     @Test
     fun `Gyldig behandling publiserer till kafka`() {
-        val kafkaPublisherMock: KafkaPublisher = mock {
-            on { publiser(any(), any()) }.doNothing()
-        }
+        val kafkaPublisherMock: KafkaPublisher = mock()
 
         StatistikkServiceImpl(
             kafkaPublisherMock,
@@ -97,9 +93,7 @@ internal class StatistikkServiceImplTest {
 
     @Test
     fun `publiserer SakOpprettet-event på kafka`() {
-        val kafkaPublisherMock: KafkaPublisher = mock {
-            on { publiser(any(), any()) }.doNothing()
-        }
+        val kafkaPublisherMock: KafkaPublisher = mock()
         val personServiceMock: PersonService = mock {
             on { hentAktørId(any()) } doReturn AktørId("55").right()
         }
@@ -141,9 +135,7 @@ internal class StatistikkServiceImplTest {
 
     @Test
     fun `publiserer BehandlingOpprettet-event på kafka`() {
-        val kafkaPublisherMock: KafkaPublisher = mock {
-            on { publiser(any(), any()) }.doNothing()
-        }
+        val kafkaPublisherMock: KafkaPublisher = mock()
         val søknadMock: Søknad.Journalført.MedOppgave =
             mock { on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build() }
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
@@ -193,9 +185,7 @@ internal class StatistikkServiceImplTest {
 
     @Test
     fun `publiserer BehandlingTilAttestering-event på kafka`() {
-        val kafkaPublisherMock: KafkaPublisher = mock {
-            on { publiser(any(), any()) }.doNothing()
-        }
+        val kafkaPublisherMock: KafkaPublisher = mock()
         val søknadMock: Søknad.Journalført.MedOppgave =
             mock { on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build() }
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
@@ -242,9 +232,7 @@ internal class StatistikkServiceImplTest {
 
     @Test
     fun `publiserer BehandlingIverksatt-event på kafka ved innvilgelse`() {
-        val kafkaPublisherMock: KafkaPublisher = mock {
-            on { publiser(any(), any()) }.doNothing()
-        }
+        val kafkaPublisherMock: KafkaPublisher = mock()
         val søknadMock: Søknad.Journalført.MedOppgave =
             mock { on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build() }
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
@@ -297,9 +285,7 @@ internal class StatistikkServiceImplTest {
 
     @Test
     fun `publiserer BehandlingIverksatt-event på kafka ved avslag`() {
-        val kafkaPublisherMock: KafkaPublisher = mock {
-            on { publiser(any(), any()) }.doNothing()
-        }
+        val kafkaPublisherMock: KafkaPublisher = mock()
         val søknadMock: Søknad.Journalført.MedOppgave =
             mock { on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build() }
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
@@ -350,9 +336,7 @@ internal class StatistikkServiceImplTest {
 
     @Test
     fun `publiserer statistikk for underkjent behandling på kafka`() {
-        val kafkaPublisherMock: KafkaPublisher = mock {
-            on { publiser(any(), any()) }.doNothing()
-        }
+        val kafkaPublisherMock: KafkaPublisher = mock()
         val søknadMock: Søknad.Journalført.MedOppgave =
             mock { on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build() }
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
@@ -379,7 +363,7 @@ internal class StatistikkServiceImplTest {
             fritekstTilBrev = "",
             stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
         val expected = Statistikk.Behandling(
@@ -412,9 +396,7 @@ internal class StatistikkServiceImplTest {
 
     @Test
     fun `publiserer statistikk for opprettet revurdering på kafka`() {
-        val kafkaPublisherMock: KafkaPublisher = mock {
-            on { publiser(any(), any()) }.doNothing()
-        }
+        val kafkaPublisherMock: KafkaPublisher = mock()
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
         val behandlingsperiode = Periode.create(1.januar(2021), 31.desember(2021))
         val behandlingMock = mock<Behandling> {
@@ -436,7 +418,7 @@ internal class StatistikkServiceImplTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
@@ -470,9 +452,7 @@ internal class StatistikkServiceImplTest {
 
     @Test
     fun `publiserer statistikk for revurdering sendt til attestering på kafka`() {
-        val kafkaPublisherMock: KafkaPublisher = mock {
-            on { publiser(any(), any()) }.doNothing()
-        }
+        val kafkaPublisherMock: KafkaPublisher = mock()
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
         val beregning = TestBeregning
         val behandlingsperiode = Periode.create(1.januar(2021), 31.desember(2021))
@@ -504,7 +484,7 @@ internal class StatistikkServiceImplTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
@@ -538,9 +518,7 @@ internal class StatistikkServiceImplTest {
 
     @Test
     fun `publiserer statistikk for iverksetting av revurdering på kafka`() {
-        val kafkaPublisherMock: KafkaPublisher = mock {
-            on { publiser(any(), any()) }.doNothing()
-        }
+        val kafkaPublisherMock: KafkaPublisher = mock()
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
         val beregning = TestBeregning
         val behandlingsperiode = Periode.create(1.januar(2021), 31.desember(2021))
@@ -573,7 +551,7 @@ internal class StatistikkServiceImplTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
@@ -610,9 +588,7 @@ internal class StatistikkServiceImplTest {
 
     @Test
     fun `publiserer statistikk for mottat søknad på kafka`() {
-        val kafkaPublisherMock: KafkaPublisher = mock {
-            on { publiser(any(), any()) }.doNothing()
-        }
+        val kafkaPublisherMock: KafkaPublisher = mock()
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
         val saksnummer = Saksnummer(2049L)
         val søknad = Søknad.Ny(
@@ -652,9 +628,7 @@ internal class StatistikkServiceImplTest {
 
     @Test
     fun `publiserer statistikk for lukket søknad på kafka`() {
-        val kafkaPublisherMock: KafkaPublisher = mock {
-            on { publiser(any(), any()) }.doNothing()
-        }
+        val kafkaPublisherMock: KafkaPublisher = mock()
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
         val saksnummer = Saksnummer(2049L)
         val søknad = Søknad.Lukket(

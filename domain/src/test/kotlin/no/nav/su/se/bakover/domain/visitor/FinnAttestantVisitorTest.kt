@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
@@ -40,12 +41,13 @@ import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.test.create
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-val periode = Periode.create(1.januar(2021), 31.januar(2021))
-
 internal class FinnAttestantVisitorTest {
+
+    private val periode = Periode.create(1.januar(2021), 31.januar(2021))
 
     @Test
     fun `finner attestant for både søknadsbehandlinger og revurderinger`() {
@@ -153,7 +155,7 @@ internal class FinnAttestantVisitorTest {
         fritekstTilBrev = "",
         stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
         grunnlagsdata = Grunnlagsdata.EMPTY,
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
     )
 
     private val behandlingsinformasjonMedAlleVilkårOppfylt = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
@@ -227,6 +229,7 @@ internal class FinnAttestantVisitorTest {
         periode = periode,
         uføregrad = Uføregrad.parse(20),
         forventetInntekt = 10,
+        opprettet = fixedTidspunkt,
     )
     private val revurdering = OpprettetRevurdering(
         id = UUID.randomUUID(),
@@ -247,7 +250,6 @@ internal class FinnAttestantVisitorTest {
         forhåndsvarsel = null,
         behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
         grunnlagsdata = Grunnlagsdata(
-            uføregrunnlag = listOf(uføregrunnlag),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
@@ -258,26 +260,29 @@ internal class FinnAttestantVisitorTest {
             ),
         ),
         vilkårsvurderinger = Vilkårsvurderinger(
-            uføre = Vilkår.Vurdert.Uførhet.create(
+            uføre = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         resultat = Resultat.Innvilget,
                         grunnlag = uføregrunnlag,
                         periode = periode,
                         begrunnelse = null,
+                        opprettet = fixedTidspunkt,
                     ),
                 ),
             ),
+            formue = innvilgetFormueVilkår(periode),
         ),
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
     )
 
-    private val beregnetRevurdering = when (val a = revurdering.beregn(eksisterendeUtbetalinger = emptyList()).orNull()!!) {
-        is BeregnetRevurdering.Innvilget -> {
-            a
+    private val beregnetRevurdering =
+        when (val a = revurdering.beregn(eksisterendeUtbetalinger = emptyList()).orNull()!!) {
+            is BeregnetRevurdering.Innvilget -> {
+                a
+            }
+            else -> fail("Skulle vært typen BeregnetRevurdering.Innvilget, men var ${a::class.simpleName}")
         }
-        else -> fail("Skulle vært typen BeregnetRevurdering.Innvilget, men var ${a::class.simpleName}")
-    }
     private val simulertRevurdering = beregnetRevurdering.toSimulert(mock())
     private val tilAttesteringRevurdering =
         simulertRevurdering.tilAttestering(mock(), saksbehandler, "fritekst til brevet", mock())

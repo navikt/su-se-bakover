@@ -154,6 +154,7 @@ internal class BrevInnholdTest {
             avslagsparagrafer = listOf(1),
             satsGjeldendeFraDato = "01.01.2020",
             forventetInntektStørreEnn0 = false,
+            halvGrunnbeløp = 50000
         )
 
         //language=JSON
@@ -191,7 +192,8 @@ internal class BrevInnholdTest {
                 "fritekst": "",
                 "opphørsgrunner" : ["FOR_HØY_INNTEKT"],
                 "avslagsparagrafer" : [1],
-                "forventetInntektStørreEnn0" : false
+                "forventetInntektStørreEnn0" : false,
+                "halvGrunnbeløp": 50000
             }
         """.trimIndent()
 

@@ -6,12 +6,15 @@ import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.StaticCreden
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingRepo
+import no.nav.su.se.bakover.database.grunnlag.FormuegrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
+import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
@@ -63,25 +66,32 @@ object DatabaseBuilder {
         val uføregrunnlagRepo = UføregrunnlagPostgresRepo()
         val fradragsgrunnlag = FradragsgrunnlagPostgresRepo(dataSource)
         val bosituasjongrunnlag = BosituasjongrunnlagPostgresRepo(dataSource)
+        val formuegrunnlagRepo = FormuegrunnlagPostgresRepo()
 
         val grunnlagRepo = GrunnlagPostgresRepo(
             fradragsgrunnlagRepo = fradragsgrunnlag,
             bosituasjongrunnlagRepo = bosituasjongrunnlag,
         )
 
-        val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(
+        val uføreVilkårsvurderingRepo = UføreVilkårsvurderingPostgresRepo(
             dataSource = dataSource,
             uføregrunnlagRepo = uføregrunnlagRepo,
         )
 
-        val saksbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource, uføregrunnlagRepo, fradragsgrunnlag, bosituasjongrunnlag, vilkårsvurderingRepo)
+        val formueVilkårsvurderingRepo = FormueVilkårsvurderingPostgresRepo(
+            dataSource = dataSource,
+            formuegrunnlagPostgresRepo = formuegrunnlagRepo,
+        )
+
+        val saksbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource, uføregrunnlagRepo, fradragsgrunnlag, bosituasjongrunnlag, uføreVilkårsvurderingRepo)
 
         val revurderingRepo = RevurderingPostgresRepo(
             dataSource,
             uføregrunnlagRepo,
             fradragsgrunnlag,
             bosituasjongrunnlag,
-            vilkårsvurderingRepo,
+            uføreVilkårsvurderingRepo,
+            formueVilkårsvurderingRepo,
             saksbehandlingRepo,
         )
         val vedtakRepo = VedtakPosgresRepo(dataSource, saksbehandlingRepo, revurderingRepo)
@@ -98,7 +108,8 @@ object DatabaseBuilder {
             revurderingRepo = revurderingRepo,
             vedtakRepo = vedtakRepo,
             grunnlagRepo = grunnlagRepo,
-            vilkårsvurderingRepo = vilkårsvurderingRepo,
+            uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
+            formueVilkårsvurderingRepo = formueVilkårsvurderingRepo,
         )
     }
 }
@@ -115,5 +126,6 @@ data class DatabaseRepos(
     val revurderingRepo: RevurderingRepo,
     val vedtakRepo: VedtakRepo,
     val grunnlagRepo: GrunnlagRepo,
-    val vilkårsvurderingRepo: VilkårsvurderingRepo,
+    val uføreVilkårsvurderingRepo: UføreVilkårsvurderingRepo,
+    val formueVilkårsvurderingRepo: FormueVilkårsvurderingRepo,
 )

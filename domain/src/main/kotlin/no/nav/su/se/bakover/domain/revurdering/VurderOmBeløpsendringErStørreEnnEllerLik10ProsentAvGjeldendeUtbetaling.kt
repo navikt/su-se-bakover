@@ -14,7 +14,8 @@ data class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetal
     val resultat: Boolean
 
     init {
-        fun diffEr10ProsentEllerMer(førsteMånedsbeløp: Int, gjeldendeUtbetalingsbeløp: Int) = abs(førsteMånedsbeløp - gjeldendeUtbetalingsbeløp) >= (0.1 * gjeldendeUtbetalingsbeløp)
+        fun diffEr10ProsentEllerMer(førsteMånedsbeløp: Int, gjeldendeUtbetalingsbeløp: Int) =
+            abs(førsteMånedsbeløp - gjeldendeUtbetalingsbeløp) >= (0.1 * gjeldendeUtbetalingsbeløp)
 
         val utbetalingstidslinje = Tidslinje(
             periode = nyBeregning.periode,
@@ -27,7 +28,10 @@ data class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetal
 
         resultat = when (gjeldendeUtbetaling) {
             null -> true
-            is Utbetalingslinje.Ny -> diffEr10ProsentEllerMer(førsteMånedsberegning.finnBeløpFor10ProsentSjekk(), gjeldendeUtbetaling.beløp)
+            is Utbetalingslinje.Ny -> diffEr10ProsentEllerMer(
+                førsteMånedsberegning.finnBeløpFor10ProsentSjekk(),
+                gjeldendeUtbetaling.beløp,
+            )
             is Utbetalingslinje.Endring -> {
                 when (gjeldendeUtbetaling) {
                     is Utbetalingslinje.Endring.Opphør,
@@ -44,10 +48,17 @@ data class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetal
                              * i beregningen faller på opphørsdato eller senere. I praksis betyr dette at beløpet som
                              * utbetales er lik 0.
                              */
-                            opphørEllerStansGjelderForHeleBeregningsperioden && (statusFraOgMed.isEqual(førsteMånedsberegning.periode.fraOgMed) || statusFraOgMed.isBefore(førsteMånedsberegning.periode.fraOgMed)) -> {
+                            opphørEllerStansGjelderForHeleBeregningsperioden && (
+                                statusFraOgMed.isEqual(førsteMånedsberegning.periode.fraOgMed) || statusFraOgMed.isBefore(
+                                    førsteMånedsberegning.periode.fraOgMed,
+                                )
+                                ) -> {
                                 diffEr10ProsentEllerMer(førsteMånedsberegning.finnBeløpFor10ProsentSjekk(), 0)
                             }
-                            else -> diffEr10ProsentEllerMer(førsteMånedsberegning.finnBeløpFor10ProsentSjekk(), gjeldendeUtbetaling.beløp)
+                            else -> diffEr10ProsentEllerMer(
+                                førsteMånedsberegning.finnBeløpFor10ProsentSjekk(),
+                                gjeldendeUtbetaling.beløp,
+                            )
                         }
                     }
                     is Utbetalingslinje.Endring.Reaktivering -> diffEr10ProsentEllerMer(førsteMånedsberegning.finnBeløpFor10ProsentSjekk(), gjeldendeUtbetaling.beløp)

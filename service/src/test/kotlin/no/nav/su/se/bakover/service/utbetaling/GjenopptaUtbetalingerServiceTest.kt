@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
@@ -131,9 +130,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
 
-        val utbetalingRepoMock = mock<UtbetalingRepo> {
-            on { opprettUtbetaling(any()) }.doNothing()
-        }
+        val utbetalingRepoMock = mock<UtbetalingRepo>()
 
         val utbetalingPublisherMock = mock<UtbetalingPublisher> {
             on {

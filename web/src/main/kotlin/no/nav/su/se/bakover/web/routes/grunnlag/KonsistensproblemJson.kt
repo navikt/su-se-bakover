@@ -28,4 +28,16 @@ fun Konsistensproblem.tilResultat() = when (this) {
         message = "Uføregrunnlag mangler",
         code = "uføregrunnlag_mangler",
     )
+    Konsistensproblem.BosituasjonOgFormue.FlereBosituasjonerOgFormueForEPS -> ErrorJson(
+        message = "Flere bosituasjoner og formue for EPS",
+        code = "flere_bosituasjoner_og_formue_for_eps",
+    )
+    Konsistensproblem.BosituasjonOgFormue.IngenEPSMenFormueForEPS -> ErrorJson(
+        message = "Har formue for EPS, men ingen EPS er registrert.",
+        code = "formue_for_eps_ingen_eps_registrert",
+    )
+    Konsistensproblem.BosituasjonOgFormue.EPSFormueperiodeErUtenforBosituasjonPeriode -> ErrorJson(
+        "Ikke lov med formueperiode utenfor bosituasjonperioder",
+        "ikke_lov_med_formueperiode_utenfor_bosituasjonperiode",
+    )
 }

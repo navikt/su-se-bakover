@@ -6,6 +6,7 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import java.time.Clock
 import java.util.UUID
 
 data class LeggTilUførevurderingerRequest(
@@ -22,9 +23,9 @@ data class LeggTilUførevurderingerRequest(
         object HeleBehandlingsperiodenMåHaVurderinger : UgyldigUførevurdering()
     }
 
-    fun toVilkår(behandlingsperiode: Periode): Either<UgyldigUførevurdering, Vilkår.Vurdert.Uførhet> {
+    fun toVilkår(behandlingsperiode: Periode, clock: Clock): Either<UgyldigUførevurdering, Vilkår.Uførhet.Vurdert> {
         return vurderinger.map { vurdering ->
-            vurdering.toVurderingsperiode(behandlingsperiode).getOrHandle {
+            vurdering.toVurderingsperiode(behandlingsperiode, clock).getOrHandle {
                 return when (it) {
                     LeggTilUførevurderingRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> UgyldigUførevurdering.UføregradOgForventetInntektMangler.left()
                     LeggTilUførevurderingRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig.left()
@@ -33,10 +34,10 @@ data class LeggTilUførevurderingerRequest(
                 }
             }
         }.let { vurderingsperioder ->
-            Vilkår.Vurdert.Uførhet.tryCreate(Nel.fromListUnsafe(vurderingsperioder))
+            Vilkår.Uførhet.Vurdert.tryCreate(Nel.fromListUnsafe(vurderingsperioder))
                 .mapLeft {
                     when (it) {
-                        Vilkår.Vurdert.Uførhet.UgyldigUførevilkår.OverlappendeVurderingsperioder -> UgyldigUførevurdering.OverlappendeVurderingsperioder
+                        Vilkår.Uførhet.Vurdert.UgyldigUførevilkår.OverlappendeVurderingsperioder -> UgyldigUførevurdering.OverlappendeVurderingsperioder
                     }
                 }.map {
                     // Denne sjekken vil og fange opp: VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden, derfor kjører vi den etterpå.

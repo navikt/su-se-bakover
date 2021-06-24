@@ -38,8 +38,11 @@ import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.revurdering.BeregnOgSimulerResponse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.fixedTidspunkt
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.formueVilkår
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.requestPath
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.testServices
@@ -115,6 +118,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             periode = TestBeregning.periode,
             uføregrad = Uføregrad.parse(20),
             forventetInntekt = 12000,
+            opprettet = fixedTidspunkt,
         )
         val beregnetRevurdering = OpprettetRevurdering(
             id = UUID.randomUUID(),
@@ -131,7 +135,6 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(uføregrunnlag),
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -142,16 +145,18 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             resultat = Resultat.Innvilget,
                             grunnlag = uføregrunnlag,
                             periode = TestBeregning.periode,
                             begrunnelse = null,
+                            opprettet = fixedTidspunkt
                         ),
                     ),
                 ),
+                formue = formueVilkår(periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         ).beregn(eksisterendeUtbetalinger = emptyList()).orNull()!!

@@ -11,7 +11,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.junit.jupiter.api.Test
@@ -19,20 +18,18 @@ import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 internal class SakServiceImplTest {
+
     @Test
     fun `Oppretter sak og publiserer event`() {
         val sakId = UUID.randomUUID()
-        val sak: Sak = mock() {
+        val sak: Sak = mock {
             on { id } doReturn sakId
         }
         val sakRepo: SakRepo = mock {
-            on { opprettSak(any()) }.doNothing()
             on { hentSak(any<UUID>()) } doReturn sak
         }
 
-        val observer: EventObserver = mock {
-            on { handle(any()) }.doNothing()
-        }
+        val observer: EventObserver = mock()
 
         val sakService = SakServiceImpl(sakRepo)
         sakService.observers.add(observer)

@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.sak.SakService
@@ -311,9 +310,7 @@ internal class UtbetalingServiceImplTest {
             on { simulerUtbetaling(any()) } doReturn simulering.right()
         }
 
-        val utbetalingRepoMock = mock<UtbetalingRepo> {
-            on { opprettUtbetaling(any()) }.doNothing()
-        }
+        val utbetalingRepoMock = mock<UtbetalingRepo>()
         val utbetalingPublisherMock = mock<UtbetalingPublisher> {
             on { publish(any()) } doReturn oppdragsmelding.right()
         }

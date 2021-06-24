@@ -16,10 +16,11 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.test.create
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class VilkårsvurderingPostgresRepoTest {
+internal class UføreVilkårsvurderingPostgresRepoTest {
     private val datasource = EmbeddedDatabase.instance()
     private val testDataHelper = TestDataHelper(datasource)
 
@@ -27,7 +28,7 @@ internal class VilkårsvurderingPostgresRepoTest {
     fun `lagrer og henter vilkårsvurdering uten grunnlag`() {
         withMigratedDb {
             val søknadsbehandling = testDataHelper.nySøknadsbehandling()
-            val vurderingUførhet = Vilkår.Vurdert.Uførhet.create(
+            val vurderingUførhet = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         id = UUID.randomUUID(),
@@ -40,10 +41,10 @@ internal class VilkårsvurderingPostgresRepoTest {
                 ),
             )
 
-            testDataHelper.vilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
+            testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
 
             datasource.withSession { session ->
-                testDataHelper.vilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
+                testDataHelper.uføreVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
             }
         }
     }
@@ -60,7 +61,7 @@ internal class VilkårsvurderingPostgresRepoTest {
                 forventetInntekt = 12000,
             )
 
-            val vurderingUførhet = Vilkår.Vurdert.Uførhet.create(
+            val vurderingUførhet = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         id = UUID.randomUUID(),
@@ -73,10 +74,10 @@ internal class VilkårsvurderingPostgresRepoTest {
                 ),
             )
 
-            testDataHelper.vilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
+            testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
 
             datasource.withSession { session ->
-                testDataHelper.vilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
+                testDataHelper.uføreVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
             }
         }
     }
@@ -93,7 +94,7 @@ internal class VilkårsvurderingPostgresRepoTest {
                 forventetInntekt = 12000,
             )
 
-            val vurderingUførhet = Vilkår.Vurdert.Uførhet.create(
+            val vurderingUførhet = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         id = UUID.randomUUID(),
@@ -106,16 +107,16 @@ internal class VilkårsvurderingPostgresRepoTest {
                 ),
             )
 
-            testDataHelper.vilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
+            testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
 
             datasource.withSession { session ->
-                testDataHelper.vilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
+                testDataHelper.uføreVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
             }
 
-            testDataHelper.vilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
+            testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
 
             datasource.withSession { session ->
-                testDataHelper.vilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
+                testDataHelper.uføreVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
             }
         }
     }

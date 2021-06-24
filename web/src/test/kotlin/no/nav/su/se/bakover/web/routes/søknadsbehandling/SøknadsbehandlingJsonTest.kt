@@ -132,7 +132,22 @@ internal class SøknadsbehandlingJsonTest {
           "grunnlagsdataOgVilkårsvurderinger": {
             "uføre": $expectedVurderingUføreJson,
             "fradrag": [],
-            "bosituasjon": $expectedBosituasjonJson
+            "bosituasjon": $expectedBosituasjonJson,
+            "formue": {
+                "resultat": "MåInnhenteMerInformasjon",
+                "formuegrenser": [
+                  {
+                      "gyldigFra": "2021-05-01",
+                      "beløp": 53200
+                  },
+                  {
+                      "gyldigFra": "2020-05-01",
+                      "beløp": 50676
+                  }
+                ],
+                "vilkår": "Formue",
+                "vurderinger": []
+              }
           }
         }
             """.trimIndent()
@@ -162,7 +177,7 @@ internal class SøknadsbehandlingJsonTest {
             fritekstTilBrev = "",
             stønadsperiode = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
         val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(behandlingWithNulls.opprettet)
 
@@ -197,7 +212,22 @@ internal class SøknadsbehandlingJsonTest {
           "grunnlagsdataOgVilkårsvurderinger": {
             "uføre": null,
             "fradrag": [],
-            "bosituasjon": []
+            "bosituasjon": [],
+            "formue": {
+                "resultat": "MåInnhenteMerInformasjon",
+                "formuegrenser": [
+                  {
+                      "gyldigFra": "2021-05-01",
+                      "beløp": 53200
+                  },
+                  {
+                      "gyldigFra": "2020-05-01",
+                      "beløp": 50676
+                  }
+                ],
+                "vilkår": "Formue",
+                "vurderinger": []
+            }
           }
         }
         """

@@ -84,12 +84,14 @@ object ServiceBuilder {
         )
 
         val vilkårsvurderingService = VilkårsvurderingServiceImpl(
-            vilkårsvurderingRepo = databaseRepos.vilkårsvurderingRepo,
+            uføreVilkårsvurderingRepo = databaseRepos.uføreVilkårsvurderingRepo,
+            formueVilkårsvurderingRepo = databaseRepos.formueVilkårsvurderingRepo,
         )
 
         val vedtakService = VedtakServiceImpl(
             vedtakRepo = databaseRepos.vedtakRepo,
             sakService = sakService,
+            clock = clock
         )
 
         val revurderingService = RevurderingServiceImpl(

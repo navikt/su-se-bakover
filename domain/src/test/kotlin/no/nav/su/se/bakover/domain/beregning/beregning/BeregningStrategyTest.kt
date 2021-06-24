@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import org.junit.jupiter.api.Test
@@ -30,6 +31,7 @@ internal class BeregningStrategyTest {
                     periode = periode,
                     uføregrad = Uføregrad.parse(90),
                     forventetInntekt = 12000,
+                    opprettet = fixedTidspunkt,
                 ),
             ),
             fradragFraSaksbehandler = listOf(

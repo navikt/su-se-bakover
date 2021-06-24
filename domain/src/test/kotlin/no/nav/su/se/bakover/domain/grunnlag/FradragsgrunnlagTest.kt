@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Validator.valider
 import org.junit.jupiter.api.Test
 
@@ -26,6 +27,7 @@ internal class FradragsgrunnlagTest {
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             ),
+            opprettet = fixedTidspunkt,
         ).valider(
             behandlingsperiode,
             false,
@@ -42,6 +44,7 @@ internal class FradragsgrunnlagTest {
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             ),
+            opprettet = fixedTidspunkt,
         ).valider(
             behandlingsperiode,
             false,
@@ -55,6 +58,7 @@ internal class FradragsgrunnlagTest {
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             ),
+            opprettet = fixedTidspunkt,
         ).valider(
             behandlingsperiode,
             true,
@@ -68,6 +72,7 @@ internal class FradragsgrunnlagTest {
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             ),
+            opprettet = fixedTidspunkt,
         ).valider(
             behandlingsperiode,
             false,
@@ -85,6 +90,7 @@ internal class FradragsgrunnlagTest {
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
+                opprettet = fixedTidspunkt,
             ),
             Grunnlag.Fradragsgrunnlag(
                 fradrag = FradragFactory.ny(
@@ -94,6 +100,7 @@ internal class FradragsgrunnlagTest {
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
+                opprettet = fixedTidspunkt,
             ),
         ).valider(behandlingsperiode, true) shouldBeLeft Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag
     }

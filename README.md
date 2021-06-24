@@ -133,3 +133,17 @@ prod: https://alertmanager.prod-fss.nais.io
 
 * Set team-namespace as default: `kubectl config set-context --current --namespace=supstonad`
 * Describe pod: `kubectl describe pod su-se-bakover`
+
+## Dependabot
+Vi bruker Github sin innebygde dependabot: https://github.com/navikt/su-se-bakover/network/updates
+Se og `.github/dependabot.yaml`
+Denne vil opprette PRs en gang i uka på dependencies som ikke kjører siste versjon.
+
+## Snyk
+Scanner etter dependencies med kjente sikkerhetshull og gir forslag til tiltak.
+Se https://app.snyk.io/login og logg inn via `SSO`
+
+### Kjør Snyk lokalt
+1. Installer Snyk
+1. `snyk auth`
+1. `snyk test --all-sub-projects`

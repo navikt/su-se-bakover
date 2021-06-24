@@ -80,6 +80,7 @@ abstract class BrevInnhold {
         val attestantNavn: String,
         val fritekst: String,
         val forventetInntektStørreEnn0: Boolean,
+        val halvGrunnbeløp: Int?
     ) : BrevInnhold() {
         override val brevTemplate: BrevTemplate = BrevTemplate.Opphørsvedtak
 

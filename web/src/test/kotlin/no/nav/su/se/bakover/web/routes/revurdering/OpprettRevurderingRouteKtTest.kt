@@ -91,8 +91,8 @@ internal class OpprettRevurderingRouteKtTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt))
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         val revurderingServiceMock = mock<RevurderingService> {
             on { opprettRevurdering(any()) } doReturn opprettetRevurdering.right()

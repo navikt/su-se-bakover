@@ -42,7 +42,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
@@ -86,7 +85,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             gjelderNavn = "NAVN",
             datoBeregnet = idag(),
             nettoBeløp = 191500,
-            periodeList = listOf()
+            periodeList = listOf(),
         ),
         saksbehandler = saksbehandler,
         sakId = sakId,
@@ -96,7 +95,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.EMPTY,
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
     )
 
     private val oppgaveConfig = OppgaveConfig.Saksbehandling(
@@ -329,9 +328,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             on { lukkOppgave(any()) } doReturn KunneIkkeLukkeOppgave.left()
         }
         val behandlingMetricsMock = mock<BehandlingMetrics>()
-        val observerMock: EventObserver = mock {
-            on { handle(any()) }.doNothing()
-        }
+        val observerMock: EventObserver = mock()
 
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
@@ -362,7 +359,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             fritekstTilBrev = "",
             stønadsperiode = innvilgetBehandlingTilAttestering.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
         actual shouldBe underkjentMedNyOppgaveIdOgAttestering.right()
@@ -447,7 +444,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             fritekstTilBrev = "",
             stønadsperiode = innvilgetBehandlingTilAttestering.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
         actual shouldBe underkjentMedNyOppgaveIdOgAttestering.right()

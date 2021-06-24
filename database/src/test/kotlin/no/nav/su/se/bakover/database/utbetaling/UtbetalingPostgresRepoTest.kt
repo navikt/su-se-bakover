@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test
 internal class UtbetalingPostgresRepoTest {
 
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
-    private val repo = UtbetalingPostgresRepo(EmbeddedDatabase.instance())
+    private val repo = testDataHelper.utbetalingRepo
 
     @Test
     fun `opprett og hent utbetaling uten kvittering`() {

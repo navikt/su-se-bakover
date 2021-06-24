@@ -58,8 +58,10 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.fixedLocalDate
 import no.nav.su.se.bakover.service.fixedTidspunkt
+import no.nav.su.se.bakover.service.formueVilkår
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -67,8 +69,11 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.søknadsbehandling.testBeregning
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.test.create
 import org.junit.jupiter.api.Test
+import java.time.Clock
 import java.time.LocalDate
+import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
@@ -124,15 +129,17 @@ internal class OpprettRevurderingServiceTest {
         periode = stønadsperiode.periode,
         uføregrad = Uføregrad.parse(25),
         forventetInntekt = 12000,
+        opprettet = fixedTidspunkt,
     )
 
-    private val vilkårsvurderingUføre = Vilkår.Vurdert.Uførhet.create(
+    private val vilkårsvurderingUføre = Vilkår.Uførhet.Vurdert.create(
         vurderingsperioder = nonEmptyListOf(
             Vurderingsperiode.Uføre.create(
                 resultat = Resultat.Innvilget,
                 grunnlag = uføregrunnlag,
                 periode = stønadsperiode.periode,
                 begrunnelse = "ok",
+                opprettet = fixedTidspunkt,
             ),
         ),
     )
@@ -156,48 +163,46 @@ internal class OpprettRevurderingServiceTest {
             ),
         )
 
-    private fun createInnvilgetBehandling(): Søknadsbehandling.Iverksatt.Innvilget {
-
-        return Søknadsbehandling.Iverksatt.Innvilget(
-            id = mock(),
-            opprettet = mock(),
-            sakId = sakId,
-            saksnummer = saksnummer,
-            søknad = mock(),
-            oppgaveId = mock(),
-            behandlingsinformasjon = innvilgetBehandlingsinformasjon,
-            fnr = fnr,
-            beregning = createBeregningMock(),
-            simulering = mock(),
-            saksbehandler = saksbehandler,
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
-            fritekstTilBrev = "",
-            stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(uføregrunnlag),
-                bosituasjon = listOf(
-                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = stønadsperiode.periode,
-                        begrunnelse = null,
-                    ),
+    private fun createInnvilgetBehandling() = Søknadsbehandling.Iverksatt.Innvilget(
+        id = mock(),
+        opprettet = mock(),
+        sakId = sakId,
+        saksnummer = saksnummer,
+        søknad = mock(),
+        oppgaveId = mock(),
+        behandlingsinformasjon = innvilgetBehandlingsinformasjon,
+        fnr = fnr,
+        beregning = createBeregningMock(),
+        simulering = mock(),
+        saksbehandler = saksbehandler,
+        attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
+        fritekstTilBrev = "",
+        stønadsperiode = stønadsperiode,
+        grunnlagsdata = Grunnlagsdata(
+            bosituasjon = listOf(
+                Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    periode = stønadsperiode.periode,
+                    begrunnelse = null,
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = vilkårsvurderingUføre,
-            ),
-        )
-    }
+        ),
+        vilkårsvurderinger = Vilkårsvurderinger(
+            uføre = vilkårsvurderingUføre,
+            formue = formueVilkår(stønadsperiode.periode),
+        ),
+    )
 
     private fun createSøknadsbehandlingVedtak() =
-        Vedtak.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID())
+        Vedtak.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID(), fixedClock)
 
     @Test
     fun `oppretter en revurdering`() {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
             periode = søknadsbehandlingperiode,
             vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -250,7 +255,7 @@ internal class OpprettRevurderingServiceTest {
             )
             opprettetRevurdering.forhåndsvarsel shouldBe null
             opprettetRevurdering.behandlingsinformasjon shouldBe tilRevurdering.behandlingsinformasjon
-            opprettetRevurdering.grunnlagsdata.uføregrunnlag.let {
+            opprettetRevurdering.vilkårsvurderinger.uføre.grunnlag.let {
                 it shouldHaveSize 1
                 it[0].ekvivalentMed(uføregrunnlag)
             }
@@ -291,6 +296,7 @@ internal class OpprettRevurderingServiceTest {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
             periode = søknadsbehandlingperiode,
             vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -344,7 +350,7 @@ internal class OpprettRevurderingServiceTest {
             )
             opprettetRevurdering.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
             opprettetRevurdering.behandlingsinformasjon shouldBe tilRevurdering.behandlingsinformasjon
-            opprettetRevurdering.grunnlagsdata.uføregrunnlag.let {
+            opprettetRevurdering.vilkårsvurderinger.uføre.grunnlag.let {
                 it shouldHaveSize 1
                 it[0].ekvivalentMed(uføregrunnlag.copy(periode = periode))
             }
@@ -395,6 +401,7 @@ internal class OpprettRevurderingServiceTest {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
             periode = periode,
             vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -444,7 +451,7 @@ internal class OpprettRevurderingServiceTest {
             )
             opprettetRevurdering.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
             opprettetRevurdering.behandlingsinformasjon shouldBe tilRevurdering.behandlingsinformasjon
-            opprettetRevurdering.grunnlagsdata.uføregrunnlag.let {
+            opprettetRevurdering.vilkårsvurderinger.uføre.grunnlag.let {
                 it shouldHaveSize 1
                 it[0].ekvivalentMed(uføregrunnlag.copy(periode = periode))
             }
@@ -541,7 +548,6 @@ internal class OpprettRevurderingServiceTest {
             on { fnr } doReturn FnrGenerator.random()
             on { saksnummer } doReturn Saksnummer(2021)
             on { grunnlagsdata } doReturn Grunnlagsdata(
-                uføregrunnlag = listOf(uføregrunnlag),
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -553,6 +559,7 @@ internal class OpprettRevurderingServiceTest {
             )
             on { vilkårsvurderinger } doReturn Vilkårsvurderinger(
                 uføre = vilkårsvurderingUføre,
+                formue = formueVilkår(stønadsperiode.periode),
             )
         }
         val vedtakForFørsteJanuarLagetNå = mock<Vedtak.EndringIYtelse> {
@@ -595,11 +602,13 @@ internal class OpprettRevurderingServiceTest {
         val gjeldendeVedtaksdataFebruar = GjeldendeVedtaksdata(
             periode = Periode.create(fraOgMedDatoFebruar, vedtakListe.maxOf { it.periode.tilOgMed }),
             vedtakListe = vedtakListe,
+            clock = fixedClock,
         )
 
         val gjeldendeVedtaksdataApril = GjeldendeVedtaksdata(
             periode = Periode.create(fraOgMedDatoApril, vedtakListe.maxOf { it.periode.tilOgMed }),
             vedtakListe = vedtakListe,
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -650,9 +659,9 @@ internal class OpprettRevurderingServiceTest {
 
     @Test
     fun `kan revurdere en periode med eksisterende revurdering`() {
-        val opprinneligVedtak = Vedtak.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID())
+        val opprinneligVedtak = Vedtak.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID(), fixedClock)
         val revurdering = Vedtak.from(
-            IverksattRevurdering.Innvilget(
+            revurdering = IverksattRevurdering.Innvilget(
                 id = UUID.randomUUID(),
                 periode = søknadsbehandlingperiode,
                 opprettet = Tidspunkt.EPOCH,
@@ -667,7 +676,6 @@ internal class OpprettRevurderingServiceTest {
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 behandlingsinformasjon = opprinneligVedtak.behandlingsinformasjon,
                 grunnlagsdata = Grunnlagsdata(
-                    uføregrunnlag = listOf(uføregrunnlag),
                     bosituasjon = listOf(
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
                             id = UUID.randomUUID(),
@@ -679,10 +687,12 @@ internal class OpprettRevurderingServiceTest {
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger(
                     uføre = vilkårsvurderingUføre,
+                    formue = formueVilkår(søknadsbehandlingperiode),
                 ),
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             ),
-            UUID30.randomUUID(),
+            utbetalingId = UUID30.randomUUID(),
+            clock = Clock.fixed(fixedClock.instant().plus(1, ChronoUnit.DAYS), ZoneOffset.UTC),
         )
 
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
@@ -691,6 +701,7 @@ internal class OpprettRevurderingServiceTest {
                 opprinneligVedtak,
                 revurdering,
             ),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -779,6 +790,7 @@ internal class OpprettRevurderingServiceTest {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
             periode = søknadsbehandlingperiode,
             vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -815,6 +827,7 @@ internal class OpprettRevurderingServiceTest {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
             periode = søknadsbehandlingperiode,
             vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -897,24 +910,37 @@ internal class OpprettRevurderingServiceTest {
             periode = periodePlussEtÅr,
             uføregrad = Uføregrad.parse(25),
             forventetInntekt = 12000,
+            opprettet = fixedTidspunkt,
         )
-        val uførevilkår = Vilkår.Vurdert.Uførhet.create(
+        val uførevilkår = Vilkår.Uførhet.Vurdert.create(
             vurderingsperioder = nonEmptyListOf(
                 Vurderingsperiode.Uføre.create(
                     resultat = Resultat.Innvilget,
                     grunnlag = uføregrunnlag,
                     periode = periodePlussEtÅr,
                     begrunnelse = "ok",
+                    opprettet = fixedTidspunkt,
                 ),
+            ),
+        )
+        val bosituasjon = listOf(
+            Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = periodePlussEtÅr,
+                begrunnelse = null,
             ),
         )
         val andreVedtak = createSøknadsbehandlingVedtak().copy(
             periode = periodePlussEtÅr,
             behandling = createInnvilgetBehandling().copy(
                 grunnlagsdata = Grunnlagsdata(
-                    uføregrunnlag = listOf(uføregrunnlag),
+                    bosituasjon = bosituasjon,
                 ),
-                vilkårsvurderinger = Vilkårsvurderinger(uføre = uførevilkår),
+                vilkårsvurderinger = Vilkårsvurderinger(
+                    uføre = uførevilkår,
+                ),
+                stønadsperiode = Stønadsperiode.create(periodePlussEtÅr),
             ),
         )
 
@@ -927,6 +953,7 @@ internal class OpprettRevurderingServiceTest {
                 førsteVedtak,
                 andreVedtak,
             ),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -965,7 +992,6 @@ internal class OpprettRevurderingServiceTest {
             on { simulering } doReturn mock()
             on { saksbehandler } doReturn mock()
             on { grunnlagsdata } doReturn Grunnlagsdata(
-                uføregrunnlag = listOf(uføregrunnlag),
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -983,8 +1009,9 @@ internal class OpprettRevurderingServiceTest {
             periode = søknadsbehandlingperiode,
             vedtakListe = nonEmptyListOf(
                 createSøknadsbehandlingVedtak(),
-                Vedtak.from(revurdering, UUID30.randomUUID()),
+                Vedtak.from(revurdering, UUID30.randomUUID(), fixedClock),
             ),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -1012,7 +1039,7 @@ internal class OpprettRevurderingServiceTest {
 
     @Test
     fun `revurdering med EPS inntekt og flere bosituasjoner må vurderes`() {
-        fun lagBeregning(periode: Periode) = mock<Beregning>() {
+        fun lagBeregning(periode: Periode) = mock<Beregning> {
             on { getFradrag() } doReturn listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
@@ -1059,8 +1086,9 @@ internal class OpprettRevurderingServiceTest {
                 createSøknadsbehandlingVedtak().copy(
                     beregning = lagBeregning(søknadsbehandlingperiode),
                 ),
-                Vedtak.from(revurdering, UUID30.randomUUID()),
+                Vedtak.from(revurdering, UUID30.randomUUID(), fixedClock),
             ),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {

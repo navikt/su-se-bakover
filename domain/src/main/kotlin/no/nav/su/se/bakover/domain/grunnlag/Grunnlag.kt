@@ -23,7 +23,7 @@ sealed class Grunnlag {
      */
     data class Uføregrunnlag(
         override val id: UUID = UUID.randomUUID(),
-        override val opprettet: Tidspunkt = Tidspunkt.now(),
+        override val opprettet: Tidspunkt,
         override val periode: Periode,
         val uføregrad: Uføregrad,
         /** Kan ikke være negativ. */
@@ -47,25 +47,9 @@ sealed class Grunnlag {
         }
     }
 
-    data class Flyktninggrunnlag(
-        override val id: UUID = UUID.randomUUID(),
-        override val opprettet: Tidspunkt = Tidspunkt.now(),
-        override val periode: Periode,
-    ) : Grunnlag(), KanPlasseresPåTidslinje<Flyktninggrunnlag> {
-
-        override fun copy(args: CopyArgs.Tidslinje): Flyktninggrunnlag = when (args) {
-            CopyArgs.Tidslinje.Full -> {
-                this.copy(id = UUID.randomUUID())
-            }
-            is CopyArgs.Tidslinje.NyPeriode -> {
-                this.copy(id = UUID.randomUUID(), periode = args.periode)
-            }
-        }
-    }
-
     data class Fradragsgrunnlag(
         override val id: UUID = UUID.randomUUID(),
-        val opprettet: Tidspunkt = Tidspunkt.now(),
+        val opprettet: Tidspunkt,
         val fradrag: Fradrag,
     ) : Grunnlag() {
 

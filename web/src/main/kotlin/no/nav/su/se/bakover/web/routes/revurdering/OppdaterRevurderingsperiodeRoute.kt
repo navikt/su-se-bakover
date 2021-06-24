@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.eps
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIngenVedtakSomKanRevurderes
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.formueSomFørerTilOpphørMåRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.måVelgeInformasjonSomRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tidslinjeForVedtakErIkkeKontinuerlig
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.ugyldigTilstand
@@ -96,5 +97,6 @@ private fun KunneIkkeOppdatereRevurdering.tilResultat(): Resultat {
         KunneIkkeOppdatereRevurdering.TidslinjeForVedtakErIkkeKontinuerlig -> tidslinjeForVedtakErIkkeKontinuerlig
         KunneIkkeOppdatereRevurdering.BosituasjonMedFlerePerioderMåRevurderes -> bosituasjonMedFlerePerioderMåRevurderes
         KunneIkkeOppdatereRevurdering.EpsInntektMedFlereBosituasjonsperioderMåRevurderes -> epsInntektMedFlereBosituasjonsperioderMåRevurderes
+        KunneIkkeOppdatereRevurdering.FormueSomFørerTilOpphørMåRevurderes -> formueSomFørerTilOpphørMåRevurderes
     }
 }
