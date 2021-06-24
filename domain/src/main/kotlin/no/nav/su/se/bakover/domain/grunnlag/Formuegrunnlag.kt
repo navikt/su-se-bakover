@@ -8,10 +8,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
-import org.slf4j.LoggerFactory
 import java.util.UUID
-
-private val log = LoggerFactory.getLogger(Formuegrunnlag::class.java)
 
 data class Formuegrunnlag private constructor(
     override val id: UUID,
@@ -73,8 +70,7 @@ data class Formuegrunnlag private constructor(
                 depositumskonto: Int,
             ): Either<KunneIkkeLageFormueVerdier, Verdier> {
                 if (depositumskonto > innskudd) {
-                    log.warn("Depositum er høyere enn innskudd for denne brukeren, eller hens eps")
-                    // TODO: bytt til return KunneIkkeLageFormueVerdier.DepositumErStørreEnnInnskudd.left()
+                    return KunneIkkeLageFormueVerdier.DepositumErStørreEnnInnskudd.left()
                 }
 
                 if (

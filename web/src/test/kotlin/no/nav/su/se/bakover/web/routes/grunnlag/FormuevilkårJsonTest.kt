@@ -57,7 +57,7 @@ internal class FormuevilkårJsonTest {
                             verdipapir = 5,
                             pengerSkyldt = 6,
                             kontanter = 7,
-                            depositumskonto = 8,
+                            depositumskonto = 2,
                         ),
                         søkersFormue = Formuegrunnlag.Verdier.create(
                             verdiIkkePrimærbolig = 9,
@@ -67,7 +67,7 @@ internal class FormuevilkårJsonTest {
                             verdipapir = 13,
                             pengerSkyldt = 14,
                             kontanter = 15,
-                            depositumskonto = 16,
+                            depositumskonto = 2,
                         ),
                         begrunnelse = "formueBegrunnelse",
                         bosituasjon = bosituasjon,
@@ -101,7 +101,7 @@ internal class FormuevilkårJsonTest {
                             verdipapir = 5,
                             pengerSkyldt = 6,
                             kontanter = 7,
-                            depositumskonto = 8,
+                            depositumskonto = 2,
                         ),
                         begrunnelse = null,
                         bosituasjon = bosituasjon,
@@ -135,7 +135,7 @@ internal class FormuevilkårJsonTest {
                "verdipapir":5,
                "pengerSkyldt":6,
                "kontanter":7,
-               "depositumskonto":8
+               "depositumskonto":2
             },
             "søkersFormue":{
                "verdiIkkePrimærbolig":9,
@@ -145,7 +145,7 @@ internal class FormuevilkårJsonTest {
                "verdipapir":13,
                "pengerSkyldt":14,
                "kontanter":15,
-               "depositumskonto":16
+               "depositumskonto":2
             },
             "begrunnelse":"formueBegrunnelse"
          },
@@ -168,7 +168,7 @@ internal class FormuevilkårJsonTest {
                "verdipapir":5,
                "pengerSkyldt":6,
                "kontanter":7,
-               "depositumskonto":8
+               "depositumskonto":2
             },
             "begrunnelse":null
          },
