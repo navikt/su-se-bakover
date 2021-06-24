@@ -103,7 +103,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 behandler = attestant,
                 clock = fixedClock,
             ).generate()
-        }.message shouldContain "Ingen oversendte utbetalinger"
+        }.message shouldContain "Ingen oversendte utbetalinger å gjenoppta"
     }
 
     @Test

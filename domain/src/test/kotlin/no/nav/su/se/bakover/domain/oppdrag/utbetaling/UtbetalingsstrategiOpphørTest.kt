@@ -71,7 +71,7 @@ internal class UtbetalingsstrategiOpphørTest {
                 opphørsDato = 1.januar(2021),
             ).generate()
         }.also {
-            it.message shouldBe "Sak: $sakId har ingen utbetalinger som kan opphøres"
+            it.message shouldBe "Ingen oversendte utbetalinger å opphøre"
         }
     }
 
@@ -105,7 +105,7 @@ internal class UtbetalingsstrategiOpphørTest {
                 opphørsDato = 19.januar(2021),
             ).generate()
         }.also {
-            it.message shouldBe "Ytelse kan kun opphøres fra første eller siste dag i en måned."
+            it.message shouldBe "Ytelse kan kun opphøres fra første dag i måneden"
         }
     }
 

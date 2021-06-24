@@ -4,7 +4,6 @@ import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.erFørsteDagIMåned
-import no.nav.su.se.bakover.common.erSisteDagIMåned
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -116,14 +115,10 @@ sealed class Utbetalingsstrategi {
         val clock: Clock,
     ) : Utbetalingsstrategi() {
         override fun generate(): Utbetaling.UtbetalingForSimulering {
-            val sisteUtbetalingslinje = sisteOversendteUtbetaling()?.sisteUtbetalingslinje().let {
-                validate(it is Utbetalingslinje) { "Sak: $sakId har ingen utbetalinger som kan opphøres" }
-                it.let { sisteUtbetalingslinje ->
-                    validate(opphørsDato.isBefore(sisteUtbetalingslinje.tilOgMed)) { "Dato for opphør må være tidligere enn tilOgMed for siste utbetalingslinje" }
-                    validate(opphørsDato.erFørsteDagIMåned() || opphørsDato.erSisteDagIMåned()) { "Ytelse kan kun opphøres fra første eller siste dag i en måned." }
-                }
-                it
-            }
+            val sisteUtbetalingslinje = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.also {
+                validate(opphørsDato.isBefore(it.tilOgMed)) { "Dato for opphør må være tidligere enn tilOgMed for siste utbetalingslinje" }
+                validate(opphørsDato.erFørsteDagIMåned()) { "Ytelse kan kun opphøres fra første dag i måneden" }
+            } ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å opphøre")
 
             return Utbetaling.UtbetalingForSimulering(
                 sakId = sakId,
