@@ -1,13 +1,12 @@
 package no.nav.su.se.bakover.database.utbetaling
 
 import arrow.core.nonEmptyListOf
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
@@ -92,43 +91,32 @@ internal class UtbetalingPostgresRepoTest {
                 utbetalingslinjer = nonEmptyListOf(originalUtbetalingslinje),
             )
 
-            val endretUtbetalingslinje = originalUtbetalingslinje.let {
-                Utbetalingslinje.Endring(
-                    utbetalingslinje = it,
-                    statusendring = Utbetalingslinje.Statusendring(
-                        status = Utbetalingslinje.LinjeStatus.OPPHØR,
-                        fraOgMed = 1.januar(2021),
-                    ),
-                )
-            }
+            val endretUtbetalingslinje = Utbetalingslinje.Endring.Opphør(
+                utbetalingslinje = originalUtbetalingslinje,
+                virkningstidspunkt = 1.februar(2021),
+            )
 
-            val endring = utbetaling.copy(
+            val opphør = utbetaling.copy(
                 id = UUID30.randomUUID(),
                 type = Utbetaling.UtbetalingsType.OPPHØR,
                 utbetalingslinjer = nonEmptyListOf(endretUtbetalingslinje),
             )
 
-            repo.opprettUtbetaling(endring)
+            repo.opprettUtbetaling(opphør)
 
-            repo.hentUtbetaling(endring.id)!!.let {
-                it.utbetalingslinjer.forEach {
-                    it should beOfType<Utbetalingslinje.Endring>()
-                    it shouldBe Utbetalingslinje.Endring(
-                        id = originalUtbetalingslinje.id,
-                        opprettet = endretUtbetalingslinje.opprettet,
-                        fraOgMed = originalUtbetalingslinje.fraOgMed,
-                        tilOgMed = originalUtbetalingslinje.tilOgMed,
-                        forrigeUtbetalingslinjeId = originalUtbetalingslinje.forrigeUtbetalingslinjeId,
-                        beløp = originalUtbetalingslinje.beløp,
-                        statusendring = Utbetalingslinje.Statusendring(
-                            status = Utbetalingslinje.LinjeStatus.OPPHØR,
-                            fraOgMed = 1.januar(2021),
-                        ),
-                    )
-                }
-            }
+            repo.hentUtbetaling(opphør.id)!!.utbetalingslinjer shouldBe nonEmptyListOf(
+                Utbetalingslinje.Endring.Opphør(
+                    id = originalUtbetalingslinje.id,
+                    opprettet = endretUtbetalingslinje.opprettet,
+                    fraOgMed = originalUtbetalingslinje.fraOgMed,
+                    tilOgMed = originalUtbetalingslinje.tilOgMed,
+                    forrigeUtbetalingslinjeId = originalUtbetalingslinje.forrigeUtbetalingslinjeId,
+                    beløp = originalUtbetalingslinje.beløp,
+                    virkningstidspunkt = endretUtbetalingslinje.virkningstidspunkt,
+                ),
+            )
 
-            repo.hentUtbetaling(utbetaling.id) shouldNotBe repo.hentUtbetaling(endring.id)
+            repo.hentUtbetaling(utbetaling.id) shouldNotBe repo.hentUtbetaling(opphør.id)
         }
     }
 }

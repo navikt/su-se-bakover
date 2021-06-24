@@ -40,12 +40,9 @@ internal class SimuleringRequestBuilderTest {
     fun `bygger simulering request ved endring av eksisterende oppdragslinjer`() {
         val linjeSomSkalEndres = UtbetalingRequestTest.nyUtbetaling.sisteUtbetalingslinje()
 
-        val linjeMedEndring = Utbetalingslinje.Endring(
+        val linjeMedEndring = Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = linjeSomSkalEndres,
-            statusendring = Utbetalingslinje.Statusendring(
-                status = Utbetalingslinje.LinjeStatus.OPPHØR,
-                fraOgMed = 1.februar(2020),
-            ),
+            virkningstidspunkt = 1.februar(2020),
         )
         val utbetalingMedEndring = UtbetalingRequestTest.nyUtbetaling.copy(
             type = Utbetaling.UtbetalingsType.OPPHØR,

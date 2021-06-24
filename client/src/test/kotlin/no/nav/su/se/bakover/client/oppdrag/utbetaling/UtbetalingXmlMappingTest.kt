@@ -43,12 +43,9 @@ class UtbetalingXmlMappingTest {
         forrigeUtbetalingslinjeId = førsteUtbetalingsLinje.id,
     )
 
-    private val tredjeUtbetalingslinje = Utbetalingslinje.Endring(
+    private val tredjeUtbetalingslinje = Utbetalingslinje.Endring.Opphør(
         andreUtbetalingslinje,
-        statusendring = Utbetalingslinje.Statusendring(
-            status = Utbetalingslinje.LinjeStatus.OPPHØR,
-            fraOgMed = 1.februar(2020),
-        ),
+        virkningstidspunkt = 1.februar(2020),
     )
 
     private val fnr = Fnr("12345678910")

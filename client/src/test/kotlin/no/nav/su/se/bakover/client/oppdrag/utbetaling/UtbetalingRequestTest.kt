@@ -228,12 +228,9 @@ internal class UtbetalingRequestTest {
             type = Utbetaling.UtbetalingsType.OPPHØR,
             avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()),
             utbetalingslinjer = nonEmptyListOf(
-                Utbetalingslinje.Endring(
+                Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = nyUtbetaling.sisteUtbetalingslinje(),
-                    statusendring = Utbetalingslinje.Statusendring(
-                        fraOgMed = 1.januar(2020),
-                        status = Utbetalingslinje.LinjeStatus.OPPHØR,
-                    ),
+                    virkningstidspunkt = 1.januar(2020),
                 ),
             ),
         )
@@ -242,12 +239,9 @@ internal class UtbetalingRequestTest {
             type = Utbetaling.UtbetalingsType.STANS,
             avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()),
             utbetalingslinjer = nonEmptyListOf(
-                Utbetalingslinje.Endring(
+                Utbetalingslinje.Endring.Stans(
                     utbetalingslinje = nyUtbetaling.sisteUtbetalingslinje(),
-                    statusendring = Utbetalingslinje.Statusendring(
-                        fraOgMed = 1.januar(2020),
-                        status = Utbetalingslinje.LinjeStatus.MIDLERTIDIG_STANS,
-                    ),
+                    virkningstidspunkt = 1.januar(2020),
                 ),
             ),
         )
@@ -256,12 +250,9 @@ internal class UtbetalingRequestTest {
             type = Utbetaling.UtbetalingsType.GJENOPPTA,
             avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()),
             utbetalingslinjer = nonEmptyListOf(
-                Utbetalingslinje.Endring(
+                Utbetalingslinje.Endring.Reaktivering(
                     utbetalingslinje = nyUtbetaling.sisteUtbetalingslinje(),
-                    statusendring = Utbetalingslinje.Statusendring(
-                        fraOgMed = 1.januar(2020),
-                        status = Utbetalingslinje.LinjeStatus.REAKTIVERING,
-                    ),
+                    virkningstidspunkt = 1.januar(2020),
                 ),
             ),
         )

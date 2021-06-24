@@ -5,7 +5,6 @@ import arrow.core.nonEmptyListOf
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
@@ -24,11 +23,10 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
 import java.time.Clock
-import java.time.LocalDate
 import java.time.ZoneOffset
 import java.util.UUID
 
-internal class OppdragStansTest {
+internal class UtbetalingsstrategiStansTest {
 
     private val fixedClock = Clock.fixed(15.juni(2020).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
     private val fnr = Fnr("12345678910")
@@ -60,17 +58,14 @@ internal class OppdragStansTest {
             clock = fixedClock,
         ).generate()
 
-        stans.utbetalingslinjer[0] shouldBe Utbetalingslinje.Endring(
+        stans.utbetalingslinjer[0] shouldBe Utbetalingslinje.Endring.Stans(
             id = utbetalingslinje.id,
             opprettet = stans.utbetalingslinjer[0].opprettet,
             fraOgMed = utbetalingslinje.fraOgMed,
             tilOgMed = utbetalingslinje.tilOgMed,
             forrigeUtbetalingslinjeId = utbetalingslinje.forrigeUtbetalingslinjeId,
             beløp = utbetalingslinje.beløp,
-            statusendring = Utbetalingslinje.Statusendring(
-                status = Utbetalingslinje.LinjeStatus.MIDLERTIDIG_STANS,
-                fraOgMed = 1.juli(2020),
-            ),
+            virkningstidspunkt = 1.juli(2020),
         )
     }
 
@@ -178,11 +173,4 @@ internal class OppdragStansTest {
             type = type,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
         )
-}
-
-fun Utbetalingslinje.assert(fraOgMed: LocalDate, tilOgMed: LocalDate, forrigeUtbetalingslinje: UUID30, beløp: Int) {
-    this.fraOgMed shouldBe fraOgMed
-    this.tilOgMed shouldBe tilOgMed
-    this.forrigeUtbetalingslinjeId shouldBe forrigeUtbetalingslinje
-    this.beløp shouldBe beløp
 }

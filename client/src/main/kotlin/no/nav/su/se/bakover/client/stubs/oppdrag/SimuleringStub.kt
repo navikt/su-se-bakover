@@ -73,7 +73,7 @@ object SimuleringStub : SimuleringClient {
     private fun simulerIngenUtbetaling(utbetaling: Utbetaling): Simulering {
         val simuleringsPeriode = when (val sisteUtbetalingslinje = utbetaling.sisteUtbetalingslinje()) {
             is Utbetalingslinje.Endring -> SimulertPeriode(
-                fraOgMed = sisteUtbetalingslinje.statusendring.fraOgMed,
+                fraOgMed = sisteUtbetalingslinje.virkningstidspunkt,
                 tilOgMed = utbetaling.senesteDato(),
                 utbetaling = emptyList(),
             )

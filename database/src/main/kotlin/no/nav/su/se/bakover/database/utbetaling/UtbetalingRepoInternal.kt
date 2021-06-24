@@ -96,18 +96,41 @@ internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
     )
 
     return if (status != null && statusFraOgMed != null) {
-        Utbetalingslinje.Endring(
-            id = linje.id,
-            opprettet = linje.opprettet,
-            fraOgMed = linje.fraOgMed,
-            tilOgMed = linje.tilOgMed,
-            forrigeUtbetalingslinjeId = linje.forrigeUtbetalingslinjeId,
-            beløp = linje.beløp,
-            statusendring = Utbetalingslinje.Statusendring(
-                status = Utbetalingslinje.LinjeStatus.valueOf(status),
-                fraOgMed = statusFraOgMed,
-            ),
-        )
+        when (Utbetalingslinje.LinjeStatus.valueOf(status)) {
+            Utbetalingslinje.LinjeStatus.OPPHØR -> {
+                Utbetalingslinje.Endring.Opphør(
+                    id = linje.id,
+                    opprettet = linje.opprettet,
+                    fraOgMed = linje.fraOgMed,
+                    tilOgMed = linje.tilOgMed,
+                    forrigeUtbetalingslinjeId = linje.forrigeUtbetalingslinjeId,
+                    beløp = linje.beløp,
+                    virkningstidspunkt = statusFraOgMed,
+                )
+            }
+            Utbetalingslinje.LinjeStatus.STANS -> {
+                Utbetalingslinje.Endring.Stans(
+                    id = linje.id,
+                    opprettet = linje.opprettet,
+                    fraOgMed = linje.fraOgMed,
+                    tilOgMed = linje.tilOgMed,
+                    forrigeUtbetalingslinjeId = linje.forrigeUtbetalingslinjeId,
+                    beløp = linje.beløp,
+                    virkningstidspunkt = statusFraOgMed,
+                )
+            }
+            Utbetalingslinje.LinjeStatus.REAKTIVERING -> {
+                Utbetalingslinje.Endring.Reaktivering(
+                    id = linje.id,
+                    opprettet = linje.opprettet,
+                    fraOgMed = linje.fraOgMed,
+                    tilOgMed = linje.tilOgMed,
+                    forrigeUtbetalingslinjeId = linje.forrigeUtbetalingslinjeId,
+                    beløp = linje.beløp,
+                    virkningstidspunkt = statusFraOgMed,
+                )
+            }
+        }
     } else {
         linje
     }

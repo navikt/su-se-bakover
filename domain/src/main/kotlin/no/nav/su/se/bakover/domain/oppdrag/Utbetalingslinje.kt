@@ -47,49 +47,122 @@ sealed class Utbetalingslinje : KanPlasseresPåTidslinje<Utbetalingslinje> {
         }
     }
 
-    data class Endring constructor(
-        override val id: UUID30,
-        override val opprettet: Tidspunkt,
-        override val fraOgMed: LocalDate,
-        override val tilOgMed: LocalDate,
-        override var forrigeUtbetalingslinjeId: UUID30?,
-        override val beløp: Int,
-        val statusendring: Statusendring,
-    ) : Utbetalingslinje() {
+    sealed class Endring : Utbetalingslinje() {
+        abstract val linjeStatus: LinjeStatus
+        abstract val virkningstidspunkt: LocalDate
 
-        @JsonIgnore
-        override val periode = Periode.create(fraOgMed, tilOgMed)
+        data class Opphør(
+            override val id: UUID30,
+            override val opprettet: Tidspunkt,
+            override val fraOgMed: LocalDate,
+            override val tilOgMed: LocalDate,
+            override var forrigeUtbetalingslinjeId: UUID30?,
+            override val beløp: Int,
+            override val virkningstidspunkt: LocalDate,
+        ) : Endring() {
+            override val linjeStatus = LinjeStatus.OPPHØR
 
-        constructor(
-            utbetalingslinje: Utbetalingslinje,
-            statusendring: Statusendring,
-        ) : this(
-            id = utbetalingslinje.id,
-            opprettet = Tidspunkt.now(),
-            fraOgMed = utbetalingslinje.fraOgMed,
-            tilOgMed = utbetalingslinje.tilOgMed,
-            forrigeUtbetalingslinjeId = utbetalingslinje.forrigeUtbetalingslinjeId,
-            beløp = utbetalingslinje.beløp,
-            statusendring = statusendring,
-        )
+            @JsonIgnore
+            override val periode = Periode.create(fraOgMed, tilOgMed)
 
-        override fun copy(args: CopyArgs.Tidslinje) = when (args) {
-            is CopyArgs.Tidslinje.Full -> this.copy()
-            is CopyArgs.Tidslinje.NyPeriode -> this.copy(
-                fraOgMed = args.periode.fraOgMed,
-                tilOgMed = args.periode.tilOgMed,
+            constructor(
+                utbetalingslinje: Utbetalingslinje,
+                virkningstidspunkt: LocalDate,
+            ) : this(
+                id = utbetalingslinje.id,
+                opprettet = Tidspunkt.now(),
+                fraOgMed = utbetalingslinje.fraOgMed,
+                tilOgMed = utbetalingslinje.tilOgMed,
+                forrigeUtbetalingslinjeId = utbetalingslinje.forrigeUtbetalingslinjeId,
+                beløp = utbetalingslinje.beløp,
+                virkningstidspunkt = virkningstidspunkt,
             )
+
+            override fun copy(args: CopyArgs.Tidslinje) = when (args) {
+                is CopyArgs.Tidslinje.Full -> this.copy()
+                is CopyArgs.Tidslinje.NyPeriode -> this.copy(
+                    fraOgMed = args.periode.fraOgMed,
+                    tilOgMed = args.periode.tilOgMed,
+                )
+            }
+        }
+
+        data class Stans(
+            override val id: UUID30,
+            override val opprettet: Tidspunkt,
+            override val fraOgMed: LocalDate,
+            override val tilOgMed: LocalDate,
+            override var forrigeUtbetalingslinjeId: UUID30?,
+            override val beløp: Int,
+            override val virkningstidspunkt: LocalDate,
+        ) : Endring() {
+            override val linjeStatus = LinjeStatus.STANS
+
+            @JsonIgnore
+            override val periode = Periode.create(fraOgMed, tilOgMed)
+
+            constructor(
+                utbetalingslinje: Utbetalingslinje,
+                virkningstidspunkt: LocalDate,
+            ) : this(
+                id = utbetalingslinje.id,
+                opprettet = Tidspunkt.now(),
+                fraOgMed = utbetalingslinje.fraOgMed,
+                tilOgMed = utbetalingslinje.tilOgMed,
+                forrigeUtbetalingslinjeId = utbetalingslinje.forrigeUtbetalingslinjeId,
+                beløp = utbetalingslinje.beløp,
+                virkningstidspunkt = virkningstidspunkt,
+            )
+
+            override fun copy(args: CopyArgs.Tidslinje) = when (args) {
+                is CopyArgs.Tidslinje.Full -> this.copy()
+                is CopyArgs.Tidslinje.NyPeriode -> this.copy(
+                    fraOgMed = args.periode.fraOgMed,
+                    tilOgMed = args.periode.tilOgMed,
+                )
+            }
+        }
+
+        data class Reaktivering(
+            override val id: UUID30,
+            override val opprettet: Tidspunkt,
+            override val fraOgMed: LocalDate,
+            override val tilOgMed: LocalDate,
+            override var forrigeUtbetalingslinjeId: UUID30?,
+            override val beløp: Int,
+            override val virkningstidspunkt: LocalDate,
+        ) : Endring() {
+            override val linjeStatus = LinjeStatus.REAKTIVERING
+
+            @JsonIgnore
+            override val periode = Periode.create(fraOgMed, tilOgMed)
+
+            constructor(
+                utbetalingslinje: Utbetalingslinje,
+                virkningstidspunkt: LocalDate,
+            ) : this(
+                id = utbetalingslinje.id,
+                opprettet = Tidspunkt.now(),
+                fraOgMed = utbetalingslinje.fraOgMed,
+                tilOgMed = utbetalingslinje.tilOgMed,
+                forrigeUtbetalingslinjeId = utbetalingslinje.forrigeUtbetalingslinjeId,
+                beløp = utbetalingslinje.beløp,
+                virkningstidspunkt = virkningstidspunkt,
+            )
+
+            override fun copy(args: CopyArgs.Tidslinje) = when (args) {
+                is CopyArgs.Tidslinje.Full -> this.copy()
+                is CopyArgs.Tidslinje.NyPeriode -> this.copy(
+                    fraOgMed = args.periode.fraOgMed,
+                    tilOgMed = args.periode.tilOgMed,
+                )
+            }
         }
     }
 
-    data class Statusendring(
-        val status: LinjeStatus,
-        val fraOgMed: LocalDate,
-    )
-
     enum class LinjeStatus {
         OPPHØR,
-        MIDLERTIDIG_STANS,
+        STANS,
         REAKTIVERING;
     }
 }

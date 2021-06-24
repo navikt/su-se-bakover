@@ -267,19 +267,19 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
         beløp = månedsbeløp,
     )
 
-    private fun lagOpphør(månedsbeløp: Int, opphørsdato: LocalDate, periode: Periode = beregningsperiode) = Utbetalingslinje.Endring(
+    private fun lagOpphør(månedsbeløp: Int, opphørsdato: LocalDate, periode: Periode = beregningsperiode) = Utbetalingslinje.Endring.Opphør(
         utbetalingslinje = lagUtbetaling(månedsbeløp = månedsbeløp, periode = periode),
-        statusendring = Utbetalingslinje.Statusendring(status = Utbetalingslinje.LinjeStatus.OPPHØR, fraOgMed = opphørsdato),
+        virkningstidspunkt = opphørsdato,
     )
 
-    private fun lagMidlertidigStans(månedsbeløp: Int, stansFraOgMedDato: LocalDate, periode: Periode = beregningsperiode) = Utbetalingslinje.Endring(
+    private fun lagMidlertidigStans(månedsbeløp: Int, stansFraOgMedDato: LocalDate, periode: Periode = beregningsperiode) = Utbetalingslinje.Endring.Stans(
         utbetalingslinje = lagUtbetaling(månedsbeløp = månedsbeløp, periode = periode),
-        statusendring = Utbetalingslinje.Statusendring(status = Utbetalingslinje.LinjeStatus.MIDLERTIDIG_STANS, fraOgMed = stansFraOgMedDato),
+        virkningstidspunkt = stansFraOgMedDato,
     )
 
-    private fun lagReaktivert(månedsbeløp: Int, reaktiverDato: LocalDate = beregningsperiode.fraOgMed.plusMonths(2), periode: Periode = beregningsperiode) = Utbetalingslinje.Endring(
+    private fun lagReaktivert(månedsbeløp: Int, reaktiverDato: LocalDate = beregningsperiode.fraOgMed.plusMonths(2), periode: Periode = beregningsperiode) = Utbetalingslinje.Endring.Reaktivering(
         utbetalingslinje = lagUtbetaling(månedsbeløp = månedsbeløp, periode = periode),
-        statusendring = Utbetalingslinje.Statusendring(status = Utbetalingslinje.LinjeStatus.REAKTIVERING, fraOgMed = reaktiverDato),
+        virkningstidspunkt = reaktiverDato,
     )
 
     private fun lagBeregning(månedsbeløp: Int): Beregning {

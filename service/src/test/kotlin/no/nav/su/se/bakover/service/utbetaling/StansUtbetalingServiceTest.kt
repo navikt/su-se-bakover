@@ -101,18 +101,16 @@ internal class StansUtbetalingServiceTest {
         ),
     )
 
-    private fun expectedUtbetalingslinje(opprettet: Tidspunkt) = Utbetalingslinje.Endring(
+    private fun expectedUtbetalingslinje(opprettet: Tidspunkt) = Utbetalingslinje.Endring.Stans(
         id = førsteUtbetalingslinje.id,
         opprettet = opprettet,
         fraOgMed = førsteUtbetalingslinje.fraOgMed,
         tilOgMed = førsteUtbetalingslinje.tilOgMed,
         forrigeUtbetalingslinjeId = førsteUtbetalingslinje.forrigeUtbetalingslinjeId,
         beløp = førsteUtbetalingslinje.beløp,
-        statusendring = Utbetalingslinje.Statusendring(
-            status = Utbetalingslinje.LinjeStatus.MIDLERTIDIG_STANS,
-            fraOgMed = 1.januar(2020)
-        )
+        virkningstidspunkt = 1.januar(2020),
     )
+
     private val fixedClock: Clock = Clock.fixed(1.januar(2020).startOfDay().instant, ZoneOffset.UTC)
 
     @Test

@@ -29,10 +29,11 @@ data class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetal
             null -> true
             is Utbetalingslinje.Ny -> diffEr10ProsentEllerMer(førsteMånedsberegning.finnBeløpFor10ProsentSjekk(), gjeldendeUtbetaling.beløp)
             is Utbetalingslinje.Endring -> {
-                when (gjeldendeUtbetaling.statusendring.status) {
-                    Utbetalingslinje.LinjeStatus.OPPHØR,
-                    Utbetalingslinje.LinjeStatus.MIDLERTIDIG_STANS -> {
-                        val statusFraOgMed = gjeldendeUtbetaling.statusendring.fraOgMed
+                when (gjeldendeUtbetaling) {
+                    is Utbetalingslinje.Endring.Opphør,
+                    is Utbetalingslinje.Endring.Stans,
+                    -> {
+                        val statusFraOgMed = gjeldendeUtbetaling.virkningstidspunkt
                         val opphørEllerStansGjelderForHeleBeregningsperioden = nyBeregning.getMånedsberegninger()
                             .map { it.periode }
                             .map { utbetalingstidslinje.gjeldendeForDato(it.fraOgMed) }
@@ -49,7 +50,7 @@ data class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetal
                             else -> diffEr10ProsentEllerMer(førsteMånedsberegning.finnBeløpFor10ProsentSjekk(), gjeldendeUtbetaling.beløp)
                         }
                     }
-                    Utbetalingslinje.LinjeStatus.REAKTIVERING -> diffEr10ProsentEllerMer(førsteMånedsberegning.finnBeløpFor10ProsentSjekk(), gjeldendeUtbetaling.beløp)
+                    is Utbetalingslinje.Endring.Reaktivering -> diffEr10ProsentEllerMer(førsteMånedsberegning.finnBeløpFor10ProsentSjekk(), gjeldendeUtbetaling.beløp)
                 }
             }
         }

@@ -40,12 +40,12 @@ internal fun toUtbetalingRequest(
                     when (it) {
                         is Utbetalingslinje.Endring -> {
                             UtbetalingRequest.Oppdragslinje(
-                                kodeStatusLinje = when (it.statusendring.status) {
-                                    Utbetalingslinje.LinjeStatus.OPPHØR -> UtbetalingRequest.Oppdragslinje.KodeStatusLinje.OPPHØR
-                                    Utbetalingslinje.LinjeStatus.MIDLERTIDIG_STANS -> UtbetalingRequest.Oppdragslinje.KodeStatusLinje.HVIL
-                                    Utbetalingslinje.LinjeStatus.REAKTIVERING -> UtbetalingRequest.Oppdragslinje.KodeStatusLinje.REAKTIVER
+                                kodeStatusLinje = when (it) {
+                                    is Utbetalingslinje.Endring.Opphør -> UtbetalingRequest.Oppdragslinje.KodeStatusLinje.OPPHØR
+                                    is Utbetalingslinje.Endring.Stans -> UtbetalingRequest.Oppdragslinje.KodeStatusLinje.HVIL
+                                    is Utbetalingslinje.Endring.Reaktivering -> UtbetalingRequest.Oppdragslinje.KodeStatusLinje.REAKTIVER
                                 },
-                                datoStatusFom = it.statusendring.fraOgMed.toOppdragDate(),
+                                datoStatusFom = it.virkningstidspunkt.toOppdragDate(),
                                 kodeEndringLinje = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.ENDRING,
                                 delytelseId = it.id.toString(),
                                 kodeKlassifik = OppdragslinjeDefaults.KODE_KLASSIFIK,

@@ -6,10 +6,12 @@ import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.juni
+import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
@@ -66,8 +68,7 @@ internal class SakJsonTest {
 
         @Test
         fun `mapper opphørte utbetalingslinjer riktig`() {
-            val utbetalingsid = UUID30.randomUUID()
-            val førsteUtbetaling = Utbetalingslinje.Ny(
+            val nyUtbetaling = Utbetalingslinje.Ny(
                 id = UUID30.randomUUID(),
                 opprettet = Tidspunkt.now(),
                 fraOgMed = 1.januar(2021),
@@ -75,46 +76,70 @@ internal class SakJsonTest {
                 forrigeUtbetalingslinjeId = null,
                 beløp = 17900,
             )
-            val opphørslinje = Utbetalingslinje.Endring(
-                id = utbetalingsid,
-                opprettet = Tidspunkt.now(),
-                fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021),
-                forrigeUtbetalingslinjeId = null,
-                beløp = 17900,
-                statusendring = Utbetalingslinje.Statusendring(
-                    status = Utbetalingslinje.LinjeStatus.OPPHØR,
-                    fraOgMed = 1.juni(2021),
-                ),
+            val midlertidigStans = Utbetalingslinje.Endring.Stans(
+                utbetalingslinje = nyUtbetaling,
+                virkningstidspunkt = 1.februar(2021),
+            )
+            val reaktivering = Utbetalingslinje.Endring.Reaktivering(
+                utbetalingslinje = midlertidigStans,
+                virkningstidspunkt = 1.mars(2021),
+            )
+            val opphørslinje = Utbetalingslinje.Endring.Opphør(
+                utbetalingslinje = reaktivering,
+                virkningstidspunkt = 1.april(2021),
             )
 
             val utbetaling1 = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {
-                on { utbetalingslinjer } doReturn nonEmptyListOf(førsteUtbetaling)
+                on { utbetalingslinjer } doReturn nonEmptyListOf(nyUtbetaling)
                 on { type } doReturn Utbetaling.UtbetalingsType.NY
-                on { opprettet } doReturn førsteUtbetaling.opprettet
+                on { opprettet } doReturn nyUtbetaling.opprettet
             }
             val utbetaling2 = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {
+                on { utbetalingslinjer } doReturn nonEmptyListOf(midlertidigStans)
+                on { type } doReturn Utbetaling.UtbetalingsType.STANS
+                on { opprettet } doReturn midlertidigStans.opprettet
+            }
+            val utbetaling3 = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {
+                on { utbetalingslinjer } doReturn nonEmptyListOf(reaktivering)
+                on { type } doReturn Utbetaling.UtbetalingsType.GJENOPPTA
+                on { opprettet } doReturn reaktivering.opprettet
+            }
+            val utbetaling4 = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {
                 on { utbetalingslinjer } doReturn nonEmptyListOf(opphørslinje)
                 on { type } doReturn Utbetaling.UtbetalingsType.OPPHØR
                 on { opprettet } doReturn opphørslinje.opprettet
             }
 
-            val sak = sak.copy(utbetalinger = listOf(utbetaling1, utbetaling2))
+            val sak = sak.copy(utbetalinger = listOf(utbetaling1, utbetaling2, utbetaling3, utbetaling4))
 
-            val (actual1, actual2) = sak.toJson().utbetalinger
+            val (actual1, actual2, actual3, actual4) = sak.toJson().utbetalinger
             actual1 shouldBe UtbetalingJson(
-                id = førsteUtbetaling.id.toString(),
-                fraOgMed = førsteUtbetaling.fraOgMed,
-                tilOgMed = opphørslinje.statusendring.fraOgMed.minusDays(1),
-                beløp = førsteUtbetaling.beløp,
-                type = utbetaling1.type.toString(),
+                id = nyUtbetaling.id.toString(),
+                fraOgMed = nyUtbetaling.fraOgMed,
+                tilOgMed = midlertidigStans.virkningstidspunkt.minusDays(1),
+                beløp = nyUtbetaling.beløp,
+                type = Utbetaling.UtbetalingsType.NY.toString(),
             )
             actual2 shouldBe UtbetalingJson(
-                id = opphørslinje.id.toString(),
-                fraOgMed = opphørslinje.statusendring.fraOgMed,
-                tilOgMed = opphørslinje.tilOgMed,
+                id = nyUtbetaling.id.toString(),
+                fraOgMed = midlertidigStans.virkningstidspunkt,
+                tilOgMed = reaktivering.virkningstidspunkt.minusDays(1),
                 beløp = 0,
-                type = utbetaling2.type.toString(),
+                type = Utbetaling.UtbetalingsType.STANS.toString(),
+            )
+            actual3 shouldBe UtbetalingJson(
+                id = nyUtbetaling.id.toString(),
+                fraOgMed = reaktivering.virkningstidspunkt,
+                tilOgMed = opphørslinje.virkningstidspunkt.minusDays(1),
+                beløp = nyUtbetaling.beløp,
+                type = Utbetaling.UtbetalingsType.GJENOPPTA.toString(),
+            )
+            actual4 shouldBe UtbetalingJson(
+                id = nyUtbetaling.id.toString(),
+                fraOgMed = opphørslinje.virkningstidspunkt,
+                tilOgMed = nyUtbetaling.tilOgMed,
+                beløp = 0,
+                type = Utbetaling.UtbetalingsType.OPPHØR.toString(),
             )
         }
     }

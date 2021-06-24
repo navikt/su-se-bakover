@@ -88,17 +88,33 @@ internal data class SakJson(
         private fun Utbetalingslinje.medUtbetalingstype(type: Utbetaling.UtbetalingsType) =
             UtbetalingslinjeMedUtbetalingstype(
                 utbetalingslinje = when (this) {
+                    is Utbetalingslinje.Endring -> hånderEndringer(this)
                     is Utbetalingslinje.Ny -> this
-                    is Utbetalingslinje.Endring -> håndterOpphørteUtbetalingslinjer(this)
                 },
                 type,
             )
 
-        private fun håndterOpphørteUtbetalingslinjer(utbetalingslinje: Utbetalingslinje.Endring) =
-            utbetalingslinje.copy(
-                fraOgMed = utbetalingslinje.statusendring.fraOgMed,
-                beløp = if (utbetalingslinje.statusendring.status == Utbetalingslinje.LinjeStatus.OPPHØR) 0 else utbetalingslinje.beløp,
-            )
+        private fun hånderEndringer(utbetalingslinje: Utbetalingslinje.Endring) =
+            when (utbetalingslinje) {
+                is Utbetalingslinje.Endring.Opphør -> {
+                    utbetalingslinje.copy(
+                        fraOgMed = utbetalingslinje.virkningstidspunkt,
+                        beløp = 0,
+                    )
+                }
+                is Utbetalingslinje.Endring.Reaktivering -> {
+                    utbetalingslinje.copy(
+                        fraOgMed = utbetalingslinje.virkningstidspunkt,
+                        beløp = utbetalingslinje.beløp,
+                    )
+                }
+                is Utbetalingslinje.Endring.Stans -> {
+                    utbetalingslinje.copy(
+                        fraOgMed = utbetalingslinje.virkningstidspunkt,
+                        beløp = 0,
+                    )
+                }
+            }
 
         private fun tidslinjeMedUtbetalinger(utbetalingslinjer: List<UtbetalingslinjeMedUtbetalingstype>): List<UtbetalingJson> =
             Tidslinje(

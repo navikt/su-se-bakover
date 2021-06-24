@@ -17,6 +17,8 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters.firstDayOfNextMonth
 import java.util.UUID
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 sealed class Utbetalingsstrategi {
     abstract val sakId: UUID
@@ -50,12 +52,9 @@ sealed class Utbetalingsstrategi {
                 saksnummer = saksnummer,
                 fnr = fnr,
                 utbetalingslinjer = nonEmptyListOf(
-                    Utbetalingslinje.Endring(
+                    Utbetalingslinje.Endring.Stans(
                         utbetalingslinje = sisteOversendtUtbetaling.sisteUtbetalingslinje(),
-                        statusendring = Utbetalingslinje.Statusendring(
-                            status = Utbetalingslinje.LinjeStatus.MIDLERTIDIG_STANS,
-                            fraOgMed = stansesFraOgMed,
-                        ),
+                        virkningstidspunkt = stansesFraOgMed,
                     ),
                 ),
                 type = Utbetaling.UtbetalingsType.STANS,
@@ -119,7 +118,7 @@ sealed class Utbetalingsstrategi {
         override fun generate(): Utbetaling.UtbetalingForSimulering {
             val sisteUtbetalingslinje = sisteOversendteUtbetaling()?.sisteUtbetalingslinje().let {
                 validate(it is Utbetalingslinje) { "Sak: $sakId har ingen utbetalinger som kan opphøres" }
-                it!!.let { sisteUtbetalingslinje ->
+                it.let { sisteUtbetalingslinje ->
                     validate(opphørsDato.isBefore(sisteUtbetalingslinje.tilOgMed)) { "Dato for opphør må være tidligere enn tilOgMed for siste utbetalingslinje" }
                     validate(opphørsDato.erFørsteDagIMåned() || opphørsDato.erSisteDagIMåned()) { "Ytelse kan kun opphøres fra første eller siste dag i en måned." }
                 }
@@ -130,12 +129,9 @@ sealed class Utbetalingsstrategi {
                 sakId = sakId,
                 saksnummer = saksnummer,
                 utbetalingslinjer = nonEmptyListOf(
-                    Utbetalingslinje.Endring(
+                    Utbetalingslinje.Endring.Opphør(
                         utbetalingslinje = sisteUtbetalingslinje,
-                        statusendring = Utbetalingslinje.Statusendring(
-                            status = Utbetalingslinje.LinjeStatus.OPPHØR,
-                            fraOgMed = opphørsDato,
-                        ),
+                        virkningstidspunkt = opphørsDato,
                     ),
                 ),
                 fnr = fnr,
@@ -158,18 +154,15 @@ sealed class Utbetalingsstrategi {
             val sisteOversendteUtbetalingslinje = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()
                 ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å gjenoppta")
 
-            validate(sisteOversendteUtbetalingslinje is Utbetalingslinje.Endring && sisteOversendteUtbetalingslinje.statusendring.status == Utbetalingslinje.LinjeStatus.MIDLERTIDIG_STANS) { "Siste utbetaling er ikke en midlertidig stans, kan ikke gjenoppta." }
+            validate(sisteOversendteUtbetalingslinje is Utbetalingslinje.Endring.Stans) { "Siste utbetaling er ikke en stans, kan ikke gjenoppta." }
 
             return Utbetaling.UtbetalingForSimulering(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 utbetalingslinjer = nonEmptyListOf(
-                    Utbetalingslinje.Endring(
+                    Utbetalingslinje.Endring.Reaktivering(
                         utbetalingslinje = sisteOversendteUtbetalingslinje,
-                        statusendring = Utbetalingslinje.Statusendring(
-                            status = Utbetalingslinje.LinjeStatus.REAKTIVERING,
-                            fraOgMed = (sisteOversendteUtbetalingslinje as Utbetalingslinje.Endring).statusendring.fraOgMed,
-                        ),
+                        virkningstidspunkt = sisteOversendteUtbetalingslinje.virkningstidspunkt,
                     ),
                 ),
                 fnr = fnr,
@@ -180,7 +173,11 @@ sealed class Utbetalingsstrategi {
         }
     }
 
-    protected fun validate(value: Boolean, lazyMessage: () -> Any) {
+    @OptIn(ExperimentalContracts::class)
+    protected inline fun validate(value: Boolean, lazyMessage: () -> Any) {
+        contract {
+            returns() implies value
+        }
         if (!value) {
             val message = lazyMessage()
             throw UtbetalingStrategyException(message.toString())

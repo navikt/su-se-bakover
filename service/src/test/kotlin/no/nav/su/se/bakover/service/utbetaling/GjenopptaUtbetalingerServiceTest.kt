@@ -105,29 +105,23 @@ internal class GjenopptaUtbetalingerServiceTest {
             oversendtUtbetaling.copy(
                 type = Utbetaling.UtbetalingsType.STANS,
                 utbetalingslinjer = nonEmptyListOf(
-                    Utbetalingslinje.Endring(
+                    Utbetalingslinje.Endring.Stans(
                         utbetalingslinje = førsteUtbetalingslinje,
-                        statusendring = Utbetalingslinje.Statusendring(
-                            status = Utbetalingslinje.LinjeStatus.MIDLERTIDIG_STANS,
-                            fraOgMed = 1.januar(2020),
-                        ),
+                        virkningstidspunkt = 1.januar(2020),
                     ),
                 ),
             ),
         ),
     )
 
-    private fun expected(opprettet: Tidspunkt) = Utbetalingslinje.Endring(
+    private fun expected(opprettet: Tidspunkt) = Utbetalingslinje.Endring.Reaktivering(
         id = førsteUtbetalingslinje.id,
         opprettet = opprettet,
         fraOgMed = førsteUtbetalingslinje.fraOgMed,
         tilOgMed = førsteUtbetalingslinje.tilOgMed,
         forrigeUtbetalingslinjeId = førsteUtbetalingslinje.forrigeUtbetalingslinjeId,
         beløp = førsteUtbetalingslinje.beløp,
-        statusendring = Utbetalingslinje.Statusendring(
-            status = Utbetalingslinje.LinjeStatus.REAKTIVERING,
-            fraOgMed = 1.januar(2020),
-        ),
+        virkningstidspunkt = 1.januar(2020),
     )
 
     @Test
@@ -178,7 +172,7 @@ internal class GjenopptaUtbetalingerServiceTest {
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
                         utbetalingslinjer = nonEmptyListOf(
-                            expected(it.utbetalingslinjer[0].opprettet)
+                            expected(it.utbetalingslinjer[0].opprettet),
                         ),
                     )
                 },
@@ -190,7 +184,7 @@ internal class GjenopptaUtbetalingerServiceTest {
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
                         utbetalingslinjer = nonEmptyListOf(
-                            expected(it.utbetalingslinjer[0].opprettet)
+                            expected(it.utbetalingslinjer[0].opprettet),
                         ),
                     ).toSimulertUtbetaling(simulering)
                 },
@@ -203,7 +197,7 @@ internal class GjenopptaUtbetalingerServiceTest {
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
                         utbetalingslinjer = nonEmptyListOf(
-                            expected(it.utbetalingslinjer[0].opprettet)
+                            expected(it.utbetalingslinjer[0].opprettet),
                         ),
                     ).toSimulertUtbetaling(simulering).toOversendtUtbetaling(oppdragsmelding)
                 },
@@ -278,7 +272,7 @@ internal class GjenopptaUtbetalingerServiceTest {
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
                         utbetalingslinjer = nonEmptyListOf(
-                            expected(it.utbetalingslinjer[0].opprettet)
+                            expected(it.utbetalingslinjer[0].opprettet),
                         ),
                     )
                 },
