@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test
 internal class SøknadPostgresRepoTest {
 
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
-    private val søknadRepo = SøknadPostgresRepo(EmbeddedDatabase.instance())
+    private val søknadRepo = testDataHelper.søknadRepo
 
     @Test
     fun `opprett og hent søknad`() {

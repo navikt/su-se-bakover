@@ -32,7 +32,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -107,9 +106,7 @@ internal class StansUtbetalingServiceTest {
             on { simulerUtbetaling(any()) } doReturn simulering.right()
         }
 
-        val utbetalingRepoMock = mock<UtbetalingRepo> {
-            on { opprettUtbetaling(any()) }.doNothing()
-        }
+        val utbetalingRepoMock = mock<UtbetalingRepo>()
 
         val utbetalingPublisherMock = mock<UtbetalingPublisher> {
             on {
@@ -359,9 +356,7 @@ internal class StansUtbetalingServiceTest {
             on { simulerUtbetaling(any()) } doReturn simulering.right()
         }
 
-        val utbetalingRepoMock = mock<UtbetalingRepo> {
-            on { opprettUtbetaling(any()) }.doNothing()
-        }
+        val utbetalingRepoMock = mock<UtbetalingRepo>()
 
         val utbetalingPublisherMock = mock<UtbetalingPublisher> {
             on {

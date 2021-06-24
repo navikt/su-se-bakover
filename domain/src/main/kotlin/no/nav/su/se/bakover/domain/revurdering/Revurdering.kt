@@ -122,7 +122,7 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
         val revurdertBeregning: Beregning = beregnInternt(
             fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag },
             bosituasjon = grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
-            uføregrunnlag = grunnlagsdata.uføregrunnlag,
+            uføregrunnlag = vilkårsvurderinger.uføre.grunnlag,
             periode = periode,
         ).getOrHandle { return it.left() }
 
@@ -964,7 +964,8 @@ sealed class IverksattRevurdering : Revurdering() {
         }
     }
 
-    override fun beregn(eksisterendeUtbetalinger: List<Utbetaling>) = throw RuntimeException("Skal ikke kunne beregne når revurderingen er iverksatt")
+    override fun beregn(eksisterendeUtbetalinger: List<Utbetaling>) =
+        throw RuntimeException("Skal ikke kunne beregne når revurderingen er iverksatt")
 }
 
 sealed class UnderkjentRevurdering : Revurdering() {
@@ -1179,7 +1180,7 @@ enum class Vurderingstatus(val status: String) {
 enum class Revurderingsteg(val vilkår: String) {
     // BorOgOppholderSegINorge("BorOgOppholderSegINorge"),
     // Flyktning("Flyktning"),
-    // Formue("Formue"),
+    Formue("Formue"),
     // Oppholdstillatelse("Oppholdstillatelse"),
     // PersonligOppmøte("PersonligOppmøte"),
     Uførhet("Uførhet"),

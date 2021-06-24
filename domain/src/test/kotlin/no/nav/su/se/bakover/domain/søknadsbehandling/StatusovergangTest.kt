@@ -27,9 +27,11 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -37,6 +39,7 @@ import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.test.create
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -101,7 +104,7 @@ internal class StatusovergangTest {
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.EMPTY,
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
     )
 
     private val simulering = Simulering(
@@ -850,7 +853,7 @@ internal class StatusovergangTest {
         fun `oppdaterer perioden riktig`() {
             val opprettetMedGrunnlag = opprettet.copy(
                 vilkårsvurderinger = Vilkårsvurderinger(
-                    uføre = Vilkår.Vurdert.Uførhet.create(
+                    uføre = Vilkår.Uførhet.Vurdert.create(
                         vurderingsperioder = nonEmptyListOf(
                             Vurderingsperiode.Uføre.create(
                                 id = UUID.randomUUID(),
@@ -860,12 +863,14 @@ internal class StatusovergangTest {
                                     periode = stønadsperiode.periode,
                                     uføregrad = Uføregrad.parse(20),
                                     forventetInntekt = 10,
+                                    opprettet = fixedTidspunkt,
                                 ),
                                 periode = stønadsperiode.periode,
                                 begrunnelse = "ok2k",
                             ),
                         ),
                     ),
+                    formue = innvilgetFormueVilkår(stønadsperiode.periode),
                 ),
             )
 
@@ -881,7 +886,7 @@ internal class StatusovergangTest {
             )
 
             actual.periode shouldBe nyPeriode
-            actual.vilkårsvurderinger.grunnlagsdata.uføregrunnlag.first().periode shouldBe nyPeriode
+            actual.vilkårsvurderinger.uføre.grunnlag.first().periode shouldBe nyPeriode
         }
     }
 }

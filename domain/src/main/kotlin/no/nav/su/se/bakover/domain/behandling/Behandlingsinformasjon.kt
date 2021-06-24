@@ -3,19 +3,28 @@ package no.nav.su.se.bakover.domain.behandling
 import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import java.time.Clock
 import java.time.LocalDate
 import java.time.Period
+import java.util.UUID
 
 data class Behandlingsinformasjon(
     val uførhet: Uførhet? = null,
@@ -45,7 +54,7 @@ data class Behandlingsinformasjon(
         }
 
     fun patch(
-        b: Behandlingsinformasjon
+        b: Behandlingsinformasjon,
     ) = Behandlingsinformasjon(
         uførhet = b.uførhet ?: this.uførhet,
         flyktning = b.flyktning ?: this.flyktning,
@@ -133,7 +142,7 @@ data class Behandlingsinformasjon(
         val status: Status,
         val uføregrad: Int?,
         val forventetInntekt: Int?,
-        val begrunnelse: String?
+        val begrunnelse: String?,
     ) : Base() {
         enum class Status {
             VilkårOppfylt,
@@ -150,7 +159,7 @@ data class Behandlingsinformasjon(
 
     data class Flyktning(
         val status: Status,
-        val begrunnelse: String?
+        val begrunnelse: String?,
     ) : Base() {
         enum class Status {
             VilkårOppfylt,
@@ -167,7 +176,7 @@ data class Behandlingsinformasjon(
 
     data class LovligOpphold(
         val status: Status,
-        val begrunnelse: String?
+        val begrunnelse: String?,
     ) : Base() {
         enum class Status {
             VilkårOppfylt,
@@ -184,7 +193,7 @@ data class Behandlingsinformasjon(
 
     data class FastOppholdINorge(
         val status: Status,
-        val begrunnelse: String?
+        val begrunnelse: String?,
     ) : Base() {
         enum class Status {
             VilkårOppfylt,
@@ -201,7 +210,7 @@ data class Behandlingsinformasjon(
 
     data class Institusjonsopphold(
         val status: Status,
-        val begrunnelse: String?
+        val begrunnelse: String?,
     ) : Base() {
         enum class Status {
             VilkårOppfylt,
@@ -217,7 +226,7 @@ data class Behandlingsinformasjon(
 
     data class OppholdIUtlandet(
         val status: Status,
-        val begrunnelse: String?
+        val begrunnelse: String?,
     ) : Base() {
         enum class Status {
             SkalVæreMerEnn90DagerIUtlandet,
@@ -236,7 +245,7 @@ data class Behandlingsinformasjon(
         val status: Status,
         val verdier: Verdier?,
         val epsVerdier: Verdier?,
-        val begrunnelse: String?
+        val begrunnelse: String?,
     ) : Base() {
         data class Verdier(
             val verdiIkkePrimærbolig: Int?,
@@ -277,11 +286,62 @@ data class Behandlingsinformasjon(
         fun harEpsFormue(): Boolean {
             return epsVerdier?.erVerdierStørreEnn0() == true
         }
+
+        fun tilVilkår(
+            stønadsperiode: Stønadsperiode,
+            bosituasjon: List<Grunnlag.Bosituasjon>,
+            clock: Clock
+        ): Vilkår.Formue {
+            return Vilkår.Formue.Vurdert.tryCreateFromGrunnlag(
+                grunnlag = nonEmptyListOf(
+                    Formuegrunnlag.tryCreate(
+                        id = UUID.randomUUID(),
+                        opprettet = Tidspunkt.now(clock),
+                        periode = stønadsperiode.periode,
+                        epsFormue = this.epsVerdier?.let {
+                            Formuegrunnlag.Verdier.tryCreate(
+                                verdiIkkePrimærbolig = it.verdiIkkePrimærbolig ?: 0,
+                                verdiEiendommer = it.verdiEiendommer ?: 0,
+                                verdiKjøretøy = it.verdiKjøretøy ?: 0,
+                                innskudd = it.innskudd ?: 0,
+                                verdipapir = it.verdipapir ?: 0,
+                                pengerSkyldt = it.pengerSkyldt ?: 0,
+                                kontanter = it.kontanter ?: 0,
+                                depositumskonto = it.depositumskonto ?: 0,
+                            ).getOrHandle {
+                                throw java.lang.IllegalStateException("Kunne ikke create formue-verdier. Sjekk om data er gyldig")
+                            }
+                        },
+                        søkersFormue = this.verdier.let {
+                            Formuegrunnlag.Verdier.tryCreate(
+                                verdiIkkePrimærbolig = it?.verdiIkkePrimærbolig ?: 0,
+                                verdiEiendommer = it?.verdiEiendommer ?: 0,
+                                verdiKjøretøy = it?.verdiKjøretøy ?: 0,
+                                innskudd = it?.innskudd ?: 0,
+                                verdipapir = it?.verdipapir ?: 0,
+                                pengerSkyldt = it?.pengerSkyldt ?: 0,
+                                kontanter = it?.kontanter ?: 0,
+                                depositumskonto = it?.depositumskonto ?: 0,
+                            ).getOrHandle {
+                                throw java.lang.IllegalStateException("Kunne ikke create formue-verdier. Sjekk om data er gyldig")
+                            }
+                        },
+                        begrunnelse = this.begrunnelse,
+                        bosituasjon = bosituasjon.singleFullstendigOrThrow(),
+                        behandlingsPeriode = stønadsperiode.periode,
+                    ).getOrHandle {
+                        throw IllegalArgumentException("Kunne ikke instansiere ${Formuegrunnlag::class.simpleName}. Melding: $it")
+                    },
+                ),
+            ).getOrHandle {
+                throw IllegalArgumentException("Kunne ikke instansiere ${Vilkår.Formue.Vurdert::class.simpleName}. Melding: $it")
+            }
+        }
     }
 
     data class PersonligOppmøte(
         val status: Status,
-        val begrunnelse: String?
+        val begrunnelse: String?,
     ) : Base() {
         enum class Status {
             MøttPersonlig,
@@ -312,7 +372,7 @@ data class Behandlingsinformasjon(
         val ektefelle: EktefellePartnerSamboer?,
         val delerBolig: Boolean?,
         val ektemakeEllerSamboerUførFlyktning: Boolean?,
-        val begrunnelse: String?
+        val begrunnelse: String?,
     ) : Base() {
         override fun erVilkårOppfylt(): Boolean {
             val ektefelleEr67EllerEldre = (ektefelle as? EktefellePartnerSamboer.Ektefelle)?.er67EllerEldre()
@@ -333,7 +393,7 @@ data class Behandlingsinformasjon(
     @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
         include = JsonTypeInfo.As.PROPERTY,
-        property = "type"
+        property = "type",
     )
     @JsonSubTypes(
         JsonSubTypes.Type(value = EktefellePartnerSamboer.Ektefelle::class, name = "Ektefelle"),
@@ -346,7 +406,7 @@ data class Behandlingsinformasjon(
             val kjønn: String?,
             val fødselsdato: LocalDate?,
             val adressebeskyttelse: String?,
-            val skjermet: Boolean?
+            val skjermet: Boolean?,
         ) : EktefellePartnerSamboer() {
             // TODO jah: Hva når fødselsdato er null?
             fun getAlder(): Int? = fødselsdato?.let { Period.between(it, LocalDate.now()).years }
@@ -379,6 +439,45 @@ data class Behandlingsinformasjon(
             personligOppmøte = null,
             bosituasjon = null,
             ektefelle = null,
+        )
+    }
+
+    fun oppdaterFormue(
+        vilkår: Vilkår.Formue.Vurdert,
+    ): Behandlingsinformasjon {
+        val verdier = Formue.Verdier(
+            verdiIkkePrimærbolig = vilkår.grunnlag.first().søkersFormue.verdiIkkePrimærbolig,
+            verdiEiendommer = vilkår.grunnlag.first().søkersFormue.verdiEiendommer,
+            verdiKjøretøy = vilkår.grunnlag.first().søkersFormue.verdiKjøretøy,
+            innskudd = vilkår.grunnlag.first().søkersFormue.innskudd,
+            verdipapir = vilkår.grunnlag.first().søkersFormue.verdipapir,
+            pengerSkyldt = vilkår.grunnlag.first().søkersFormue.pengerSkyldt,
+            kontanter = vilkår.grunnlag.first().søkersFormue.kontanter,
+            depositumskonto = vilkår.grunnlag.first().søkersFormue.depositumskonto,
+        )
+        val epsVerdier = Formue.Verdier(
+            verdiIkkePrimærbolig = vilkår.grunnlag.firstOrNull()?.epsFormue?.verdiIkkePrimærbolig,
+            verdiEiendommer = vilkår.grunnlag.firstOrNull()?.epsFormue?.verdiEiendommer,
+            verdiKjøretøy = vilkår.grunnlag.firstOrNull()?.epsFormue?.verdiKjøretøy,
+            innskudd = vilkår.grunnlag.firstOrNull()?.epsFormue?.innskudd,
+            verdipapir = vilkår.grunnlag.firstOrNull()?.epsFormue?.verdipapir,
+            pengerSkyldt = vilkår.grunnlag.firstOrNull()?.epsFormue?.pengerSkyldt,
+            kontanter = vilkår.grunnlag.firstOrNull()?.epsFormue?.kontanter,
+            depositumskonto = vilkår.grunnlag.firstOrNull()?.epsFormue?.depositumskonto,
+        )
+        val formue = Formue(
+            status = when (vilkår.resultat) {
+                Resultat.Avslag -> Formue.Status.VilkårIkkeOppfylt
+                Resultat.Innvilget -> Formue.Status.VilkårOppfylt
+                Resultat.Uavklart -> Formue.Status.MåInnhenteMerInformasjon
+            },
+            verdier = verdier,
+            epsVerdier = epsVerdier,
+            begrunnelse = vilkår.grunnlag.first().begrunnelse,
+        )
+
+        return this.copy(
+            formue = formue,
         )
     }
 

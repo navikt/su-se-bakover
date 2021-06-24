@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.grunnlag
 
 import arrow.core.Nel
+import arrow.core.getOrHandle
 import kotliquery.Row
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.Session
@@ -11,24 +12,23 @@ import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.uuidOrNull
 import no.nav.su.se.bakover.database.withTransaction
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import java.util.UUID
 import javax.sql.DataSource
 
-internal class VilkårsvurderingPostgresRepo(
+internal class UføreVilkårsvurderingPostgresRepo(
     private val dataSource: DataSource,
     private val uføregrunnlagRepo: UføregrunnlagPostgresRepo,
-) : VilkårsvurderingRepo {
+) : UføreVilkårsvurderingRepo {
 
-    override fun lagre(behandlingId: UUID, vilkår: Vilkår<Grunnlag.Uføregrunnlag?>) {
+    override fun lagre(behandlingId: UUID, vilkår: Vilkår.Uførhet) {
         dataSource.withTransaction { tx ->
             slettForBehandlingId(behandlingId, tx)
             when (vilkår) {
-                Vilkår.IkkeVurdert.Uførhet -> Unit
-                is Vilkår.Vurdert.Uførhet -> {
+                Vilkår.Uførhet.IkkeVurdert -> Unit
+                is Vilkår.Uførhet.Vurdert -> {
                     uføregrunnlagRepo.lagre(behandlingId, vilkår.grunnlag, tx)
                     vilkår.vurderingsperioder.forEach {
                         lagre(behandlingId, it, tx)
@@ -38,7 +38,7 @@ internal class VilkårsvurderingPostgresRepo(
         }
     }
 
-    private fun lagre(behandlingId: UUID, vurderingsperiode: Vurderingsperiode<Grunnlag.Uføregrunnlag?>, session: Session) {
+    private fun lagre(behandlingId: UUID, vurderingsperiode: Vurderingsperiode.Uføre, session: Session) {
         """
                 insert into vilkårsvurdering_uføre
                 (
@@ -92,7 +92,7 @@ internal class VilkårsvurderingPostgresRepo(
             )
     }
 
-    internal fun hent(behandlingId: UUID, session: Session): Vilkår<Grunnlag.Uføregrunnlag?> {
+    internal fun hent(behandlingId: UUID, session: Session): Vilkår.Uførhet {
         return """
                 select * from vilkårsvurdering_uføre where behandlingId = :behandlingId
         """.trimIndent()
@@ -105,13 +105,15 @@ internal class VilkårsvurderingPostgresRepo(
                 it.toVurderingsperioder(session)
             }.let {
                 when (it.isNotEmpty()) {
-                    true -> Vilkår.Vurdert.Uførhet.create(vurderingsperioder = Nel.fromListUnsafe(it))
-                    false -> Vilkår.IkkeVurdert.Uførhet
+                    true -> Vilkår.Uførhet.Vurdert.tryCreate(vurderingsperioder = Nel.fromListUnsafe(it)).getOrHandle {
+                        throw IllegalArgumentException("Kunne ikke instansiere ${Vilkår.Uførhet.Vurdert::class.simpleName}. Melding: $it")
+                    }
+                    false -> Vilkår.Uførhet.IkkeVurdert
                 }
             }
     }
 
-    private fun Row.toVurderingsperioder(session: Session): Vurderingsperiode<Grunnlag.Uføregrunnlag?> {
+    private fun Row.toVurderingsperioder(session: Session): Vurderingsperiode.Uføre {
         return Vurderingsperiode.Uføre.create(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),

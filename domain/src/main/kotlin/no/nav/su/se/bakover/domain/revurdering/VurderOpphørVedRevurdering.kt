@@ -39,7 +39,10 @@ data class VurderOmVilkårGirOpphørVedRevurdering(
 
     private fun vilkårGirOpphør(): OpphørVedRevurdering {
         return when (vilkårsvurderinger.resultat) {
-            Resultat.Avslag -> OpphørVedRevurdering.Ja(vilkårsvurderinger.utledOpphørsgrunner(), vilkårsvurderinger.tidligsteDatoForAvslag()!!)
+            Resultat.Avslag -> OpphørVedRevurdering.Ja(
+                vilkårsvurderinger.utledOpphørsgrunner(),
+                vilkårsvurderinger.tidligsteDatoForAvslag()!!,
+            )
             Resultat.Innvilget -> OpphørVedRevurdering.Nei
             Resultat.Uavklart -> throw IllegalStateException("Alle vilkår må vurderes før opphør kan vurderes.")
         }
@@ -55,8 +58,14 @@ data class VurderOmBeregningGirOpphørVedRevurdering(
     private fun beregningGirOpphør(): OpphørVedRevurdering {
         if (fullstendigOpphør()) {
             when {
-                beregning.alleMånederErUnderMinstebeløp() -> return OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE), beregning.getMånedsberegninger().first().periode.fraOgMed)
-                beregning.alleMånederHarBeløpLik0() -> return OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.FOR_HØY_INNTEKT), beregning.getMånedsberegninger().first().periode.fraOgMed)
+                beregning.alleMånederErUnderMinstebeløp() -> return OpphørVedRevurdering.Ja(
+                    listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE),
+                    beregning.getMånedsberegninger().first().periode.fraOgMed,
+                )
+                beregning.alleMånederHarBeløpLik0() -> return OpphørVedRevurdering.Ja(
+                    listOf(Opphørsgrunn.FOR_HØY_INNTEKT),
+                    beregning.getMånedsberegninger().first().periode.fraOgMed,
+                )
             }
         }
 

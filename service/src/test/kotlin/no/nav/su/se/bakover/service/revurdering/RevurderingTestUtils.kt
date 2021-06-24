@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.service.revurdering
 
-import arrow.core.Nel
 import arrow.core.nonEmptyListOf
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
@@ -19,6 +18,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.fixedLocalDate
 import no.nav.su.se.bakover.service.fixedTidspunkt
+import no.nav.su.se.bakover.service.formueVilkår
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -51,20 +52,21 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.test.create
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
 object RevurderingTestUtils {
     internal val sakId: UUID = UUID.randomUUID()
-    internal val dagensDato = fixedLocalDate.let {
+    private val dagensDato = fixedLocalDate.let {
         LocalDate.of(
             it.year,
             it.month,
             1,
         )
     }
-    internal val nesteMåned =
+    private val nesteMåned =
         LocalDate.of(
             dagensDato.year,
             dagensDato.month.plus(1),
@@ -119,6 +121,7 @@ object RevurderingTestUtils {
         periode = periode,
         uføregrad = Uføregrad.parse(20),
         forventetInntekt = 10,
+        opprettet = fixedTidspunkt,
     )
 
     internal val vurderingsperiodeUføre = Vurderingsperiode.Uføre.create(
@@ -131,11 +134,12 @@ object RevurderingTestUtils {
     )
 
     internal val vilkårsvurderinger = Vilkårsvurderinger(
-        uføre = Vilkår.Vurdert.Uførhet.create(
+        uføre = Vilkår.Uførhet.Vurdert.create(
             vurderingsperioder = nonEmptyListOf(
                 vurderingsperiodeUføre,
             ),
         ),
+        formue = formueVilkår(periode),
     )
 
     internal val søknadsbehandlingVedtak = Vedtak.fromSøknadsbehandling(
@@ -146,15 +150,7 @@ object RevurderingTestUtils {
             saksnummer = saksnummer,
             søknad = mock(),
             oppgaveId = mock(),
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
-                bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                    ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-                    delerBolig = false,
-                    ektemakeEllerSamboerUførFlyktning = null,
-                    begrunnelse = null,
-                ),
-                ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-            ),
+            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
             fnr = fnr,
             beregning = beregningMock(),
             simulering = mock(),
@@ -163,7 +159,6 @@ object RevurderingTestUtils {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(uføregrunnlag),
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -175,9 +170,11 @@ object RevurderingTestUtils {
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = vilkårsvurderinger.uføre,
+                formue = vilkårsvurderinger.formue,
             ),
         ),
         UUID30.randomUUID(),
+        fixedClock
     )
 
     internal val sak = Sak(
@@ -236,7 +233,6 @@ object RevurderingTestUtils {
         forhåndsvarsel = null,
         behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata(
-            uføregrunnlag = listOf(uføregrunnlag),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
@@ -264,7 +260,6 @@ object RevurderingTestUtils {
         beregning = beregningMock(),
         forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
         grunnlagsdata = Grunnlagsdata(
-            uføregrunnlag = listOf(uføregrunnlag),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
@@ -287,13 +282,13 @@ internal fun Grunnlag.Uføregrunnlag.ekvivalentMed(other: Grunnlag.Uføregrunnla
 }
 
 @Suppress("UNCHECKED_CAST")
-internal fun Vilkår<Grunnlag.Uføregrunnlag?>.ekvivalentMed(other: Vilkår.Vurdert.Uførhet) {
-    this should beOfType<Vilkår.Vurdert.Uførhet>()
-    (this as Vilkår.Vurdert.Uførhet).let {
-        (vurderingsperioder as Nel<Vurderingsperiode.Uføre>).let {
+internal fun Vilkår.ekvivalentMed(other: Vilkår.Uførhet.Vurdert) {
+    this should beOfType<Vilkår.Uførhet.Vurdert>()
+    (this as Vilkår.Uførhet.Vurdert).let {
+        (vurderingsperioder).let {
             it shouldHaveSize other.vurderingsperioder.size
             it.forEachIndexed { index, vurderingsperiode ->
-                vurderingsperiode.ekvivalentMed((other.vurderingsperioder as Nel<Vurderingsperiode.Uføre>)[index])
+                vurderingsperiode.ekvivalentMed((other.vurderingsperioder)[index])
             }
         }
     }

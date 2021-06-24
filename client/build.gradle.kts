@@ -26,6 +26,8 @@ dependencies {
     // Fails to find SAAJMetaFactoryImpl when either missing or if you upgrade to 2.0.0
     implementation("com.sun.xml.messaging.saaj:saaj-impl:1.5.2")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.3")
+
+    testImplementation(project(":test-common"))
     testImplementation("com.github.tomakehurst:wiremock-jre8:$wireMockVersion") {
         exclude(group = "junit")
     }

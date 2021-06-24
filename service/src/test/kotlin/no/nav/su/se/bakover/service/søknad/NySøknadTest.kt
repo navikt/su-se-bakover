@@ -35,7 +35,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -110,7 +109,6 @@ class NySøknadTest {
         }
         val sakServiceMock: SakService = mock {
             on { hentSak(any<Fnr>()) } doReturn FantIkkeSak.left() doReturn sak.right()
-            on { opprettSak(any()) }.doNothing()
         }
 
         val pdfGeneratorMock: PdfGenerator = mock {
@@ -209,11 +207,7 @@ class NySøknadTest {
         val sakServiceMock: SakService = mock {
             on { hentSak(any<Fnr>()) } doReturn sak.right()
         }
-        val søknadRepoMock: SøknadRepo = mock {
-            on { opprettSøknad(any()) }.doNothing()
-            on { oppdaterjournalpostId(any()) }.doNothing()
-            on { oppdaterOppgaveId(any()) }.doNothing()
-        }
+        val søknadRepoMock: SøknadRepo = mock()
         val pdfGeneratorMock: PdfGenerator = mock {
             on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
         }
@@ -224,9 +218,7 @@ class NySøknadTest {
         val oppgaveServiceMock: OppgaveService = mock {
             on { opprettOppgave(any()) } doReturn oppgaveId.right()
         }
-        val observerMock = mock<EventObserver> {
-            on { handle(any()) }.doNothing()
-        }
+        val observerMock = mock<EventObserver>()
 
         val søknadService = SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
@@ -300,9 +292,7 @@ class NySøknadTest {
         val sakServiceMock: SakService = mock {
             on { hentSak(any<Fnr>()) } doReturn sak.right()
         }
-        val søknadRepoMock: SøknadRepo = mock {
-            on { opprettSøknad(any()) }.doNothing()
-        }
+        val søknadRepoMock: SøknadRepo = mock()
         val pdfGeneratorMock: PdfGenerator = mock {
             on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
         }
@@ -399,10 +389,7 @@ class NySøknadTest {
         val sakServiceMock: SakService = mock {
             on { hentSak(any<Fnr>()) } doReturn sak.right()
         }
-        val søknadRepoMock: SøknadRepo = mock {
-            on { opprettSøknad(any()) }.doNothing()
-            on { oppdaterjournalpostId(any()) }.doNothing()
-        }
+        val søknadRepoMock: SøknadRepo = mock()
         val pdfGeneratorMock: PdfGenerator = mock {
             on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
         }
@@ -527,11 +514,7 @@ class NySøknadTest {
         val sakServiceMock: SakService = mock {
             on { hentSak(any<Fnr>()) } doReturn sak.right()
         }
-        val søknadRepoMock: SøknadRepo = mock {
-            on { opprettSøknad(any()) }.doNothing()
-            on { oppdaterjournalpostId(any()) }.doNothing()
-            on { oppdaterOppgaveId(any()) }.doNothing()
-        }
+        val søknadRepoMock: SøknadRepo = mock()
         val pdfGeneratorMock: PdfGenerator = mock {
             on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
         }

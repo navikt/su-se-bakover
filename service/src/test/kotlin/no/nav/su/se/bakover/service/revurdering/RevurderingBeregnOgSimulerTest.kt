@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.test.create
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -40,6 +41,7 @@ class RevurderingBeregnOgSimulerTest {
             periode = RevurderingTestUtils.periode,
             uføregrad = Uføregrad.parse(20),
             forventetInntekt = 10,
+            opprettet = fixedTidspunkt,
         )
         val opprettetRevurdering = OpprettetRevurdering(
             id = RevurderingTestUtils.revurderingId,
@@ -53,7 +55,6 @@ class RevurderingBeregnOgSimulerTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(uføregrunnlag),
                 fradragsgrunnlag = listOf(
                     Grunnlag.Fradragsgrunnlag(
                         fradrag = FradragFactory.ny(
@@ -63,6 +64,7 @@ class RevurderingBeregnOgSimulerTest {
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
+                        opprettet = fixedTidspunkt,
                     ),
                 ),
                 bosituasjon = listOf(
@@ -75,7 +77,7 @@ class RevurderingBeregnOgSimulerTest {
                 ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),

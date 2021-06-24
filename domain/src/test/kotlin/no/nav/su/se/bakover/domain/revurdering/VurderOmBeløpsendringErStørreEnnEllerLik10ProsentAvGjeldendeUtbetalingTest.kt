@@ -191,10 +191,14 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
         beløp = månedsbeløp,
     )
 
-    private fun lagOpphør(månedsbeløp: Int, opphørsdato: LocalDate, periode: Periode = beregningsperiode) = Utbetalingslinje.Endring(
-        utbetalingslinje = lagUtbetaling(månedsbeløp = månedsbeløp, periode = periode),
-        statusendring = Utbetalingslinje.Statusendring(status = Utbetalingslinje.LinjeStatus.OPPHØR, fraOgMed = opphørsdato),
-    )
+    private fun lagOpphør(månedsbeløp: Int, opphørsdato: LocalDate, periode: Periode = beregningsperiode) =
+        Utbetalingslinje.Endring(
+            utbetalingslinje = lagUtbetaling(månedsbeløp = månedsbeløp, periode = periode),
+            statusendring = Utbetalingslinje.Statusendring(
+                status = Utbetalingslinje.LinjeStatus.OPPHØR,
+                fraOgMed = opphørsdato,
+            ),
+        )
 
     private fun lagBeregning(månedsbeløp: Int): Beregning {
         return lagBeregning(beregningsperiode to månedsbeløp)

@@ -65,7 +65,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.EMPTY,
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
     )
 
     @Test
@@ -105,7 +105,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             fritekstTilBrev = "",
             stønadsperiode = opprettetBehandling.stønadsperiode!!,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -146,7 +146,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             fritekstTilBrev = "",
             stønadsperiode = opprettetBehandling.stønadsperiode!!,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -191,7 +191,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             fritekstTilBrev = "",
             stønadsperiode = opprettetBehandling.stønadsperiode!!,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {

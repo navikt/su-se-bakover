@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain
 import com.fasterxml.jackson.annotation.JsonValue
 import java.time.LocalDate
 import java.time.Month
+import kotlin.math.roundToInt
 
 class Grunnbeløp private constructor(private val multiplier: Double) {
     private val datoToBeløp: Map<LocalDate, Int> = listOfNotNull(
@@ -13,13 +14,26 @@ class Grunnbeløp private constructor(private val multiplier: Double) {
         LocalDate.of(2021, Month.MAY, 1) to 106399,
     ).toMap()
 
-    fun fraDato(dato: LocalDate): Double = datoToBeløp.entries
+    fun påDato(dato: LocalDate): Double = datoToBeløp.entries
         .sortedByDescending { it.key }
         .first { dato.isAfter(it.key) || dato.isEqual(it.key) }.value * multiplier
 
     fun datoForSisteEndringAvGrunnbeløp(forDato: LocalDate): LocalDate = datoToBeløp.entries
         .sortedByDescending { it.key }
         .first { forDato.isAfter(it.key) || forDato.isEqual(it.key) }.key
+
+    /**
+     * Hent grunnbeløpet * multiplier som er gyldig på gitt dato og alle senere.
+     */
+    fun gyldigPåDatoOgSenere(dato: LocalDate): List<Pair<LocalDate, Int>> = datoToBeløp.entries
+        .sortedByDescending { it.key }
+        .fold(emptyList<Map.Entry<LocalDate, Int>>()) { acc, entry ->
+            if (entry.key.isAfter(dato) || entry.key.isEqual(dato) || acc.none {
+                it.key.isBefore(dato) || it.key.isEqual(dato)
+            }
+            ) acc + entry else acc
+        }
+        .map { it.key to (it.value * multiplier).roundToInt() }
 
     companion object {
         val `2,28G` = Grunnbeløp(2.28)

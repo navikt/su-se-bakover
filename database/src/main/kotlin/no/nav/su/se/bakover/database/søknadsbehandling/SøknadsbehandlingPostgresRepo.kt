@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -40,7 +40,7 @@ internal class SøknadsbehandlingPostgresRepo(
     private val uføregrunnlagRepo: UføregrunnlagPostgresRepo,
     private val fradragsgrunnlagPostgresRepo: FradragsgrunnlagPostgresRepo,
     private val bosituasjongrunnlagRepo: BosituasjongrunnlagPostgresRepo,
-    private val vilkårsvurderingRepo: VilkårsvurderingPostgresRepo,
+    private val uføreVilkårsvurderingRepo: UføreVilkårsvurderingPostgresRepo,
 ) : SøknadsbehandlingRepo {
     override fun lagre(søknadsbehandling: Søknadsbehandling) {
         dataSource.withSession { session ->
@@ -147,12 +147,11 @@ internal class SøknadsbehandlingPostgresRepo(
 
         val fnr = Fnr(string("fnr"))
         val grunnlagsdata = Grunnlagsdata(
-            uføregrunnlag = uføregrunnlagRepo.hentUføregrunnlag(behandlingId, session),
             fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingId, session),
             bosituasjon = bosituasjongrunnlagRepo.hentBosituasjongrunnlag(behandlingId, session),
         )
         val vilkårsvurderinger = Vilkårsvurderinger(
-            uføre = vilkårsvurderingRepo.hent(behandlingId, session),
+            uføre = uføreVilkårsvurderingRepo.hent(behandlingId, session),
         )
 
         return when (status) {

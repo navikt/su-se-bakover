@@ -17,8 +17,8 @@ import no.nav.su.se.bakover.database.beregning
 import no.nav.su.se.bakover.database.fixedClock
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.iverksattAttestering
 import no.nav.su.se.bakover.database.saksbehandler
@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.test.create
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -48,7 +49,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
     private val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
     private val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(dataSource)
     private val bosituasjongrunnlagRepo = BosituasjongrunnlagPostgresRepo(dataSource)
-    private val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
+    private val vilkårsvurderingRepo = UføreVilkårsvurderingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
     private val repo = SøknadsbehandlingPostgresRepo(
         dataSource,
         uføregrunnlagPostgresRepo,
@@ -252,7 +253,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             fritekstTilBrev = "",
                             stønadsperiode = stønadsperiode,
                             grunnlagsdata = Grunnlagsdata.EMPTY,
-                            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                         )
                     }
                 }
@@ -344,7 +345,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             fritekstTilBrev = "",
                             stønadsperiode = stønadsperiode,
                             grunnlagsdata = Grunnlagsdata.EMPTY,
-                            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                         )
                     }
                 }
@@ -415,7 +416,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 fritekstTilBrev = "Dette er fritekst",
                 stønadsperiode = stønadsperiode,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             )
             repo.hent(iverksatt.id).also {
                 it shouldBe expected
@@ -462,7 +463,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 forventetInntekt = 12000,
             )
 
-            val vurderingUførhet = Vilkår.Vurdert.Uførhet.create(
+            val vurderingUførhet = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         id = UUID.randomUUID(),
@@ -475,7 +476,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 ),
             )
 
-            testDataHelper.vilkårsvurderingRepo.lagre(iverksatt.id, vurderingUførhet)
+            testDataHelper.uføreVilkårsvurderingRepo.lagre(iverksatt.id, vurderingUførhet)
 
             repo.hent(iverksatt.id).also {
                 it shouldBe Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
@@ -493,19 +494,10 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     fritekstTilBrev = "",
                     stønadsperiode = stønadsperiode,
                     grunnlagsdata = Grunnlagsdata(
-                        uføregrunnlag = listOf(
-                            Grunnlag.Uføregrunnlag(
-                                id = uføregrunnlag.id,
-                                opprettet = Tidspunkt.now(fixedClock),
-                                periode = Periode.create(1.januar(2021), 31.desember(2021)),
-                                uføregrad = Uføregrad.parse(50),
-                                forventetInntekt = 12000,
-                            ),
-                        ),
                         bosituasjon = iverksatt.grunnlagsdata.bosituasjon,
                     ),
                     vilkårsvurderinger = Vilkårsvurderinger(
-                        uføre = Vilkår.Vurdert.Uførhet.create(
+                        uføre = Vilkår.Uførhet.Vurdert.create(
                             vurderingsperioder = nonEmptyListOf(
                                 Vurderingsperiode.Uføre.create(
                                     id = vurderingUførhet.vurderingsperioder[0].id,

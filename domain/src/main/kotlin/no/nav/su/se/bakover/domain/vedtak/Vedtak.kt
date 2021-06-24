@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.Either
 import arrow.core.Nel
+import arrow.core.NonEmptyList
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -32,6 +33,7 @@ import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 import java.util.UUID
@@ -68,10 +70,10 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         (this.behandling as? IverksattRevurdering.Innvilget)?.revurderingsårsak?.årsak != Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
 
     companion object {
-        fun fromSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget, utbetalingId: UUID30) =
+        fun fromSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget, utbetalingId: UUID30, clock: Clock) =
             EndringIYtelse(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = Tidspunkt.now(clock),
                 periode = søknadsbehandling.periode,
                 behandling = søknadsbehandling,
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
@@ -96,9 +98,9 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
         )
 
-        fun from(revurdering: IverksattRevurdering.Innvilget, utbetalingId: UUID30) = EndringIYtelse(
+        fun from(revurdering: IverksattRevurdering.Innvilget, utbetalingId: UUID30, clock: Clock) = EndringIYtelse(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = Tidspunkt.now(clock),
             behandling = revurdering,
             behandlingsinformasjon = revurdering.behandlingsinformasjon,
             periode = revurdering.periode,
@@ -111,9 +113,9 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             vedtakType = VedtakType.ENDRING,
         )
 
-        fun from(revurdering: IverksattRevurdering.Opphørt, utbetalingId: UUID30) = EndringIYtelse(
+        fun from(revurdering: IverksattRevurdering.Opphørt, utbetalingId: UUID30, clock: Clock) = EndringIYtelse(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = Tidspunkt.now(clock),
             behandling = revurdering,
             behandlingsinformasjon = revurdering.behandlingsinformasjon,
             periode = revurdering.periode,
@@ -205,10 +207,10 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         override val vedtakType = VedtakType.AVSLAG
 
         companion object {
-            fun fromSøknadsbehandlingMedBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.MedBeregning) =
+            fun fromSøknadsbehandlingMedBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.MedBeregning, clock: Clock) =
                 AvslagBeregning(
                     id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(),
+                    opprettet = Tidspunkt.now(clock),
                     behandling = avslag,
                     behandlingsinformasjon = avslag.behandlingsinformasjon,
                     beregning = avslag.beregning,
@@ -218,10 +220,10 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     periode = avslag.periode,
                 )
 
-            fun fromSøknadsbehandlingUtenBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning) =
+            fun fromSøknadsbehandlingUtenBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning, clock: Clock) =
                 AvslagVilkår(
                     id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(),
+                    opprettet = Tidspunkt.now(clock),
                     behandling = avslag,
                     behandlingsinformasjon = avslag.behandlingsinformasjon,
                     saksbehandler = avslag.saksbehandler,
@@ -322,23 +324,36 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             when (args) {
                 CopyArgs.Tidslinje.Full -> {
                     val uførevilkår = when (vilkårsvurderinger.uføre) {
-                        Vilkår.IkkeVurdert.Uførhet -> Vilkår.IkkeVurdert.Uførhet
-                        is Vilkår.Vurdert.Uførhet -> vilkårsvurderinger.uføre.copy(
-                            vurderingsperioder = Nel.fromListUnsafe(
+                        Vilkår.Uførhet.IkkeVurdert -> Vilkår.Uførhet.IkkeVurdert
+                        is Vilkår.Uførhet.Vurdert -> {
+                            val vurderingsperioder: NonEmptyList<Vurderingsperiode.Uføre> = Nel.fromListUnsafe(
                                 Tidslinje(
                                     periode = periode,
                                     objekter = vilkårsvurderinger.uføre.vurderingsperioder,
                                 ).tidslinje,
-                            ),
-                        )
+                            )
+                            vilkårsvurderinger.uføre.copy(
+                                vurderingsperioder = vurderingsperioder,
+                            )
+                        }
+                    }
+                    val formue = when (vilkårsvurderinger.formue) {
+                        is Vilkår.Formue.IkkeVurdert -> Vilkår.Formue.IkkeVurdert
+                        is Vilkår.Formue.Vurdert -> {
+                            val vurderingsperioder: NonEmptyList<Vurderingsperiode.Formue> = Nel.fromListUnsafe(
+                                Tidslinje(
+                                    periode = periode,
+                                    objekter = vilkårsvurderinger.formue.vurderingsperioder,
+                                ).tidslinje,
+                            )
+                            vilkårsvurderinger.formue.copy(
+                                vurderingsperioder = vurderingsperioder,
+                            )
+                        }
                     }
                     copy(
                         periode = periode,
                         grunnlagsdata = Grunnlagsdata(
-                            uføregrunnlag = when (uførevilkår) {
-                                Vilkår.IkkeVurdert.Uførhet -> emptyList()
-                                is Vilkår.Vurdert.Uførhet -> uførevilkår.grunnlag
-                            },
                             bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
                                 (it.fullstendigOrThrow()).copy(
                                     CopyArgs.Snitt(periode),
@@ -347,6 +362,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                         ),
                         vilkårsvurderinger = Vilkårsvurderinger(
                             uføre = uførevilkår,
+                            formue = formue,
                         ),
                         fradrag = fradrag.filterNot { it.fradragstype == Fradragstype.ForventetInntekt }.mapNotNull {
                             it.copy(CopyArgs.Snitt(periode))
@@ -356,8 +372,8 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                 }
                 is CopyArgs.Tidslinje.NyPeriode -> {
                     val uførevilkår = when (this.vilkårsvurderinger.uføre) {
-                        Vilkår.IkkeVurdert.Uførhet -> Vilkår.IkkeVurdert.Uførhet
-                        is Vilkår.Vurdert.Uførhet -> this.vilkårsvurderinger.uføre.copy(
+                        Vilkår.Uførhet.IkkeVurdert -> Vilkår.Uførhet.IkkeVurdert
+                        is Vilkår.Uførhet.Vurdert -> this.vilkårsvurderinger.uføre.copy(
                             vurderingsperioder = Nel.fromListUnsafe(
                                 Tidslinje(
                                     periode = args.periode,
@@ -366,13 +382,20 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                             ),
                         )
                     }
+                    val formue = when (this.vilkårsvurderinger.formue) {
+                        Vilkår.Formue.IkkeVurdert -> Vilkår.Formue.IkkeVurdert
+                        is Vilkår.Formue.Vurdert -> this.vilkårsvurderinger.formue.copy(
+                            vurderingsperioder = Nel.fromListUnsafe(
+                                Tidslinje(
+                                    periode = args.periode,
+                                    objekter = this.vilkårsvurderinger.formue.vurderingsperioder,
+                                ).tidslinje,
+                            ),
+                        )
+                    }
                     copy(
                         periode = args.periode,
                         grunnlagsdata = Grunnlagsdata(
-                            uføregrunnlag = Tidslinje(
-                                periode = args.periode,
-                                objekter = grunnlagsdata.uføregrunnlag,
-                            ).tidslinje,
                             bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
                                 (it.fullstendigOrThrow()).copy(
                                     CopyArgs.Snitt(args.periode),
@@ -381,6 +404,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                         ),
                         vilkårsvurderinger = Vilkårsvurderinger(
                             uføre = uførevilkår,
+                            formue = formue,
                         ),
                         fradrag = fradrag.filterNot { it.fradragstype == Fradragstype.ForventetInntekt }.mapNotNull {
                             it.copy(CopyArgs.Snitt(args.periode))
@@ -393,13 +417,21 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
 }
 
 // TODO: ("Må sees i sammenheng med evt endringer knyttet til hvilke vedtakstyper som legges til grunn for revurdering")
-fun List<VedtakSomKanRevurderes>.lagTidslinje(periode: Periode): Tidslinje<Vedtak.VedtakPåTidslinje> =
+fun List<VedtakSomKanRevurderes>.lagTidslinje(periode: Periode, clock: Clock): Tidslinje<Vedtak.VedtakPåTidslinje> =
     map {
         Vedtak.VedtakPåTidslinje(
             opprettet = it.opprettet,
             periode = it.periode,
             grunnlagsdata = it.behandling.grunnlagsdata,
-            vilkårsvurderinger = it.behandling.vilkårsvurderinger,
+            vilkårsvurderinger = it.behandling.vilkårsvurderinger.copy(
+                formue = it.behandling.let { behandling ->
+                    if (behandling is Søknadsbehandling) behandling.behandlingsinformasjon.formue!!.tilVilkår(
+                        stønadsperiode = behandling.stønadsperiode!!,
+                        bosituasjon = behandling.grunnlagsdata.bosituasjon,
+                        clock = clock
+                    ) else behandling.vilkårsvurderinger.formue
+                },
+            ),
             fradrag = it.beregning.getFradrag(),
             originaltVedtak = it,
         )

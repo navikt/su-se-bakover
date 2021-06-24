@@ -18,7 +18,7 @@ interface UtbetalingService {
     fun hentUtbetalinger(sakId: UUID): List<Utbetaling>
     fun oppdaterMedKvittering(
         avstemmingsnøkkel: Avstemmingsnøkkel,
-        kvittering: Kvittering
+        kvittering: Kvittering,
     ): Either<FantIkkeUtbetaling, Utbetaling.OversendtUtbetaling.MedKvittering>
 
     fun simulerUtbetaling(

@@ -66,7 +66,7 @@ internal fun Route.leggTilGrunnlagSøknadsbehandlingRoutes(
                         body.toLeggTilUføregrunnlagRequest(behandlingId)
                             .flatMap { leggTilUføregrunnlagRequest ->
                                 søknadsbehandlingService.leggTilUføregrunnlag(
-                                    leggTilUføregrunnlagRequest,
+                                    leggTilUføregrunnlagRequest
                                 ).mapLeft {
                                     when (it) {
                                         SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling

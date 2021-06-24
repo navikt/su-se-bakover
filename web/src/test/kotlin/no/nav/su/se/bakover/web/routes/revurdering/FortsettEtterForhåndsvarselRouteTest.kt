@@ -92,13 +92,13 @@ internal class FortsettEtterForhåndsvarselRouteTest {
                 journalpostId = JournalpostId("lol"),
                 brevbestillingId = null,
                 valg = BeslutningEtterForhåndsvarsling.FortsettMedAndreOpplysninger,
-                begrunnelse = "begrunnelse"
+                begrunnelse = "begrunnelse",
 
             ),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt))
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -165,12 +165,12 @@ internal class FortsettEtterForhåndsvarselRouteTest {
                 journalpostId = JournalpostId("lol"),
                 brevbestillingId = null,
                 valg = BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
-                begrunnelse = "begrunnelse"
+                begrunnelse = "begrunnelse",
             ),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt))
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -237,12 +237,12 @@ internal class FortsettEtterForhåndsvarselRouteTest {
                 journalpostId = JournalpostId("lol"),
                 brevbestillingId = null,
                 valg = BeslutningEtterForhåndsvarsling.AvsluttUtenEndringer,
-                begrunnelse = "begrunnelse"
+                begrunnelse = "begrunnelse",
             ),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt))
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {

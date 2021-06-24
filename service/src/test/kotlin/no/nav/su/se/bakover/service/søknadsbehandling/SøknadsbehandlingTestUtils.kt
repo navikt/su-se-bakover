@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
-import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.idag
@@ -13,7 +12,6 @@ import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.fnr
 import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
@@ -44,7 +42,7 @@ internal fun createSøknadsbehandlingService(
     søknadRepo: SøknadRepo = mock(),
     personService: PersonService = mock(),
     behandlingMetrics: BehandlingMetrics = mock(),
-    observer: EventObserver = mock { on { handle(any()) }.doNothing() },
+    observer: EventObserver = mock(),
     beregningService: BeregningService = mock(),
     microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = mock(),
     brevService: BrevService = mock(),

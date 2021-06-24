@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.beregning.PersistertFradrag
+import no.nav.su.se.bakover.database.fixedTidspunkt
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -35,6 +36,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
                     ),
                     tilhører = FradragTilhører.BRUKER,
                 ),
+                opprettet = fixedTidspunkt,
             )
 
             val fradragsgrunnlag2 = Grunnlag.Fradragsgrunnlag(
@@ -45,6 +47,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS,
                 ),
+                opprettet = fixedTidspunkt,
             )
 
             grunnlagRepo.lagreFradragsgrunnlag(

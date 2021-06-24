@@ -36,9 +36,9 @@ import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
+import no.nav.su.se.bakover.test.create
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.UUID
@@ -89,7 +89,7 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         ).tilAttestering(Saksbehandler("saksa"), "")
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -126,7 +126,7 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
             fritekstTilBrev = "",
             stønadsperiode = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn uavklart
@@ -176,11 +176,8 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
         )
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn uavklart
-            on { lagre(any()) }.doNothing()
         }
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { lagre(any(), any()) }.doNothing()
-        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
 
         val nyPeriode = Periode.create(1.februar(2021), 31.mars(2021))
         val expected = uavklart.copy(
@@ -204,7 +201,7 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
     }
 
     private fun createVilkårsvurdering(periode: Periode, vilkårsvurderingId: UUID, grunnlagId: UUID) = Vilkårsvurderinger(
-        uføre = Vilkår.Vurdert.Uførhet.create(
+        uføre = Vilkår.Uførhet.Vurdert.create(
             vurderingsperioder = nonEmptyListOf(
                 Vurderingsperiode.Uføre.create(
                     id = vilkårsvurderingId,

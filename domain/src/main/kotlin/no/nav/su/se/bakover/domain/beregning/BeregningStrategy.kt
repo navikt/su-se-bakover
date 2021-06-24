@@ -18,7 +18,7 @@ class BeregningStrategyFactory {
 
         val beregningsgrunnlag = Beregningsgrunnlag.tryCreate(
             beregningsperiode = søknadsbehandling.periode,
-            uføregrunnlag = søknadsbehandling.grunnlagsdata.uføregrunnlag,
+            uføregrunnlag = søknadsbehandling.vilkårsvurderinger.uføre.grunnlag,
             fradragFraSaksbehandler = fradrag,
         ).getOrHandle {
             // TODO jah: Kan vurdere å legge på en left her (KanIkkeBeregne.UgyldigBeregningsgrunnlag

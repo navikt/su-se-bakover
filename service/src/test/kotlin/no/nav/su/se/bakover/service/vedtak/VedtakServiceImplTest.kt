@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.beregning.TestBeregning
+import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
@@ -166,6 +167,7 @@ internal class VedtakServiceImplTest {
     ) = VedtakServiceImpl(
         vedtakRepo = vedtakRepo,
         sakService = sakService,
+        clock = fixedClock,
     )
 
     private fun innvilgetVedtak(fnr: Fnr) =
@@ -193,9 +195,10 @@ internal class VedtakServiceImplTest {
                 fritekstTilBrev = "",
                 stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
                 grunnlagsdata = Grunnlagsdata.EMPTY,
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             ),
             UUID30.randomUUID(),
+            fixedClock
         )
 
     private val oppgaveId = OppgaveId("2")

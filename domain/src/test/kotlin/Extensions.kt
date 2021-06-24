@@ -1,6 +1,5 @@
 import com.nhaarman.mockitokotlin2.argThat
 import io.kotest.matchers.shouldBe
-import org.mockito.internal.stubbing.answers.DoesNothing.doesNothing
 import org.mockito.stubbing.OngoingStubbing
 
 /**
@@ -27,10 +26,6 @@ inline fun <reified T : Any> argShouldBe(noinline expectedPredicate: T.() -> T):
         this shouldBe expectedPredicate(this)
         true
     }
-}
-
-fun <T> OngoingStubbing<T>.doNothing(): OngoingStubbing<T> {
-    return thenAnswer(doesNothing())
 }
 
 infix fun <Arg1, T> OngoingStubbing<T>.doAnswer(predicate: (Arg1) -> T): OngoingStubbing<T> {

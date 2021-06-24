@@ -172,6 +172,10 @@ internal fun Route.søknadsbehandlingRoutes(
         patch("$behandlingPath/{behandlingId}/informasjon") {
             call.withBehandlingId { behandlingId ->
                 call.withBody<BehandlingsinformasjonJson> { body ->
+                    if (body.formue != null && !body.formue.harVerdierOgErGyldig()) {
+                        return@withBehandlingId call.svar(BadRequest.errorJson("Ugyldige verdier på formue", "ugyldige_verdier_på_formue"))
+                    }
+
                     søknadsbehandlingService.vilkårsvurder(
                         VilkårsvurderRequest(
                             behandlingId = behandlingId,

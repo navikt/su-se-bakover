@@ -12,7 +12,6 @@ dependencies {
     implementation(project(":service"))
     implementation(project(":database"))
     implementation(project(":client"))
-    testImplementation(project(":database", "testArchives"))
 
     implementation("org.json:json:$orgJsonVersion")
 
@@ -27,6 +26,11 @@ dependencies {
     implementation("io.ktor:ktor-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.3")
     implementation("com.papertrailapp", "logback-syslog4j", "1.0.0")
+
+
+    testImplementation(project(":database", "testArchives"))
+    testImplementation(project(":test-common"))
+    testImplementation("org.xmlunit:xmlunit-matchers:2.8.2")
 
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {
         exclude(group = "junit")

@@ -51,7 +51,8 @@ enum class Avslagsgrunn {
 enum class Opphørsgrunn {
     UFØRHET,
     FOR_HØY_INNTEKT,
-    SU_UNDER_MINSTEGRENSE;
+    SU_UNDER_MINSTEGRENSE,
+    FORMUE;
 
     companion object {
         fun AvslagGrunnetBeregning.Grunn?.toOpphørsgrunn(): Opphørsgrunn? {
@@ -71,5 +72,6 @@ enum class Opphørsgrunn {
         UFØRHET -> listOf(1, 2)
         FOR_HØY_INNTEKT -> listOf(5, 6, 7)
         SU_UNDER_MINSTEGRENSE -> listOf(5, 6, 9)
+        FORMUE -> listOf(8)
     }
 }

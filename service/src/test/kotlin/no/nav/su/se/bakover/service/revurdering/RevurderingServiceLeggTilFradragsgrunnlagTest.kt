@@ -58,6 +58,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
             ),
         )
@@ -110,6 +111,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
             ),
         )
@@ -158,6 +160,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
             ),
         )
@@ -179,7 +182,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
     @Test
     fun `validerer fradragsgrunnlag`() {
         val revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021))
-        val revurderingMock = mock<OpprettetRevurdering>() {
+        val revurderingMock = mock<OpprettetRevurdering> {
 
             on { periode } doReturn revurderingsperiode
             on { grunnlagsdata } doReturn Grunnlagsdata(
@@ -213,6 +216,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
                 Grunnlag.Fradragsgrunnlag(
                     fradrag = FradragFactory.ny(
@@ -222,6 +226,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
             ),
         )

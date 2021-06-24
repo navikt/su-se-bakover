@@ -2,24 +2,27 @@ package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.Nel
 import arrow.core.NonEmptyList
+import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
 data class GjeldendeVedtaksdata(
     val periode: Periode,
     private val vedtakListe: NonEmptyList<VedtakSomKanRevurderes>,
+    private val clock: Clock
 ) {
     val grunnlagsdata: Grunnlagsdata
     val vilkårsvurderinger: Vilkårsvurderinger
 
     private val tidslinje = vedtakListe
-        .lagTidslinje(periode)
+        .lagTidslinje(periode, clock)
 
     private val vedtakPåTidslinje = tidslinje.tidslinje
 
@@ -27,8 +30,13 @@ data class GjeldendeVedtaksdata(
 
     // Utleder grunnlagstyper som kan knyttes til vilkår via deres respektive vilkårsvurderinger
     private val uføreGrunnlagOgVilkår = when (val uførevilkår = vilkårsvurderingerFraTidslinje.uføre) {
-        Vilkår.IkkeVurdert.Uførhet -> throw IllegalStateException("Kan ikke opprette vilkårsvurdering fra ikke-vurderte vilkår")
-        is Vilkår.Vurdert.Uførhet -> Pair(uførevilkår.grunnlag, uførevilkår)
+        Vilkår.Uførhet.IkkeVurdert -> throw IllegalStateException("Kan ikke opprette vilkårsvurdering fra ikke-vurderte vilkår")
+        is Vilkår.Uførhet.Vurdert -> uførevilkår
+    }
+
+    private val formuevilkårOgGrunnlag = when (val formue = vilkårsvurderingerFraTidslinje.formue) {
+        Vilkår.Formue.IkkeVurdert -> throw IllegalStateException("Kan ikke opprette vilkårsvurdering fra ikke-vurderte vilkår")
+        is Vilkår.Formue.Vurdert -> formue
     }
 
     private val fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = vedtakPåTidslinje.flatMap { it.fradrag }.map {
@@ -37,14 +45,14 @@ data class GjeldendeVedtaksdata(
 
     init {
         grunnlagsdata = Grunnlagsdata(
-            uføregrunnlag = uføreGrunnlagOgVilkår.first,
             fradragsgrunnlag = fradragsgrunnlag,
             bosituasjon = vedtakPåTidslinje.flatMap {
                 it.grunnlagsdata.bosituasjon
             },
         )
         vilkårsvurderinger = Vilkårsvurderinger(
-            uføre = uføreGrunnlagOgVilkår.second,
+            uføre = uføreGrunnlagOgVilkår,
+            formue = formuevilkårOgGrunnlag,
         )
     }
 
@@ -57,9 +65,17 @@ data class GjeldendeVedtaksdata(
 
 private fun List<Vedtak.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurderinger {
     return Vilkårsvurderinger(
-        uføre = Vilkår.Vurdert.Uførhet.create(
+        uføre = Vilkår.Uførhet.Vurdert.tryCreate(
             map { it.vilkårsvurderinger.uføre }
-                .filterIsInstance<Vilkår.Vurdert.Uførhet>()
+                .filterIsInstance<Vilkår.Uførhet.Vurdert>()
+                .flatMap { it.vurderingsperioder }
+                .let { Nel.fromListUnsafe(it) },
+        ).getOrHandle {
+            throw IllegalArgumentException("Kunne ikke instansiere ${Vilkår.Uførhet.Vurdert::class.simpleName}. Melding: $it")
+        },
+        formue = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
+            map { it.vilkårsvurderinger.formue }
+                .filterIsInstance<Vilkår.Formue.Vurdert>()
                 .flatMap { it.vurderingsperioder }
                 .let { Nel.fromListUnsafe(it) },
         ),

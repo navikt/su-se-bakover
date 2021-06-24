@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.web.fixedClock
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -27,6 +28,7 @@ internal class LeggTilUførevurderingRequestTest {
                 fraOgMed = 1.februar(2021),
                 tilOgMed = 28.februar(2021),
             ),
+            clock = fixedClock,
         ) shouldBe LeggTilUførevurderingRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden.left()
     }
 
@@ -45,6 +47,7 @@ internal class LeggTilUførevurderingRequestTest {
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.januar(2021),
             ),
+            clock = fixedClock,
         ) shouldBe LeggTilUførevurderingRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler.left()
     }
 
@@ -63,6 +66,8 @@ internal class LeggTilUførevurderingRequestTest {
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.januar(2021),
             ),
+            clock = fixedClock,
+
         ) shouldBe LeggTilUførevurderingRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler.left()
     }
 
@@ -81,6 +86,8 @@ internal class LeggTilUførevurderingRequestTest {
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.januar(2021),
             ),
+            clock = fixedClock,
+
         ) shouldBe LeggTilUførevurderingRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler.left()
     }
 }
