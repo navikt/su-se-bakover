@@ -199,8 +199,7 @@ open class AccessCheckProxy(
                     sakId: UUID,
                     forDato: LocalDate,
                 ): Either<FantIkkeGjeldendeUtbetaling, Utbetalingslinje> {
-                    assertHarTilgangTilSak(sakId)
-                    return services.utbetaling.hentGjeldendeUtbetaling(sakId, forDato)
+                    kastKanKunKallesFraAnnenService()
                 }
             },
             sak = object : SakService {
