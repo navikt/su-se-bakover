@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.søknad
 import arrow.core.Either
 import io.ktor.application.call
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
@@ -40,6 +41,11 @@ internal fun Route.søknadRoutes(
     søknadService: SøknadService,
     lukkSøknadService: LukkSøknadService,
 ) {
+    authorize(Brukerrolle.Veileder) {
+        get("$søknadPath/loginStatus") {
+            call.svar(Resultat.message(HttpStatusCode.OK, "OK"))
+        }
+    }
     authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
         post(søknadPath) {
             Either.catch { deserialize<SøknadInnholdJson>(call) }.fold(
