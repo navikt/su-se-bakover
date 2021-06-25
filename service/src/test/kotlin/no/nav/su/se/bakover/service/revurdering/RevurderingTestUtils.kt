@@ -246,6 +246,12 @@ object RevurderingTestUtils {
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
     )
 
+    /**
+     * - Uten fradrag
+     * - Enslig ektefelle
+     * - Årsak: Melding fra bruker
+     * - Simulering: mock
+     */
     internal val simulertRevurderingInnvilget = SimulertRevurdering.Innvilget(
         id = revurderingId,
         periode = periode,
@@ -268,6 +274,7 @@ object RevurderingTestUtils {
                     begrunnelse = null,
                 ),
             ),
+            fradragsgrunnlag = emptyList()
         ),
         vilkårsvurderinger = vilkårsvurderinger,
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),

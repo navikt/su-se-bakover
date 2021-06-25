@@ -19,6 +19,8 @@ data class Fnr @JsonCreator(mode = DELEGATING) constructor(private val fnr: Stri
     private fun validate(fnr: String) {
         if (!fnr.matches(fnrPattern)) throw UgyldigFnrException(fnr)
     }
+    // tilgjengeliggjør for test
+    companion object
 }
 
 class UgyldigFnrException(fnr: String?) : RuntimeException("Ugyldig fnr: $fnr")

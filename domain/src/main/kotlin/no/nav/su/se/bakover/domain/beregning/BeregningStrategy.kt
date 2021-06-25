@@ -36,7 +36,7 @@ class BeregningStrategyFactory {
     }
 }
 
-internal sealed class BeregningStrategy {
+sealed class BeregningStrategy {
     abstract fun fradragStrategy(): FradragStrategy
     abstract fun sats(): Sats
     abstract fun satsgrunn(): Satsgrunn
@@ -81,7 +81,7 @@ internal sealed class BeregningStrategy {
     }
 }
 
-internal fun Grunnlag.Bosituasjon.Fullstendig.utledBeregningsstrategi(): BeregningStrategy {
+fun Grunnlag.Bosituasjon.Fullstendig.utledBeregningsstrategi(): BeregningStrategy {
     return when (this) {
         is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> BeregningStrategy.BorMedVoksne
         is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> BeregningStrategy.EpsUnder67År
