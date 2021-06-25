@@ -1082,7 +1082,7 @@ internal class TidslinjeTest {
             beløp = 10000,
         )
 
-        Tidslinje<Utbetalingslinje.Ny>(
+        Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.desember(2021),

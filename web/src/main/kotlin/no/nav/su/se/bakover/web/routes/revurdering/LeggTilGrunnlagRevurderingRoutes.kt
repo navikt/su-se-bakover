@@ -48,7 +48,7 @@ private data class Body(val vurderinger: List<Vurdering>) {
         ).right()
     }
 
-    private data class Vurdering(
+    data class Vurdering(
         val periode: PeriodeJson,
         val uføregrad: Int?,
         val forventetInntekt: Int?,
