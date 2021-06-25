@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.zip
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
@@ -531,7 +532,7 @@ class LagBrevRequestVisitor(
             saksbehandler = vedtak.saksbehandler,
             attestant = vedtak.attestant,
         )
-            .zip(hentGjeldendeUtbetaling(vedtak.behandling.sakId, vedtak.periode.fraOgMed)) // TODO IA: her burde vi kanskje bruke iverksettelsestidspunktet e.l.
+            .zip(hentGjeldendeUtbetaling(vedtak.behandling.sakId, vedtak.opprettet.toLocalDate(zoneIdOslo)))
             .map { (personOgNavn, gjeldendeUtbetaling) ->
                 requestIngenEndring(
                     personOgNavn = personOgNavn,
