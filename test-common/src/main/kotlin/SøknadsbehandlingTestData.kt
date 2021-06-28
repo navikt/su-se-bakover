@@ -11,6 +11,9 @@ import java.util.UUID
 
 val søknadsbehandlingId: UUID = UUID.randomUUID()
 
+val behandlingsinformasjonAlleVilkårUavklart = Behandlingsinformasjon
+    .lagTomBehandlingsinformasjon()
+
 val behandlingsinformasjonAlleVilkårInnvilget = Behandlingsinformasjon
     .lagTomBehandlingsinformasjon()
     .withAlleVilkårOppfylt()
@@ -29,7 +32,7 @@ fun søknadsbehandlingVilkårsvurdertUavklart(
         saksnummer = saksnummer,
         søknad = journalførtSøknadMedOppgave,
         oppgaveId = oppgaveIdSøknad,
-        behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
+        behandlingsinformasjon = behandlingsinformasjonAlleVilkårUavklart,
         fnr = fnr,
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,

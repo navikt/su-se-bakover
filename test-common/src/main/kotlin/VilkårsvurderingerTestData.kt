@@ -59,6 +59,24 @@ fun innvilgetUførevilkårForventetInntekt0(
     )
 }
 
+fun innvilgetUførevilkårForventetInntekt12000(
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = periode2021,
+): Vilkår.Uførhet.Vurdert {
+    return Vilkår.Uførhet.Vurdert.create(
+        vurderingsperioder = nonEmptyListOf(
+            Vurderingsperiode.Uføre.create(
+                id = uførevilkårId,
+                opprettet = opprettet,
+                resultat = Resultat.Innvilget,
+                grunnlag = uføregrunnlagForventetInntekt12000(opprettet, periode),
+                periode = periode,
+                begrunnelse = "innvilgetUførevilkårForventetInntekt12000",
+            ),
+        ),
+    )
+}
+
 val formuegrunnlagId: UUID = UUID.randomUUID()
 
 fun formueGrunnlagUtenEps0Innvilget(

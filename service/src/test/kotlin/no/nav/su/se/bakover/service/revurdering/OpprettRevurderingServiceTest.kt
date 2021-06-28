@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
-import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -30,8 +29,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -49,7 +46,6 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Resultat
@@ -58,9 +54,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.fixedClock
-import no.nav.su.se.bakover.service.fixedLocalDate
-import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.formueVilkår
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
@@ -69,7 +62,20 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.søknadsbehandling.testBeregning
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt12000
+import no.nav.su.se.bakover.test.revurderingsårsak
+import no.nav.su.se.bakover.test.sakId
+import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.saksnummer
+import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt12000
+import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.LocalDate
@@ -78,8 +84,6 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class OpprettRevurderingServiceTest {
-
-    private val sakId: UUID = UUID.randomUUID()
 
     private val denFørsteInneværendeMåned = fixedLocalDate.let {
         LocalDate.of(
@@ -95,7 +99,6 @@ internal class OpprettRevurderingServiceTest {
             1,
         )
 
-    // on { periode } doReturn periode kan være litt trøblete for mocks i mocks?
     private val søknadsbehandlingperiode = Periode.create(
         fraOgMed = nesteMåned,
         tilOgMed = nesteMåned.let {
@@ -111,86 +114,17 @@ internal class OpprettRevurderingServiceTest {
         periode = søknadsbehandlingperiode,
         begrunnelse = "begrunnelse",
     )
-    private val saksbehandler = NavIdentBruker.Saksbehandler("Sak S. behandler")
-    private val saksnummer = Saksnummer(nummer = 12345676)
-    private val fnr = FnrGenerator.random()
-    private val aktørId = AktørId("aktørId")
-
-    private val revurderingsårsak = Revurderingsårsak(
-        Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-        Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-    )
 
     private val informasjonSomRevurderes = listOf(
         Revurderingsteg.Inntekt,
     )
 
-    private val uføregrunnlag = Grunnlag.Uføregrunnlag(
-        periode = stønadsperiode.periode,
-        uføregrad = Uføregrad.parse(25),
-        forventetInntekt = 12000,
-        opprettet = fixedTidspunkt,
-    )
-
-    private val vilkårsvurderingUføre = Vilkår.Uførhet.Vurdert.create(
-        vurderingsperioder = nonEmptyListOf(
-            Vurderingsperiode.Uføre.create(
-                resultat = Resultat.Innvilget,
-                grunnlag = uføregrunnlag,
-                periode = stønadsperiode.periode,
-                begrunnelse = "ok",
-                opprettet = fixedTidspunkt,
-            ),
-        ),
-    )
-
-    private fun createBeregningMock() = mock<Beregning> {
-        on { periode } doReturn søknadsbehandlingperiode
-        on { getMånedsberegninger() } doReturn søknadsbehandlingperiode.tilMånedsperioder()
-            .map { MånedsberegningFactory.ny(it, Sats.HØY, listOf()) }
-        on { getFradrag() } doReturn listOf()
-        on { getSumYtelse() } doReturn søknadsbehandlingperiode.tilMånedsperioder()
-            .sumOf { MånedsberegningFactory.ny(it, Sats.HØY, listOf()).getSumYtelse() }
-    }
-
-    private val innvilgetBehandlingsinformasjon =
-        Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt().copy(
-            bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-                delerBolig = false,
-                ektemakeEllerSamboerUførFlyktning = null,
-                begrunnelse = null,
-            ),
-        )
-
-    private fun createInnvilgetBehandling() = Søknadsbehandling.Iverksatt.Innvilget(
-        id = mock(),
-        opprettet = mock(),
-        sakId = sakId,
-        saksnummer = saksnummer,
-        søknad = mock(),
-        oppgaveId = mock(),
-        behandlingsinformasjon = innvilgetBehandlingsinformasjon,
-        fnr = fnr,
-        beregning = createBeregningMock(),
-        simulering = mock(),
-        saksbehandler = saksbehandler,
-        attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
-        fritekstTilBrev = "",
+    private val uføregrunnlag = uføregrunnlagForventetInntekt12000(periode = stønadsperiode.periode)
+    private val vilkårsvurderingUføre = innvilgetUførevilkårForventetInntekt12000(periode = stønadsperiode.periode)
+    private fun createInnvilgetBehandling() = søknadsbehandlingIverksattInnvilget(
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata(
-            bosituasjon = listOf(
-                Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                    id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    periode = stønadsperiode.periode,
-                    begrunnelse = null,
-                ),
-            ),
-        ),
-        vilkårsvurderinger = Vilkårsvurderinger(
+        vilkårsvurderinger = vilkårsvurderingerInnvilget().copy(
             uføre = vilkårsvurderingUføre,
-            formue = formueVilkår(stønadsperiode.periode),
         ),
     )
 

@@ -12,7 +12,9 @@ import java.time.ZoneOffset
 /**
  * TODO jah: Baser innholdet i denne mer på beregninga
  */
-fun simulering(beregning: Beregning = beregning()): Simulering {
+fun simulering(
+    beregning: Beregning = beregning()
+): Simulering {
     return Simulering(
         gjelderId = fnr,
         gjelderNavn = "gjelderNavn",

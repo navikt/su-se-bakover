@@ -1,9 +1,14 @@
 package no.nav.su.se.bakover.test
 
+import arrow.core.NonEmptyList
+import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats.Companion.utledSats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import java.util.UUID
@@ -13,13 +18,21 @@ val beregningId: UUID = UUID.randomUUID()
 /**
  * Defaultverdier:
  * periode: 2021
- * bosituasjon: bosituasjongrunnlagEnslig
- * fradrag: ingen
+ * bosituasjon: bosituasjongrunnlagEnslig (høy sats)
+ * fradrag: forventet inntekt for bruker 0
  */
 fun beregning(
     periode: Periode = periode2021,
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode),
-    fradrag: List<Fradrag> = emptyList(),
+    fradrag: NonEmptyList<Fradrag> = nonEmptyListOf(
+        FradragFactory.ny(
+            type = Fradragstype.ForventetInntekt,
+            månedsbeløp = 0.0,
+            periode = periode,
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.BRUKER,
+        ),
+    ),
 ) = BeregningFactory.ny(
     id = beregningId,
     opprettet = fixedTidspunkt,
@@ -29,28 +42,3 @@ fun beregning(
     fradragStrategy = bosituasjon.utledBeregningsstrategi().fradragStrategy(),
     begrunnelse = "beregning",
 )
-/*
-  beregning = BeregningMedFradragBeregnetMånedsvis(
-        id = UUID.fromString(beregningId),
-        opprettet = fixedTidspunkt,
-        sats = Sats.ORDINÆR,
-        månedsberegninger = listOf(
-            PersistertMånedsberegning(
-                periode = periode,
-                sats = Sats.ORDINÆR,
-                fradrag = fradrag,
-                sumYtelse = 3,
-                sumFradrag = 1.2,
-                benyttetGrunnbeløp = 66,
-                satsbeløp = 4.1,
-                fribeløpForEps = 0.0,
-            ),
-        ),
-        fradrag = fradrag,
-        sumYtelse = 3,
-        sumFradrag = 2.1,
-        periode = periode,
-        fradragStrategyName = FradragStrategyName.Enslig,
-        begrunnelse = "har en begrunnelse for beregning",
-    ),
- */

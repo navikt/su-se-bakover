@@ -39,8 +39,8 @@ val fnr = Fnr.generer()
 val aktørId = AktørId("aktørId")
 
 /** 2021-01-01 - 2021-12-31 */
-val periode2021 = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
-val stønadsperiode2021 = Stønadsperiode.create(periode2021)
+val periode2021 = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
+val stønadsperiode2021 = Stønadsperiode.create(periode2021, "stønadsperiode2021")
 
 val attestant = NavIdentBruker.Attestant("attestant")
 
