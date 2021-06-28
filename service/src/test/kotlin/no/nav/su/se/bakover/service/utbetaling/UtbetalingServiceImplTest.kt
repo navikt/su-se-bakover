@@ -9,11 +9,15 @@ import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
+import io.kotest.assertions.arrow.either.shouldBeLeft
+import io.kotest.assertions.arrow.either.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -33,6 +37,7 @@ import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.sak.SakService
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.internal.verification.Times
 import java.util.UUID
@@ -559,5 +564,116 @@ internal class UtbetalingServiceImplTest {
             utbetalingRepoMock,
             utbetalingPublisherMock,
         )
+    }
+
+    @Nested
+    inner class hentGjeldendeUtbetaling {
+        @Test
+        fun `henter utbetalingslinjen som gjelder for datoen som sendes inn`() {
+            val expectedGjeldendeUtbetalingslinje =
+                Utbetalingslinje.Ny(
+                    id = UUID30.randomUUID(),
+                    opprettet = Tidspunkt.now(fixedClock),
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.januar(2020),
+                    forrigeUtbetalingslinjeId = null,
+                    beløp = 53821,
+                )
+
+            val utbetalingRepoMock = mock<UtbetalingRepo> {
+                on { hentUtbetalinger(any()) } doReturn listOf(
+                    utbetalingForSimulering.copy(
+                        utbetalingslinjer = nonEmptyListOf(
+                            expectedGjeldendeUtbetalingslinje,
+                            Utbetalingslinje.Ny(
+                                id = UUID30.randomUUID(),
+                                opprettet = Tidspunkt.now(fixedClock),
+                                fraOgMed = 1.februar(2020),
+                                tilOgMed = 29.februar(2020),
+                                forrigeUtbetalingslinjeId = null,
+                                beløp = 53821,
+                            ),
+                            Utbetalingslinje.Ny(
+                                id = UUID30.randomUUID(),
+                                opprettet = Tidspunkt.now(fixedClock),
+                                fraOgMed = 1.mars(2020),
+                                tilOgMed = 31.mars(2020),
+                                forrigeUtbetalingslinjeId = null,
+                                beløp = 53821,
+                            ),
+                        ),
+                    ),
+                )
+            }
+
+            val service = UtbetalingServiceImpl(
+                utbetalingRepo = utbetalingRepoMock,
+                utbetalingPublisher = mock(),
+                sakService = mock(),
+                simuleringClient = mock(),
+                clock = fixedClock,
+            )
+
+            val actual = service.hentGjeldendeUtbetaling(
+                sakId = UUID.randomUUID(),
+                forDato = 15.januar(2020),
+            )
+
+            actual shouldBeRight expectedGjeldendeUtbetalingslinje
+        }
+
+        @Test
+        fun `vil ikke gi linjer som er av typen Endring`() {
+            val utbetalingRepoMock = mock<UtbetalingRepo> {
+                on { hentUtbetalinger(any()) } doReturn listOf(
+                    utbetalingForSimulering.copy(
+                        utbetalingslinjer = nonEmptyListOf(
+                            Utbetalingslinje.Endring.Opphør(
+                                utbetalingslinje = Utbetalingslinje.Ny(
+                                    id = UUID30.randomUUID(),
+                                    opprettet = Tidspunkt.now(fixedClock),
+                                    fraOgMed = 1.januar(2020),
+                                    tilOgMed = 31.januar(2020),
+                                    forrigeUtbetalingslinjeId = null,
+                                    beløp = 53821,
+                                ),
+                                virkningstidspunkt = 1.januar(2020),
+                            ),
+                            Utbetalingslinje.Ny(
+                                id = UUID30.randomUUID(),
+                                opprettet = Tidspunkt.now(fixedClock),
+                                fraOgMed = 1.februar(2020),
+                                tilOgMed = 29.februar(2020),
+                                forrigeUtbetalingslinjeId = null,
+                                beløp = 53821,
+                            ),
+                            Utbetalingslinje.Ny(
+                                id = UUID30.randomUUID(),
+                                opprettet = Tidspunkt.now(fixedClock),
+                                fraOgMed = 1.mars(2020),
+                                tilOgMed = 31.mars(2020),
+                                forrigeUtbetalingslinjeId = null,
+                                beløp = 53821,
+                            ),
+                        ),
+                    ),
+                )
+            }
+
+            val service = UtbetalingServiceImpl(
+                utbetalingRepo = utbetalingRepoMock,
+                utbetalingPublisher = mock(),
+                sakService = mock(),
+                simuleringClient = mock(),
+                clock = fixedClock,
+            )
+
+            val actual = service.hentGjeldendeUtbetaling(
+                sakId = UUID.randomUUID(),
+                forDato = 15.januar(2020),
+            )
+
+            actual shouldBeLeft FantIkkeGjeldendeUtbetaling
+        }
     }
 }

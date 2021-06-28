@@ -5,7 +5,7 @@ buildscript {
 }
 
 plugins {
-    kotlin("jvm") version "1.5.10"
+    kotlin("jvm") version "1.5.20"
     // Støtter unicode filer (i motsetning til https://github.com/JLLeitschuh/ktlint-gradle 10.0.0) og har nyere dependencies som gradle. Virker som den oppdateres hyppigere.
     id("org.jmailen.kotlinter") version "3.4.5"
     id("com.github.ben-manes.versions") version "0.39.0" // Finds latest versions
@@ -29,7 +29,7 @@ allprojects {
     val kotestVersion = "4.6.0"
     val jacksonVersion = "2.12.3"
     val bouncycastleVersion = "1.69"
-    val kotlinVersion = "1.5.10"
+    val kotlinVersion = "1.5.20"
     dependencies {
         api(kotlin("stdlib-jdk8"))
 
@@ -45,7 +45,7 @@ allprojects {
         implementation("net.logstash.logback:logstash-logback-encoder:6.6")
         implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
         implementation("org.apache.kafka:kafka-clients:2.8.0")
-        implementation("com.networknt:json-schema-validator:1.0.53")
+        implementation("com.networknt:json-schema-validator:1.0.55")
         implementation("no.finn.unleash:unleash-client-java:4.4.0")
 
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.2.0")

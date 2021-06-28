@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -46,6 +47,8 @@ interface FerdigstillVedtakService {
             object FantIkkeNavnPåSaksbehandlerEllerAttestant : KunneIkkeJournalføreBrev()
             object FantIkkePerson : KunneIkkeJournalføreBrev()
             object FeilVedJournalføring : KunneIkkeJournalføreBrev()
+            object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeJournalføreBrev()
+
             data class AlleredeJournalført(val journalpostId: JournalpostId) : KunneIkkeJournalføreBrev()
         }
 
@@ -98,6 +101,7 @@ internal class FerdigstillVedtakServiceImpl(
     private val oppgaveService: OppgaveService,
     private val vedtakRepo: VedtakRepo,
     private val personService: PersonService,
+    private val utbetalingService: UtbetalingService,
     private val microsoftGraphApiOppslag: MicrosoftGraphApiOppslag,
     private val clock: Clock,
     private val utbetalingRepo: UtbetalingRepo,
@@ -319,6 +323,9 @@ internal class FerdigstillVedtakServiceImpl(
                         LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> {
                             KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.FantIkkePerson
                         }
+                        LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling -> {
+                            KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.KunneIkkeFinneGjeldendeUtbetaling
+                        }
                     }
                 }
         }
@@ -332,6 +339,13 @@ internal class FerdigstillVedtakServiceImpl(
         hentNavn = { ident ->
             hentNavnForNavIdent(ident)
                 .mapLeft { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant }
+        },
+        hentGjeldendeUtbetaling = { sakId, forDato ->
+            utbetalingService.hentGjeldendeUtbetaling(sakId, forDato)
+                .bimap(
+                    { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling },
+                    { it.beløp },
+                )
         },
         clock = clock,
     )

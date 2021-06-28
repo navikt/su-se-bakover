@@ -3,7 +3,9 @@ package no.nav.su.se.bakover.domain.visitor
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.zip
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
@@ -33,11 +35,14 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import no.nav.su.se.bakover.domain.vedtak.VedtakVisitor
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
+import java.time.LocalDate
+import java.util.UUID
 import kotlin.reflect.KClass
 
 class LagBrevRequestVisitor(
     private val hentPerson: (fnr: Fnr) -> Either<KunneIkkeLageBrevRequest.KunneIkkeHentePerson, Person>,
     private val hentNavn: (navIdentBruker: NavIdentBruker) -> Either<KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant, String>,
+    private val hentGjeldendeUtbetaling: (sakId: UUID, forDato: LocalDate) -> Either<KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling, Int>,
     private val clock: Clock,
 ) : SøknadsbehandlingVisitor, RevurderingVisitor, VedtakVisitor {
     lateinit var brevRequest: Either<KunneIkkeLageBrevRequest, LagBrevRequest>
@@ -220,7 +225,10 @@ class LagBrevRequestVisitor(
             VedtakType.AVSLAG,
             VedtakType.INGEN_ENDRING,
             -> {
-                throw KunneIkkeLageBrevRequest.UgyldigKombinasjonAvVedtakOgTypeException(vedtak::class, vedtak.vedtakType)
+                throw KunneIkkeLageBrevRequest.UgyldigKombinasjonAvVedtakOgTypeException(
+                    vedtak::class,
+                    vedtak.vedtakType,
+                )
             }
         }
     }
@@ -308,40 +316,6 @@ class LagBrevRequestVisitor(
                 uføregrunnlag = søknadsbehandling.vilkårsvurderinger.uføre.grunnlag,
             )
         }
-
-    private fun revurderingIngenEndring(revurdering: Revurdering, beregning: Beregning) =
-        hentPersonOgNavn(
-            fnr = revurdering.fnr,
-            saksbehandler = revurdering.saksbehandler,
-            attestant = FinnAttestantVisitor().let {
-                revurdering.accept(it)
-                it.attestant
-            },
-        ).map {
-            requestIngenEndring(
-                personOgNavn = it,
-                beregning = beregning,
-                fritekst = revurdering.fritekstTilBrev,
-                harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
-                uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
-            )
-        }
-
-    private fun requestIngenEndring(
-        personOgNavn: PersonOgNavn,
-        beregning: Beregning,
-        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
-        fritekst: String,
-        harEktefelle: Boolean,
-    ) = LagBrevRequest.VedtakIngenEndring(
-        person = personOgNavn.person,
-        saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
-        attestantNavn = personOgNavn.attestantNavn,
-        beregning = beregning,
-        fritekst = fritekst,
-        harEktefelle = harEktefelle,
-        forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0(),
-    )
 
     private fun innvilgetRevurdering(revurdering: Revurdering, beregning: Beregning) =
         hentPersonOgNavn(
@@ -431,6 +405,7 @@ class LagBrevRequestVisitor(
     sealed class KunneIkkeLageBrevRequest {
         object KunneIkkeHentePerson : KunneIkkeLageBrevRequest()
         object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeLageBrevRequest()
+        object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeLageBrevRequest()
 
         data class KanIkkeLageBrevrequestForInstans(
             val instans: KClass<*>,
@@ -530,20 +505,63 @@ class LagBrevRequestVisitor(
             )
         }
 
-    private fun vedtakIngenEndringIYtelse(vedtak: Vedtak.IngenEndringIYtelse): Either<KunneIkkeLageBrevRequest, LagBrevRequest> = hentPersonOgNavn(
-        fnr = vedtak.behandling.fnr,
-        saksbehandler = vedtak.saksbehandler,
-        attestant = vedtak.attestant,
-    ).map {
-        requestIngenEndring(
-            personOgNavn = it,
-            beregning = vedtak.beregning,
-            fritekst = when (val b = vedtak.behandling) {
-                is Revurdering -> b.fritekstTilBrev
-                else -> ""
+    private fun revurderingIngenEndring(revurdering: Revurdering, beregning: Beregning) =
+        hentPersonOgNavn(
+            fnr = revurdering.fnr,
+            saksbehandler = revurdering.saksbehandler,
+            attestant = FinnAttestantVisitor().let {
+                revurdering.accept(it)
+                it.attestant
             },
-            harEktefelle = vedtak.behandlingsinformasjon.harEktefelle(),
-            uføregrunnlag = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag,
         )
-    }
+            .zip(hentGjeldendeUtbetaling(revurdering.sakId, LocalDate.now(clock)))
+            .map { (personOgNavn, gjeldendeUtbetaling) ->
+                requestIngenEndring(
+                    personOgNavn = personOgNavn,
+                    beregning = beregning,
+                    fritekst = revurdering.fritekstTilBrev,
+                    harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
+                    uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
+                    gjeldendeMånedsutbetaling = gjeldendeUtbetaling,
+                )
+            }
+
+    private fun vedtakIngenEndringIYtelse(vedtak: Vedtak.IngenEndringIYtelse): Either<KunneIkkeLageBrevRequest, LagBrevRequest.VedtakIngenEndring> =
+        hentPersonOgNavn(
+            fnr = vedtak.behandling.fnr,
+            saksbehandler = vedtak.saksbehandler,
+            attestant = vedtak.attestant,
+        )
+            .zip(hentGjeldendeUtbetaling(vedtak.behandling.sakId, vedtak.opprettet.toLocalDate(zoneIdOslo)))
+            .map { (personOgNavn, gjeldendeUtbetaling) ->
+                requestIngenEndring(
+                    personOgNavn = personOgNavn,
+                    beregning = vedtak.beregning,
+                    fritekst = when (val b = vedtak.behandling) {
+                        is Revurdering -> b.fritekstTilBrev
+                        else -> ""
+                    },
+                    harEktefelle = vedtak.behandlingsinformasjon.harEktefelle(),
+                    uføregrunnlag = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag,
+                    gjeldendeMånedsutbetaling = gjeldendeUtbetaling,
+                )
+            }
+
+    private fun requestIngenEndring(
+        personOgNavn: PersonOgNavn,
+        beregning: Beregning,
+        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+        fritekst: String,
+        harEktefelle: Boolean,
+        gjeldendeMånedsutbetaling: Int,
+    ) = LagBrevRequest.VedtakIngenEndring(
+        person = personOgNavn.person,
+        saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
+        attestantNavn = personOgNavn.attestantNavn,
+        beregning = beregning,
+        fritekst = fritekst,
+        harEktefelle = harEktefelle,
+        forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0(),
+        gjeldendeMånedsutbetaling = gjeldendeMånedsutbetaling,
+    )
 }

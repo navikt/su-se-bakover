@@ -118,6 +118,7 @@ interface LagBrevRequest {
         private val fritekst: String,
         private val harEktefelle: Boolean,
         private val forventetInntektStørreEnn0: Boolean,
+        private val gjeldendeMånedsutbetaling: Int,
     ) : LagBrevRequest {
         override fun getPerson(): Person = person
 
@@ -132,6 +133,7 @@ interface LagBrevRequest {
                 satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed).ddMMyyyy(),
                 harEktefelle = harEktefelle,
                 forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
+                gjeldendeMånedsutbetaling = gjeldendeMånedsutbetaling,
             )
         }
     }
