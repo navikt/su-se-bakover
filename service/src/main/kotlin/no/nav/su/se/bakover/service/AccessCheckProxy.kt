@@ -170,10 +170,11 @@ open class AccessCheckProxy(
                 override fun stansUtbetalinger(
                     sakId: UUID,
                     saksbehandler: NavIdentBruker,
+                    stansDato: LocalDate,
                 ): Either<KunneIkkeStanseUtbetalinger, Sak> {
                     assertHarTilgangTilSak(sakId)
 
-                    return services.utbetaling.stansUtbetalinger(sakId, saksbehandler)
+                    return services.utbetaling.stansUtbetalinger(sakId, saksbehandler, stansDato)
                 }
 
                 override fun gjenopptaUtbetalinger(

@@ -73,7 +73,7 @@ internal class UtbetalingServiceImpl(
         return Tidslinje(
             periode = Periode.create(
                 fraOgMed = utbetalingslinjer.minOf { it.fraOgMed },
-                tilOgMed = utbetalingslinjer.maxOf { it.tilOgMed }
+                tilOgMed = utbetalingslinjer.maxOf { it.tilOgMed },
             ),
             objekter = utbetalingslinjer,
             clock = clock,
@@ -199,6 +199,7 @@ internal class UtbetalingServiceImpl(
     override fun stansUtbetalinger(
         sakId: UUID,
         saksbehandler: NavIdentBruker,
+        stansDato: LocalDate,
     ): Either<KunneIkkeStanseUtbetalinger, Sak> {
         val sak = sakService.hentSak(sakId).getOrElse {
             return KunneIkkeStanseUtbetalinger.FantIkkeSak.left()
@@ -210,6 +211,7 @@ internal class UtbetalingServiceImpl(
                 fnr = sak.fnr,
                 utbetalinger = sak.utbetalinger,
                 behandler = saksbehandler,
+                stansDato = stansDato,
                 clock = clock,
             ).generate()
         return simulerUtbetaling(utbetalingTilSimulering).mapLeft {

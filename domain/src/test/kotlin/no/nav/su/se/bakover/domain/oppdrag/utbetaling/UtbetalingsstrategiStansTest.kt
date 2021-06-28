@@ -3,8 +3,10 @@ package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
@@ -55,6 +57,7 @@ internal class UtbetalingsstrategiStansTest {
             fnr = fnr,
             utbetalinger = listOf(utbetaling),
             behandler = NavIdentBruker.Saksbehandler("Z123"),
+            stansDato = 1.juli(2020),
             clock = fixedClock,
         ).generate()
 
@@ -90,6 +93,7 @@ internal class UtbetalingsstrategiStansTest {
                 fnr = fnr,
                 utbetalinger = listOf(utbetaling),
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
+                stansDato = 1.juli(2020),
                 clock = fixedClock,
             ).generate()
         }.also {
@@ -118,6 +122,7 @@ internal class UtbetalingsstrategiStansTest {
                 fnr = fnr,
                 utbetalinger = listOf(utbetaling),
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
+                stansDato = 1.juli(2020),
                 clock = fixedClock,
             ).generate()
         }.also {
@@ -146,10 +151,101 @@ internal class UtbetalingsstrategiStansTest {
                 fnr = fnr,
                 utbetalinger = listOf(utbetaling),
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
+                stansDato = 1.juli(2020),
                 clock = fixedClock,
             ).generate()
         }.also {
             it.message shouldContain "Kan ikke stanse utbetalinger som allerede er opphørt"
+        }
+    }
+
+    @Test
+    fun `har utbetalinger senere enn stansdato`() {
+        val utbetaling = createUtbetaling(
+            nonEmptyListOf(
+                Utbetalingslinje.Ny(
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.desember(2020),
+                    forrigeUtbetalingslinjeId = null,
+                    beløp = 15000,
+                ),
+            ),
+            type = Utbetaling.UtbetalingsType.NY,
+        )
+
+        shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
+            Utbetalingsstrategi.Stans(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utbetalinger = listOf(utbetaling),
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                stansDato = 1.juli(2021),
+                clock = fixedClock,
+            ).generate()
+        }.also {
+            it.message shouldContain "Det eksisterer ingen utbetalinger med tilOgMed dato større enn eller lik"
+        }
+    }
+
+    @Test
+    fun `stansdato må være den første i måneden`() {
+        val utbetaling = createUtbetaling(
+            nonEmptyListOf(
+                Utbetalingslinje.Ny(
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.desember(2020),
+                    forrigeUtbetalingslinjeId = null,
+                    beløp = 15000,
+                ),
+            ),
+            type = Utbetaling.UtbetalingsType.NY,
+        )
+
+        shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
+            Utbetalingsstrategi.Stans(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utbetalinger = listOf(utbetaling),
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                stansDato = 10.juli(2020),
+                clock = fixedClock,
+            ).generate()
+        }.also {
+            it.message shouldContain "Dato for stans må være første dag i måneden"
+        }
+    }
+
+    @Test
+    fun `stansdato må være den første i inneæværende eller neste måned`() {
+        val utbetaling = createUtbetaling(
+            nonEmptyListOf(
+                Utbetalingslinje.Ny(
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.desember(2020),
+                    forrigeUtbetalingslinjeId = null,
+                    beløp = 15000,
+                ),
+            ),
+            type = Utbetaling.UtbetalingsType.NY,
+        )
+
+        listOf(
+            1.juni(2020),
+            1.juli(2020),
+        ).forEach {
+            Utbetalingsstrategi.Stans(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utbetalinger = listOf(utbetaling),
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                stansDato = it,
+                clock = fixedClock,
+            ).generate().also {
+                it should beOfType<Utbetaling.UtbetalingForSimulering>()
+            }
         }
     }
 

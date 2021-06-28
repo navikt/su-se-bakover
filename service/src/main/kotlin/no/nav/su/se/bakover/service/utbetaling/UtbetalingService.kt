@@ -43,7 +43,8 @@ interface UtbetalingService {
 
     fun stansUtbetalinger(
         sakId: UUID,
-        saksbehandler: NavIdentBruker
+        saksbehandler: NavIdentBruker,
+        stansDato: LocalDate
     ): Either<KunneIkkeStanseUtbetalinger, Sak>
 
     fun gjenopptaUtbetalinger(

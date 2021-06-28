@@ -4,7 +4,7 @@ import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.erFørsteDagIMåned
-import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUt
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import java.time.Clock
 import java.time.LocalDate
-import java.time.temporal.TemporalAdjusters.firstDayOfNextMonth
 import java.util.UUID
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
@@ -33,13 +32,15 @@ sealed class Utbetalingsstrategi {
         override val fnr: Fnr,
         override val utbetalinger: List<Utbetaling>,
         override val behandler: NavIdentBruker,
+        val stansDato: LocalDate,
         val clock: Clock,
     ) : Utbetalingsstrategi() {
         override fun generate(): Utbetaling.UtbetalingForSimulering {
-            val stansesFraOgMed =
-                idag(clock).with(firstDayOfNextMonth()) // TODO jah: Tor Erik ønsker at den skal stanses snarest mulig, men vi ønsker ikke å stanse ting som er sent til UR/er allerede utbetalt.
-
-            validate(harOversendteUtbetalingerEtter(stansesFraOgMed)) { "Det eksisterer ingen utbetalinger med tilOgMed dato større enn eller lik $stansesFraOgMed" }
+            validate(harOversendteUtbetalingerEtter(stansDato)) { "Det eksisterer ingen utbetalinger med tilOgMed dato større enn eller lik $stansDato" }
+            validate(stansDato.erFørsteDagIMåned()) { "Dato for stans må være første dag i måneden" }
+            LocalDate.now(clock).let {
+                validate(it.startOfMonth() == stansDato.startOfMonth() || it.plusMonths(1).startOfMonth() == stansDato.startOfMonth()) { "Dato for stans må være første dag i inneværende eller neste måned" }
+            }
 
             val sisteOversendtUtbetaling = sisteOversendteUtbetaling()?.also {
                 validate(Utbetaling.UtbetalingsType.STANS != it.type) { "Kan ikke stanse utbetalinger som allerede er stanset" }
@@ -53,7 +54,7 @@ sealed class Utbetalingsstrategi {
                 utbetalingslinjer = nonEmptyListOf(
                     Utbetalingslinje.Endring.Stans(
                         utbetalingslinje = sisteOversendtUtbetaling.sisteUtbetalingslinje(),
-                        virkningstidspunkt = stansesFraOgMed,
+                        virkningstidspunkt = stansDato,
                     ),
                 ),
                 type = Utbetaling.UtbetalingsType.STANS,

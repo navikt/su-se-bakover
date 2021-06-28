@@ -6,6 +6,7 @@ import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.post
+import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
@@ -20,16 +21,18 @@ import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.withSakId
+import java.time.temporal.TemporalAdjusters.firstDayOfNextMonth
 
 internal fun Route.stansutbetalingRoutes(
-    utbetalingService: UtbetalingService
+    utbetalingService: UtbetalingService,
 ) {
     authorize(Brukerrolle.Saksbehandler) {
         post("$sakPath/{sakId}/utbetalinger/stans") {
             call.withSakId { sakId ->
                 utbetalingService.stansUtbetalinger(
                     sakId = sakId,
-                    saksbehandler = call.suUserContext.navIdent.let { Saksbehandler(it) }
+                    saksbehandler = call.suUserContext.navIdent.let { Saksbehandler(it) },
+                    stansDato = idag().with(firstDayOfNextMonth()),
                 ).fold(
                     {
                         when (it) {
@@ -42,7 +45,7 @@ internal fun Route.stansutbetalingRoutes(
                             KunneIkkeStanseUtbetalinger.SimulertStansHarBeløpUlikt0 ->
                                 call.respond(
                                     InternalServerError,
-                                    "Simulering av stans inneholdt beløp for utbetaling ulikt 0"
+                                    "Simulering av stans inneholdt beløp for utbetaling ulikt 0",
                                 )
                         }
                         InternalServerError.message("Kunne ikke stanse utbetalinger for sak med id $sakId")
@@ -51,7 +54,7 @@ internal fun Route.stansutbetalingRoutes(
                         call.audit(it.fnr, AuditLogEvent.Action.UPDATE, null)
                         call.sikkerlogg("Stanser utbetaling på sak $sakId")
                         call.respond(serialize(it.toJson()))
-                    }
+                    },
                 )
             }
         }

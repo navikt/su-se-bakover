@@ -139,7 +139,7 @@ internal class StansUtbetalingServiceTest {
             utbetalingPublisher = utbetalingPublisherMock,
             clock = fixedClock,
 
-        ).stansUtbetalinger(sak.id, saksbehandler)
+        ).stansUtbetalinger(sak.id, saksbehandler, 1.januar(2020))
 
         response shouldBe sak.right()
         inOrder(
@@ -220,7 +220,7 @@ internal class StansUtbetalingServiceTest {
             simuleringClient = simuleringClientMock,
             utbetalingPublisher = utbetalingPublisherMock,
             clock = fixedClock,
-        ).stansUtbetalinger(sak.id, saksbehandler)
+        ).stansUtbetalinger(sak.id, saksbehandler, 1.januar(2020))
 
         response shouldBe KunneIkkeStanseUtbetalinger.SimuleringAvStansFeilet.left()
 
@@ -273,7 +273,7 @@ internal class StansUtbetalingServiceTest {
             utbetalingPublisher = utbetalingPublisherMock,
             clock = fixedClock,
 
-        ).stansUtbetalinger(sak.id, saksbehandler)
+        ).stansUtbetalinger(sak.id, saksbehandler, 1.januar(2020))
 
         response shouldBe KunneIkkeStanseUtbetalinger.SendingAvUtebetalingTilOppdragFeilet.left()
 

@@ -27,7 +27,7 @@ internal class StansUtbetalingRoutesKtTest {
     @Test
     fun `fant ikke sak returnerer not found`() {
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { stansUtbetalinger(any(), any()) } doReturn KunneIkkeStanseUtbetalinger.FantIkkeSak.left()
+            on { stansUtbetalinger(any(), any(), any()) } doReturn KunneIkkeStanseUtbetalinger.FantIkkeSak.left()
         }
         withTestApplication({
             testSusebakover(services = services.copy(utbetaling = utbetalingServiceMock))
@@ -46,7 +46,7 @@ internal class StansUtbetalingRoutesKtTest {
     @Test
     fun `simulering av stans feiler svarer med 500`() {
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { stansUtbetalinger(any(), any()) } doReturn KunneIkkeStanseUtbetalinger.SimuleringAvStansFeilet.left()
+            on { stansUtbetalinger(any(), any(), any()) } doReturn KunneIkkeStanseUtbetalinger.SimuleringAvStansFeilet.left()
         }
         withTestApplication({
             testSusebakover(services = services.copy(utbetaling = utbetalingServiceMock))
@@ -65,7 +65,7 @@ internal class StansUtbetalingRoutesKtTest {
     @Test
     fun `oversendelse til utbetaling svarer med 500`() {
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { stansUtbetalinger(any(), any()) } doReturn KunneIkkeStanseUtbetalinger.SendingAvUtebetalingTilOppdragFeilet.left()
+            on { stansUtbetalinger(any(), any(), any()) } doReturn KunneIkkeStanseUtbetalinger.SendingAvUtebetalingTilOppdragFeilet.left()
         }
         withTestApplication({
             testSusebakover(services = services.copy(utbetaling = utbetalingServiceMock))
@@ -84,7 +84,7 @@ internal class StansUtbetalingRoutesKtTest {
     @Test
     fun `simulert stans inneholder beløp ulikt 0 svarer med 500`() {
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { stansUtbetalinger(any(), any()) } doReturn KunneIkkeStanseUtbetalinger.SimulertStansHarBeløpUlikt0.left()
+            on { stansUtbetalinger(any(), any(), any()) } doReturn KunneIkkeStanseUtbetalinger.SimulertStansHarBeløpUlikt0.left()
         }
         withTestApplication({
             testSusebakover(services = services.copy(utbetaling = utbetalingServiceMock))
