@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -84,6 +85,7 @@ import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.service.utbetaling.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
@@ -191,6 +193,13 @@ open class AccessCheckProxy(
                 ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering> {
                     assertHarTilgangTilSak(sakId)
                     return services.utbetaling.opphør(sakId, attestant, simulering, opphørsdato)
+                }
+
+                override fun hentGjeldendeUtbetaling(
+                    sakId: UUID,
+                    forDato: LocalDate,
+                ): Either<FantIkkeGjeldendeUtbetaling, Utbetalingslinje> {
+                    kastKanKunKallesFraAnnenService()
                 }
             },
             sak = object : SakService {

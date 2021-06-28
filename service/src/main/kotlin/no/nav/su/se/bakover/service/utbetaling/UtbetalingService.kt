@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -56,9 +57,15 @@ interface UtbetalingService {
         simulering: Simulering,
         opphørsdato: LocalDate
     ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering>
+
+    fun hentGjeldendeUtbetaling(
+        sakId: UUID,
+        forDato: LocalDate
+    ): Either<FantIkkeGjeldendeUtbetaling, Utbetalingslinje>
 }
 
 object FantIkkeUtbetaling
+object FantIkkeGjeldendeUtbetaling
 
 sealed class KunneIkkeUtbetale {
     object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeUtbetale()

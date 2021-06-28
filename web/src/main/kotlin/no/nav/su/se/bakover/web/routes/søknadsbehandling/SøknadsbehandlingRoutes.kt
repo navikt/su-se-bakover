@@ -188,7 +188,9 @@ internal fun Route.søknadsbehandlingRoutes(
                                     KunneIkkeVilkårsvurdere.FantIkkeBehandling -> {
                                         NotFound.message("Fant ikke behandling")
                                     }
-                                    KunneIkkeVilkårsvurdere.HarIkkeEktefelle -> { BadRequest.message("Kan ikke ha formue for eps når søker ikke har eps") }
+                                    KunneIkkeVilkårsvurdere.HarIkkeEktefelle -> {
+                                        BadRequest.message("Kan ikke ha formue for eps når søker ikke har eps")
+                                    }
                                 },
                             )
                         },
@@ -286,6 +288,11 @@ internal fun Route.søknadsbehandlingRoutes(
                             is KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant -> {
                                 InternalServerError.message(
                                     "Klarte ikke hente informasjon om saksbehandler og/eller attestant",
+                                )
+                            }
+                            is KunneIkkeLageBrev.KunneIkkeFinneGjeldendeUtbetaling -> {
+                                InternalServerError.message(
+                                    "Kunne ikke hente gjeldende utbetaling",
                                 )
                             }
                         }

@@ -159,6 +159,10 @@ internal object Revurderingsfeilresponser {
                 "Kunne ikke hente navn for saksbehandler eller attestant",
                 "navneoppslag_feilet",
             )
+            KunneIkkeLageBrevutkastForRevurdering.KunneIkkeFinneGjeldendeUtbetaling -> InternalServerError.errorJson(
+                "Kunne ikke hente gjeldende utbetaling",
+                "kunne_ikke_hente_gjeldende_utbetaling",
+            )
         }
     }
 }

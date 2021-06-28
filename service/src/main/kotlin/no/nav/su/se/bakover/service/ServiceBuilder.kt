@@ -73,6 +73,7 @@ object ServiceBuilder {
             oppgaveService = oppgaveService,
             vedtakRepo = databaseRepos.vedtakRepo,
             personService = personService,
+            utbetalingService = utbetalingService,
             microsoftGraphApiOppslag = clients.microsoftGraphApiClient,
             clock = clock,
             utbetalingRepo = databaseRepos.utbetaling,

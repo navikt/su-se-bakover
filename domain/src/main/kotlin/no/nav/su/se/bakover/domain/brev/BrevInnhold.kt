@@ -128,6 +128,7 @@ abstract class BrevInnhold {
         val satsGjeldendeFraDato: String,
         val harEktefelle: Boolean,
         val forventetInntektStørreEnn0: Boolean,
+        val gjeldendeMånedsutbetaling: Int,
     ) : BrevInnhold() {
         override val brevTemplate = BrevTemplate.VedtakIngenEndring
 

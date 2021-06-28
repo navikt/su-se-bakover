@@ -866,6 +866,13 @@ internal class RevurderingServiceImpl(
                 microsoftGraphApiClient.hentNavnForNavIdent(ident)
                     .mapLeft { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant }
             },
+            hentGjeldendeUtbetaling = { sakId, forDato ->
+                utbetalingService.hentGjeldendeUtbetaling(sakId, forDato)
+                    .bimap(
+                        { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling },
+                        { it.beløp }
+                    )
+            },
             clock = clock,
         ).let {
             val r = if (fritekst != null) {
@@ -879,6 +886,7 @@ internal class RevurderingServiceImpl(
             when (it) {
                 LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
                 LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson
+                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeFinneGjeldendeUtbetaling
             }
         }.flatMap {
             brevService.lagBrev(it).mapLeft { KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast }

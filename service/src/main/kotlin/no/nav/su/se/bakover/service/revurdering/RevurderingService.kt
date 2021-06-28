@@ -245,6 +245,7 @@ sealed class KunneIkkeLageBrevutkastForRevurdering {
     object KunneIkkeLageBrevutkast : KunneIkkeLageBrevutkastForRevurdering()
     object FantIkkePerson : KunneIkkeLageBrevutkastForRevurdering()
     object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeLageBrevutkastForRevurdering()
+    object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeLageBrevutkastForRevurdering()
 }
 
 sealed class KunneIkkeUnderkjenneRevurdering {
