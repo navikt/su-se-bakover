@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import java.util.UUID
 
 val revurderingId: UUID = UUID.randomUUID()
@@ -22,6 +23,7 @@ val revurderingsårsak =
 
 /**
  * En revurdering i sin tidligste tilstand der den er basert på et innvilget søknadsbehandlingsvedtak
+ * Arver behandlingsinformasjon/grunnlagsdata/vilkårsvurderinger med samme periode som stønadsperioden - TODO jah: Støtte truncating (bruk en domeneklasse/factory til dette)
  *
  * - Uten fradrag
  * - Enslig ektefelle
@@ -32,8 +34,11 @@ fun opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = periode2021,
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = stønadsperiode),
 ): OpprettetRevurdering {
-    val tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = stønadsperiode)
+    require(stønadsperiode.periode == revurderingsperiode && revurderingsperiode == tilRevurdering.periode) {
+        "En foreløpig begrensning for å bruke testfunksjonen opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak er at stønadsperiode == revurderingsperiode. stønadsperiode=${stønadsperiode.periode}, Revurderingsperiode=$revurderingsperiode, tilRevurdering's periode=${tilRevurdering.periode}"
+    }
     return OpprettetRevurdering(
         id = revurderingId,
         periode = revurderingsperiode,

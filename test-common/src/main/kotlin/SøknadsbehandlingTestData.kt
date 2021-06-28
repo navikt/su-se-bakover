@@ -86,7 +86,7 @@ fun søknadsbehandlingSimulert(
         vilkårsvurderinger = vilkårsvurderinger,
         beregning = beregning,
     ).tilSimulert(
-        simulering = simulering(),
+        simulering = simuleringNy(),
     )
 }
 

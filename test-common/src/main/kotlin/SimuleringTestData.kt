@@ -1,55 +1,34 @@
 package no.nav.su.se.bakover.test
 
+import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub.simulerUtbetaling
+import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
-import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
-import java.time.ZoneOffset
+import java.util.UUID
 
 /**
- * TODO jah: Baser innholdet i denne mer på beregninga
+ * Ved simulering av nye utbetalingslinjer (søknadsbehandling eller revurdering som fører til endring).
+ * Lag egen funksjon for opphør ved behov.
  */
-fun simulering(
-    beregning: Beregning = beregning()
+fun simuleringNy(
+    beregning: Beregning = beregning(),
+    tidligereUtbetalinger: List<Utbetaling> = emptyList(),
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
 ): Simulering {
-    return Simulering(
-        gjelderId = fnr,
-        gjelderNavn = "gjelderNavn",
-        datoBeregnet = beregning.getOpprettet().toLocalDate(ZoneOffset.UTC),
-        nettoBeløp = beregning.getSumYtelse(),
-        periodeList = listOf(
-            SimulertPeriode(
-                fraOgMed = fixedLocalDate,
-                tilOgMed = fixedLocalDate.plusDays(30),
-                utbetaling = listOf(
-                    SimulertUtbetaling(
-                        fagSystemId = "fagSystemId",
-                        utbetalesTilId = fnr,
-                        utbetalesTilNavn = "utbetalesTilNavn",
-                        forfall = fixedLocalDate,
-                        feilkonto = false,
-                        detaljer = listOf(
-                            SimulertDetaljer(
-                                faktiskFraOgMed = fixedLocalDate,
-                                faktiskTilOgMed = fixedLocalDate.plusDays(30),
-                                konto = "konto",
-                                belop = 1,
-                                tilbakeforing = false,
-                                sats = 2,
-                                typeSats = "typeSats",
-                                antallSats = 3,
-                                uforegrad = 4,
-                                klassekode = KlasseKode.SUUFORE,
-                                klassekodeBeskrivelse = "klassekodeBeskrivelse",
-                                klasseType = KlasseType.YTEL,
-                            ),
-                        ),
-                    ),
-                ),
-            ),
-        ),
-    )
+    return Utbetalingsstrategi.Ny(
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        utbetalinger = tidligereUtbetalinger,
+        behandler = saksbehandler,
+        beregning = beregning,
+        clock = fixedClock,
+    ).generate().let {
+        simulerUtbetaling(it)
+    }.orNull()!!
 }

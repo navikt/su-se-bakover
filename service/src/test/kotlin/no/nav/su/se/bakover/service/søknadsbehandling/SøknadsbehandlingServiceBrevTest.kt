@@ -61,7 +61,7 @@ internal class SøknadsbehandlingServiceBrevTest {
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
-                    periode = RevurderingTestUtils.periode,
+                    periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
                     begrunnelse = null,
                 ),
             ),

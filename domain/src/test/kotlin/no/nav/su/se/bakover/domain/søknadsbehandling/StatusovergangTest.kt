@@ -66,7 +66,7 @@ internal class StatusovergangTest {
         stønadsperiode = stønadsperiode,
     )
 
-    private val simulering = no.nav.su.se.bakover.test.simulering()
+    private val simulering = no.nav.su.se.bakover.test.simuleringNy()
 
     private val attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"))
     private val utbetalingId = UUID30.randomUUID()

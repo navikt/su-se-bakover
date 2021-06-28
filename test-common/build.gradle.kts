@@ -4,6 +4,7 @@ dependencies {
 
     implementation(project(":domain"))
     implementation(project(":common"))
+    implementation(project(":client"))
 
     implementation("io.kotest:kotest-assertions-core:$kotestVersion")
 
