@@ -77,6 +77,24 @@ fun innvilgetUførevilkårForventetInntekt12000(
     )
 }
 
+fun avslåttUførevilkårUtenGrunnlag(
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = periode2021,
+): Vilkår.Uførhet.Vurdert {
+    return Vilkår.Uførhet.Vurdert.create(
+        vurderingsperioder = nonEmptyListOf(
+            Vurderingsperiode.Uføre.create(
+                id = uførevilkårId,
+                opprettet = opprettet,
+                resultat = Resultat.Avslag,
+                grunnlag = null,
+                periode = periode,
+                begrunnelse = "avslåttUførevilkårUtenGrunnlag",
+            ),
+        ),
+    )
+}
+
 val formuegrunnlagId: UUID = UUID.randomUUID()
 
 fun formueGrunnlagUtenEps0Innvilget(
@@ -94,6 +112,32 @@ fun formueGrunnlagUtenEps0Innvilget(
             verdiEiendommer = 0,
             verdiKjøretøy = 0,
             innskudd = 0,
+            verdipapir = 0,
+            pengerSkyldt = 0,
+            kontanter = 0,
+            depositumskonto = 0,
+        ),
+        begrunnelse = null,
+        bosituasjon = bosituasjon,
+        behandlingsPeriode = periode,
+    )
+}
+
+fun formueGrunnlagUtenEpsAvslått(
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = periode2021,
+    bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
+): Formuegrunnlag {
+    return Formuegrunnlag.create(
+        id = formuegrunnlagId,
+        opprettet = opprettet,
+        periode = periode,
+        epsFormue = null,
+        søkersFormue = Formuegrunnlag.Verdier.create(
+            verdiIkkePrimærbolig = 0,
+            verdiEiendommer = 0,
+            verdiKjøretøy = 0,
+            innskudd = 1000000,
             verdipapir = 0,
             pengerSkyldt = 0,
             kontanter = 0,
@@ -125,6 +169,24 @@ fun formuevilkårUtenEps0Innvilget(
     )
 }
 
+fun formuevilkårAvslåttPgrBrukersformue(
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = periode2021,
+    bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
+): Vilkår.Formue {
+    return Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
+        vurderingsperioder = nonEmptyListOf(
+            Vurderingsperiode.Formue.create(
+                id = formuevurderingId,
+                opprettet = opprettet,
+                periode = periode,
+                resultat = Resultat.Avslag,
+                grunnlag = formueGrunnlagUtenEpsAvslått(opprettet, periode, bosituasjon),
+            ),
+        ),
+    )
+}
+
 /**
  * uføre: innvilget med forventet inntekt 0
  * bosituasjon: enslig
@@ -139,5 +201,36 @@ fun vilkårsvurderingerInnvilget(
     return Vilkårsvurderinger(
         uføre = uføre,
         formue = formue,
+    )
+}
+
+@Suppress("unused")
+fun vilkårsvurderingerAvslåttAlle(
+    periode: Periode = periode2021,
+    bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
+): Vilkårsvurderinger {
+    return Vilkårsvurderinger(
+        uføre = avslåttUførevilkårUtenGrunnlag(
+            periode = periode,
+        ),
+        formue = formuevilkårAvslåttPgrBrukersformue(
+            periode = periode,
+            bosituasjon = bosituasjon,
+        ),
+    )
+}
+
+fun vilkårsvurderingerAvslåttUføre(
+    periode: Periode = periode2021,
+    bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
+): Vilkårsvurderinger {
+    return Vilkårsvurderinger(
+        uføre = avslåttUførevilkårUtenGrunnlag(
+            periode = periode,
+        ),
+        formue = formuevilkårUtenEps0Innvilget(
+            periode = periode,
+            bosituasjon = bosituasjon,
+        ),
     )
 }

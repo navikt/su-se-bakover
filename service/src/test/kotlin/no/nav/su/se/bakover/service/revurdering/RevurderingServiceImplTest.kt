@@ -107,7 +107,7 @@ import java.util.UUID
 internal class RevurderingServiceImplTest {
 
     @Test
-    fun `kan beregne og simulere`() {
+    fun `beregnOgSimuler - kan beregne og simulere`() {
         val uføregrunnlag = Grunnlag.Uføregrunnlag(
             periode = periodeNesteMånedOgTreMånederFram,
             uføregrad = Uføregrad.parse(20),
@@ -216,7 +216,7 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
-    fun `kan ikke beregne og simulere en revurdering som er til attestering`() {
+    fun `beregnOgSimuler - kan ikke beregne og simulere en revurdering som er til attestering`() {
         val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
             id = revurderingId,
             periode = periodeNesteMånedOgTreMånederFram,
@@ -256,7 +256,7 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
-    fun `får feil når simulering feiler`() {
+    fun `beregnOgSimuler - får feil når simulering feiler`() {
         val uføregrunnlag = Grunnlag.Uføregrunnlag(
             periode = periodeNesteMånedOgTreMånederFram,
             uføregrad = Uføregrad.parse(20),
@@ -349,7 +349,7 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
-    fun `iverksetter endring av ytelse`() {
+    fun `iverksett - iverksetter endring av ytelse`() {
         val attestant = NavIdentBruker.Attestant("attestant")
 
         val testsimulering = Simulering(
@@ -453,7 +453,7 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
-    fun `iverksetter opphør av ytelse`() {
+    fun `iverksett - iverksetter opphør av ytelse`() {
         val revurderingTilAttestering = RevurderingTilAttestering.Opphørt(
             id = revurderingId,
             periode = periodeNesteMånedOgTreMånederFram,
@@ -521,7 +521,7 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
-    fun `underkjenner en revurdering`() {
+    fun `underkjenn - underkjenner en revurdering`() {
         val tilAttestering = RevurderingTilAttestering.Innvilget(
             id = revurderingId,
             periode = periodeNesteMånedOgTreMånederFram,
@@ -602,7 +602,7 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
-    fun `kan beregne og simuler underkjent revurdering på nytt`() {
+    fun `beregnOgSimuler - kan beregne og simuler underkjent revurdering på nytt`() {
         val attestering = Attestering.Underkjent(
             attestant = NavIdentBruker.Attestant(navIdent = "123"),
             grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
@@ -720,7 +720,7 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
-    fun `kan lage brev`() {
+    fun `lagBrevutkast - kan lage brev`() {
         val person = mock<Person>()
         val brevPdf = "".toByteArray()
 
@@ -817,7 +817,7 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
-    fun `får feil når vi ikke kan hente person`() {
+    fun `lagBrevutkast - får feil når vi ikke kan hente person`() {
         val simulertRevurdering = simulertRevurderingInnvilget
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -1139,7 +1139,7 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
-    fun `kan endre fra ingen forhåndsvarsel til forhåndsvarsel`() {
+    fun `forhåndsvarsleEllerSendTilAttestering - kan endre fra ingen forhåndsvarsel til forhåndsvarsel`() {
         val simulertRevurdering = simulertRevurderingInnvilget.copy(
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
         )
@@ -1551,7 +1551,7 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
-    fun `beslutter ikke en allerede besluttet forhåndsvarsling ingenEndring`() {
+    fun `fortsettEtterForhåndsvarsling - beslutter ikke en allerede besluttet forhåndsvarsling ingenEndring`() {
         val simulertRevurdering = simulertRevurderingInnvilget
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -1804,7 +1804,7 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
-    fun `lagreFradrag finner ikke revurdering`() {
+    fun `leggTilFradragsgrunnlag - lagreFradrag finner ikke revurdering`() {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn null
         }
@@ -1847,7 +1847,7 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
-    fun `lagreFradrag har en status som gjør at man ikke kan legge til fradrag`() {
+    fun `leggTilFradragsgrunnlag - lagreFradrag har en status som gjør at man ikke kan legge til fradrag`() {
         val revurderingId = UUID.randomUUID()
 
         val revuderingMock = mock<RevurderingTilAttestering> {

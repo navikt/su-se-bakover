@@ -11,15 +11,9 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
-import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -40,14 +34,8 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
-import no.nav.su.se.bakover.test.revurderingId
-import no.nav.su.se.bakover.test.sakId
-import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.saksnummer
-import no.nav.su.se.bakover.test.simuleringNy
+import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import java.time.Clock
 import java.time.LocalDate
@@ -135,16 +123,6 @@ object RevurderingTestUtils {
         stønadsperiode = stønadsperiodeNesteMånedOgTreMånederFram,
     )
 
-    internal val sak = Sak(
-        id = sakId,
-        saksnummer = saksnummer,
-        opprettet = fixedTidspunkt,
-        fnr = fnr,
-        søknader = listOf(),
-        utbetalinger = listOf(oversendtUtbetalingUtenKvittering(periode = periodeNesteMånedOgTreMånederFram)),
-        vedtakListe = listOf(søknadsbehandlingsvedtakIverksattInnvilget),
-    )
-
     internal fun createRevurderingService(
         vedtakService: VedtakService = mock(),
         utbetalingService: UtbetalingService = mock(),
@@ -185,33 +163,11 @@ object RevurderingTestUtils {
      * - Årsak: Melding fra bruker
      * - Simulering: no.nav.su.se.bakover.test.simulering()
      */
-    internal val simulertRevurderingInnvilget = SimulertRevurdering.Innvilget(
-        id = revurderingId,
-        periode = periodeNesteMånedOgTreMånederFram,
-        opprettet = fixedTidspunkt,
-        tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
-        saksbehandler = saksbehandler,
-        oppgaveId = OppgaveId("Oppgaveid"),
-        fritekstTilBrev = "",
-        revurderingsårsak = revurderingsårsak,
-        behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
-        simulering = simuleringNy(),
-        beregning = beregning,
-        forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-        grunnlagsdata = Grunnlagsdata(
-            bosituasjon = listOf(
-                Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                    id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    periode = periodeNesteMånedOgTreMånederFram,
-                    begrunnelse = null,
-                ),
-            ),
-            fradragsgrunnlag = emptyList(),
-        ),
-        vilkårsvurderinger = vilkårsvurderinger,
-        informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-    )
+    internal val simulertRevurderingInnvilget: SimulertRevurdering.Innvilget =
+        simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            stønadsperiode = stønadsperiodeNesteMånedOgTreMånederFram,
+            revurderingsperiode = stønadsperiodeNesteMånedOgTreMånederFram.periode,
+        )
 }
 
 internal fun Grunnlag.Uføregrunnlag.ekvivalentMed(other: Grunnlag.Uføregrunnlag) {

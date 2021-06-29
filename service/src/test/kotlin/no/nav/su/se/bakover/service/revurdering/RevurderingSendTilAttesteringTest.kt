@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.getOrHandle
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
@@ -11,7 +12,10 @@ import com.nhaarman.mockitokotlin2.never
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.endOfMonth
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
+import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
@@ -20,18 +24,26 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.beregning.TestBeregningSomGirOpphør
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.aktørId
+import no.nav.su.se.bakover.test.createFromGrunnlag
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.formueGrunnlagUtenEps0Innvilget
+import no.nav.su.se.bakover.test.formueGrunnlagUtenEpsAvslått
+import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
+import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
+import no.nav.su.se.bakover.test.simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
+import java.time.temporal.ChronoUnit
 
 class RevurderingSendTilAttesteringTest {
 
@@ -215,11 +227,42 @@ class RevurderingSendTilAttesteringTest {
     }
 
     @Test
-    fun `kan ikke sende revurdering med utfall som ikke støttes til attestering`() {
+    fun `formueopphør må være fra første måned`() {
+        val stønadsperiode = RevurderingTestUtils.stønadsperiodeNesteMånedOgTreMånederFram
+        val revurderingsperiode = stønadsperiode.periode
         val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn RevurderingTestUtils.simulertRevurderingInnvilget.copy(
-                beregning = TestBeregningSomGirOpphør,
+            val førsteUførevurderingsperiode = Periode.create(
+                fraOgMed = revurderingsperiode.fraOgMed,
+                tilOgMed = revurderingsperiode.fraOgMed.endOfMonth(),
             )
+            val andreUførevurderingsperiode = Periode.create(
+                fraOgMed = revurderingsperiode.fraOgMed.plus(1, ChronoUnit.MONTHS),
+                tilOgMed = revurderingsperiode.tilOgMed,
+            )
+
+            val vilkårsvurderinger = vilkårsvurderingerInnvilget(
+                periode = revurderingsperiode,
+                formue = Vilkår.Formue.Vurdert.createFromGrunnlag(
+                    grunnlag = nonEmptyListOf(
+                        formueGrunnlagUtenEps0Innvilget(
+                            periode = førsteUførevurderingsperiode,
+                            bosituasjon = grunnlagsdataEnsligUtenFradrag().bosituasjon.singleFullstendigOrThrow(),
+                        ),
+                        formueGrunnlagUtenEpsAvslått(
+                            periode = andreUførevurderingsperiode,
+                            bosituasjon = grunnlagsdataEnsligUtenFradrag().bosituasjon.singleFullstendigOrThrow(),
+                        ),
+                    ),
+                ),
+            )
+            val simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak =
+                simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
+                    stønadsperiode = stønadsperiode,
+                    revurderingsperiode = revurderingsperiode,
+                    grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
+                    vilkårsvurderinger = vilkårsvurderinger,
+                )
+            on { hent(revurderingId) } doReturn simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
         }
 
         val actual = RevurderingTestUtils.createRevurderingService(
@@ -236,6 +279,36 @@ class RevurderingSendTilAttesteringTest {
         actual shouldBe KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(
             listOf(
                 RevurderingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned,
+            ),
+        ).left()
+
+        verify(revurderingRepoMock, never()).lagre(any())
+    }
+
+    @Test
+    fun `uføreopphør kan ikke gjøres i kombinasjon med fradragsendringer`() {
+        val stønadsperiode = RevurderingTestUtils.stønadsperiodeNesteMånedOgTreMånederFram
+        val revurderingsperiode = stønadsperiode.periode
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(revurderingId) } doReturn simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
+                stønadsperiode = stønadsperiode,
+                revurderingsperiode = revurderingsperiode,
+                grunnlagsdata = grunnlagsdataEnsligMedFradrag(periode = revurderingsperiode),
+            )
+        }
+        val actual = RevurderingTestUtils.createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        ).sendTilAttestering(
+            SendTilAttesteringRequest(
+                revurderingId = revurderingId,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "Fritekst",
+                skalFøreTilBrevutsending = true,
+            ),
+        )
+
+        actual shouldBe KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(
+            listOf(
                 RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
             ),
         ).left()
