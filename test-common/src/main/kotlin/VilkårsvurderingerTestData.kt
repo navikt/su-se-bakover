@@ -14,28 +14,48 @@ import java.util.UUID
 
 val uføregrunnlagId: UUID = UUID.randomUUID()
 
+/**
+ * 100% uføregrad
+ * 0 forventet inntekt
+ * */
 fun uføregrunnlagForventetInntekt0(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = periode2021,
+): Grunnlag.Uføregrunnlag {
+    return uføregrunnlagForventetInntekt(
+        opprettet = opprettet,
+        periode = periode,
+        forventetInntekt = 0,
+    )
+}
+
+/**
+ * 100% uføregrad
+ * 12000 forventet inntekt per år / 1000 per måned
+ * */
+fun uføregrunnlagForventetInntekt12000(
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = periode2021,
+): Grunnlag.Uføregrunnlag {
+    return uføregrunnlagForventetInntekt(
+        opprettet = opprettet,
+        periode = periode,
+        forventetInntekt = 12000,
+    )
+}
+
+/** 100% uføregrad */
+fun uføregrunnlagForventetInntekt(
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = periode2021,
+    forventetInntekt: Int,
 ): Grunnlag.Uføregrunnlag {
     return Grunnlag.Uføregrunnlag(
         id = uføregrunnlagId,
         opprettet = opprettet,
         periode = periode,
         uføregrad = Uføregrad.parse(100),
-        forventetInntekt = 0,
-    )
-}
-
-fun uføregrunnlagForventetInntekt12000(
-    opprettet: Tidspunkt = fixedTidspunkt,
-    periode: Periode = periode2021,
-): Grunnlag.Uføregrunnlag {
-    return uføregrunnlagForventetInntekt0(
-        opprettet,
-        periode,
-    ).copy(
-        forventetInntekt = 12000,
+        forventetInntekt = forventetInntekt,
     )
 }
 

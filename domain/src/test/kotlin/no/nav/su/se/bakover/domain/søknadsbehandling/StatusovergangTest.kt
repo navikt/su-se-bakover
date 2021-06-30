@@ -14,9 +14,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.behandling.withVilkårIkkeVurdert
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -28,10 +25,11 @@ import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.attesteringUnderkjent
 import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.create
-import no.nav.su.se.bakover.test.fradragsgrunnlagForventetInntekt1000
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
+import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt
+import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt12000
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -44,21 +42,15 @@ internal class StatusovergangTest {
 
     private val innvilgetBeregning = beregning(
         periode = stønadsperiode.periode,
-        fradrag = nonEmptyListOf(
-            fradragsgrunnlagForventetInntekt1000().fradrag,
+        uføregrunnlag = nonEmptyListOf(
+            uføregrunnlagForventetInntekt12000(periode = stønadsperiode.periode),
         ),
     )
 
     private val avslagBeregning = beregning(
         periode = stønadsperiode.periode,
-        fradrag = nonEmptyListOf(
-            FradragFactory.ny(
-                type = Fradragstype.ForventetInntekt,
-                månedsbeløp = 1000000.0,
-                periode = stønadsperiode.periode,
-                utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER,
-            ),
+        uføregrunnlag = nonEmptyListOf(
+            uføregrunnlagForventetInntekt(periode = stønadsperiode.periode, forventetInntekt = 1000000),
         ),
     )
 
