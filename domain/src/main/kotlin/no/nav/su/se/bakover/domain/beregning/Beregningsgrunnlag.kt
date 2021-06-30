@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import org.jetbrains.annotations.TestOnly
 
-internal data class Beregningsgrunnlag private constructor(
+data class Beregningsgrunnlag private constructor(
     val beregningsperiode: Periode,
     val fradrag: List<Fradrag>,
 ) {

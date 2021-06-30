@@ -1361,14 +1361,14 @@ internal class FerdigstillVedtakServiceImplTest {
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
-                            periode = RevurderingTestUtils.periode,
+                            periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
                             begrunnelse = null,
                         ),
                     ),
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             ),
-            fixedClock
+            fixedClock,
         )
 
     private fun journalførtAvslagsVedtak() =
@@ -1418,7 +1418,7 @@ internal class FerdigstillVedtakServiceImplTest {
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
-                            periode = RevurderingTestUtils.periode,
+                            periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
                             begrunnelse = null,
                         ),
                     ),
@@ -1426,7 +1426,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             ),
             utbetalingId = UUID30.randomUUID(),
-            clock = fixedClock
+            clock = fixedClock,
         )
     }
 

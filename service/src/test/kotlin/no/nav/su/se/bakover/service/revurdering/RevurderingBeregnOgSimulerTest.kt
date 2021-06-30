@@ -27,9 +27,11 @@ import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
-import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.revurderingId
+import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -38,29 +40,29 @@ class RevurderingBeregnOgSimulerTest {
     @Test
     fun `legger ved feilmeldinger for tilfeller som ikke støttes`() {
         val uføregrunnlag = Grunnlag.Uføregrunnlag(
-            periode = RevurderingTestUtils.periode,
+            periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
             uføregrad = Uføregrad.parse(20),
             forventetInntekt = 10,
             opprettet = fixedTidspunkt,
         )
         val opprettetRevurdering = OpprettetRevurdering(
-            id = RevurderingTestUtils.revurderingId,
-            periode = RevurderingTestUtils.periode,
+            id = revurderingId,
+            periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = RevurderingTestUtils.søknadsbehandlingVedtak,
-            saksbehandler = RevurderingTestUtils.saksbehandler,
+            tilRevurdering = RevurderingTestUtils.søknadsbehandlingsvedtakIverksattInnvilget,
+            saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = RevurderingTestUtils.revurderingsårsak,
             forhåndsvarsel = null,
-            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
+            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 fradragsgrunnlag = listOf(
                     Grunnlag.Fradragsgrunnlag(
                         fradrag = FradragFactory.ny(
                             type = Fradragstype.Arbeidsinntekt,
                             månedsbeløp = 150500.0,
-                            periode = RevurderingTestUtils.søknadsbehandlingVedtak.periode,
+                            periode = RevurderingTestUtils.søknadsbehandlingsvedtakIverksattInnvilget.periode,
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
@@ -71,7 +73,7 @@ class RevurderingBeregnOgSimulerTest {
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        periode = RevurderingTestUtils.periode,
+                        periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
                         begrunnelse = null,
                     ),
                 ),
@@ -84,7 +86,7 @@ class RevurderingBeregnOgSimulerTest {
                             opprettet = fixedTidspunkt,
                             resultat = Resultat.Avslag,
                             grunnlag = uføregrunnlag,
-                            periode = RevurderingTestUtils.periode,
+                            periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
                             begrunnelse = "ok2k",
                         ),
                     ),
@@ -94,7 +96,7 @@ class RevurderingBeregnOgSimulerTest {
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(RevurderingTestUtils.revurderingId) } doReturn opprettetRevurdering
+            on { hent(revurderingId) } doReturn opprettetRevurdering
         }
         val simulertUtbetaling = mock<Utbetaling.SimulertUtbetaling> {
             on { simulering } doReturn mock()
@@ -102,8 +104,8 @@ class RevurderingBeregnOgSimulerTest {
         val utbetalingMock = mock<Utbetaling> {
             on { utbetalingslinjer } doReturn listOf(
                 Utbetalingslinje.Ny(
-                    fraOgMed = RevurderingTestUtils.periode.fraOgMed,
-                    tilOgMed = RevurderingTestUtils.periode.tilOgMed,
+                    fraOgMed = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram.fraOgMed,
+                    tilOgMed = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram.tilOgMed,
                     forrigeUtbetalingslinjeId = null,
                     beløp = 20000,
                 ),
@@ -118,8 +120,8 @@ class RevurderingBeregnOgSimulerTest {
             revurderingRepo = revurderingRepoMock,
             utbetalingService = utbetalingServiceMock,
         ).beregnOgSimuler(
-            revurderingId = RevurderingTestUtils.revurderingId,
-            saksbehandler = RevurderingTestUtils.saksbehandler,
+            revurderingId = revurderingId,
+            saksbehandler = saksbehandler,
         ).getOrHandle { fail("Skulle returnert en instans av ${BeregnOgSimulerResponse::class}") }
 
         response.feilmeldinger shouldBe listOf(

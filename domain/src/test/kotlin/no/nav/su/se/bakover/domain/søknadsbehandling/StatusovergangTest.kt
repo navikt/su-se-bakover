@@ -4,120 +4,62 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.FnrGenerator
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.behandling.withVilkårIkkeVurdert
-import no.nav.su.se.bakover.domain.beregning.BeregningFactory
-import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
-import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.test.attesteringUnderkjent
+import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.stønadsperiode2021
+import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
+import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt
+import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt12000
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
-import java.time.LocalDate
 import java.util.UUID
 
 internal class StatusovergangTest {
 
-    private val innvilgetBeregning = BeregningFactory.ny(
-        id = UUID.randomUUID(),
-        opprettet = Tidspunkt.now(),
-        periode = Periode.create(1.januar(2021), 31.desember(2021)),
-        sats = Sats.HØY,
-        fradrag = listOf(
-            FradragFactory.ny(
-                type = Fradragstype.ForventetInntekt,
-                månedsbeløp = 1000.0,
-                periode = Periode.create(1.januar(2021), 31.desember(2021)),
-                utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER,
-            ),
+    private val stønadsperiode = stønadsperiode2021
+
+    private val innvilgetBeregning = beregning(
+        periode = stønadsperiode.periode,
+        uføregrunnlag = nonEmptyListOf(
+            uføregrunnlagForventetInntekt12000(periode = stønadsperiode.periode),
         ),
-        fradragStrategy = FradragStrategy.Enslig,
     )
 
-    private val avslagBeregning = BeregningFactory.ny(
-        id = UUID.randomUUID(),
-        opprettet = Tidspunkt.now(),
-        periode = Periode.create(1.januar(2021), 31.desember(2021)),
-        sats = Sats.HØY,
-        fradrag = listOf(
-            FradragFactory.ny(
-                type = Fradragstype.ForventetInntekt,
-                månedsbeløp = 1000000.0,
-                periode = Periode.create(1.januar(2021), 31.desember(2021)),
-                utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER,
-            ),
+    private val avslagBeregning = beregning(
+        periode = stønadsperiode.periode,
+        uføregrunnlag = nonEmptyListOf(
+            uføregrunnlagForventetInntekt(periode = stønadsperiode.periode, forventetInntekt = 1000000),
         ),
-        fradragStrategy = FradragStrategy.Enslig,
     )
 
-    private val stønadsperiode =
-        Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)), "begrunnelsen")
-    private val opprettet = Søknadsbehandling.Vilkårsvurdert.Uavklart(
-        id = UUID.randomUUID(),
-        opprettet = Tidspunkt.now(),
-        sakId = UUID.randomUUID(),
-        saksnummer = Saksnummer(2021),
-        søknad = Søknad.Journalført.MedOppgave(
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
-            sakId = UUID.randomUUID(),
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            journalpostId = JournalpostId(""),
-            oppgaveId = OppgaveId(""),
-        ),
-        oppgaveId = OppgaveId(""),
-        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-        fnr = FnrGenerator.random(),
-        fritekstTilBrev = "",
+    private val opprettet = søknadsbehandlingVilkårsvurdertUavklart(
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.EMPTY,
-        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
     )
 
-    private val simulering = Simulering(
-        gjelderId = FnrGenerator.random(),
-        gjelderNavn = "",
-        datoBeregnet = LocalDate.EPOCH,
-        nettoBeløp = 2500,
-        periodeList = emptyList(),
-    )
+    private val simulering = no.nav.su.se.bakover.test.simuleringNy()
 
-    private val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
-    private val underkjentAttestering =
-        Attestering.Underkjent(NavIdentBruker.Attestant("attestant"), Attestering.Underkjent.Grunn.ANDRE_FORHOLD, "")
     private val attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"))
     private val utbetalingId = UUID30.randomUUID()
 
@@ -144,11 +86,11 @@ internal class StatusovergangTest {
     private val tilAttesteringAvslagBeregning: Søknadsbehandling.TilAttestering.Avslag.MedBeregning =
         beregnetAvslag.tilAttestering(saksbehandler, fritekstTilBrev)
     private val underkjentInnvilget: Søknadsbehandling.Underkjent.Innvilget =
-        tilAttesteringInnvilget.tilUnderkjent(underkjentAttestering)
+        tilAttesteringInnvilget.tilUnderkjent(attesteringUnderkjent)
     private val underkjentAvslagVilkår: Søknadsbehandling.Underkjent.Avslag.UtenBeregning =
-        tilAttesteringAvslagVilkår.tilUnderkjent(underkjentAttestering)
+        tilAttesteringAvslagVilkår.tilUnderkjent(attesteringUnderkjent)
     private val underkjentAvslagBeregning: Søknadsbehandling.Underkjent.Avslag.MedBeregning =
-        tilAttesteringAvslagBeregning.tilUnderkjent(underkjentAttestering)
+        tilAttesteringAvslagBeregning.tilUnderkjent(attesteringUnderkjent)
     private val iverksattInnvilget = tilAttesteringInnvilget.tilIverksatt(attestering)
     private val iverksattAvslagVilkår =
         tilAttesteringAvslagVilkår.tilIverksatt(attestering)
@@ -629,7 +571,7 @@ internal class StatusovergangTest {
         fun `til attestering avslag vilkår til underkjent avslag vilkår`() {
             forsøkStatusovergang(
                 tilAttesteringAvslagVilkår,
-                Statusovergang.TilUnderkjent(underkjentAttestering),
+                Statusovergang.TilUnderkjent(attesteringUnderkjent),
             ) shouldBe underkjentAvslagVilkår.right()
         }
 
@@ -637,7 +579,7 @@ internal class StatusovergangTest {
         fun `til attestering avslag beregning til underkjent avslag beregning`() {
             forsøkStatusovergang(
                 tilAttesteringAvslagBeregning,
-                Statusovergang.TilUnderkjent(underkjentAttestering),
+                Statusovergang.TilUnderkjent(attesteringUnderkjent),
             ) shouldBe underkjentAvslagBeregning.right()
         }
 
@@ -645,7 +587,7 @@ internal class StatusovergangTest {
         fun `til attestering innvilget til underkjent innvilging`() {
             forsøkStatusovergang(
                 tilAttesteringInnvilget,
-                Statusovergang.TilUnderkjent(underkjentAttestering),
+                Statusovergang.TilUnderkjent(attesteringUnderkjent),
             ) shouldBe underkjentInnvilget.right()
         }
 
@@ -710,7 +652,7 @@ internal class StatusovergangTest {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     forsøkStatusovergang(
                         it,
-                        Statusovergang.TilUnderkjent(underkjentAttestering),
+                        Statusovergang.TilUnderkjent(attesteringUnderkjent),
                     )
                 }
             }
@@ -798,7 +740,7 @@ internal class StatusovergangTest {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     forsøkStatusovergang(
                         it,
-                        Statusovergang.TilUnderkjent(underkjentAttestering),
+                        Statusovergang.TilUnderkjent(attesteringUnderkjent),
                     )
                 }
             }

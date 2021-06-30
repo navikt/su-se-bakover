@@ -36,16 +36,16 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.createRevurderingService
-import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingId
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingsårsak
-import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.saksbehandler
-import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.søknadsbehandlingVedtak
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.søknadsbehandlingsvedtakIverksattInnvilget
 import no.nav.su.se.bakover.service.søknadsbehandling.testBeregning
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.empty
+import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.revurderingId
+import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import java.util.UUID
@@ -455,20 +455,20 @@ internal class RevurderingLeggTilFormueServiceTest {
         id = revurderingId,
         periode = periodeHele2021,
         opprettet = fixedTidspunkt,
-        tilRevurdering = søknadsbehandlingVedtak,
+        tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
         saksbehandler = saksbehandler,
         oppgaveId = OppgaveId("oppgaveid"),
         fritekstTilBrev = "",
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = null,
-        behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+        behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata(
             fradragsgrunnlag = listOf(
                 Grunnlag.Fradragsgrunnlag(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 10000.0,
-                        periode = søknadsbehandlingVedtak.periode,
+                        periode = søknadsbehandlingsvedtakIverksattInnvilget.periode,
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
@@ -493,13 +493,13 @@ internal class RevurderingLeggTilFormueServiceTest {
         id = revurderingId,
         periode = periodeHele2021,
         opprettet = fixedTidspunkt,
-        tilRevurdering = søknadsbehandlingVedtak,
+        tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
         saksbehandler = saksbehandler,
         oppgaveId = OppgaveId("oppgaveid"),
         fritekstTilBrev = "",
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-        behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+        behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
         beregning = testBeregning,
         simulering = Simulering(
             gjelderId = fnr,
@@ -514,7 +514,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 10000.0,
-                        periode = søknadsbehandlingVedtak.periode,
+                        periode = søknadsbehandlingsvedtakIverksattInnvilget.periode,
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
