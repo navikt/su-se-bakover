@@ -70,9 +70,11 @@ data class IdentifiserSaksbehandlingsutfallSomIkkeStøttes(
     }
 
     private fun harBeløpsendringerEkskludertForventetInntekt(): Boolean {
-        return nyBeregning.getFradrag().filterNot { it.fradragstype == Fradragstype.ForventetInntekt }.minus(
-            tidligereBeregning.getFradrag().filterNot { it.fradragstype == Fradragstype.ForventetInntekt },
-        ).isNotEmpty()
+
+        val nyeFradrag = nyBeregning.getFradrag().filterNot { it.fradragstype == Fradragstype.ForventetInntekt }
+        val tidligereFradrag =
+            tidligereBeregning.getFradrag().filterNot { it.fradragstype == Fradragstype.ForventetInntekt }
+        return tidligereFradrag.union(nyeFradrag).minus(tidligereFradrag.intersect(nyeFradrag)).isNotEmpty()
     }
 
     private fun OpphørVedRevurdering.Ja.opphørsdatoErTidligesteDatoIRevurdering(): Boolean {
