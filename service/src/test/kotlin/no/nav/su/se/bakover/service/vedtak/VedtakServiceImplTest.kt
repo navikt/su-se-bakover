@@ -170,7 +170,7 @@ internal class VedtakServiceImplTest {
     }
 
     @Test
-    fun `henter tidligere informasjon for overleppende vedtak`() {
+    fun `henter tidligere informasjon for overlappende vedtak`() {
         val vedtak1 = vedtakSøknadsbehandlingIverksattInnvilget(Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
             opprettet = Tidspunkt.now(fixedClock)
         )
