@@ -534,11 +534,11 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun hentGjeldendeGrunnlagsdataForVedtak(
+                override fun hentTidligereGrunnlagsdataForVedtak(
                     sakId: UUID,
                     vedtakId: UUID,
                 ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak, GjeldendeVedtaksdata> {
-                    return services.vedtakService.hentGjeldendeGrunnlagsdataForVedtak(sakId, vedtakId)
+                    return services.vedtakService.hentTidligereGrunnlagsdataForVedtak(sakId, vedtakId)
                 }
             },
             grunnlagService = object : GrunnlagService {

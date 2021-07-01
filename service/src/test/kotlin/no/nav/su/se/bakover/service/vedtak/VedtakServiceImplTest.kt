@@ -170,7 +170,7 @@ internal class VedtakServiceImplTest {
     }
 
     @Test
-    fun `henter gjeldende informasjon for overlappende vedtak`() {
+    fun `henter tidligere informasjon for overleppende vedtak`() {
         val vedtak1 = vedtakSøknadsbehandlingIverksattInnvilget(Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
             opprettet = Tidspunkt.now(fixedClock)
         )
@@ -186,7 +186,7 @@ internal class VedtakServiceImplTest {
         }
         createService(
             vedtakRepo = vedtakRepoMock,
-        ).hentGjeldendeGrunnlagsdataForVedtak(UUID.randomUUID(), vedtakId = vedtak2.id) shouldBe GjeldendeVedtaksdata(
+        ).hentTidligereGrunnlagsdataForVedtak(UUID.randomUUID(), vedtakId = vedtak2.id) shouldBe GjeldendeVedtaksdata(
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
             vedtakListe = nonEmptyListOf(vedtak1),
             fixedClock
@@ -194,7 +194,7 @@ internal class VedtakServiceImplTest {
     }
 
     @Test
-    fun `henter gjeldende informasjon for vedtak`() {
+    fun `henter tidligere informasjon for vedtak`() {
         val vedtak1 = vedtakSøknadsbehandlingIverksattInnvilget(Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
             opprettet = Tidspunkt.now(fixedClock)
         )
@@ -205,7 +205,7 @@ internal class VedtakServiceImplTest {
             opprettet = Tidspunkt.now(fixedClock).plus(2, ChronoUnit.DAYS)
         )
         val vedtak4 = vedtakSøknadsbehandlingIverksattInnvilget(Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
-            opprettet = Tidspunkt.now(fixedClock).plus(2, ChronoUnit.DAYS)
+            opprettet = Tidspunkt.now(fixedClock).plus(3, ChronoUnit.DAYS)
         )
 
         val vedtakRepoMock = mock<VedtakRepo> {
@@ -213,7 +213,7 @@ internal class VedtakServiceImplTest {
         }
         val actual = createService(
             vedtakRepo = vedtakRepoMock,
-        ).hentGjeldendeGrunnlagsdataForVedtak(UUID.randomUUID(), vedtakId = vedtak3.id).getOrElse { throw RuntimeException("Test feilet") }
+        ).hentTidligereGrunnlagsdataForVedtak(UUID.randomUUID(), vedtakId = vedtak3.id).getOrElse { throw RuntimeException("Test feilet") }
 
         actual shouldBe GjeldendeVedtaksdata(
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),

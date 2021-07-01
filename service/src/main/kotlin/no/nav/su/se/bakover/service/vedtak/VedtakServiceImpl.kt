@@ -47,15 +47,10 @@ class VedtakServiceImpl(
         return GjeldendeVedtaksdata(periode, vedtakSomKanRevurderes, clock).right()
     }
 
-    private fun kopierGjeldendeVedtaksdata(
-        vedtak: NonEmptyList<VedtakSomKanRevurderes>,
-        periode: Periode,
-    ): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
-        return GjeldendeVedtaksdata(periode, vedtak, clock).right()
-    }
-
-    // todo ai: gief pretty name
-    override fun hentGjeldendeGrunnlagsdataForVedtak(
+    /*
+    * Syftet er å vise ett "snapshot" av grunnlagsdata vid tidspunktet for ett tidligere vedtak.
+    * */
+    override fun hentTidligereGrunnlagsdataForVedtak(
         sakId: UUID,
         vedtakId: UUID,
     ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak, GjeldendeVedtaksdata> {

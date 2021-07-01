@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.service.vedtak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.features.authorize
@@ -57,15 +58,20 @@ internal fun Route.hentGrunnlagRevurderingRoutes(
         get("$revurderingPath/{vedtakId}/oppsummering") {
             call.withSakId { sakId ->
                 call.withVedtakId { vedtakId ->
-                    vedtakService.hentGjeldendeGrunnlagsdataForVedtak(sakId, vedtakId).fold(
+                    vedtakService.hentTidligereGrunnlagsdataForVedtak(sakId, vedtakId).fold(
                         ifLeft = {
-                                 call.svar(Resultat.json(HttpStatusCode.InternalServerError, "lol"))
+                            when (it) {
+                                KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIkkeSpecificertVedtak -> Revurderingsfeilresponser.fantIkkeVedtak
+                                KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIngenVedtak -> Revurderingsfeilresponser.fantIkkeTidligereGrunnlagsdata
+                            }
                         },
                         ifRight = {
-                            call.svar(Resultat.json(
-                                HttpStatusCode.OK,
-                                serialize(GrunnlagsdataOgVilkårsvurderingerJson.create(it.grunnlagsdata, it.vilkårsvurderinger)),
-                            ))
+                            call.svar(
+                                Resultat.json(
+                                    HttpStatusCode.OK,
+                                    serialize(GrunnlagsdataOgVilkårsvurderingerJson.create(it.grunnlagsdata, it.vilkårsvurderinger)),
+                                )
+                            )
                         }
                     )
                 }
