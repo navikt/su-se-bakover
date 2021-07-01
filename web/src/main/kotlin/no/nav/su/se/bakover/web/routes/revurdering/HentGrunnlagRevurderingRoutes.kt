@@ -55,7 +55,7 @@ internal fun Route.hentGrunnlagRevurderingRoutes(
     }
 
     authorize(Brukerrolle.Saksbehandler) {
-        get("$revurderingPath/{vedtakId}/oppsummering") {
+        get("$revurderingPath/historisk/vedtak/{vedtakId}/grunnlagsdataOgVilkårsvurderinger") {
             call.withSakId { sakId ->
                 call.withVedtakId { vedtakId ->
                     vedtakService.hentTidligereGrunnlagsdataForVedtak(sakId, vedtakId).fold(
