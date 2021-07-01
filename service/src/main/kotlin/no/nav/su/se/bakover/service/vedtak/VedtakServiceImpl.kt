@@ -26,7 +26,10 @@ class VedtakServiceImpl(
         }.sortedWith(compareBy(Fnr::toString)).distinct()
     }
 
-    override fun kopierGjeldendeVedtaksdata(sakId: UUID, fraOgMed: LocalDate): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
+    override fun kopierGjeldendeVedtaksdata(
+        sakId: UUID,
+        fraOgMed: LocalDate,
+    ): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
         val sak = sakService.hentSak(sakId).getOrHandle {
             return KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak.left()
         }
@@ -42,5 +45,30 @@ class VedtakServiceImpl(
         }
 
         return GjeldendeVedtaksdata(periode, vedtakSomKanRevurderes, clock).right()
+    }
+
+    private fun kopierGjeldendeVedtaksdata(
+        vedtak: NonEmptyList<VedtakSomKanRevurderes>,
+        periode: Periode,
+    ): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
+        return GjeldendeVedtaksdata(periode, vedtak, clock).right()
+    }
+
+    override fun hentGjeldendeGrunnlagsdataForVedtak(
+        sakId: UUID,
+        vedtakId: UUID,
+    ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak, GjeldendeVedtaksdata> {
+        val alleVedtak = vedtakRepo.hentForSakId(sakId)
+            .filterIsInstance<VedtakSomKanRevurderes>()
+
+        val vedtak = alleVedtak.find { it.id == vedtakId }
+            ?: return KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIkkeSpecificertVedtak.left()
+
+        val gjeldendeVedtak = alleVedtak
+            .filter { it.opprettet.instant < vedtak.opprettet.instant }
+            .ifEmpty { return KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIngenVedtak.left() }
+            .let { NonEmptyList.fromListUnsafe(it) }
+
+        return GjeldendeVedtaksdata(vedtak.periode, gjeldendeVedtak, clock).right()
     }
 }

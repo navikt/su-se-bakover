@@ -92,6 +92,7 @@ import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
+import no.nav.su.se.bakover.service.vedtak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
@@ -531,6 +532,13 @@ open class AccessCheckProxy(
                 }
                 override fun kopierGjeldendeVedtaksdata(sakId: UUID, fraOgMed: LocalDate): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
                     kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentGjeldendeGrunnlagsdataForVedtak(
+                    sakId: UUID,
+                    vedtakId: UUID,
+                ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak, GjeldendeVedtaksdata> {
+                    return services.vedtakService.hentGjeldendeGrunnlagsdataForVedtak(sakId, vedtakId)
                 }
             },
             grunnlagService = object : GrunnlagService {

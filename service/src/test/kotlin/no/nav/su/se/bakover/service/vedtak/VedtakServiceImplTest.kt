@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.service.vedtak
 
+import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
@@ -13,6 +15,8 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juli
+import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
@@ -29,6 +33,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.FnrGenerator
@@ -38,8 +43,11 @@ import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
+import java.lang.RuntimeException
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class VedtakServiceImplTest {
@@ -159,6 +167,59 @@ internal class VedtakServiceImplTest {
         createService(
             sakService = sakServiceMock,
         ).kopierGjeldendeVedtaksdata(UUID.randomUUID(), LocalDate.EPOCH.plusDays(7)) shouldBeLeft KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode(Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden)
+    }
+
+    @Test
+    fun `henter gjeldende informasjon for overlappende vedtak`() {
+        val vedtak1 = vedtakSøknadsbehandlingIverksattInnvilget(Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
+            opprettet = Tidspunkt.now(fixedClock)
+        )
+        val vedtak2 = vedtakSøknadsbehandlingIverksattInnvilget(Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
+            opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS)
+        )
+        val vedtak3 = vedtakSøknadsbehandlingIverksattInnvilget(Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
+            opprettet = Tidspunkt.now(fixedClock).plus(2, ChronoUnit.DAYS)
+        )
+
+        val vedtakRepoMock = mock<VedtakRepo> {
+            on { hentForSakId(any()) } doReturn listOf(vedtak1, vedtak2, vedtak3)
+        }
+        createService(
+            vedtakRepo = vedtakRepoMock,
+        ).hentGjeldendeGrunnlagsdataForVedtak(UUID.randomUUID(), vedtakId = vedtak2.id) shouldBe GjeldendeVedtaksdata(
+            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+            vedtakListe = nonEmptyListOf(vedtak1),
+            fixedClock
+        ).right()
+    }
+
+    @Test
+    fun `henter gjeldende informasjon for vedtak`() {
+        val vedtak1 = vedtakSøknadsbehandlingIverksattInnvilget(Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
+            opprettet = Tidspunkt.now(fixedClock)
+        )
+        val vedtak2 = vedtakSøknadsbehandlingIverksattInnvilget(Stønadsperiode.create(Periode.create(1.juni(2021), 31.juli(2021)))).copy(
+            opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS)
+        )
+        val vedtak3 = vedtakSøknadsbehandlingIverksattInnvilget(Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
+            opprettet = Tidspunkt.now(fixedClock).plus(2, ChronoUnit.DAYS)
+        )
+        val vedtak4 = vedtakSøknadsbehandlingIverksattInnvilget(Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
+            opprettet = Tidspunkt.now(fixedClock).plus(2, ChronoUnit.DAYS)
+        )
+
+        val vedtakRepoMock = mock<VedtakRepo> {
+            on { hentForSakId(any()) } doReturn listOf(vedtak1, vedtak2, vedtak3, vedtak4)
+        }
+        val actual = createService(
+            vedtakRepo = vedtakRepoMock,
+        ).hentGjeldendeGrunnlagsdataForVedtak(UUID.randomUUID(), vedtakId = vedtak3.id).getOrElse { throw RuntimeException("Test feilet") }
+
+        actual shouldBe GjeldendeVedtaksdata(
+            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+            vedtakListe = nonEmptyListOf(vedtak1, vedtak2),
+            fixedClock
+        )
     }
 
     private fun createService(
