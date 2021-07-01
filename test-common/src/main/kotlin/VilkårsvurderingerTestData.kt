@@ -224,10 +224,19 @@ fun vilkårsvurderingerInnvilget(
     )
 }
 
+/**
+ * Defaults:
+ * periode: 2021
+ * bosituasjon: enslig
+ *
+ * Predefined:
+ * uføre: avslag
+ * formue: innvilget
+ */
 @Suppress("unused")
 fun vilkårsvurderingerAvslåttAlle(
     periode: Periode = periode2021,
-    bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
+    bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode),
 ): Vilkårsvurderinger {
     return Vilkårsvurderinger(
         uføre = avslåttUførevilkårUtenGrunnlag(
@@ -240,9 +249,18 @@ fun vilkårsvurderingerAvslåttAlle(
     )
 }
 
+/**
+ * Defaults:
+ * periode: 2021
+ * bosituasjon: enslig
+ *
+ * Predefined:
+ * uføre: avslag
+ * formue: innvilget
+ */
 fun vilkårsvurderingerAvslåttUføre(
     periode: Periode = periode2021,
-    bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
+    bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode),
 ): Vilkårsvurderinger {
     return Vilkårsvurderinger(
         uføre = avslåttUførevilkårUtenGrunnlag(

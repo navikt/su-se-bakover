@@ -6,6 +6,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 
 data class IdentifiserSaksbehandlingsutfallSomIkkeStøttes(
@@ -39,7 +40,7 @@ data class IdentifiserSaksbehandlingsutfallSomIkkeStøttes(
                         utfall.add(RevurderingsutfallSomIkkeStøttes.DelvisOpphør)
                     }
                 }
-                if (setOf(Opphørsgrunn.UFØRHET).containsAll(opphørVedRevurdering.opphørsgrunner) && harBeløpsendringer(nyBeregning.getMånedsberegninger())) {
+                if (setOf(Opphørsgrunn.UFØRHET).containsAll(opphørVedRevurdering.opphørsgrunner) && harBeløpsendringerEkskludertForventetInntekt()) {
                     utfall.add(RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon)
                 }
                 if (utfall.isEmpty()) Unit.right() else utfall.left()
@@ -55,17 +56,30 @@ data class IdentifiserSaksbehandlingsutfallSomIkkeStøttes(
     }
 
     private fun harAndreBeløpsendringerEnnMånederMedBeløp0(): Boolean {
-        return harBeløpsendringer(nyBeregning.getMånedsberegninger().filterNot { !it.erSumYtelseUnderMinstebeløp() && it.getSumYtelse() == 0 })
+        return harBeløpsendringer(
+            nyBeregning.getMånedsberegninger()
+                .filterNot { !it.erSumYtelseUnderMinstebeløp() && it.getSumYtelse() == 0 },
+        )
     }
 
     private fun harBeløpsendringer(nyeMånedsberegninger: List<Månedsberegning>): Boolean {
-        return tidligereBeregning.getMånedsberegninger().associate { it.periode to it.getSumYtelse() }.let { tidligereMånederOgBeløp ->
-            nyeMånedsberegninger.any { tidligereMånederOgBeløp[it.periode] != it.getSumYtelse() }
-        }
+        return tidligereBeregning.getMånedsberegninger().associate { it.periode to it.getSumYtelse() }
+            .let { tidligereMånederOgBeløp ->
+                nyeMånedsberegninger.any { tidligereMånederOgBeløp[it.periode] != it.getSumYtelse() }
+            }
+    }
+
+    private fun harBeløpsendringerEkskludertForventetInntekt(): Boolean {
+
+        val nyeFradrag = nyBeregning.getFradrag().filterNot { it.fradragstype == Fradragstype.ForventetInntekt }
+        val tidligereFradrag =
+            tidligereBeregning.getFradrag().filterNot { it.fradragstype == Fradragstype.ForventetInntekt }
+        return tidligereFradrag.union(nyeFradrag).minus(tidligereFradrag.intersect(nyeFradrag)).isNotEmpty()
     }
 
     private fun OpphørVedRevurdering.Ja.opphørsdatoErTidligesteDatoIRevurdering(): Boolean {
-        return this.opphørsdato == nyBeregning.getMånedsberegninger().minByOrNull { it.periode.fraOgMed }!!.periode.fraOgMed
+        return this.opphørsdato == nyBeregning.getMånedsberegninger()
+            .minByOrNull { it.periode.fraOgMed }!!.periode.fraOgMed
     }
 }
 

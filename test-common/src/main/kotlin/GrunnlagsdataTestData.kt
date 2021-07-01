@@ -4,7 +4,6 @@ import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -14,40 +13,29 @@ import java.util.UUID
 
 val fradragsgrunnlagId: UUID = UUID.randomUUID()
 
-/**
- * 1000 per måned / 12000 per år
- */
-fun fradragsgrunnlagForventetInntekt1000(
-    periode: Periode = periode2021,
-    fradrag: Fradrag = FradragFactory.ny(
-        type = Fradragstype.ForventetInntekt,
-        månedsbeløp = 1000.0,
-        periode = periode,
-        utenlandskInntekt = null,
-        tilhører = FradragTilhører.BRUKER,
-    ),
-): Grunnlag.Fradragsgrunnlag {
-    return Grunnlag.Fradragsgrunnlag(
-        id = fradragsgrunnlagId,
-        opprettet = fixedTidspunkt,
-        fradrag = fradrag,
-    )
-}
-
 fun fradragsgrunnlagArbeidsinntekt1000(
     periode: Periode = periode2021,
-    fradrag: Fradrag = FradragFactory.ny(
-        type = Fradragstype.Arbeidsinntekt,
-        månedsbeløp = 1000.0,
-        periode = periode,
-        utenlandskInntekt = null,
-        tilhører = FradragTilhører.BRUKER,
-    ),
+): Grunnlag.Fradragsgrunnlag {
+    return fradragsgrunnlagArbeidsinntekt(periode = periode, 1000.0)
+}
+
+/**
+ * For bruker.
+ */
+fun fradragsgrunnlagArbeidsinntekt(
+    periode: Periode = periode2021,
+    arbeidsinntekt: Double,
 ): Grunnlag.Fradragsgrunnlag {
     return Grunnlag.Fradragsgrunnlag(
         id = fradragsgrunnlagId,
         opprettet = fixedTidspunkt,
-        fradrag = fradrag,
+        fradrag = FradragFactory.ny(
+            type = Fradragstype.Arbeidsinntekt,
+            månedsbeløp = arbeidsinntekt,
+            periode = periode,
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.BRUKER,
+        ),
     )
 }
 
