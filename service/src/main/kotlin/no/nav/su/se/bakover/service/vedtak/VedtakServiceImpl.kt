@@ -54,6 +54,7 @@ class VedtakServiceImpl(
         return GjeldendeVedtaksdata(periode, vedtak, clock).right()
     }
 
+    // todo ai: gief pretty name
     override fun hentGjeldendeGrunnlagsdataForVedtak(
         sakId: UUID,
         vedtakId: UUID,
