@@ -57,24 +57,26 @@ import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.beregning.TestBeregning
-import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.formueVilkår
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.createRevurderingService
-import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.periode
-import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingId
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.periodeNesteMånedOgTreMånederFram
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingsårsakRegulerGrunnbeløp
-import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.saksbehandler
-import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.søknadsbehandlingVedtak
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.søknadsbehandlingsvedtakIverksattInnvilget
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
+import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.revurderingId
+import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -85,9 +87,9 @@ internal class RegulerGrunnbeløpServiceImplTest {
     fun `oppdaterer behandlingsinformasjon når uføregrunnlag legges til`() {
         val opprettetRevurdering = OpprettetRevurdering(
             id = revurderingId,
-            periode = periode,
+            periode = periodeNesteMånedOgTreMånederFram,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = søknadsbehandlingVedtak,
+            tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
@@ -104,11 +106,11 @@ internal class RegulerGrunnbeløpServiceImplTest {
                             resultat = Resultat.Innvilget,
                             grunnlag = Grunnlag.Uføregrunnlag(
                                 opprettet = fixedTidspunkt,
-                                periode = periode,
+                                periode = periodeNesteMånedOgTreMånederFram,
                                 uføregrad = Uføregrad.parse(20),
                                 forventetInntekt = 10,
                             ),
-                            periode = periode,
+                            periode = periodeNesteMånedOgTreMånederFram,
                             begrunnelse = null,
                         ),
                     ),
@@ -125,16 +127,16 @@ internal class RegulerGrunnbeløpServiceImplTest {
         val nyttUføregrunnlag = Grunnlag.Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            periode = periode,
+            periode = periodeNesteMånedOgTreMånederFram,
             uføregrad = Uføregrad.parse(45),
             forventetInntekt = 20,
         )
 
         val forventetLagretRevurdering = OpprettetRevurdering(
             id = revurderingId,
-            periode = periode,
+            periode = periodeNesteMånedOgTreMånederFram,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = søknadsbehandlingVedtak,
+            tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
@@ -231,7 +233,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             id = revurderingId,
             periode = periode,
             opprettet = fixedTidspunkt,
-            tilRevurdering = søknadsbehandlingVedtak.copy(
+            tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget.copy(
                 beregning = object : Beregning {
                     private val id = UUID.randomUUID()
                     private val tidspunkt = fixedTidspunkt.minus(1, ChronoUnit.DAYS)
@@ -368,9 +370,9 @@ internal class RegulerGrunnbeløpServiceImplTest {
     fun `Ikke lov å sende en Simulert Opphørt til attestering`() {
         val simulertRevurdering = SimulertRevurdering.Opphørt(
             id = revurderingId,
-            periode = periode,
+            periode = periodeNesteMånedOgTreMånederFram,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = søknadsbehandlingVedtak,
+            tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
@@ -391,7 +393,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             on { hentEventuellTidligereAttestering(any()) } doReturn mock()
         }
         val personServiceMock = mock<PersonService> {
-            on { hentAktørId(any()) } doReturn RevurderingTestUtils.aktørId.right()
+            on { hentAktørId(any()) } doReturn aktørId.right()
         }
         val oppgaveServiceMock = mock<OppgaveService> {
             on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveid").right()
@@ -413,7 +415,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
             verify(revurderingRepoMock).hent(revurderingId)
-            verify(personServiceMock).hentAktørId(argThat { it shouldBe RevurderingTestUtils.fnr })
+            verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
 
             verify(revurderingRepoMock).hentEventuellTidligereAttestering(revurderingId)
 
@@ -427,9 +429,9 @@ internal class RegulerGrunnbeløpServiceImplTest {
     fun `Ikke lov å sende en Underkjent Opphørt til attestering`() {
         val simulertRevurdering = UnderkjentRevurdering.Opphørt(
             id = revurderingId,
-            periode = periode,
+            periode = periodeNesteMånedOgTreMånederFram,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = søknadsbehandlingVedtak,
+            tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
@@ -451,7 +453,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             on { hentEventuellTidligereAttestering(any()) } doReturn mock()
         }
         val personServiceMock = mock<PersonService> {
-            on { hentAktørId(any()) } doReturn RevurderingTestUtils.aktørId.right()
+            on { hentAktørId(any()) } doReturn aktørId.right()
         }
         val oppgaveServiceMock = mock<OppgaveService> {
             on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveid").right()
@@ -473,7 +475,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
             verify(revurderingRepoMock).hent(revurderingId)
-            verify(personServiceMock).hentAktørId(argThat { it shouldBe RevurderingTestUtils.fnr })
+            verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
 
             verify(revurderingRepoMock).hentEventuellTidligereAttestering(revurderingId)
 
@@ -487,9 +489,9 @@ internal class RegulerGrunnbeløpServiceImplTest {
     fun `En attestert beregnet revurdering skal ikke sende brev`() {
         val beregnetRevurdering = BeregnetRevurdering.IngenEndring(
             id = revurderingId,
-            periode = periode,
+            periode = periodeNesteMånedOgTreMånederFram,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = søknadsbehandlingVedtak,
+            tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
@@ -509,7 +511,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             on { hentEventuellTidligereAttestering(any()) } doReturn mock()
         }
         val personServiceMock = mock<PersonService> {
-            on { hentAktørId(any()) } doReturn RevurderingTestUtils.aktørId.right()
+            on { hentAktørId(any()) } doReturn aktørId.right()
         }
         val oppgaveServiceMock = mock<OppgaveService> {
             on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveid").right()
@@ -530,9 +532,9 @@ internal class RegulerGrunnbeløpServiceImplTest {
         ).orNull()!! as RevurderingTilAttestering.IngenEndring
 
         actual shouldBe RevurderingTilAttestering.IngenEndring(
-            tilRevurdering = søknadsbehandlingVedtak,
+            tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
             id = revurderingId,
-            periode = periode,
+            periode = periodeNesteMånedOgTreMånederFram,
             opprettet = Tidspunkt.EPOCH,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid"),
@@ -549,7 +551,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
             verify(revurderingRepoMock).hent(revurderingId)
-            verify(personServiceMock).hentAktørId(argThat { it shouldBe RevurderingTestUtils.fnr })
+            verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
 
             verify(revurderingRepoMock).hentEventuellTidligereAttestering(revurderingId)
 
@@ -565,9 +567,9 @@ internal class RegulerGrunnbeløpServiceImplTest {
     fun `En attestert underkjent revurdering skal ikke sende brev`() {
         val underkjentRevurdering = UnderkjentRevurdering.IngenEndring(
             id = revurderingId,
-            periode = periode,
+            periode = periodeNesteMånedOgTreMånederFram,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = søknadsbehandlingVedtak,
+            tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
@@ -589,7 +591,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             on { hentEventuellTidligereAttestering(any()) } doReturn mock()
         }
         val personServiceMock = mock<PersonService> {
-            on { hentAktørId(any()) } doReturn RevurderingTestUtils.aktørId.right()
+            on { hentAktørId(any()) } doReturn aktørId.right()
         }
         val oppgaveServiceMock = mock<OppgaveService> {
             on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveid").right()
@@ -610,9 +612,9 @@ internal class RegulerGrunnbeløpServiceImplTest {
         ).orNull()!! as RevurderingTilAttestering.IngenEndring
 
         actual shouldBe RevurderingTilAttestering.IngenEndring(
-            tilRevurdering = søknadsbehandlingVedtak,
+            tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
             id = revurderingId,
-            periode = periode,
+            periode = periodeNesteMånedOgTreMånederFram,
             opprettet = Tidspunkt.EPOCH,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid"),
@@ -629,7 +631,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
             verify(revurderingRepoMock).hent(revurderingId)
-            verify(personServiceMock).hentAktørId(argThat { it shouldBe RevurderingTestUtils.fnr })
+            verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
 
             verify(revurderingRepoMock).hentEventuellTidligereAttestering(revurderingId)
 
@@ -647,16 +649,16 @@ internal class RegulerGrunnbeløpServiceImplTest {
 
         val iverksattRevurdering = IverksattRevurdering.IngenEndring(
             id = revurderingId,
-            periode = periode,
+            periode = periodeNesteMånedOgTreMånederFram,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = søknadsbehandlingVedtak,
+            tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId(value = "OppgaveId"),
             beregning = TestBeregning,
             attestering = Attestering.Iverksatt(attestant),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -665,15 +667,15 @@ internal class RegulerGrunnbeløpServiceImplTest {
         )
         val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
             id = revurderingId,
-            periode = periode,
+            periode = periodeNesteMånedOgTreMånederFram,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = søknadsbehandlingVedtak,
+            tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
             oppgaveId = OppgaveId(value = "OppgaveId"),
             beregning = TestBeregning,
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,

@@ -20,7 +20,7 @@ internal data class VurderingsperiodeFormueJson(
     val id: String,
     val opprettet: String,
     val resultat: Behandlingsinformasjon.Formue.Status,
-    val grunnlag: FormuegrunnlagJson?,
+    val grunnlag: FormuegrunnlagJson,
     val periode: PeriodeJson,
 )
 

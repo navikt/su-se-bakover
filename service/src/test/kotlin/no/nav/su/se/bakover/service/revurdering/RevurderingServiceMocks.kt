@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -13,6 +12,7 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.test.fixedClock
 
 internal data class RevurderingServiceMocks(
     val vedtakService: VedtakService = mock(),

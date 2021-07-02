@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import java.util.UUID
 
-internal object BeregningFactory {
+object BeregningFactory {
     fun ny(
         id: UUID = UUID.randomUUID(),
         opprettet: Tidspunkt = Tidspunkt.now(),

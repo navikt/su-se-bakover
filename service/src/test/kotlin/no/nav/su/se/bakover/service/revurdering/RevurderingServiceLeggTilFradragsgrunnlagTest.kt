@@ -25,8 +25,9 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
+import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.revurderingId
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import java.util.UUID
@@ -101,7 +102,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
         )
 
         val request = LeggTilFradragsgrunnlagRequest(
-            behandlingId = RevurderingTestUtils.revurderingId,
+            behandlingId = revurderingId,
             fradragsrunnlag = listOf(
                 Grunnlag.Fradragsgrunnlag(
                     fradrag = FradragFactory.ny(
@@ -124,7 +125,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
             revurderingRepoMock,
             grunnlagServiceMock,
         ) {
-            verify(revurderingRepoMock).hent(argThat { it shouldBe RevurderingTestUtils.revurderingId })
+            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
         }
 
         verifyNoMoreInteractions(revurderingRepoMock, grunnlagServiceMock)
@@ -206,7 +207,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
         )
 
         val request = LeggTilFradragsgrunnlagRequest(
-            behandlingId = RevurderingTestUtils.revurderingId,
+            behandlingId = revurderingId,
             fradragsrunnlag = listOf(
                 Grunnlag.Fradragsgrunnlag(
                     fradrag = FradragFactory.ny(

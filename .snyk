@@ -1,0 +1,15 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.19.0
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  'snyk:lic:maven:org.jetbrains.intellij.deps:trove4j:LGPL-2.1':
+    - '*':
+        reason: We only use this as an dependency, so this should not be in conflict with the MIT license
+        expires: 2022-01-01T00:00:00Z
+        created: 2021-07-01T08:28:18.701Z
+  'https://snyk.io/vuln/snyk:lic:maven:org.syslog4j:syslog4j:LGPL-3.0':
+    - '*':
+        reason: We only use this as an dependency, so this should not be in conflict with the MIT license
+        expires: 2022-01-01T00:00:00Z
+        created: 2021-07-01T08:31:54.495Z
+patch: {}
