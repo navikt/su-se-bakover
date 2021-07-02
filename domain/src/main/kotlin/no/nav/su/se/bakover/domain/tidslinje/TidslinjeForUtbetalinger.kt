@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import java.time.Clock
+import java.time.LocalDate
 import java.util.LinkedList
 
 data class TidslinjeForUtbetalinger(
@@ -33,9 +34,11 @@ data class TidslinjeForUtbetalinger(
     private val utbetalingslinjerForTidslinje = tidslinjeForNyeUtbetalinger.union(andreUtbetalingslinjer)
         .sortedWith(nyesteFørst)
 
-    val tidslinje = lagTidslinje()
+    private val generertTidslinje = lagTidslinje()
 
-    private fun lagTidslinje(): List<UtbetalingslinjePåTidslinje> {
+    val tidslinje = generertTidslinje.tidslinje
+
+    private fun lagTidslinje(): Tidslinje<UtbetalingslinjePåTidslinje> {
         val queue = LinkedList(utbetalingslinjerForTidslinje)
 
         val result = mutableListOf<UtbetalingslinjePåTidslinje>()
@@ -86,8 +89,10 @@ data class TidslinjeForUtbetalinger(
         return Tidslinje(
             periode = periode,
             objekter = result,
-        ).tidslinje
+        )
     }
+
+    fun gjeldendeForDato(dato: LocalDate): UtbetalingslinjePåTidslinje? = generertTidslinje.gjeldendeForDato(dato)
 
     /**
      *  Mapper utbetalingslinjer til objekter som kan plasseres på tidslinjen.
@@ -103,7 +108,6 @@ data class TidslinjeForUtbetalinger(
             is Utbetalingslinje.Endring.Opphør -> UtbetalingslinjePåTidslinje.Opphør(
                 opprettet = opprettet,
                 periode = Periode.create(virkningstidspunkt, tilOgMed),
-                beløp = 0,
             )
             is Utbetalingslinje.Endring.Reaktivering -> UtbetalingslinjePåTidslinje.Reaktivering(
                 opprettet = opprettet,
@@ -113,7 +117,6 @@ data class TidslinjeForUtbetalinger(
             is Utbetalingslinje.Endring.Stans -> UtbetalingslinjePåTidslinje.Stans(
                 opprettet = opprettet,
                 periode = Periode.create(virkningstidspunkt, tilOgMed),
-                beløp = 0,
             )
             is Utbetalingslinje.Ny -> UtbetalingslinjePåTidslinje.Ny(
                 opprettet = opprettet,

@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -62,7 +62,7 @@ interface UtbetalingService {
     fun hentGjeldendeUtbetaling(
         sakId: UUID,
         forDato: LocalDate
-    ): Either<FantIkkeGjeldendeUtbetaling, Utbetalingslinje>
+    ): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje>
 }
 
 object FantIkkeUtbetaling

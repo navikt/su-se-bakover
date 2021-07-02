@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.revurdering
 
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 
 data class VurderOmBeløpErForskjelligFraGjeldendeUtbetaling(
     private val eksisterendeUtbetalinger: List<Utbetalingslinje>,
@@ -11,7 +11,7 @@ data class VurderOmBeløpErForskjelligFraGjeldendeUtbetaling(
     val resultat: Boolean
 
     init {
-        val utbetalingstidslinje = Tidslinje(
+        val utbetalingstidslinje = TidslinjeForUtbetalinger(
             periode = nyBeregning.periode,
             objekter = eksisterendeUtbetalinger,
         )

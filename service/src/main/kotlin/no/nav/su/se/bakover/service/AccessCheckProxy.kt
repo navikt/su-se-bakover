@@ -21,7 +21,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -199,7 +199,7 @@ open class AccessCheckProxy(
                 override fun hentGjeldendeUtbetaling(
                     sakId: UUID,
                     forDato: LocalDate,
-                ): Either<FantIkkeGjeldendeUtbetaling, Utbetalingslinje> {
+                ): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
                     kastKanKunKallesFraAnnenService()
                 }
             },

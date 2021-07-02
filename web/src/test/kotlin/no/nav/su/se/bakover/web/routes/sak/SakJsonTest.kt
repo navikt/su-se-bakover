@@ -114,28 +114,24 @@ internal class SakJsonTest {
 
             val (actual1, actual2, actual3, actual4) = sak.toJson().utbetalinger
             actual1 shouldBe UtbetalingJson(
-                id = nyUtbetaling.id.toString(),
                 fraOgMed = nyUtbetaling.fraOgMed,
                 tilOgMed = midlertidigStans.virkningstidspunkt.minusDays(1),
                 beløp = nyUtbetaling.beløp,
                 type = Utbetaling.UtbetalingsType.NY.toString(),
             )
             actual2 shouldBe UtbetalingJson(
-                id = nyUtbetaling.id.toString(),
                 fraOgMed = midlertidigStans.virkningstidspunkt,
                 tilOgMed = reaktivering.virkningstidspunkt.minusDays(1),
                 beløp = 0,
                 type = Utbetaling.UtbetalingsType.STANS.toString(),
             )
             actual3 shouldBe UtbetalingJson(
-                id = nyUtbetaling.id.toString(),
                 fraOgMed = reaktivering.virkningstidspunkt,
                 tilOgMed = opphørslinje.virkningstidspunkt.minusDays(1),
                 beløp = nyUtbetaling.beløp,
                 type = Utbetaling.UtbetalingsType.GJENOPPTA.toString(),
             )
             actual4 shouldBe UtbetalingJson(
-                id = nyUtbetaling.id.toString(),
                 fraOgMed = opphørslinje.virkningstidspunkt,
                 tilOgMed = nyUtbetaling.tilOgMed,
                 beløp = 0,

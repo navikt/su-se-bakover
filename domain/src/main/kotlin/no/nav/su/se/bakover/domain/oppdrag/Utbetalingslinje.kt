@@ -9,15 +9,15 @@ import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import java.time.Clock
 import java.time.LocalDate
 
-sealed class Utbetalingslinje : KanPlasseresPåTidslinje<Utbetalingslinje> {
+sealed class Utbetalingslinje {
     abstract val id: UUID30 // delytelseId
-    abstract override val opprettet: Tidspunkt
+    abstract val opprettet: Tidspunkt
     abstract val fraOgMed: LocalDate
     abstract val tilOgMed: LocalDate
     abstract var forrigeUtbetalingslinjeId: UUID30?
     abstract val beløp: Int
 
-    abstract override val periode: Periode
+    abstract val periode: Periode
 
     data class Ny(
         override val id: UUID30 = UUID30.randomUUID(),
@@ -37,14 +37,6 @@ sealed class Utbetalingslinje : KanPlasseresPåTidslinje<Utbetalingslinje> {
 
         fun link(other: Utbetalingslinje) {
             forrigeUtbetalingslinjeId = other.id
-        }
-
-        override fun copy(args: CopyArgs.Tidslinje) = when (args) {
-            is CopyArgs.Tidslinje.Full -> this.copy()
-            is CopyArgs.Tidslinje.NyPeriode -> this.copy(
-                fraOgMed = args.periode.fraOgMed,
-                tilOgMed = args.periode.tilOgMed,
-            )
         }
     }
 
@@ -79,14 +71,6 @@ sealed class Utbetalingslinje : KanPlasseresPåTidslinje<Utbetalingslinje> {
                 beløp = utbetalingslinje.beløp,
                 virkningstidspunkt = virkningstidspunkt,
             )
-
-            override fun copy(args: CopyArgs.Tidslinje) = when (args) {
-                is CopyArgs.Tidslinje.Full -> this.copy()
-                is CopyArgs.Tidslinje.NyPeriode -> this.copy(
-                    fraOgMed = args.periode.fraOgMed,
-                    tilOgMed = args.periode.tilOgMed,
-                )
-            }
         }
 
         data class Stans(
@@ -116,14 +100,6 @@ sealed class Utbetalingslinje : KanPlasseresPåTidslinje<Utbetalingslinje> {
                 beløp = utbetalingslinje.beløp,
                 virkningstidspunkt = virkningstidspunkt,
             )
-
-            override fun copy(args: CopyArgs.Tidslinje) = when (args) {
-                is CopyArgs.Tidslinje.Full -> this.copy()
-                is CopyArgs.Tidslinje.NyPeriode -> this.copy(
-                    fraOgMed = args.periode.fraOgMed,
-                    tilOgMed = args.periode.tilOgMed,
-                )
-            }
         }
 
         data class Reaktivering(
@@ -153,14 +129,6 @@ sealed class Utbetalingslinje : KanPlasseresPåTidslinje<Utbetalingslinje> {
                 beløp = utbetalingslinje.beløp,
                 virkningstidspunkt = virkningstidspunkt,
             )
-
-            override fun copy(args: CopyArgs.Tidslinje) = when (args) {
-                is CopyArgs.Tidslinje.Full -> this.copy()
-                is CopyArgs.Tidslinje.NyPeriode -> this.copy(
-                    fraOgMed = args.periode.fraOgMed,
-                    tilOgMed = args.periode.tilOgMed,
-                )
-            }
         }
     }
 
@@ -192,7 +160,7 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
     data class Stans(
         override val opprettet: Tidspunkt,
         override val periode: Periode,
-        override val beløp: Int,
+        override val beløp: Int = 0,
     ) : UtbetalingslinjePåTidslinje() {
         override fun copy(args: CopyArgs.Tidslinje) = when (args) {
             is CopyArgs.Tidslinje.Full -> this.copy()
@@ -205,7 +173,7 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
     data class Opphør(
         override val opprettet: Tidspunkt,
         override val periode: Periode,
-        override val beløp: Int,
+        override val beløp: Int = 0,
     ) : UtbetalingslinjePåTidslinje() {
         override fun copy(args: CopyArgs.Tidslinje) = when (args) {
             is CopyArgs.Tidslinje.Full -> this.copy()

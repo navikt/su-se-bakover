@@ -16,14 +16,14 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -68,17 +68,20 @@ internal class UtbetalingServiceImpl(
             } ?: FantIkkeUtbetaling.left()
     }
 
-    override fun hentGjeldendeUtbetaling(sakId: UUID, forDato: LocalDate): Either<FantIkkeGjeldendeUtbetaling, Utbetalingslinje> {
-        val utbetalingslinjer = hentUtbetalinger(sakId).flatMap { it.utbetalingslinjer }.filterIsInstance<Utbetalingslinje.Ny>()
-        return Tidslinje(
+    override fun hentGjeldendeUtbetaling(
+        sakId: UUID,
+        forDato: LocalDate,
+    ): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
+        val utbetalingslinjer = hentUtbetalinger(sakId).flatMap { it.utbetalingslinjer }
+
+        return TidslinjeForUtbetalinger(
             periode = Periode.create(
                 fraOgMed = utbetalingslinjer.minOf { it.fraOgMed },
                 tilOgMed = utbetalingslinjer.maxOf { it.tilOgMed },
             ),
             objekter = utbetalingslinjer,
             clock = clock,
-        ).gjeldendeForDato(forDato)
-            .rightIfNotNull { FantIkkeGjeldendeUtbetaling }
+        ).gjeldendeForDato(forDato).rightIfNotNull { FantIkkeGjeldendeUtbetaling }
     }
 
     override fun utbetal(
