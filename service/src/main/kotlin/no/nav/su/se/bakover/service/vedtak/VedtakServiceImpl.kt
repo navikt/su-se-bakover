@@ -62,7 +62,7 @@ class VedtakServiceImpl(
 
         val gjeldendeVedtak = alleVedtak
             .filter { it.opprettet.instant < vedtak.opprettet.instant }
-            .ifEmpty { return KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIngenVedtak.left() }
+            .ifEmpty { return KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.IngenTidligereVedtak.left() }
             .let { NonEmptyList.fromListUnsafe(it) }
 
         return GjeldendeVedtaksdata(vedtak.periode, gjeldendeVedtak, clock).right()

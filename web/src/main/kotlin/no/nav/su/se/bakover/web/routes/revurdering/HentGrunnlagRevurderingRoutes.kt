@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.web.withVedtakId
  */
 internal fun Route.hentGrunnlagRevurderingRoutes(
     revurderingService: RevurderingService,
-    vedtakService: VedtakService
+    vedtakService: VedtakService,
 ) {
     authorize(Brukerrolle.Saksbehandler) {
         get("$revurderingPath/{revurderingId}/grunnlagsdataOgVilkårsvurderinger") {
@@ -39,12 +39,19 @@ internal fun Route.hentGrunnlagRevurderingRoutes(
                                 KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.FantIkkeBehandling -> Revurderingsfeilresponser.fantIkkeRevurdering
                                 KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.FantIkkeSak -> Revurderingsfeilresponser.fantIkkeSak
                                 KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.FantIngentingSomKanRevurderes -> Revurderingsfeilresponser.fantIngenVedtakSomKanRevurderes
-                                is KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.UgyldigPeriode -> Revurderingsfeilresponser.ugyldigPeriode(it.subError)
+                                is KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.UgyldigPeriode -> Revurderingsfeilresponser.ugyldigPeriode(
+                                    it.subError,
+                                )
                             }
                         }.map {
                             Resultat.json(
                                 HttpStatusCode.OK,
-                                serialize(GrunnlagsdataOgVilkårsvurderingerJson.create(it.grunnlagsdata, it.vilkårsvurderinger)),
+                                serialize(
+                                    GrunnlagsdataOgVilkårsvurderingerJson.create(
+                                        it.grunnlagsdata,
+                                        it.vilkårsvurderinger,
+                                    ),
+                                ),
                             )
                         }.getOrHandle {
                             it
@@ -60,19 +67,26 @@ internal fun Route.hentGrunnlagRevurderingRoutes(
                 call.withVedtakId { vedtakId ->
                     vedtakService.hentTidligereGrunnlagsdataForVedtak(sakId, vedtakId).fold(
                         ifLeft = {
-                            when (it) {
-                                KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIkkeSpecificertVedtak -> Revurderingsfeilresponser.fantIkkeVedtak
-                                KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIngenVedtak -> Revurderingsfeilresponser.fantIkkeTidligereGrunnlagsdata
-                            }
+                            call.svar(
+                                when (it) {
+                                    KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIkkeSpecificertVedtak -> Revurderingsfeilresponser.fantIkkeVedtak
+                                    KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.IngenTidligereVedtak -> Revurderingsfeilresponser.fantIkkeTidligereGrunnlagsdata
+                                },
+                            )
                         },
                         ifRight = {
                             call.svar(
                                 Resultat.json(
                                     HttpStatusCode.OK,
-                                    serialize(GrunnlagsdataOgVilkårsvurderingerJson.create(it.grunnlagsdata, it.vilkårsvurderinger)),
-                                )
+                                    serialize(
+                                        GrunnlagsdataOgVilkårsvurderingerJson.create(
+                                            it.grunnlagsdata,
+                                            it.vilkårsvurderinger,
+                                        ),
+                                    ),
+                                ),
                             )
-                        }
+                        },
                     )
                 }
             }

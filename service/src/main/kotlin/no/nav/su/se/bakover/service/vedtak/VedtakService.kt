@@ -21,5 +21,5 @@ sealed class KunneIkkeKopiereGjeldendeVedtaksdata {
 
 sealed class KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak {
     object FantIkkeSpecificertVedtak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak()
-    object FantIngenVedtak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak()
+    object IngenTidligereVedtak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak()
 }
