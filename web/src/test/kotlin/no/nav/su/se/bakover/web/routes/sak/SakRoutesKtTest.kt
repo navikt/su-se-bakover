@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.sak
 
+import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -21,7 +22,6 @@ import no.nav.su.se.bakover.web.testSusebakover
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import java.util.UUID
-import kotlin.test.assertEquals
 
 internal class SakRoutesKtTest {
 
@@ -48,8 +48,8 @@ internal class SakRoutesKtTest {
                 "$sakPath/${opprettetSakId.id}",
                 listOf(Brukerrolle.Saksbehandler)
             ).apply {
-                assertEquals(OK, response.status())
-                assertEquals(sakFnr01, JSONObject(response.content).getString("fnr"))
+                response.status() shouldBe OK
+                JSONObject(response.content).getString("fnr") shouldBe sakFnr01
             }
         }
     }
@@ -68,8 +68,8 @@ internal class SakRoutesKtTest {
             defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Saksbehandler)) {
                 setBody("""{"fnr":"$sakFnr01"}""")
             }.apply {
-                assertEquals(OK, response.status())
-                assertEquals(sakFnr01, JSONObject(response.content).getString("fnr"))
+                response.status() shouldBe OK
+                JSONObject(response.content).getString("fnr") shouldBe sakFnr01
             }
         }
     }
@@ -86,25 +86,25 @@ internal class SakRoutesKtTest {
             defaultRequest(
                 HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Veileder)
             ).apply {
-                assertEquals(BadRequest, response.status(), "Søk på fnr gir 400 ved manglende fnr")
+                response.status() shouldBe BadRequest
             }
 
             defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"${FnrGenerator.random()}"}""")
             }.apply {
-                assertEquals(NotFound, response.status(), "Søk på fnr gir 404 ved ukjent fnr")
+                response.status() shouldBe NotFound
             }
 
             defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Saksbehandler)) {
                 setBody("""{"saksnummer":"696969"}""")
             }.apply {
-                assertEquals(NotFound, response.status(), "Søk på saksnummer gir 404 ved ikke-eksisterende sak")
+                response.status() shouldBe NotFound
             }
 
             defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Saksbehandler)) {
                 setBody("""{"saksnummer":"asdf"}""")
             }.apply {
-                assertEquals(BadRequest, response.status(), "Søk på saksnummer gir 400 ved ugyldig saksnummer")
+                response.status() shouldBe BadRequest
             }
 
             defaultRequest(
@@ -112,7 +112,7 @@ internal class SakRoutesKtTest {
                 "$sakPath/${UUID.randomUUID()}",
                 listOf(Brukerrolle.Saksbehandler)
             ).apply {
-                assertEquals(NotFound, response.status(), "$sakPath/UUID gir 404 ved ikke-eksisterende sak-ID")
+                response.status() shouldBe NotFound
             }
 
             defaultRequest(
@@ -120,7 +120,7 @@ internal class SakRoutesKtTest {
                 "$sakPath/adad",
                 listOf(Brukerrolle.Saksbehandler)
             ).apply {
-                assertEquals(BadRequest, response.status(), "$sakPath/UUID gir 400 ved ugyldig UUID")
+                response.status() shouldBe BadRequest
             }
         }
     }
