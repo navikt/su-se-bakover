@@ -65,7 +65,7 @@ internal fun Route.hentGrunnlagRevurderingRoutes(
         get("$revurderingPath/historisk/vedtak/{vedtakId}/grunnlagsdataOgVilkårsvurderinger") {
             call.withSakId { sakId ->
                 call.withVedtakId { vedtakId ->
-                    vedtakService.hentTidligereGrunnlagsdataForVedtak(sakId, vedtakId).fold(
+                    vedtakService.historiskGrunnlagForVedtaksperiode(sakId, vedtakId).fold(
                         ifLeft = {
                             call.svar(
                                 when (it) {

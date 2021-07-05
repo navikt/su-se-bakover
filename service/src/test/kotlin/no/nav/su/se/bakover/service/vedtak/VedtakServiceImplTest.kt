@@ -194,7 +194,7 @@ internal class VedtakServiceImplTest {
         }
         createService(
             vedtakRepo = vedtakRepoMock,
-        ).hentTidligereGrunnlagsdataForVedtak(UUID.randomUUID(), vedtakId = vedtak2.id) shouldBe GjeldendeVedtaksdata(
+        ).historiskGrunnlagForVedtaksperiode(UUID.randomUUID(), vedtakId = vedtak2.id) shouldBe GjeldendeVedtaksdata(
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
             vedtakListe = nonEmptyListOf(vedtak1),
             fixedClock
@@ -221,7 +221,7 @@ internal class VedtakServiceImplTest {
         }
         val actual = createService(
             vedtakRepo = vedtakRepoMock,
-        ).hentTidligereGrunnlagsdataForVedtak(UUID.randomUUID(), vedtakId = vedtak3.id).getOrElse { throw RuntimeException("Test feilet") }
+        ).historiskGrunnlagForVedtaksperiode(UUID.randomUUID(), vedtakId = vedtak3.id).getOrElse { throw RuntimeException("Test feilet") }
 
         actual shouldBe GjeldendeVedtaksdata(
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),

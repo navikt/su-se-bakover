@@ -50,7 +50,7 @@ class VedtakServiceImpl(
     /*
     * Syftet er å vise ett "snapshot" av grunnlagsdata vid tidspunktet for ett tidligere vedtak.
     * */
-    override fun hentTidligereGrunnlagsdataForVedtak(
+    override fun historiskGrunnlagForVedtaksperiode(
         sakId: UUID,
         vedtakId: UUID,
     ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak, GjeldendeVedtaksdata> {
