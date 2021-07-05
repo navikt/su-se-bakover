@@ -352,7 +352,7 @@ internal class TidslinjeForUtbetalingerTest {
     }
 
     @Test
-    fun `kan stanse tidligerer reaktivert ytelse igjen`() {
+    fun `kan stanse tidligere reaktivert ytelse igjen`() {
         val første = Utbetalingslinje.Ny(
             fraOgMed = 1.januar(2020),
             tilOgMed = 30.april(2020),
@@ -549,7 +549,7 @@ internal class TidslinjeForUtbetalingerTest {
             virkningstidspunkt = 1.oktober(2020),
         )
         val andreReaktivering = Utbetalingslinje.Endring.Reaktivering(
-            utbetalingslinje = førsteStans,
+            utbetalingslinje = andreStans,
             virkningstidspunkt = 1.november(2020),
         )
 
