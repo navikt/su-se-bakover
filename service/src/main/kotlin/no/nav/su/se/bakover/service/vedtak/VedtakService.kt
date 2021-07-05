@@ -10,10 +10,16 @@ import java.util.UUID
 interface VedtakService {
     fun hentAktiveFnr(fomDato: LocalDate): List<Fnr>
     fun kopierGjeldendeVedtaksdata(sakId: UUID, fraOgMed: LocalDate): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata>
+    fun historiskGrunnlagForVedtaksperiode(sakId: UUID, vedtakId: UUID): Either<KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak, GjeldendeVedtaksdata>
 }
 
 sealed class KunneIkkeKopiereGjeldendeVedtaksdata {
     object FantIkkeSak : KunneIkkeKopiereGjeldendeVedtaksdata()
     object FantIngenVedtak : KunneIkkeKopiereGjeldendeVedtaksdata()
     data class UgyldigPeriode(val cause: Periode.UgyldigPeriode) : KunneIkkeKopiereGjeldendeVedtaksdata()
+}
+
+sealed class KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak {
+    object FantIkkeVedtak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak()
+    object IngenTidligereVedtak : KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak()
 }

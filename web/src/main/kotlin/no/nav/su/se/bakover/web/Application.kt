@@ -239,7 +239,7 @@ internal fun Application.susebakover(
                     stansutbetalingRoutes(accessProtectedServices.utbetaling)
                     gjenopptaUtbetalingRoutes(accessProtectedServices.utbetaling)
                     driftRoutes(accessProtectedServices.søknad, accessProtectedServices.ferdigstillVedtak)
-                    revurderingRoutes(accessProtectedServices.revurdering, clock)
+                    revurderingRoutes(accessProtectedServices.revurdering, accessProtectedServices.vedtakService, clock)
                 }
             }
         }

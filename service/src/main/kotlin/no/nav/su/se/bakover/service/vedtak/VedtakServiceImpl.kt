@@ -26,7 +26,10 @@ class VedtakServiceImpl(
         }.sortedWith(compareBy(Fnr::toString)).distinct()
     }
 
-    override fun kopierGjeldendeVedtaksdata(sakId: UUID, fraOgMed: LocalDate): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
+    override fun kopierGjeldendeVedtaksdata(
+        sakId: UUID,
+        fraOgMed: LocalDate,
+    ): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
         val sak = sakService.hentSak(sakId).getOrHandle {
             return KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak.left()
         }
@@ -42,5 +45,26 @@ class VedtakServiceImpl(
         }
 
         return GjeldendeVedtaksdata(periode, vedtakSomKanRevurderes, clock).right()
+    }
+
+    /*
+    * Hensikten er å vise et "snapshot" av grunnlagsdata ved tidspunktet for et tidligere vedtak.
+    * */
+    override fun historiskGrunnlagForVedtaksperiode(
+        sakId: UUID,
+        vedtakId: UUID,
+    ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak, GjeldendeVedtaksdata> {
+        val alleVedtak = vedtakRepo.hentForSakId(sakId)
+            .filterIsInstance<VedtakSomKanRevurderes>()
+
+        val vedtak = alleVedtak.find { it.id == vedtakId }
+            ?: return KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIkkeVedtak.left()
+
+        val gjeldendeVedtak = alleVedtak
+            .filter { it.opprettet.instant < vedtak.opprettet.instant }
+            .ifEmpty { return KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.IngenTidligereVedtak.left() }
+            .let { NonEmptyList.fromListUnsafe(it) }
+
+        return GjeldendeVedtaksdata(vedtak.periode, gjeldendeVedtak, clock).right()
     }
 }
