@@ -1,5 +1,5 @@
 val fuelVersion = "2.3.1"
-val wireMockVersion = "2.28.1"
+val wireMockVersion = "2.29.0"
 val orgJsonVersion = "20210307"
 val tjenestespesifikasjonVersion = "2560.d18f9c7"
 val cxfVersion = "3.4.4"
