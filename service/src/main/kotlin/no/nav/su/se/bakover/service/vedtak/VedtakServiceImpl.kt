@@ -48,7 +48,7 @@ class VedtakServiceImpl(
     }
 
     /*
-    * Syftet er å vise ett "snapshot" av grunnlagsdata vid tidspunktet for ett tidligere vedtak.
+    * Hensikten er å vise et "snapshot" av grunnlagsdata ved tidspunktet for et tidligere vedtak.
     * */
     override fun historiskGrunnlagForVedtaksperiode(
         sakId: UUID,
