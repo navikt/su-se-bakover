@@ -69,7 +69,7 @@ internal fun Route.hentGrunnlagRevurderingRoutes(
                         ifLeft = {
                             call.svar(
                                 when (it) {
-                                    KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIkkeSpecificertVedtak -> Revurderingsfeilresponser.fantIkkeVedtak
+                                    KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIkkeVedtak -> Revurderingsfeilresponser.fantIkkeVedtak
                                     KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.IngenTidligereVedtak -> Revurderingsfeilresponser.fantIkkeTidligereGrunnlagsdata
                                 },
                             )

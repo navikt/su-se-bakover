@@ -58,7 +58,7 @@ class VedtakServiceImpl(
             .filterIsInstance<VedtakSomKanRevurderes>()
 
         val vedtak = alleVedtak.find { it.id == vedtakId }
-            ?: return KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIkkeSpecificertVedtak.left()
+            ?: return KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIkkeVedtak.left()
 
         val gjeldendeVedtak = alleVedtak
             .filter { it.opprettet.instant < vedtak.opprettet.instant }
