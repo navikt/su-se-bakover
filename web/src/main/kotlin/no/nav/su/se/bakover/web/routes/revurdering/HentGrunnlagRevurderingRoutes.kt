@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.web.withVedtakId
  */
 internal fun Route.hentGrunnlagRevurderingRoutes(
     revurderingService: RevurderingService,
-    vedtakService: VedtakService,
+    vedtakService: VedtakService, // TODO ai: Flytte denne til "VedtakRoutes" når vi får något sånt
 ) {
     authorize(Brukerrolle.Saksbehandler) {
         get("$revurderingPath/{revurderingId}/grunnlagsdataOgVilkårsvurderinger") {

@@ -43,6 +43,7 @@ import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import java.lang.RuntimeException
@@ -174,10 +175,17 @@ internal class VedtakServiceImplTest {
         val vedtak1 = vedtakSøknadsbehandlingIverksattInnvilget(Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
             opprettet = Tidspunkt.now(fixedClock)
         )
-        val vedtak2 = vedtakSøknadsbehandlingIverksattInnvilget(Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
+
+        val vedtak2 = vedtakRevurderingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
+            tilRevurdering = vedtak1,
+        ).copy(
             opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS)
         )
-        val vedtak3 = vedtakSøknadsbehandlingIverksattInnvilget(Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
+        val vedtak3 = vedtakRevurderingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
+            tilRevurdering = vedtak2
+        ).copy(
             opprettet = Tidspunkt.now(fixedClock).plus(2, ChronoUnit.DAYS)
         )
 
