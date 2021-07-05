@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.tidslinje
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
@@ -16,6 +17,9 @@ import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import java.time.Clock
+import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
 internal class TidslinjeForUtbetalingerTest {
@@ -387,6 +391,133 @@ internal class TidslinjeForUtbetalingerTest {
                 opprettet = andreStans.opprettet,
                 periode = Periode.create(1.april(2020), 31.desember(2020)),
                 beløp = 0,
+            ),
+        )
+    }
+
+    @Test
+    fun `kaster exception dersom regenerert informasjon interfererer med original informasjon som skulle vært ferskere`() {
+        val førsteTidspunkt: Clock = Clock.fixed(
+            1.januar(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC,
+        )
+        val andreTidspunkt: Clock = Clock.fixed(
+            1.januar(2021).atTime(1, 2, 3, 456790000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC,
+        )
+        val tredjeTidspunkt: Clock = Clock.fixed(
+            1.januar(2021).atTime(1, 2, 3, 456791000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC,
+        )
+        val fjerdeTidspunkt: Clock = Clock.fixed(
+            1.januar(2021).atTime(1, 2, 3, 456792000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC,
+        )
+
+        val første = Utbetalingslinje.Ny(
+            opprettet = Tidspunkt.now(førsteTidspunkt),
+            fraOgMed = 1.januar(2020),
+            tilOgMed = 30.april(2020),
+            forrigeUtbetalingslinjeId = null,
+            beløp = 1000,
+        )
+        val andre = Utbetalingslinje.Ny(
+            opprettet = Tidspunkt.now(førsteTidspunkt),
+            fraOgMed = 1.mai(2020),
+            tilOgMed = 31.desember(2020),
+            forrigeUtbetalingslinjeId = første.id,
+            beløp = 2000,
+        )
+        val førsteStans = Utbetalingslinje.Endring.Stans(
+            utbetalingslinje = andre,
+            virkningstidspunkt = 1.april(2020),
+            clock = andreTidspunkt,
+        )
+        val reaktivering = Utbetalingslinje.Endring.Reaktivering(
+            utbetalingslinje = førsteStans,
+            virkningstidspunkt = 1.april(2020),
+            clock = tredjeTidspunkt,
+        )
+        val andreStans = Utbetalingslinje.Endring.Stans(
+            utbetalingslinje = reaktivering,
+            virkningstidspunkt = 1.april(2020),
+            clock = fjerdeTidspunkt,
+        )
+
+        assertThrows<TidslinjeForUtbetalinger.RegenerertInformasjonVilOverskriveOriginaleOpplysningerSomErFerskereException> {
+            TidslinjeForUtbetalinger(
+                periode = Periode.create(1.januar(2020), 31.desember(2020)),
+                objekter = listOf(andre, første, førsteStans, andreStans, reaktivering),
+            ).tidslinje
+        }
+    }
+
+    @Test
+    fun `regenerert informasjon får samme opprettettidspunkt som ferskere informasjon, men perioden overlapper ikke`() {
+        val førsteTidspunkt: Clock = Clock.fixed(
+            1.januar(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC,
+        )
+        val andreTidspunkt: Clock = Clock.fixed(
+            1.januar(2021).atTime(1, 2, 3, 456790000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC,
+        )
+        val tredjeTidspunkt: Clock = Clock.fixed(
+            1.januar(2021).atTime(1, 2, 3, 456791000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC,
+        )
+        val fjerdeTidspunkt: Clock = Clock.fixed(
+            1.januar(2021).atTime(1, 2, 3, 456792000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC,
+        )
+
+        val første = Utbetalingslinje.Ny(
+            opprettet = Tidspunkt.now(førsteTidspunkt),
+            fraOgMed = 1.januar(2020),
+            tilOgMed = 30.april(2020),
+            forrigeUtbetalingslinjeId = null,
+            beløp = 1000,
+        )
+        val andre = Utbetalingslinje.Ny(
+            opprettet = Tidspunkt.now(førsteTidspunkt),
+            fraOgMed = 1.mai(2020),
+            tilOgMed = 31.desember(2020),
+            forrigeUtbetalingslinjeId = første.id,
+            beløp = 2000,
+        )
+        val førsteStans = Utbetalingslinje.Endring.Stans(
+            utbetalingslinje = andre,
+            virkningstidspunkt = 1.april(2020),
+            clock = andreTidspunkt,
+        )
+        val reaktivering = Utbetalingslinje.Endring.Reaktivering(
+            utbetalingslinje = førsteStans,
+            virkningstidspunkt = 1.april(2020),
+            clock = tredjeTidspunkt,
+        )
+        val tredje = Utbetalingslinje.Ny(
+            opprettet = Tidspunkt.now(fjerdeTidspunkt),
+            fraOgMed = 1.januar(2021),
+            tilOgMed = 31.desember(2021),
+            forrigeUtbetalingslinjeId = reaktivering.id,
+            beløp = 3000,
+        )
+
+        TidslinjeForUtbetalinger(
+            periode = Periode.create(1.januar(2020), 31.desember(2021)),
+            objekter = listOf(andre, første, førsteStans, tredje, reaktivering),
+        ).tidslinje shouldBe listOf(
+            UtbetalingslinjePåTidslinje.Ny(
+                opprettet = første.opprettet,
+                periode = Periode.create(1.januar(2020), 31.mars(2020)),
+                beløp = første.beløp,
+            ),
+            UtbetalingslinjePåTidslinje.Reaktivering(
+                opprettet = tredje.opprettet,
+                periode = Periode.create(1.april(2020), 30.april(2020)),
+                beløp = første.beløp,
+            ),
+            UtbetalingslinjePåTidslinje.Reaktivering(
+                opprettet = reaktivering.opprettet,
+                periode = Periode.create(1.mai(2020), 31.desember(2020)),
+                beløp = andre.beløp,
+            ),
+            UtbetalingslinjePåTidslinje.Ny(
+                opprettet = tredje.opprettet,
+                periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                beløp = tredje.beløp,
             ),
         )
     }

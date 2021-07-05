@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import java.time.Clock
+import java.time.Instant
 import java.time.LocalDate
 import java.util.LinkedList
 
@@ -60,21 +61,34 @@ data class TidslinjeForUtbetalinger(
                             queue.subList(0, queue.size)
                                 .filterIsInstance<UtbetalingslinjePåTidslinje.Ny>()
                                 .filter { it.periode overlapper last.periode && it.beløp != last.beløp }
-                                .map {
+                                .map { utbetalingslinje ->
+                                    /**
+                                     * Setter nytt tidspunkt til å være marginalt ferskere enn reaktiveringen
+                                     * slik at regenerert informasjon får høyere presedens ved opprettelse av
+                                     * [Tidslinje]. Velger minste mulige enhet av [Tidspunkt] for å unngå
+                                     * (så langt det lar seg gjøre) at regenerert informasjon får høyere presedens
+                                     * enn informasjon som i utgangspunktet er ferskere enn selve reaktiveringen.
+                                     * Kaster [RegenerertInformasjonVilOverskriveOriginaleOpplysningerSomErFerskereException]
+                                     * dersom det likevel skulle vise seg at regenerert informasjon vil interferere
+                                     * med original informasjon som er ferskere.
+                                     */
+                                    val periode = Periode.create(
+                                        maxOf(utbetalingslinje.periode.fraOgMed, last.periode.fraOgMed),
+                                        minOf(utbetalingslinje.periode.tilOgMed, last.periode.tilOgMed),
+                                    )
+                                    val opprettet = last.opprettet.plus(1L, Tidspunkt.unit)
+
+                                    if (utbetalingslinjerForTidslinje.harOverlappendeMedOpprettetITidsintervall(
+                                            fra = last.opprettet.instant,
+                                            tilOgMed = opprettet.instant,
+                                            periode = periode,
+                                        )
+                                    ) throw RegenerertInformasjonVilOverskriveOriginaleOpplysningerSomErFerskereException
+
                                     UtbetalingslinjePåTidslinje.Reaktivering(
-                                        /**
-                                         * Setter nytt tidspunkt til å være marginalt ferskere enn reaktiveringen
-                                         * slik at generert informasjon får høyere presedens ved opprettelse av
-                                         * [Tidslinje]. Velger minste mulige enhet av [Tidspunkt] for å unngå
-                                         * (så langt det lar seg gjøre) at generert informasjon får høyere presedens
-                                         * enn eventuell informasjon som er ferskere enn reaktiveringen.
-                                         */
-                                        opprettet = last.opprettet.plus(1L, Tidspunkt.unit),
-                                        periode = Periode.create(
-                                            maxOf(it.periode.fraOgMed, last.periode.fraOgMed),
-                                            minOf(it.periode.tilOgMed, last.periode.tilOgMed),
-                                        ),
-                                        beløp = it.beløp,
+                                        opprettet = opprettet,
+                                        periode = periode,
+                                        beløp = utbetalingslinje.beløp,
                                     )
                                 },
                         )
@@ -91,6 +105,20 @@ data class TidslinjeForUtbetalinger(
             objekter = result,
         )
     }
+
+    private fun List<UtbetalingslinjePåTidslinje>.harOverlappendeMedOpprettetITidsintervall(
+        fra: Instant,
+        tilOgMed: Instant,
+        periode: Periode,
+    ): Boolean {
+        return this.any {
+            it.periode overlapper periode &&
+                it.opprettet.instant > fra &&
+                it.opprettet.instant <= tilOgMed
+        }
+    }
+
+    object RegenerertInformasjonVilOverskriveOriginaleOpplysningerSomErFerskereException : RuntimeException()
 
     fun gjeldendeForDato(dato: LocalDate): UtbetalingslinjePåTidslinje? = generertTidslinje.gjeldendeForDato(dato)
 
