@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import org.junit.jupiter.api.Test
+import java.time.Clock
 import java.time.LocalDate
 import kotlin.math.abs
 
@@ -406,6 +407,7 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
         Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = forrigeUtbetaling,
             virkningstidspunkt = opphørsdato,
+            clock = Clock.systemUTC(),
         )
 
     private fun lagStans(
@@ -415,6 +417,7 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
         Utbetalingslinje.Endring.Stans(
             utbetalingslinje = forrigeUtbetaling,
             virkningstidspunkt = stansFraOgMedDato,
+            clock = Clock.systemUTC(),
         )
 
     private fun lagReaktivert(
@@ -424,6 +427,7 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
         Utbetalingslinje.Endring.Reaktivering(
             utbetalingslinje = forrigeUtbetaling,
             virkningstidspunkt = reaktiverDato,
+            clock = Clock.systemUTC(),
         )
 
     private fun lagBeregning(månedsbeløp: Int): Beregning {

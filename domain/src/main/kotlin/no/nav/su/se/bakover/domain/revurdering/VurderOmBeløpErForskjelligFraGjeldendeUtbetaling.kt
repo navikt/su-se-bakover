@@ -13,7 +13,7 @@ data class VurderOmBeløpErForskjelligFraGjeldendeUtbetaling(
     init {
         val utbetalingstidslinje = TidslinjeForUtbetalinger(
             periode = nyBeregning.periode,
-            objekter = eksisterendeUtbetalinger,
+            utbetalingslinjer = eksisterendeUtbetalinger,
         )
         resultat = nyBeregning.getMånedsberegninger()
             .any { it.getSumYtelse() != utbetalingstidslinje.gjeldendeForDato(it.periode.fraOgMed)?.beløp }

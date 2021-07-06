@@ -19,7 +19,7 @@ data class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetal
 
         val utbetalingstidslinje = TidslinjeForUtbetalinger(
             periode = nyBeregning.periode,
-            objekter = eksisterendeUtbetalinger,
+            utbetalingslinjer = eksisterendeUtbetalinger,
         )
 
         val førsteMånedsberegning = nyBeregning.getMånedsberegninger()

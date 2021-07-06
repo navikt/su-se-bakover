@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
+import java.time.Clock
 import java.util.UUID
 
 internal class GjenopptaUtbetalingerServiceTest {
@@ -107,6 +108,7 @@ internal class GjenopptaUtbetalingerServiceTest {
                     Utbetalingslinje.Endring.Stans(
                         utbetalingslinje = førsteUtbetalingslinje,
                         virkningstidspunkt = 1.januar(2020),
+                        clock = Clock.systemUTC(),
                     ),
                 ),
             ),

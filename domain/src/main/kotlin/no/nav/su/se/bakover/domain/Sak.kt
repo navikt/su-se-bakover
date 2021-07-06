@@ -65,7 +65,7 @@ data class Sak(
 
         return TidslinjeForUtbetalinger(
             periode = periode,
-            objekter = utbetalingslinjer,
+            utbetalingslinjer = utbetalingslinjer,
         )
     }
 }

@@ -36,11 +36,9 @@ sealed class Utbetalingsstrategi {
         val clock: Clock,
     ) : Utbetalingsstrategi() {
         override fun generate(): Utbetaling.UtbetalingForSimulering {
-            validate(harOversendteUtbetalingerEtter(stansDato)) { "Det eksisterer ingen utbetalinger med tilOgMed dato større enn eller lik $stansDato" }
+            validate(harOversendteUtbetalingerEtter(stansDato)) { "Det eksisterer ingen utbetalinger med tilOgMed dato større enn eller lik stansdato $stansDato" }
             validate(stansDato.erFørsteDagIMåned()) { "Dato for stans må være første dag i måneden" }
-            LocalDate.now(clock).let {
-                validate(it.startOfMonth() == stansDato.startOfMonth() || it.plusMonths(1).startOfMonth() == stansDato.startOfMonth()) { "Dato for stans må være første dag i inneværende eller neste måned" }
-            }
+            validate(LocalDate.now(clock).plusMonths(1).startOfMonth() == stansDato.startOfMonth()) { "Dato for stans må være første dag i neste måned" }
 
             val sisteOversendtUtbetaling = sisteOversendteUtbetaling()?.also {
                 validate(Utbetaling.UtbetalingsType.STANS != it.type) { "Kan ikke stanse utbetalinger som allerede er stanset" }
@@ -55,6 +53,7 @@ sealed class Utbetalingsstrategi {
                     Utbetalingslinje.Endring.Stans(
                         utbetalingslinje = sisteOversendtUtbetaling.sisteUtbetalingslinje(),
                         virkningstidspunkt = stansDato,
+                        clock = clock,
                     ),
                 ),
                 type = Utbetaling.UtbetalingsType.STANS,
@@ -128,6 +127,7 @@ sealed class Utbetalingsstrategi {
                     Utbetalingslinje.Endring.Opphør(
                         utbetalingslinje = sisteUtbetalingslinje,
                         virkningstidspunkt = opphørsDato,
+                        clock = clock,
                     ),
                 ),
                 fnr = fnr,
@@ -159,6 +159,7 @@ sealed class Utbetalingsstrategi {
                     Utbetalingslinje.Endring.Reaktivering(
                         utbetalingslinje = sisteOversendteUtbetalingslinje,
                         virkningstidspunkt = sisteOversendteUtbetalingslinje.virkningstidspunkt,
+                        clock = clock,
                     ),
                 ),
                 fnr = fnr,

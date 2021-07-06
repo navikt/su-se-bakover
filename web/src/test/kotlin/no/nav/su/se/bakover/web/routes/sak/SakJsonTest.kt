@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.UtbetalingJson
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import java.time.Clock
 import java.util.UUID
 import kotlin.random.Random
 
@@ -79,14 +80,17 @@ internal class SakJsonTest {
             val midlertidigStans = Utbetalingslinje.Endring.Stans(
                 utbetalingslinje = nyUtbetaling,
                 virkningstidspunkt = 1.februar(2021),
+                clock = Clock.systemUTC(),
             )
             val reaktivering = Utbetalingslinje.Endring.Reaktivering(
                 utbetalingslinje = midlertidigStans,
                 virkningstidspunkt = 1.mars(2021),
+                clock = Clock.systemUTC(),
             )
             val opphørslinje = Utbetalingslinje.Endring.Opphør(
                 utbetalingslinje = reaktivering,
                 virkningstidspunkt = 1.april(2021),
+                clock = Clock.systemUTC(),
             )
 
             val utbetaling1 = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {

@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import org.junit.jupiter.api.Test
+import java.time.Clock
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -231,6 +232,7 @@ internal class UtbetalingRequestTest {
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = nyUtbetaling.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.januar(2020),
+                    clock = Clock.systemUTC(),
                 ),
             ),
         )
@@ -242,6 +244,7 @@ internal class UtbetalingRequestTest {
                 Utbetalingslinje.Endring.Stans(
                     utbetalingslinje = nyUtbetaling.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.januar(2020),
+                    clock = Clock.systemUTC(),
                 ),
             ),
         )
@@ -253,6 +256,7 @@ internal class UtbetalingRequestTest {
                 Utbetalingslinje.Endring.Reaktivering(
                     utbetalingslinje = nyUtbetaling.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.januar(2020),
+                    clock = Clock.systemUTC(),
                 ),
             ),
         )

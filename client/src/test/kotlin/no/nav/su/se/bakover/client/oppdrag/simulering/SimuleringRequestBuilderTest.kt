@@ -16,6 +16,7 @@ import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
+import java.time.Clock
 
 internal class SimuleringRequestBuilderTest {
 
@@ -43,6 +44,7 @@ internal class SimuleringRequestBuilderTest {
         val linjeMedEndring = Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = linjeSomSkalEndres,
             virkningstidspunkt = 1.februar(2020),
+            clock = Clock.systemUTC(),
         )
         val utbetalingMedEndring = UtbetalingRequestTest.nyUtbetaling.copy(
             type = Utbetaling.UtbetalingsType.OPPHØR,

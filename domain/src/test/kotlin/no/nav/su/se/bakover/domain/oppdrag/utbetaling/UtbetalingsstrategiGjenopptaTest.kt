@@ -55,6 +55,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 Utbetalingslinje.Endring.Stans(
                     utbetalingslinje = opprinnelig.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.oktober(2020),
+                    clock = fixedClock,
                 ),
             ),
             type = Utbetaling.UtbetalingsType.STANS,
@@ -125,6 +126,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 Utbetalingslinje.Endring.Stans(
                     utbetalingslinje = første.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.oktober(2020),
+                    clock = fixedClock,
                 ),
             ),
             type = Utbetaling.UtbetalingsType.STANS,
@@ -135,6 +137,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 Utbetalingslinje.Endring.Reaktivering(
                     utbetalingslinje = førsteStans.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.oktober(2020),
+                    clock = fixedClock,
                 ),
             ),
             type = Utbetaling.UtbetalingsType.GJENOPPTA,
@@ -157,6 +160,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 Utbetalingslinje.Endring.Stans(
                     utbetalingslinje = andre.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.mai(2021),
+                    clock = fixedClock,
                 ),
             ),
             type = Utbetaling.UtbetalingsType.STANS,
@@ -231,6 +235,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 Utbetalingslinje.Endring.Stans(
                     utbetalingslinje = første.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.januar(2020),
+                    clock = fixedClock,
                 ),
             ),
             type = Utbetaling.UtbetalingsType.STANS,
@@ -241,6 +246,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 Utbetalingslinje.Endring.Reaktivering(
                     utbetalingslinje = andre.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.januar(2020),
+                    clock = fixedClock,
                 ),
             ),
             type = Utbetaling.UtbetalingsType.GJENOPPTA,
@@ -284,6 +290,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 Utbetalingslinje.Endring.Stans(
                     utbetalingslinje = utbetaling.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.april(2020),
+                    clock = fixedClock,
                 ),
             ),
             type = Utbetaling.UtbetalingsType.STANS,

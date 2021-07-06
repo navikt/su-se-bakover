@@ -61,7 +61,7 @@ sealed class Utbetalingslinje {
             constructor(
                 utbetalingslinje: Utbetalingslinje,
                 virkningstidspunkt: LocalDate,
-                clock: Clock = Clock.systemUTC(),
+                clock: Clock,
             ) : this(
                 id = utbetalingslinje.id,
                 opprettet = Tidspunkt.now(clock),
@@ -90,7 +90,7 @@ sealed class Utbetalingslinje {
             constructor(
                 utbetalingslinje: Utbetalingslinje,
                 virkningstidspunkt: LocalDate,
-                clock: Clock = Clock.systemUTC(),
+                clock: Clock,
             ) : this(
                 id = utbetalingslinje.id,
                 opprettet = Tidspunkt.now(clock),
@@ -119,7 +119,7 @@ sealed class Utbetalingslinje {
             constructor(
                 utbetalingslinje: Utbetalingslinje,
                 virkningstidspunkt: LocalDate,
-                clock: Clock = Clock.systemUTC(),
+                clock: Clock,
             ) : this(
                 id = utbetalingslinje.id,
                 opprettet = Tidspunkt.now(clock),
@@ -130,12 +130,12 @@ sealed class Utbetalingslinje {
                 virkningstidspunkt = virkningstidspunkt,
             )
         }
-    }
 
-    enum class LinjeStatus {
-        OPPHØR,
-        STANS,
-        REAKTIVERING;
+        enum class LinjeStatus {
+            OPPHØR,
+            STANS,
+            REAKTIVERING;
+        }
     }
 }
 

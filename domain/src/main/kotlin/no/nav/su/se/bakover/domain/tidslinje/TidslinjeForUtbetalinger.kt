@@ -11,19 +11,19 @@ import java.util.LinkedList
 
 data class TidslinjeForUtbetalinger(
     private val periode: Periode,
-    private val objekter: List<Utbetalingslinje>,
+    private val utbetalingslinjer: List<Utbetalingslinje>,
     private val clock: Clock = Clock.systemUTC(),
 ) {
     private val nyesteFørst = Comparator<UtbetalingslinjePåTidslinje> { o1, o2 ->
         o2.opprettet.instant.compareTo(o1.opprettet.instant)
     }
 
-    private val nyeUtbetalingslinjer = objekter
-        .map { it.forTidslinje() }
+    private val nyeUtbetalingslinjer = utbetalingslinjer
+        .map { it.mapTilTidslinje() }
         .filterIsInstance<UtbetalingslinjePåTidslinje.Ny>()
 
-    private val andreUtbetalingslinjer = objekter
-        .map { it.forTidslinje() }
+    private val andreUtbetalingslinjer = utbetalingslinjer
+        .map { it.mapTilTidslinje() }
         .filterNot { it is UtbetalingslinjePåTidslinje.Ny }
 
     private val tidslinjeForNyeUtbetalinger = Tidslinje(
@@ -76,7 +76,7 @@ data class TidslinjeForUtbetalinger(
                                         maxOf(utbetalingslinje.periode.fraOgMed, last.periode.fraOgMed),
                                         minOf(utbetalingslinje.periode.tilOgMed, last.periode.tilOgMed),
                                     )
-                                    val opprettet = last.opprettet.plus(1L, Tidspunkt.unit)
+                                    val opprettet = last.opprettet.plusUnits(1)
 
                                     if (utbetalingslinjerForTidslinje.harOverlappendeMedOpprettetITidsintervall(
                                             fra = last.opprettet.instant,
@@ -131,7 +131,7 @@ data class TidslinjeForUtbetalinger(
      *
      *  For typer som i praksis fører til at ingen ytelse utbetales, settes beløpet til 0.
      */
-    private fun Utbetalingslinje.forTidslinje(): UtbetalingslinjePåTidslinje {
+    private fun Utbetalingslinje.mapTilTidslinje(): UtbetalingslinjePåTidslinje {
         return when (this) {
             is Utbetalingslinje.Endring.Opphør -> UtbetalingslinjePåTidslinje.Opphør(
                 opprettet = opprettet,

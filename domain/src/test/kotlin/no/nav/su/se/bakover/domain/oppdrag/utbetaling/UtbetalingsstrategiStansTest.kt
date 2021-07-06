@@ -218,7 +218,7 @@ internal class UtbetalingsstrategiStansTest {
     }
 
     @Test
-    fun `stansdato må være den første i inneæværende eller neste måned`() {
+    fun `stansdato må være den første i neste måned`() {
         val utbetaling = createUtbetaling(
             nonEmptyListOf(
                 Utbetalingslinje.Ny(
@@ -232,7 +232,6 @@ internal class UtbetalingsstrategiStansTest {
         )
 
         listOf(
-            1.juni(2020),
             1.juli(2020),
         ).forEach {
             Utbetalingsstrategi.Stans(

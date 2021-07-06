@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.net.SocketException
+import java.time.Clock
 import java.time.LocalDate
 import javax.net.ssl.SSLException
 import javax.xml.ws.WebServiceException
@@ -80,6 +81,7 @@ internal class SimuleringSoapClientTest {
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = nyUtbetaling.sisteUtbetalingslinje(),
                     virkningstidspunkt = 1.januar(2018),
+                    clock = Clock.systemUTC(),
                 ),
             ),
         )

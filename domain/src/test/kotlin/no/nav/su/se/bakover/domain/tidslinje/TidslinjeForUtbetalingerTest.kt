@@ -24,11 +24,13 @@ import java.time.temporal.ChronoUnit
 
 internal class TidslinjeForUtbetalingerTest {
 
+    private val clock = Clock.systemUTC()
+
     @Test
     fun `ingen utbetalinger`() {
         TidslinjeForUtbetalinger(
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
-            objekter = emptyList(),
+            utbetalingslinjer = emptyList(),
         ).tidslinje shouldBe emptyList()
     }
 
@@ -42,7 +44,7 @@ internal class TidslinjeForUtbetalingerTest {
         )
         TidslinjeForUtbetalinger(
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
-            objekter = listOf(første),
+            utbetalingslinjer = listOf(første),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 opprettet = første.opprettet,
@@ -69,7 +71,7 @@ internal class TidslinjeForUtbetalingerTest {
 
         TidslinjeForUtbetalinger(
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
-            objekter = listOf(første, andre),
+            utbetalingslinjer = listOf(første, andre),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 opprettet = første.opprettet,
@@ -101,11 +103,12 @@ internal class TidslinjeForUtbetalingerTest {
         val stans = Utbetalingslinje.Endring.Stans(
             utbetalingslinje = andre,
             virkningstidspunkt = 1.april(2020),
+            clock = clock,
         )
 
         TidslinjeForUtbetalinger(
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
-            objekter = listOf(første, andre, stans),
+            utbetalingslinjer = listOf(første, andre, stans),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 opprettet = første.opprettet,
@@ -137,15 +140,17 @@ internal class TidslinjeForUtbetalingerTest {
         val stans = Utbetalingslinje.Endring.Stans(
             utbetalingslinje = andre,
             virkningstidspunkt = 1.mars(2020),
+            clock = clock,
         )
         val reaktivering = Utbetalingslinje.Endring.Reaktivering(
             utbetalingslinje = stans,
             virkningstidspunkt = 1.april(2020),
+            clock = clock,
         )
 
         TidslinjeForUtbetalinger(
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
-            objekter = listOf(første, andre, stans, reaktivering),
+            utbetalingslinjer = listOf(første, andre, stans, reaktivering),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 opprettet = første.opprettet,
@@ -187,15 +192,17 @@ internal class TidslinjeForUtbetalingerTest {
         val opphør = Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = andre,
             virkningstidspunkt = 1.mars(2020),
+            clock = clock,
         )
         val reaktivering = Utbetalingslinje.Endring.Reaktivering(
             utbetalingslinje = opphør,
             virkningstidspunkt = 1.april(2020),
+            clock = clock,
         )
 
         TidslinjeForUtbetalinger(
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
-            objekter = listOf(første, andre, opphør, reaktivering),
+            utbetalingslinjer = listOf(første, andre, opphør, reaktivering),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 opprettet = første.opprettet,
@@ -237,11 +244,12 @@ internal class TidslinjeForUtbetalingerTest {
         val opphør = Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = andre,
             virkningstidspunkt = 1.januar(2020),
+            clock = clock,
         )
 
         TidslinjeForUtbetalinger(
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
-            objekter = listOf(første, andre, opphør),
+            utbetalingslinjer = listOf(første, andre, opphør),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Opphør(
                 opprettet = opphør.opprettet,
@@ -268,15 +276,17 @@ internal class TidslinjeForUtbetalingerTest {
         val opphør = Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = andre,
             virkningstidspunkt = 1.januar(2020),
+            clock = clock,
         )
         val reaktivering = Utbetalingslinje.Endring.Reaktivering(
             utbetalingslinje = opphør,
             virkningstidspunkt = 1.januar(2020),
+            clock = clock,
         )
 
         TidslinjeForUtbetalinger(
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
-            objekter = listOf(første, andre, opphør, reaktivering),
+            utbetalingslinjer = listOf(første, andre, opphør, reaktivering),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Reaktivering(
                 opprettet = reaktivering.opprettet.plus(1, ChronoUnit.MICROS),
@@ -308,6 +318,7 @@ internal class TidslinjeForUtbetalingerTest {
         val førsteStans = Utbetalingslinje.Endring.Stans(
             utbetalingslinje = andre,
             virkningstidspunkt = 1.mars(2020),
+            clock = clock,
         )
         val tredje = Utbetalingslinje.Ny(
             fraOgMed = 1.mars(2020),
@@ -318,15 +329,17 @@ internal class TidslinjeForUtbetalingerTest {
         val andreStans = Utbetalingslinje.Endring.Stans(
             utbetalingslinje = tredje,
             virkningstidspunkt = 1.oktober(2020),
+            clock = clock,
         )
         val reaktivering = Utbetalingslinje.Endring.Reaktivering(
             utbetalingslinje = andreStans,
             virkningstidspunkt = 1.november(2020),
+            clock = clock,
         )
 
         TidslinjeForUtbetalinger(
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
-            objekter = listOf(andre, første, tredje, førsteStans, andreStans, reaktivering),
+            utbetalingslinjer = listOf(andre, første, tredje, førsteStans, andreStans, reaktivering),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 opprettet = første.opprettet,
@@ -368,19 +381,22 @@ internal class TidslinjeForUtbetalingerTest {
         val førsteStans = Utbetalingslinje.Endring.Stans(
             utbetalingslinje = andre,
             virkningstidspunkt = 1.april(2020),
+            clock = clock,
         )
         val reaktivering = Utbetalingslinje.Endring.Reaktivering(
             utbetalingslinje = førsteStans,
             virkningstidspunkt = 1.april(2020),
+            clock = clock,
         )
         val andreStans = Utbetalingslinje.Endring.Stans(
             utbetalingslinje = reaktivering,
             virkningstidspunkt = 1.april(2020),
+            clock = clock,
         )
 
         TidslinjeForUtbetalinger(
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
-            objekter = listOf(andre, første, førsteStans, andreStans, reaktivering),
+            utbetalingslinjer = listOf(andre, første, førsteStans, andreStans, reaktivering),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 opprettet = første.opprettet,
@@ -443,7 +459,7 @@ internal class TidslinjeForUtbetalingerTest {
         assertThrows<TidslinjeForUtbetalinger.RegenerertInformasjonVilOverskriveOriginaleOpplysningerSomErFerskereException> {
             TidslinjeForUtbetalinger(
                 periode = Periode.create(1.januar(2020), 31.desember(2020)),
-                objekter = listOf(andre, første, førsteStans, andreStans, reaktivering),
+                utbetalingslinjer = listOf(andre, første, førsteStans, andreStans, reaktivering),
             ).tidslinje
         }
     }
@@ -497,7 +513,7 @@ internal class TidslinjeForUtbetalingerTest {
 
         TidslinjeForUtbetalinger(
             periode = Periode.create(1.januar(2020), 31.desember(2021)),
-            objekter = listOf(andre, første, førsteStans, tredje, reaktivering),
+            utbetalingslinjer = listOf(andre, første, førsteStans, tredje, reaktivering),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 opprettet = første.opprettet,
@@ -539,23 +555,27 @@ internal class TidslinjeForUtbetalingerTest {
         val førsteStans = Utbetalingslinje.Endring.Stans(
             utbetalingslinje = andre,
             virkningstidspunkt = 1.mars(2020),
+            clock = clock,
         )
         val førsteReaktivering = Utbetalingslinje.Endring.Reaktivering(
             utbetalingslinje = førsteStans,
             virkningstidspunkt = 1.mars(2020),
+            clock = clock,
         )
         val andreStans = Utbetalingslinje.Endring.Stans(
             utbetalingslinje = førsteReaktivering,
             virkningstidspunkt = 1.oktober(2020),
+            clock = clock,
         )
         val andreReaktivering = Utbetalingslinje.Endring.Reaktivering(
             utbetalingslinje = andreStans,
             virkningstidspunkt = 1.november(2020),
+            clock = clock,
         )
 
         TidslinjeForUtbetalinger(
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
-            objekter = listOf(andre, andreReaktivering, førsteStans, førsteReaktivering, første, andreStans),
+            utbetalingslinjer = listOf(andre, andreReaktivering, førsteStans, førsteReaktivering, første, andreStans),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 opprettet = første.opprettet,
@@ -602,15 +622,17 @@ internal class TidslinjeForUtbetalingerTest {
         val opphør = Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = andre,
             virkningstidspunkt = 1.mars(2020),
+            clock = clock,
         )
         val reaktivering = Utbetalingslinje.Endring.Reaktivering(
             utbetalingslinje = opphør,
             virkningstidspunkt = 1.april(2020),
+            clock = clock,
         )
 
         TidslinjeForUtbetalinger(
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
-            objekter = listOf(første, andre, opphør, reaktivering),
+            utbetalingslinjer = listOf(første, andre, opphør, reaktivering),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 opprettet = første.opprettet,
@@ -652,6 +674,7 @@ internal class TidslinjeForUtbetalingerTest {
         val opphør = Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = andre,
             virkningstidspunkt = 1.oktober(2020),
+            clock = clock,
         )
         val tredje = Utbetalingslinje.Ny(
             fraOgMed = 1.oktober(2020),
@@ -662,15 +685,17 @@ internal class TidslinjeForUtbetalingerTest {
         val stans = Utbetalingslinje.Endring.Stans(
             utbetalingslinje = tredje,
             virkningstidspunkt = 1.august(2020),
+            clock = clock,
         )
         val reaktivering = Utbetalingslinje.Endring.Reaktivering(
             utbetalingslinje = stans,
             virkningstidspunkt = 1.august(2020),
+            clock = clock,
         )
 
         TidslinjeForUtbetalinger(
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
-            objekter = listOf(første, andre, opphør, tredje, stans, reaktivering),
+            utbetalingslinjer = listOf(første, andre, opphør, tredje, stans, reaktivering),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 opprettet = første.opprettet,
@@ -730,7 +755,7 @@ internal class TidslinjeForUtbetalingerTest {
 
         TidslinjeForUtbetalinger(
             periode = Periode.create(1.januar(2020), 31.desember(2021)),
-            objekter = listOf(andre, femte, tredje, første, fjerde),
+            utbetalingslinjer = listOf(andre, femte, tredje, første, fjerde),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
                 opprettet = første.opprettet,

@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.fixedClock
 import no.nav.su.se.bakover.database.utbetalingslinje
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
@@ -94,6 +95,7 @@ internal class UtbetalingPostgresRepoTest {
             val endretUtbetalingslinje = Utbetalingslinje.Endring.Opphør(
                 utbetalingslinje = originalUtbetalingslinje,
                 virkningstidspunkt = 1.februar(2021),
+                clock = fixedClock
             )
 
             val opphør = utbetaling.copy(

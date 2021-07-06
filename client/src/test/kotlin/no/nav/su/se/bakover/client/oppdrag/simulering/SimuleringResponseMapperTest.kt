@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
 import org.junit.jupiter.api.Test
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse as GrensesnittResponse
@@ -58,6 +59,7 @@ internal class SimuleringResponseMapperTest {
                         beløp = 5000,
                     ),
                     virkningstidspunkt = 1.mai(2021),
+                    clock = Clock.systemUTC(),
                 ),
             ),
             type = Utbetaling.UtbetalingsType.OPPHØR,

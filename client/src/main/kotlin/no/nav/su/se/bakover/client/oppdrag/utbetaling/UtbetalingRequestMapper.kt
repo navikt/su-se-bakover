@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.client.oppdrag.OppdragDefaults
 import no.nav.su.se.bakover.client.oppdrag.OppdragslinjeDefaults
 import no.nav.su.se.bakover.client.oppdrag.toOppdragDate
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
+import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdragslinje.KodeStatusLinje.Companion.tilKodeStatusLinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 
@@ -40,11 +41,7 @@ internal fun toUtbetalingRequest(
                     when (it) {
                         is Utbetalingslinje.Endring -> {
                             UtbetalingRequest.Oppdragslinje(
-                                kodeStatusLinje = when (it) {
-                                    is Utbetalingslinje.Endring.Opphør -> UtbetalingRequest.Oppdragslinje.KodeStatusLinje.OPPHØR
-                                    is Utbetalingslinje.Endring.Stans -> UtbetalingRequest.Oppdragslinje.KodeStatusLinje.HVIL
-                                    is Utbetalingslinje.Endring.Reaktivering -> UtbetalingRequest.Oppdragslinje.KodeStatusLinje.REAKTIVER
-                                },
+                                kodeStatusLinje = it.tilKodeStatusLinje(),
                                 datoStatusFom = it.virkningstidspunkt.toOppdragDate(),
                                 kodeEndringLinje = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.ENDRING,
                                 delytelseId = it.id.toString(),

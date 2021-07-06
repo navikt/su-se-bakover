@@ -96,8 +96,8 @@ internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
     )
 
     return if (status != null && statusFraOgMed != null) {
-        when (Utbetalingslinje.LinjeStatus.valueOf(status)) {
-            Utbetalingslinje.LinjeStatus.OPPHØR -> {
+        when (Utbetalingslinje.Endring.LinjeStatus.valueOf(status)) {
+            Utbetalingslinje.Endring.LinjeStatus.OPPHØR -> {
                 Utbetalingslinje.Endring.Opphør(
                     id = linje.id,
                     opprettet = linje.opprettet,
@@ -108,7 +108,7 @@ internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
                     virkningstidspunkt = statusFraOgMed,
                 )
             }
-            Utbetalingslinje.LinjeStatus.STANS -> {
+            Utbetalingslinje.Endring.LinjeStatus.STANS -> {
                 Utbetalingslinje.Endring.Stans(
                     id = linje.id,
                     opprettet = linje.opprettet,
@@ -119,7 +119,7 @@ internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
                     virkningstidspunkt = statusFraOgMed,
                 )
             }
-            Utbetalingslinje.LinjeStatus.REAKTIVERING -> {
+            Utbetalingslinje.Endring.LinjeStatus.REAKTIVERING -> {
                 Utbetalingslinje.Endring.Reaktivering(
                     id = linje.id,
                     opprettet = linje.opprettet,

@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test
 import org.xmlunit.diff.DefaultNodeMatcher
 import org.xmlunit.diff.ElementSelectors
 import org.xmlunit.matchers.CompareMatcher.isSimilarTo
+import java.time.Clock
 
 class UtbetalingXmlMappingTest {
 
@@ -46,6 +47,7 @@ class UtbetalingXmlMappingTest {
     private val tredjeUtbetalingslinje = Utbetalingslinje.Endring.Opphør(
         andreUtbetalingslinje,
         virkningstidspunkt = 1.februar(2020),
+        clock = Clock.systemUTC(),
     )
 
     private val fnr = Fnr("12345678910")

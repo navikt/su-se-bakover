@@ -79,7 +79,7 @@ internal class UtbetalingServiceImpl(
                 fraOgMed = utbetalingslinjer.minOf { it.fraOgMed },
                 tilOgMed = utbetalingslinjer.maxOf { it.tilOgMed },
             ),
-            objekter = utbetalingslinjer,
+            utbetalingslinjer = utbetalingslinjer,
             clock = clock,
         ).gjeldendeForDato(forDato).rightIfNotNull { FantIkkeGjeldendeUtbetaling }
     }
