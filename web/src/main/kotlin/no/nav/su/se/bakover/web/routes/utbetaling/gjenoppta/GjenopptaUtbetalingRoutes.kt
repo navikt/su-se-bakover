@@ -34,19 +34,23 @@ internal fun Route.gjenopptaUtbetalingRoutes(
                                 KunneIkkeGjenopptaUtbetalinger.FantIkkeSak -> call.respond(NotFound, "Fant ikke sak")
                                 KunneIkkeGjenopptaUtbetalinger.HarIngenOversendteUtbetalinger -> call.respond(
                                     BadRequest,
-                                    "Ingen utbetalinger"
+                                    "Ingen utbetalinger",
                                 )
                                 KunneIkkeGjenopptaUtbetalinger.SisteUtbetalingErIkkeEnStansutbetaling -> call.respond(
                                     BadRequest,
-                                    "Siste utbetaling er ikke en stans"
+                                    "Siste utbetaling er ikke en stans",
                                 )
                                 KunneIkkeGjenopptaUtbetalinger.SimuleringAvStartutbetalingFeilet -> call.respond(
                                     InternalServerError,
-                                    "Simulering feilet"
+                                    "Simulering feilet",
                                 )
                                 KunneIkkeGjenopptaUtbetalinger.SendingAvUtebetalingTilOppdragFeilet -> call.respond(
                                     InternalServerError,
-                                    "Oversendelse til oppdrag feilet"
+                                    "Oversendelse til oppdrag feilet",
+                                )
+                                KunneIkkeGjenopptaUtbetalinger.KontrollAvSimuleringFeilet -> call.respond(
+                                    InternalServerError,
+                                    "Kontroll av simulering feilet",
                                 )
                             }
                         },
@@ -54,7 +58,7 @@ internal fun Route.gjenopptaUtbetalingRoutes(
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, null)
                             call.sikkerlogg("Gjenopptar utbetaling på sak $sakId")
                             call.respond(serialize(it.toJson()))
-                        }
+                        },
                     )
             }
         }

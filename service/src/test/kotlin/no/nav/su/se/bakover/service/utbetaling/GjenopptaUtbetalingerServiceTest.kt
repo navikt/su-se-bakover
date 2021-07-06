@@ -25,10 +25,16 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
+import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
@@ -327,5 +333,84 @@ internal class GjenopptaUtbetalingerServiceTest {
             utbetalingRepoMock,
             utbetalingRepoMock,
         )
+    }
+
+    @Test
+    fun `svarer med feil dersom kontroll av simulering ikke går bra`() {
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sak.id) } doReturn sak.right()
+        }
+
+        val simuleringClientMock = mock<SimuleringClient> {
+            on { simulerUtbetaling(any()) } doReturn Simulering(
+                gjelderId = fnr,
+                gjelderNavn = "navn",
+                datoBeregnet = idag(),
+                nettoBeløp = 15000,
+                periodeList = listOf(
+                    SimulertPeriode(
+                        fraOgMed = 1.januar(2020),
+                        tilOgMed = førsteUtbetalingslinje.tilOgMed,
+                        utbetaling = listOf(
+                            SimulertUtbetaling(
+                                fagSystemId = "",
+                                utbetalesTilId = FnrGenerator.random(),
+                                utbetalesTilNavn = "",
+                                forfall = 1.januar(2020),
+                                feilkonto = false,
+                                detaljer = listOf(
+                                    SimulertDetaljer(
+                                        faktiskFraOgMed = 1.januar(2021),
+                                        faktiskTilOgMed = 31.januar(2021),
+                                        konto = "konto",
+                                        belop = 20779,
+                                        tilbakeforing = false,
+                                        sats = 20779,
+                                        typeSats = "MND",
+                                        antallSats = 1,
+                                        uforegrad = 0,
+                                        klassekode = KlasseKode.SUUFORE,
+                                        klassekodeBeskrivelse = "suBeskrivelse",
+                                        klasseType = KlasseType.YTEL,
+                                    ),
+                                    // Dobbeltutbetaling
+                                    SimulertDetaljer(
+                                        faktiskFraOgMed = 1.januar(2021),
+                                        faktiskTilOgMed = 31.januar(2021),
+                                        konto = "konto",
+                                        belop = 20779,
+                                        tilbakeforing = false,
+                                        sats = 20779,
+                                        typeSats = "MND",
+                                        antallSats = 1,
+                                        uforegrad = 0,
+                                        klassekode = KlasseKode.SUUFORE,
+                                        klassekodeBeskrivelse = "suBeskrivelse",
+                                        klasseType = KlasseType.YTEL,
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ).right()
+        }
+
+        val utbetalingRepoMock = mock<UtbetalingRepo>()
+
+        val utbetalingPublisherMock = mock<UtbetalingPublisher>()
+
+        UtbetalingServiceImpl(
+            utbetalingRepo = utbetalingRepoMock,
+            sakService = sakServiceMock,
+            simuleringClient = simuleringClientMock,
+            utbetalingPublisher = utbetalingPublisherMock,
+            clock = fixedClock,
+        ).gjenopptaUtbetalinger(
+            sakId = sak.id,
+            saksbehandler = saksbehandler,
+        ) shouldBe KunneIkkeGjenopptaUtbetalinger.KontrollAvSimuleringFeilet.left()
+
+        verifyNoMoreInteractions(utbetalingRepoMock, utbetalingPublisherMock)
     }
 }

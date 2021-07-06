@@ -25,43 +25,43 @@ interface UtbetalingService {
     fun simulerUtbetaling(
         sakId: UUID,
         saksbehandler: NavIdentBruker,
-        beregning: Beregning
+        beregning: Beregning,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 
     fun simulerOpphør(
         sakId: UUID,
         saksbehandler: NavIdentBruker,
-        opphørsdato: LocalDate
+        opphørsdato: LocalDate,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 
     fun utbetal(
         sakId: UUID,
         attestant: NavIdentBruker,
         beregning: Beregning,
-        simulering: Simulering
+        simulering: Simulering,
     ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun stansUtbetalinger(
         sakId: UUID,
         saksbehandler: NavIdentBruker,
-        stansDato: LocalDate
+        stansDato: LocalDate,
     ): Either<KunneIkkeStanseUtbetalinger, Sak>
 
     fun gjenopptaUtbetalinger(
         sakId: UUID,
-        saksbehandler: NavIdentBruker
+        saksbehandler: NavIdentBruker,
     ): Either<KunneIkkeGjenopptaUtbetalinger, Sak>
 
     fun opphør(
         sakId: UUID,
         attestant: NavIdentBruker,
         simulering: Simulering,
-        opphørsdato: LocalDate
+        opphørsdato: LocalDate,
     ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun hentGjeldendeUtbetaling(
         sakId: UUID,
-        forDato: LocalDate
+        forDato: LocalDate,
     ): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje>
 }
 
@@ -78,7 +78,7 @@ sealed class KunneIkkeStanseUtbetalinger {
     object FantIkkeSak : KunneIkkeStanseUtbetalinger()
     object SimuleringAvStansFeilet : KunneIkkeStanseUtbetalinger()
     object SendingAvUtebetalingTilOppdragFeilet : KunneIkkeStanseUtbetalinger()
-    object SimulertStansHarBeløpUlikt0 : KunneIkkeStanseUtbetalinger()
+    object KontrollAvSimuleringFeilet : KunneIkkeStanseUtbetalinger()
 }
 
 sealed class KunneIkkeGjenopptaUtbetalinger {
@@ -87,4 +87,5 @@ sealed class KunneIkkeGjenopptaUtbetalinger {
     object SisteUtbetalingErIkkeEnStansutbetaling : KunneIkkeGjenopptaUtbetalinger()
     object SimuleringAvStartutbetalingFeilet : KunneIkkeGjenopptaUtbetalinger()
     object SendingAvUtebetalingTilOppdragFeilet : KunneIkkeGjenopptaUtbetalinger()
+    object KontrollAvSimuleringFeilet : KunneIkkeGjenopptaUtbetalinger()
 }

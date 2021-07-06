@@ -42,11 +42,8 @@ internal fun Route.stansutbetalingRoutes(
                                 call.respond(InternalServerError, "Simulering av stans feilet")
                             KunneIkkeStanseUtbetalinger.SendingAvUtebetalingTilOppdragFeilet ->
                                 call.respond(InternalServerError, "Oversendelse til oppdrag feilet")
-                            KunneIkkeStanseUtbetalinger.SimulertStansHarBeløpUlikt0 ->
-                                call.respond(
-                                    InternalServerError,
-                                    "Simulering av stans inneholdt beløp for utbetaling ulikt 0",
-                                )
+                            KunneIkkeStanseUtbetalinger.KontrollAvSimuleringFeilet ->
+                                call.respond(InternalServerError, "Kontroll av simulering feilet")
                         }
                         InternalServerError.message("Kunne ikke stanse utbetalinger for sak med id $sakId")
                     },
