@@ -29,7 +29,6 @@ import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.Clock
 import java.time.ZoneOffset
-import kotlin.test.assertEquals
 
 internal class PersonRoutesKtTest {
 
@@ -48,7 +47,7 @@ internal class PersonRoutesKtTest {
                 setBody("""{"fnr":"$testIdent"}""")
             }
         }.apply {
-            assertEquals(HttpStatusCode.Unauthorized, response.status())
+            response.status() shouldBe HttpStatusCode.Unauthorized
         }
     }
 
@@ -61,7 +60,7 @@ internal class PersonRoutesKtTest {
                 setBody("""{"fnr":"qwertyuiopå"}""")
             }
         }.apply {
-            assertEquals(HttpStatusCode.BadRequest, response.status())
+            response.status() shouldBe HttpStatusCode.BadRequest
         }
     }
 
@@ -120,7 +119,7 @@ internal class PersonRoutesKtTest {
                 setBody("""{"fnr":"$testIdent"}""")
             }
         }.apply {
-            assertEquals(OK, response.status())
+            response.status() shouldBe OK
             JSONAssert.assertEquals(expectedResponseJson, response.content!!, true)
         }
     }

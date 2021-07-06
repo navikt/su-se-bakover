@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.external
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -23,7 +24,6 @@ import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.Clock
 import java.time.ZoneOffset
-import kotlin.test.assertEquals
 
 internal class FrikortRoutesKtTest {
     internal val testServices = TestServicesBuilder.services()
@@ -35,7 +35,7 @@ internal class FrikortRoutesKtTest {
         }) {
             handleRequest(HttpMethod.Get, frikortPath)
         }.apply {
-            assertEquals(HttpStatusCode.Unauthorized, response.status())
+            response.status() shouldBe HttpStatusCode.Unauthorized
         }
     }
 
@@ -56,7 +56,7 @@ internal class FrikortRoutesKtTest {
                 )
             }
         }.apply {
-            assertEquals(HttpStatusCode.OK, response.status())
+            response.status() shouldBe HttpStatusCode.OK
         }
     }
 
@@ -73,8 +73,8 @@ internal class FrikortRoutesKtTest {
                 )
             }
         }.apply {
-            assertEquals(HttpStatusCode.BadRequest, response.status())
-            response.content shouldContain("Ugyldig dato - dato må være på format YYYY-MM")
+            response.status() shouldBe HttpStatusCode.BadRequest
+            response.content shouldContain ("Ugyldig dato - dato må være på format YYYY-MM")
         }
     }
 

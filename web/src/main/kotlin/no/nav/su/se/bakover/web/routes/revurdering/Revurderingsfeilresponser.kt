@@ -52,6 +52,16 @@ internal object Revurderingsfeilresponser {
         "ingenting_å_revurdere_i_perioden",
     )
 
+    val fantIkkeVedtak = NotFound.errorJson(
+        "Fant ikke vedtak",
+        "fant_ikke_vedtak",
+    )
+
+    val fantIkkeTidligereGrunnlagsdata = NotFound.errorJson(
+        "Fant ikke grunnlagsdata for tidligere vedtak",
+        "fant_ikke_tidligere_grunnlagsdata",
+    )
+
     val tidslinjeForVedtakErIkkeKontinuerlig = InternalServerError.errorJson(
         "Mangler systemstøtte for revurdering av perioder med hull i tidslinjen for vedtak",
         "tidslinje_for_vedtak_ikke_kontinuerlig",

@@ -5,6 +5,11 @@ import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.ConsoleAppender
 import ch.qos.logback.core.read.ListAppender
+import io.kotest.matchers.maps.shouldContainKey
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpHeaders.XCorrelationId
@@ -27,11 +32,6 @@ import no.nav.su.se.bakover.web.stubs.asBearerToken
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.slf4j.LoggerFactory
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 class RoutesTest {
 
@@ -42,8 +42,8 @@ class RoutesTest {
         }) {
             defaultRequest(Get, secureEndpoint, listOf(Brukerrolle.Veileder))
         }.apply {
-            assertEquals(OK, response.status())
-            assertEquals(DEFAULT_CALL_ID, response.headers[XCorrelationId])
+            response.status() shouldBe OK
+            response.headers[XCorrelationId] shouldBe DEFAULT_CALL_ID
         }
     }
 
@@ -56,32 +56,38 @@ class RoutesTest {
                 addHeader(HttpHeaders.Authorization, jwtStub.createJwtToken(roller = listOf(Brukerrolle.Veileder)).asBearerToken())
             }
         }.apply {
-            assertEquals(OK, response.status())
-            assertNotNull(response.headers[XCorrelationId])
-            assertNotEquals(DEFAULT_CALL_ID, response.headers[XCorrelationId])
+            response.status() shouldBe OK
+            response.headers[XCorrelationId] shouldNotBe null
+            response.headers[XCorrelationId] shouldNotBe DEFAULT_CALL_ID
         }
     }
 
     @Test
     fun `logs appropriate MDC values`() {
-        val rootAppender = ((LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger).getAppender("STDOUT_JSON")) as ConsoleAppender
+        val rootAppender =
+            ((LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger).getAppender("STDOUT_JSON")) as ConsoleAppender
         val appender = ListAppender<ILoggingEvent>().apply { start() }
         lateinit var applog: Logger
-        withTestApplication({
-            testSusebakover()
-            applog = environment.log as Logger
-        }) {
+        withTestApplication(
+            {
+                testSusebakover()
+                applog = environment.log as Logger
+            },
+        ) {
             applog.apply { addAppender(appender) }
             handleRequest(Get, secureEndpoint) {
-                addHeader(HttpHeaders.Authorization, jwtStub.createJwtToken(roller = listOf(Brukerrolle.Veileder)).asBearerToken())
+                addHeader(
+                    HttpHeaders.Authorization,
+                    jwtStub.createJwtToken(roller = listOf(Brukerrolle.Veileder)).asBearerToken(),
+                )
             }
         }
         val logStatement = appender.list.first { it.message.contains("200 OK") }
         val logbackFormatted = String(rootAppender.encoder.encode(logStatement))
-        assertTrue(logStatement.mdcPropertyMap.containsKey("X-Correlation-ID"))
-        assertTrue(logStatement.mdcPropertyMap.containsKey("Authorization"))
-        assertTrue(logbackFormatted.contains("X-Correlation-ID"))
-        assertFalse(logbackFormatted.contains("Authorization"))
+        logStatement.mdcPropertyMap shouldContainKey "X-Correlation-ID"
+        logStatement.mdcPropertyMap shouldContainKey "Authorization"
+        logbackFormatted shouldContain "X-Correlation-ID"
+        logbackFormatted shouldNotContain "Authorization"
     }
 
     @Test
@@ -107,7 +113,7 @@ class RoutesTest {
                 setBody("""{"fnr":"${FnrGenerator.random()}"}""")
             }
         }.apply {
-            assertEquals(InternalServerError, response.status())
+            response.status() shouldBe InternalServerError
             JSONAssert.assertEquals("""{"message":"Ukjent feil"}""", response.content, true)
         }
     }
@@ -121,10 +127,7 @@ class RoutesTest {
                 setBody("""{"fnr":"${FnrGenerator.random()}"}""")
             }
         }.apply {
-            assertEquals(
-                "${ContentType.Application.Json}; charset=${Charsets.UTF_8}",
-                response.contentType().toString()
-            )
+            response.contentType().toString() shouldBe "${ContentType.Application.Json}; charset=${Charsets.UTF_8}"
         }
     }
 }
