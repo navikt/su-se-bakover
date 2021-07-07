@@ -6,7 +6,9 @@ import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
+import no.nav.su.se.bakover.domain.behandling.ÅpenBehandling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -49,7 +51,44 @@ data class Sak(
     val utbetalinger: List<Utbetaling>,
     val revurderinger: List<Revurdering> = emptyList(),
     val vedtakListe: List<Vedtak> = emptyList(),
-)
+) {
+    fun hentÅpneRevurderinger(): List<Revurdering> {
+        return revurderinger.filter {
+            when (it) {
+                is IverksattRevurdering.IngenEndring,
+                is IverksattRevurdering.Innvilget,
+                is IverksattRevurdering.Opphørt,
+                -> false
+                else -> true
+            }
+        }
+    }
+
+    fun hentÅpneSøknadsbehandlinger(): List<Søknadsbehandling> {
+        return behandlinger.filter {
+            when (it) {
+                is Søknadsbehandling.Iverksatt.Avslag.MedBeregning,
+                is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning,
+                is Søknadsbehandling.Iverksatt.Innvilget,
+                -> false
+                else -> true
+            }
+        }
+    }
+
+    fun hentÅpneSøkander(): List<Søknad> {
+        val ikkeLukkedeSøknader = søknader.filter {
+            when (it) {
+                is Søknad.Lukket -> false
+                else -> true
+            }
+        }
+        val søknaderMedSøknadsbehandling = behandlinger.map {
+            it.søknad
+        }
+        return ikkeLukkedeSøknader.minus(søknaderMedSøknadsbehandling)
+    }
+}
 
 data class NySak(
     val id: UUID = UUID.randomUUID(),
@@ -74,7 +113,12 @@ class SakFactory(
                 opprettet = opprettet,
                 sakId = sakId,
                 søknadInnhold = søknadInnhold,
-            )
+            ),
         )
     }
 }
+
+data class SakMedÅpneBehandlinger(
+    val saksnummer: Saksnummer,
+    val åpneBehandlinger: List<ÅpenBehandling>,
+)

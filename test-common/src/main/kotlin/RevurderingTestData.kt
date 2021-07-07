@@ -8,6 +8,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
@@ -22,6 +23,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -259,6 +261,45 @@ fun tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         saksbehandler = saksbehandler,
         fritekstTilBrev = fritekstTilBrev,
         forhåndsvarsel = forhåndsvarsel,
+    )
+}
+
+fun UnderkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak(
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    revurderingsperiode: Periode = periode2021,
+    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = stønadsperiode),
+    // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
+    grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
+    vilkårsvurderinger: Vilkårsvurderinger = tilRevurdering.behandling.vilkårsvurderinger,
+    behandlingsinformasjon: Behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
+    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
+    saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler("Saksbehandler"),
+    fritekstTilBrev: String = "",
+    forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+    attestering: Attestering.Underkjent = Attestering.Underkjent(
+        attestant = NavIdentBruker.Attestant(navIdent = "attestant"),
+        grunn = Attestering.Underkjent.Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT,
+        kommentar = "feil vilkår man"
+    )
+): UnderkjentRevurdering {
+    return tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+        stønadsperiode = stønadsperiode,
+        revurderingsperiode = revurderingsperiode,
+        informasjonSomRevurderes = informasjonSomRevurderes,
+        tilRevurdering = tilRevurdering,
+        grunnlagsdata = grunnlagsdata,
+        vilkårsvurderinger = vilkårsvurderinger,
+        behandlingsinformasjon = behandlingsinformasjon,
+        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+        attesteringsoppgaveId = attesteringsoppgaveId,
+        saksbehandler = saksbehandler,
+        fritekstTilBrev = fritekstTilBrev,
+        forhåndsvarsel = forhåndsvarsel,
+    ).underkjenn(
+        attestering = attestering,
+        oppgaveId = OppgaveId(value = "oppgaveId")
     )
 }
 
