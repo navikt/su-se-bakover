@@ -4,8 +4,8 @@ import arrow.core.Either
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.SakMedÅpneBehandlinger
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.behandling.ÅpenBehandling
 import java.util.UUID
 
 interface SakService {
@@ -13,7 +13,7 @@ interface SakService {
     fun hentSak(fnr: Fnr): Either<FantIkkeSak, Sak>
     fun hentSak(saksnummer: Saksnummer): Either<FantIkkeSak, Sak>
     fun opprettSak(sak: NySak)
-    fun hentÅpneBehandlingerForAlleSaker(): List<SakMedÅpneBehandlinger>
+    fun hentÅpneBehandlingerForAlleSaker(): List<ÅpenBehandling>
 }
 
 object FantIkkeSak

@@ -30,6 +30,8 @@ interface Behandling {
 }
 
 data class ÅpenBehandling(
+    val saksnummer: Saksnummer,
+    val behandlingsId: UUID,
     val åpenBehandlingType: ÅpenBehandlingType,
     val status: ÅpenBehandlingStatus,
     val opprettet: Tidspunkt,

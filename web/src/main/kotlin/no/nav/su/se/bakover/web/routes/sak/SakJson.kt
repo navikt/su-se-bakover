@@ -4,7 +4,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.SakMedÅpneBehandlinger
 import no.nav.su.se.bakover.domain.behandling.ÅpenBehandling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
@@ -14,7 +13,6 @@ import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingJson
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.sak.SakJson.KanStansesEllerGjenopptas.Companion.kanStansesEllerGjenopptas
-import no.nav.su.se.bakover.web.routes.sak.ÅpenBehandlingJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingJson
@@ -123,21 +121,9 @@ internal data class SakJson(
     }
 }
 
-internal data class SakMedÅpneBehandlingerJson(
-    val saksnummer: Long,
-    val åpneBehandlinger: List<ÅpenBehandlingJson>,
-) {
-    companion object {
-        fun List<SakMedÅpneBehandlinger>.toJson() = this.map {
-            SakMedÅpneBehandlingerJson(
-                saksnummer = it.saksnummer.nummer,
-                åpneBehandlinger = it.åpneBehandlinger.toJson(),
-            )
-        }
-    }
-}
-
 internal data class ÅpenBehandlingJson(
+    val saksnummer: String,
+    val behandlingId: String,
     val typeBehandling: String,
     val status: String,
     val opprettet: String,
@@ -145,6 +131,8 @@ internal data class ÅpenBehandlingJson(
     companion object {
         fun List<ÅpenBehandling>.toJson() = this.map {
             ÅpenBehandlingJson(
+                saksnummer = it.saksnummer.toString(),
+                behandlingId = it.behandlingsId.toString(),
                 typeBehandling = it.åpenBehandlingType.toString(),
                 status = it.status.toString(),
                 opprettet = it.opprettet.toString(),

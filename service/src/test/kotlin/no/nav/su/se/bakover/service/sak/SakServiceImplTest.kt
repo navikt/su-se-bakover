@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.ÅpenBehandling
 import no.nav.su.se.bakover.domain.behandling.ÅpenBehandlingStatus
 import no.nav.su.se.bakover.domain.behandling.ÅpenBehandlingType
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -31,7 +32,6 @@ import no.nav.su.se.bakover.service.søknadsbehandling.lagUavklartSøknadsbehand
 import no.nav.su.se.bakover.service.søknadsbehandling.lagUnderkjentInnvilgetSøknadsbehandling
 import no.nav.su.se.bakover.test.IverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.UnderkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -81,17 +81,18 @@ internal class SakServiceImplTest {
     @Test
     fun `henter bare åpen søknad på en sak`() {
         val sakId = UUID.randomUUID()
+        val journalførtSøknadMedOppgave = Søknad.Journalført.MedOppgave(
+            id = UUID.randomUUID(), opprettet = Tidspunkt.EPOCH, sakId = sakId,
+            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+            journalpostId = JournalpostId(value = "123"), oppgaveId = OppgaveId(value = "123"),
+        )
         val sakRepo: SakRepo = mock {
             on { hentAlleSaker() } doReturn listOf(
                 Sak(
                     id = sakId, saksnummer = Saksnummer(nummer = 2021),
                     opprettet = Tidspunkt.EPOCH, fnr = FnrGenerator.random(),
                     søknader = listOf(
-                        Søknad.Journalført.MedOppgave(
-                            id = UUID.randomUUID(), opprettet = Tidspunkt.EPOCH, sakId = sakId,
-                            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-                            journalpostId = JournalpostId(value = "123"), oppgaveId = OppgaveId(value = "123"),
-                        ),
+                        journalførtSøknadMedOppgave,
                         Søknad.Lukket(
                             id = UUID.randomUUID(), opprettet = Tidspunkt.EPOCH,
                             sakId = sakId, søknadInnhold = SøknadInnholdTestdataBuilder.build(),
@@ -111,19 +112,25 @@ internal class SakServiceImplTest {
         val sakService = SakServiceImpl(sakRepo)
         val sakMedÅpenSøknad = sakService.hentÅpneBehandlingerForAlleSaker()
 
-        sakMedÅpenSøknad.size shouldBe 1
-        sakMedÅpenSøknad.first().saksnummer shouldBe Saksnummer(2021)
-        sakMedÅpenSøknad.first().åpneBehandlinger.let {
-            it.size shouldBe 1
-            it.first().åpenBehandlingType shouldBe ÅpenBehandlingType.SØKNADSBEHANDLING
-            it.first().status shouldBe ÅpenBehandlingStatus.NY_SØKNAD
-            it.first().opprettet shouldBe Tidspunkt.EPOCH
-        }
+        sakMedÅpenSøknad shouldBe listOf(
+            ÅpenBehandling(
+                saksnummer = Saksnummer(nummer = 2021),
+                behandlingsId = journalførtSøknadMedOppgave.id,
+                åpenBehandlingType = ÅpenBehandlingType.SØKNADSBEHANDLING,
+                status = ÅpenBehandlingStatus.NY_SØKNAD,
+                opprettet = journalførtSøknadMedOppgave.opprettet,
+            ),
+        )
     }
 
     @Test
     fun `henter bare åpne søknadsbehandlinger på en sak`() {
         val sakId = UUID.randomUUID()
+        val uavklartSøkandsbehandling = lagUavklartSøknadsbehandling(sakId, Saksnummer(2021))
+        val underkjentSøknadsbehandling = lagUnderkjentInnvilgetSøknadsbehandling(sakId, Saksnummer(2021))
+        val tilAttesteringSøknadsbehandling = lagTilAttesteringInnvilgetSøknadsbehandling(sakId, Saksnummer(2022))
+        val iverksattSøknadsbehandling = lagIverksattInnvilgetSøknadsbehandling(sakId, Saksnummer(2022))
+
         val sakRepo: SakRepo = mock {
             on { hentAlleSaker() } doReturn listOf(
                 Sak(
@@ -131,8 +138,8 @@ internal class SakServiceImplTest {
                     opprettet = Tidspunkt.EPOCH, fnr = FnrGenerator.random(),
                     søknader = emptyList(),
                     behandlinger = listOf(
-                        lagUavklartSøknadsbehandling(sakId, Saksnummer(2021)),
-                        lagUnderkjentInnvilgetSøknadsbehandling(sakId, Saksnummer(2021)),
+                        uavklartSøkandsbehandling,
+                        underkjentSøknadsbehandling,
                     ),
                     utbetalinger = emptyList(), revurderinger = emptyList(), vedtakListe = emptyList(),
                 ),
@@ -141,8 +148,8 @@ internal class SakServiceImplTest {
                     opprettet = Tidspunkt.EPOCH, fnr = FnrGenerator.random(),
                     søknader = emptyList(),
                     behandlinger = listOf(
-                        lagTilAttesteringInnvilgetSøknadsbehandling(sakId, Saksnummer(2022)),
-                        lagIverksattInnvilgetSøknadsbehandling(sakId, Saksnummer(2022)),
+                        tilAttesteringSøknadsbehandling,
+                        iverksattSøknadsbehandling,
                     ),
                     utbetalinger = emptyList(), revurderinger = emptyList(), vedtakListe = emptyList(),
                 ),
@@ -152,29 +159,38 @@ internal class SakServiceImplTest {
         val sakService = SakServiceImpl(sakRepo)
         val sakerMedÅpneBehandlinger = sakService.hentÅpneBehandlingerForAlleSaker()
 
-        sakerMedÅpneBehandlinger.size shouldBe 2
-        sakerMedÅpneBehandlinger.first().saksnummer shouldBe Saksnummer(2021)
-        sakerMedÅpneBehandlinger.first().åpneBehandlinger.size shouldBe 2
-        sakerMedÅpneBehandlinger.first().åpneBehandlinger.let {
-            it.first().åpenBehandlingType shouldBe ÅpenBehandlingType.SØKNADSBEHANDLING
-            it.first().status shouldBe ÅpenBehandlingStatus.UNDER_BEHANDLING
-            it.first().opprettet shouldBe Tidspunkt.EPOCH
-            it.last().åpenBehandlingType shouldBe ÅpenBehandlingType.SØKNADSBEHANDLING
-            it.last().status shouldBe ÅpenBehandlingStatus.UNDERKJENT
-            it.last().opprettet shouldBe Tidspunkt.EPOCH
-        }
-        sakerMedÅpneBehandlinger.last().saksnummer shouldBe Saksnummer(2022)
-        sakerMedÅpneBehandlinger.last().åpneBehandlinger.let {
-            it.size shouldBe 1
-            it.first().åpenBehandlingType shouldBe ÅpenBehandlingType.SØKNADSBEHANDLING
-            it.first().status shouldBe ÅpenBehandlingStatus.TIL_ATTESTERING
-            it.first().opprettet shouldBe Tidspunkt.EPOCH
-        }
+        sakerMedÅpneBehandlinger shouldBe listOf(
+            ÅpenBehandling(
+                saksnummer = Saksnummer(nummer = 2021),
+                behandlingsId = uavklartSøkandsbehandling.id,
+                åpenBehandlingType = ÅpenBehandlingType.SØKNADSBEHANDLING,
+                status = ÅpenBehandlingStatus.UNDER_BEHANDLING,
+                opprettet = uavklartSøkandsbehandling.opprettet,
+            ),
+            ÅpenBehandling(
+                saksnummer = Saksnummer(nummer = 2021),
+                behandlingsId = underkjentSøknadsbehandling.id,
+                åpenBehandlingType = ÅpenBehandlingType.SØKNADSBEHANDLING,
+                status = ÅpenBehandlingStatus.UNDERKJENT,
+                opprettet = underkjentSøknadsbehandling.opprettet,
+            ),
+            ÅpenBehandling(
+                saksnummer = Saksnummer(nummer = 2022),
+                behandlingsId = tilAttesteringSøknadsbehandling.id,
+                åpenBehandlingType = ÅpenBehandlingType.SØKNADSBEHANDLING,
+                status = ÅpenBehandlingStatus.TIL_ATTESTERING,
+                opprettet = tilAttesteringSøknadsbehandling.opprettet,
+            ),
+        )
     }
 
     @Test
     fun `henter bare åpne revurderinger på en sak`() {
         val sakId = UUID.randomUUID()
+
+        val underkjentInnvilgetRevurdering = UnderkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak()
+        val tilAttesteringRevurdering = tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak()
+        val iverksattRevurdering = IverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak()
         val sakRepo: SakRepo = mock {
             on { hentAlleSaker() } doReturn listOf(
                 Sak(
@@ -193,9 +209,9 @@ internal class SakServiceImplTest {
                     søknader = emptyList(), behandlinger = emptyList(),
                     utbetalinger = emptyList(), vedtakListe = emptyList(),
                     revurderinger = listOf(
-                        UnderkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak(),
-                        tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(),
-                        IverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(),
+                        underkjentInnvilgetRevurdering,
+                        tilAttesteringRevurdering,
+                        iverksattRevurdering,
                     ),
                 ),
             )
@@ -204,26 +220,35 @@ internal class SakServiceImplTest {
         val sakService = SakServiceImpl(sakRepo)
         val sakerMedÅpneRevurderinger = sakService.hentÅpneBehandlingerForAlleSaker()
 
-        sakerMedÅpneRevurderinger.size shouldBe 2
-        sakerMedÅpneRevurderinger.first().saksnummer shouldBe Saksnummer(2021)
-        sakerMedÅpneRevurderinger.first().åpneBehandlinger.size shouldBe 2
-        sakerMedÅpneRevurderinger.first().åpneBehandlinger.let {
-            it.first().åpenBehandlingType shouldBe ÅpenBehandlingType.REVURDERING
-            it.first().status shouldBe ÅpenBehandlingStatus.UNDER_BEHANDLING
-            it.first().opprettet shouldBe Tidspunkt.now(fixedClock)
-            it.last().åpenBehandlingType shouldBe ÅpenBehandlingType.REVURDERING
-            it.last().status shouldBe ÅpenBehandlingStatus.UNDER_BEHANDLING
-            it.last().opprettet shouldBe Tidspunkt.now(fixedClock)
-        }
-        sakerMedÅpneRevurderinger.last().saksnummer shouldBe Saksnummer(2022)
-        sakerMedÅpneRevurderinger.last().åpneBehandlinger.let {
-            it.size shouldBe 2
-            it.first().åpenBehandlingType shouldBe ÅpenBehandlingType.REVURDERING
-            it.first().status shouldBe ÅpenBehandlingStatus.UNDERKJENT
-            it.first().opprettet shouldBe Tidspunkt.now(fixedClock)
-            it.last().åpenBehandlingType shouldBe ÅpenBehandlingType.REVURDERING
-            it.last().status shouldBe ÅpenBehandlingStatus.TIL_ATTESTERING
-            it.last().opprettet shouldBe Tidspunkt.now(fixedClock)
-        }
+        sakerMedÅpneRevurderinger shouldBe listOf(
+            ÅpenBehandling(
+                saksnummer = Saksnummer(2021),
+                behandlingsId = opprettetRevurdering.id,
+                åpenBehandlingType = ÅpenBehandlingType.REVURDERING,
+                status = ÅpenBehandlingStatus.UNDER_BEHANDLING,
+                opprettet = opprettetRevurdering.opprettet,
+            ),
+            ÅpenBehandling(
+                saksnummer = Saksnummer(2021),
+                behandlingsId = simulertRevurderingInnvilget.id,
+                åpenBehandlingType = ÅpenBehandlingType.REVURDERING,
+                status = ÅpenBehandlingStatus.UNDER_BEHANDLING,
+                opprettet = simulertRevurderingInnvilget.opprettet,
+            ),
+            ÅpenBehandling(
+                saksnummer = Saksnummer(2022),
+                behandlingsId = underkjentInnvilgetRevurdering.id,
+                åpenBehandlingType = ÅpenBehandlingType.REVURDERING,
+                status = ÅpenBehandlingStatus.UNDERKJENT,
+                opprettet = underkjentInnvilgetRevurdering.opprettet,
+            ),
+            ÅpenBehandling(
+                saksnummer = Saksnummer(2022),
+                behandlingsId = tilAttesteringRevurdering.id,
+                åpenBehandlingType = ÅpenBehandlingType.REVURDERING,
+                status = ÅpenBehandlingStatus.TIL_ATTESTERING,
+                opprettet = tilAttesteringRevurdering.opprettet,
+            ),
+        )
     }
 }

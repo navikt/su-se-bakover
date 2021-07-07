@@ -6,7 +6,6 @@ import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
-import no.nav.su.se.bakover.domain.behandling.ÅpenBehandling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -53,35 +52,20 @@ data class Sak(
     val vedtakListe: List<Vedtak> = emptyList(),
 ) {
     fun hentÅpneRevurderinger(): List<Revurdering> {
-        return revurderinger.filter {
-            when (it) {
-                is IverksattRevurdering.IngenEndring,
-                is IverksattRevurdering.Innvilget,
-                is IverksattRevurdering.Opphørt,
-                -> false
-                else -> true
-            }
+        return revurderinger.filterNot {
+            it is IverksattRevurdering
         }
     }
 
     fun hentÅpneSøknadsbehandlinger(): List<Søknadsbehandling> {
-        return behandlinger.filter {
-            when (it) {
-                is Søknadsbehandling.Iverksatt.Avslag.MedBeregning,
-                is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning,
-                is Søknadsbehandling.Iverksatt.Innvilget,
-                -> false
-                else -> true
-            }
+        return behandlinger.filterNot {
+            it is Søknadsbehandling.Iverksatt
         }
     }
 
-    fun hentÅpneSøkander(): List<Søknad> {
-        val ikkeLukkedeSøknader = søknader.filter {
-            when (it) {
-                is Søknad.Lukket -> false
-                else -> true
-            }
+    fun hentÅpneSøknader(): List<Søknad> {
+        val ikkeLukkedeSøknader = søknader.filterNot {
+            it is Søknad.Lukket
         }
         val søknaderMedSøknadsbehandling = behandlinger.map {
             it.søknad
@@ -117,8 +101,3 @@ class SakFactory(
         )
     }
 }
-
-data class SakMedÅpneBehandlinger(
-    val saksnummer: Saksnummer,
-    val åpneBehandlinger: List<ÅpenBehandling>,
-)

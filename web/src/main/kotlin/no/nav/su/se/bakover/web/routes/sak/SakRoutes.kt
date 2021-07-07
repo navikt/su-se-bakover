@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.sak.SakMedÅpneBehandlingerJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.sak.ÅpenBehandlingJson.Companion.toJson
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withSakId

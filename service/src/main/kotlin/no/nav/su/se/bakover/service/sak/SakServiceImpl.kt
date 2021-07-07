@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.SakMedÅpneBehandlinger
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.ÅpenBehandling
 import no.nav.su.se.bakover.domain.behandling.ÅpenBehandlingStatus
@@ -46,18 +45,14 @@ internal class SakServiceImpl(
         }
     }
 
-    override fun hentÅpneBehandlingerForAlleSaker(): List<SakMedÅpneBehandlinger> {
+    override fun hentÅpneBehandlingerForAlleSaker(): List<ÅpenBehandling> {
         val alleSaker = sakRepo.hentAlleSaker()
 
-        val sakerMedÅpenBehandlinger = alleSaker.filter {
-            it.hentÅpneSøkander().isNotEmpty() ||
-                it.hentÅpneSøknadsbehandlinger().isNotEmpty() ||
-                it.hentÅpneRevurderinger().isNotEmpty()
-        }
-
-        return sakerMedÅpenBehandlinger.map { sak ->
-            val åpneSøknader = sak.hentÅpneSøkander().map { søknad ->
+        return alleSaker.flatMap { sak ->
+            val åpneSøknader = sak.hentÅpneSøknader().map { søknad ->
                 ÅpenBehandling(
+                    saksnummer = sak.saksnummer,
+                    behandlingsId = søknad.id,
                     åpenBehandlingType = ÅpenBehandlingType.SØKNADSBEHANDLING,
                     status = ÅpenBehandlingStatus.NY_SØKNAD,
                     opprettet = søknad.opprettet,
@@ -65,6 +60,8 @@ internal class SakServiceImpl(
             }
             val åpneSøknadsbehandlinger = sak.hentÅpneSøknadsbehandlinger().map { søknadsbehandling ->
                 ÅpenBehandling(
+                    saksnummer = sak.saksnummer,
+                    behandlingsId = søknadsbehandling.id,
                     åpenBehandlingType = ÅpenBehandlingType.SØKNADSBEHANDLING,
                     status = ÅpenBehandlingStatus.søknadsbehandlingTilStatus(søknadsbehandling),
                     opprettet = søknadsbehandling.opprettet,
@@ -72,16 +69,15 @@ internal class SakServiceImpl(
             }
             val åpneRevurderinger = sak.hentÅpneRevurderinger().map { revurdering ->
                 ÅpenBehandling(
+                    saksnummer = sak.saksnummer,
+                    behandlingsId = revurdering.id,
                     åpenBehandlingType = ÅpenBehandlingType.REVURDERING,
                     status = ÅpenBehandlingStatus.revurderingTilStatus(revurdering),
                     opprettet = revurdering.opprettet,
                 )
             }
 
-            SakMedÅpneBehandlinger(
-                saksnummer = sak.saksnummer,
-                åpneBehandlinger = åpneSøknader + åpneSøknadsbehandlinger + åpneRevurderinger,
-            )
+            åpneSøknader + åpneSøknadsbehandlinger + åpneRevurderinger
         }
     }
 }
