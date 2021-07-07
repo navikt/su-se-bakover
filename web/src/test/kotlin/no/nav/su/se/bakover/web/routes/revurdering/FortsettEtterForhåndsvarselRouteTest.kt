@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -74,6 +73,12 @@ internal class FortsettEtterForhåndsvarselRouteTest {
             opprettet = Tidspunkt.now(),
             tilRevurdering = RevurderingRoutesTestData.vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
+            oppgaveId = OppgaveId("OppgaveId"),
+            revurderingsårsak = Revurderingsårsak(
+                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+            ),
+            fritekstTilBrev = "Friteksten",
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678901"),
@@ -82,12 +87,6 @@ internal class FortsettEtterForhåndsvarselRouteTest {
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
-            oppgaveId = OppgaveId("OppgaveId"),
-            fritekstTilBrev = "Friteksten",
-            revurderingsårsak = Revurderingsårsak(
-                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-            ),
             forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
                 journalpostId = JournalpostId("lol"),
                 brevbestillingId = null,
@@ -95,7 +94,6 @@ internal class FortsettEtterForhåndsvarselRouteTest {
                 begrunnelse = "begrunnelse",
 
             ),
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -147,6 +145,12 @@ internal class FortsettEtterForhåndsvarselRouteTest {
             opprettet = Tidspunkt.now(),
             tilRevurdering = RevurderingRoutesTestData.vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
+            oppgaveId = OppgaveId("OppgaveId"),
+            revurderingsårsak = Revurderingsårsak(
+                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+            ),
+            fritekstTilBrev = "Friteksten",
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678901"),
@@ -155,19 +159,12 @@ internal class FortsettEtterForhåndsvarselRouteTest {
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
-            oppgaveId = OppgaveId("OppgaveId"),
-            fritekstTilBrev = "Friteksten",
-            revurderingsårsak = Revurderingsårsak(
-                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-            ),
             forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
                 journalpostId = JournalpostId("lol"),
                 brevbestillingId = null,
                 valg = BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
                 begrunnelse = "begrunnelse",
             ),
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -219,6 +216,12 @@ internal class FortsettEtterForhåndsvarselRouteTest {
             opprettet = Tidspunkt.now(),
             tilRevurdering = RevurderingRoutesTestData.vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
+            oppgaveId = OppgaveId("OppgaveId"),
+            revurderingsårsak = Revurderingsårsak(
+                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+            ),
+            fritekstTilBrev = "Friteksten",
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678901"),
@@ -227,19 +230,12 @@ internal class FortsettEtterForhåndsvarselRouteTest {
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
-            oppgaveId = OppgaveId("OppgaveId"),
-            fritekstTilBrev = "Friteksten",
-            revurderingsårsak = Revurderingsårsak(
-                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-            ),
             forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
                 journalpostId = JournalpostId("lol"),
                 brevbestillingId = null,
                 valg = BeslutningEtterForhåndsvarsling.AvsluttUtenEndringer,
                 begrunnelse = "begrunnelse",
             ),
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),

@@ -675,6 +675,15 @@ internal class LagBrevRequestVisitorTest {
             tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
+            fritekstTilBrev = "JEPP",
+            revurderingsårsak = Revurderingsårsak(
+                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+            ),
+            beregning = innvilgetBeregning,
+            attestering = Attestering.Iverksatt(attestant),
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            simulering = simulering,
             grunnlagsdata = Grunnlagsdata(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -685,16 +694,6 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
             ),
-            beregning = innvilgetBeregning,
-            simulering = simulering,
-            attestering = Attestering.Iverksatt(attestant),
-            fritekstTilBrev = "JEPP",
-            revurderingsårsak = Revurderingsårsak(
-                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-            ),
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -745,16 +744,15 @@ internal class LagBrevRequestVisitorTest {
             tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
-            beregning = innvilgetBeregning,
-            simulering = simulering,
-            attestering = Attestering.Iverksatt(attestant),
             fritekstTilBrev = "FRITEKST REVURDERING",
             revurderingsårsak = Revurderingsårsak(
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
+            beregning = innvilgetBeregning,
+            attestering = Attestering.Iverksatt(attestant),
+            simulering = simulering,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -829,16 +827,15 @@ internal class LagBrevRequestVisitorTest {
             tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
-            beregning = innvilgetBeregning,
-            simulering = simulering,
-            attestering = Attestering.Iverksatt(attestant),
             fritekstTilBrev = "FRITEKST REVURDERING",
             revurderingsårsak = Revurderingsårsak(
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
+            beregning = innvilgetBeregning,
+            attestering = Attestering.Iverksatt(attestant),
+            simulering = simulering,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -916,17 +913,16 @@ internal class LagBrevRequestVisitorTest {
             opprettet = Tidspunkt.now(clock),
             tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
             saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("15"),
             beregning = innvilgetBeregning,
-            attestering = Attestering.Iverksatt(attestant),
+            oppgaveId = OppgaveId("15"),
             fritekstTilBrev = "EN FIN FRITEKST",
             revurderingsårsak = Revurderingsårsak(
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
+            attestering = Attestering.Iverksatt(attestant),
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = null,
-            behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -972,9 +968,9 @@ internal class LagBrevRequestVisitorTest {
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn,
                 fritekst = "EN FIN FRITEKST",
-                harEktefelle = revurdering.behandlingsinformasjon.harEktefelle(),
+                harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
                 forventetInntektStørreEnn0 = false,
-                gjeldendeMånedsutbetaling = 120
+                gjeldendeMånedsutbetaling = 120,
             )
 
             it.lagBrevInnhold(personalia) should beOfType<BrevInnhold.VedtakIngenEndring>()

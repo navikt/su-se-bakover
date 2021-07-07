@@ -49,7 +49,6 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.LocalDate
@@ -416,7 +415,6 @@ internal class StatistikkServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -463,13 +461,16 @@ internal class StatistikkServiceImplTest {
         }
         val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
             id = UUID.randomUUID(),
+            periode = behandlingsperiode,
             opprettet = LocalDate.now(clock).atStartOfDay().toTidspunkt(zoneIdOslo),
             tilRevurdering = mock {
                 on { behandling } doReturn behandlingMock
                 on { id } doReturn UUID.randomUUID()
             },
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-            periode = behandlingsperiode,
+            oppgaveId = OppgaveId("55"),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
             beregning = beregning,
             simulering = Simulering(
                 gjelderId = FnrGenerator.random(),
@@ -478,11 +479,7 @@ internal class StatistikkServiceImplTest {
                 nettoBeløp = 100,
                 periodeList = listOf(),
             ),
-            oppgaveId = OppgaveId("55"),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -537,7 +534,11 @@ internal class StatistikkServiceImplTest {
             },
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
             oppgaveId = OppgaveId("55"),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
             beregning = beregning,
+            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             simulering = Simulering(
                 gjelderId = FnrGenerator.random(),
                 gjelderNavn = "Mr. Asd",
@@ -546,11 +547,6 @@ internal class StatistikkServiceImplTest {
                 periodeList = listOf(),
             ),
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )

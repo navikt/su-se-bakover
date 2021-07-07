@@ -235,9 +235,7 @@ internal class FinnAttestantVisitorTest {
         id = UUID.randomUUID(),
         periode = periode,
         opprettet = Tidspunkt.now(),
-        tilRevurdering = mock() {
-
-            on { behandlingsinformasjon } doReturn behandlingsinformasjonMedAlleVilkårOppfylt
+        tilRevurdering = mock {
             on { beregning } doReturn beregningMock
         },
         saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
@@ -248,7 +246,6 @@ internal class FinnAttestantVisitorTest {
             Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
         ),
         forhåndsvarsel = null,
-        behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
         grunnlagsdata = Grunnlagsdata(
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(

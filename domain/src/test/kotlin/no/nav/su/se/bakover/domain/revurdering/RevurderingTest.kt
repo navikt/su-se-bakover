@@ -494,7 +494,6 @@ internal class RevurderingTest {
         fritekstTilBrev = "",
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = null,
-        behandlingsinformasjon = mock(),
         vilkårsvurderinger = vilkårsvurderinger,
         grunnlagsdata = Grunnlagsdata(
             bosituasjon = bosituasjon,
