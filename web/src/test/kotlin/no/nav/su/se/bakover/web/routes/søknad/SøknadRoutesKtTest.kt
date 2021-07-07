@@ -66,7 +66,6 @@ import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import java.util.UUID
 import kotlin.random.Random
-import kotlin.test.assertEquals
 
 internal class SøknadRoutesKtTest {
 
@@ -115,7 +114,7 @@ internal class SøknadRoutesKtTest {
                 addHeader(ContentType, Json.toString())
                 setBody(soknadJson)
             }.apply {
-                assertEquals(Created, response.status())
+                response.status() shouldBe Created
             }.response
 
             shouldNotThrow<Throwable> { objectMapper.readValue<OpprettetSøknadJson>(createResponse.content!!) }
@@ -140,14 +139,14 @@ internal class SøknadRoutesKtTest {
                 addHeader(ContentType, Json.toString())
                 setBody(soknadJson)
             }.apply {
-                assertEquals(Created, response.status())
+                response.status() shouldBe Created
                 val response = objectMapper.readValue<OpprettetSøknadJson>(response.content!!)
                 sakId = response.søknad.sakId
                 saksnummer = response.saksnummer
             }
 
             defaultRequest(Get, "$sakPath/$sakId", listOf(Brukerrolle.Veileder)).apply {
-                assertEquals(OK, response.status())
+                response.status() shouldBe OK
                 val sakJson = objectMapper.readValue<SakJson>(response.content!!)
                 sakJson.søknader.first().søknadInnhold.personopplysninger.fnr shouldMatch fnr.toString()
                 sakJson.saksnummer shouldBe saksnummer
