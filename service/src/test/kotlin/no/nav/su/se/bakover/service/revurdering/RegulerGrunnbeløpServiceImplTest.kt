@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.AttesteringHistorik
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -122,6 +123,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
+            attesteringer = AttesteringHistorik.empty()
         )
 
         val nyttUføregrunnlag = Grunnlag.Uføregrunnlag(
@@ -158,6 +160,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
+            attesteringer = AttesteringHistorik.empty()
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -439,7 +442,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
             beregning = TestBeregning,
             simulering = mock(),
-            attestering = mock(),
+            attesteringer = mock(),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = mock {
@@ -547,6 +550,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = actual.vilkårsvurderinger,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            attesteringer = AttesteringHistorik.empty(),
         )
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
@@ -576,7 +580,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
             beregning = TestBeregning,
-            attestering = mock(),
+            attesteringer = mock(),
             skalFøreTilBrevutsending = true,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -627,6 +631,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = actual.vilkårsvurderinger,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            attesteringer = AttesteringHistorik.empty(),
         )
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
@@ -655,7 +660,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId(value = "OppgaveId"),
             beregning = TestBeregning,
-            attestering = Attestering.Iverksatt(attestant),
+            attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.EPOCH)),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
@@ -681,6 +686,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            attesteringer = AttesteringHistorik.empty(),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {

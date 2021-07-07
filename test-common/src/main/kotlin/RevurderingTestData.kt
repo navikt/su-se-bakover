@@ -82,6 +82,7 @@ fun opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         informasjonSomRevurderes = informasjonSomRevurderes,
+        attesteringer = AttesteringHistorik.empty()
     )
 }
 

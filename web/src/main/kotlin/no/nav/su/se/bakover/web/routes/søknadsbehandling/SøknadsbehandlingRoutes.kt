@@ -19,6 +19,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.patch
 import io.ktor.routing.post
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
@@ -439,7 +440,7 @@ internal fun Route.søknadsbehandlingRoutes(
                 søknadsbehandlingService.iverksett(
                     IverksettRequest(
                         behandlingId = behandlingId,
-                        attestering = Attestering.Iverksatt(Attestant(navIdent)),
+                        attestering = Attestering.Iverksatt(Attestant(navIdent), Tidspunkt.now()),
                     ),
                 ).fold(
                     {
@@ -481,6 +482,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                         attestant = Attestant(navIdent),
                                         grunn = Attestering.Underkjent.Grunn.valueOf(body.grunn),
                                         kommentar = body.kommentar,
+                                        tidspunkt = Tidspunkt.now()
                                     ),
                                 ),
                             ).fold(

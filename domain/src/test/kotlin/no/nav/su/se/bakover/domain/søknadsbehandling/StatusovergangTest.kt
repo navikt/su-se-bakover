@@ -60,7 +60,7 @@ internal class StatusovergangTest {
 
     private val simulering = no.nav.su.se.bakover.test.simuleringNy()
 
-    private val attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"))
+    private val attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), fixedTidspunkt)
     private val utbetalingId = UUID30.randomUUID()
 
     private val fritekstTilBrev: String = "Fritekst til brev"
@@ -597,9 +597,10 @@ internal class StatusovergangTest {
                 tilAttesteringAvslagVilkår.copy(saksbehandler = NavIdentBruker.Saksbehandler("sneaky")),
                 Statusovergang.TilUnderkjent(
                     Attestering.Underkjent(
-                        NavIdentBruker.Attestant("sneaky"),
-                        Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                        "",
+                        attestant = NavIdentBruker.Attestant("sneaky"),
+                        grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                        kommentar = "",
+                        tidspunkt = fixedTidspunkt
                     ),
                 ),
             ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
@@ -611,9 +612,10 @@ internal class StatusovergangTest {
                 tilAttesteringAvslagBeregning.copy(saksbehandler = NavIdentBruker.Saksbehandler("sneaky")),
                 Statusovergang.TilUnderkjent(
                     Attestering.Underkjent(
-                        NavIdentBruker.Attestant("sneaky"),
-                        Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                        "",
+                        attestant = NavIdentBruker.Attestant("sneaky"),
+                        grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                        kommentar = "",
+                        tidspunkt = fixedTidspunkt
                     ),
                 ),
             ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
@@ -625,9 +627,10 @@ internal class StatusovergangTest {
                 tilAttesteringInnvilget.copy(saksbehandler = NavIdentBruker.Saksbehandler("sneaky")),
                 Statusovergang.TilUnderkjent(
                     Attestering.Underkjent(
-                        NavIdentBruker.Attestant("sneaky"),
-                        Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                        "",
+                        attestant = NavIdentBruker.Attestant("sneaky"),
+                        grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                        kommentar = "",
+                        tidspunkt = fixedTidspunkt
                     ),
                 ),
             ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()

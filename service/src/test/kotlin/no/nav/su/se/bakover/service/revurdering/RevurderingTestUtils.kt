@@ -75,9 +75,10 @@ object RevurderingTestUtils {
         begrunnelse = "begrunnelsen for perioden",
     )
     internal val attesteringUnderkjent = Attestering.Underkjent(
-        NavIdentBruker.Attestant("Attes T. Ant"),
-        Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
-        "kommentar",
+        attestant = NavIdentBruker.Attestant("Attes T. Ant"),
+        grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+        kommentar = "kommentar",
+        tidspunkt = fixedTidspunkt
     )
 
     internal val beregning = no.nav.su.se.bakover.test.beregning(

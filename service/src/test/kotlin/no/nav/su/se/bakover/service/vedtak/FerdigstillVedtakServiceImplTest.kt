@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.AttesteringHistorik
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
@@ -618,7 +619,7 @@ internal class FerdigstillVedtakServiceImplTest {
                         .withAlleVilkårOppfylt(),
                     beregning = TestBeregning,
                     saksbehandler = saksbehandler,
-                    attestering = Attestering.Iverksatt(attestant),
+                    attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
                     fritekstTilBrev = "",
                     periode = it.periode,
                     tilRevurdering = it,
@@ -1352,7 +1353,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
                 fnr = FnrGenerator.random(),
                 beregning = TestBeregning,
-                attestering = Attestering.Iverksatt(attestant),
+                attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.EPOCH)),
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = "",
                 stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
@@ -1410,7 +1411,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 beregning = TestBeregning,
                 simulering = mock(),
                 saksbehandler = saksbehandler,
-                attestering = Attestering.Iverksatt(attestant),
+                attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
                 fritekstTilBrev = "",
                 stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
                 grunnlagsdata = Grunnlagsdata(
@@ -1440,7 +1441,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 beregning = TestBeregning,
                 simulering = mock(),
                 saksbehandler = saksbehandler,
-                attestering = Attestering.Iverksatt(attestant),
+                attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
                 fritekstTilBrev = "",
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 tilRevurdering = innvilgetVedtak(),

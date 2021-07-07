@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.AttesteringHistorik
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
@@ -114,8 +115,13 @@ internal fun simulering(fnr: Fnr) = Simulering(
 internal val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
 internal val attestant = NavIdentBruker.Attestant("attestant")
 internal val underkjentAttestering =
-    Attestering.Underkjent(attestant, Attestering.Underkjent.Grunn.ANDRE_FORHOLD, "kommentar")
-internal val iverksattAttestering = Attestering.Iverksatt(attestant)
+    Attestering.Underkjent(
+        attestant = attestant,
+        grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+        kommentar = "kommentar",
+        tidspunkt = fixedTidspunkt
+    )
+internal val iverksattAttestering = Attestering.Iverksatt(attestant, fixedTidspunkt)
 internal val iverksattJournalpostId = JournalpostId("iverksattJournalpostId")
 internal val iverksattBrevbestillingId = BrevbestillingId("iverksattBrevbestillingId")
 internal val avstemmingsnøkkel = Avstemmingsnøkkel()
@@ -373,6 +379,7 @@ internal class TestDataHelper(
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            attesteringer = AttesteringHistorik.empty()
         ).also {
             revurderingRepo.lagre(it)
             grunnlagRepo.lagreBosituasjongrunnlag(revurderingId, grunnlagsdata.bosituasjon)

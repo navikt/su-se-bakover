@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.AttesteringHistorik
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -159,6 +160,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 formue = formueVilkår(periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            attesteringer = AttesteringHistorik.empty()
         ).beregn(eksisterendeUtbetalinger = emptyList()).orNull()!!
 
         val simulertRevurdering = when (beregnetRevurdering) {

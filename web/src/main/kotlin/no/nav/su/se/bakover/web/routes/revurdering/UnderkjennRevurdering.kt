@@ -7,6 +7,7 @@ import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
 import io.ktor.routing.patch
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -42,7 +43,8 @@ data class UnderkjennBody(
             return Attestering.Underkjent(
                 attestant = NavIdentBruker.Attestant(navIdent),
                 grunn = Attestering.Underkjent.Grunn.valueOf(this.grunn),
-                kommentar = this.kommentar
+                kommentar = this.kommentar,
+                tidspunkt = Tidspunkt.now()
             ).right()
         }
         return HttpStatusCode.BadRequest.errorJson(

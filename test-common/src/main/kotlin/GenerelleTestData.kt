@@ -41,11 +41,13 @@ val stønadsperiode2021 = Stønadsperiode.create(periode2021, "stønadsperiode20
 val attestant = NavIdentBruker.Attestant("attestant")
 
 val attesteringIverksatt = Attestering.Iverksatt(
-    attestant = attestant
+    attestant = attestant,
+    tidspunkt = fixedTidspunkt
 )
 
 val attesteringUnderkjent = Attestering.Underkjent(
     attestant = attestant,
     grunn = Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER,
-    kommentar = "attesteringUnderkjent"
+    kommentar = "attesteringUnderkjent",
+    tidspunkt = fixedTidspunkt
 )

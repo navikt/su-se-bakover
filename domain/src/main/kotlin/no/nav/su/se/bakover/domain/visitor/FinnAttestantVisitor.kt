@@ -21,15 +21,15 @@ class FinnAttestantVisitor : SøknadsbehandlingVisitor, RevurderingVisitor {
     override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {}
     override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {}
     override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
-        attestant = søknadsbehandling.attestering.attestant
+        attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
-        attestant = søknadsbehandling.attestering.attestant
+        attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.UtenBeregning) {
-        attestant = søknadsbehandling.attestering.attestant
+        attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning) {}
@@ -37,15 +37,15 @@ class FinnAttestantVisitor : SøknadsbehandlingVisitor, RevurderingVisitor {
     override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) {}
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning) {
-        attestant = søknadsbehandling.attestering.attestant
+        attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Avslag.MedBeregning) {
-        attestant = søknadsbehandling.attestering.attestant
+        attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) {
-        attestant = søknadsbehandling.attestering.attestant
+        attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant
     }
 
     override fun visit(revurdering: OpprettetRevurdering) {}
