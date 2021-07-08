@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.util.UUID
@@ -52,7 +51,6 @@ internal class RevurderingStatistikkMapperTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -116,16 +114,15 @@ internal class RevurderingStatistikkMapperTest {
             },
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "99"),
             oppgaveId = OppgaveId(value = "7"),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
             beregning = mock {
                 on { this.periode } doReturn periode
             },
+            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2")),
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             simulering = mock(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2")),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -186,16 +183,15 @@ internal class RevurderingStatistikkMapperTest {
                 on { id } doReturn UUID.randomUUID()
             },
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "99"),
-            oppgaveId = OppgaveId(value = "7"),
             beregning = mock {
                 on { this.periode } doReturn periode
             },
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2")),
+            oppgaveId = OppgaveId(value = "7"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null,
+            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2")),
             skalFøreTilBrevutsending = true,
-            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
+            forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),

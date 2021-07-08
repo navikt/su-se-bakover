@@ -26,8 +26,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -161,7 +159,6 @@ internal class OpprettRevurderingServiceTest {
                 årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.toString(), begrunnelse = "Ny informasjon",
             )
             opprettetRevurdering.forhåndsvarsel shouldBe null
-            opprettetRevurdering.behandlingsinformasjon shouldBe tilRevurdering.behandlingsinformasjon
             opprettetRevurdering.vilkårsvurderinger.uføre.grunnlag.let {
                 it shouldHaveSize 1
                 it[0].ekvivalentMed(uføregrunnlag)
@@ -257,7 +254,6 @@ internal class OpprettRevurderingServiceTest {
                 Revurderingsårsak.Begrunnelse.create("g-regulering"),
             )
             opprettetRevurdering.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
-            opprettetRevurdering.behandlingsinformasjon shouldBe tilRevurdering.behandlingsinformasjon
             opprettetRevurdering.vilkårsvurderinger.uføre.grunnlag.let {
                 it shouldHaveSize 1
                 it[0].ekvivalentMed(uføregrunnlag.copy(periode = periode))
@@ -358,7 +354,6 @@ internal class OpprettRevurderingServiceTest {
                 Revurderingsårsak.Begrunnelse.create("g-regulering"),
             )
             opprettetRevurdering.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
-            opprettetRevurdering.behandlingsinformasjon shouldBe tilRevurdering.behandlingsinformasjon
             opprettetRevurdering.vilkårsvurderinger.uføre.grunnlag.let {
                 it shouldHaveSize 1
                 it[0].ekvivalentMed(uføregrunnlag.copy(periode = periode))
@@ -475,8 +470,6 @@ internal class OpprettRevurderingServiceTest {
             on { opprettet } doReturn fixedTidspunkt
             on { periode } doReturn vedtaksperiode
             on { behandling } doReturn behandlingMock
-            on { behandlingsinformasjon } doReturn Behandlingsinformasjon.lagTomBehandlingsinformasjon()
-                .withAlleVilkårOppfylt()
             on { beregning } doReturn testBeregning
         }
         val vedtakForFørsteMarsLagetNå = mock<Vedtak.EndringIYtelse> {
@@ -484,8 +477,6 @@ internal class OpprettRevurderingServiceTest {
             on { opprettet } doReturn fixedTidspunkt.plus(1, ChronoUnit.SECONDS)
             on { periode } doReturn Periode.create(1.mars(2021), 31.desember(2021))
             on { behandling } doReturn behandlingMock
-            on { behandlingsinformasjon } doReturn Behandlingsinformasjon.lagTomBehandlingsinformasjon()
-                .withAlleVilkårOppfylt()
             on { beregning } doReturn testBeregning
         }
         val vedtakForFørsteJanuarLagetForLengeSiden = mock<Vedtak.EndringIYtelse> {
@@ -493,8 +484,6 @@ internal class OpprettRevurderingServiceTest {
             on { opprettet } doReturn fixedTidspunkt.instant.minus(2, ChronoUnit.HALF_DAYS).toTidspunkt()
             on { periode } doReturn vedtaksperiode
             on { behandling } doReturn behandlingMock
-            on { behandlingsinformasjon } doReturn Behandlingsinformasjon.lagTomBehandlingsinformasjon()
-                .withAlleVilkårOppfylt()
             on { beregning } doReturn testBeregning
         }
 
@@ -576,13 +565,12 @@ internal class OpprettRevurderingServiceTest {
                 tilRevurdering = opprinneligVedtak,
                 saksbehandler = saksbehandler,
                 oppgaveId = OppgaveId("null"),
-                beregning = opprinneligVedtak.beregning,
-                simulering = opprinneligVedtak.simulering,
-                attestering = Attestering.Iverksatt(opprinneligVedtak.attestant),
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
+                beregning = opprinneligVedtak.beregning,
+                attestering = Attestering.Iverksatt(opprinneligVedtak.attestant),
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                behandlingsinformasjon = opprinneligVedtak.behandlingsinformasjon,
+                simulering = opprinneligVedtak.simulering,
                 grunnlagsdata = Grunnlagsdata(
                     bosituasjon = listOf(
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -894,7 +882,6 @@ internal class OpprettRevurderingServiceTest {
         )
         val revurdering = mock<IverksattRevurdering.Innvilget> {
             on { attestering } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("attestantSomIverksatte"))
-            on { behandlingsinformasjon } doReturn mock()
             on { periode } doReturn revurderingsperiode
             on { beregning } doReturn mock()
             on { simulering } doReturn mock()
@@ -967,7 +954,6 @@ internal class OpprettRevurderingServiceTest {
 
         val revurdering = mock<IverksattRevurdering.Innvilget> {
             on { attestering } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("attestantSomIverksatte"))
-            on { behandlingsinformasjon } doReturn mock()
 
             on { periode } doReturn revurderingsperiode
             on { beregning } doReturn revurderingBeregning

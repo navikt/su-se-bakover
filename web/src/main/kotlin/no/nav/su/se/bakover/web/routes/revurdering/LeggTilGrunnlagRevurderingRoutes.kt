@@ -9,7 +9,7 @@ import arrow.core.left
 import arrow.core.right
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.HttpStatusCode.Companion.InternalServerError
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
@@ -96,7 +96,7 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
                                     .mapLeft {
                                         when (it) {
                                             KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
-                                            KunneIkkeLeggeTilGrunnlag.UgyldigStatus -> InternalServerError.errorJson(
+                                            KunneIkkeLeggeTilGrunnlag.UgyldigStatus -> BadRequest.errorJson(
                                                 "ugyldig status for å legge til",
                                                 "ugyldig_status_for_å_legge_til",
                                             )

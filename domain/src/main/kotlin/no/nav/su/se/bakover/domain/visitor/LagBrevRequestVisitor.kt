@@ -455,7 +455,7 @@ class LagBrevRequestVisitor(
                     is Revurdering -> b.fritekstTilBrev
                     else -> ""
                 },
-                harEktefelle = vedtak.behandlingsinformasjon.harEktefelle(),
+                harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
                 forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
             )
         }
@@ -541,7 +541,7 @@ class LagBrevRequestVisitor(
                         is Revurdering -> b.fritekstTilBrev
                         else -> ""
                     },
-                    harEktefelle = vedtak.behandlingsinformasjon.harEktefelle(),
+                    harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
                     uføregrunnlag = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag,
                     gjeldendeMånedsutbetaling = gjeldendeUtbetaling,
                 )

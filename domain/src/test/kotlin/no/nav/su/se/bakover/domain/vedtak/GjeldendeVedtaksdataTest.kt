@@ -222,7 +222,6 @@ internal class GjeldendeVedtaksdataTest {
             ),
             attestering = Attestering.Iverksatt(attestant = NavIdentBruker.Attestant(navIdent = "")),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             simulering = Simulering(
                 gjelderId = FnrGenerator.random(),
                 gjelderNavn = "",

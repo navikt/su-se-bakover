@@ -6,6 +6,7 @@ import arrow.core.nonEmptyListOf
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
@@ -15,7 +16,6 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -80,98 +80,68 @@ internal class RevurderingLeggTilFormueServiceTest {
         ).getOrHandle { fail("Vi skal få tilbake en revurdering") }
 
         actual shouldBe beOfType<OpprettetRevurdering>()
+        val expectedVilkårsvurderinger = Vilkårsvurderinger(
+            uføre = Vilkår.Uførhet.Vurdert.create(
+                vurderingsperioder = nonEmptyListOf(
+                    Vurderingsperiode.Uføre.create(
+                        id = (actual.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.first().id,
+                        opprettet = fixedTidspunkt,
+                        resultat = Resultat.Innvilget,
+                        grunnlag = Grunnlag.Uføregrunnlag(
+                            id = uføreId,
+                            opprettet = fixedTidspunkt,
+                            periode = periodeHele2021,
+                            uføregrad = Uføregrad.parse(20),
+                            forventetInntekt = 10,
+                        ),
+                        periode = periodeHele2021,
+                        begrunnelse = "ok2k",
+                    ),
+                ),
+            ),
+            formue = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
+                vurderingsperioder = nonEmptyListOf(
+                    Vurderingsperiode.Formue.tryCreate(
+                        id = (actual.vilkårsvurderinger.formue as Vilkår.Formue.Vurdert).vurderingsperioder.first().id,
+                        opprettet = fixedTidspunkt,
+                        resultat = Resultat.Innvilget,
+                        grunnlag = Formuegrunnlag.create(
+                            id = (actual.vilkårsvurderinger.formue as Vilkår.Formue.Vurdert).grunnlag.first().id,
+                            periode = periodeHele2021,
+                            opprettet = fixedTidspunkt,
+                            epsFormue = Formuegrunnlag.Verdier.empty(),
+                            søkersFormue = Formuegrunnlag.Verdier.empty(),
+                            begrunnelse = null,
+                            bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
+                                id = UUID.randomUUID(),
+                                fnr = fnr,
+                                opprettet = fixedTidspunkt,
+                                periode = periodeHele2021,
+                                begrunnelse = null,
+                            ),
+                            behandlingsPeriode = periodeHele2021,
+                        ),
+                        vurderingsperiode = periodeHele2021,
+                    ).getOrHandle { fail("Skal returnere en formue") },
+                ),
+            ),
+        )
 
-        inOrder(
-            revurderingRepoMock,
-            vilkårsvurderingServiceMock,
-        ) {
-            verify(revurderingRepoMock).hent(revurderingId)
-            verify(revurderingRepoMock).lagre(
-                argThat {
-                    it shouldBe opprettetRevurdering.copy(
-                        behandlingsinformasjon = it.behandlingsinformasjon.copy(
-                            formue = it.behandlingsinformasjon.formue!!.copy(
-                                epsVerdier = Behandlingsinformasjon.Formue.Verdier(
-                                    verdiIkkePrimærbolig = 0,
-                                    verdiEiendommer = 0,
-                                    verdiKjøretøy = 0,
-                                    innskudd = 0,
-                                    verdipapir = 0,
-                                    pengerSkyldt = 0,
-                                    kontanter = 0,
-                                    depositumskonto = 0,
-                                ),
-                                verdier = Behandlingsinformasjon.Formue.Verdier(
-                                    verdiIkkePrimærbolig = 0,
-                                    verdiEiendommer = 0,
-                                    verdiKjøretøy = 0,
-                                    innskudd = 0,
-                                    verdipapir = 0,
-                                    pengerSkyldt = 0,
-                                    kontanter = 0,
-                                    depositumskonto = 0,
-                                ),
-                            ),
-                        ),
-                        informasjonSomRevurderes = it.informasjonSomRevurderes.markerSomVurdert(
-                            Revurderingsteg.Formue,
-                        ),
-                    )
-                },
-            )
-            verify(vilkårsvurderingServiceMock).lagre(
-                argThat { it shouldBe revurderingId },
-                argThat {
-                    it shouldBe Vilkårsvurderinger(
-                        uføre = Vilkår.Uførhet.Vurdert.create(
-                            vurderingsperioder = nonEmptyListOf(
-                                Vurderingsperiode.Uføre.create(
-                                    id = (it.uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.first().id,
-                                    opprettet = fixedTidspunkt,
-                                    resultat = Resultat.Innvilget,
-                                    grunnlag = Grunnlag.Uføregrunnlag(
-                                        id = uføreId,
-                                        opprettet = fixedTidspunkt,
-                                        periode = periodeHele2021,
-                                        uføregrad = Uføregrad.parse(20),
-                                        forventetInntekt = 10,
-                                    ),
-                                    periode = periodeHele2021,
-                                    begrunnelse = "ok2k",
-                                ),
-                            ),
-                        ),
-                        formue = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
-                            vurderingsperioder = nonEmptyListOf(
-                                Vurderingsperiode.Formue.tryCreate(
-                                    id = (it.formue as Vilkår.Formue.Vurdert).vurderingsperioder.first().id,
-                                    opprettet = fixedTidspunkt,
-                                    resultat = Resultat.Innvilget,
-                                    grunnlag = Formuegrunnlag.create(
-                                        id = (it.formue as Vilkår.Formue.Vurdert).grunnlag.first().id,
-                                        periode = periodeHele2021,
-                                        opprettet = fixedTidspunkt,
-                                        epsFormue = Formuegrunnlag.Verdier.empty(),
-                                        søkersFormue = Formuegrunnlag.Verdier.empty(),
-                                        begrunnelse = null,
-                                        bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
-                                            id = UUID.randomUUID(),
-                                            fnr = fnr,
-                                            opprettet = fixedTidspunkt,
-                                            periode = periodeHele2021,
-                                            begrunnelse = null,
-                                        ),
-                                        behandlingsPeriode = periodeHele2021,
-                                    ),
-                                    vurderingsperiode = periodeHele2021,
-                                ).getOrHandle { fail("Skal returnere en formue") },
-                            ),
-                        ),
-                    )
-                },
-            )
-            verify(revurderingRepoMock).hent(revurderingId)
-        }
+        verify(revurderingRepoMock).hent(revurderingId)
+        verify(revurderingRepoMock).lagre(
+            argThat {
+                it shouldBe opprettetRevurdering.copy(
+                    informasjonSomRevurderes = it.informasjonSomRevurderes.markerSomVurdert(
+                        Revurderingsteg.Formue,
+                    ),
+                    vilkårsvurderinger = expectedVilkårsvurderinger,
+                )
+            },
+        )
+        verify(vilkårsvurderingServiceMock).lagre(
+            argThat { it shouldBe revurderingId },
+            argThat { it shouldBe expectedVilkårsvurderinger },
+        )
         verifyNoMoreInteractions(revurderingRepoMock, vilkårsvurderingServiceMock)
     }
 
@@ -461,7 +431,6 @@ internal class RevurderingLeggTilFormueServiceTest {
         fritekstTilBrev = "",
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = null,
-        behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata(
             fradragsgrunnlag = listOf(
                 Grunnlag.Fradragsgrunnlag(
@@ -498,8 +467,6 @@ internal class RevurderingLeggTilFormueServiceTest {
         oppgaveId = OppgaveId("oppgaveid"),
         fritekstTilBrev = "",
         revurderingsårsak = revurderingsårsak,
-        forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-        behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
         beregning = testBeregning,
         simulering = Simulering(
             gjelderId = fnr,
@@ -508,6 +475,7 @@ internal class RevurderingLeggTilFormueServiceTest {
             nettoBeløp = 100,
             periodeList = emptyList(),
         ),
+        forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
         grunnlagsdata = Grunnlagsdata(
             fradragsgrunnlag = listOf(
                 Grunnlag.Fradragsgrunnlag(

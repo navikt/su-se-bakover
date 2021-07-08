@@ -200,13 +200,12 @@ internal class TestDataHelper(
             uføreVilkårsvurderingRepo,
         )
     internal val revurderingRepo = RevurderingPostgresRepo(
-        dataSource,
-        uføregrunnlagPostgresRepo,
-        fradragsgrunnlagPostgresRepo,
-        bosituasjongrunnlagPostgresRepo,
-        uføreVilkårsvurderingRepo,
-        formueVilkårsvurderingPostgresRepo,
-        søknadsbehandlingRepo,
+        dataSource = dataSource,
+        fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
+        bosituasjonsgrunnlagPostgresRepo = bosituasjongrunnlagPostgresRepo,
+        uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
+        formueVilkårsvurderingRepo = formueVilkårsvurderingPostgresRepo,
+        søknadsbehandlingRepo = søknadsbehandlingRepo,
     )
     internal val vedtakRepo = VedtakPosgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo)
     internal val sakRepo = SakPostgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo, vedtakRepo)
@@ -369,7 +368,6 @@ internal class TestDataHelper(
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             forhåndsvarsel = null,
-            behandlingsinformasjon = innvilget.behandlingsinformasjon,
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
