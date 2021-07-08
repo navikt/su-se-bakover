@@ -10,14 +10,14 @@ with manglende_grunnlagsdata as (
                             ( periode ->> 'tilOgMed' )::date as tilogmed,
                                case
                                    when (behandlingsinformasjon -> 'formue' -> 'epsVerdier' is not null) then jsonb_build_object(
-                                       'verdiIkkePrimærbolig', coalesce(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' -> 'verdiIkkePrimærbolig' )::int, 0),
-                                       'verdiEiendommer', coalesce(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' -> 'verdiEiendommer')::int, 0),
-                                       'verdiKjøretøy', coalesce(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' -> 'verdiKjøretøy' )::int, 0),
-                                       'innskudd', coalesce(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' -> 'innskudd' )::int, 0),
-                                       'verdipapir', coalesce(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' -> 'verdipapir' )::int, 0),
-                                       'pengerSkyldt', coalesce(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' -> 'pengerSkyldt' )::int, 0),
-                                       'kontanter', coalesce(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' -> 'kontanter' )::int, 0),
-                                       'depositumskonto', coalesce(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' -> 'depositumskonto' )::int, 0)
+                                       'verdiIkkePrimærbolig', coalesce(cast(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' ->> 'verdiIkkePrimærbolig' ) as integer), 0),
+                                       'verdiEiendommer', coalesce(cast(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' ->> 'verdiEiendommer') as integer), 0),
+                                       'verdiKjøretøy', coalesce(cast(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' ->> 'verdiKjøretøy' ) as integer), 0),
+                                       'innskudd', coalesce(cast(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' ->> 'innskudd' ) as integer), 0),
+                                       'verdipapir', coalesce( cast(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' ->> 'verdipapir' ) as integer), 0),
+                                       'pengerSkyldt', coalesce(cast(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' ->> 'pengerSkyldt' ) as integer), 0),
+                                       'kontanter', coalesce(cast(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' ->> 'kontanter' ) as integer), 0),
+                                       'depositumskonto', coalesce(cast(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' ->> 'depositumskonto' ) as integer), 0)
                                        )
                                 end as epsformue,
                                 coalesce( behandlingsinformasjon -> 'formue' -> 'verdier',
