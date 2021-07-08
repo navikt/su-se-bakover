@@ -5,11 +5,33 @@ with manglende_grunnlagsdata as (
 ),
      mapped_verdier as (select
                             opprettet,
-                            id behandlingid,
+                            id as behandlingid,
                             ( periode ->> 'fraOgMed' )::date as fraogmed,
                             ( periode ->> 'tilOgMed' )::date as tilogmed,
-                            behandlingsinformasjon -> 'formue' -> 'epsVerdier' as epsformue,
-                            behandlingsinformasjon -> 'formue' -> 'verdier' as søkerformue,
+                               case
+                                   when (behandlingsinformasjon -> 'formue' -> 'epsVerdier' is not null) then jsonb_build_object(
+                                       'verdiIkkePrimærbolig', coalesce(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' -> 'verdiIkkePrimærbolig' )::int, 0),
+                                       'verdiEiendommer', coalesce(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' -> 'verdiEiendommer')::int, 0),
+                                       'verdiKjøretøy', coalesce(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' -> 'verdiKjøretøy' )::int, 0),
+                                       'innskudd', coalesce(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' -> 'innskudd' )::int, 0),
+                                       'verdipapir', coalesce(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' -> 'verdipapir' )::int, 0),
+                                       'pengerSkyldt', coalesce(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' -> 'pengerSkyldt' )::int, 0),
+                                       'kontanter', coalesce(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' -> 'kontanter' )::int, 0),
+                                       'depositumskonto', coalesce(( behandlingsinformasjon -> 'formue' -> 'epsVerdier' -> 'depositumskonto' )::int, 0)
+                                       )
+                                end as epsformue,
+                                coalesce( behandlingsinformasjon -> 'formue' -> 'verdier',
+                                    jsonb_build_object(
+                                        'verdiIkkePrimærbolig', 0,
+                                        'verdiEiendommer', 0,
+                                        'verdiKjøretøy', 0,
+                                        'innskudd', 0,
+                                        'verdipapir', 0,
+                                        'pengerSkyldt', 0,
+                                        'kontanter', 0,
+                                        'depositumskonto', 0
+                                    ))
+                                as søkerformue,
                             ( behandlingsinformasjon -> 'formue' ->> 'begrunnelse' )::text as begrunnelse,
                             behandlingsinformasjon
                         from manglende_grunnlagsdata),
@@ -36,7 +58,7 @@ select uuid_generate_v4(),
            when (behandlingsinformasjon -> 'formue' ->> 'status' = 'VilkårOppfylt') then 'INNVILGET'
            when (behandlingsinformasjon -> 'formue' ->> 'status' = 'VilkårIkkeOppfylt') then 'AVSLAG'
            else 'UAVKLART'
-       end,
+           end,
        fraogmed,
        tilogmed
 from mapped_verdier left join ny_grunnlag on mapped_verdier.behandlingid = ny_grunnlag.behandlingid;
