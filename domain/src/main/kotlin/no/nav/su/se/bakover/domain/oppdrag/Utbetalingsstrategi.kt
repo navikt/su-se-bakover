@@ -3,7 +3,9 @@ package no.nav.su.se.bakover.domain.oppdrag
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.erFørsteDagIMåned
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -26,6 +28,30 @@ sealed class Utbetalingsstrategi {
     abstract val behandler: NavIdentBruker
     abstract fun generate(): Utbetaling.UtbetalingForSimulering
 
+    /**
+     * Sjekk om vi noen gang har forsøkt å opphøre ytelsen i perioden fra [datoForStanEllerReaktivering] til siste utbetaling.
+     * Hvis dette er tilfelle kan vi ikke tillate stans av ytelsen med denne datoen, da en påfølgende reaktivering
+     * i værste fall kan føre til dobbelt-utbetalinger.
+     * TODO jm: Midlertidig sperre inntil TØB har fikset feilen, se https://jira.adeo.no/browse/TOB-1772
+     */
+    protected fun unngåBugMedReaktiveringAvOpphørIOppdrag(
+        datoForStanEllerReaktivering: LocalDate,
+    ) {
+        if (utbetalinger.flatMap { it.utbetalingslinjer }
+            .filterIsInstance<Utbetalingslinje.Endring.Opphør>()
+            .any {
+                it.virkningstidspunkt.between(
+                        Periode.create(
+                                fraOgMed = datoForStanEllerReaktivering,
+                                tilOgMed = utbetalinger.maxOf { it.senesteDato() },
+                            ),
+                    )
+            }
+        ) {
+            throw UtbetalingStrategyException("Kan ikke stanse utbetalinger for perioder hvor det eksisterer/har eksistert opphør.")
+        }
+    }
+
     data class Stans(
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
@@ -38,12 +64,21 @@ sealed class Utbetalingsstrategi {
         override fun generate(): Utbetaling.UtbetalingForSimulering {
             validate(harOversendteUtbetalingerEtter(stansDato)) { "Det eksisterer ingen utbetalinger med tilOgMed dato større enn eller lik stansdato $stansDato" }
             validate(stansDato.erFørsteDagIMåned()) { "Dato for stans må være første dag i måneden" }
-            validate(LocalDate.now(clock).plusMonths(1).startOfMonth() == stansDato.startOfMonth()) { "Dato for stans må være første dag i neste måned" }
+            validate(LocalDate.now(clock).plusMonths(1).startOfMonth() == stansDato.startOfMonth()) {
+                "Dato for stans må være første dag i neste måned"
+            }
 
             val sisteOversendtUtbetaling = sisteOversendteUtbetaling()?.also {
                 validate(Utbetaling.UtbetalingsType.STANS != it.type) { "Kan ikke stanse utbetalinger som allerede er stanset" }
                 validate(Utbetaling.UtbetalingsType.OPPHØR != it.type) { "Kan ikke stanse utbetalinger som allerede er opphørt" }
             } ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å stanse")
+
+            /**
+             * TODO jm: kan fjernes etter https://jira.adeo.no/browse/TOB-1772 er fikset.
+             */
+            unngåBugMedReaktiveringAvOpphørIOppdrag(
+                datoForStanEllerReaktivering = stansDato,
+            )
 
             return Utbetaling.UtbetalingForSimulering(
                 sakId = sakId,
@@ -151,6 +186,16 @@ sealed class Utbetalingsstrategi {
                 ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å gjenoppta")
 
             validate(sisteOversendteUtbetalingslinje is Utbetalingslinje.Endring.Stans) { "Siste utbetaling er ikke en stans, kan ikke gjenoppta." }
+
+            /**
+             * TODO jm: kan fjernes etter https://jira.adeo.no/browse/TOB-1772 er fikset.
+             * I samme omgang må vi ta stilling til hvordan vi ønsker at dette skal fungerer for oss, spesielt i
+             * tilfeller hvor perioden som gjenopptas inneholder opphør (skal alt etter denne datoen reaktiveres
+             * uansett, eller skal kun et spesifikt opphør reaktivers). Default oppførsel er at kun match med dato reaktivers.
+             */
+            unngåBugMedReaktiveringAvOpphørIOppdrag(
+                datoForStanEllerReaktivering = sisteOversendteUtbetalingslinje.virkningstidspunkt,
+            )
 
             return Utbetaling.UtbetalingForSimulering(
                 sakId = sakId,

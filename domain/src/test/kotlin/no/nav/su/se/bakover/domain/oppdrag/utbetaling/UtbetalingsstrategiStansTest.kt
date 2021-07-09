@@ -7,12 +7,17 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.april
+import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.mars
+import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -24,6 +29,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.time.Clock
 import java.time.ZoneOffset
 import java.util.UUID
@@ -245,6 +251,108 @@ internal class UtbetalingsstrategiStansTest {
             ).generate().also {
                 it should beOfType<Utbetaling.UtbetalingForSimulering>()
             }
+        }
+    }
+
+    @Test
+    fun `kaster exception dersom det eksisterer tidligere opphør i perioden mellom stansdato og nyeste utbetaling`() {
+        val fixedClock15Juli21 = Clock.fixed(15.juli(2021).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+
+        val første = createUtbetaling(
+            nonEmptyListOf(
+                Utbetalingslinje.Ny(
+                    opprettet = Tidspunkt.now(),
+                    fraOgMed = 1.august(2021),
+                    tilOgMed = 30.april(2022),
+                    forrigeUtbetalingslinjeId = null,
+                    beløp = 15000,
+                ),
+            ),
+            type = Utbetaling.UtbetalingsType.NY,
+        )
+        val opphør = createUtbetaling(
+            nonEmptyListOf(
+                Utbetalingslinje.Endring.Opphør(
+                    utbetalingslinje = første.sisteUtbetalingslinje(),
+                    virkningstidspunkt = 1.august(2021),
+                    clock = Clock.systemUTC(),
+                ),
+            ),
+            type = Utbetaling.UtbetalingsType.OPPHØR,
+        )
+        val andre = createUtbetaling(
+            nonEmptyListOf(
+                Utbetalingslinje.Ny(
+                    opprettet = Tidspunkt.now(),
+                    fraOgMed = 1.november(2021),
+                    tilOgMed = 30.april(2022),
+                    forrigeUtbetalingslinjeId = opphør.sisteUtbetalingslinje().id,
+                    beløp = 10000,
+                ),
+            ),
+            type = Utbetaling.UtbetalingsType.NY,
+        )
+
+        assertThrows<Utbetalingsstrategi.UtbetalingStrategyException> {
+            Utbetalingsstrategi.Stans(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utbetalinger = listOf(første, opphør, andre),
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                stansDato = 1.august(2021),
+                clock = fixedClock15Juli21,
+            ).generate()
+        }
+    }
+
+    @Test
+    fun `kaster exception dersom det eksisterer fremtidige opphør i perioden mellom stansdato og nyeste utbetaling`() {
+        val fixedClock15Juli21 = Clock.fixed(15.juli(2021).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+
+        val første = createUtbetaling(
+            nonEmptyListOf(
+                Utbetalingslinje.Ny(
+                    fraOgMed = 1.august(2021),
+                    tilOgMed = 30.april(2022),
+                    forrigeUtbetalingslinjeId = null,
+                    beløp = 15000,
+                ),
+            ),
+            type = Utbetaling.UtbetalingsType.NY,
+        )
+        val andre = createUtbetaling(
+            nonEmptyListOf(
+                Utbetalingslinje.Ny(
+                    fraOgMed = 1.november(2021),
+                    tilOgMed = 30.april(2022),
+                    forrigeUtbetalingslinjeId = første.sisteUtbetalingslinje().id,
+                    beløp = 10000,
+                ),
+            ),
+            type = Utbetaling.UtbetalingsType.NY,
+        )
+        val opphør = createUtbetaling(
+            nonEmptyListOf(
+                Utbetalingslinje.Endring.Opphør(
+                    utbetalingslinje = andre.sisteUtbetalingslinje(),
+                    virkningstidspunkt = 1.mars(2022),
+                    clock = Clock.systemUTC(),
+                ),
+            ),
+            type = Utbetaling.UtbetalingsType.OPPHØR,
+        )
+
+        assertThrows<Utbetalingsstrategi.UtbetalingStrategyException> {
+            Utbetalingsstrategi.Stans(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utbetalinger = listOf(første, andre, opphør),
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                stansDato = 1.januar(2022),
+                clock = fixedClock15Juli21,
+            ).generate()
         }
     }
 
