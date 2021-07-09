@@ -19,11 +19,10 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollerSimulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppdrag.simulering.TolketSimulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.TolketUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.service.sak.SakService
@@ -227,19 +226,18 @@ internal class UtbetalingServiceImpl(
             .mapLeft {
                 KunneIkkeStanseUtbetalinger.SimuleringAvStansFeilet
             }.flatMap { simulertUtbetaling ->
-                kontollerSimulering(simulertUtbetaling)
-                    .mapLeft {
-                        when (it) {
-                            KontrollAvSimuleringFeilet.KunneIkkeTolkeSimulering -> KunneIkkeStanseUtbetalinger.KontrollAvSimuleringFeilet
-                            KontrollAvSimuleringFeilet.SimuleringInneholderFeilutbetaling -> KunneIkkeStanseUtbetalinger.KontrollAvSimuleringFeilet
+                KontrollerSimulering(
+                    simulertUtbetaling = simulertUtbetaling,
+                    eksisterendeUtbetalinger = sak.utbetalinger,
+                    clock = clock,
+                ).resultat.mapLeft {
+                    KunneIkkeStanseUtbetalinger.KontrollAvSimuleringFeilet
+                }.flatMap {
+                    utbetal(it)
+                        .mapLeft {
+                            KunneIkkeStanseUtbetalinger.SendingAvUtebetalingTilOppdragFeilet
                         }
-                    }
-                    .flatMap {
-                        utbetal(it)
-                            .mapLeft {
-                                KunneIkkeStanseUtbetalinger.SendingAvUtebetalingTilOppdragFeilet
-                            }
-                    }
+                }
             }.map {
                 sakService.hentSak(sakId).orNull()!!
             }
@@ -266,47 +264,20 @@ internal class UtbetalingServiceImpl(
             .mapLeft {
                 KunneIkkeGjenopptaUtbetalinger.SimuleringAvStartutbetalingFeilet
             }.flatMap { simulertUtbetaling ->
-                kontollerSimulering(simulertUtbetaling)
-                    .mapLeft {
-                        when (it) {
-                            KontrollAvSimuleringFeilet.KunneIkkeTolkeSimulering -> KunneIkkeGjenopptaUtbetalinger.KontrollAvSimuleringFeilet
-                            KontrollAvSimuleringFeilet.SimuleringInneholderFeilutbetaling -> KunneIkkeGjenopptaUtbetalinger.KontrollAvSimuleringFeilet
+                KontrollerSimulering(
+                    simulertUtbetaling = simulertUtbetaling,
+                    eksisterendeUtbetalinger = sak.utbetalinger,
+                    clock = clock,
+                ).resultat.mapLeft {
+                    KunneIkkeGjenopptaUtbetalinger.KontrollAvSimuleringFeilet
+                }.flatMap {
+                    utbetal(it)
+                        .mapLeft {
+                            KunneIkkeGjenopptaUtbetalinger.SendingAvUtebetalingTilOppdragFeilet
                         }
-                    }
-                    .flatMap {
-                        utbetal(it)
-                            .mapLeft {
-                                KunneIkkeGjenopptaUtbetalinger.SendingAvUtebetalingTilOppdragFeilet
-                            }
-                    }
+                }
             }.map {
                 sakService.hentSak(sakId).orNull()!!
             }
-    }
-
-    private fun kontollerSimulering(utbetaling: Utbetaling.SimulertUtbetaling): Either<KontrollAvSimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-        try {
-            TolketSimulering(utbetaling.simulering).let { tolketSimulering ->
-                if (tolketSimulering.harFeilutbetalinger()) {
-                    log.error("Simulering inneholder feilutbetalinger, se sikkerlogg for simulering")
-                    sikkerLogg.error(objectMapper.writeValueAsString(utbetaling.simulering))
-                    return KontrollAvSimuleringFeilet.SimuleringInneholderFeilutbetaling.left()
-                }
-            }
-        } catch (ex: TolketUtbetaling.IngenEntydigTolkning) {
-            log.error("Fanget exception ved kontroll av simulering, se sikkerlogg for simulering", ex)
-            sikkerLogg.error(objectMapper.writeValueAsString(utbetaling.simulering))
-            return KontrollAvSimuleringFeilet.KunneIkkeTolkeSimulering.left()
-        } catch (ex: TolketUtbetaling.IndikererFeilutbetaling) {
-            log.error("Fanget exception ved kontroll av simulering, se sikkerlogg for simulering", ex)
-            sikkerLogg.error(objectMapper.writeValueAsString(utbetaling.simulering))
-            return KontrollAvSimuleringFeilet.KunneIkkeTolkeSimulering.left()
-        }
-        return utbetaling.right()
-    }
-
-    sealed class KontrollAvSimuleringFeilet {
-        object KunneIkkeTolkeSimulering : KontrollAvSimuleringFeilet()
-        object SimuleringInneholderFeilutbetaling : KontrollAvSimuleringFeilet()
     }
 }
