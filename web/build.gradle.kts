@@ -24,7 +24,7 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:$micrometerRegistryPrometheusVersion")
     implementation("io.ktor:ktor-locations:$ktorVersion")
     implementation("io.ktor:ktor-jackson:$ktorVersion")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.3")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.4")
     implementation("com.papertrailapp", "logback-syslog4j", "1.0.0")
 
 
