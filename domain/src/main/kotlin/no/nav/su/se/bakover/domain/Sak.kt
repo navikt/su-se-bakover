@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
@@ -54,6 +55,28 @@ data class Sak(
     val revurderinger: List<Revurdering> = emptyList(),
     val vedtakListe: List<Vedtak> = emptyList(),
 ) {
+    fun hentÅpneRevurderinger(): List<Revurdering> {
+        return revurderinger.filterNot {
+            it is IverksattRevurdering
+        }
+    }
+
+    fun hentÅpneSøknadsbehandlinger(): List<Søknadsbehandling> {
+        return behandlinger.filterNot {
+            it is Søknadsbehandling.Iverksatt
+        }
+    }
+
+    fun hentÅpneSøknader(): List<Søknad> {
+        val ikkeLukkedeSøknader = søknader.filterNot {
+            it is Søknad.Lukket
+        }
+        val søknaderMedSøknadsbehandling = behandlinger.map {
+            it.søknad
+        }
+        return ikkeLukkedeSøknader.minus(søknaderMedSøknadsbehandling)
+    }
+
     fun utbetalingstidslinje(
         periode: Periode = Periode.create(
             fraOgMed = LocalDate.MIN,

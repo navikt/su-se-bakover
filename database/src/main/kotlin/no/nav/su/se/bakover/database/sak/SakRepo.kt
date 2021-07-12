@@ -11,4 +11,5 @@ interface SakRepo {
     fun hentSak(fnr: Fnr): Sak?
     fun hentSak(saksnummer: Saksnummer): Sak?
     fun opprettSak(sak: NySak)
+    fun hentAlleSaker(): List<Sak>
 }
