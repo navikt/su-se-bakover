@@ -32,7 +32,7 @@ internal class SimuleringSoapClient(
         return try {
             simulerFpService.simulerBeregning(simulerRequest)?.response?.let {
                 SimuleringResponseMapper(it).simulering.right()
-            } ?: mapEmptyResponse(utbetaling)
+            } ?: SimuleringResponseMapper(utbetaling, simulerRequest.request.simuleringsPeriode).simulering.right()
         } catch (e: SimulerBeregningFeilUnderBehandling) {
             log.error("Funksjonell feil ved simulering, se sikkerlogg for detaljer", e)
             sikkerLogg.error(
@@ -51,24 +51,6 @@ internal class SimuleringSoapClient(
             } else unknownTechnicalExceptionResponse(e)
         } catch (e: Throwable) {
             unknownTechnicalExceptionResponse(e)
-        }
-    }
-
-    private fun mapEmptyResponse(utbetaling: Utbetaling): Either<SimuleringFeilet, Simulering> = when (utbetaling.type) {
-        Utbetaling.UtbetalingsType.NY,
-        Utbetaling.UtbetalingsType.STANS,
-        Utbetaling.UtbetalingsType.GJENOPPTA,
-        -> {
-            if (utbetaling.bruttoBeløp() != 0) {
-                log.error("Utbetaling inneholder beløp ulikt 0, men simulering inneholder tom respons")
-                SimuleringFeilet.FUNKSJONELL_FEIL.left()
-            } else {
-                SimuleringResponseMapper(utbetaling).simulering.right()
-            }
-        }
-        Utbetaling.UtbetalingsType.OPPHØR,
-        -> {
-            SimuleringResponseMapper(utbetaling).simulering.right()
         }
     }
 

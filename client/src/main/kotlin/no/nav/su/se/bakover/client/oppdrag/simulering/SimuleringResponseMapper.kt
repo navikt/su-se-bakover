@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
@@ -11,15 +12,27 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.system.os.entiteter.beregningskjema.BeregningStoppnivaa
 import no.nav.system.os.entiteter.beregningskjema.BeregningStoppnivaaDetaljer
 import no.nav.system.os.entiteter.beregningskjema.BeregningsPeriode
+import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningResponse
 import java.time.LocalDate
 
 internal class SimuleringResponseMapper private constructor(
     val simulering: Simulering,
 ) {
-    constructor(oppdragResponse: SimulerBeregningResponse) : this(oppdragResponse.toSimulering())
-    constructor(utbetaling: Utbetaling) : this(utbetaling.mapTomResponsFraOppdrag())
+    constructor(
+        oppdragResponse: SimulerBeregningResponse,
+    ) : this(oppdragResponse.toSimulering())
+
+    constructor(
+        utbetaling: Utbetaling,
+        simuleringsperiode: SimulerBeregningRequest.SimuleringsPeriode,
+    ) : this(
+        utbetaling.mapTomResponsFraOppdrag(simuleringsperiode.toPeriode()),
+    )
 }
+
+private fun SimulerBeregningRequest.SimuleringsPeriode.toPeriode() =
+    Periode.create(LocalDate.parse(datoSimulerFom), LocalDate.parse(datoSimulerTom))
 
 private fun SimulerBeregningResponse.toSimulering() =
     Simulering(
@@ -71,7 +84,7 @@ private fun BeregningStoppnivaaDetaljer.toSimulertDetalj() =
  * Return something with meaning for our domain for cases where simulering returns an empty response.
  * In functional terms, an empty response means that OS/UR won't perform any payments for the period in question.
  */
-private fun Utbetaling.mapTomResponsFraOppdrag(): Simulering {
+private fun Utbetaling.mapTomResponsFraOppdrag(simuleringsperiode: Periode): Simulering {
     return Simulering(
         gjelderId = fnr,
         gjelderNavn = fnr.toString(), // Usually returned by response, which in this case is empty.
@@ -79,8 +92,8 @@ private fun Utbetaling.mapTomResponsFraOppdrag(): Simulering {
         nettoBeløp = 0,
         periodeList = listOf(
             SimulertPeriode(
-                fraOgMed = tidligsteDato(),
-                tilOgMed = senesteDato(),
+                fraOgMed = simuleringsperiode.fraOgMed,
+                tilOgMed = simuleringsperiode.tilOgMed,
                 utbetaling = emptyList(),
             ),
         ),

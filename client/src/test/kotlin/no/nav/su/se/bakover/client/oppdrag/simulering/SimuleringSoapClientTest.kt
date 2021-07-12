@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
@@ -32,6 +33,7 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.net.SocketException
+import java.time.Clock
 import java.time.LocalDate
 import javax.net.ssl.SSLException
 import javax.xml.ws.WebServiceException
@@ -74,7 +76,28 @@ internal class SimuleringSoapClientTest {
             },
         )
 
-        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
+        val opphør = nyUtbetaling.copy(
+            utbetalingslinjer = nonEmptyListOf(
+                Utbetalingslinje.Endring.Opphør(
+                    utbetalingslinje = nyUtbetaling.sisteUtbetalingslinje(),
+                    virkningstidspunkt = 1.januar(2018),
+                    clock = Clock.systemUTC(),
+                ),
+            ),
+        )
+        simuleringService.simulerUtbetaling(opphør) shouldBe Simulering(
+            gjelderId = FNR,
+            gjelderNavn = FNR.toString(),
+            nettoBeløp = 0,
+            datoBeregnet = LocalDate.now(),
+            periodeList = listOf(
+                SimulertPeriode(
+                    fraOgMed = 1.januar(2018),
+                    tilOgMed = 31.desember(2020),
+                    utbetaling = emptyList(),
+                ),
+            ),
+        ).right()
     }
 
     @Test
@@ -171,7 +194,7 @@ internal class SimuleringSoapClientTest {
             saksnummer = saksnummer,
             sakId = sakId,
             fnr = FNR,
-            utbetalingslinjer = listOf(
+            utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     fraOgMed = 1.oktober(2020),
                     tilOgMed = 31.desember(2020),
@@ -199,46 +222,10 @@ internal class SimuleringSoapClientTest {
         ).right()
     }
 
-    @Test
-    fun `returnerer funksjonell feil hvis man forsøker å utbetale penger, men simuleringen er tom`() {
-        val simuleringService = SimuleringSoapClient(
-            object : SimulerFpService {
-                override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
-                    throw IllegalStateException()
-                }
-
-                override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
-                    return no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse()
-                        .apply { response = null }
-                }
-            },
-        )
-
-        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
-    }
-
-    @Test
-    fun `returnerer ikke funksjonell feil hvis man forsøker å opphøre og responsen er tom`() {
-        val simuleringService = SimuleringSoapClient(
-            object : SimulerFpService {
-                override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
-                    throw IllegalStateException()
-                }
-
-                override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
-                    return no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse()
-                        .apply { response = null }
-                }
-            },
-        )
-        val opphør = nyUtbetaling.copy(type = Utbetaling.UtbetalingsType.OPPHØR)
-        simuleringService.simulerUtbetaling(opphør) shouldBe SimuleringResponseMapper(opphør).simulering.right()
-    }
-
     private fun createUtbetaling() = Utbetaling.UtbetalingForSimulering(
         sakId = sakId,
         saksnummer = saksnummer,
-        utbetalingslinjer = listOf(
+        utbetalingslinjer = nonEmptyListOf(
             Utbetalingslinje.Ny(
                 id = UUID30.randomUUID(),
                 fraOgMed = 1.januar(2020),

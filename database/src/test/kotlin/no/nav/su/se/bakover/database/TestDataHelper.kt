@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database
 
+import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -129,7 +130,7 @@ internal fun utbetalingslinje() = Utbetalingslinje.Ny(
 internal fun oversendtUtbetalingUtenKvittering(
     søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
-    utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje()),
+    utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje()),
 ) = oversendtUtbetalingUtenKvittering(
     søknadsbehandling.fnr,
     søknadsbehandling.sakId,
@@ -141,7 +142,7 @@ internal fun oversendtUtbetalingUtenKvittering(
 internal fun oversendtUtbetalingUtenKvittering(
     revurdering: RevurderingTilAttestering,
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
-    utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje()),
+    utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje()),
 ) = oversendtUtbetalingUtenKvittering(
     revurdering.fnr,
     revurdering.sakId,
@@ -154,7 +155,7 @@ internal fun oversendtUtbetalingUtenKvittering(
     fnr: Fnr,
     sakId: UUID,
     saksnummer: Saksnummer,
-    utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje()),
+    utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje()),
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
 ) = Utbetaling.OversendtUtbetaling.UtenKvittering(
     id = UUID30.randomUUID(),
@@ -323,7 +324,7 @@ internal class TestDataHelper(
         val utbetaling = oversendtUtbetalingUtenKvittering(
             revurdering = revurdering,
             avstemmingsnøkkel = avstemmingsnøkkel,
-            utbetalingslinjer = listOf(utbetalingslinje()),
+            utbetalingslinjer = nonEmptyListOf(utbetalingslinje()),
         ).copy(id = utbetalingId)
 
         utbetalingRepo.opprettUtbetaling(utbetaling)
@@ -575,7 +576,7 @@ internal class TestDataHelper(
         epsFnr: Fnr? = null,
         grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdata(epsFnr),
         avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
-        utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje()),
+        utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje()),
     ): Pair<Søknadsbehandling.Iverksatt.Innvilget, Utbetaling.OversendtUtbetaling.UtenKvittering> {
         val utbetalingId = UUID30.randomUUID()
         val innvilget =
@@ -598,7 +599,7 @@ internal class TestDataHelper(
         val utbetaling = oversendtUtbetalingUtenKvittering(
             revurdering = revurderingTilAttestering,
             avstemmingsnøkkel = avstemmingsnøkkel,
-            utbetalingslinjer = listOf(utbetalingslinje()),
+            utbetalingslinjer = nonEmptyListOf(utbetalingslinje()),
         ).copy(id = UUID30.randomUUID())
 
         utbetalingRepo.opprettUtbetaling(utbetaling)

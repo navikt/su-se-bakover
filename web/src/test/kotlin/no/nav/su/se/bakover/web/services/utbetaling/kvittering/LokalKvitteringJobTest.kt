@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.services.utbetaling.kvittering
 
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
@@ -17,6 +18,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -43,7 +45,16 @@ internal class LokalKvitteringJobTest {
         sakId = UUID.randomUUID(),
         saksnummer = Saksnummer(2021),
         fnr = fnr,
-        utbetalingslinjer = listOf(),
+        utbetalingslinjer = nonEmptyListOf(
+            Utbetalingslinje.Ny(
+                id = UUID30.randomUUID(),
+                opprettet = Tidspunkt.EPOCH,
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.januar(2021),
+                forrigeUtbetalingslinjeId = null,
+                beløp = 0
+            )
+        ),
         type = Utbetaling.UtbetalingsType.NY,
         behandler = NavIdentBruker.Attestant("attestant"),
         avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.EPOCH),

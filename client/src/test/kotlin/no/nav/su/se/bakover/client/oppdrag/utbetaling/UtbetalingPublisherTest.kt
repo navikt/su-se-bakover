@@ -2,16 +2,21 @@ package no.nav.su.se.bakover.client.oppdrag.utbetaling
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.CouldNotPublish
 import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
+import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
 
@@ -56,7 +61,16 @@ internal class UtbetalingPublisherTest {
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = Fnr("12345678910"),
-        utbetalingslinjer = listOf(),
+        utbetalingslinjer = nonEmptyListOf(
+            Utbetalingslinje.Ny(
+                id = UUID30.randomUUID(),
+                opprettet = Tidspunkt.EPOCH,
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.januar(2021),
+                forrigeUtbetalingslinjeId = null,
+                beløp = 0
+            )
+        ),
         type = Utbetaling.UtbetalingsType.NY,
         simulering = Simulering(
             gjelderId = Fnr(

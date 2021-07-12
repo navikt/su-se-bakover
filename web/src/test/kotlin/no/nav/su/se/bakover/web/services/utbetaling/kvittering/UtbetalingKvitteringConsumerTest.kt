@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.services.utbetaling.kvittering
 
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
@@ -11,11 +12,14 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -42,7 +46,16 @@ internal class UtbetalingKvitteringConsumerTest {
     private val utbetalingUtenKvittering = Utbetaling.OversendtUtbetaling.UtenKvittering(
         sakId = sakId,
         saksnummer = saksnummer,
-        utbetalingslinjer = emptyList(),
+        utbetalingslinjer = nonEmptyListOf(
+            Utbetalingslinje.Ny(
+                id = UUID30.randomUUID(),
+                opprettet = Tidspunkt.EPOCH,
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.januar(2021),
+                forrigeUtbetalingslinjeId = null,
+                beløp = 0
+            )
+        ),
         fnr = FnrGenerator.random(),
         utbetalingsrequest = Utbetalingsrequest(""),
         simulering = Simulering(

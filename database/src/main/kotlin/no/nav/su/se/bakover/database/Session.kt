@@ -129,7 +129,7 @@ open class Session(
                 is BrevbestillingId -> this.setString(idx, v.toString())
                 is JournalpostId -> this.setString(idx, v.toString())
                 is VedtakType -> this.setString(idx, v.toString())
-                is Utbetalingslinje.LinjeStatus -> this.setString(idx, v.toString())
+                is Utbetalingslinje.Endring.LinjeStatus -> this.setString(idx, v.toString())
                 is RevurderingsType -> this.setString(idx, v.toString())
                 is Fradragstype -> this.setString(idx, v.toString())
                 is FradragTilhører -> this.setString(idx, v.toString())

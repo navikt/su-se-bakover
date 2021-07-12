@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
+import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
 import no.nav.su.se.bakover.common.UUID30
@@ -35,7 +36,7 @@ internal class SimuleringRequestBuilderValidationTest {
             utbetaling = Utbetaling.UtbetalingForSimulering(
                 saksnummer = saksnummer,
                 sakId = sakId,
-                utbetalingslinjer = listOf(
+                utbetalingslinjer = nonEmptyListOf(
                     Utbetalingslinje.Ny(
                         fraOgMed = 1.januar(2020),
                         tilOgMed = 31.januar(2020),

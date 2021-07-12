@@ -102,7 +102,7 @@ class RevurderingBeregnOgSimulerTest {
             on { simulering } doReturn mock()
         }
         val utbetalingMock = mock<Utbetaling> {
-            on { utbetalingslinjer } doReturn listOf(
+            on { utbetalingslinjer } doReturn nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     fraOgMed = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram.fraOgMed,
                     tilOgMed = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram.tilOgMed,

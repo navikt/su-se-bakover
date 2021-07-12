@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
+import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Fnr
@@ -15,12 +16,12 @@ sealed class Utbetaling {
     abstract val sakId: UUID
     abstract val saksnummer: Saksnummer
     abstract val fnr: Fnr
-    abstract val utbetalingslinjer: List<Utbetalingslinje>
+    abstract val utbetalingslinjer: NonEmptyList<Utbetalingslinje>
     abstract val type: UtbetalingsType
     abstract val behandler: NavIdentBruker
     abstract val avstemmingsnøkkel: Avstemmingsnøkkel
 
-    fun sisteUtbetalingslinje() = utbetalingslinjer.lastOrNull()
+    fun sisteUtbetalingslinje() = utbetalingslinjer.last()
     fun erFørstegangsUtbetaling() = utbetalingslinjer.any { it.forrigeUtbetalingslinjeId == null }
 
     fun tidligsteDato() = utbetalingslinjer.minByOrNull { it.fraOgMed }!!.fraOgMed
@@ -33,7 +34,7 @@ sealed class Utbetaling {
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
-        override val utbetalingslinjer: List<Utbetalingslinje>,
+        override val utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
         override val type: UtbetalingsType,
         override val behandler: NavIdentBruker,
         override val avstemmingsnøkkel: Avstemmingsnøkkel
@@ -59,7 +60,7 @@ sealed class Utbetaling {
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
-        override val utbetalingslinjer: List<Utbetalingslinje>,
+        override val utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
         override val type: UtbetalingsType,
         override val behandler: NavIdentBruker,
         override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
@@ -91,7 +92,7 @@ sealed class Utbetaling {
             override val sakId: UUID,
             override val saksnummer: Saksnummer,
             override val fnr: Fnr,
-            override val utbetalingslinjer: List<Utbetalingslinje>,
+            override val utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
             override val type: UtbetalingsType,
             override val behandler: NavIdentBruker,
             override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
@@ -121,7 +122,7 @@ sealed class Utbetaling {
             override val sakId: UUID,
             override val saksnummer: Saksnummer,
             override val fnr: Fnr,
-            override val utbetalingslinjer: List<Utbetalingslinje>,
+            override val utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
             override val type: UtbetalingsType,
             override val behandler: NavIdentBruker,
             override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),

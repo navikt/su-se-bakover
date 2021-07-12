@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.oppdrag.avstemming
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -39,7 +40,7 @@ internal class GrunnlagBuilderTest {
                 lagUtbetaling(
                     opprettet = 1.mars(2020),
                     status = Kvittering.Utbetalingsstatus.OK,
-                    linjer = listOf(
+                    linjer = nonEmptyListOf(
                         lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 1000),
                     )
                 )
@@ -63,14 +64,14 @@ internal class GrunnlagBuilderTest {
                 lagUtbetaling(
                     opprettet = 1.mars(2020),
                     status = Kvittering.Utbetalingsstatus.OK,
-                    linjer = listOf(
+                    linjer = nonEmptyListOf(
                         lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 1000),
                     )
                 ),
                 lagUtbetaling(
                     opprettet = 1.mars(2020),
                     status = Kvittering.Utbetalingsstatus.FEIL,
-                    linjer = listOf(
+                    linjer = nonEmptyListOf(
                         lagUtbetalingLinje(1.mars(2020), 31.mars(2020), -1000),
                     )
                 )

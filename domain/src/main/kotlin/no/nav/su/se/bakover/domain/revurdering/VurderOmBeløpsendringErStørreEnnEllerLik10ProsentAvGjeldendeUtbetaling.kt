@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import kotlin.math.abs
 
 data class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
@@ -17,51 +17,19 @@ data class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetal
         fun diffEr10ProsentEllerMer(førsteMånedsbeløp: Int, gjeldendeUtbetalingsbeløp: Int) =
             abs(førsteMånedsbeløp - gjeldendeUtbetalingsbeløp) >= (0.1 * gjeldendeUtbetalingsbeløp)
 
-        val utbetalingstidslinje = Tidslinje(
+        val utbetalingstidslinje = TidslinjeForUtbetalinger(
             periode = nyBeregning.periode,
-            objekter = eksisterendeUtbetalinger,
+            utbetalingslinjer = eksisterendeUtbetalinger,
         )
 
         val førsteMånedsberegning = nyBeregning.getMånedsberegninger()
             .minByOrNull { it.periode.fraOgMed }!!
         val gjeldendeUtbetaling = utbetalingstidslinje.gjeldendeForDato(førsteMånedsberegning.periode.fraOgMed)
 
-        resultat = when (gjeldendeUtbetaling) {
-            null -> true
-            is Utbetalingslinje.Ny -> diffEr10ProsentEllerMer(
-                førsteMånedsberegning.finnBeløpFor10ProsentSjekk(),
-                gjeldendeUtbetaling.beløp,
-            )
-            is Utbetalingslinje.Endring -> {
-                when (gjeldendeUtbetaling.statusendring.status) {
-                    Utbetalingslinje.LinjeStatus.OPPHØR -> {
-                        val opphørsdato = gjeldendeUtbetaling.statusendring.fraOgMed
-                        val opphørGjelderForHeleBeregningsperioden = nyBeregning.getMånedsberegninger()
-                            .map { it.periode }
-                            .map { utbetalingstidslinje.gjeldendeForDato(it.fraOgMed) }
-                            .all { it == gjeldendeUtbetaling }
-                        when {
-                            /**
-                             * Overser 10%-sjekk dersom opphøret gjelder for hele beregningsperioden og første måned
-                             * i beregningen faller på opphørsdato eller senere. I praksis betyr dette at beløpet som
-                             * utbetales er lik 0.
-                             */
-                            opphørGjelderForHeleBeregningsperioden && (
-                                opphørsdato.isEqual(førsteMånedsberegning.periode.fraOgMed) || opphørsdato.isBefore(
-                                    førsteMånedsberegning.periode.fraOgMed,
-                                )
-                                ) -> {
-                                diffEr10ProsentEllerMer(førsteMånedsberegning.finnBeløpFor10ProsentSjekk(), 0)
-                            }
-                            else -> diffEr10ProsentEllerMer(
-                                førsteMånedsberegning.finnBeløpFor10ProsentSjekk(),
-                                gjeldendeUtbetaling.beløp,
-                            )
-                        }
-                    }
-                }
-            }
-        }
+        resultat = diffEr10ProsentEllerMer(
+            førsteMånedsbeløp = førsteMånedsberegning.finnBeløpFor10ProsentSjekk(),
+            gjeldendeUtbetalingsbeløp = gjeldendeUtbetaling?.beløp ?: 0,
+        )
     }
 
     /**

@@ -1,14 +1,17 @@
 package no.nav.su.se.bakover.database.utbetaling
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.database.fixedTidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -25,7 +28,16 @@ internal class UtbetalingMapperTest {
             sakId = UUID.randomUUID(),
             saksnummer = Saksnummer(2021),
             fnr = Fnr(fnr = "12345678910"),
-            utbetalingslinjer = listOf(),
+            utbetalingslinjer = nonEmptyListOf(
+                Utbetalingslinje.Ny(
+                    id = UUID30.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 31.januar(2021),
+                    forrigeUtbetalingslinjeId = null,
+                    beløp = 0
+                )
+            ),
             type = Utbetaling.UtbetalingsType.NY,
             avstemmingsnøkkel = Avstemmingsnøkkel(),
             simulering = Simulering(
@@ -49,7 +61,16 @@ internal class UtbetalingMapperTest {
             sakId = UUID.randomUUID(),
             saksnummer = Saksnummer(2021),
             fnr = Fnr(fnr = "12345678910"),
-            utbetalingslinjer = listOf(),
+            utbetalingslinjer = nonEmptyListOf(
+                Utbetalingslinje.Ny(
+                    id = UUID30.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 31.januar(2021),
+                    forrigeUtbetalingslinjeId = null,
+                    beløp = 0
+                )
+            ),
             type = Utbetaling.UtbetalingsType.NY,
             avstemmingsnøkkel = Avstemmingsnøkkel(),
             simulering = Simulering(

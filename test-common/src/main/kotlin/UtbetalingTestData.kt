@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.test
 
+import arrow.core.NonEmptyList
+import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
@@ -28,7 +30,7 @@ fun oversendtUtbetalingUtenKvittering(
     periode: Periode = periode2021,
     søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
-    utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje(periode = periode)),
+    utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje(periode = periode)),
 ) = oversendtUtbetalingUtenKvittering(
     fnr = søknadsbehandling.fnr,
     sakId = søknadsbehandling.sakId,
@@ -42,7 +44,7 @@ fun oversendtUtbetalingUtenKvittering(
     periode: Periode = periode2021,
     revurdering: RevurderingTilAttestering,
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
-    utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje(periode = periode)),
+    utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje(periode = periode)),
 ) = oversendtUtbetalingUtenKvittering(
     fnr = revurdering.fnr,
     sakId = revurdering.sakId,
@@ -56,7 +58,7 @@ fun oversendtUtbetalingUtenKvittering(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje(periode = periode)),
+    utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje(periode = periode)),
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
 ) = Utbetaling.OversendtUtbetaling.UtenKvittering(
     id = UUID30.randomUUID(),

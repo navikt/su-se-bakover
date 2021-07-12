@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
+import arrow.core.NonEmptyList
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -29,27 +31,26 @@ internal class UtbetalingTest {
 
     @Test
     fun `brutto beløp`() {
-        createUtbetaling(utbetalingsLinjer = emptyList()).bruttoBeløp() shouldBe 0
         createUtbetaling().bruttoBeløp() shouldBe 1500
     }
 
     @Test
     fun `er førstegangsutbetaling`() {
-        createUtbetaling(utbetalingsLinjer = listOf(createUtbetalingslinje(forrigeUtbetalingslinjeId = null)))
+        createUtbetaling(utbetalingsLinjer = nonEmptyListOf(createUtbetalingslinje(forrigeUtbetalingslinjeId = null)))
             .erFørstegangsUtbetaling() shouldBe true
 
-        createUtbetaling(utbetalingsLinjer = listOf(createUtbetalingslinje(forrigeUtbetalingslinjeId = UUID30.randomUUID())))
+        createUtbetaling(utbetalingsLinjer = nonEmptyListOf(createUtbetalingslinje(forrigeUtbetalingslinjeId = UUID30.randomUUID())))
             .erFørstegangsUtbetaling() shouldBe false
 
         createUtbetaling(
-            utbetalingsLinjer = listOf(
+            utbetalingsLinjer = nonEmptyListOf(
                 createUtbetalingslinje(forrigeUtbetalingslinjeId = null),
                 createUtbetalingslinje(forrigeUtbetalingslinjeId = UUID30.randomUUID())
             )
         ).erFørstegangsUtbetaling() shouldBe true
 
         createUtbetaling(
-            utbetalingsLinjer = listOf(
+            utbetalingsLinjer = nonEmptyListOf(
                 createUtbetalingslinje(forrigeUtbetalingslinjeId = UUID30.randomUUID()),
                 createUtbetalingslinje(forrigeUtbetalingslinjeId = UUID30.randomUUID())
             )
@@ -58,7 +59,7 @@ internal class UtbetalingTest {
 
     private fun createUtbetaling(
         opprettet: Tidspunkt = Tidspunkt.now(),
-        utbetalingsLinjer: List<Utbetalingslinje> = createUtbetalingslinjer()
+        utbetalingsLinjer: NonEmptyList<Utbetalingslinje> = createUtbetalingslinjer()
     ) = Utbetaling.UtbetalingForSimulering(
         sakId = UUID.randomUUID(),
         saksnummer = Saksnummer(2021),
@@ -82,7 +83,7 @@ internal class UtbetalingTest {
         forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId
     )
 
-    private fun createUtbetalingslinjer() = listOf(
+    private fun createUtbetalingslinjer() = nonEmptyListOf(
         createUtbetalingslinje(
             fraOgMed = 1.januar(2019),
             tilOgMed = 30.april(2020)

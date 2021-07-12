@@ -16,7 +16,7 @@ import java.time.temporal.TemporalUnit
 
 abstract class TruncatedInstant(
     @JsonValue
-    val instant: Instant
+    val instant: Instant,
 ) : Temporal by instant,
     TemporalAdjuster by instant,
     Comparable<Instant> by instant,
@@ -35,7 +35,7 @@ abstract class TruncatedInstant(
  * relevant i.e when combining timestamp-db-fields (truncated by db) with Instants stored as json (not truncated by db).
  */
 class Tidspunkt @JsonCreator(mode = JsonCreator.Mode.DELEGATING) constructor(
-    instant: Instant
+    instant: Instant,
 ) : TruncatedInstant(instant.truncatedTo(unit)) {
 
     companion object {
@@ -59,6 +59,7 @@ class Tidspunkt @JsonCreator(mode = JsonCreator.Mode.DELEGATING) constructor(
     override fun plus(amount: Long, unit: TemporalUnit): Tidspunkt = instant.plus(amount, unit).toTidspunkt()
     override fun minus(amount: Long, unit: TemporalUnit): Tidspunkt = instant.minus(amount, unit).toTidspunkt()
     fun toLocalDate(zoneId: ZoneId): LocalDate = LocalDate.ofInstant(instant, zoneId)
+    fun plusUnits(units: Int): Tidspunkt = this.plus(units.toLong(), unit)
 }
 
 fun Instant.toTidspunkt() = Tidspunkt(this)

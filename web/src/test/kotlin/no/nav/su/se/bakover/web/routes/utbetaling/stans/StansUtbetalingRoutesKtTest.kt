@@ -27,15 +27,17 @@ internal class StansUtbetalingRoutesKtTest {
     @Test
     fun `fant ikke sak returnerer not found`() {
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { stansUtbetalinger(any(), any()) } doReturn KunneIkkeStanseUtbetalinger.FantIkkeSak.left()
+            on { stansUtbetalinger(any(), any(), any()) } doReturn KunneIkkeStanseUtbetalinger.FantIkkeSak.left()
         }
-        withTestApplication({
-            testSusebakover(services = services.copy(utbetaling = utbetalingServiceMock))
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(services = services.copy(utbetaling = utbetalingServiceMock))
+            },
+        ) {
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/$sakId/utbetalinger/stans",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 response.status() shouldBe HttpStatusCode.NotFound
                 response.content shouldContain "Fant ikke sak"
@@ -46,15 +48,23 @@ internal class StansUtbetalingRoutesKtTest {
     @Test
     fun `simulering av stans feiler svarer med 500`() {
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { stansUtbetalinger(any(), any()) } doReturn KunneIkkeStanseUtbetalinger.SimuleringAvStansFeilet.left()
+            on {
+                stansUtbetalinger(
+                    any(),
+                    any(),
+                    any(),
+                )
+            } doReturn KunneIkkeStanseUtbetalinger.SimuleringAvStansFeilet.left()
         }
-        withTestApplication({
-            testSusebakover(services = services.copy(utbetaling = utbetalingServiceMock))
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(services = services.copy(utbetaling = utbetalingServiceMock))
+            },
+        ) {
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/$sakId/utbetalinger/stans",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
                 response.content shouldContain "Simulering av stans feilet"
@@ -65,15 +75,23 @@ internal class StansUtbetalingRoutesKtTest {
     @Test
     fun `oversendelse til utbetaling svarer med 500`() {
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { stansUtbetalinger(any(), any()) } doReturn KunneIkkeStanseUtbetalinger.SendingAvUtebetalingTilOppdragFeilet.left()
+            on {
+                stansUtbetalinger(
+                    any(),
+                    any(),
+                    any(),
+                )
+            } doReturn KunneIkkeStanseUtbetalinger.SendingAvUtbetalingTilOppdragFeilet.left()
         }
-        withTestApplication({
-            testSusebakover(services = services.copy(utbetaling = utbetalingServiceMock))
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(services = services.copy(utbetaling = utbetalingServiceMock))
+            },
+        ) {
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/$sakId/utbetalinger/stans",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
                 response.content shouldContain "Oversendelse til oppdrag feilet"
@@ -84,18 +102,26 @@ internal class StansUtbetalingRoutesKtTest {
     @Test
     fun `simulert stans inneholder beløp ulikt 0 svarer med 500`() {
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { stansUtbetalinger(any(), any()) } doReturn KunneIkkeStanseUtbetalinger.SimulertStansHarBeløpUlikt0.left()
+            on {
+                stansUtbetalinger(
+                    any(),
+                    any(),
+                    any(),
+                )
+            } doReturn KunneIkkeStanseUtbetalinger.KontrollAvSimuleringFeilet.left()
         }
-        withTestApplication({
-            testSusebakover(services = services.copy(utbetaling = utbetalingServiceMock))
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(services = services.copy(utbetaling = utbetalingServiceMock))
+            },
+        ) {
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/$sakId/utbetalinger/stans",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
-                response.content shouldContain "beløp for utbetaling ulikt 0"
+                response.content shouldContain "Kontroll av simulering feilet"
             }
         }
     }

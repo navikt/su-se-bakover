@@ -6,12 +6,16 @@ import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 data class Saksnummer(@JsonValue val nummer: Long) {
@@ -71,6 +75,21 @@ data class Sak(
             it.søknad
         }
         return ikkeLukkedeSøknader.minus(søknaderMedSøknadsbehandling)
+    }
+
+    fun utbetalingstidslinje(
+        periode: Periode = Periode.create(
+            fraOgMed = LocalDate.MIN,
+            tilOgMed = LocalDate.MAX,
+        ),
+    ): TidslinjeForUtbetalinger {
+        val utbetalingslinjer = utbetalinger.hentOversendteUtbetalingerUtenFeil()
+            .flatMap { it.utbetalingslinjer }
+
+        return TidslinjeForUtbetalinger(
+            periode = periode,
+            utbetalingslinjer = utbetalingslinjer,
+        )
     }
 }
 

@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 
-import io.kotest.matchers.collections.shouldHaveSize
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -52,7 +52,7 @@ internal class UtbetalingsstrategiOpphørTest {
         ),
         kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
         utbetalingsrequest = Utbetalingsrequest(value = ""),
-        utbetalingslinjer = listOf(enUtbetalingslinje),
+        utbetalingslinjer = nonEmptyListOf(enUtbetalingslinje),
         fnr = fnr,
         type = Utbetaling.UtbetalingsType.NY,
         behandler = behandler,
@@ -71,7 +71,7 @@ internal class UtbetalingsstrategiOpphørTest {
                 opphørsDato = 1.januar(2021),
             ).generate()
         }.also {
-            it.message shouldBe "Sak: $sakId har ingen utbetalinger som kan opphøres"
+            it.message shouldBe "Ingen oversendte utbetalinger å opphøre"
         }
     }
 
@@ -105,7 +105,7 @@ internal class UtbetalingsstrategiOpphørTest {
                 opphørsDato = 19.januar(2021),
             ).generate()
         }.also {
-            it.message shouldBe "Ytelse kan kun opphøres fra første eller siste dag i en måned."
+            it.message shouldBe "Ytelse kan kun opphøres fra første dag i måneden"
         }
     }
 
@@ -119,25 +119,23 @@ internal class UtbetalingsstrategiOpphørTest {
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             clock = fixedClock,
             opphørsDato = 1.januar(2021),
-        ).generate().let {
+        ).generate().also {
             it.sakId shouldBe sakId
             it.saksnummer shouldBe saksnummer
             it.fnr shouldBe fnr
             it.type shouldBe Utbetaling.UtbetalingsType.OPPHØR
             it.behandler shouldBe behandler
-            it.utbetalingslinjer shouldHaveSize 1
-            it.utbetalingslinjer.first().let { endretUtbetalingslinje ->
-                (endretUtbetalingslinje as Utbetalingslinje.Endring).let {
-                    endretUtbetalingslinje.fraOgMed shouldBe enUtbetalingslinje.fraOgMed
-                    endretUtbetalingslinje.tilOgMed shouldBe enUtbetalingslinje.tilOgMed
-                    endretUtbetalingslinje.beløp shouldBe enUtbetalingslinje.beløp
-                    endretUtbetalingslinje.forrigeUtbetalingslinjeId shouldBe enUtbetalingslinje.forrigeUtbetalingslinjeId
-                    endretUtbetalingslinje.statusendring shouldBe Utbetalingslinje.Statusendring(
-                        status = Utbetalingslinje.LinjeStatus.OPPHØR,
-                        fraOgMed = 1.januar(2021),
-                    )
-                }
-            }
+            it.utbetalingslinjer shouldBe nonEmptyListOf(
+                Utbetalingslinje.Endring.Opphør(
+                    id = enUtbetalingslinje.id,
+                    opprettet = it.utbetalingslinjer[0].opprettet,
+                    fraOgMed = enUtbetalingslinje.fraOgMed,
+                    tilOgMed = enUtbetalingslinje.tilOgMed,
+                    beløp = enUtbetalingslinje.beløp,
+                    forrigeUtbetalingslinjeId = enUtbetalingslinje.forrigeUtbetalingslinjeId,
+                    virkningstidspunkt = 1.januar(2021),
+                ),
+            )
         }
     }
 }

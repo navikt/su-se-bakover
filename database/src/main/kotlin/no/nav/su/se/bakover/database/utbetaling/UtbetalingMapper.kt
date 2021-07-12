@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.utbetaling
 
+import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Fnr
@@ -19,14 +20,14 @@ data class UtbetalingMapper(
     val sakId: UUID,
     val saksnummer: Saksnummer,
     val fnr: Fnr,
-    val utbetalingslinjer: List<Utbetalingslinje>,
+    val utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
     val type: Utbetaling.UtbetalingsType,
     val avstemmingsnøkkel: Avstemmingsnøkkel,
     val simulering: Simulering,
     val utbetalingsrequest: Utbetalingsrequest,
     val kvittering: Kvittering?,
     val avstemmingId: UUID30?,
-    val behandler: NavIdentBruker
+    val behandler: NavIdentBruker,
 ) {
     fun map(): Utbetaling.OversendtUtbetaling = when (kvittering) {
         null -> {
@@ -41,7 +42,7 @@ data class UtbetalingMapper(
                 behandler = behandler,
                 avstemmingsnøkkel = avstemmingsnøkkel,
                 simulering = simulering,
-                utbetalingsrequest = utbetalingsrequest
+                utbetalingsrequest = utbetalingsrequest,
             )
         }
         else -> {
@@ -57,7 +58,7 @@ data class UtbetalingMapper(
                 avstemmingsnøkkel = avstemmingsnøkkel,
                 simulering = simulering,
                 utbetalingsrequest = utbetalingsrequest,
-                kvittering = kvittering
+                kvittering = kvittering,
             )
         }
     }
