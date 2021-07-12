@@ -77,7 +77,7 @@ sealed class KunneIkkeUtbetale {
 sealed class KunneIkkeStanseUtbetalinger {
     object FantIkkeSak : KunneIkkeStanseUtbetalinger()
     object SimuleringAvStansFeilet : KunneIkkeStanseUtbetalinger()
-    object SendingAvUtebetalingTilOppdragFeilet : KunneIkkeStanseUtbetalinger()
+    object SendingAvUtbetalingTilOppdragFeilet : KunneIkkeStanseUtbetalinger()
     object KontrollAvSimuleringFeilet : KunneIkkeStanseUtbetalinger()
 }
 
@@ -86,6 +86,6 @@ sealed class KunneIkkeGjenopptaUtbetalinger {
     object HarIngenOversendteUtbetalinger : KunneIkkeGjenopptaUtbetalinger()
     object SisteUtbetalingErIkkeEnStansutbetaling : KunneIkkeGjenopptaUtbetalinger()
     object SimuleringAvStartutbetalingFeilet : KunneIkkeGjenopptaUtbetalinger()
-    object SendingAvUtebetalingTilOppdragFeilet : KunneIkkeGjenopptaUtbetalinger()
+    object SendingAvUtbetalingTilOppdragFeilet : KunneIkkeGjenopptaUtbetalinger()
     object KontrollAvSimuleringFeilet : KunneIkkeGjenopptaUtbetalinger()
 }

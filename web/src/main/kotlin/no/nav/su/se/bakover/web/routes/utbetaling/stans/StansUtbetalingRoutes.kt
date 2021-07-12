@@ -40,7 +40,7 @@ internal fun Route.stansutbetalingRoutes(
                                 call.respond(NotFound, "Fant ikke sak")
                             KunneIkkeStanseUtbetalinger.SimuleringAvStansFeilet ->
                                 call.respond(InternalServerError, "Simulering av stans feilet")
-                            KunneIkkeStanseUtbetalinger.SendingAvUtebetalingTilOppdragFeilet ->
+                            KunneIkkeStanseUtbetalinger.SendingAvUtbetalingTilOppdragFeilet ->
                                 call.respond(InternalServerError, "Oversendelse til oppdrag feilet")
                             KunneIkkeStanseUtbetalinger.KontrollAvSimuleringFeilet ->
                                 call.respond(InternalServerError, "Kontroll av simulering feilet")

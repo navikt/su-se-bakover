@@ -235,7 +235,7 @@ internal class UtbetalingServiceImpl(
                 }.flatMap {
                     utbetal(it)
                         .mapLeft {
-                            KunneIkkeStanseUtbetalinger.SendingAvUtebetalingTilOppdragFeilet
+                            KunneIkkeStanseUtbetalinger.SendingAvUtbetalingTilOppdragFeilet
                         }
                 }
             }.map {
@@ -273,7 +273,7 @@ internal class UtbetalingServiceImpl(
                 }.flatMap {
                     utbetal(it)
                         .mapLeft {
-                            KunneIkkeGjenopptaUtbetalinger.SendingAvUtebetalingTilOppdragFeilet
+                            KunneIkkeGjenopptaUtbetalinger.SendingAvUtbetalingTilOppdragFeilet
                         }
                 }
             }.map {

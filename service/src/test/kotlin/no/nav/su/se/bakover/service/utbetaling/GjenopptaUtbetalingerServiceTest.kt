@@ -319,7 +319,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             clock = fixedClock,
         ).gjenopptaUtbetalinger(sak.id, saksbehandler)
 
-        response shouldBe KunneIkkeGjenopptaUtbetalinger.SendingAvUtebetalingTilOppdragFeilet.left()
+        response shouldBe KunneIkkeGjenopptaUtbetalinger.SendingAvUtbetalingTilOppdragFeilet.left()
 
         inOrder(sakServiceMock, simuleringClientMock, utbetalingPublisherMock) {
             verify(sakServiceMock).hentSak(sakId = argThat { sak.id })

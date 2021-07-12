@@ -44,7 +44,7 @@ internal fun Route.gjenopptaUtbetalingRoutes(
                                     InternalServerError,
                                     "Simulering feilet",
                                 )
-                                KunneIkkeGjenopptaUtbetalinger.SendingAvUtebetalingTilOppdragFeilet -> call.respond(
+                                KunneIkkeGjenopptaUtbetalinger.SendingAvUtbetalingTilOppdragFeilet -> call.respond(
                                     InternalServerError,
                                     "Oversendelse til oppdrag feilet",
                                 )

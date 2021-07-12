@@ -81,7 +81,7 @@ internal class StansUtbetalingRoutesKtTest {
                     any(),
                     any(),
                 )
-            } doReturn KunneIkkeStanseUtbetalinger.SendingAvUtebetalingTilOppdragFeilet.left()
+            } doReturn KunneIkkeStanseUtbetalinger.SendingAvUtbetalingTilOppdragFeilet.left()
         }
         withTestApplication(
             {

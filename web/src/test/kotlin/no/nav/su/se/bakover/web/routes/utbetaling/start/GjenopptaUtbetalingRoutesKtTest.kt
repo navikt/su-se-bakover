@@ -179,7 +179,7 @@ internal class GjenopptaUtbetalingRoutesKtTest {
                     sakId,
                     saksbehandler,
                 )
-            } doReturn KunneIkkeGjenopptaUtbetalinger.SendingAvUtebetalingTilOppdragFeilet.left()
+            } doReturn KunneIkkeGjenopptaUtbetalinger.SendingAvUtbetalingTilOppdragFeilet.left()
         }
         withTestApplication(
             {

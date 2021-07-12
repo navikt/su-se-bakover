@@ -281,7 +281,7 @@ internal class StansUtbetalingServiceTest {
 
         ).stansUtbetalinger(sak.id, saksbehandler, 1.januar(2020))
 
-        response shouldBe KunneIkkeStanseUtbetalinger.SendingAvUtebetalingTilOppdragFeilet.left()
+        response shouldBe KunneIkkeStanseUtbetalinger.SendingAvUtbetalingTilOppdragFeilet.left()
 
         inOrder(
             sakServiceMock,
