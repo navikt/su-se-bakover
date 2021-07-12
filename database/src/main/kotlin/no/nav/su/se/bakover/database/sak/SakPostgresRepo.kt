@@ -4,6 +4,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
+import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
@@ -44,6 +45,16 @@ internal class SakPostgresRepo(
                 ),
                 session,
             )
+        }
+    }
+
+    override fun hentAlleSaker(): List<Sak> {
+        return dataSource.withSession { session ->
+            """
+                select * from sak
+            """.hentListe(emptyMap(), session) {
+                it.toSak(session)
+            }
         }
     }
 

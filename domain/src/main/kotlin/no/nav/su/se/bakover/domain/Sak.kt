@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -49,7 +50,29 @@ data class Sak(
     val utbetalinger: List<Utbetaling>,
     val revurderinger: List<Revurdering> = emptyList(),
     val vedtakListe: List<Vedtak> = emptyList(),
-)
+) {
+    fun hentÅpneRevurderinger(): List<Revurdering> {
+        return revurderinger.filterNot {
+            it is IverksattRevurdering
+        }
+    }
+
+    fun hentÅpneSøknadsbehandlinger(): List<Søknadsbehandling> {
+        return behandlinger.filterNot {
+            it is Søknadsbehandling.Iverksatt
+        }
+    }
+
+    fun hentÅpneSøknader(): List<Søknad> {
+        val ikkeLukkedeSøknader = søknader.filterNot {
+            it is Søknad.Lukket
+        }
+        val søknaderMedSøknadsbehandling = behandlinger.map {
+            it.søknad
+        }
+        return ikkeLukkedeSøknader.minus(søknaderMedSøknadsbehandling)
+    }
+}
 
 data class NySak(
     val id: UUID = UUID.randomUUID(),
@@ -74,7 +97,7 @@ class SakFactory(
                 opprettet = opprettet,
                 sakId = sakId,
                 søknadInnhold = søknadInnhold,
-            )
+            ),
         )
     }
 }

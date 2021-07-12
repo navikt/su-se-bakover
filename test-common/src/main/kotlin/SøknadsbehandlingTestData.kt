@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.test
 
+import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -23,13 +25,14 @@ val behandlingsinformasjonAlleVilkårInnvilget = Behandlingsinformasjon
  * TODO jah: Vi bør kunne gjøre dette via NySøknadsbehandling og en funksjon som tar inn saksnummer og gir oss Søknadsbehandling.Vilkårsvurdert.Uavklart
  */
 fun søknadsbehandlingVilkårsvurdertUavklart(
+    saksnr: Saksnummer = saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
 ): Søknadsbehandling.Vilkårsvurdert.Uavklart {
     return Søknadsbehandling.Vilkårsvurdert.Uavklart(
         id = søknadsbehandlingId,
         opprettet = fixedTidspunkt,
         sakId = sakId,
-        saksnummer = saksnummer,
+        saksnummer = saksnr,
         søknad = journalførtSøknadMedOppgave,
         oppgaveId = oppgaveIdSøknad,
         behandlingsinformasjon = behandlingsinformasjonAlleVilkårUavklart,
@@ -42,13 +45,14 @@ fun søknadsbehandlingVilkårsvurdertUavklart(
 }
 
 fun søknadsbehandlingVilkårsvurdertInnvilget(
+    saksnr: Saksnummer = saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
 ): Søknadsbehandling.Vilkårsvurdert.Innvilget {
     return (
-        søknadsbehandlingVilkårsvurdertUavklart(stønadsperiode).tilVilkårsvurdert(
+        søknadsbehandlingVilkårsvurdertUavklart(saksnr = saksnr, stønadsperiode = stønadsperiode).tilVilkårsvurdert(
             behandlingsinformasjon,
         ) as Søknadsbehandling.Vilkårsvurdert.Innvilget
         ).copy(
@@ -58,6 +62,7 @@ fun søknadsbehandlingVilkårsvurdertInnvilget(
 }
 
 fun søknadsbehandlingBeregnetInnvilget(
+    saksnr: Saksnummer = saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
@@ -65,6 +70,7 @@ fun søknadsbehandlingBeregnetInnvilget(
     beregning: Beregning = beregning(),
 ): Søknadsbehandling.Beregnet.Innvilget {
     return søknadsbehandlingVilkårsvurdertInnvilget(
+        saksnr = saksnr,
         stønadsperiode = stønadsperiode,
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
@@ -73,6 +79,7 @@ fun søknadsbehandlingBeregnetInnvilget(
 }
 
 fun søknadsbehandlingSimulert(
+    saksnr: Saksnummer = saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
@@ -80,6 +87,7 @@ fun søknadsbehandlingSimulert(
     beregning: Beregning = beregning(),
 ): Søknadsbehandling.Simulert {
     return søknadsbehandlingBeregnetInnvilget(
+        saksnr = saksnr,
         stønadsperiode = stønadsperiode,
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
@@ -91,6 +99,7 @@ fun søknadsbehandlingSimulert(
 }
 
 fun søknadsbehandlingTilAttesteringInnvilget(
+    saksnr: Saksnummer = saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
@@ -98,6 +107,7 @@ fun søknadsbehandlingTilAttesteringInnvilget(
     beregning: Beregning = beregning(),
 ): Søknadsbehandling.TilAttestering.Innvilget {
     return søknadsbehandlingSimulert(
+        saksnr = saksnr,
         stønadsperiode = stønadsperiode,
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
@@ -109,7 +119,29 @@ fun søknadsbehandlingTilAttesteringInnvilget(
     )
 }
 
+fun søknadsbehandlingUnderkjentInnvilget(
+    saksnr: Saksnummer = saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
+    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    beregning: Beregning = beregning(),
+    attestering: Attestering = attesteringUnderkjent,
+): Søknadsbehandling.Underkjent.Innvilget {
+    return søknadsbehandlingTilAttesteringInnvilget(
+        saksnr = saksnr,
+        stønadsperiode = stønadsperiode,
+        behandlingsinformasjon = behandlingsinformasjon,
+        grunnlagsdata = grunnlagsdata,
+        vilkårsvurderinger = vilkårsvurderinger,
+        beregning = beregning,
+    ).tilUnderkjent(
+        attestering = attestering,
+    )
+}
+
 fun søknadsbehandlingIverksattInnvilget(
+    saksnr: Saksnummer = saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
@@ -117,6 +149,7 @@ fun søknadsbehandlingIverksattInnvilget(
     beregning: Beregning = beregning(),
 ): Søknadsbehandling.Iverksatt.Innvilget {
     return søknadsbehandlingTilAttesteringInnvilget(
+        saksnr = saksnr,
         stønadsperiode = stønadsperiode,
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
