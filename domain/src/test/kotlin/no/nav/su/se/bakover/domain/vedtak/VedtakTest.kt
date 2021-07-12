@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.FnrGenerator
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.AttesteringHistorik
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.fixedClock
@@ -424,7 +424,7 @@ internal class VedtakTest {
                 beregning = mock(),
                 simulering = mock(),
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-                attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant"), Tidspunkt.now(clock))),
+                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant"), Tidspunkt.now(clock))),
                 fritekstTilBrev = "",
                 stønadsperiode = Stønadsperiode.create(
                     periode = Periode.create(fraDato, tilDato),

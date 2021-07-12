@@ -27,12 +27,14 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.startOfDay
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.AttesteringHistorik
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -102,6 +104,7 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -352,6 +355,7 @@ internal class RevurderingServiceImplTest {
     @Test
     fun `iverksett - iverksetter endring av ytelse`() {
         val attestant = NavIdentBruker.Attestant("attestant")
+        val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, zoneIdOslo)
 
         val testsimulering = Simulering(
             gjelderId = fnr,
@@ -370,7 +374,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = OppgaveId(value = "OppgaveId"),
             beregning = TestBeregning,
             simulering = testsimulering,
-            attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.EPOCH)),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now(fixedClock))),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
@@ -414,6 +418,7 @@ internal class RevurderingServiceImplTest {
             revurderingRepo = revurderingRepoMock,
             utbetalingService = utbetalingServiceMock,
             vedtakRepo = vedtakRepoMock,
+            clock = fixedClock
         ).apply { addObserver(eventObserver) }.iverksett(
             revurderingId = revurderingTilAttestering.id,
             attestant = attestant,
@@ -545,7 +550,7 @@ internal class RevurderingServiceImplTest {
             attestant = NavIdentBruker.Attestant(navIdent = "123"),
             grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
             kommentar = "pls math",
-            tidspunkt = Tidspunkt.EPOCH
+            opprettet = Tidspunkt.EPOCH
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -609,7 +614,7 @@ internal class RevurderingServiceImplTest {
             attestant = NavIdentBruker.Attestant(navIdent = "123"),
             grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
             kommentar = "pls math",
-            tidspunkt = Tidspunkt.EPOCH
+            opprettet = Tidspunkt.EPOCH
         )
         val uføregrunnlag = Grunnlag.Uføregrunnlag(
             periode = periodeNesteMånedOgTreMånederFram,
@@ -629,7 +634,7 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(attestering),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attestering),
             behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 fradragsgrunnlag = listOf(

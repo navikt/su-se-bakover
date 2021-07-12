@@ -482,7 +482,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                         attestant = Attestant(navIdent),
                                         grunn = Attestering.Underkjent.Grunn.valueOf(body.grunn),
                                         kommentar = body.kommentar,
-                                        tidspunkt = Tidspunkt.now()
+                                        opprettet = Tidspunkt.now()
                                     ),
                                 ),
                             ).fold(

@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.søknadsbehandling
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
@@ -23,7 +24,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.AttesteringHistorik
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -67,7 +68,8 @@ internal class SøknadsbehandlingPostgresRepo(
                         opprettet,
                         status,
                         behandlingsinformasjon,
-                        oppgaveId
+                        oppgaveId,
+                        attestering
                     ) values (
                         :id,
                         :sakId,
@@ -75,7 +77,8 @@ internal class SøknadsbehandlingPostgresRepo(
                         :opprettet,
                         :status,
                         to_json(:behandlingsinformasjon::json),
-                        :oppgaveId
+                        :oppgaveId,
+                        jsonb_build_array()
                     )
                 """.trimIndent()
                 ).insert(
@@ -94,11 +97,13 @@ internal class SøknadsbehandlingPostgresRepo(
     }
 
     override fun hentEventuellTidligereAttestering(id: UUID): Attestering? {
+        // henter ut siste elementet (seneste attestering) i attesteringslisten
         return dataSource.withSession { session ->
             "select b.attestering from behandling b where b.id=:id"
                 .hent(mapOf("id" to id), session) { row ->
                     row.stringOrNull("attestering")?.let {
-                        objectMapper.readValue(it)
+                        val attesteringer = objectMapper.readValue<Attesteringshistorikk>(it)
+                        attesteringer.hentAttesteringer().lastOrNull()
                     }
                 }
         }
@@ -140,7 +145,7 @@ internal class SøknadsbehandlingPostgresRepo(
         val oppgaveId = OppgaveId(string("oppgaveId"))
         val beregning = stringOrNull("beregning")?.let { objectMapper.readValue<PersistertBeregning>(it) }
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
-        val attesteringer = stringOrNull("attestering")?.let { objectMapper.readValue<AttesteringHistorik>(it) } ?: AttesteringHistorik.empty()
+        val attesteringer = string("attestering").let { objectMapper.readValue<Attesteringshistorikk>(it) }
         val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }
         val saksnummer = Saksnummer(long("saksnummer"))
         val fritekstTilBrev = stringOrNull("fritekstTilBrev") ?: ""
@@ -484,7 +489,7 @@ internal class SøknadsbehandlingPostgresRepo(
         """.trimIndent()
             .oppdatering(
                 params = defaultParams(søknadsbehandling).plus(
-                    "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attesteringer),
+                    "attestering" to søknadsbehandling.attesteringer.hentAttesteringer().serialize(),
                 ),
                 session = session,
             )
@@ -500,7 +505,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     .oppdatering(
                         params = defaultParams(søknadsbehandling).plus(
                             listOf(
-                                "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attesteringer),
+                                "attestering" to søknadsbehandling.attesteringer.hentAttesteringer().serialize(),
                             ),
                         ),
                         session = session,
@@ -513,7 +518,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     .oppdatering(
                         params = defaultParams(søknadsbehandling).plus(
                             listOf(
-                                "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attesteringer),
+                                "attestering" to søknadsbehandling.attesteringer.hentAttesteringer().serialize(),
                             ),
                         ),
                         session = session,

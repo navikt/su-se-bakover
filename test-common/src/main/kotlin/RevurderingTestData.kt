@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
@@ -82,7 +83,7 @@ fun opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         informasjonSomRevurderes = informasjonSomRevurderes,
-        attesteringer = AttesteringHistorik.empty()
+        attesteringer = Attesteringshistorikk.empty()
     )
 }
 
@@ -313,7 +314,8 @@ fun UnderkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak(
     attestering: Attestering.Underkjent = Attestering.Underkjent(
         attestant = NavIdentBruker.Attestant(navIdent = "attestant"),
         grunn = Attestering.Underkjent.Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT,
-        kommentar = "feil vilkår man"
+        kommentar = "feil vilkår man",
+        opprettet = fixedTidspunkt
     )
 ): UnderkjentRevurdering {
     return tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(

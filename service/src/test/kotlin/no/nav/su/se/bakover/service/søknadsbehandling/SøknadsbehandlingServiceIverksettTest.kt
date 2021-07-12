@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.AttesteringHistorik
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
@@ -276,7 +276,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             beregning = behandling.beregning,
             simulering = behandling.simulering,
             saksbehandler = behandling.saksbehandler,
-            attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, attesteringstidspunkt)),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, attesteringstidspunkt)),
             fritekstTilBrev = "",
             stønadsperiode = behandling.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -356,7 +356,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             fnr = behandling.fnr,
             beregning = behandling.beregning,
             saksbehandler = behandling.saksbehandler,
-            attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, attesteringstidspunkt)),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, attesteringstidspunkt)),
             fritekstTilBrev = "",
             stønadsperiode = behandling.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -524,7 +524,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            attesteringer = AttesteringHistorik.empty()
+            attesteringer = Attesteringshistorikk.empty()
         )
 
     private val beregning = TestBeregning

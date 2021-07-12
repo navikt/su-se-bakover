@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.AttesteringHistorik
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -341,7 +341,7 @@ internal class LagBrevRequestVisitorTest {
                     attestant = attestant,
                     grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                     kommentar = "kommentar",
-                    tidspunkt = Tidspunkt.now(clock)
+                    opprettet = Tidspunkt.now(clock)
                 ),
             )
             .let { søknadsbehandling ->
@@ -380,7 +380,7 @@ internal class LagBrevRequestVisitorTest {
                     attestant = attestant,
                     grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                     kommentar = "kommentar",
-                    tidspunkt = Tidspunkt.now(clock)
+                    opprettet = Tidspunkt.now(clock)
 
                 ),
             )
@@ -419,7 +419,7 @@ internal class LagBrevRequestVisitorTest {
                     attestant = attestant,
                     grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                     kommentar = "kommentar",
-                    tidspunkt = Tidspunkt.now(clock)
+                    opprettet = Tidspunkt.now(clock)
                 ),
             )
             .let { søknadsbehandling ->
@@ -692,7 +692,7 @@ internal class LagBrevRequestVisitorTest {
             ),
             beregning = innvilgetBeregning,
             simulering = simulering,
-            attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now(clock))),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now(clock))),
             fritekstTilBrev = "JEPP",
             revurderingsårsak = Revurderingsårsak(
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
@@ -752,7 +752,7 @@ internal class LagBrevRequestVisitorTest {
             oppgaveId = OppgaveId("15"),
             beregning = innvilgetBeregning,
             simulering = simulering,
-            attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
             fritekstTilBrev = "FRITEKST REVURDERING",
             revurderingsårsak = Revurderingsårsak(
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
@@ -836,7 +836,7 @@ internal class LagBrevRequestVisitorTest {
             oppgaveId = OppgaveId("15"),
             beregning = innvilgetBeregning,
             simulering = simulering,
-            attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now(clock))),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now(clock))),
             fritekstTilBrev = "FRITEKST REVURDERING",
             revurderingsårsak = Revurderingsårsak(
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
@@ -923,7 +923,7 @@ internal class LagBrevRequestVisitorTest {
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
             beregning = innvilgetBeregning,
-            attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
             fritekstTilBrev = "EN FIN FRITEKST",
             revurderingsårsak = Revurderingsårsak(
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
@@ -1071,6 +1071,6 @@ internal class LagBrevRequestVisitorTest {
             ),
         ),
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-        attesteringer = AttesteringHistorik.empty()
+        attesteringer = Attesteringshistorikk.empty()
     )
 }

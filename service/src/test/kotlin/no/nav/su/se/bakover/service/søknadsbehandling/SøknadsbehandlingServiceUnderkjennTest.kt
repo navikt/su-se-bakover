@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.AttesteringHistorik
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
@@ -66,7 +66,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         attestant = NavIdentBruker.Attestant("a"),
         grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
         kommentar = "begrunnelse",
-        tidspunkt = Tidspunkt.now()
+        opprettet = Tidspunkt.now()
     )
 
     private val innvilgetBehandlingTilAttestering = Søknadsbehandling.TilAttestering.Innvilget(
@@ -216,7 +216,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
                     attestant = attestantSomErLikSaksbehandler,
                     grunn = underkjentAttestering.grunn,
                     kommentar = underkjentAttestering.kommentar,
-                    tidspunkt = Tidspunkt.now()
+                    opprettet = Tidspunkt.now()
                 )
             )
         )
@@ -359,7 +359,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             beregning = innvilgetBehandlingTilAttestering.beregning,
             simulering = innvilgetBehandlingTilAttestering.simulering,
             saksbehandler = innvilgetBehandlingTilAttestering.saksbehandler,
-            attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(underkjentAttestering),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(underkjentAttestering),
             fritekstTilBrev = "",
             stønadsperiode = innvilgetBehandlingTilAttestering.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -444,7 +444,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             beregning = innvilgetBehandlingTilAttestering.beregning,
             simulering = innvilgetBehandlingTilAttestering.simulering,
             saksbehandler = innvilgetBehandlingTilAttestering.saksbehandler,
-            attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(underkjentAttestering),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(underkjentAttestering),
             fritekstTilBrev = "",
             stønadsperiode = innvilgetBehandlingTilAttestering.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,

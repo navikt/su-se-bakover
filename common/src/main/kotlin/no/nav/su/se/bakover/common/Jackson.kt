@@ -29,5 +29,9 @@ inline fun <reified K, reified V> ObjectMapper.readMap(value: String): Map<K, V>
 )
 
 fun serialize(value: Any): String = objectMapper.writeValueAsString(value)
+inline fun <reified T> List<T>.serialize(): String {
+    val listType = objectMapper.typeFactory.constructCollectionLikeType(List::class.java, T::class.java)
+    return objectMapper.writerFor(listType).writeValueAsString(this)
+}
 
 inline fun <reified T> deserialize(value: String): T = objectMapper.readValue(value)

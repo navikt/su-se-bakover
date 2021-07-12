@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.AttesteringHistorik
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -122,7 +122,7 @@ internal class RevurderingStatistikkMapperTest {
             },
             simulering = mock(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2"), Tidspunkt.now(fixedClock))),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2"), Tidspunkt.now(fixedClock))),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
@@ -191,7 +191,7 @@ internal class RevurderingStatistikkMapperTest {
             beregning = mock {
                 on { this.periode } doReturn periode
             },
-            attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2"), Tidspunkt.now(fixedClock))),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2"), Tidspunkt.now(fixedClock))),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,

@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.AttesteringHistorik
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -263,10 +263,10 @@ internal class OppdaterRevurderingServiceTest {
                     fritekstTilBrev = it.fritekstTilBrev,
                     revurderingsårsak = it.revurderingsårsak,
                     beregning = mock(),
-                    attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(
+                    attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(
                         Attestering.Iverksatt(
                             attestant = NavIdentBruker.Attestant("navIdent"),
-                            tidspunkt = fixedTidspunkt
+                            opprettet = fixedTidspunkt
                         )
                     ),
                     behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,

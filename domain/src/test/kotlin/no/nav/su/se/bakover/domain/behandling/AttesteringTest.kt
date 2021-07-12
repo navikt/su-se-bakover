@@ -18,8 +18,8 @@ internal class AttesteringTest {
         val expected = """
            {
            "type": "Iverksatt",
-           "attestant": "I1337"
-           "tidspunkt": $tidspunkt
+           "attestant": "I1337",
+           "opprettet": "$tidspunkt"
            }
         """.trimIndent()
         val actual = objectMapper.writeValueAsString(Attestering.Iverksatt(attestant, tidspunkt))
@@ -34,7 +34,7 @@ internal class AttesteringTest {
            {
            "type": "Iverksatt",
            "attestant": "I1337",
-           "tidspunkt": $tidspunkt
+           "opprettet": "$tidspunkt"
            }
         """.trimIndent()
         val deserialized: Attestering = objectMapper.readValue(json)
@@ -52,7 +52,7 @@ internal class AttesteringTest {
            "attestant": "I1337", 
            "grunn": "BEREGNINGEN_ER_FEIL", 
            "kommentar": "Kan ikke dele på 0",
-           "tidspunkt": $tidspunkt
+           "opprettet": "$tidspunkt"
            }
         """.trimIndent()
         val actual = objectMapper.writeValueAsString(
@@ -60,7 +60,7 @@ internal class AttesteringTest {
                 attestant = NavIdentBruker.Attestant("I1337"),
                 grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
                 kommentar = "Kan ikke dele på 0",
-                tidspunkt = tidspunkt
+                opprettet = tidspunkt
             )
         )
 
@@ -76,7 +76,7 @@ internal class AttesteringTest {
            "attestant": "I1337", 
            "grunn": "BEREGNINGEN_ER_FEIL", 
            "kommentar": "Kan ikke dele på 0",
-           "tidspunkt": $tidspunkt
+           "opprettet": "$tidspunkt"
              }
         
         """.trimIndent()
@@ -85,7 +85,7 @@ internal class AttesteringTest {
             attestant = NavIdentBruker.Attestant("I1337"),
             grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
             kommentar = "Kan ikke dele på 0",
-            tidspunkt = tidspunkt
+            opprettet = tidspunkt
         )
 
         actual shouldBe expected

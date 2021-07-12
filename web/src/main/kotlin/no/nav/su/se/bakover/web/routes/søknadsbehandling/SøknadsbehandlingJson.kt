@@ -123,10 +123,12 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                     when (it) {
                         is Attestering.Iverksatt -> AttesteringJson(
                             attestant = it.attestant.navIdent,
+                            opprettet = it.opprettet,
                             underkjennelse = null,
                         )
                         is Attestering.Underkjent -> AttesteringJson(
                             attestant = it.attestant.navIdent,
+                            opprettet = it.opprettet,
                             underkjennelse = UnderkjennelseJson(
                                 grunn = it.grunn.toString(),
                                 kommentar = it.kommentar,

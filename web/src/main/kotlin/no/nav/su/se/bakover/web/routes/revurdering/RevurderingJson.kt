@@ -295,6 +295,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         saksbehandler = saksbehandler.toString(),
         attestering = AttesteringJson(
             attestant = attestering.attestant.navIdent,
+            opprettet = attestering.opprettet,
             underkjennelse = UnderkjennelseJson(
                 grunn = attestering.grunn.toString(),
                 kommentar = attestering.kommentar,

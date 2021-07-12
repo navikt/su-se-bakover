@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.AttesteringHistorik
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -251,7 +251,7 @@ internal class StatistikkServiceImplTest {
             on { status } doReturn BehandlingsStatus.IVERKSATT_INNVILGET
             on { beregning } doReturn beregningMock
             on { saksbehandler } doReturn NavIdentBruker.Saksbehandler("55")
-            on { attesteringer } doReturn AttesteringHistorik.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("56"), Tidspunkt.now()))
+            on { attesteringer } doReturn Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("56"), Tidspunkt.now()))
             on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
         }
 
@@ -300,7 +300,7 @@ internal class StatistikkServiceImplTest {
             on { saksnummer } doReturn Saksnummer(5959)
             on { status } doReturn BehandlingsStatus.IVERKSATT_AVSLAG
             on { saksbehandler } doReturn NavIdentBruker.Saksbehandler("55")
-            on { attesteringer } doReturn AttesteringHistorik.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("56"), Tidspunkt.now()))
+            on { attesteringer } doReturn Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("56"), Tidspunkt.now()))
             on { avslagsgrunner } doReturn listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER)
             on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
         }
@@ -356,12 +356,12 @@ internal class StatistikkServiceImplTest {
             beregning = beregning,
             simulering = mock(),
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-            attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(
                 Attestering.Underkjent(
                     attestant = NavIdentBruker.Attestant("attestant"),
                     grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                     kommentar = "",
-                    tidspunkt = Tidspunkt.now(clock)
+                    opprettet = Tidspunkt.now(clock)
                 )
             ),
             fritekstTilBrev = "",
@@ -550,7 +550,7 @@ internal class StatistikkServiceImplTest {
                 periodeList = listOf(),
             ),
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), Tidspunkt.now(clock))),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), Tidspunkt.now(clock))),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,

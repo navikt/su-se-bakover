@@ -27,7 +27,7 @@ import no.nav.su.se.bakover.database.stønadsperiode
 import no.nav.su.se.bakover.database.underkjentAttestering
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.behandling.AttesteringHistorik
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -227,7 +227,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             stønadsperiode = stønadsperiode,
                             grunnlagsdata = tilAttestering.grunnlagsdata,
                             vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
-                            attesteringer = AttesteringHistorik.empty()
+                            attesteringer = Attesteringshistorikk.empty()
                         )
                     }
                 }
@@ -256,7 +256,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             stønadsperiode = stønadsperiode,
                             grunnlagsdata = Grunnlagsdata.EMPTY,
                             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-                            attesteringer = AttesteringHistorik.empty()
+                            attesteringer = Attesteringshistorikk.empty()
                         )
                     }
                 }
@@ -286,7 +286,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             stønadsperiode = stønadsperiode,
                             grunnlagsdata = tilAttestering.grunnlagsdata,
                             vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
-                            attesteringer = AttesteringHistorik.empty()
+                            attesteringer = Attesteringshistorikk.empty()
                         )
                     }
                 }
@@ -316,7 +316,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             beregning = beregning(),
                             simulering = simulering(tilAttestering.fnr),
                             saksbehandler = saksbehandler,
-                            attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(underkjentAttestering),
+                            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(underkjentAttestering),
                             fritekstTilBrev = "",
                             stønadsperiode = stønadsperiode,
                             grunnlagsdata = tilAttestering.grunnlagsdata,
@@ -345,7 +345,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
                             fnr = tilAttestering.fnr,
                             saksbehandler = saksbehandler,
-                            attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(underkjentAttestering),
+                            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(underkjentAttestering),
                             fritekstTilBrev = "",
                             stønadsperiode = stønadsperiode,
                             grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -375,7 +375,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             fnr = tilAttestering.fnr,
                             beregning = avslåttBeregning,
                             saksbehandler = saksbehandler,
-                            attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(underkjentAttestering),
+                            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(underkjentAttestering),
                             fritekstTilBrev = "",
                             stønadsperiode = stønadsperiode,
                             grunnlagsdata = tilAttestering.grunnlagsdata,
@@ -416,7 +416,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 behandlingsinformasjon = iverksatt.behandlingsinformasjon,
                 fnr = iverksatt.fnr,
                 saksbehandler = saksbehandler,
-                attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(iverksattAttestering),
+                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(iverksattAttestering),
                 fritekstTilBrev = "Dette er fritekst",
                 stønadsperiode = stønadsperiode,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -444,7 +444,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     fnr = iverksatt.fnr,
                     beregning = avslåttBeregning,
                     saksbehandler = saksbehandler,
-                    attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(iverksattAttestering),
+                    attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(iverksattAttestering),
                     fritekstTilBrev = "",
                     stønadsperiode = stønadsperiode,
                     grunnlagsdata = iverksatt.grunnlagsdata,
@@ -494,7 +494,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     fnr = iverksatt.fnr,
                     beregning = avslåttBeregning,
                     saksbehandler = saksbehandler,
-                    attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(iverksattAttestering),
+                    attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(iverksattAttestering),
                     fritekstTilBrev = "",
                     stønadsperiode = stønadsperiode,
                     grunnlagsdata = Grunnlagsdata(

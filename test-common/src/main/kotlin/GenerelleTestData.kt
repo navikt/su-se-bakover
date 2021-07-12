@@ -42,12 +42,12 @@ val attestant = NavIdentBruker.Attestant("attestant")
 
 val attesteringIverksatt = Attestering.Iverksatt(
     attestant = attestant,
-    tidspunkt = fixedTidspunkt
+    opprettet = fixedTidspunkt
 )
 
 val attesteringUnderkjent = Attestering.Underkjent(
     attestant = attestant,
     grunn = Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER,
     kommentar = "attesteringUnderkjent",
-    tidspunkt = fixedTidspunkt
+    opprettet = fixedTidspunkt
 )

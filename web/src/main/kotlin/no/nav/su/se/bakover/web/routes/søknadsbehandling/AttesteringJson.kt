@@ -1,23 +1,27 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.AttesteringHistorik
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 
 internal data class AttesteringJson(
     val attestant: String,
-    val underkjennelse: UnderkjennelseJson?
+    val underkjennelse: UnderkjennelseJson?,
+    val opprettet: Tidspunkt
 ) {
     companion object {
-        internal fun AttesteringHistorik.toJson() = this.hentAttesteringer().map { it.toJson() }
+        internal fun Attesteringshistorikk.toJson() = this.hentAttesteringer().map { it.toJson() }
 
         internal fun Attestering.toJson() =
             when (this) {
                 is Attestering.Iverksatt -> AttesteringJson(
                     attestant = this.attestant.navIdent,
+                    opprettet = this.opprettet,
                     underkjennelse = null,
                 )
                 is Attestering.Underkjent -> AttesteringJson(
                     attestant = this.attestant.navIdent,
+                    opprettet = this.opprettet,
                     underkjennelse = UnderkjennelseJson(
                         grunn = this.grunn.toString(),
                         kommentar = this.kommentar,

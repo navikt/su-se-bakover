@@ -600,7 +600,7 @@ internal class StatusovergangTest {
                         attestant = NavIdentBruker.Attestant("sneaky"),
                         grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                         kommentar = "",
-                        tidspunkt = fixedTidspunkt
+                        opprettet = fixedTidspunkt
                     ),
                 ),
             ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
@@ -615,7 +615,7 @@ internal class StatusovergangTest {
                         attestant = NavIdentBruker.Attestant("sneaky"),
                         grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                         kommentar = "",
-                        tidspunkt = fixedTidspunkt
+                        opprettet = fixedTidspunkt
                     ),
                 ),
             ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
@@ -630,7 +630,7 @@ internal class StatusovergangTest {
                         attestant = NavIdentBruker.Attestant("sneaky"),
                         grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                         kommentar = "",
-                        tidspunkt = fixedTidspunkt
+                        opprettet = fixedTidspunkt
                     ),
                 ),
             ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()

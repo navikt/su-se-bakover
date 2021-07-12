@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.database.vedtak.VedtakPosgresRepo
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.AttesteringHistorik
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -106,8 +106,9 @@ internal class RevurderingPostgresRepo(
         dataSource.withSession { session ->
             "select * from revurdering where id = :id"
                 .hent(mapOf("id" to id), session) { row ->
-                    row.stringOrNull("attestering")?.let {
-                        objectMapper.readValue(it)
+                    row.string("attestering").let {
+                        val attesteringer = objectMapper.readValue<Attesteringshistorikk>(it)
+                        attesteringer.hentAttesteringer().lastOrNull()
                     }
                 }
         }
@@ -172,7 +173,7 @@ internal class RevurderingPostgresRepo(
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val saksbehandler = string("saksbehandler")
         val oppgaveId = stringOrNull("oppgaveid")
-        val attesteringer = string("attestering").let { objectMapper.readValue<AttesteringHistorik>(it) }
+        val attesteringer = string("attestering").let { objectMapper.readValue<Attesteringshistorikk>(it) }
         val fritekstTilBrev = stringOrNull("fritekstTilBrev")
         val årsak = string("årsak")
         val begrunnelse = string("begrunnelse")
@@ -498,7 +499,7 @@ internal class RevurderingPostgresRepo(
                         :saksbehandler,
                         :oppgaveId,
                         '${RevurderingsType.OPPRETTET}',
-                        null,
+                        jsonb_build_array(),
                         :vedtakSomRevurderesId,
                         :fritekstTilBrev,
                         :arsak,
@@ -516,7 +517,7 @@ internal class RevurderingPostgresRepo(
                         saksbehandler=:saksbehandler,
                         oppgaveId=:oppgaveId,
                         revurderingsType='${RevurderingsType.OPPRETTET}',
-                        attestering=null,
+                        attestering=to_json(:attestering::json),
                         vedtakSomRevurderesId=:vedtakSomRevurderesId,
                         fritekstTilBrev=:fritekstTilBrev,
                         årsak=:arsak,
@@ -541,6 +542,7 @@ internal class RevurderingPostgresRepo(
                     },
                     "behandlingsinformasjon" to objectMapper.writeValueAsString(revurdering.behandlingsinformasjon),
                     "informasjonSomRevurderes" to objectMapper.writeValueAsString(revurdering.informasjonSomRevurderes),
+                    "attestering" to revurdering.attesteringer.hentAttesteringer().serialize()
                 ),
                 session,
             )
@@ -690,7 +692,7 @@ internal class RevurderingPostgresRepo(
                         is IverksattRevurdering.Opphørt -> objectMapper.writeValueAsString(revurdering.simulering)
                     },
                     "oppgaveId" to revurdering.oppgaveId.toString(),
-                    "attestering" to objectMapper.writeValueAsString(revurdering.attestering),
+                    "attestering" to revurdering.attesteringer.hentAttesteringer().serialize(),
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                     "revurderingsType" to when (revurdering) {
@@ -721,7 +723,7 @@ internal class RevurderingPostgresRepo(
                 mapOf(
                     "id" to revurdering.id,
                     "oppgaveId" to revurdering.oppgaveId.toString(),
-                    "attestering" to objectMapper.writeValueAsString(revurdering.attestering),
+                    "attestering" to revurdering.attesteringer.hentAttesteringer().serialize(),
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                     "revurderingsType" to when (revurdering) {

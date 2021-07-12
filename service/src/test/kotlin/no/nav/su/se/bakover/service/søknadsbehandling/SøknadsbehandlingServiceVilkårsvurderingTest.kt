@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.AttesteringHistorik
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
@@ -188,7 +188,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             beregning = testBeregning,
             simulering = simulering,
             saksbehandler = saksbehandler,
-            attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
             fritekstTilBrev = "",
             stønadsperiode = opprettetBehandling.stønadsperiode!!,
             grunnlagsdata = Grunnlagsdata.EMPTY,

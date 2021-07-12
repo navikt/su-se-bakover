@@ -19,5 +19,5 @@ interface Behandling {
     val periode: Periode
     val grunnlagsdata: Grunnlagsdata
     val vilkårsvurderinger: Vilkårsvurderinger
-    val attesteringer: AttesteringHistorik
+    val attesteringer: Attesteringshistorikk
 }

@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.AttesteringHistorik
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
@@ -579,7 +579,7 @@ internal class OpprettRevurderingServiceTest {
                 oppgaveId = OppgaveId("null"),
                 beregning = opprinneligVedtak.beregning,
                 simulering = opprinneligVedtak.simulering,
-                attesteringer = AttesteringHistorik.empty().leggTilNyAttestering(Attestering.Iverksatt(opprinneligVedtak.attestant, fixedTidspunkt)),
+                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(opprinneligVedtak.attestant, fixedTidspunkt)),
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,

@@ -14,7 +14,7 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.behandling.AttesteringHistorik
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -162,7 +162,7 @@ class OppdaterStønadsperiodeTest {
             stønadsperiode = BehandlingTestUtils.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            attesteringer = AttesteringHistorik.empty()
+            attesteringer = Attesteringshistorikk.empty()
         )
 
         val serviceMock = mock<SøknadsbehandlingService> {

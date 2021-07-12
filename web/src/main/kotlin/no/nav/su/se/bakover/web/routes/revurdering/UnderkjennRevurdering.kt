@@ -44,7 +44,7 @@ data class UnderkjennBody(
                 attestant = NavIdentBruker.Attestant(navIdent),
                 grunn = Attestering.Underkjent.Grunn.valueOf(this.grunn),
                 kommentar = this.kommentar,
-                tidspunkt = Tidspunkt.now()
+                opprettet = Tidspunkt.now()
             ).right()
         }
         return HttpStatusCode.BadRequest.errorJson(
