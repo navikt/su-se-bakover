@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.ÅpenBehandling
+import no.nav.su.se.bakover.domain.behandling.Restans
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -233,10 +233,10 @@ open class AccessCheckProxy(
                     return services.sak.opprettSak(sak)
                 }
 
-                override fun hentÅpneBehandlingerForAlleSaker(): List<ÅpenBehandling> {
+                override fun hentRestanserForAlleSaker(): List<Restans> {
                     // vi gjør ikke noe assert fordi vi ikke sender noe sensitiv info.
                     // Samtidig som at dem går gjennom hentSak() når de skal saksbehandle
-                    return services.sak.hentÅpneBehandlingerForAlleSaker()
+                    return services.sak.hentRestanserForAlleSaker()
                 }
             },
             søknad = object : SøknadService {

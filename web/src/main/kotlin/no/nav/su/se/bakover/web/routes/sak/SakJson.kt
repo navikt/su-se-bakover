@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.behandling.ÅpenBehandling
+import no.nav.su.se.bakover.domain.behandling.Restans
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -129,11 +129,11 @@ internal data class ÅpenBehandlingJson(
     val opprettet: String,
 ) {
     companion object {
-        fun List<ÅpenBehandling>.toJson() = this.map {
+        fun List<Restans>.toJson() = this.map {
             ÅpenBehandlingJson(
                 saksnummer = it.saksnummer.toString(),
                 behandlingId = it.behandlingsId.toString(),
-                typeBehandling = it.åpenBehandlingType.toString(),
+                typeBehandling = it.restansType.toString(),
                 status = it.status.toString(),
                 opprettet = it.opprettet.toString(),
             )

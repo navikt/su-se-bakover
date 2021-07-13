@@ -271,7 +271,7 @@ internal class VedtakPosgresRepoTest {
                 skalFøreTilBrevutsending = true,
                 forhåndsvarsel = null,
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
-                grunnlagsdata = Grunnlagsdata.EMPTY,
+                grunnlagsdata = søknadsbehandlingVedtak.behandling.grunnlagsdata,
                 vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             )

@@ -88,7 +88,7 @@ internal fun Route.sakRoutes(
     }
     authorize(Brukerrolle.Saksbehandler) {
         get("$sakPath/") {
-            val sakerMedÅpneBehandlinger = sakService.hentÅpneBehandlingerForAlleSaker()
+            val sakerMedÅpneBehandlinger = sakService.hentRestanserForAlleSaker()
             call.svar(Resultat.json(OK, serialize(sakerMedÅpneBehandlinger.toJson())))
         }
     }

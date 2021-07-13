@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database
 
+import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -51,11 +52,15 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -334,7 +339,7 @@ internal class TestDataHelper(
                     attestant = attestant,
                 ) { utbetaling.id.right() }.orNull()!!,
                 utbetalingId = utbetaling.id,
-                fixedClock
+                fixedClock,
             ).also {
                 vedtakRepo.lagre(it)
             },
@@ -342,7 +347,12 @@ internal class TestDataHelper(
         )
     }
 
-    fun nyRevurdering(innvilget: Vedtak.EndringIYtelse, periode: Periode, epsFnr: Fnr? = null): OpprettetRevurdering {
+    fun nyRevurdering(
+        innvilget: Vedtak.EndringIYtelse,
+        periode: Periode,
+        epsFnr: Fnr? = null,
+        //vilkårsvurderinger: Vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+    ): OpprettetRevurdering {
         val revurderingId = UUID.randomUUID()
         val grunnlagsdata = if (epsFnr == null) Grunnlagsdata.EMPTY else Grunnlagsdata(
             bosituasjon = listOf(
@@ -376,6 +386,75 @@ internal class TestDataHelper(
         ).also {
             revurderingRepo.lagre(it)
             grunnlagRepo.lagreBosituasjongrunnlag(revurderingId, grunnlagsdata.bosituasjon)
+        }
+    }
+
+    fun beregnetOpphørtRevurdering(): BeregnetRevurdering {
+        val vedtak = vedtakMedInnvilgetSøknadsbehandling()
+        return nyRevurdering(
+            innvilget = vedtak.first,
+            periode = stønadsperiode.periode,
+            /*vilkårsvurderinger = Vilkårsvurderinger(
+                uføre = Vilkår.Uførhet.Vurdert.create(
+                    vurderingsperioder = nonEmptyListOf(
+                        Vurderingsperiode.Uføre.create(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            resultat = Resultat.Avslag,
+                            grunnlag = Grunnlag.Uføregrunnlag(
+                                opprettet = fixedTidspunkt,
+                                periode = stønadsperiode.periode,
+                                uføregrad = Uføregrad.parse(20),
+                                forventetInntekt = 10,
+                            ),
+                            periode = stønadsperiode.periode,
+                            begrunnelse = null,
+                        ),
+                    ),
+                ),
+                formue = Vilkår.Formue.IkkeVurdert,
+            ),*/
+            epsFnr = null,
+        ).beregn(
+            listOf(vedtak.second),
+        ).getOrHandle {
+            throw java.lang.IllegalStateException("Her skal vi ha en beregnet revurdering")
+        }.also {
+            revurderingRepo.lagre(it)
+        }
+    }
+
+    fun simulertOpphørtRevurdering(): SimulertRevurdering {
+        return beregnetOpphørtRevurdering().toSimulert(simulering(FnrGenerator.random())).also {
+            revurderingRepo.lagre(it)
+        }
+    }
+
+    fun tilAttesteringRevurdering(): RevurderingTilAttestering {
+        val simulert = simulertOpphørtRevurdering()
+        return when (simulert) {
+            is SimulertRevurdering.Innvilget -> simulert.tilAttestering(
+                attesteringsoppgaveId = oppgaveId,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "",
+                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            )
+            is SimulertRevurdering.Opphørt -> simulert.tilAttestering(
+                attesteringsoppgaveId = oppgaveId,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "",
+                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            ).getOrHandle {
+                throw java.lang.IllegalStateException("Her skal vi ha en revurdering som er til attestering")
+            }
+        }.also {
+            revurderingRepo.lagre(it)
+        }
+    }
+
+    fun underkjentRevurdering(): UnderkjentRevurdering {
+        return tilAttesteringRevurdering().underkjenn(underkjentAttestering, OppgaveId("oppgaveid")).also {
+            revurderingRepo.lagre(it)
         }
     }
 
