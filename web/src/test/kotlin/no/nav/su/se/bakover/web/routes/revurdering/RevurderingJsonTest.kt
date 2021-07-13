@@ -872,14 +872,14 @@ internal class RevurderingJsonTest {
                     "fraOgMed": "2020-01-01",
                     "tilOgMed": "2020-12-31"
                 },
-                "attestering": {
+                "attesteringer": [{
                     "attestant": "attestant",
                     "opprettet": "$attesteringOpprettet",
                     "underkjennelse": {
                         "grunn": "DOKUMENTASJON_MANGLER",
                         "kommentar": "Dokumentasjon mangler"
                     }
-                },
+                }],
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
@@ -976,14 +976,14 @@ internal class RevurderingJsonTest {
                     "fraOgMed": "2020-01-01",
                     "tilOgMed": "2020-12-31"
                 },
-                "attestering": {
+                "attesteringer": [{
                     "attestant": "attestant",
                     "opprettet": "$attesteringOpprettet",
                     "underkjennelse": {
                         "grunn": "DOKUMENTASJON_MANGLER",
                         "kommentar": "Dokumentasjon mangler"
                     }
-                },
+                }],
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
@@ -1077,14 +1077,14 @@ internal class RevurderingJsonTest {
                     "fraOgMed": "2020-01-01",
                     "tilOgMed": "2020-12-31"
                 },
-                "attestering": {
+                "attesteringer": [{
                     "attestant": "attestant",
                     "opprettet": "$attesteringOpprettet",
                     "underkjennelse": {
                         "grunn": "DOKUMENTASJON_MANGLER",
                         "kommentar": "Dokumentasjon mangler"
                     }
-                },
+                }],
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": false,
                 "årsak": "MELDING_FRA_BRUKER",

@@ -17,9 +17,9 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.AttesteringJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.AttesteringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.UnderkjennelseJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.Companion.toJson
@@ -151,7 +151,7 @@ internal data class UnderkjentRevurderingJson(
     val skalFøreTilBrevutsending: Boolean,
     val årsak: String,
     val begrunnelse: String,
-    val attestering: AttesteringJson,
+    val attesteringer: List<AttesteringJson>,
     val status: RevurderingsStatus,
     val forhåndsvarsel: ForhåndsvarselJson?,
     val simulering: SimuleringJson?,
@@ -293,14 +293,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             revurdert = beregning.toJson(),
         ),
         saksbehandler = saksbehandler.toString(),
-        attestering = AttesteringJson(
-            attestant = attestering.attestant.navIdent,
-            opprettet = attestering.opprettet,
-            underkjennelse = UnderkjennelseJson(
-                grunn = attestering.grunn.toString(),
-                kommentar = attestering.kommentar,
-            ),
-        ),
+        attesteringer = attesteringer.toJson(),
         fritekstTilBrev = fritekstTilBrev,
         skalFøreTilBrevutsending = when (this) {
             is UnderkjentRevurdering.IngenEndring -> skalFøreTilBrevutsending
