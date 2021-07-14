@@ -8,8 +8,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.behandling.ÅpenBehandling
-import no.nav.su.se.bakover.domain.behandling.ÅpenBehandling.Companion.tilÅpenBehandling
+import no.nav.su.se.bakover.domain.behandling.Restans
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.slf4j.LoggerFactory
@@ -44,21 +43,7 @@ internal class SakServiceImpl(
         }
     }
 
-    override fun hentÅpneBehandlingerForAlleSaker(): List<ÅpenBehandling> {
-        val alleSaker = sakRepo.hentAlleSaker()
-
-        return alleSaker.flatMap { sak ->
-            val åpneSøknader = sak.hentÅpneSøknader().map {
-                it.tilÅpenBehandling(sak.saksnummer)
-            }
-            val åpneSøknadsbehandlinger = sak.hentÅpneSøknadsbehandlinger().map {
-                it.tilÅpenBehandling()
-            }
-            val åpneRevurderinger = sak.hentÅpneRevurderinger().map {
-                it.tilÅpenBehandling()
-            }
-
-            åpneSøknader + åpneSøknadsbehandlinger + åpneRevurderinger
-        }
+    override fun hentRestanserForAlleSaker(): List<Restans> {
+        return sakRepo.hentRestanser()
     }
 }
