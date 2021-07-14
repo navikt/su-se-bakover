@@ -499,7 +499,7 @@ internal class RevurderingPostgresRepo(
                         :saksbehandler,
                         :oppgaveId,
                         '${RevurderingsType.OPPRETTET}',
-                        jsonb_build_array(),
+                        to_jsonb(:attestering::jsonb),
                         :vedtakSomRevurderesId,
                         :fritekstTilBrev,
                         :arsak,
