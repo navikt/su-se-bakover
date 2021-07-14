@@ -123,7 +123,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "attesteringer": []
             }
             """.trimIndent()
 
@@ -205,7 +206,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "attesteringer": []
             }
             """.trimIndent()
 
@@ -287,7 +289,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "attesteringer": []
             }
             """.trimIndent()
 
@@ -369,7 +372,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "attesteringer": []
             }
             """.trimIndent()
 
@@ -456,7 +460,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "attesteringer": []
             }
             """.trimIndent()
 
@@ -543,7 +548,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "attesteringer": []
             }
             """.trimIndent()
 
@@ -631,7 +637,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "Vurdert",
                   "Inntekt": "Vurdert"
-                }
+                },
+                "attesteringer": []
             }
             """.trimIndent()
 
@@ -719,7 +726,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "attesteringer": []
             }
             """.trimIndent()
 
@@ -804,7 +812,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "attesteringer": []
             }
             """.trimIndent()
 
@@ -1174,7 +1183,6 @@ internal class RevurderingJsonTest {
                     "fraOgMed": "2020-01-01",
                     "tilOgMed": "2020-12-31"
                 },
-                "attestant": "attestant",
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
@@ -1203,7 +1211,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "attesteringer": [{"attestant":"attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}]
             }
             """.trimIndent()
 
@@ -1264,7 +1273,6 @@ internal class RevurderingJsonTest {
                     "fraOgMed": "2020-01-01",
                     "tilOgMed": "2020-12-31"
                 },
-                "attestant": "attestant",
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
@@ -1293,7 +1301,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "attesteringer": [{"attestant": "attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}]
             }
             """.trimIndent()
 
@@ -1351,7 +1360,6 @@ internal class RevurderingJsonTest {
                     "fraOgMed": "2020-01-01",
                     "tilOgMed": "2020-12-31"
                 },
-                "attestant": "attestant",
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
@@ -1380,7 +1388,9 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "attesteringer": [{"attestant": "attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}]
+
             }
             """.trimIndent()
 
