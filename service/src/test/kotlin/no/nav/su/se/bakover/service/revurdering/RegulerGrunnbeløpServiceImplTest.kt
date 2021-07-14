@@ -331,6 +331,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
+            attesteringer = Attesteringshistorikk.empty()
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering
@@ -393,6 +394,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 on { resultat } doReturn Resultat.Innvilget
             },
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            attesteringer = Attesteringshistorikk.empty()
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -511,6 +513,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 on { resultat } doReturn Resultat.Innvilget
             },
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {

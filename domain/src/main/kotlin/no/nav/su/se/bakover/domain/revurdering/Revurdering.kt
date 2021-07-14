@@ -364,7 +364,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
-        override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
+        override val attesteringer: Attesteringshistorikk,
     ) : BeregnetRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -405,7 +405,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
-        override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
+        override val attesteringer: Attesteringshistorikk,
     ) : BeregnetRevurdering() {
 
         fun tilAttestering(
@@ -456,7 +456,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
-        override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
+        override val attesteringer: Attesteringshistorikk,
     ) : BeregnetRevurdering() {
         override fun toSimulert(simulering: Simulering) = SimulertRevurdering.Opphørt(
             id = id,
@@ -517,7 +517,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
-        override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
+        override val attesteringer: Attesteringshistorikk,
     ) : SimulertRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -564,7 +564,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
-        override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
+        override val attesteringer: Attesteringshistorikk,
     ) : SimulertRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -661,7 +661,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
-        override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
+        override val attesteringer: Attesteringshistorikk,
     ) : RevurderingTilAttestering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -716,7 +716,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
-        override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
+        override val attesteringer: Attesteringshistorikk
     ) : RevurderingTilAttestering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -778,7 +778,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val grunnlagsdata: Grunnlagsdata,
         override val vilkårsvurderinger: Vilkårsvurderinger,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
-        override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
+        override val attesteringer: Attesteringshistorikk
     ) : RevurderingTilAttestering() {
 
         override fun accept(visitor: RevurderingVisitor) {

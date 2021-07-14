@@ -160,6 +160,7 @@ class RevurderingIngenEndringTest {
                         Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                     ),
                 ),
+                attesteringer = Attesteringshistorikk.empty()
             ),
             // beregningstypen er internal i domene modulen
             BeregnetRevurdering.IngenEndring::beregning,
@@ -197,6 +198,7 @@ class RevurderingIngenEndringTest {
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = vilkårsvurderingerMock,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            attesteringer = Attesteringshistorikk.empty()
         )
         val endretSaksbehandler = NavIdentBruker.Saksbehandler("endretSaksbehandler")
         val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
@@ -215,6 +217,7 @@ class RevurderingIngenEndringTest {
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = vilkårsvurderingerMock,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            attesteringer = Attesteringshistorikk.empty()
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn beregnetRevurdering
@@ -296,6 +299,7 @@ class RevurderingIngenEndringTest {
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            attesteringer = Attesteringshistorikk.empty()
         )
         val underkjentRevurdering = UnderkjentRevurdering.IngenEndring(
             id = revurderingId,
@@ -390,6 +394,7 @@ class RevurderingIngenEndringTest {
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            attesteringer = Attesteringshistorikk.empty()
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
         val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant).orNull()!!
@@ -453,6 +458,7 @@ class RevurderingIngenEndringTest {
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            attesteringer = Attesteringshistorikk.empty()
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
         val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant).orNull()!!
