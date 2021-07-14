@@ -101,4 +101,25 @@ internal class AttesteringshistorikkTest {
 
         Attesteringshistorikk(deserialized) shouldBe expected
     }
+
+    @Test
+    fun `legger till attestering i sluttet av listen`() {
+        val opprettet = Tidspunkt.now(fixedClock)
+        val attestering1 = Attestering.Underkjent(
+            NavIdentBruker.Attestant("Attestant2"),
+            opprettet.plus(1, ChronoUnit.DAYS), Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL, "kommentar"
+        )
+        val attestering2 = Attestering.Underkjent(
+            NavIdentBruker.Attestant("Attestant2"),
+            opprettet.plus(2, ChronoUnit.DAYS), Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL, "kommentar"
+        )
+        val attestering3 = Attestering.Iverksatt(NavIdentBruker.Attestant("Attestant1"), opprettet.plus(3, ChronoUnit.DAYS))
+
+        val actual = Attesteringshistorikk.empty()
+            .leggTilNyAttestering(attestering1)
+            .leggTilNyAttestering(attestering2)
+            .leggTilNyAttestering(attestering3)
+
+        actual.hentAttesteringer() shouldBe listOf(attestering1, attestering2, attestering3)
+    }
 }
