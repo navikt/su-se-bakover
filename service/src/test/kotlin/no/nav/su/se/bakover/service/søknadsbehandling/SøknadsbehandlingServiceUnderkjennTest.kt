@@ -98,6 +98,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.EMPTY,
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+        attesteringer = Attesteringshistorikk.empty()
     )
 
     private val oppgaveConfig = OppgaveConfig.Saksbehandling(

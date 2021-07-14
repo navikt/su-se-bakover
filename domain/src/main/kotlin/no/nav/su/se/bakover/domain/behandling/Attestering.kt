@@ -5,26 +5,20 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.NavIdentBruker
 
-data class Attesteringshistorikk(private val attesteringer: MutableList<Attestering>) {
-    init {
-        attesteringer.sortBy {
-            it.opprettet.instant
-        }
-    }
+data class Attesteringshistorikk(val attesteringer: List<Attestering>) {
+    private val sortedAttesteringer = attesteringer.sortedBy { it.opprettet.instant }
 
     companion object {
         fun empty(): Attesteringshistorikk {
-            return Attesteringshistorikk(mutableListOf())
+            return Attesteringshistorikk(listOf())
         }
     }
     fun leggTilNyAttestering(attestering: Attestering): Attesteringshistorikk {
-        this.attesteringer.add(attestering)
-
-        return this.copy()
+        return this.copy(attesteringer = sortedAttesteringer + attestering)
     }
 
-    fun hentSisteAttestering() = attesteringer.last()
-    fun hentAttesteringer(): List<Attestering> = attesteringer.toList()
+    fun hentSisteAttestering() = sortedAttesteringer.last()
+    fun hentAttesteringer(): List<Attestering> = sortedAttesteringer
 }
 
 @JsonTypeInfo(

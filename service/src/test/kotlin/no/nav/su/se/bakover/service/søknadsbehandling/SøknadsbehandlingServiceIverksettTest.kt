@@ -451,6 +451,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 stønadsperiode = it.stønadsperiode,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
                 vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+                attesteringer = Attesteringshistorikk.empty()
             )
         }
 
@@ -499,6 +500,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            attesteringer = Attesteringshistorikk.empty()
         )
 
     private fun avslagTilAttestering() =

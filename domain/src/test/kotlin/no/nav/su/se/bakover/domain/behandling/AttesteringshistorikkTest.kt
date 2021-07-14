@@ -1,10 +1,9 @@
 package no.nav.su.se.bakover.domain.behandling
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -62,6 +61,16 @@ internal class AttesteringshistorikkTest {
     }
 
     @Test
+    fun `serializerer tom liste riktig`() {
+        val actual = Attesteringshistorikk(listOf()).hentAttesteringer().serialize()
+        val expected = """
+                []
+        """.trimIndent()
+
+        JSONAssert.assertEquals(expected, actual, true)
+    }
+
+    @Test
     fun `deserializerer riktig`() {
         val opprettet = Tidspunkt.now(fixedClock)
         val attestering1 = Attestering.Iverksatt(NavIdentBruker.Attestant("Attestant1"), opprettet)
@@ -87,9 +96,9 @@ internal class AttesteringshistorikkTest {
                 ]
         """.trimIndent()
 
-        val deserialized: Attesteringshistorikk = objectMapper.readValue(json)
+        val deserialized: List<Attestering> = json.deserializeList()
         val expected = Attesteringshistorikk(mutableListOf(attestering1, attestering2))
 
-        deserialized shouldBe expected
+        Attesteringshistorikk(deserialized) shouldBe expected
     }
 }

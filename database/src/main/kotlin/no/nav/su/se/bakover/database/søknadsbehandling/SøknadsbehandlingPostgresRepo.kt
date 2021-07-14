@@ -102,7 +102,7 @@ internal class SøknadsbehandlingPostgresRepo(
             "select b.attestering from behandling b where b.id=:id"
                 .hent(mapOf("id" to id), session) { row ->
                     row.stringOrNull("attestering")?.let {
-                        val attesteringer = objectMapper.readValue<Attesteringshistorikk>(it)
+                        val attesteringer = Attesteringshistorikk(objectMapper.readValue(it))
                         attesteringer.hentAttesteringer().lastOrNull()
                     }
                 }
@@ -145,7 +145,7 @@ internal class SøknadsbehandlingPostgresRepo(
         val oppgaveId = OppgaveId(string("oppgaveId"))
         val beregning = stringOrNull("beregning")?.let { objectMapper.readValue<PersistertBeregning>(it) }
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
-        val attesteringer = string("attestering").let { objectMapper.readValue<Attesteringshistorikk>(it) }
+        val attesteringer = string("attestering").let { Attesteringshistorikk(objectMapper.readValue(it)) }
         val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }
         val saksnummer = Saksnummer(long("saksnummer"))
         val fritekstTilBrev = stringOrNull("fritekstTilBrev") ?: ""

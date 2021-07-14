@@ -107,7 +107,7 @@ internal class RevurderingPostgresRepo(
             "select * from revurdering where id = :id"
                 .hent(mapOf("id" to id), session) { row ->
                     row.string("attestering").let {
-                        val attesteringer = objectMapper.readValue<Attesteringshistorikk>(it)
+                        val attesteringer = Attesteringshistorikk(objectMapper.readValue(it))
                         attesteringer.hentAttesteringer().lastOrNull()
                     }
                 }
@@ -173,7 +173,7 @@ internal class RevurderingPostgresRepo(
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val saksbehandler = string("saksbehandler")
         val oppgaveId = stringOrNull("oppgaveid")
-        val attesteringer = string("attestering").let { objectMapper.readValue<Attesteringshistorikk>(it) }
+        val attesteringer = Attesteringshistorikk(objectMapper.readValue(string("attestering")))
         val fritekstTilBrev = stringOrNull("fritekstTilBrev")
         val årsak = string("årsak")
         val begrunnelse = string("begrunnelse")
@@ -499,7 +499,7 @@ internal class RevurderingPostgresRepo(
                         :saksbehandler,
                         :oppgaveId,
                         '${RevurderingsType.OPPRETTET}',
-                        :attestering,
+                        jsonb_build_array(),
                         :vedtakSomRevurderesId,
                         :fritekstTilBrev,
                         :arsak,
@@ -517,7 +517,7 @@ internal class RevurderingPostgresRepo(
                         saksbehandler=:saksbehandler,
                         oppgaveId=:oppgaveId,
                         revurderingsType='${RevurderingsType.OPPRETTET}',
-                        attestering=to_json(:attestering::json),
+                        attestering=to_jsonb(:attestering::jsonb),
                         vedtakSomRevurderesId=:vedtakSomRevurderesId,
                         fritekstTilBrev=:fritekstTilBrev,
                         årsak=:arsak,
@@ -673,7 +673,7 @@ internal class RevurderingPostgresRepo(
                         beregning = to_json(:beregning::json),
                         simulering = to_json(:simulering::json),
                         oppgaveId = :oppgaveId,
-                        attestering = to_json(:attestering::json),
+                        attestering = to_jsonb(:attestering::jsonb),
                         årsak = :arsak,
                         begrunnelse =:begrunnelse,
                         revurderingsType = :revurderingsType,
@@ -711,7 +711,7 @@ internal class RevurderingPostgresRepo(
                         revurdering
                     set
                         oppgaveId = :oppgaveId,
-                        attestering = to_json(:attestering::json),
+                        attestering = to_jsonb(:attestering::jsonb),
                         årsak = :arsak,
                         begrunnelse =:begrunnelse,
                         revurderingsType = :revurderingsType,
