@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
@@ -74,6 +75,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
     private val utbetalingId = UUID30.randomUUID()
     private val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))
     val opprettet = Tidspunkt.now(fixedClock)
+
     private val utbetaling = Utbetaling.OversendtUtbetaling.UtenKvittering(
         id = utbetalingId,
         opprettet = opprettet,
@@ -106,7 +108,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
+        ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant, Tidspunkt.now())))
 
         response shouldBe SøknadsbehandlingService.KunneIkkeIverksette.FantIkkeBehandling.left()
 
@@ -136,7 +138,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
-        ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
+        ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant, Tidspunkt.now())))
 
         response shouldBe SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeKontrollsimulere.left()
 
@@ -180,7 +182,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
-        ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
+        ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant, Tidspunkt.now())))
 
         response shouldBe SøknadsbehandlingService.KunneIkkeIverksette.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
 
@@ -217,7 +219,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
-        ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
+        ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant, Tidspunkt.now())))
 
         response shouldBe SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeUtbetale.left()
 
@@ -253,13 +255,14 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val vedtakRepoMock = mock<VedtakRepo>()
         val statistikkObserver = mock<EventObserver>()
 
+        val attesteringstidspunkt = Tidspunkt.now()
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
             behandlingMetrics = behandlingMetricsMock,
             vedtakRepo = vedtakRepoMock,
             observer = statistikkObserver,
-        ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
+        ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant, attesteringstidspunkt)))
 
         val expected = Søknadsbehandling.Iverksatt.Innvilget(
             id = behandling.id,
@@ -273,7 +276,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             beregning = behandling.beregning,
             simulering = behandling.simulering,
             saksbehandler = behandling.saksbehandler,
-            attestering = Attestering.Iverksatt(attestant),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, attesteringstidspunkt)),
             fritekstTilBrev = "",
             stønadsperiode = behandling.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -321,6 +324,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
     @Test
     fun `attesterer og iverksetter avslag hvis alt er ok`() {
         val behandling = avslagTilAttestering()
+        val attesteringstidspunkt = Tidspunkt.now()
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn behandling
@@ -352,7 +356,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             fnr = behandling.fnr,
             beregning = behandling.beregning,
             saksbehandler = behandling.saksbehandler,
-            attestering = Attestering.Iverksatt(attestant),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, attesteringstidspunkt)),
             fritekstTilBrev = "",
             stønadsperiode = behandling.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -369,7 +373,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             vedtakRepo = vedtakRepoMock,
             ferdigstillVedtakService = ferdigstillVedtakService,
             opprettVedtakssnapshotService = opprettVedtakssnapshotService,
-        ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
+        ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant, attesteringstidspunkt)))
 
         response shouldBe expectedAvslag.right()
 
@@ -418,7 +422,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
+        ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant, Tidspunkt.now())))
 
         response shouldBe SøknadsbehandlingService.KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
 
@@ -447,6 +451,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 stønadsperiode = it.stønadsperiode,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
                 vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+                attesteringer = Attesteringshistorikk.empty()
             )
         }
 
@@ -459,7 +464,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         assertThrows<StatusovergangVisitor.UgyldigStatusovergangException> {
             createSøknadsbehandlingService(
                 søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
+            ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant, Tidspunkt.now())))
 
             inOrder(søknadsbehandlingRepoMock, ferdigstillVedtakServiceMock) {
                 verify(søknadsbehandlingRepoMock).hent(behandling.id)
@@ -495,6 +500,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            attesteringer = Attesteringshistorikk.empty()
         )
 
     private fun avslagTilAttestering() =
@@ -520,6 +526,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            attesteringer = Attesteringshistorikk.empty()
         )
 
     private val beregning = TestBeregning

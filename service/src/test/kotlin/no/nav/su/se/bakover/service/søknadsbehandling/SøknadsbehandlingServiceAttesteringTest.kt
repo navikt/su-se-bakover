@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -82,6 +83,7 @@ class SøknadsbehandlingServiceAttesteringTest {
         stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.EMPTY,
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+        attesteringer = Attesteringshistorikk.empty()
     )
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("Z12345")
@@ -127,6 +129,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             stønadsperiode = simulertBehandling.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            attesteringer = Attesteringshistorikk.empty()
         )
 
         actual shouldBe expected.right()
@@ -283,6 +286,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             stønadsperiode = simulertBehandling.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            attesteringer = Attesteringshistorikk.empty()
         )
 
         actual shouldBe expected.right()

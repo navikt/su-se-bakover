@@ -476,7 +476,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     .apply {
                         response.status() shouldBe HttpStatusCode.OK
                         deserialize<BehandlingJson>(response.content!!).let { behandlingJson ->
-                            behandlingJson.attestering?.attestant shouldBe navIdentAttestant
+                            behandlingJson.attesteringer.last().attestant shouldBe navIdentAttestant
                             behandlingJson.status shouldBe "IVERKSATT_INNVILGET"
                             behandlingJson.saksbehandler shouldBe navIdentSaksbehandler
                         }

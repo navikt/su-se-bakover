@@ -112,7 +112,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
     class TilAttestering(
         private val saksbehandler: NavIdentBruker.Saksbehandler,
-        private val fritekstTilBrev: String
+        private val fritekstTilBrev: String,
     ) : Statusovergang<Nothing, Søknadsbehandling.TilAttestering>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {

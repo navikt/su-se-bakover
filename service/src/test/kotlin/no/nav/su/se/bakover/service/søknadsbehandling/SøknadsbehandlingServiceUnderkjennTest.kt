@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
@@ -64,7 +65,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
     private val underkjentAttestering = Attestering.Underkjent(
         attestant = NavIdentBruker.Attestant("a"),
         grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-        kommentar = "begrunnelse"
+        kommentar = "begrunnelse",
+        opprettet = Tidspunkt.now()
     )
 
     private val innvilgetBehandlingTilAttestering = Søknadsbehandling.TilAttestering.Innvilget(
@@ -96,6 +98,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.EMPTY,
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+        attesteringer = Attesteringshistorikk.empty()
     )
 
     private val oppgaveConfig = OppgaveConfig.Saksbehandling(
@@ -147,7 +150,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
     fun `Feil behandlingsstatus`() {
         val behandling: Søknadsbehandling.Iverksatt.Innvilget = innvilgetBehandlingTilAttestering.tilIverksatt(
             Attestering.Iverksatt(
-                NavIdentBruker.Attestant("attestant")
+                NavIdentBruker.Attestant("attestant"),
+                Tidspunkt.now()
             )
         )
 
@@ -212,7 +216,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
                 attestering = Attestering.Underkjent(
                     attestant = attestantSomErLikSaksbehandler,
                     grunn = underkjentAttestering.grunn,
-                    kommentar = underkjentAttestering.kommentar
+                    kommentar = underkjentAttestering.kommentar,
+                    opprettet = Tidspunkt.now()
                 )
             )
         )
@@ -355,7 +360,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             beregning = innvilgetBehandlingTilAttestering.beregning,
             simulering = innvilgetBehandlingTilAttestering.simulering,
             saksbehandler = innvilgetBehandlingTilAttestering.saksbehandler,
-            attestering = underkjentAttestering,
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(underkjentAttestering),
             fritekstTilBrev = "",
             stønadsperiode = innvilgetBehandlingTilAttestering.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -440,7 +445,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             beregning = innvilgetBehandlingTilAttestering.beregning,
             simulering = innvilgetBehandlingTilAttestering.simulering,
             saksbehandler = innvilgetBehandlingTilAttestering.saksbehandler,
-            attestering = underkjentAttestering,
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(underkjentAttestering),
             fritekstTilBrev = "",
             stønadsperiode = innvilgetBehandlingTilAttestering.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
