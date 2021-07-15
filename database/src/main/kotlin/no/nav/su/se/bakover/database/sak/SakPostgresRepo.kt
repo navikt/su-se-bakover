@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
-import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
@@ -18,6 +17,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.sak.SakRestans
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -28,6 +28,10 @@ internal class SakPostgresRepo(
     private val vedtakPosgresRepo: VedtakPosgresRepo,
     private val dbMetrics: DbMetrics,
 ) : SakRepo {
+    private val sakRestansRepo = SakRestansRepo(
+        dataSource = dataSource,
+        dbMetrics = dbMetrics,
+    )
 
     override fun hentSak(sakId: UUID): Sak? {
         return dbMetrics.timeQuery("hentSakId") {
@@ -67,16 +71,8 @@ internal class SakPostgresRepo(
         }
     }
 
-    override fun hentAlleSaker(): List<Sak> {
-        return dbMetrics.timeQuery("hentAlleSaker") {
-            dataSource.withSession { session ->
-                """
-                select * from sak
-            """.hentListe(emptyMap(), session) {
-                    it.toSak(session)
-                }
-            }
-        }
+    override fun hentSakRestanser(): List<SakRestans> {
+        return sakRestansRepo.hentSakRestanser()
     }
 
     private fun hentSakInternal(fnr: Fnr, session: Session): Sak? = "select * from sak where fnr=:fnr"
