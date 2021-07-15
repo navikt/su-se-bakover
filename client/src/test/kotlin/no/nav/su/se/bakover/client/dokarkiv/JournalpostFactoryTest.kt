@@ -11,8 +11,10 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
+import no.nav.su.se.bakover.domain.dokument.Dokument
 import org.junit.jupiter.api.Test
 import java.util.Base64
+import java.util.UUID
 import kotlin.random.Random
 
 internal class JournalpostFactoryTest {
@@ -32,7 +34,7 @@ internal class JournalpostFactoryTest {
         }
         JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
             it.shouldBeTypeOf<Journalpost.Vedtakspost>()
-            assertVedtakspost(it, brevdata)
+            assert(it, brevdata, DokumentKategori.VB)
         }
     }
 
@@ -45,7 +47,7 @@ internal class JournalpostFactoryTest {
 
         JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
             it.shouldBeTypeOf<Journalpost.Vedtakspost>()
-            assertVedtakspost(it, brevdata)
+            assert(it, brevdata, DokumentKategori.VB)
         }
     }
 
@@ -57,7 +59,7 @@ internal class JournalpostFactoryTest {
         }
         JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
             it.shouldBeTypeOf<Journalpost.Info>()
-            assertInfopost(it, brevdata)
+            assert(it, brevdata, DokumentKategori.IB)
         }
     }
 
@@ -69,7 +71,7 @@ internal class JournalpostFactoryTest {
         }
         JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
             it.shouldBeTypeOf<Journalpost.Vedtakspost>()
-            assertVedtakspost(it, brevdata)
+            assert(it, brevdata, DokumentKategori.VB)
         }
     }
 
@@ -82,7 +84,7 @@ internal class JournalpostFactoryTest {
 
         JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
             it.shouldBeTypeOf<Journalpost.Info>()
-            assertInfopost(it, brevdata)
+            assert(it, brevdata, DokumentKategori.IB)
         }
     }
 
@@ -95,7 +97,7 @@ internal class JournalpostFactoryTest {
 
         JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
             it.shouldBeTypeOf<Journalpost.Vedtakspost>()
-            assertVedtakspost(it, brevdata)
+            assert(it, brevdata, DokumentKategori.VB)
         }
     }
 
@@ -108,7 +110,7 @@ internal class JournalpostFactoryTest {
 
         JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
             it.shouldBeTypeOf<Journalpost.Vedtakspost>()
-            assertVedtakspost(it, brevdata)
+            assert(it, brevdata, DokumentKategori.VB)
         }
     }
 
@@ -121,21 +123,78 @@ internal class JournalpostFactoryTest {
 
         JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
             it.shouldBeTypeOf<Journalpost.Vedtakspost>()
-            assertVedtakspost(it, brevdata)
+            assert(it, brevdata, DokumentKategori.VB)
         }
     }
 
-    private fun assertVedtakspost(journalpost: Journalpost, brevInnhold: BrevInnhold) =
-        assertJournalpost(journalpost, brevInnhold, DokumentKategori.VB)
+    @Test
+    fun `lager vedtakspost for vedtak dokumentkategori vedtak`() {
+        val dokument = Dokument.Vedtak(
+            generertDokument = "".toByteArray(),
+            generertDokumentJson = """{"k":"v"}""",
+            metadata = Dokument.Metadata(
+                sakId = UUID.randomUUID(),
+                tittel = "tittel",
+                bestillBrev = true,
+            ),
+        )
 
-    private fun assertInfopost(journalpost: Journalpost, brevInnhold: BrevInnhold) =
-        assertJournalpost(journalpost, brevInnhold, DokumentKategori.IB)
+        JournalpostFactory.lagJournalpost(personMock, saksnummer, dokument).let {
+            it.shouldBeTypeOf<Journalpost.Vedtakspost>()
+            assert(it, dokument, DokumentKategori.VB)
+        }
+    }
 
-    private fun assertJournalpost(journalpost: Journalpost, brevInnhold: BrevInnhold, dokumentKategori: DokumentKategori) {
-        journalpost.tittel shouldBe brevInnhold.brevTemplate.tittel()
+    @Test
+    fun `lager infopost for dokumentkategori informasjon`() {
+        val dokument = Dokument.Informasjon(
+            generertDokument = "".toByteArray(),
+            generertDokumentJson = """{"k":"v"}""",
+            metadata = Dokument.Metadata(
+                sakId = UUID.randomUUID(),
+                tittel = "tittel",
+                bestillBrev = true,
+            ),
+        )
+
+        JournalpostFactory.lagJournalpost(personMock, saksnummer, dokument).let {
+            it.shouldBeTypeOf<Journalpost.Info>()
+            assert(it, dokument, DokumentKategori.IB)
+        }
+    }
+
+    private fun assert(
+        journalpost: Journalpost,
+        dokument: Dokument,
+        dokumentKategori: DokumentKategori,
+    ) = assertJournalpost(
+        journalpost = journalpost,
+        tittel = dokument.metadata.tittel,
+        pdfRequestJson = dokument.generertDokumentJson,
+        dokumentKategori = dokumentKategori,
+    )
+
+    private fun assert(
+        journalpost: Journalpost,
+        brevInnhold: BrevInnhold,
+        dokumentKategori: DokumentKategori,
+    ) = assertJournalpost(
+        journalpost = journalpost,
+        tittel = brevInnhold.brevTemplate.tittel(),
+        pdfRequestJson = brevInnhold.toJson(),
+        dokumentKategori = dokumentKategori,
+    )
+
+    private fun assertJournalpost(
+        journalpost: Journalpost,
+        tittel: String,
+        pdfRequestJson: String,
+        dokumentKategori: DokumentKategori,
+    ) {
+        journalpost.tittel shouldBe tittel
         journalpost.avsenderMottaker shouldBe AvsenderMottaker(
             id = personMock.ident.fnr.toString(),
-            navn = "${personMock.navn.etternavn}, ${personMock.navn.fornavn} ${personMock.navn.mellomnavn}"
+            navn = "${personMock.navn.etternavn}, ${personMock.navn.fornavn} ${personMock.navn.mellomnavn}",
         )
         journalpost.behandlingstema shouldBe "ab0431"
         journalpost.tema shouldBe "SUP"
@@ -146,15 +205,15 @@ internal class JournalpostFactoryTest {
         journalpost.sak shouldBe Fagsak(saksnummer.nummer.toString())
         journalpost.dokumenter shouldBe listOf(
             JournalpostDokument(
-                tittel = brevInnhold.brevTemplate.tittel(),
+                tittel = tittel,
                 dokumentKategori = dokumentKategori,
                 dokumentvarianter = listOf(
                     DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
                     DokumentVariant.OriginalJson(
-                        fysiskDokument = Base64.getEncoder().encodeToString(brevInnhold.toJson().toByteArray()),
-                    )
-                )
-            )
+                        fysiskDokument = Base64.getEncoder().encodeToString(pdfRequestJson.toByteArray()),
+                    ),
+                ),
+            ),
         )
     }
 }

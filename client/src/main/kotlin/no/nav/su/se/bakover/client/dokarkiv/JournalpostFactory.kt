@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
+import no.nav.su.se.bakover.domain.dokument.Dokument
 
 object JournalpostFactory {
     fun lagJournalpost(
@@ -18,10 +19,21 @@ object JournalpostFactory {
         BrevTemplate.Opphørsvedtak,
         BrevTemplate.Revurdering.Inntekt,
         BrevTemplate.VedtakIngenEndring,
-        -> Journalpost.Vedtakspost(person, saksnummer, brevInnhold, pdf)
+        -> Journalpost.Vedtakspost.from(person, saksnummer, brevInnhold, pdf)
         BrevTemplate.TrukketSøknad,
         BrevTemplate.AvvistSøknadFritekst,
         BrevTemplate.Forhåndsvarsel,
-        -> Journalpost.Info(person, saksnummer, brevInnhold, pdf)
+        -> Journalpost.Info.from(person, saksnummer, brevInnhold, pdf)
+    }
+
+    fun lagJournalpost(
+        person: Person,
+        saksnummer: Saksnummer,
+        dokument: Dokument,
+    ): Journalpost = when (dokument) {
+        is Dokument.Informasjon,
+        -> Journalpost.Info.from(person, saksnummer, dokument)
+        is Dokument.Vedtak,
+        -> Journalpost.Vedtakspost.from(person, saksnummer, dokument)
     }
 }

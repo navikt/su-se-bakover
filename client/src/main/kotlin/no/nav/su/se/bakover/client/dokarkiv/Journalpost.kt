@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.Tema
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
+import no.nav.su.se.bakover.domain.dokument.Dokument
 import java.util.Base64
 
 sealed class Journalpost {
@@ -32,7 +33,7 @@ sealed class Journalpost {
         override val tittel: String = "Søknad om supplerende stønad for uføre flyktninger"
         override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
             id = person.ident.fnr.toString(),
-            navn = søkersNavn(person)
+            navn = søkersNavn(person),
         )
         override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
         override val sak: Fagsak = Fagsak(saksnummer.nummer.toString())
@@ -50,22 +51,22 @@ sealed class Journalpost {
                     DokumentVariant.OriginalJson(
                         fysiskDokument = Base64.getEncoder()
                             .encodeToString(objectMapper.writeValueAsString(this).toByteArray()),
-                    )
-                )
-            )
+                    ),
+                ),
+            ),
         )
     }
 
-    data class Vedtakspost(
+    data class Vedtakspost private constructor(
         val person: Person,
         val saksnummer: Saksnummer,
-        val brevInnhold: BrevInnhold,
-        val pdf: ByteArray
+        val pdfRequestJson: String,
+        val pdf: ByteArray,
+        override val tittel: String,
     ) : Journalpost() {
-        override val tittel = brevInnhold.brevTemplate.tittel()
         override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
             id = person.ident.fnr.toString(),
-            navn = søkersNavn(person)
+            navn = søkersNavn(person),
         )
         override val sak: Fagsak = Fagsak(saksnummer.nummer.toString())
         override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
@@ -79,23 +80,50 @@ sealed class Journalpost {
                 dokumentvarianter = listOf(
                     DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
                     DokumentVariant.OriginalJson(
-                        fysiskDokument = Base64.getEncoder().encodeToString(brevInnhold.toJson().toByteArray()),
-                    )
-                )
-            )
+                        fysiskDokument = Base64.getEncoder().encodeToString(pdfRequestJson.toByteArray()),
+                    ),
+                ),
+            ),
         )
+
+        companion object {
+            fun from(
+                person: Person,
+                saksnummer: Saksnummer,
+                brevInnhold: BrevInnhold,
+                pdf: ByteArray,
+            ) = Vedtakspost(
+                person = person,
+                saksnummer = saksnummer,
+                pdfRequestJson = brevInnhold.toJson(),
+                pdf = pdf,
+                tittel = brevInnhold.brevTemplate.tittel(),
+            )
+
+            fun from(
+                person: Person,
+                saksnummer: Saksnummer,
+                dokument: Dokument,
+            ) = Vedtakspost(
+                person = person,
+                saksnummer = saksnummer,
+                pdfRequestJson = dokument.generertDokumentJson,
+                pdf = dokument.generertDokument,
+                tittel = dokument.metadata.tittel,
+            )
+        }
     }
 
-    data class Info(
+    data class Info private constructor(
         val person: Person,
         val saksnummer: Saksnummer,
-        val brevInnhold: BrevInnhold,
+        val pdfRequestJson: String,
         val pdf: ByteArray,
+        override val tittel: String,
     ) : Journalpost() {
-        override val tittel = brevInnhold.brevTemplate.tittel()
         override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
             id = person.ident.fnr.toString(),
-            navn = søkersNavn(person)
+            navn = søkersNavn(person),
         )
         override val sak: Fagsak = Fagsak(saksnummer.nummer.toString())
         override val bruker: Bruker = Bruker(id = person.ident.fnr.toString())
@@ -109,11 +137,38 @@ sealed class Journalpost {
                 dokumentvarianter = listOf(
                     DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
                     DokumentVariant.OriginalJson(
-                        fysiskDokument = Base64.getEncoder().encodeToString(brevInnhold.toJson().toByteArray()),
-                    )
-                )
-            )
+                        fysiskDokument = Base64.getEncoder().encodeToString(pdfRequestJson.toByteArray()),
+                    ),
+                ),
+            ),
         )
+
+        companion object {
+            fun from(
+                person: Person,
+                saksnummer: Saksnummer,
+                brevInnhold: BrevInnhold,
+                pdf: ByteArray,
+            ) = Info(
+                person = person,
+                saksnummer = saksnummer,
+                pdfRequestJson = brevInnhold.toJson(),
+                pdf = pdf,
+                tittel = brevInnhold.brevTemplate.tittel(),
+            )
+
+            fun from(
+                person: Person,
+                saksnummer: Saksnummer,
+                dokument: Dokument,
+            ) = Info(
+                person = person,
+                saksnummer = saksnummer,
+                pdfRequestJson = dokument.generertDokumentJson,
+                pdf = dokument.generertDokument,
+                tittel = dokument.metadata.tittel,
+            )
+        }
     }
 }
 
@@ -127,31 +182,31 @@ internal data class JournalpostRequest(
     val avsenderMottaker: AvsenderMottaker,
     val bruker: Bruker,
     val sak: Fagsak,
-    val dokumenter: List<JournalpostDokument>
+    val dokumenter: List<JournalpostDokument>,
 )
 
 data class AvsenderMottaker(
     val id: String,
     val idType: String = "FNR",
-    val navn: String
+    val navn: String,
 )
 
 data class Bruker(
     val id: String,
-    val idType: String = "FNR"
+    val idType: String = "FNR",
 )
 
 data class Fagsak(
     val fagsakId: String,
     val fagsaksystem: String = "SUPSTONAD",
-    val sakstype: String = "FAGSAK"
+    val sakstype: String = "FAGSAK",
 )
 
 data class JournalpostDokument(
     val tittel: String,
     val dokumentKategori: DokumentKategori,
     val brevkode: String = "XX.YY-ZZ",
-    val dokumentvarianter: List<DokumentVariant>
+    val dokumentvarianter: List<DokumentVariant>,
 )
 
 sealed class DokumentVariant {

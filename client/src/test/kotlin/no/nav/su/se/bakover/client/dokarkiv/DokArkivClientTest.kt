@@ -229,11 +229,11 @@ internal class DokArkivClientTest : WiremockBase {
         )
 
         client.opprettJournalpost(
-            Journalpost.Vedtakspost(
-                brevInnhold = VedtakInnholdTestdataBuilder.build(),
+            Journalpost.Vedtakspost.from(
                 person = person,
+                saksnummer = Saksnummer(saksnummer),
+                brevInnhold = VedtakInnholdTestdataBuilder.build(),
                 pdf = pdf,
-                saksnummer = Saksnummer(saksnummer)
             )
         ) shouldBe(
             JournalpostId("1").right()
