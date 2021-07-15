@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.FnrGenerator
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -962,13 +961,6 @@ internal class LagBrevRequestVisitorTest {
             clock = clock,
         ).apply { vedtakIngenEndring.accept(this) }
 
-        val personalia = BrevInnhold.Personalia(
-            dato = "01.01.2021",
-            fødselsnummer = Fnr(fnr = "12345678901"),
-            fornavn = "Tore",
-            etternavn = "Strømøy",
-        )
-
         brevRevurdering.brevRequest.map {
             it.right() shouldBe brevVedtak.brevRequest
             it shouldBe LagBrevRequest.VedtakIngenEndring(
@@ -982,7 +974,7 @@ internal class LagBrevRequestVisitorTest {
                 gjeldendeMånedsutbetaling = 120
             )
 
-            it.lagBrevInnhold(personalia) should beOfType<BrevInnhold.VedtakIngenEndring>()
+            it.brevInnhold should beOfType<BrevInnhold.VedtakIngenEndring>()
         }
     }
 

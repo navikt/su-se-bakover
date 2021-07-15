@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.brev.søknad.lukk
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
@@ -14,7 +15,7 @@ import java.time.LocalDate
 internal class AvvistSøknadBrevRequestTest {
 
     private val expectedPersonalia = Personalia(
-        dato = LocalDate.now().toString(),
+        dato = LocalDate.now().ddMMyyyy(),
         fødselsnummer = Fnr(fnr = "12345678901"),
         fornavn = "Tore",
         etternavn = "Strømøy",
@@ -23,23 +24,35 @@ internal class AvvistSøknadBrevRequestTest {
     private val person = Person(
         ident = Ident(
             fnr = Fnr(fnr = "12345678901"),
-            aktørId = AktørId(aktørId = "123")
+            aktørId = AktørId(aktørId = "123"),
         ),
-        navn = Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy")
+        navn = Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
     )
 
     @Test
     fun `lager vedtaks-brevdata`() {
-        AvvistSøknadBrevRequest(person, BrevConfig.Vedtak(null), "saksbehandler").lagBrevInnhold(
-            expectedPersonalia
-        ) shouldBe AvvistSøknadVedtakBrevInnhold(expectedPersonalia, "saksbehandler", null)
+        AvvistSøknadBrevRequest(
+            person,
+            BrevConfig.Vedtak(null),
+            "saksbehandler",
+        ).brevInnhold shouldBe AvvistSøknadVedtakBrevInnhold(
+            expectedPersonalia,
+            "saksbehandler",
+            null,
+        )
     }
 
     @Test
     fun `lager vedtaks-brevdata med fritekst`() {
-        AvvistSøknadBrevRequest(person, BrevConfig.Vedtak("jeg er fritekst"), "saksbehandler").lagBrevInnhold(
-            expectedPersonalia
-        ) shouldBe AvvistSøknadVedtakBrevInnhold(expectedPersonalia, "saksbehandler", "jeg er fritekst")
+        AvvistSøknadBrevRequest(
+            person,
+            BrevConfig.Vedtak("jeg er fritekst"),
+            "saksbehandler",
+        ).brevInnhold shouldBe AvvistSøknadVedtakBrevInnhold(
+            expectedPersonalia,
+            "saksbehandler",
+            "jeg er fritekst",
+        )
     }
 
     @Test
@@ -47,15 +60,13 @@ internal class AvvistSøknadBrevRequestTest {
         AvvistSøknadBrevRequest(
             person,
             BrevConfig.Fritekst(
-                "jeg er fritekst"
+                "jeg er fritekst",
             ),
-            "saksbehandler"
-        ).lagBrevInnhold(
-            expectedPersonalia
-        ) shouldBe AvvistSøknadFritekstBrevInnhold(
+            "saksbehandler",
+        ).brevInnhold shouldBe AvvistSøknadFritekstBrevInnhold(
             personalia = expectedPersonalia,
             saksbehandlerNavn = "saksbehandler",
-            fritekst = "jeg er fritekst"
+            fritekst = "jeg er fritekst",
         )
     }
 }

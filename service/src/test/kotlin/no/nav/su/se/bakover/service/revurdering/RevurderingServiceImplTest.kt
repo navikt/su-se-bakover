@@ -733,7 +733,6 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `lagBrevutkast - kan lage brev`() {
-        val person = mock<Person>()
         val brevPdf = "".toByteArray()
 
         val vedtakMock = søknadsbehandlingsvedtakIverksattInnvilget
@@ -903,8 +902,6 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `får feil når vi ikke kan lage brev`() {
-        val person = mock<Person>()
-
         val simulertRevurdering = simulertRevurderingInnvilget
 
         val revurderingRepoMock = mock<RevurderingRepo> {

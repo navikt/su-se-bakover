@@ -114,8 +114,8 @@ internal class BrevServiceImplTest {
     }
 
     object DummyRequest : LagBrevRequest {
-        override fun getPerson(): Person = person
-        override fun lagBrevInnhold(personalia: BrevInnhold.Personalia) = DummyBrevInnhold
+        override val person: Person = BrevServiceImplTest.person
+        override val brevInnhold: BrevInnhold = DummyBrevInnhold
     }
 
     object DummyBrevInnhold : BrevInnhold() {

@@ -25,27 +25,35 @@ internal class BrevServiceImpl(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun lagBrev(request: LagBrevRequest): Either<KunneIkkeLageBrev, ByteArray> {
-        return lagPdf(lagBrevInnhold(request))
+        return lagPdf(request.brevInnhold)
     }
 
-    override fun journalførBrev(request: LagBrevRequest, saksnummer: Saksnummer): Either<KunneIkkeJournalføreBrev, JournalpostId> {
-        val brevInnhold = lagBrevInnhold(request)
+    override fun journalførBrev(
+        request: LagBrevRequest,
+        saksnummer: Saksnummer,
+    ): Either<KunneIkkeJournalføreBrev, JournalpostId> {
+        val brevInnhold = request.brevInnhold
         val brevPdf = lagPdf(brevInnhold).fold(
             { return KunneIkkeJournalføreBrev.KunneIkkeGenereBrev.left() },
-            { it }
+            { it },
         )
 
-        return dokArkiv.opprettJournalpost(
-            JournalpostFactory.lagJournalpost(
-                person = request.getPerson(),
+        return journalfør(
+            journalpost = JournalpostFactory.lagJournalpost(
+                person = request.person,
                 saksnummer = saksnummer,
                 brevInnhold = brevInnhold,
-                pdf = brevPdf
-            )
-        ).mapLeft {
-            log.error("Journalføring: Kunne ikke journalføre i ekstern system (joark/dokarkiv)")
-            KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost
-        }.map { it }
+                pdf = brevPdf,
+            ),
+        )
+    }
+
+    private fun journalfør(journalpost: Journalpost): Either<KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost, JournalpostId> {
+        return dokArkiv.opprettJournalpost(journalpost)
+            .mapLeft {
+                log.error("Journalføring: Kunne ikke journalføre i eksternt system (joark/dokarkiv)")
+                KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost
+            }
     }
 
     override fun distribuerBrev(journalpostId: JournalpostId): Either<KunneIkkeDistribuereBrev, BrevbestillingId> =
