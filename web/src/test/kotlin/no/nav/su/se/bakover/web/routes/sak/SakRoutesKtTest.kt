@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.web.FnrGenerator
+import no.nav.su.se.bakover.web.dbMetricsStub
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.testSusebakover
@@ -26,7 +27,10 @@ import java.util.UUID
 internal class SakRoutesKtTest {
 
     private val sakFnr01 = "12345678911"
-    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance())
+    private val repos = DatabaseBuilder.build(
+        embeddedDatasource = EmbeddedDatabase.instance(),
+        dbMetrics = dbMetricsStub,
+    )
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
 
     @Test

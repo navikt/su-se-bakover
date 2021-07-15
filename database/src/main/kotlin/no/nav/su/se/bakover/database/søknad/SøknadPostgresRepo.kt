@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.søknad
 
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
@@ -12,9 +13,14 @@ import java.util.UUID
 import javax.sql.DataSource
 
 internal class SøknadPostgresRepo(
-    private val dataSource: DataSource
+    private val dataSource: DataSource,
+    private val dbMetrics: DbMetrics,
 ) : SøknadRepo {
-    override fun hentSøknad(søknadId: UUID): Søknad? = dataSource.withSession { hentSøknadInternal(søknadId, it) }
+    override fun hentSøknad(søknadId: UUID): Søknad? {
+        return dbMetrics.timeQuery("hentSøknad") {
+            dataSource.withSession { hentSøknadInternal(søknadId, it) }
+        }
+    }
 
     override fun opprettSøknad(søknad: Søknad.Ny) {
         dataSource.withSession { session ->
@@ -25,7 +31,7 @@ internal class SøknadPostgresRepo(
                     "soknad" to objectMapper.writeValueAsString(søknad.søknadInnhold),
                     "opprettet" to søknad.opprettet,
                 ),
-                session
+                session,
             )
         }
     }
@@ -35,9 +41,9 @@ internal class SøknadPostgresRepo(
             "update søknad set lukket=to_json(:lukket::json) where id=:id".oppdatering(
                 mapOf(
                     "id" to søknad.id,
-                    "lukket" to objectMapper.writeValueAsString(søknad.toLukketJson())
+                    "lukket" to objectMapper.writeValueAsString(søknad.toLukketJson()),
                 ),
-                session
+                session,
             )
         }
     }
@@ -45,7 +51,7 @@ internal class SøknadPostgresRepo(
     override fun harSøknadPåbegyntBehandling(søknadId: UUID): Boolean {
         return dataSource.withSession { session ->
             "select * from behandling where søknadId=:soknadId".hentListe(
-                mapOf("soknadId" to søknadId), session
+                mapOf("soknadId" to søknadId), session,
             ) { it.stringOrNull("søknadId") }
         }.isNotEmpty()
     }
@@ -55,9 +61,9 @@ internal class SøknadPostgresRepo(
             "update søknad set journalpostId=:journalpostId where id=:id".oppdatering(
                 mapOf(
                     "id" to søknad.id,
-                    "journalpostId" to søknad.journalpostId.toString()
+                    "journalpostId" to søknad.journalpostId.toString(),
                 ),
-                session
+                session,
             )
         }
     }
@@ -67,9 +73,9 @@ internal class SøknadPostgresRepo(
             "update søknad set oppgaveId=:oppgaveId where id=:id".oppdatering(
                 mapOf(
                     "id" to søknad.id,
-                    "oppgaveId" to søknad.oppgaveId.toString()
+                    "oppgaveId" to søknad.oppgaveId.toString(),
                 ),
-                session
+                session,
             )
         }
     }
@@ -77,7 +83,7 @@ internal class SøknadPostgresRepo(
     override fun hentSøknaderUtenJournalpost(): List<Søknad.Ny> {
         return dataSource.withSession { session ->
             "select * from søknad where journalpostId is null".hentListe(
-                session = session
+                session = session,
             ) {
                 it.toSøknad()
             }.filterIsInstance(Søknad.Ny::class.java)
@@ -87,7 +93,7 @@ internal class SøknadPostgresRepo(
     override fun hentSøknaderMedJournalpostMenUtenOppgave(): List<Søknad.Journalført.UtenOppgave> {
         return dataSource.withSession { session ->
             "select * from søknad where journalpostId is not null and oppgaveId is null".hentListe(
-                session = session
+                session = session,
             ) {
                 it.toSøknad()
             }.filterIsInstance(Søknad.Journalført.UtenOppgave::class.java)

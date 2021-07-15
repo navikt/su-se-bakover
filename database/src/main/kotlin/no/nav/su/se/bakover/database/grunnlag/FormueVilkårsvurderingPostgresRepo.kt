@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.grunnlag
 import arrow.core.Nel
 import kotliquery.Row
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -19,6 +20,7 @@ import javax.sql.DataSource
 internal class FormueVilkårsvurderingPostgresRepo(
     private val dataSource: DataSource,
     private val formuegrunnlagPostgresRepo: FormuegrunnlagPostgresRepo,
+    private val dbMetrics: DbMetrics,
 ) : FormueVilkårsvurderingRepo {
 
     override fun lagre(behandlingId: UUID, vilkår: Vilkår.Formue) {
@@ -92,26 +94,28 @@ internal class FormueVilkårsvurderingPostgresRepo(
     }
 
     internal fun hent(behandlingId: UUID, session: Session): Vilkår.Formue {
-        return """
+        return dbMetrics.timeQuery("hentVilkårsvurderingFormue") {
+            """
                 select * from vilkårsvurdering_formue where behandlingId = :behandlingId
-        """.trimIndent()
-            .hentListe(
-                mapOf(
-                    "behandlingId" to behandlingId,
-                ),
-                session,
-            ) {
-                it.toVurderingsperioder(session)
-            }.let {
-                when (it.isNotEmpty()) {
-                    true -> Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
-                        vurderingsperioder = Nel.fromListUnsafe(
-                            it,
-                        ),
-                    )
-                    false -> Vilkår.Formue.IkkeVurdert
+            """.trimIndent()
+                .hentListe(
+                    mapOf(
+                        "behandlingId" to behandlingId,
+                    ),
+                    session,
+                ) {
+                    it.toVurderingsperioder(session)
+                }.let {
+                    when (it.isNotEmpty()) {
+                        true -> Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
+                            vurderingsperioder = Nel.fromListUnsafe(
+                                it,
+                            ),
+                        )
+                        false -> Vilkår.Formue.IkkeVurdert
+                    }
                 }
-            }
+        }
     }
 
     private fun Row.toVurderingsperioder(session: Session): Vurderingsperiode.Formue {

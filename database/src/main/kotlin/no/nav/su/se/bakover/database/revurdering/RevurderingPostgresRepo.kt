@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
@@ -84,13 +85,17 @@ internal class RevurderingPostgresRepo(
     private val uføreVilkårsvurderingRepo: UføreVilkårsvurderingPostgresRepo,
     private val formueVilkårsvurderingRepo: FormueVilkårsvurderingPostgresRepo,
     søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
+    private val dbMetrics: DbMetrics,
 ) : RevurderingRepo {
-    private val vedtakRepo = VedtakPosgresRepo(dataSource, søknadsbehandlingRepo, this)
+    private val vedtakRepo = VedtakPosgresRepo(dataSource, søknadsbehandlingRepo, this, dbMetrics)
 
-    override fun hent(id: UUID): Revurdering? =
-        dataSource.withSession { session ->
-            hent(id, session)
+    override fun hent(id: UUID): Revurdering? {
+        return dbMetrics.timeQuery("hentRevurdering") {
+            dataSource.withSession { session ->
+                hent(id, session)
+            }
         }
+    }
 
     internal fun hent(id: UUID, session: Session): Revurdering? =
         """
@@ -186,7 +191,8 @@ internal class RevurderingPostgresRepo(
             objectMapper.readValue<ForhåndsvarselDto>(it).toDomain()
         }
 
-        val informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(objectMapper.readValue<Map<Revurderingsteg, Vurderingstatus>>(string("informasjonSomRevurderes")))
+        val informasjonSomRevurderes: InformasjonSomRevurderes =
+            InformasjonSomRevurderes.create(objectMapper.readValue<Map<Revurderingsteg, Vurderingstatus>>(string("informasjonSomRevurderes")))
 
         val behandlingsinformasjon: Behandlingsinformasjon = deserialize(string("behandlingsinformasjon"))
 
@@ -542,7 +548,7 @@ internal class RevurderingPostgresRepo(
                     },
                     "behandlingsinformasjon" to objectMapper.writeValueAsString(revurdering.behandlingsinformasjon),
                     "informasjonSomRevurderes" to objectMapper.writeValueAsString(revurdering.informasjonSomRevurderes),
-                    "attestering" to revurdering.attesteringer.hentAttesteringer().serialize()
+                    "attestering" to revurdering.attesteringer.hentAttesteringer().serialize(),
                 ),
                 session,
             )

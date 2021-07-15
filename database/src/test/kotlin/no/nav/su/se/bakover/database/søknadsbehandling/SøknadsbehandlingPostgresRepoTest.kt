@@ -8,17 +8,12 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.antall
 import no.nav.su.se.bakover.database.avslåttBeregning
 import no.nav.su.se.bakover.database.behandlingsinformasjonMedAlleVilkårOppfylt
 import no.nav.su.se.bakover.database.beregning
 import no.nav.su.se.bakover.database.fixedClock
-import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.iverksattAttestering
 import no.nav.su.se.bakover.database.saksbehandler
@@ -45,19 +40,9 @@ import java.util.UUID
 
 internal class SøknadsbehandlingPostgresRepoTest {
 
-    private val dataSource = EmbeddedDatabase.instance()
-    private val testDataHelper = TestDataHelper(dataSource)
-    private val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
-    private val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(dataSource)
-    private val bosituasjongrunnlagRepo = BosituasjongrunnlagPostgresRepo(dataSource)
-    private val vilkårsvurderingRepo = UføreVilkårsvurderingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
-    private val repo = SøknadsbehandlingPostgresRepo(
-        dataSource,
-        uføregrunnlagPostgresRepo,
-        fradragsgrunnlagPostgresRepo,
-        bosituasjongrunnlagRepo,
-        vilkårsvurderingRepo,
-    )
+    private val testDataHelper = TestDataHelper()
+    private val dataSource = testDataHelper.datasource
+    private val repo = testDataHelper.søknadsbehandlingRepo
 
     @Test
     fun `hent tidligere attestering ved underkjenning`() {
@@ -100,7 +85,10 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
             dataSource.withSession { session ->
                 "select count(1) from behandling where status = :status ".let {
-                    it.antall(mapOf("status" to BehandlingsStatus.VILKÅRSVURDERT_INNVILGET.toString()), session) shouldBe 1
+                    it.antall(
+                        mapOf("status" to BehandlingsStatus.VILKÅRSVURDERT_INNVILGET.toString()),
+                        session,
+                    ) shouldBe 1
                     it.antall(mapOf("status" to BehandlingsStatus.IVERKSATT_AVSLAG.toString()), session) shouldBe 1
                 }
             }
@@ -227,7 +215,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             stønadsperiode = stønadsperiode,
                             grunnlagsdata = tilAttestering.grunnlagsdata,
                             vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
-                            attesteringer = Attesteringshistorikk.empty()
+                            attesteringer = Attesteringshistorikk.empty(),
                         )
                     }
                 }
@@ -256,7 +244,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             stønadsperiode = stønadsperiode,
                             grunnlagsdata = Grunnlagsdata.EMPTY,
                             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-                            attesteringer = Attesteringshistorikk.empty()
+                            attesteringer = Attesteringshistorikk.empty(),
                         )
                     }
                 }
@@ -286,7 +274,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             stønadsperiode = stønadsperiode,
                             grunnlagsdata = tilAttestering.grunnlagsdata,
                             vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
-                            attesteringer = Attesteringshistorikk.empty()
+                            attesteringer = Attesteringshistorikk.empty(),
                         )
                     }
                 }

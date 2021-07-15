@@ -427,7 +427,7 @@ internal class RevurderingPostgresRepoTest {
                 tilAttestering.id,
                 tilAttestering.grunnlagsdata.fradragsgrunnlag,
             )
-            testDataHelper.dataSource.withTransaction { tx ->
+            testDataHelper.datasource.withTransaction { tx ->
                 uføregrunnlagPostgresRepo.lagre(
                     tilAttestering.id,
                     tilAttestering.vilkårsvurderinger.uføre.grunnlag,
@@ -448,7 +448,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(iverksatt)
             repo.hent(iverksatt.id) shouldBe iverksatt
-            testDataHelper.dataSource.withSession {
+            testDataHelper.datasource.withSession {
                 repo.hentRevurderingerForSak(iverksatt.sakId, it) shouldBe listOf(iverksatt)
             }
         }

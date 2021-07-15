@@ -7,8 +7,8 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
+import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.fixedTidspunkt
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
@@ -24,11 +24,9 @@ import java.util.UUID
 
 internal class FormueVilkårsvurderingPostgresRepoTest {
 
-    private val datasource = EmbeddedDatabase.instance()
-    private val repo = FormueVilkårsvurderingPostgresRepo(
-        datasource,
-        FormuegrunnlagPostgresRepo(),
-    )
+    private val testDataHelper = TestDataHelper()
+    private val datasource = testDataHelper.datasource
+    private val repo = testDataHelper.formueVilkårsvurderingPostgresRepo
 
     @Test
     fun `lagrer og henter IkkeVurdert`() {
