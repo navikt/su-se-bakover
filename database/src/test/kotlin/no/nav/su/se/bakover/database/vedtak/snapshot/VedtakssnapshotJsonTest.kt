@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
@@ -79,7 +80,7 @@ internal class VedtakssnapshotJsonTest {
                 .withVilkårAvslått(),
             fnr = fnr,
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), fixedTidspunkt)),
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -111,7 +112,8 @@ internal class VedtakssnapshotJsonTest {
                   "saksbehandler":"saksbehandler",
                   "attestering":{
                      "type": "Iverksatt",
-                     "attestant": "attestant"
+                     "attestant": "attestant",
+                     "opprettet": "2021-01-01T01:02:03.456789Z"
                   },
                   "oppgaveId":"oppgaveId",
                   "iverksattJournalpostId":"iverksattJournalpostId",
@@ -425,7 +427,7 @@ internal class VedtakssnapshotJsonTest {
                 ),
             ),
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), fixedTidspunkt)),
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -456,7 +458,8 @@ internal class VedtakssnapshotJsonTest {
                   "saksbehandler":"saksbehandler",
                   "attestering":{
                      "type": "Iverksatt",
-                     "attestant": "attestant"
+                     "attestant": "attestant",
+                     "opprettet": "2021-01-01T01:02:03.456789Z"
                   },
                   "oppgaveId":"oppgaveId",
                   "iverksattJournalpostId":"iverksattJournalpostId",

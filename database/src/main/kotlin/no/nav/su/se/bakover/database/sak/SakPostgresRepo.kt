@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.sak
 
 import kotliquery.Row
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.insert
@@ -25,28 +26,48 @@ internal class SakPostgresRepo(
     private val søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
     private val revurderingRepo: RevurderingPostgresRepo,
     private val vedtakPosgresRepo: VedtakPosgresRepo,
+    private val dbMetrics: DbMetrics,
 ) : SakRepo {
-    private val sakRestansRepo = SakRestansRepo(dataSource)
+    private val sakRestansRepo = SakRestansRepo(
+        dataSource = dataSource,
+        dbMetrics = dbMetrics,
+    )
 
-    override fun hentSak(sakId: UUID) = dataSource.withSession { hentSakInternal(sakId, it) }
-    override fun hentSak(fnr: Fnr) = dataSource.withSession { hentSakInternal(fnr, it) }
-    override fun hentSak(saksnummer: Saksnummer) = dataSource.withSession { hentSakInternal(saksnummer, it) }
+    override fun hentSak(sakId: UUID): Sak? {
+        return dbMetrics.timeQuery("hentSakId") {
+            dataSource.withSession { hentSakInternal(sakId, it) }
+        }
+    }
+
+    override fun hentSak(fnr: Fnr): Sak? {
+        return dbMetrics.timeQuery("hentSakFnr") {
+            dataSource.withSession { hentSakInternal(fnr, it) }
+        }
+    }
+
+    override fun hentSak(saksnummer: Saksnummer): Sak? {
+        return dbMetrics.timeQuery("hentSakNr") {
+            dataSource.withSession { hentSakInternal(saksnummer, it) }
+        }
+    }
 
     override fun opprettSak(sak: NySak) {
-        dataSource.withSession { session ->
-            """
+        return dbMetrics.timeQuery("opprettSak") {
+            dataSource.withSession { session ->
+                """
             with inserted_sak as (insert into sak (id, fnr, opprettet) values (:sakId, :fnr, :opprettet))
             insert into søknad (id, sakId, søknadInnhold, opprettet) values (:soknadId, :sakId, to_json(:soknad::json), :opprettet)
         """.insert(
-                mapOf(
-                    "sakId" to sak.id,
-                    "fnr" to sak.fnr,
-                    "opprettet" to sak.opprettet,
-                    "soknadId" to sak.søknad.id,
-                    "soknad" to objectMapper.writeValueAsString(sak.søknad.søknadInnhold),
-                ),
-                session,
-            )
+                    mapOf(
+                        "sakId" to sak.id,
+                        "fnr" to sak.fnr,
+                        "opprettet" to sak.opprettet,
+                        "soknadId" to sak.søknad.id,
+                        "soknad" to objectMapper.writeValueAsString(sak.søknad.søknadInnhold),
+                    ),
+                    session,
+                )
+            }
         }
     }
 

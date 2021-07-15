@@ -1,9 +1,7 @@
 package no.nav.su.se.bakover.database.sak
 
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.TestDataHelper.Companion.søknadNy
 import no.nav.su.se.bakover.database.stønadsperiode
@@ -17,8 +15,8 @@ import org.junit.jupiter.api.Test
 
 internal class SakPostgresRepoTest {
 
-    private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
-    private val repo = SakPostgresRepo(EmbeddedDatabase.instance(), mock(), mock(), mock())
+    private val testDataHelper = TestDataHelper()
+    private val repo = testDataHelper.sakRepo
 
     @Test
     fun `opprett og hent sak`() {

@@ -41,6 +41,7 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.applicationConfig
+import no.nav.su.se.bakover.web.dbMetricsStub
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -57,7 +58,10 @@ internal class BeregnRoutesKtTest {
         periode = Periode.create(1.januar(2021), 31.desember(2021)),
         begrunnelse = "begrunnelse",
     )
-    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance())
+    private val repos = DatabaseBuilder.build(
+        embeddedDatasource = EmbeddedDatabase.instance(),
+        dbMetrics = dbMetricsStub,
+    )
     private val services = ServiceBuilder.build(
         databaseRepos = repos,
         clients = TestClientsBuilder.build(applicationConfig),

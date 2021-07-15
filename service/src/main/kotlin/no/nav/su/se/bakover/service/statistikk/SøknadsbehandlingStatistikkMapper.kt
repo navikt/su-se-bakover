@@ -34,7 +34,7 @@ internal class SøknadsbehandlingStatistikkMapper(
             is Søknadsbehandling.Iverksatt -> {
                 copy(
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
-                    beslutter = søknadsbehandling.attestering.attestant.navIdent,
+                    beslutter = søknadsbehandling.attesteringer.hentSisteAttestering().attestant.navIdent,
                     resultat = ResultatOgBegrunnelseMapper.map(søknadsbehandling).resultat,
                     resultatBegrunnelse = ResultatOgBegrunnelseMapper.map(søknadsbehandling).begrunnelse,
                     avsluttet = true,
@@ -48,7 +48,7 @@ internal class SøknadsbehandlingStatistikkMapper(
             is Søknadsbehandling.Underkjent -> {
                 copy(
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
-                    beslutter = søknadsbehandling.attestering.attestant.navIdent,
+                    beslutter = søknadsbehandling.attesteringer.hentSisteAttestering().attestant.navIdent,
                 )
             }
             else -> throw ManglendeStatistikkMappingException(this, søknadsbehandling::class.java)

@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
@@ -60,7 +61,7 @@ internal class StatusovergangTest {
 
     private val simulering = no.nav.su.se.bakover.test.simuleringNy()
 
-    private val attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"))
+    private val attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), fixedTidspunkt)
     private val utbetalingId = UUID30.randomUUID()
 
     private val fritekstTilBrev: String = "Fritekst til brev"
@@ -208,7 +209,7 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentInnvilget,
                 Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
-            ) shouldBe vilkårsvurdertInnvilget.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
+            ) shouldBe vilkårsvurdertInnvilget.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev).copy(attesteringer = Attesteringshistorikk(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -216,7 +217,7 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentInnvilget,
                 Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
-            ) shouldBe vilkårsvurdertAvslag.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
+            ) shouldBe vilkårsvurdertAvslag.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev).copy(attesteringer = Attesteringshistorikk(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -224,7 +225,7 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagVilkår,
                 Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
-            ) shouldBe vilkårsvurdertInnvilget.medFritekstTilBrev(underkjentAvslagVilkår.fritekstTilBrev)
+            ) shouldBe vilkårsvurdertInnvilget.medFritekstTilBrev(underkjentAvslagVilkår.fritekstTilBrev).copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagVilkår.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -232,7 +233,7 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagVilkår,
                 Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
-            ) shouldBe vilkårsvurdertAvslag.medFritekstTilBrev(underkjentAvslagVilkår.fritekstTilBrev)
+            ) shouldBe vilkårsvurdertAvslag.medFritekstTilBrev(underkjentAvslagVilkår.fritekstTilBrev).copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagVilkår.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -240,7 +241,7 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagBeregning,
                 Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
-            ) shouldBe vilkårsvurdertInnvilget.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
+            ) shouldBe vilkårsvurdertInnvilget.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev).copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -248,7 +249,7 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagBeregning,
                 Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
-            ) shouldBe vilkårsvurdertAvslag.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
+            ) shouldBe vilkårsvurdertAvslag.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev).copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -348,7 +349,7 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagBeregning,
                 Statusovergang.TilBeregnet { innvilgetBeregning },
-            ) shouldBe beregnetInnvilget.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
+            ) shouldBe beregnetInnvilget.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev).copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -356,7 +357,7 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagBeregning,
                 Statusovergang.TilBeregnet { avslagBeregning },
-            ) shouldBe beregnetAvslag.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
+            ) shouldBe beregnetAvslag.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev).copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -364,7 +365,7 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentInnvilget,
                 Statusovergang.TilBeregnet { innvilgetBeregning },
-            ) shouldBe beregnetInnvilget.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
+            ) shouldBe beregnetInnvilget.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev).copy(attesteringer = Attesteringshistorikk(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -372,7 +373,7 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentInnvilget,
                 Statusovergang.TilBeregnet { avslagBeregning },
-            ) shouldBe beregnetAvslag.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
+            ) shouldBe beregnetAvslag.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev).copy(attesteringer = Attesteringshistorikk(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -463,7 +464,7 @@ internal class StatusovergangTest {
                 Statusovergang.TilSimulert {
                     simulering.right()
                 },
-            ) shouldBe simulert.copy(fritekstTilBrev = "Fritekst til brev").right()
+            ) shouldBe simulert.copy(fritekstTilBrev = "Fritekst til brev", attesteringer = Attesteringshistorikk(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering()))).right()
         }
 
         @Test
@@ -523,7 +524,7 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagVilkår,
                 Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
-            ) shouldBe tilAttesteringAvslagVilkår
+            ) shouldBe tilAttesteringAvslagVilkår.copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagVilkår.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -531,7 +532,7 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagBeregning,
                 Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
-            ) shouldBe tilAttesteringAvslagBeregning
+            ) shouldBe tilAttesteringAvslagBeregning.copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -539,7 +540,7 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentInnvilget,
                 Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
-            ) shouldBe tilAttesteringInnvilget
+            ) shouldBe tilAttesteringInnvilget.copy(attesteringer = Attesteringshistorikk(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -597,9 +598,10 @@ internal class StatusovergangTest {
                 tilAttesteringAvslagVilkår.copy(saksbehandler = NavIdentBruker.Saksbehandler("sneaky")),
                 Statusovergang.TilUnderkjent(
                     Attestering.Underkjent(
-                        NavIdentBruker.Attestant("sneaky"),
-                        Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                        "",
+                        attestant = NavIdentBruker.Attestant("sneaky"),
+                        grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                        kommentar = "",
+                        opprettet = fixedTidspunkt
                     ),
                 ),
             ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
@@ -611,9 +613,10 @@ internal class StatusovergangTest {
                 tilAttesteringAvslagBeregning.copy(saksbehandler = NavIdentBruker.Saksbehandler("sneaky")),
                 Statusovergang.TilUnderkjent(
                     Attestering.Underkjent(
-                        NavIdentBruker.Attestant("sneaky"),
-                        Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                        "",
+                        attestant = NavIdentBruker.Attestant("sneaky"),
+                        grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                        kommentar = "",
+                        opprettet = fixedTidspunkt
                     ),
                 ),
             ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
@@ -625,9 +628,10 @@ internal class StatusovergangTest {
                 tilAttesteringInnvilget.copy(saksbehandler = NavIdentBruker.Saksbehandler("sneaky")),
                 Statusovergang.TilUnderkjent(
                     Attestering.Underkjent(
-                        NavIdentBruker.Attestant("sneaky"),
-                        Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                        "",
+                        attestant = NavIdentBruker.Attestant("sneaky"),
+                        grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                        kommentar = "",
+                        opprettet = fixedTidspunkt
                     ),
                 ),
             ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()

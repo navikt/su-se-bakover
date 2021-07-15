@@ -80,7 +80,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                 beregning = søknadsbehandling.beregning,
                 simulering = søknadsbehandling.simulering,
                 saksbehandler = søknadsbehandling.saksbehandler,
-                attestant = søknadsbehandling.attestering.attestant,
+                attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant,
                 utbetalingId = utbetalingId,
                 journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
                 vedtakType = VedtakType.SØKNAD,
@@ -215,7 +215,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     behandlingsinformasjon = avslag.behandlingsinformasjon,
                     beregning = avslag.beregning,
                     saksbehandler = avslag.saksbehandler,
-                    attestant = avslag.attestering.attestant,
+                    attestant = avslag.attesteringer.hentSisteAttestering().attestant,
                     journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
                     periode = avslag.periode,
                 )
@@ -227,7 +227,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     behandling = avslag,
                     behandlingsinformasjon = avslag.behandlingsinformasjon,
                     saksbehandler = avslag.saksbehandler,
-                    attestant = avslag.attestering.attestant,
+                    attestant = avslag.attesteringer.hentSisteAttestering().attestant,
                     journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
                     periode = avslag.periode,
                 )

@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
@@ -146,7 +147,7 @@ internal class GjeldendeVedtaksdataTest {
             ),
             simulering = mock(),
             saksbehandler = NavIdentBruker.Saksbehandler("saks"),
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), Tidspunkt.now(fixedClock))),
             fritekstTilBrev = "",
             stønadsperiode = Stønadsperiode.create(
                 periode = periode,
@@ -220,7 +221,7 @@ internal class GjeldendeVedtaksdataTest {
                 fradragStrategy = FradragStrategy.Enslig,
                 begrunnelse = "just becausre",
             ),
-            attestering = Attestering.Iverksatt(attestant = NavIdentBruker.Attestant(navIdent = "")),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant = NavIdentBruker.Attestant(navIdent = ""), Tidspunkt.now(fixedClock))),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             simulering = Simulering(

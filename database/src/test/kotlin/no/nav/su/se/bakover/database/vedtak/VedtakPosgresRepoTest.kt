@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.vedtak
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
@@ -14,6 +15,7 @@ import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -92,7 +94,7 @@ internal class VedtakPosgresRepoTest {
                 beregning = søknadsbehandlingVedtak.beregning,
                 simulering = søknadsbehandlingVedtak.simulering,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
-                attestering = Attestering.Iverksatt(søknadsbehandlingVedtak.attestant),
+                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(søknadsbehandlingVedtak.attestant, Tidspunkt.now())),
                 fritekstTilBrev = "",
                 revurderingsårsak = Revurderingsårsak(
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
@@ -254,6 +256,7 @@ internal class VedtakPosgresRepoTest {
                 grunnlagsdata = nyRevurdering.grunnlagsdata,
                 vilkårsvurderinger = nyRevurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+                attesteringer = Attesteringshistorikk.empty()
             )
             testDataHelper.revurderingRepo.lagre(attestertRevurdering)
             val iverksattRevurdering = IverksattRevurdering.IngenEndring(
@@ -264,7 +267,7 @@ internal class VedtakPosgresRepoTest {
                 saksbehandler = nyRevurdering.saksbehandler,
                 oppgaveId = OppgaveId(""),
                 beregning = beregning(nyRevurdering.periode),
-                attestering = Attestering.Iverksatt(attestant),
+                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
                 fritekstTilBrev = "",
                 revurderingsårsak = Revurderingsårsak(
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,

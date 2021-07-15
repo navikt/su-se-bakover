@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -250,7 +251,7 @@ internal class StatistikkServiceImplTest {
             on { status } doReturn BehandlingsStatus.IVERKSATT_INNVILGET
             on { beregning } doReturn beregningMock
             on { saksbehandler } doReturn NavIdentBruker.Saksbehandler("55")
-            on { attestering } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("56"))
+            on { attesteringer } doReturn Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("56"), Tidspunkt.now()))
             on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
         }
 
@@ -299,7 +300,7 @@ internal class StatistikkServiceImplTest {
             on { saksnummer } doReturn Saksnummer(5959)
             on { status } doReturn BehandlingsStatus.IVERKSATT_AVSLAG
             on { saksbehandler } doReturn NavIdentBruker.Saksbehandler("55")
-            on { attestering } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("56"))
+            on { attesteringer } doReturn Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("56"), Tidspunkt.now()))
             on { avslagsgrunner } doReturn listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER)
             on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
         }
@@ -355,10 +356,13 @@ internal class StatistikkServiceImplTest {
             beregning = beregning,
             simulering = mock(),
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-            attestering = Attestering.Underkjent(
-                NavIdentBruker.Attestant("attestant"),
-                Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                "",
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(
+                Attestering.Underkjent(
+                    attestant = NavIdentBruker.Attestant("attestant"),
+                    grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                    kommentar = "",
+                    opprettet = Tidspunkt.now(clock)
+                )
             ),
             fritekstTilBrev = "",
             stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
@@ -486,6 +490,7 @@ internal class StatistikkServiceImplTest {
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            attesteringer = Attesteringshistorikk.empty()
         )
 
         val expected = Statistikk.Behandling(
@@ -546,7 +551,7 @@ internal class StatistikkServiceImplTest {
                 periodeList = listOf(),
             ),
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), Tidspunkt.now(clock))),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,

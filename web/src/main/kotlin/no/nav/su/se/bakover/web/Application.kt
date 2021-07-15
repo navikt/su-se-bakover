@@ -54,6 +54,7 @@ import no.nav.su.se.bakover.web.features.SuUserFeature
 import no.nav.su.se.bakover.web.features.SuUserFeaturefeil
 import no.nav.su.se.bakover.web.features.withUser
 import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
+import no.nav.su.se.bakover.web.metrics.DbMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.metrics.SøknadMicrometerMetrics
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
@@ -93,7 +94,10 @@ internal fun Application.susebakover(
     søknadMetrics: SøknadMetrics = SøknadMicrometerMetrics(),
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
     unleash: Unleash = UnleashBuilder.build(applicationConfig),
-    databaseRepos: DatabaseRepos = DatabaseBuilder.build(applicationConfig.database),
+    databaseRepos: DatabaseRepos = DatabaseBuilder.build(
+        databaseConfig = applicationConfig.database,
+        dbMetrics = DbMicrometerMetrics(),
+    ),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
     clients: Clients =
         if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais)

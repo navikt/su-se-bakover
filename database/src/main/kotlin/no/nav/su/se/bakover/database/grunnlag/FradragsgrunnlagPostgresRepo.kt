@@ -4,6 +4,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertFradrag
 import no.nav.su.se.bakover.database.hentListe
@@ -21,6 +22,7 @@ import javax.sql.DataSource
 
 internal class FradragsgrunnlagPostgresRepo(
     private val dataSource: DataSource,
+    private val dbMetrics: DbMetrics,
 ) : FradragsgrunnlagRepo {
 
     override fun lagreFradragsgrunnlag(behandlingId: UUID, fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>) {
@@ -39,17 +41,19 @@ internal class FradragsgrunnlagPostgresRepo(
     }
 
     internal fun hentFradragsgrunnlag(behandlingId: UUID, session: Session): List<Grunnlag.Fradragsgrunnlag> {
-        return """
+        return dbMetrics.timeQuery("hentFradragsgrunnlag") {
+            """
                 select * from grunnlag_fradrag where behandlingId = :behandlingId
-        """.trimIndent()
-            .hentListe(
-                mapOf(
-                    "behandlingId" to behandlingId,
-                ),
-                session,
-            ) {
-                it.toFradragsgrunnlag()
-            }
+            """.trimIndent()
+                .hentListe(
+                    mapOf(
+                        "behandlingId" to behandlingId,
+                    ),
+                    session,
+                ) {
+                    it.toFradragsgrunnlag()
+                }
+        }
     }
 
     private fun slettForBehandlingId(behandlingId: UUID, session: Session) {

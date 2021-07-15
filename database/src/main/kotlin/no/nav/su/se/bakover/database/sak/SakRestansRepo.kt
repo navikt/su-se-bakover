@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.sak
 
 import kotliquery.Row
+import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.tidspunkt
@@ -15,11 +16,13 @@ import javax.sql.DataSource
 
 internal class SakRestansRepo(
     private val dataSource: DataSource,
+    private val dbMetrics: DbMetrics,
 ) {
     fun hentRestanser(): List<Restans> {
-        return dataSource.withSession { session ->
-            //language=sql
-            """
+        return dbMetrics.timeQuery("hentRestanser") {
+            dataSource.withSession { session ->
+                //language=sql
+                """
                 with sak as (
                 select id as sakId, saksnummer
                 from sak
@@ -57,7 +60,8 @@ internal class SakRestansRepo(
             select *
             from slåttSammen
                         """.hentListe(emptyMap(), session) {
-                it.toRestans()
+                    it.toRestans()
+                }
             }
         }
     }
