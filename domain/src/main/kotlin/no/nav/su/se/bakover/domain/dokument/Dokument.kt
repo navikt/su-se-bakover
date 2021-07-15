@@ -45,9 +45,9 @@ sealed class Dokument {
 }
 
 data class Dokumentdistribusjon(
-    val id: UUID,
-    val opprettet: Tidspunkt,
-    val endret: Tidspunkt,
+    val id: UUID = UUID.randomUUID(),
+    val opprettet: Tidspunkt = Tidspunkt.now(),
+    val endret: Tidspunkt = opprettet,
     val dokument: Dokument,
     val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
 ) {

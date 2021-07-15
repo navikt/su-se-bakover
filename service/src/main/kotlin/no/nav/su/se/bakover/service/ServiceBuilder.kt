@@ -51,6 +51,9 @@ object ServiceBuilder {
             pdfGenerator = clients.pdfGenerator,
             dokArkiv = clients.dokArkiv,
             dokDistFordeling = clients.dokDistFordeling,
+            dokumentRepo = databaseRepos.dokumentRepo,
+            sakService = sakService,
+            personService = personService,
         )
         val oppgaveService = OppgaveServiceImpl(
             oppgaveClient = clients.oppgaveClient,
@@ -92,7 +95,7 @@ object ServiceBuilder {
         val vedtakService = VedtakServiceImpl(
             vedtakRepo = databaseRepos.vedtakRepo,
             sakService = sakService,
-            clock = clock
+            clock = clock,
         )
 
         val revurderingService = RevurderingServiceImpl(

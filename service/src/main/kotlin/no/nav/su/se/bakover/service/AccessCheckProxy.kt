@@ -17,6 +17,8 @@ import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -42,6 +44,9 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.brev.KunneIkkeBestilleBrevForDokument
+import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
+import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreDokument
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -273,6 +278,18 @@ open class AccessCheckProxy(
                 ) = kastKanKunKallesFraAnnenService()
 
                 override fun distribuerBrev(journalpostId: JournalpostId) = kastKanKunKallesFraAnnenService()
+
+                override fun distribuerDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeBestilleBrevForDokument, Dokumentdistribusjon> {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun lagreDokument(dokument: Dokument) {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun journalførDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeJournalføreDokument, Dokumentdistribusjon> {
+                    kastKanKunKallesFraAnnenService()
+                }
             },
             lukkSøknad = object : LukkSøknadService {
                 override fun lukkSøknad(request: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, LukketSøknad> {
@@ -537,7 +554,11 @@ open class AccessCheckProxy(
                 override fun hentAktiveFnr(fomDato: LocalDate): List<Fnr> {
                     return services.vedtakService.hentAktiveFnr(fomDato)
                 }
-                override fun kopierGjeldendeVedtaksdata(sakId: UUID, fraOgMed: LocalDate): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
+
+                override fun kopierGjeldendeVedtaksdata(
+                    sakId: UUID,
+                    fraOgMed: LocalDate,
+                ): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
                     kastKanKunKallesFraAnnenService()
                 }
 
@@ -549,7 +570,10 @@ open class AccessCheckProxy(
                 }
             },
             grunnlagService = object : GrunnlagService {
-                override fun lagreFradragsgrunnlag(behandlingId: UUID, fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>) {
+                override fun lagreFradragsgrunnlag(
+                    behandlingId: UUID,
+                    fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+                ) {
                     kastKanKunKallesFraAnnenService()
                 }
 
