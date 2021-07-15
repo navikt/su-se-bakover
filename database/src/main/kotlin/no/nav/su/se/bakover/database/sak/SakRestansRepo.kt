@@ -7,9 +7,7 @@ import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.behandling.Restans
-import no.nav.su.se.bakover.domain.behandling.RestansStatus
-import no.nav.su.se.bakover.domain.behandling.RestansType
+import no.nav.su.se.bakover.domain.sak.SakRestans
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import java.util.UUID
 import javax.sql.DataSource
@@ -18,8 +16,8 @@ internal class SakRestansRepo(
     private val dataSource: DataSource,
     private val dbMetrics: DbMetrics,
 ) {
-    fun hentRestanser(): List<Restans> {
-        return dbMetrics.timeQuery("hentRestanser") {
+    fun hentSakRestanser(): List<SakRestans> {
+        return dbMetrics.timeQuery("hentSakRestanser") {
             dataSource.withSession { session ->
                 //language=sql
                 """
@@ -66,28 +64,28 @@ internal class SakRestansRepo(
         }
     }
 
-    private fun Row.toRestans(): Restans {
+    private fun Row.toRestans(): SakRestans {
         val restansType = when (RestansTypeDB.valueOf(string("type"))) {
             RestansTypeDB.SØKNAD,
             RestansTypeDB.SØKNADSBEHANDLING,
-            -> RestansType.SØKNADSBEHANDLING
-            RestansTypeDB.REVURDERING -> RestansType.REVURDERING
+            -> SakRestans.RestansType.SØKNADSBEHANDLING
+            RestansTypeDB.REVURDERING -> SakRestans.RestansType.REVURDERING
         }
 
-        return Restans(
+        return SakRestans(
             saksnummer = Saksnummer(long("saksnummer")),
             behandlingsId = UUID.fromString(string("id")),
             restansType = restansType,
             status = when (RestansTypeDB.valueOf(string("type"))) {
                 RestansTypeDB.SØKNADSBEHANDLING -> behandlingStatusTilRestansStatus(BehandlingsStatus.valueOf(string("status")))
                 RestansTypeDB.REVURDERING -> revurderingTypeTilRestansStatus(RevurderingsType.valueOf(string("status")))
-                RestansTypeDB.SØKNAD -> RestansStatus.NY_SØKNAD
+                RestansTypeDB.SØKNAD -> SakRestans.RestansStatus.NY_SØKNAD
             },
             opprettet = tidspunkt("opprettet"),
         )
     }
 
-    private fun behandlingStatusTilRestansStatus(status: BehandlingsStatus): RestansStatus {
+    private fun behandlingStatusTilRestansStatus(status: BehandlingsStatus): SakRestans.RestansStatus {
         return when (status) {
             BehandlingsStatus.OPPRETTET,
             BehandlingsStatus.VILKÅRSVURDERT_INNVILGET,
@@ -95,21 +93,21 @@ internal class SakRestansRepo(
             BehandlingsStatus.BEREGNET_INNVILGET,
             BehandlingsStatus.BEREGNET_AVSLAG,
             BehandlingsStatus.SIMULERT,
-            -> RestansStatus.UNDER_BEHANDLING
+            -> SakRestans.RestansStatus.UNDER_BEHANDLING
 
             BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
             BehandlingsStatus.TIL_ATTESTERING_AVSLAG,
-            -> RestansStatus.TIL_ATTESTERING
+            -> SakRestans.RestansStatus.TIL_ATTESTERING
 
             BehandlingsStatus.UNDERKJENT_INNVILGET,
             BehandlingsStatus.UNDERKJENT_AVSLAG,
-            -> RestansStatus.UNDERKJENT
+            -> SakRestans.RestansStatus.UNDERKJENT
 
             else -> throw IllegalStateException("Iverksatte behandlinger er ikke en restans")
         }
     }
 
-    private fun revurderingTypeTilRestansStatus(type: RevurderingsType): RestansStatus {
+    private fun revurderingTypeTilRestansStatus(type: RevurderingsType): SakRestans.RestansStatus {
         return when (type) {
             RevurderingsType.OPPRETTET,
             RevurderingsType.BEREGNET_INNVILGET,
@@ -117,17 +115,17 @@ internal class SakRestansRepo(
             RevurderingsType.BEREGNET_INGEN_ENDRING,
             RevurderingsType.SIMULERT_INNVILGET,
             RevurderingsType.SIMULERT_OPPHØRT,
-            -> RestansStatus.UNDER_BEHANDLING
+            -> SakRestans.RestansStatus.UNDER_BEHANDLING
 
             RevurderingsType.TIL_ATTESTERING_INNVILGET,
             RevurderingsType.TIL_ATTESTERING_OPPHØRT,
             RevurderingsType.TIL_ATTESTERING_INGEN_ENDRING,
-            -> RestansStatus.TIL_ATTESTERING
+            -> SakRestans.RestansStatus.TIL_ATTESTERING
 
             RevurderingsType.UNDERKJENT_INNVILGET,
             RevurderingsType.UNDERKJENT_OPPHØRT,
             RevurderingsType.UNDERKJENT_INGEN_ENDRING,
-            -> RestansStatus.UNDERKJENT
+            -> SakRestans.RestansStatus.UNDERKJENT
 
             else -> throw IllegalStateException("Iverksatte behandlinger er ikke en restans.")
         }

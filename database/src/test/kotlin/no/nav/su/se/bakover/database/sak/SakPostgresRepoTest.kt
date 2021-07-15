@@ -8,9 +8,7 @@ import no.nav.su.se.bakover.database.stønadsperiode
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.behandling.Restans
-import no.nav.su.se.bakover.domain.behandling.RestansStatus
-import no.nav.su.se.bakover.domain.behandling.RestansType
+import no.nav.su.se.bakover.domain.sak.SakRestans
 import org.junit.jupiter.api.Test
 
 internal class SakPostgresRepoTest {
@@ -55,60 +53,60 @@ internal class SakPostgresRepoTest {
             val underkjentRevurdering = testDataHelper.underkjentRevurdering()
             testDataHelper.tilIverksattRevurdering()
 
-            val alleRestanser = repo.hentRestanser()
+            val alleRestanser = repo.hentSakRestanser()
 
             alleRestanser.size shouldBe 7
 
             alleRestanser shouldContainExactlyInAnyOrder listOf(
-                Restans(
+                SakRestans(
                     saksnummer = Saksnummer(nummer = 2021),
                     behandlingsId = sak.søknad.id,
-                    restansType = RestansType.SØKNADSBEHANDLING,
-                    status = RestansStatus.NY_SØKNAD,
+                    restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
+                    status = SakRestans.RestansStatus.NY_SØKNAD,
                     opprettet = sak.søknad.opprettet,
                 ),
-                Restans(
+                SakRestans(
                     saksnummer = Saksnummer(nummer = 2022),
                     behandlingsId = søknadsbehandling.id,
-                    restansType = RestansType.SØKNADSBEHANDLING,
-                    status = RestansStatus.UNDER_BEHANDLING,
+                    restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
+                    status = SakRestans.RestansStatus.UNDER_BEHANDLING,
                     opprettet = søknadsbehandling.opprettet,
                 ),
-                Restans(
+                SakRestans(
                     saksnummer = Saksnummer(nummer = 2023),
                     behandlingsId = underkjent.id,
-                    restansType = RestansType.SØKNADSBEHANDLING,
-                    status = RestansStatus.UNDERKJENT,
+                    restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
+                    status = SakRestans.RestansStatus.UNDERKJENT,
                     opprettet = underkjent.opprettet,
                 ),
-                Restans(
+                SakRestans(
                     saksnummer = Saksnummer(nummer = 2024),
                     behandlingsId = tilAttestering.id,
-                    restansType = RestansType.SØKNADSBEHANDLING,
-                    status = RestansStatus.TIL_ATTESTERING,
+                    restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
+                    status = SakRestans.RestansStatus.TIL_ATTESTERING,
                     opprettet = tilAttestering.opprettet,
                 ),
                 // Vi hopper over 1 saksnummer siden den blir lagret som en del når vi lager en revurdering gjennom
                 // hjelpe funksjoner
-                Restans(
+                SakRestans(
                     saksnummer = Saksnummer(nummer = 2026),
                     behandlingsId = opprettetRevurdering.id,
-                    restansType = RestansType.REVURDERING,
-                    status = RestansStatus.UNDER_BEHANDLING,
+                    restansType = SakRestans.RestansType.REVURDERING,
+                    status = SakRestans.RestansStatus.UNDER_BEHANDLING,
                     opprettet = opprettetRevurdering.opprettet,
                 ),
-                Restans(
+                SakRestans(
                     saksnummer = Saksnummer(nummer = 2027),
                     behandlingsId = tilAttesteringRevurdering.id,
-                    restansType = RestansType.REVURDERING,
-                    status = RestansStatus.TIL_ATTESTERING,
+                    restansType = SakRestans.RestansType.REVURDERING,
+                    status = SakRestans.RestansStatus.TIL_ATTESTERING,
                     opprettet = tilAttesteringRevurdering.opprettet,
                 ),
-                Restans(
+                SakRestans(
                     saksnummer = Saksnummer(nummer = 2028),
                     behandlingsId = underkjentRevurdering.id,
-                    restansType = RestansType.REVURDERING,
-                    status = RestansStatus.UNDERKJENT,
+                    restansType = SakRestans.RestansType.REVURDERING,
+                    status = SakRestans.RestansStatus.UNDERKJENT,
                     opprettet = underkjentRevurdering.opprettet,
                 ),
             )

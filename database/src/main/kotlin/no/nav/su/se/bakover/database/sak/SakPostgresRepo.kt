@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.behandling.Restans
+import no.nav.su.se.bakover.domain.sak.SakRestans
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -71,8 +71,8 @@ internal class SakPostgresRepo(
         }
     }
 
-    override fun hentRestanser(): List<Restans> {
-        return sakRestansRepo.hentRestanser()
+    override fun hentSakRestanser(): List<SakRestans> {
+        return sakRestansRepo.hentSakRestanser()
     }
 
     private fun hentSakInternal(fnr: Fnr, session: Session): Sak? = "select * from sak where fnr=:fnr"
