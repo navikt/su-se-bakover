@@ -56,6 +56,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
@@ -419,6 +420,32 @@ internal class TestDataHelper(
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             ).getOrHandle {
                 throw java.lang.IllegalStateException("Her skal vi ha en revurdering som er til attestering")
+            }
+        }.also {
+            revurderingRepo.lagre(it)
+        }
+    }
+
+    fun tilIverksattRevurdering(): IverksattRevurdering {
+        return when (val tilAttestering = tilAttesteringRevurdering()) {
+            is RevurderingTilAttestering.IngenEndring -> tilAttestering.tilIverksatt(
+                attestant,
+            ).getOrHandle {
+                throw javax.jms.IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
+            }
+            is RevurderingTilAttestering.Innvilget -> tilAttestering.tilIverksatt(
+                attestant = attestant,
+            ) {
+                UUID30.randomUUID().right()
+            }.getOrHandle {
+                throw javax.jms.IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
+            }
+            is RevurderingTilAttestering.Opphørt -> tilAttestering.tilIverksatt(
+                attestant,
+            ) {
+                UUID30.randomUUID().right()
+            }.getOrHandle {
+                throw javax.jms.IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
             }
         }.also {
             revurderingRepo.lagre(it)

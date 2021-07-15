@@ -100,7 +100,7 @@ internal class SakPostgresRepo(
             select *
             from slåttSammen
                         """.hentListe(emptyMap(), session) {
-                it.toUttrekk()
+                it.toRestans()
             }
         }
     }
@@ -115,8 +115,7 @@ internal class SakPostgresRepo(
         "select * from sak where saksnummer=:saksnummer"
             .hent(mapOf("saksnummer" to saksnummer.nummer), session) { it.toSak(session) }
 
-    private fun Row.toUttrekk(): Restans {
-
+    private fun Row.toRestans(): Restans {
         val restansType = when (RestansTypeDB.valueOf(string("type"))) {
             RestansTypeDB.SØKNAD,
             RestansTypeDB.SØKNADSBEHANDLING,
@@ -169,7 +168,8 @@ internal class SakPostgresRepo(
             BehandlingsStatus.UNDERKJENT_INNVILGET,
             BehandlingsStatus.UNDERKJENT_AVSLAG,
             -> RestansStatus.UNDERKJENT
-            else -> throw IllegalStateException("Fikk en ugyldig status for å mappe")
+
+            else -> throw IllegalStateException("Iverksatte behandlinger er ikke en restans")
         }
     }
 
@@ -193,7 +193,7 @@ internal class SakPostgresRepo(
             RevurderingsType.UNDERKJENT_INGEN_ENDRING,
             -> RestansStatus.UNDERKJENT
 
-            else -> throw IllegalStateException("Fikk en ugyldig type for å mappe")
+            else -> throw IllegalStateException("Iverksatte behandlinger er ikke en restans.")
         }
     }
 }

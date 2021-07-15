@@ -55,6 +55,7 @@ internal class SakPostgresRepoTest {
                 )
             val tilAttesteringRevurdering = testDataHelper.tilAttesteringRevurdering()
             val underkjentRevurdering = testDataHelper.underkjentRevurdering()
+            testDataHelper.tilIverksattRevurdering()
 
             val alleRestanser = repo.hentRestanser()
 
