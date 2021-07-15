@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.grunnlag
 
 import kotliquery.Row
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -17,6 +18,7 @@ import javax.sql.DataSource
 
 class BosituasjongrunnlagPostgresRepo(
     private val dataSource: DataSource,
+    private val dbMetrics: DbMetrics,
 ) : BosituasjongrunnlagRepo {
 
     private enum class Bosituasjonstype {
@@ -167,14 +169,16 @@ class BosituasjongrunnlagPostgresRepo(
     }
 
     internal fun hentBosituasjongrunnlag(behandlingId: UUID, session: Session): List<Grunnlag.Bosituasjon> {
-        return """ select * from grunnlag_bosituasjon where behandlingid=:behandlingid""".trimIndent()
-            .hentListe(
-                mapOf(
-                    "behandlingid" to behandlingId,
-                ),
-                session,
-            ) {
-                it.toBosituasjongrunnlag()
-            }
+        return dbMetrics.timeQuery("hentBosituasjonsgrunnlag") {
+            """ select * from grunnlag_bosituasjon where behandlingid=:behandlingid""".trimIndent()
+                .hentListe(
+                    mapOf(
+                        "behandlingid" to behandlingId,
+                    ),
+                    session,
+                ) {
+                    it.toBosituasjongrunnlag()
+                }
+        }
     }
 }

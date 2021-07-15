@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.person
 
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
@@ -8,11 +9,13 @@ import java.util.UUID
 import javax.sql.DataSource
 
 internal class PersonPostgresRepo(
-    private val dataSource: DataSource
+    private val dataSource: DataSource,
+    private val dbMetrics: DbMetrics,
 ) : PersonRepo {
     override fun hentFnrForSak(sakId: UUID): List<Fnr> {
-        return dataSource.withSession { session ->
-            """
+        return dbMetrics.timeQuery("hentFnrForSak") {
+            dataSource.withSession { session ->
+                """
                 SELECT
                     s.fnr søkersFnr,
                     eps_fnr epsFnr
@@ -23,16 +26,17 @@ internal class PersonPostgresRepo(
                  LEFT JOIN grunnlag_bosituasjon gb ON gb.behandlingId IN (b.id, r.id)
                WHERE s.id=:sakId
 |           """
-                .trimMargin()
-                .hentListe(mapOf("sakId" to sakId), session) {
-                    listOfNotNull(
-                        it.stringOrNull("epsFnr"),
-                        it.string("søkersFnr")
-                    )
-                }
-                .flatten()
-                .distinct()
-                .map { Fnr(it) }
+                    .trimMargin()
+                    .hentListe(mapOf("sakId" to sakId), session) {
+                        listOfNotNull(
+                            it.stringOrNull("epsFnr"),
+                            it.string("søkersFnr"),
+                        )
+                    }
+                    .flatten()
+                    .distinct()
+                    .map { Fnr(it) }
+            }
         }
     }
 
@@ -52,7 +56,7 @@ internal class PersonPostgresRepo(
                 .hentListe(mapOf("soknadId" to søknadId), session) {
                     listOfNotNull(
                         it.stringOrNull("epsFnr"),
-                        it.string("søkersFnr")
+                        it.string("søkersFnr"),
                     )
                 }
                 .flatten()
@@ -76,7 +80,7 @@ internal class PersonPostgresRepo(
                 .hentListe(mapOf("behandlingId" to behandlingId), session) {
                     listOfNotNull(
                         it.stringOrNull("epsFnr"),
-                        it.string("søkersFnr")
+                        it.string("søkersFnr"),
                     )
                 }
                 .flatten()
@@ -101,7 +105,7 @@ internal class PersonPostgresRepo(
                 .hentListe(mapOf("utbetalingId" to utbetalingId), session) {
                     listOfNotNull(
                         it.stringOrNull("epsFnr"),
-                        it.string("søkersFnr")
+                        it.string("søkersFnr"),
                     )
                 }
                 .flatten()
@@ -126,7 +130,7 @@ internal class PersonPostgresRepo(
                 .hentListe(mapOf("revurderingId" to revurderingId), session) {
                     listOfNotNull(
                         it.stringOrNull("epsFnr"),
-                        it.string("søkersFnr")
+                        it.string("søkersFnr"),
                     )
                 }
                 .flatten()

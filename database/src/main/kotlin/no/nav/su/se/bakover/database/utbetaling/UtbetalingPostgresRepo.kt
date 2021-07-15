@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.utbetaling
 
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
@@ -17,9 +18,13 @@ import javax.sql.DataSource
 
 internal class UtbetalingPostgresRepo(
     private val dataSource: DataSource,
+    private val dbMetrics: DbMetrics,
 ) : UtbetalingRepo {
-    override fun hentUtbetaling(utbetalingId: UUID30): Utbetaling.OversendtUtbetaling? =
-        dataSource.withSession { session -> UtbetalingInternalRepo.hentUtbetalingInternal(utbetalingId, session) }
+    override fun hentUtbetaling(utbetalingId: UUID30): Utbetaling.OversendtUtbetaling? {
+        return dbMetrics.timeQuery("hentUtbetalingId") {
+            dataSource.withSession { session -> UtbetalingInternalRepo.hentUtbetalingInternal(utbetalingId, session) }
+        }
+    }
 
     override fun hentUtbetaling(avstemmingsnøkkel: Avstemmingsnøkkel): Utbetaling.OversendtUtbetaling? {
         return dataSource.withSession { session ->
@@ -79,7 +84,11 @@ internal class UtbetalingPostgresRepo(
         }
     }
 
-    private fun opprettUtbetalingslinje(utbetalingId: UUID30, utbetalingslinje: Utbetalingslinje, session: Session): Utbetalingslinje {
+    private fun opprettUtbetalingslinje(
+        utbetalingId: UUID30,
+        utbetalingslinje: Utbetalingslinje,
+        session: Session,
+    ): Utbetalingslinje {
         val baseParams = mapOf(
             "id" to utbetalingslinje.id,
             "opprettet" to utbetalingslinje.opprettet,

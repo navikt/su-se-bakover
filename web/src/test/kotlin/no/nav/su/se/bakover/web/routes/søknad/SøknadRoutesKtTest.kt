@@ -56,6 +56,7 @@ import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.argThat
+import no.nav.su.se.bakover.web.dbMetricsStub
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.routes.sak.SakJson
@@ -71,8 +72,8 @@ internal class SøknadRoutesKtTest {
 
     private fun søknadInnhold(fnr: Fnr): SøknadInnhold = build(
         personopplysninger = SøknadInnholdTestdataBuilder.personopplysninger(
-            fnr = fnr.toString()
-        )
+            fnr = fnr.toString(),
+        ),
     )
 
     private val sakId: UUID = UUID.randomUUID()
@@ -84,16 +85,19 @@ internal class SøknadRoutesKtTest {
         saksnummer = Saksnummer(saksnummer),
         opprettet = tidspunkt,
         fnr = FnrGenerator.random(),
-        utbetalinger = emptyList()
+        utbetalinger = emptyList(),
     )
     private val søknadId = UUID.randomUUID()
 
-    private val databaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance())
+    private val databaseRepos = DatabaseBuilder.build(
+        embeddedDatasource = EmbeddedDatabase.instance(),
+        dbMetrics = dbMetricsStub,
+    )
     private val sakRepo = databaseRepos.sak
     private val trekkSøknadRequest = LukkSøknadRequest.MedBrev.TrekkSøknad(
         søknadId = søknadId,
         saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z990Lokal"),
-        trukketDato = 1.januar(2020)
+        trukketDato = 1.januar(2020),
     )
 
     private val mockServices = TestServicesBuilder.services()
@@ -103,13 +107,15 @@ internal class SøknadRoutesKtTest {
         val fnr = FnrGenerator.random()
         val søknadInnhold: SøknadInnhold = søknadInnhold(fnr)
         val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
-        withTestApplication({
-            testSusebakover()
-        }) {
+        withTestApplication(
+            {
+                testSusebakover()
+            },
+        ) {
             val createResponse = defaultRequest(
                 Post,
                 søknadPath,
-                listOf(Brukerrolle.Veileder)
+                listOf(Brukerrolle.Veileder),
             ) {
                 addHeader(ContentType, Json.toString())
                 setBody(soknadJson)
@@ -129,9 +135,11 @@ internal class SøknadRoutesKtTest {
     fun `knytter søknad til sak ved innsending`() {
         var sakId: String
         var saksnummer: Long
-        withTestApplication({
-            testSusebakover()
-        }) {
+        withTestApplication(
+            {
+                testSusebakover()
+            },
+        ) {
             val fnr = FnrGenerator.random()
             val søknadInnhold: SøknadInnhold = søknadInnhold(fnr)
             val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
@@ -180,7 +188,7 @@ internal class SøknadRoutesKtTest {
             pdfGenerator = pdfGenerator,
             dokArkiv = dokArkiv,
             personOppslag = personOppslag,
-            oppgaveClient = oppgaveClient
+            oppgaveClient = oppgaveClient,
         )
 
         val services = ServiceBuilder.build(
@@ -192,16 +200,18 @@ internal class SøknadRoutesKtTest {
             unleash = mock(),
         )
 
-        withTestApplication({
-            testSusebakover(
-                clients = clients,
-                services = services,
-            )
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(
+                    clients = clients,
+                    services = services,
+                )
+            },
+        ) {
             defaultRequest(
                 Post,
                 søknadPath,
-                listOf(Brukerrolle.Veileder)
+                listOf(Brukerrolle.Veileder),
             ) {
                 addHeader(ContentType, Json.toString())
                 setBody(soknadJson)
@@ -224,27 +234,29 @@ internal class SøknadRoutesKtTest {
             on { lukkSøknad(any()) } doReturn LukketSøknad.UtenMangler(sak, lukketSøknad).right()
         }
 
-        withTestApplication({
-            testSusebakover(services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock))
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock))
+            },
+        ) {
             defaultRequest(
                 method = Post,
                 uri = "$søknadPath/$søknadId/lukk",
-                roller = listOf(Brukerrolle.Saksbehandler)
+                roller = listOf(Brukerrolle.Saksbehandler),
             ) {
                 addHeader(ContentType, Json.toString())
                 setBody(
                     objectMapper.writeValueAsString(
                         LukketJson.TrukketJson(
                             datoSøkerTrakkSøknad = 1.januar(2020),
-                            type = Søknad.Lukket.LukketType.TRUKKET
-                        )
-                    )
+                            type = Søknad.Lukket.LukketType.TRUKKET,
+                        ),
+                    ),
                 )
             }.apply {
                 response.status() shouldBe OK
                 verify(lukkSøknadServiceMock).lukkSøknad(
-                    argThat { it shouldBe trekkSøknadRequest }
+                    argThat { it shouldBe trekkSøknadRequest },
                 )
             }
         }
@@ -255,29 +267,31 @@ internal class SøknadRoutesKtTest {
         val lukkSøknadServiceMock = mock<LukkSøknadService> {
             on { lukkSøknad(any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
         }
-        withTestApplication({
-            testSusebakover(
-                services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock)
-            )
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(
+                    services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock),
+                )
+            },
+        ) {
             defaultRequest(
                 method = Post,
                 uri = "$søknadPath/$søknadId/lukk",
-                roller = listOf(Brukerrolle.Saksbehandler)
+                roller = listOf(Brukerrolle.Saksbehandler),
             ) {
                 addHeader(ContentType, Json.toString())
                 setBody(
                     objectMapper.writeValueAsString(
                         LukketJson.TrukketJson(
                             datoSøkerTrakkSøknad = 1.januar(2020),
-                            type = Søknad.Lukket.LukketType.TRUKKET
-                        )
-                    )
+                            type = Søknad.Lukket.LukketType.TRUKKET,
+                        ),
+                    ),
                 )
             }.apply {
                 response.status() shouldBe BadRequest
                 verify(lukkSøknadServiceMock).lukkSøknad(
-                    argThat { it shouldBe trekkSøknadRequest }
+                    argThat { it shouldBe trekkSøknadRequest },
                 )
             }
         }
@@ -288,15 +302,17 @@ internal class SøknadRoutesKtTest {
         val lukkSøknadServiceMock = mock<LukkSøknadService> {
             on { lukkSøknad(any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
         }
-        withTestApplication({
-            testSusebakover(
-                services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock)
-            )
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(
+                    services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock),
+                )
+            },
+        ) {
             defaultRequest(
                 method = Post,
                 uri = "$søknadPath/$søknadId/lukk",
-                roller = listOf(Brukerrolle.Saksbehandler)
+                roller = listOf(Brukerrolle.Saksbehandler),
             ) {
                 addHeader(ContentType, Json.toString())
                 setBody(
@@ -305,10 +321,10 @@ internal class SøknadRoutesKtTest {
                             type = Søknad.Lukket.LukketType.AVVIST,
                             brevConfig = LukketJson.AvvistJson.BrevConfigJson(
                                 brevtype = LukketJson.BrevType.FRITEKST,
-                                null
-                            )
-                        )
-                    )
+                                null,
+                            ),
+                        ),
+                    ),
                 )
             }.apply {
                 response.status() shouldBe BadRequest
@@ -322,15 +338,17 @@ internal class SøknadRoutesKtTest {
         val lukkSøknadServiceMock = mock<LukkSøknadService> {
             on { lukkSøknad(any()) } doReturn KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
         }
-        withTestApplication({
-            testSusebakover(
-                services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock)
-            )
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(
+                    services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock),
+                )
+            },
+        ) {
             defaultRequest(
                 method = Post,
                 uri = "$søknadPath/$søknadId/lukk",
-                roller = listOf(Brukerrolle.Saksbehandler)
+                roller = listOf(Brukerrolle.Saksbehandler),
             ) {
                 addHeader(ContentType, Json.toString())
                 setBody(
@@ -339,7 +357,7 @@ internal class SøknadRoutesKtTest {
                         "type" : "ugyldigtype",
                         "datoSøkerTrakkSøknad" : "2020-01-01"
                         }
-                    """.trimIndent()
+                    """.trimIndent(),
                 )
             }.apply {
                 response.status() shouldBe BadRequest
@@ -354,26 +372,28 @@ internal class SøknadRoutesKtTest {
         val lukkSøknadServiceMock = mock<LukkSøknadService> {
             on { lagBrevutkast(any()) } doReturn pdf.right()
         }
-        withTestApplication({
-            testSusebakover(services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock))
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock))
+            },
+        ) {
             defaultRequest(
                 method = Post,
                 uri = "$søknadPath/$søknadId/lukk/brevutkast",
-                roller = listOf(Brukerrolle.Saksbehandler)
+                roller = listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
                     objectMapper.writeValueAsString(
                         LukketJson.TrukketJson(
                             datoSøkerTrakkSøknad = 1.januar(2020),
-                            type = Søknad.Lukket.LukketType.TRUKKET
-                        )
-                    )
+                            type = Søknad.Lukket.LukketType.TRUKKET,
+                        ),
+                    ),
                 )
             }.apply {
                 response.status() shouldBe OK
                 verify(lukkSøknadServiceMock).lagBrevutkast(
-                    argThat { it shouldBe trekkSøknadRequest }
+                    argThat { it shouldBe trekkSøknadRequest },
                 )
             }
         }

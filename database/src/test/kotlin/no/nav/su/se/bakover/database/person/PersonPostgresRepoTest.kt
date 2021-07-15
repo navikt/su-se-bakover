@@ -17,8 +17,9 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import org.junit.jupiter.api.Test
 
 internal class PersonPostgresRepoTest {
+    private val testDataHelper = TestDataHelper()
     private val ektefellePartnerSamboerFnr = FnrGenerator.random()
-    private val repo = PersonPostgresRepo(EmbeddedDatabase.instance())
+    private val repo = testDataHelper.personRepo
 
     @Test
     fun `hent fnr for sak gir søkers fnr`() {
@@ -193,7 +194,7 @@ internal class PersonPostgresRepoTest {
                     grunnlagsdata = revurdering.grunnlagsdata,
                     vilkårsvurderinger = revurdering.vilkårsvurderinger,
                     informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
-                    attesteringer = Attesteringshistorikk.empty()
+                    attesteringer = Attesteringshistorikk.empty(),
                 ),
             ).first
             val revurderingAvRevurdering = testDataHelper.nyRevurdering(

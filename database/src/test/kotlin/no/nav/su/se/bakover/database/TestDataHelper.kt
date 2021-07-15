@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
+import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
@@ -119,7 +120,7 @@ internal val underkjentAttestering =
         attestant = attestant,
         grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
         kommentar = "kommentar",
-        opprettet = fixedTidspunkt
+        opprettet = fixedTidspunkt,
     )
 internal val iverksattAttestering = Attestering.Iverksatt(attestant, fixedTidspunkt)
 internal val iverksattJournalpostId = JournalpostId("iverksattJournalpostId")
@@ -182,40 +183,85 @@ internal val kvitteringOk = Kvittering(
     mottattTidspunkt = fixedTidspunkt,
 )
 
+internal val dbMetricsStub: DbMetrics = object : DbMetrics {
+    override fun <T> timeQuery(label: String, block: () -> T): T {
+        return block()
+    }
+}
+
 internal class TestDataHelper(
-    internal val dataSource: DataSource = EmbeddedDatabase.instance(),
+    internal val datasource: DataSource = EmbeddedDatabase.instance(),
+    private val dbMetrics: DbMetrics = dbMetricsStub,
     private val clock: Clock = fixedClock,
 ) {
-    internal val utbetalingRepo = UtbetalingPostgresRepo(dataSource)
-    private val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
-    internal val søknadRepo = SøknadPostgresRepo(dataSource)
-    internal val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
-    private val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(dataSource)
-    private val bosituasjongrunnlagPostgresRepo = BosituasjongrunnlagPostgresRepo(dataSource)
-    internal val grunnlagRepo = GrunnlagPostgresRepo(fradragsgrunnlagPostgresRepo, bosituasjongrunnlagPostgresRepo)
-    internal val uføreVilkårsvurderingRepo = UføreVilkårsvurderingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
-    private val formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo()
-    internal val formueVilkårsvurderingPostgresRepo =
-        FormueVilkårsvurderingPostgresRepo(dataSource, formuegrunnlagPostgresRepo)
-    internal val søknadsbehandlingRepo =
-        SøknadsbehandlingPostgresRepo(
-            dataSource,
-            uføregrunnlagPostgresRepo,
-            fradragsgrunnlagPostgresRepo,
-            bosituasjongrunnlagPostgresRepo,
-            uføreVilkårsvurderingRepo,
-        )
-    internal val revurderingRepo = RevurderingPostgresRepo(
-        dataSource,
-        uføregrunnlagPostgresRepo,
-        fradragsgrunnlagPostgresRepo,
-        bosituasjongrunnlagPostgresRepo,
-        uføreVilkårsvurderingRepo,
-        formueVilkårsvurderingPostgresRepo,
-        søknadsbehandlingRepo,
+    internal val utbetalingRepo = UtbetalingPostgresRepo(
+        dataSource = datasource,
+        dbMetrics = dbMetrics,
     )
-    internal val vedtakRepo = VedtakPosgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo)
-    internal val sakRepo = SakPostgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo, vedtakRepo)
+    internal val hendelsesloggRepo = HendelsesloggPostgresRepo(datasource)
+    internal val søknadRepo = SøknadPostgresRepo(
+        dataSource = datasource,
+        dbMetrics = dbMetrics,
+    )
+    internal val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
+    internal val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(
+        dataSource = datasource,
+        dbMetrics = dbMetrics,
+    )
+    internal val bosituasjongrunnlagPostgresRepo = BosituasjongrunnlagPostgresRepo(
+        dataSource = datasource,
+        dbMetrics = dbMetrics,
+    )
+    internal val grunnlagRepo = GrunnlagPostgresRepo(
+        fradragsgrunnlagRepo = fradragsgrunnlagPostgresRepo,
+        bosituasjongrunnlagRepo = bosituasjongrunnlagPostgresRepo,
+    )
+    internal val uføreVilkårsvurderingRepo = UføreVilkårsvurderingPostgresRepo(
+        dataSource = datasource,
+        uføregrunnlagRepo = uføregrunnlagPostgresRepo,
+        dbMetrics = dbMetrics,
+    )
+    internal val formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo()
+    internal val formueVilkårsvurderingPostgresRepo = FormueVilkårsvurderingPostgresRepo(
+        dataSource = datasource,
+        formuegrunnlagPostgresRepo = formuegrunnlagPostgresRepo,
+        dbMetrics = dbMetrics,
+    )
+    internal val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(
+        dataSource = datasource,
+        uføregrunnlagRepo = uføregrunnlagPostgresRepo,
+        fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
+        bosituasjongrunnlagRepo = bosituasjongrunnlagPostgresRepo,
+        uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
+        dbMetrics = dbMetrics,
+    )
+    internal val revurderingRepo = RevurderingPostgresRepo(
+        dataSource = datasource,
+        uføregrunnlagRepo = uføregrunnlagPostgresRepo,
+        fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
+        bosituasjonsgrunnlagPostgresRepo = bosituasjongrunnlagPostgresRepo,
+        uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
+        formueVilkårsvurderingRepo = formueVilkårsvurderingPostgresRepo,
+        søknadsbehandlingRepo = søknadsbehandlingRepo,
+        dbMetrics = dbMetrics,
+    )
+    internal val vedtakRepo = VedtakPosgresRepo(
+        dataSource = datasource,
+        søknadsbehandlingRepo = søknadsbehandlingRepo,
+        revurderingRepo = revurderingRepo,
+        dbMetrics = dbMetrics,
+    )
+    internal val sakRepo = SakPostgresRepo(
+        dataSource = datasource,
+        søknadsbehandlingRepo = søknadsbehandlingRepo,
+        revurderingRepo = revurderingRepo,
+        vedtakPosgresRepo = vedtakRepo,
+        dbMetrics = dbMetrics,
+    )
+    internal val personRepo = PersonPostgresRepo(
+        dataSource = datasource,
+        dbMetrics = dbMetrics,
+    )
 
     fun nySakMedNySøknad(fnr: Fnr = FnrGenerator.random()): NySak {
         return SakFactory(clock = clock).nySak(fnr, SøknadInnholdTestdataBuilder.build()).also {
@@ -340,7 +386,7 @@ internal class TestDataHelper(
                     attestant = attestant,
                 ) { utbetaling.id.right() }.orNull()!!,
                 utbetalingId = utbetaling.id,
-                fixedClock
+                fixedClock,
             ).also {
                 vedtakRepo.lagre(it)
             },
@@ -379,7 +425,7 @@ internal class TestDataHelper(
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         ).also {
             revurderingRepo.lagre(it)
             grunnlagRepo.lagreBosituasjongrunnlag(revurderingId, grunnlagsdata.bosituasjon)

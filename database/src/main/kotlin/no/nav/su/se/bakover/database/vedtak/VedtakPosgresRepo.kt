@@ -5,6 +5,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
@@ -45,10 +46,14 @@ internal class VedtakPosgresRepo(
     private val dataSource: DataSource,
     private val søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
     private val revurderingRepo: RevurderingPostgresRepo,
+    private val dbMetrics: DbMetrics,
 ) : VedtakRepo {
 
-    override fun hentForSakId(sakId: UUID): List<Vedtak> =
-        dataSource.withSession { session -> hentForSakId(sakId, session) }
+    override fun hentForSakId(sakId: UUID): List<Vedtak> {
+        return dbMetrics.timeQuery("hentVedtakForSakId") {
+            dataSource.withSession { session -> hentForSakId(sakId, session) }
+        }
+    }
 
     internal fun hentForSakId(sakId: UUID, session: Session): List<Vedtak> =
         """
