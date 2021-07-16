@@ -129,12 +129,12 @@ internal class JournalpostFactoryTest {
 
     @Test
     fun `lager vedtakspost for vedtak dokumentkategori vedtak`() {
-        val dokument = Dokument.Vedtak(
+        val dokument = Dokument.MedMetadata.Vedtak(
+            tittel = "tittel",
             generertDokument = "".toByteArray(),
             generertDokumentJson = """{"k":"v"}""",
             metadata = Dokument.Metadata(
                 sakId = UUID.randomUUID(),
-                tittel = "tittel",
                 bestillBrev = true,
             ),
         )
@@ -147,12 +147,12 @@ internal class JournalpostFactoryTest {
 
     @Test
     fun `lager infopost for dokumentkategori informasjon`() {
-        val dokument = Dokument.Informasjon(
+        val dokument = Dokument.MedMetadata.Informasjon(
+            tittel = "tittel",
             generertDokument = "".toByteArray(),
             generertDokumentJson = """{"k":"v"}""",
             metadata = Dokument.Metadata(
                 sakId = UUID.randomUUID(),
-                tittel = "tittel",
                 bestillBrev = true,
             ),
         )
@@ -169,7 +169,7 @@ internal class JournalpostFactoryTest {
         dokumentKategori: DokumentKategori,
     ) = assertJournalpost(
         journalpost = journalpost,
-        tittel = dokument.metadata.tittel,
+        tittel = dokument.tittel,
         pdfRequestJson = dokument.generertDokumentJson,
         dokumentKategori = dokumentKategori,
     )

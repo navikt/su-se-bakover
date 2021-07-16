@@ -29,11 +29,11 @@ object JournalpostFactory {
     fun lagJournalpost(
         person: Person,
         saksnummer: Saksnummer,
-        dokument: Dokument,
+        dokument: Dokument.MedMetadata,
     ): Journalpost = when (dokument) {
-        is Dokument.Informasjon,
+        is Dokument.MedMetadata.Informasjon,
         -> Journalpost.Info.from(person, saksnummer, dokument)
-        is Dokument.Vedtak,
+        is Dokument.MedMetadata.Vedtak,
         -> Journalpost.Vedtakspost.from(person, saksnummer, dokument)
     }
 }

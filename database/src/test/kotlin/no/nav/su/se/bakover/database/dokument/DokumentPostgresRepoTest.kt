@@ -25,14 +25,14 @@ internal class DokumentPostgresRepoTest {
     fun `lagrer og henter dokumenter`() {
         withMigratedDb {
             val sak = testDataHelper.nySakMedNySøknad()
-            val original = Dokument.Vedtak(
+            val original = Dokument.MedMetadata.Vedtak(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
+                tittel = "tittel",
                 generertDokument = "".toByteArray(),
                 generertDokumentJson = """{"some":"json"}""",
                 metadata = Dokument.Metadata(
                     sakId = sak.id,
-                    tittel = "tittel",
                     søknadId = sak.søknad.id,
                     bestillBrev = false,
                 ),
@@ -57,14 +57,14 @@ internal class DokumentPostgresRepoTest {
     fun `lagrer bestilling av brev for dokumenter og oppdaterer`() {
         withMigratedDb {
             val sak = testDataHelper.nySakMedNySøknad()
-            val original = Dokument.Informasjon(
+            val original = Dokument.MedMetadata.Informasjon(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
+                tittel = "tittel",
                 generertDokument = "".toByteArray(),
                 generertDokumentJson = """{"some":"json"}""",
                 metadata = Dokument.Metadata(
                     sakId = sak.id,
-                    tittel = "tittel",
                     søknadId = sak.søknad.id,
                     bestillBrev = true,
                 ),

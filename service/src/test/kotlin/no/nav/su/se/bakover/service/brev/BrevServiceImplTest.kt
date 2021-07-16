@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.brev
 
+import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
@@ -248,8 +249,7 @@ internal class BrevServiceImplTest {
     fun `distribuer dokument - ikke journalført`() {
         val dokumentdistribusjon = dokumentdistribusjon()
 
-        ServiceOgMocks(
-        ).let {
+        ServiceOgMocks().let {
             it.brevService.distribuerDokument(dokumentdistribusjon) shouldBe KunneIkkeBestilleBrevForDokument.MåJournalføresFørst.left()
             it.verifyNoMoreInteraction()
         }
@@ -265,8 +265,7 @@ internal class BrevServiceImplTest {
                 ),
             )
 
-        ServiceOgMocks(
-        ).let {
+        ServiceOgMocks().let {
             it.brevService.distribuerDokument(dokumentdistribusjon) shouldBe dokumentdistribusjon.right()
             it.verifyNoMoreInteraction()
         }
@@ -323,6 +322,15 @@ internal class BrevServiceImplTest {
     object DummyRequest : LagBrevRequest {
         override val person: Person = BrevServiceImplTest.person
         override val brevInnhold: BrevInnhold = DummyBrevInnhold
+        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<LagBrevRequest.KunneIkkeGenererePdf, ByteArray>): Either<LagBrevRequest.KunneIkkeGenererePdf, Dokument.UtenMetadata> {
+            return genererDokument(genererPdf).map {
+                Dokument.UtenMetadata.Vedtak(
+                    tittel = it.first,
+                    generertDokument = it.second,
+                    generertDokumentJson = it.third,
+                )
+            }
+        }
     }
 
     object DummyBrevInnhold : BrevInnhold() {
@@ -354,12 +362,12 @@ internal class BrevServiceImplTest {
     }
 
     private fun dokumentdistribusjon(): Dokumentdistribusjon = Dokumentdistribusjon(
-        dokument = Dokument.Vedtak(
+        dokument = Dokument.MedMetadata.Vedtak(
+            tittel = "tittel",
             generertDokument = "".toByteArray(),
             generertDokumentJson = "{}",
             metadata = Dokument.Metadata(
                 sakId = UUID.randomUUID(),
-                tittel = "tittel",
                 bestillBrev = true,
             ),
         ),

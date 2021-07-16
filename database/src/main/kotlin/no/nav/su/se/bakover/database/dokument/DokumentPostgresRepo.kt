@@ -26,7 +26,7 @@ internal class DokumentPostgresRepo(
     private val dataSource: DataSource,
 ) : DokumentRepo {
 
-    override fun lagre(dokument: Dokument) {
+    override fun lagre(dokument: Dokument.MedMetadata) {
         dataSource.withSession { session ->
             """
                 insert into dokument(id, opprettet, sakId, generertDokument, generertDokumentJson, type, tittel, søknadId, vedtakId, bestillbrev) 
@@ -40,10 +40,10 @@ internal class DokumentPostgresRepo(
                         "generertDokument" to dokument.generertDokument,
                         "generertDokumentJson" to objectMapper.writeValueAsString(dokument.generertDokumentJson),
                         "type" to when (dokument) {
-                            is Dokument.Informasjon -> DokumentKategori.INFORMASJON
-                            is Dokument.Vedtak -> DokumentKategori.VEDTAK
+                            is Dokument.MedMetadata.Informasjon -> DokumentKategori.INFORMASJON
+                            is Dokument.MedMetadata.Vedtak -> DokumentKategori.VEDTAK
                         }.toString(),
-                        "tittel" to dokument.metadata.tittel,
+                        "tittel" to dokument.tittel,
                         "soknadId" to dokument.metadata.søknadId,
                         "vedtakId" to dokument.metadata.vedtakId,
                         "bestillbrev" to dokument.metadata.bestillBrev,
@@ -65,7 +65,7 @@ internal class DokumentPostgresRepo(
         }
     }
 
-    override fun hentDokument(id: UUID): Dokument? {
+    override fun hentDokument(id: UUID): Dokument.MedMetadata? {
         return dataSource.withSession { session ->
             """
                 select * from dokument where id = :id
@@ -80,7 +80,7 @@ internal class DokumentPostgresRepo(
         }
     }
 
-    override fun hentForSak(id: UUID): List<Dokument> {
+    override fun hentForSak(id: UUID): List<Dokument.MedMetadata> {
         return dataSource.withSession { session ->
             """
                 select * from dokument where sakId = :id
@@ -91,7 +91,7 @@ internal class DokumentPostgresRepo(
         }
     }
 
-    override fun hentForSøknad(id: UUID): List<Dokument> {
+    override fun hentForSøknad(id: UUID): List<Dokument.MedMetadata> {
         return dataSource.withSession { session ->
             """
                 select * from dokument where søknadId = :id
@@ -102,7 +102,7 @@ internal class DokumentPostgresRepo(
         }
     }
 
-    override fun hentForVedtak(id: UUID): List<Dokument> {
+    override fun hentForVedtak(id: UUID): List<Dokument.MedMetadata> {
         return dataSource.withSession { session ->
             """
                 select * from dokument where vedtakId = :id
@@ -184,7 +184,7 @@ internal class DokumentPostgresRepo(
             )
     }
 
-    private fun Row.toDokument(): Dokument {
+    private fun Row.toDokument(): Dokument.MedMetadata {
         val type = DokumentKategori.valueOf(string("type"))
         val id = uuid("id")
         val opprettet = tidspunkt("opprettet")
@@ -196,29 +196,29 @@ internal class DokumentPostgresRepo(
         val tittel = string("tittel")
         val bestillbrev = boolean("bestillbrev")
         return when (type) {
-            DokumentKategori.INFORMASJON -> Dokument.Informasjon(
+            DokumentKategori.INFORMASJON -> Dokument.MedMetadata.Informasjon(
                 id = id,
                 opprettet = opprettet,
+                tittel = tittel,
                 generertDokument = innhold,
                 generertDokumentJson = request,
                 metadata = Dokument.Metadata(
                     sakId = sakId,
                     søknadId = søknadId,
                     vedtakId = vedtakId,
-                    tittel = tittel,
                     bestillBrev = bestillbrev,
                 ),
             )
-            DokumentKategori.VEDTAK -> Dokument.Vedtak(
+            DokumentKategori.VEDTAK -> Dokument.MedMetadata.Vedtak(
                 id = id,
                 opprettet = opprettet,
+                tittel = tittel,
                 generertDokument = innhold,
                 generertDokumentJson = request,
                 metadata = Dokument.Metadata(
                     sakId = sakId,
                     søknadId = søknadId,
                     vedtakId = vedtakId,
-                    tittel = tittel,
                     bestillBrev = bestillbrev,
                 ),
             )

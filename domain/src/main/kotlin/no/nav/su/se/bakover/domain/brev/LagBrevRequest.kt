@@ -1,5 +1,9 @@
 package no.nav.su.se.bakover.domain.brev
 
+import arrow.core.Either
+import arrow.core.getOrHandle
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.Person
@@ -9,6 +13,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn.Companion.getDistinkteParagrafer
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
+import no.nav.su.se.bakover.domain.dokument.Dokument
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -16,6 +21,18 @@ import java.util.Locale
 interface LagBrevRequest {
     val person: Person
     val brevInnhold: BrevInnhold
+
+    fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata>
+
+    fun genererDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Triple<String, ByteArray, String>> {
+        return Triple(
+            first = brevInnhold.brevTemplate.tittel(),
+            second = genererPdf(this).getOrHandle { return KunneIkkeGenererePdf.left() },
+            third = brevInnhold.toJson(),
+        ).right()
+    }
+
+    object KunneIkkeGenererePdf
 
     data class InnvilgetVedtak(
         override val person: Person,
@@ -45,6 +62,16 @@ interface LagBrevRequest {
             attestantNavn = attestantNavn,
             fritekst = fritekst,
         )
+
+        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
+            return genererDokument(genererPdf).map {
+                Dokument.UtenMetadata.Vedtak(
+                    tittel = it.first,
+                    generertDokument = it.second,
+                    generertDokumentJson = it.third,
+                )
+            }
+        }
     }
 
     data class AvslagBrevRequest(
@@ -70,6 +97,16 @@ interface LagBrevRequest {
             fritekst = fritekst,
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
         )
+
+        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
+            return genererDokument(genererPdf).map {
+                Dokument.UtenMetadata.Vedtak(
+                    tittel = it.first,
+                    generertDokument = it.second,
+                    generertDokumentJson = it.third,
+                )
+            }
+        }
     }
 
     data class Opphørsvedtak(
@@ -101,6 +138,16 @@ interface LagBrevRequest {
             avslagsparagrafer = opphørsgrunner.getDistinkteParagrafer(),
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
         )
+
+        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
+            return genererDokument(genererPdf).map {
+                Dokument.UtenMetadata.Vedtak(
+                    tittel = it.first,
+                    generertDokument = it.second,
+                    generertDokumentJson = it.third,
+                )
+            }
+        }
     }
 
     data class VedtakIngenEndring(
@@ -126,6 +173,16 @@ interface LagBrevRequest {
             forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
             gjeldendeMånedsutbetaling = gjeldendeMånedsutbetaling,
         )
+
+        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
+            return genererDokument(genererPdf).map {
+                Dokument.UtenMetadata.Vedtak(
+                    tittel = it.first,
+                    generertDokument = it.second,
+                    generertDokumentJson = it.third,
+                )
+            }
+        }
     }
 
     data class Forhåndsvarsel(
@@ -138,6 +195,16 @@ interface LagBrevRequest {
             saksbehandlerNavn = saksbehandlerNavn,
             fritekst = fritekst,
         )
+
+        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
+            return genererDokument(genererPdf).map {
+                Dokument.UtenMetadata.Informasjon(
+                    tittel = it.first,
+                    generertDokument = it.second,
+                    generertDokumentJson = it.third,
+                )
+            }
+        }
     }
 
     sealed class Revurdering : LagBrevRequest {
@@ -162,6 +229,16 @@ interface LagBrevRequest {
                 harEktefelle = harEktefelle,
                 forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
             )
+        }
+
+        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
+            return genererDokument(genererPdf).map {
+                Dokument.UtenMetadata.Vedtak(
+                    tittel = it.first,
+                    generertDokument = it.second,
+                    generertDokumentJson = it.third,
+                )
+            }
         }
     }
 }

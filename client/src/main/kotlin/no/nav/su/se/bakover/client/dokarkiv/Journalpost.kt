@@ -109,7 +109,7 @@ sealed class Journalpost {
                 saksnummer = saksnummer,
                 pdfRequestJson = dokument.generertDokumentJson,
                 pdf = dokument.generertDokument,
-                tittel = dokument.metadata.tittel,
+                tittel = dokument.tittel,
             )
         }
     }
@@ -166,7 +166,7 @@ sealed class Journalpost {
                 saksnummer = saksnummer,
                 pdfRequestJson = dokument.generertDokumentJson,
                 pdf = dokument.generertDokument,
-                tittel = dokument.metadata.tittel,
+                tittel = dokument.tittel,
             )
         }
     }

@@ -41,6 +41,7 @@ import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest.InnvilgetVedtak
+import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.fixedClock
 import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -154,6 +155,13 @@ internal class LagBrevRequestVisitorTest {
                         fritekst = "",
                         forventetInntektStørreEnn0 = false,
                     ).right()
+
+                    it.brevRequest.map { brevRequest ->
+                        brevRequest.tilDokument { generertPdf.right() }
+                            .map { dokument ->
+                                assertDokument<Dokument.UtenMetadata.Vedtak>(dokument, brevRequest)
+                            }
+                    }
                 }
             }
     }
@@ -233,6 +241,13 @@ internal class LagBrevRequestVisitorTest {
                         fritekst = "",
                         forventetInntektStørreEnn0 = false,
                     ).right()
+
+                    it.brevRequest.map { brevRequest ->
+                        brevRequest.tilDokument { generertPdf.right() }
+                            .map { dokument ->
+                                assertDokument<Dokument.UtenMetadata.Vedtak>(dokument, brevRequest)
+                            }
+                    }
                 }
             }
     }
@@ -340,7 +355,7 @@ internal class LagBrevRequestVisitorTest {
                     attestant = attestant,
                     grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                     kommentar = "kommentar",
-                    opprettet = Tidspunkt.now(clock)
+                    opprettet = Tidspunkt.now(clock),
                 ),
             )
             .let { søknadsbehandling ->
@@ -379,7 +394,7 @@ internal class LagBrevRequestVisitorTest {
                     attestant = attestant,
                     grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                     kommentar = "kommentar",
-                    opprettet = Tidspunkt.now(clock)
+                    opprettet = Tidspunkt.now(clock),
 
                 ),
             )
@@ -418,7 +433,7 @@ internal class LagBrevRequestVisitorTest {
                     attestant = attestant,
                     grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                     kommentar = "kommentar",
-                    opprettet = Tidspunkt.now(clock)
+                    opprettet = Tidspunkt.now(clock),
                 ),
             )
             .let { søknadsbehandling ->
@@ -691,7 +706,8 @@ internal class LagBrevRequestVisitorTest {
             ),
             beregning = innvilgetBeregning,
             simulering = simulering,
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now(clock))),
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now(clock))),
             fritekstTilBrev = "JEPP",
             revurderingsårsak = Revurderingsårsak(
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
@@ -729,6 +745,13 @@ internal class LagBrevRequestVisitorTest {
             harEktefelle = false,
             forventetInntektStørreEnn0 = false,
         ).right()
+
+        brevRevurdering.brevRequest.map { brevRequest ->
+            brevRequest.tilDokument { generertPdf.right() }
+                .map { dokument ->
+                    assertDokument<Dokument.UtenMetadata.Vedtak>(dokument, brevRequest)
+                }
+        }
     }
 
     @Test
@@ -751,7 +774,8 @@ internal class LagBrevRequestVisitorTest {
             oppgaveId = OppgaveId("15"),
             beregning = innvilgetBeregning,
             simulering = simulering,
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
             fritekstTilBrev = "FRITEKST REVURDERING",
             revurderingsårsak = Revurderingsårsak(
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
@@ -813,6 +837,13 @@ internal class LagBrevRequestVisitorTest {
             forventetInntektStørreEnn0 = false,
             opphørsgrunner = emptyList(),
         ).right()
+
+        brevRevurdering.brevRequest.map { brevRequest ->
+            brevRequest.tilDokument { generertPdf.right() }
+                .map { dokument ->
+                    assertDokument<Dokument.UtenMetadata.Vedtak>(dokument, brevRequest)
+                }
+        }
     }
 
     @Test
@@ -835,7 +866,8 @@ internal class LagBrevRequestVisitorTest {
             oppgaveId = OppgaveId("15"),
             beregning = innvilgetBeregning,
             simulering = simulering,
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now(clock))),
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now(clock))),
             fritekstTilBrev = "FRITEKST REVURDERING",
             revurderingsårsak = Revurderingsårsak(
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
@@ -922,7 +954,8 @@ internal class LagBrevRequestVisitorTest {
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
             beregning = innvilgetBeregning,
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
             fritekstTilBrev = "EN FIN FRITEKST",
             revurderingsårsak = Revurderingsårsak(
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
@@ -971,11 +1004,21 @@ internal class LagBrevRequestVisitorTest {
                 fritekst = "EN FIN FRITEKST",
                 harEktefelle = revurdering.behandlingsinformasjon.harEktefelle(),
                 forventetInntektStørreEnn0 = false,
-                gjeldendeMånedsutbetaling = 120
+                gjeldendeMånedsutbetaling = 120,
             )
 
             it.brevInnhold should beOfType<BrevInnhold.VedtakIngenEndring>()
         }
+    }
+
+    private inline fun <reified T> assertDokument(
+        dokument: Dokument.UtenMetadata,
+        brevRequest: LagBrevRequest,
+    ) {
+        (dokument is T) shouldBe true
+        dokument.tittel shouldBe brevRequest.brevInnhold.brevTemplate.tittel()
+        dokument.generertDokument shouldBe generertPdf
+        dokument.generertDokumentJson shouldBe brevRequest.brevInnhold.toJson()
     }
 
     private val clock = Clock.fixed(1.januar(2021).startOfDay(zoneIdOslo).instant, ZoneOffset.UTC)
@@ -986,6 +1029,7 @@ internal class LagBrevRequestVisitorTest {
         ),
         navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
     )
+    private val generertPdf = "".toByteArray()
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("Z123")
     private val saksbehandlerNavn = "saksbehandler"
@@ -1063,6 +1107,6 @@ internal class LagBrevRequestVisitorTest {
             ),
         ),
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-        attesteringer = Attesteringshistorikk.empty()
+        attesteringer = Attesteringshistorikk.empty(),
     )
 }

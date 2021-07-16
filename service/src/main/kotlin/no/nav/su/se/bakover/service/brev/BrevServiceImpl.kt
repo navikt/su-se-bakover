@@ -72,7 +72,7 @@ internal class BrevServiceImpl(
                 KunneIkkeDistribuereBrev
             }
 
-    override fun lagreDokument(dokument: Dokument) {
+    override fun lagreDokument(dokument: Dokument.MedMetadata) {
         dokumentRepo.lagre(dokument)
     }
 
