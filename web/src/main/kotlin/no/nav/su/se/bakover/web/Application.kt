@@ -73,6 +73,7 @@ import no.nav.su.se.bakover.web.routes.toggleRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.gjenoppta.gjenopptaUtbetalingRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.stans.stansutbetalingRoutes
 import no.nav.su.se.bakover.web.services.avstemming.AvstemmingJob
+import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringIbmMqConsumer
@@ -263,8 +264,20 @@ internal fun Application.susebakover(
             avstemmingService = services.avstemming,
             leaderPodLookup = clients.leaderPodLookup,
         ).schedule()
+
+        DistribuerDokumentJob(
+            brevService = services.brev,
+            dokumentRepo = databaseRepos.dokumentRepo,
+            leaderPodLookup = clients.leaderPodLookup,
+        ).schedule()
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         LokalKvitteringJob(databaseRepos.utbetaling, utbetalingKvitteringConsumer).schedule()
+
+        DistribuerDokumentJob(
+            brevService = services.brev,
+            dokumentRepo = databaseRepos.dokumentRepo,
+            leaderPodLookup = clients.leaderPodLookup,
+        ).schedule()
     }
 }
 
