@@ -9,12 +9,12 @@ import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad.FantIkkePerson
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad.FantIkkeSøknad
-import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad.KunneIkkeJournalføreBrev
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad.SøknadErAlleredeLukket
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad.SøknadHarEnBehandling
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad.UgyldigTrukketDato
 import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
 import no.nav.su.se.bakover.web.Resultat
+import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 
@@ -25,19 +25,23 @@ internal object LukkSøknadErrorHandler {
             is SøknadErAlleredeLukket -> BadRequest.message("Søknad med id $søknadId er allerede trukket")
             is SøknadHarEnBehandling -> BadRequest.message("Søknad med id $søknadId har en aktiv behandling og kan derfor ikke lukkes")
             is FantIkkeSøknad -> NotFound.message("Fant ikke søknad med id $søknadId")
-            is KunneIkkeJournalføreBrev -> InternalServerError.message("Kunne ikke journalføre brev")
             is UgyldigTrukketDato -> BadRequest.message("Ugyldig lukket dato. Dato må være etter opprettet og kan ikke være frem i tid")
             is FantIkkePerson -> NotFound.message("Fant ikke person")
             is KunneIkkeLukkeSøknad.SøknadManglerOppgave -> InternalServerError.message("Søknad med id $søknadId mangler oppgave")
+            KunneIkkeLukkeSøknad.KunneIkkeGenerereDokument -> InternalServerError.errorJson(
+                "Feil ved generering av dokument",
+                "feil_ved_generering_av_dokument",
+            )
         }
     }
 
     fun lukketSøknadResponse(error: LukketSøknad) = when (error) {
         is LukketSøknad.UtenMangler,
         is LukketSøknad.MedMangler.KunneIkkeDistribuereBrev,
-        is LukketSøknad.MedMangler.KunneIkkeLukkeOppgave -> Resultat.json(
+        is LukketSøknad.MedMangler.KunneIkkeLukkeOppgave,
+        -> Resultat.json(
             HttpStatusCode.OK,
-            serialize((error.sak.toJson()))
+            serialize((error.sak.toJson())),
         )
     }
 }

@@ -16,8 +16,8 @@ sealed class KunneIkkeLukkeSøknad {
     object SøknadErAlleredeLukket : KunneIkkeLukkeSøknad()
     object SøknadHarEnBehandling : KunneIkkeLukkeSøknad()
     object UgyldigTrukketDato : KunneIkkeLukkeSøknad()
-    object KunneIkkeJournalføreBrev : KunneIkkeLukkeSøknad()
     object SøknadManglerOppgave : KunneIkkeLukkeSøknad()
+    object KunneIkkeGenerereDokument : KunneIkkeLukkeSøknad()
 }
 
 sealed class KunneIkkeLageBrevutkast {

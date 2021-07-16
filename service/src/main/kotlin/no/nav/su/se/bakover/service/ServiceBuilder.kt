@@ -135,6 +135,7 @@ object ServiceBuilder {
                 personService = personService,
                 microsoftGraphApiClient = clients.microsoftGraphApiClient,
                 clock = clock,
+                dokumentRepo = databaseRepos.dokumentRepo,
             ).apply {
                 addObserver(statistikkService)
             },
