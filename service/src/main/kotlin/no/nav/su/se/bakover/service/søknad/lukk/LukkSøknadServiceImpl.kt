@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
@@ -48,7 +49,7 @@ internal class LukkSøknadServiceImpl(
         observers.add(observer)
     }
 
-    override fun lukkSøknad(request: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, LukketSøknad> {
+    override fun lukkSøknad(request: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, Sak> {
         val søknad = hentSøknad(request.søknadId).getOrHandle {
             return it.left()
         }
@@ -78,31 +79,23 @@ internal class LukkSøknadServiceImpl(
                         return KunneIkkeLukkeSøknad.FantIkkePerson.left()
                     }
                 log.info("Lukker journalført søknad ${søknad.id} og tilhørende oppgave ${søknad.oppgaveId}")
+
                 lukkSøknad(person, request, søknad)
-                    .flatMap { lukketSøknad ->
+                    .flatMap { lukket ->
                         oppgaveService.lukkOppgave(søknad.oppgaveId)
                             .mapLeft {
                                 log.warn("Kunne ikke lukke oppgave ${søknad.oppgaveId} for søknad ${søknad.id}")
-                                return (
-                                    if (lukketSøknad is LukketSøknad.UtenMangler) {
-                                        LukketSøknad.MedMangler.KunneIkkeLukkeOppgave(
-                                            lukketSøknad.sak,
-                                            lukketSøknad.søknad,
-                                        )
-                                    } else lukketSøknad
-                                    ).right()
-                            }.map {
-                                lukketSøknad.also {
-                                    observers.forEach { observer ->
-                                        observer.handle(
-                                            Event.Statistikk.SøknadStatistikk.SøknadLukket(
-                                                it.søknad,
-                                                it.sak.saksnummer,
-                                            ),
-                                        )
-                                    }
-                                }
                             }
+                        val sak = hentSak(lukket.sakId)
+                        observers.forEach { observer ->
+                            observer.handle(
+                                Event.Statistikk.SøknadStatistikk.SøknadLukket(
+                                    søknad = lukket,
+                                    saksnummer = sak.saksnummer,
+                                ),
+                            )
+                        }
+                        sak.right()
                     }
             }
         }
@@ -112,12 +105,13 @@ internal class LukkSøknadServiceImpl(
         person: Person,
         request: LukkSøknadRequest,
         søknad: Søknad,
-    ): Either<KunneIkkeLukkeSøknad, LukketSøknad> {
+    ): Either<KunneIkkeLukkeSøknad, Søknad.Lukket> {
         return when (request) {
-            is LukkSøknadRequest.MedBrev -> lukkSøknadMedBrev(person, request, søknad)
+            is LukkSøknadRequest.MedBrev -> {
+                lukkSøknadMedBrev(person, request, søknad)
+            }
             is LukkSøknadRequest.UtenBrev -> {
-                val lukketSøknad = lukkSøknadUtenBrev(request, søknad)
-                LukketSøknad.UtenMangler(sak = hentSak(søknad.sakId), lukketSøknad).right()
+                lukkSøknadUtenBrev(request, søknad).right()
             }
         }
     }
@@ -175,7 +169,6 @@ internal class LukkSøknadServiceImpl(
     ): Søknad.Lukket {
         val lukketSøknad = søknad.lukk(request, Tidspunkt.now(clock))
         søknadRepo.oppdaterSøknad(lukketSøknad)
-
         return lukketSøknad
     }
 
@@ -183,7 +176,7 @@ internal class LukkSøknadServiceImpl(
         person: Person,
         request: LukkSøknadRequest.MedBrev,
         søknad: Søknad,
-    ): Either<KunneIkkeLukkeSøknad, LukketSøknad> {
+    ): Either<KunneIkkeLukkeSøknad, Søknad.Lukket> {
         val dokument = lagBrevRequest(person, søknad, request)
             .tilDokument {
                 brevService.lagBrev(it).mapLeft { LagBrevRequest.KunneIkkeGenererePdf }
@@ -202,7 +195,7 @@ internal class LukkSøknadServiceImpl(
         søknadRepo.oppdaterSøknad(lukketSøknad)
         dokumentRepo.lagre(dokument)
 
-        return LukketSøknad.UtenMangler(hentSak(søknad.sakId), lukketSøknad).right()
+        return lukketSøknad.right()
     }
 
     private fun hentSak(id: UUID) = sakService.hentSak(id).orNull()!!

@@ -1,60 +1,18 @@
 package no.nav.su.se.bakover.web.routes.søknad.lukk
 
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.oktober
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
-import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import org.junit.jupiter.api.Test
 import java.util.UUID
-import kotlin.random.Random
 
 internal class LukkSøknadErrorHandlerTest {
-
-    @Test
-    fun `mapping av lukket søknad til resultat`() {
-        val sakId = UUID.randomUUID()
-        val saksnummer = Random.nextLong(2021, Long.MAX_VALUE)
-        val lukketSøknad: Søknad.Lukket = mock()
-        val sak = Sak(
-            id = sakId,
-            saksnummer = Saksnummer(saksnummer),
-            opprettet = Tidspunkt.EPOCH,
-            fnr = Fnr("12345678901"),
-            søknader = emptyList(),
-            behandlinger = emptyList(),
-            utbetalinger = emptyList(),
-        )
-        LukkSøknadErrorHandler.lukketSøknadResponse(
-            LukketSøknad.UtenMangler(
-                sak,
-                lukketSøknad,
-            ),
-        ).httpCode shouldBe HttpStatusCode.OK
-        LukkSøknadErrorHandler.lukketSøknadResponse(
-            LukketSøknad.MedMangler.KunneIkkeDistribuereBrev(
-                sak,
-                lukketSøknad,
-            ),
-        ).httpCode shouldBe HttpStatusCode.OK
-        LukkSøknadErrorHandler.lukketSøknadResponse(
-            LukketSøknad.MedMangler.KunneIkkeLukkeOppgave(
-                sak,
-                lukketSøknad,
-            ),
-        ).httpCode shouldBe HttpStatusCode.OK
-    }
 
     @Test
     fun `returnerer feilmelding basert på oppstått feilsituasjon`() {

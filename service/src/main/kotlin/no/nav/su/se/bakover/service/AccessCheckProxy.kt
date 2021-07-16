@@ -88,7 +88,6 @@ import no.nav.su.se.bakover.service.søknad.OpprettManglendeJournalpostOgOppgave
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
-import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
@@ -291,7 +290,7 @@ open class AccessCheckProxy(
                 }
             },
             lukkSøknad = object : LukkSøknadService {
-                override fun lukkSøknad(request: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, LukketSøknad> {
+                override fun lukkSøknad(request: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, Sak> {
                     assertHarTilgangTilSøknad(request.søknadId)
 
                     return services.lukkSøknad.lukkSøknad(request)

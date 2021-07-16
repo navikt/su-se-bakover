@@ -92,17 +92,15 @@ internal class LukkSøknadServiceImplTest {
         oppgaveId = oppgaveId,
     )
     private val lukketSøknad = Søknad.Lukket(
-        sakId = sakId,
         id = journalførtSøknadMedOppgave.id,
         opprettet = journalførtSøknadMedOppgave.opprettet,
+        sakId = sakId,
         søknadInnhold = søknadInnhold,
         journalpostId = journalførtSøknadMedOppgave.journalpostId,
         oppgaveId = journalførtSøknadMedOppgave.oppgaveId,
         lukketTidspunkt = Tidspunkt.EPOCH,
         lukketAv = saksbehandler,
         lukketType = Søknad.Lukket.LukketType.TRUKKET,
-        lukketJournalpostId = null,
-        lukketBrevbestillingId = null,
     )
 
     private val trekkSøknadRequest = LukkSøknadRequest.MedBrev.TrekkSøknad(
@@ -186,7 +184,7 @@ internal class LukkSøknadServiceImplTest {
             val actual = it.lukkSøknadService.apply { addObserver(observerMock) }.lukkSøknad(trekkSøknadRequest)
                 .getOrHandle { fail { "Skulle gått bra" } }
 
-            actual shouldBe LukketSøknad.UtenMangler(sak, actual.søknad)
+            actual shouldBe sak
 
             inOrder(
                 søknadRepoMock,
@@ -222,12 +220,12 @@ internal class LukkSøknadServiceImplTest {
                         )
                     },
                 )
-                verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
                 verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+                verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
                 verify(observerMock).handle(
                     argThat {
                         it shouldBe Event.Statistikk.SøknadStatistikk.SøknadLukket(
-                            actual.søknad,
+                            lukketSøknad,
                             sak.saksnummer,
                         )
                     },
@@ -269,7 +267,7 @@ internal class LukkSøknadServiceImplTest {
                 ),
             ).getOrHandle { fail { "Skulle gått bra" } }
 
-            resultat shouldBe LukketSøknad.UtenMangler(sak, resultat.søknad)
+            resultat shouldBe sak
 
             inOrder(
                 søknadRepoMock,
@@ -287,8 +285,8 @@ internal class LukkSøknadServiceImplTest {
                         )
                     },
                 )
-                verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
                 verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+                verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
                 it.verifyNoMoreInteractions()
             }
         }
@@ -333,7 +331,7 @@ internal class LukkSøknadServiceImplTest {
                 ),
             ).getOrHandle { fail { "Skulle gått bra" } }
 
-            actual shouldBe LukketSøknad.UtenMangler(sak, actual.søknad)
+            actual shouldBe sak
 
             inOrder(
                 søknadRepoMock,
@@ -360,8 +358,6 @@ internal class LukkSøknadServiceImplTest {
                             journalpostId = journalførtSøknadMedOppgaveJournalpostId,
                             oppgaveId = oppgaveId,
                             lukketType = AVVIST,
-                            lukketJournalpostId = null,
-                            lukketBrevbestillingId = null,
                         )
                     },
                 )
@@ -379,8 +375,8 @@ internal class LukkSøknadServiceImplTest {
                         )
                     },
                 )
-                verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
                 verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+                verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
             }
             verifyNoMoreInteractions(
                 søknadRepoMock,
@@ -705,7 +701,7 @@ internal class LukkSøknadServiceImplTest {
             val actual = it.lukkSøknadService.lukkSøknad(trekkSøknadRequest)
                 .getOrHandle { fail { "Skulle gått bra" } }
 
-            actual shouldBe LukketSøknad.MedMangler.KunneIkkeLukkeOppgave(sak, actual.søknad)
+            actual shouldBe sak
 
             inOrder(
                 søknadRepoMock,
@@ -730,8 +726,6 @@ internal class LukkSøknadServiceImplTest {
                         it shouldBe lukketSøknad.copy(
                             oppgaveId = oppgaveId,
                             journalpostId = journalførtSøknadMedOppgaveJournalpostId,
-                            lukketJournalpostId = null,
-                            lukketBrevbestillingId = null,
                         )
                     },
                 )
@@ -749,8 +743,8 @@ internal class LukkSøknadServiceImplTest {
                         )
                     },
                 )
-                verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
                 verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+                verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
             }
             it.verifyNoMoreInteractions()
         }

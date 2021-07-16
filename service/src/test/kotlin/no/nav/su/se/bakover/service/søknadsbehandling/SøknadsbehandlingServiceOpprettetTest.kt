@@ -75,8 +75,6 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             lukketTidspunkt = Tidspunkt.now(),
             lukketAv = NavIdentBruker.Saksbehandler("sas"),
             lukketType = Søknad.Lukket.LukketType.BORTFALT,
-            lukketJournalpostId = null,
-            lukketBrevbestillingId = null,
         )
 
         val søknadServiceMock = mock<SøknadService> {
