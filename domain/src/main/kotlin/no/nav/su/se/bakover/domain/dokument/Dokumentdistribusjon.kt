@@ -8,6 +8,9 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalfø
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import java.util.UUID
 
+/**
+ * Representerer tilstanden i prosessen for journalføringen og distribusjonen av et [Dokument].
+ */
 data class Dokumentdistribusjon(
     val id: UUID = UUID.randomUUID(),
     val opprettet: Tidspunkt = Tidspunkt.now(),

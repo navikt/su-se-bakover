@@ -4,6 +4,7 @@ import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
@@ -26,6 +27,7 @@ internal data class RevurderingServiceMocks(
     val ferdigstillVedtakService: FerdigstillVedtakService = mock(),
     val grunnlagService: GrunnlagService = mock(),
     val vilkårsvurderingService: VilkårsvurderingService = mock(),
+    val dokumentRepo: DokumentRepo = mock(),
 ) {
     val revurderingService = RevurderingServiceImpl(
         vedtakService = vedtakService,
@@ -40,6 +42,7 @@ internal data class RevurderingServiceMocks(
         vilkårsvurderingService = vilkårsvurderingService,
         grunnlagService = grunnlagService,
         clock = fixedClock,
+        dokumentRepo = dokumentRepo,
     )
 
     fun verifyNoMoreInteractions() {
@@ -55,6 +58,7 @@ internal data class RevurderingServiceMocks(
             ferdigstillVedtakService,
             grunnlagService,
             vilkårsvurderingService,
+            dokumentRepo,
         )
     }
 }

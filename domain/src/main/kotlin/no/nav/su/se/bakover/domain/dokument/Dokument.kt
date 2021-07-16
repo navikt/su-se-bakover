@@ -87,6 +87,10 @@ sealed class Dokument {
         val sakId: UUID,
         val søknadId: UUID? = null,
         val vedtakId: UUID? = null,
+        val revurderingId: UUID? = null,
+        /**
+         * Hvis satt til true, vil det automatisk opprettes en [Dokumentdistribusjon] for dette [Dokument] ved lagring.
+         */
         val bestillBrev: Boolean,
     )
 }

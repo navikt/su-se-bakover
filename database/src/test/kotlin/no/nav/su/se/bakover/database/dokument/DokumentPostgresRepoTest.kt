@@ -25,6 +25,9 @@ internal class DokumentPostgresRepoTest {
     fun `lagrer og henter dokumenter`() {
         withMigratedDb {
             val sak = testDataHelper.nySakMedNySøknad()
+            val etVedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val enRevurdering = testDataHelper.tilIverksattRevurdering()
+
             val original = Dokument.MedMetadata.Vedtak(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
@@ -34,6 +37,8 @@ internal class DokumentPostgresRepoTest {
                 metadata = Dokument.Metadata(
                     sakId = sak.id,
                     søknadId = sak.søknad.id,
+                    vedtakId = etVedtak.id,
+                    revurderingId = enRevurdering.id,
                     bestillBrev = false,
                 ),
             )
@@ -50,6 +55,8 @@ internal class DokumentPostgresRepoTest {
 
             dokumentRepo.hentForSak(sak.id) shouldHaveSize 1
             dokumentRepo.hentForSøknad(sak.søknad.id) shouldHaveSize 1
+            dokumentRepo.hentForVedtak(etVedtak.id) shouldHaveSize 1
+            dokumentRepo.hentForRevurdering(enRevurdering.id) shouldHaveSize 1
         }
     }
 

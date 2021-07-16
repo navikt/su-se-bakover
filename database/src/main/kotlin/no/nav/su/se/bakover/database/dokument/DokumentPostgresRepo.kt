@@ -4,7 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.database.Session
+import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.uuidOrNull
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
@@ -27,10 +28,10 @@ internal class DokumentPostgresRepo(
 ) : DokumentRepo {
 
     override fun lagre(dokument: Dokument.MedMetadata) {
-        dataSource.withSession { session ->
+        dataSource.withTransaction { tx ->
             """
-                insert into dokument(id, opprettet, sakId, generertDokument, generertDokumentJson, type, tittel, søknadId, vedtakId, bestillbrev) 
-                values (:id, :opprettet, :sakId, :generertDokument, to_json(:generertDokumentJson::json), :type, :tittel, :soknadId, :vedtakId, :bestillbrev)
+                insert into dokument(id, opprettet, sakId, generertDokument, generertDokumentJson, type, tittel, søknadId, vedtakId, revurderingId, bestillbrev) 
+                values (:id, :opprettet, :sakId, :generertDokument, to_json(:generertDokumentJson::json), :type, :tittel, :soknadId, :vedtakId, :revurderingId, :bestillbrev)
             """.trimIndent()
                 .insert(
                     mapOf(
@@ -46,9 +47,10 @@ internal class DokumentPostgresRepo(
                         "tittel" to dokument.tittel,
                         "soknadId" to dokument.metadata.søknadId,
                         "vedtakId" to dokument.metadata.vedtakId,
+                        "revurderingId" to dokument.metadata.revurderingId,
                         "bestillbrev" to dokument.metadata.bestillBrev,
                     ),
-                    session,
+                    tx,
                 )
 
             if (dokument.metadata.bestillBrev)
@@ -60,7 +62,7 @@ internal class DokumentPostgresRepo(
                         dokument = dokument,
                         journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
                     ),
-                    session,
+                    tx,
                 )
         }
     }
@@ -106,6 +108,17 @@ internal class DokumentPostgresRepo(
         return dataSource.withSession { session ->
             """
                 select * from dokument where vedtakId = :id
+            """.trimIndent()
+                .hentListe(mapOf("id" to id), session) {
+                    it.toDokument()
+                }
+        }
+    }
+
+    override fun hentForRevurdering(id: UUID): List<Dokument.MedMetadata> {
+        return dataSource.withSession { session ->
+            """
+                select * from dokument where revurderingId = :id
             """.trimIndent()
                 .hentListe(mapOf("id" to id), session) {
                     it.toDokument()
@@ -168,7 +181,7 @@ internal class DokumentPostgresRepo(
         }
     }
 
-    private fun lagreDokumentdistribusjon(dokumentdistribusjon: Dokumentdistribusjon, session: Session) {
+    private fun lagreDokumentdistribusjon(dokumentdistribusjon: Dokumentdistribusjon, tx: TransactionalSession) {
         """
             insert into dokument_distribusjon(id, opprettet, endret, dokumentId, journalpostId, brevbestillingId)
             values (:id, :opprettet, :endret, :dokumentId, :journalpostId, :brevbestillingId)
@@ -180,7 +193,7 @@ internal class DokumentPostgresRepo(
                     "endret" to dokumentdistribusjon.endret,
                     "dokumentId" to dokumentdistribusjon.dokument.id,
                 ),
-                session,
+                tx,
             )
     }
 
@@ -193,6 +206,7 @@ internal class DokumentPostgresRepo(
         val sakId = uuid("sakid")
         val søknadId = uuidOrNull("søknadId")
         val vedtakId = uuidOrNull("vedtakId")
+        val revurderingId = uuidOrNull("revurderingId")
         val tittel = string("tittel")
         val bestillbrev = boolean("bestillbrev")
         return when (type) {
@@ -206,6 +220,7 @@ internal class DokumentPostgresRepo(
                     sakId = sakId,
                     søknadId = søknadId,
                     vedtakId = vedtakId,
+                    revurderingId = revurderingId,
                     bestillBrev = bestillbrev,
                 ),
             )
@@ -219,6 +234,7 @@ internal class DokumentPostgresRepo(
                     sakId = sakId,
                     søknadId = søknadId,
                     vedtakId = vedtakId,
+                    revurderingId = revurderingId,
                     bestillBrev = bestillbrev,
                 ),
             )

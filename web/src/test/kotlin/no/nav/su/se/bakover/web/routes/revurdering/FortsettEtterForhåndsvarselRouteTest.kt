@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
@@ -90,8 +89,6 @@ internal class FortsettEtterForhåndsvarselRouteTest {
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
-                journalpostId = JournalpostId("lol"),
-                brevbestillingId = null,
                 valg = BeslutningEtterForhåndsvarsling.FortsettMedAndreOpplysninger,
                 begrunnelse = "begrunnelse",
 
@@ -164,8 +161,6 @@ internal class FortsettEtterForhåndsvarselRouteTest {
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
-                journalpostId = JournalpostId("lol"),
-                brevbestillingId = null,
                 valg = BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
                 begrunnelse = "begrunnelse",
             ),
@@ -237,8 +232,6 @@ internal class FortsettEtterForhåndsvarselRouteTest {
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
-                journalpostId = JournalpostId("lol"),
-                brevbestillingId = null,
                 valg = BeslutningEtterForhåndsvarsling.AvsluttUtenEndringer,
                 begrunnelse = "begrunnelse",
             ),

@@ -9,6 +9,7 @@ create table if not exists dokument
     tittel text not null,
     søknadId uuid references søknad(id),
     vedtakId uuid references vedtak(id),
+    revurderingId uuid references revurdering(id),
     bestillbrev boolean not null
 );
 

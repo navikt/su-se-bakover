@@ -24,10 +24,8 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -802,10 +800,7 @@ internal class RevurderingPostgresRepoTest {
             val opprettet = opprettet(vedtak)
             repo.lagre(opprettet)
 
-            val forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt(
-                journalpostId = JournalpostId("journalpostId"),
-                brevbestillingId = BrevbestillingId("brevbestillignsId"),
-            )
+            val forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt
 
             repo.oppdaterForhåndsvarsel(
                 opprettet.id,
@@ -824,8 +819,6 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(opprettet)
 
             val forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
-                journalpostId = JournalpostId("journalpostId"),
-                brevbestillingId = BrevbestillingId("brevbestillignsId"),
                 valg = BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
                 begrunnelse = "",
             )
@@ -891,13 +884,11 @@ internal class RevurderingPostgresRepoTest {
     }
 
     @Test
-    fun `sendt frhåndsvarsel json`() {
+    fun `sendt forhåndsvarsel json`() {
         //language=JSON
         val sendtJson = """
             {
               "type": "Sendt",
-              "journalpostId": "1",
-              "brevbestillingId": "2"
             }
         """.trimIndent()
 
@@ -905,10 +896,7 @@ internal class RevurderingPostgresRepoTest {
             sendtJson,
             serialize(
                 ForhåndsvarselDto.from(
-                    Forhåndsvarsel.SkalForhåndsvarsles.Sendt(
-                        JournalpostId("1"),
-                        BrevbestillingId("2"),
-                    ),
+                    Forhåndsvarsel.SkalForhåndsvarsles.Sendt,
                 ),
             ),
             true,
@@ -916,13 +904,11 @@ internal class RevurderingPostgresRepoTest {
     }
 
     @Test
-    fun `besluttet frhåndsvarsel json`() {
+    fun `besluttet forhåndsvarsel json`() {
         //language=JSON
         val besluttetJson = """
             {
               "type": "Besluttet",
-              "journalpostId": "1",
-              "brevbestillingId": "2",
               "valg": "FortsettSammeOpplysninger",
               "begrunnelse": "begrunnelse"
             }
@@ -933,8 +919,6 @@ internal class RevurderingPostgresRepoTest {
             serialize(
                 ForhåndsvarselDto.from(
                     Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
-                        JournalpostId("1"),
-                        BrevbestillingId("2"),
                         BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
                         "begrunnelse",
                     ),

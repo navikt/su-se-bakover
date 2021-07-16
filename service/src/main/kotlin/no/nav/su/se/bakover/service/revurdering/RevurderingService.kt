@@ -212,6 +212,7 @@ sealed class KunneIkkeForhåndsvarsle {
         KunneIkkeForhåndsvarsle()
 
     data class Attestering(val subError: KunneIkkeSendeRevurderingTilAttestering) : KunneIkkeForhåndsvarsle()
+    object KunneIkkeGenerereDokument : KunneIkkeForhåndsvarsle()
 }
 
 sealed class KunneIkkeSendeRevurderingTilAttestering {
@@ -224,7 +225,8 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
 
     object ManglerBeslutningPåForhåndsvarsel : KunneIkkeSendeRevurderingTilAttestering()
     object FeilutbetalingStøttesIkke : KunneIkkeSendeRevurderingTilAttestering()
-    data class RevurderingsutfallStøttesIkke(val feilmeldinger: List<RevurderingsutfallSomIkkeStøttes>) : KunneIkkeSendeRevurderingTilAttestering()
+    data class RevurderingsutfallStøttesIkke(val feilmeldinger: List<RevurderingsutfallSomIkkeStøttes>) :
+        KunneIkkeSendeRevurderingTilAttestering()
 }
 
 sealed class KunneIkkeIverksetteRevurdering {
@@ -301,7 +303,8 @@ sealed class KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {
     object FantIkkeBehandling : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
     object FantIkkeSak : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
     object FantIngentingSomKanRevurderes : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
-    data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
+    data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) :
+        KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
 }
 
 data class HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse(

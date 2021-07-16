@@ -24,11 +24,9 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
@@ -189,10 +187,7 @@ internal class OppdaterRevurderingServiceTest {
     fun `Kan ikke oppdatere sendt forhåndsvarslet revurdering`() {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering.copy(
-                forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt(
-                    journalpostId = JournalpostId("journalpostId"),
-                    brevbestillingId = BrevbestillingId("brevbestillingId"),
-                ),
+                forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt,
             )
         }
         val mocks = RevurderingServiceMocks(revurderingRepo = revurderingRepoMock)
@@ -216,10 +211,8 @@ internal class OppdaterRevurderingServiceTest {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering.copy(
                 forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
-                    journalpostId = JournalpostId("journalpostId"),
-                    brevbestillingId = BrevbestillingId("brevbestillingId"),
-                    begrunnelse = "besluttetForhåndsvarslingBegrunnelse",
                     valg = BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
+                    begrunnelse = "besluttetForhåndsvarslingBegrunnelse",
                 ),
             )
         }

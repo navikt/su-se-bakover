@@ -152,6 +152,10 @@ internal object Revurderingsfeilresponser {
             "Kunne ikke hente navn for saksbehandler eller attestant",
             "navneoppslag_feilet",
         )
+        KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument -> InternalServerError.errorJson(
+            "Feil ved generering av dokument",
+            "feil_ved_generering_av_dokument",
+        )
     }
 
     fun KunneIkkeLageBrevutkastForRevurdering.tilResultat(): Resultat {

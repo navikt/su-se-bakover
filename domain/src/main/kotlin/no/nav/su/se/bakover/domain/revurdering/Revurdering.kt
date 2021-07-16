@@ -21,11 +21,9 @@ import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.harFradragSomTilhørerEps
 import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -45,14 +43,9 @@ sealed class Forhåndsvarsel {
     object IngenForhåndsvarsel : Forhåndsvarsel()
 
     sealed class SkalForhåndsvarsles : Forhåndsvarsel() {
-        data class Sendt(
-            val journalpostId: JournalpostId,
-            val brevbestillingId: BrevbestillingId?,
-        ) : SkalForhåndsvarsles()
+        object Sendt : SkalForhåndsvarsles()
 
         data class Besluttet(
-            val journalpostId: JournalpostId,
-            val brevbestillingId: BrevbestillingId?,
             val valg: BeslutningEtterForhåndsvarsling,
             val begrunnelse: String,
         ) : SkalForhåndsvarsles()

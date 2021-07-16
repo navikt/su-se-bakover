@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
@@ -78,7 +79,7 @@ object RevurderingTestUtils {
         attestant = NavIdentBruker.Attestant("Attes T. Ant"),
         grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
         kommentar = "kommentar",
-        opprettet = fixedTidspunkt
+        opprettet = fixedTidspunkt,
     )
 
     internal val beregning = no.nav.su.se.bakover.test.beregning(
@@ -137,6 +138,7 @@ object RevurderingTestUtils {
         ferdigstillVedtakService: FerdigstillVedtakService = mock(),
         vilkårsvurderingService: VilkårsvurderingService = mock(),
         grunnlagService: GrunnlagService = mock(),
+        dokumentRepo: DokumentRepo = mock(),
     ) =
         RevurderingServiceImpl(
             vedtakService = vedtakService,
@@ -151,6 +153,7 @@ object RevurderingTestUtils {
             ferdigstillVedtakService = ferdigstillVedtakService,
             vilkårsvurderingService = vilkårsvurderingService,
             grunnlagService = grunnlagService,
+            dokumentRepo = dokumentRepo,
         )
 
     internal val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(

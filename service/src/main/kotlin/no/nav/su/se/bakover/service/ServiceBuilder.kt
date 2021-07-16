@@ -111,6 +111,7 @@ object ServiceBuilder {
             vilkårsvurderingService = vilkårsvurderingService,
             grunnlagService = grunnlagService,
             vedtakService = vedtakService,
+            dokumentRepo = databaseRepos.dokumentRepo,
         ).apply { addObserver(statistikkService) }
 
         val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)

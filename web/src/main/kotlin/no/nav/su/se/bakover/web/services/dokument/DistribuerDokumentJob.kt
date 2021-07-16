@@ -13,6 +13,10 @@ import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlin.concurrent.fixedRateTimer
 
+/**
+ * Jobb som med jevne mellomrom sjekker om det eksisterer [no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon]
+ * med behov for journalføring eller bestilling av brev.
+ */
 class DistribuerDokumentJob(
     private val brevService: BrevService,
     private val dokumentRepo: DokumentRepo,
