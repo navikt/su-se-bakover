@@ -36,7 +36,7 @@ allprojects {
         implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
         implementation("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
         implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion")
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1-native-mt")
         implementation("io.arrow-kt:arrow-core:$arrowVersion")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
