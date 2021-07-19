@@ -73,6 +73,7 @@ data class PersonResponseJson(
     val telefonnummer: TelefonnummerJson?,
     val adresse: List<AdresseJson>?,
     val statsborgerskap: String?,
+    val sivilstand: SivilstandJson?,
     val kjønn: String?,
     val fødselsdato: LocalDate?,
     val alder: Number?,
@@ -80,7 +81,7 @@ data class PersonResponseJson(
     val skjermet: Boolean?,
     val kontaktinfo: KontaktinfoJson?,
     val vergemål: Boolean?,
-    val fullmakt: Boolean?
+    val fullmakt: Boolean?,
 ) {
     data class NavnJson(
         val fornavn: String,
@@ -109,7 +110,12 @@ data class PersonResponseJson(
         val mobiltelefonnummer: String?,
         val reservert: Boolean,
         val kanVarsles: Boolean,
-        val språk: String?
+        val språk: String?,
+    )
+
+    data class SivilstandJson(
+        val type: String,
+        val relatertVedSivilstand: String?,
     )
 
     companion object {
@@ -119,7 +125,7 @@ data class PersonResponseJson(
             navn = NavnJson(
                 fornavn = this.navn.fornavn,
                 mellomnavn = this.navn.mellomnavn,
-                etternavn = this.navn.etternavn
+                etternavn = this.navn.etternavn,
             ),
             telefonnummer = this.telefonnummer?.let { t ->
                 TelefonnummerJson(
@@ -136,7 +142,7 @@ data class PersonResponseJson(
                     kommunenummer = it.kommune?.kommunenummer,
                     kommunenavn = it.kommune?.kommunenavn,
                     adressetype = it.adressetype,
-                    adresseformat = it.adresseformat
+                    adresseformat = it.adresseformat,
                 )
             },
             statsborgerskap = this.statsborgerskap,
@@ -144,6 +150,12 @@ data class PersonResponseJson(
             fødselsdato = this.fødselsdato,
             alder = this.getAlder(LocalDate.now(clock)),
             adressebeskyttelse = this.adressebeskyttelse,
+            sivilstand = this.sivilstand?.let {
+                SivilstandJson(
+                    type = it.type.toString(),
+                    relatertVedSivilstand = it.relatertVedSivilstand.toString(),
+                )
+            },
             skjermet = this.skjermet,
             kontaktinfo = this.kontaktinfo?.let {
                 KontaktinfoJson(
@@ -151,11 +163,11 @@ data class PersonResponseJson(
                     mobiltelefonnummer = it.mobiltelefonnummer,
                     reservert = it.reservert,
                     kanVarsles = it.kanVarsles,
-                    språk = it.språk
+                    språk = it.språk,
                 )
             },
             vergemål = this.vergemål,
-            fullmakt = this.fullmakt
+            fullmakt = this.fullmakt,
         )
     }
 }

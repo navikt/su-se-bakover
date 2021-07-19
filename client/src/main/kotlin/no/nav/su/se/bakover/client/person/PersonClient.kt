@@ -58,6 +58,12 @@ internal class PersonClient(
                 )
             },
             statsborgerskap = pdlData.statsborgerskap,
+            sivilstand = pdlData.sivilstand?.let {
+                Person.Sivilstand(
+                    type = it.type,
+                    relatertVedSivilstand = it.relatertVedSivilstand?.let { fnrString -> Fnr(fnrString) },
+                )
+            },
             kjønn = pdlData.kjønn,
             fødselsdato = pdlData.fødselsdato,
             adressebeskyttelse = pdlData.adressebeskyttelse,
