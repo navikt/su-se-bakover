@@ -150,10 +150,10 @@ data class PersonResponseJson(
             fødselsdato = this.fødselsdato,
             alder = this.getAlder(LocalDate.now(clock)),
             adressebeskyttelse = this.adressebeskyttelse,
-            sivilstand = this.sivilstand?.let {
+            sivilstand = this.sivilstand?.let { sivilstand ->
                 SivilstandJson(
-                    type = it.type.toString(),
-                    relatertVedSivilstand = it.relatertVedSivilstand.toString(),
+                    type = sivilstand.type.toString(),
+                    relatertVedSivilstand = sivilstand.relatertVedSivilstand?.toString(),
                 )
             },
             skjermet = this.skjermet,
