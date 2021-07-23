@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Telefonnummer
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import java.time.LocalDate
 
 object PersonOppslagStub :
@@ -29,12 +30,16 @@ object PersonOppslagStub :
                 poststed = Person.Poststed(postnummer = "0050", poststed = "OSLO"),
                 kommune = Person.Kommune(kommunenummer = "0301", kommunenavn = "OSLO"),
                 adressetype = "Bostedsadresse",
-                adresseformat = "Vegadresse"
-            )
+                adresseformat = "Vegadresse",
+            ),
         ),
         statsborgerskap = "NOR",
         kjønn = "MANN",
         fødselsdato = LocalDate.of(1990, 1, 1),
+        sivilstand = Person.Sivilstand(
+            type = SivilstandTyper.GIFT,
+            relatertVedSivilstand = Fnr("15116414950"),
+        ),
         adressebeskyttelse = null,
         skjermet = false,
         kontaktinfo = Person.Kontaktinfo(
@@ -42,10 +47,10 @@ object PersonOppslagStub :
             mobiltelefonnummer = "90909090",
             reservert = false,
             kanVarsles = true,
-            språk = "nb"
+            språk = "nb",
         ),
         vergemål = null,
-        fullmakt = null
+        fullmakt = null,
     )
 
     override fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = nyTestPerson(fnr).right()

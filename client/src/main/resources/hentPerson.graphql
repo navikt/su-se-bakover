@@ -102,6 +102,10 @@ query($ident: ID!, $historikk: Boolean!, $identGrupper: [IdentGruppe!]) {
             gyldigFraOgMed
             gyldigTilOgMed
         },
+        sivilstand(historikk: $historikk){
+            type,
+            relatertVedSivilstand
+        },
         kjoenn(historikk: $historikk) {
             kjoenn
         },
