@@ -7,6 +7,13 @@
  * in the user manual at https://docs.gradle.org/5.6.3/userguide/multi_project_builds.html
  */
 
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
 rootProject.name = "su-se-bakover"
 include("domain")
 include("web")
