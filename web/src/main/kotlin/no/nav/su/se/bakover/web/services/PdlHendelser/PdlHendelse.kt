@@ -14,4 +14,3 @@ data class PdlHendelse(
     val fødeland: String? = null,
     val utflyttingsdato: LocalDate? = null,
 )
-

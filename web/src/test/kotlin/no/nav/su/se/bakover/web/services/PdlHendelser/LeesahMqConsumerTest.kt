@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.web.services.PdlHendelser
 
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.mock
 import no.nav.person.pdl.leesah.Endringstype
 import no.nav.person.pdl.leesah.Personhendelse
 import no.nav.person.pdl.leesah.doedsfall.Doedsfall
@@ -38,11 +36,7 @@ internal class LeesahMqConsumerTest {
 
     @Test
     internal fun `kan lese meldinger`() {
-        val leesahServiceMock = mock<LeesahService> {
-            on { prosesserNyMelding(any()) }.then { }
-        }
-
-        val leesahConsumer = LeesahMqConsumer(topicName = TOPIC, consumer = mockConsumer, leesahService = leesahServiceMock)
+        val leesahConsumer = LeesahMqConsumer(topicName = TOPIC, consumer = mockConsumer)
 
         leesahConsumer.consume()
     }

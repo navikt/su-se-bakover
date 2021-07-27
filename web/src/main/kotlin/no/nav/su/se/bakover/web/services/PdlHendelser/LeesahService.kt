@@ -8,3 +8,9 @@ interface LeesahService {
 
     fun prosesserNyMelding(pdlHendelse: PdlHendelse)
 }
+
+sealed class KunneIkkeLageRevurderingsoppgave {
+    object FantIkkeSak : KunneIkkeLageRevurderingsoppgave()
+    object KunneIkkeHentePerson : KunneIkkeLageRevurderingsoppgave()
+    object KallMotOppgaveFeilet : KunneIkkeLageRevurderingsoppgave()
+}

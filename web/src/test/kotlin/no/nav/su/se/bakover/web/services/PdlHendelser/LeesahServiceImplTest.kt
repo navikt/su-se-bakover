@@ -5,7 +5,6 @@ import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.whenever
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
@@ -26,7 +25,7 @@ import java.util.UUID
 
 internal class LeesahServiceImplTest {
     @Test
-    internal fun `lager oppgave for dødsfall`(){
+    internal fun `lager oppgave for dødsfall`() {
         val oppgaveServiceMock = mock<OppgaveService> {
             on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
         }
@@ -37,7 +36,7 @@ internal class LeesahServiceImplTest {
             on { saksnummer } doReturn Saksnummer(2021)
         }
         val sakServiceMock = mock<SakService> {
-            on { hentSak(any<Fnr>())} doReturn sakMock.right()
+            on { hentSak(any<Fnr>()) } doReturn sakMock.right()
         }
         val personMock = mock<Person> {
             on { ident } doReturn Ident(randomFnr, AktørId("aktørId"))
@@ -46,7 +45,7 @@ internal class LeesahServiceImplTest {
             on { hentPerson(any()) } doReturn personMock.right()
         }
 
-        val dødsfallshendelse = lagPdlhendelse(DØDSFALL, sakMock.fnr)
+        val dødsfallshendelse = lagNyPdlhendelse(DØDSFALL, sakMock.fnr)
 
         val leesahService = LeesahServiceImpl(
             oppgaveService = oppgaveServiceMock,
@@ -62,7 +61,7 @@ internal class LeesahServiceImplTest {
         verify(oppgaveServiceMock).opprettOppgave(argThat { it shouldBe OppgaveConfig.Revurderingsbehandling(Saksnummer(2021), AktørId("aktørId")) })
     }
 
-    private fun lagPdlhendelse(opplysningstype: LeesahService.Opplysningstype, personIdent: Fnr, offset: Long = 0) = PdlHendelse(
+    private fun lagNyPdlhendelse(opplysningstype: LeesahService.Opplysningstype, personIdent: Fnr, offset: Long = 0) = PdlHendelse(
         hendelseId = UUID.randomUUID().toString(),
         gjeldendeAktørId = null,
         offset = offset,
