@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.client.dkif.DigitalKontaktinformasjon
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
+import no.nav.su.se.bakover.client.kafka.PdlHendelser.LeesahMqConsumer
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
@@ -37,4 +38,5 @@ data class Clients(
     val digitalKontaktinformasjon: DigitalKontaktinformasjon,
     val leaderPodLookup: LeaderPodLookup,
     val kafkaPublisher: KafkaPublisher,
+    val leesahMqConsumer: LeesahMqConsumer,
 )

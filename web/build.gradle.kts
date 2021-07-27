@@ -1,18 +1,10 @@
 repositories {
     maven("https://dl.bintray.com/kotlin/ktor")
-
-    maven {
-        url = uri("https://packages.confluent.io/maven/")
-    }
 }
 
 val ktorVersion = "1.6.2"
 val orgJsonVersion = "20210307"
 val micrometerRegistryPrometheusVersion = "1.7.2"
-
-plugins {
-    id("com.github.davidmc24.gradle.plugin.avro") version "1.2.1"
-}
 
 dependencies {
     implementation(project(":common"))
@@ -33,8 +25,6 @@ dependencies {
     implementation("io.ktor:ktor-locations:$ktorVersion")
     implementation("io.ktor:ktor-jackson:$ktorVersion")
     implementation("com.papertrailapp", "logback-syslog4j", "1.0.0")
-    implementation("io.confluent:kafka-avro-serializer:6.0.1")
-    implementation("org.apache.avro:avro:1.10.2")
 
     testImplementation(project(":database", "testArchives"))
     testImplementation(project(":test-common"))

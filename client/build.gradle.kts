@@ -5,6 +5,10 @@ val tjenestespesifikasjonVersion = "2560.d18f9c7"
 val cxfVersion = "3.4.4"
 val jettyVersion = "9.4.42.v20210604"
 
+plugins {
+    id("com.github.davidmc24.gradle.plugin.avro") version "1.2.1"
+}
+
 dependencies {
     implementation(project(":common"))
     implementation(project(":domain"))

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.services.PdlHendelser
+package no.nav.su.se.bakover.service.hendelser
 
 interface LeesahService {
     enum class Opplysningstype(val value: String) {

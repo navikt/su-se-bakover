@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.services.PdlHendelser
+package no.nav.su.se.bakover.client.kafka.PdlHendelser
 
 import no.nav.person.pdl.leesah.Endringstype
 import no.nav.person.pdl.leesah.Personhendelse
@@ -36,7 +36,7 @@ internal class LeesahMqConsumerTest {
 
     @Test
     internal fun `kan lese meldinger`() {
-        val leesahConsumer = LeesahMqConsumer(topicName = TOPIC, consumer = mockConsumer)
+        val leesahConsumer = LeesahMqConsumerImpl(topicName = TOPIC, consumer = mockConsumer)
 
         leesahConsumer.consume()
     }

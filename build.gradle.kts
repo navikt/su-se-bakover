@@ -23,6 +23,7 @@ allprojects {
         mavenCentral()
         maven("https://jitpack.io")
         maven("https://oss.sonatype.org/content/repositories/releases/")
+        maven("https://packages.confluent.io/maven/")
     }
     val junitJupiterVersion = "5.7.2"
     val arrowVersion = "0.13.2"
@@ -50,6 +51,8 @@ allprojects {
         implementation("no.finn.unleash:unleash-client-java:4.4.0")
 
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.3.0")
+        implementation("io.confluent:kafka-avro-serializer:6.0.1")
+        implementation("org.apache.avro:avro:1.10.2")
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 

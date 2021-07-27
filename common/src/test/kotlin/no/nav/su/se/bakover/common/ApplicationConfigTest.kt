@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.common
 
+import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.shouldBe
+import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Test
 
@@ -99,6 +101,28 @@ internal class ApplicationConfigTest {
                 ),
                 retryTaskInterval = 15_000L,
             ),
+            consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(
+                mapOf(
+                    "bootstrap.servers" to "brokers",
+                    "security.protocol" to "SSL",
+                    "ssl.endpoint.identification.algorithm" to "",
+                    "ssl.truststore.type" to "jks",
+                    "ssl.keystore.type" to "PKCS12",
+                    "ssl.truststore.location" to "truststorePath",
+                    "ssl.truststore.password" to "credstorePwd",
+                    "ssl.keystore.location" to "keystorePath",
+                    "ssl.keystore.password" to "credstorePwd",
+                    "ssl.key.password" to "credstorePwd",
+                    "specific.avro.reader" to true,
+                    "schema.registry.url" to "schema_registry",
+                    "key.deserializer" to StringDeserializer::class.java,
+                    "value.deserializer" to KafkaAvroDeserializer::class.java,
+                    "basic.auth.credentials.source" to "USER_INFO",
+                    "basic.auth.user.info" to "usr:pwd",
+                    "client.id" to "su-se-bakover",
+                    "enable.auto.commit" to "false"
+                ),
+            )
         ),
         unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover"),
     )
@@ -205,7 +229,9 @@ internal class ApplicationConfigTest {
                     dkifUrl = "mocked",
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
-                    emptyMap(), ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),
+                    common = emptyMap(),
+                    producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),
+                    consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(emptyMap()),
                 ),
                 unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover"),
             )

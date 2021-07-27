@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.client.stubs.dkif.DkifClientStub
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
 import no.nav.su.se.bakover.client.stubs.kafka.KafkaPublisherStub
+import no.nav.su.se.bakover.client.stubs.kafka.LeesahMqConsumerStub
 import no.nav.su.se.bakover.client.stubs.nais.LeaderPodLookupStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.AvstemmingStub
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
@@ -35,7 +36,8 @@ object TestClientsBuilder : ClientsBuilder {
         microsoftGraphApiClient = MicrosoftGraphApiClientStub,
         digitalKontaktinformasjon = DkifClientStub,
         leaderPodLookup = LeaderPodLookupStub,
-        kafkaPublisher = KafkaPublisherStub
+        kafkaPublisher = KafkaPublisherStub,
+        leesahMqConsumer = LeesahMqConsumerStub
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.services.PdlHendelser
+package no.nav.su.se.bakover.client.kafka.PdlHendelser
 
 import no.nav.person.pdl.leesah.Personhendelse
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -7,10 +7,10 @@ import org.slf4j.LoggerFactory
 import java.time.Duration
 import kotlin.concurrent.timer
 
-class LeesahMqConsumer(
+class LeesahMqConsumerImpl(
     private val topicName: String,
     private val consumer: Consumer<String, Personhendelse>,
-) {
+) : LeesahMqConsumer {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val POLL_TIMEOUT_DURATION = Duration.ofMillis(5000)
 
@@ -27,7 +27,7 @@ class LeesahMqConsumer(
         }
     }
 
-    internal fun consume() {
+    override fun consume() {
         val messages = consumer.poll(POLL_TIMEOUT_DURATION)
 
         if (!messages.isEmpty) {

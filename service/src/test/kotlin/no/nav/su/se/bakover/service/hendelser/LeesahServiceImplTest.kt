@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.services.PdlHendelser
+package no.nav.su.se.bakover.service.hendelser
 
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
@@ -14,12 +14,12 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.service.FnrGenerator
+import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.hendelser.LeesahService.Opplysningstype.DØDSFALL
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
-import no.nav.su.se.bakover.web.FnrGenerator
-import no.nav.su.se.bakover.web.argThat
-import no.nav.su.se.bakover.web.services.PdlHendelser.LeesahService.Opplysningstype.DØDSFALL
 import org.junit.jupiter.api.Test
 import java.util.UUID
 

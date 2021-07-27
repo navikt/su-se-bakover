@@ -46,6 +46,7 @@ internal class ServiceBuilderTest {
                 digitalKontaktinformasjon = mock(),
                 leaderPodLookup = mock(),
                 kafkaPublisher = mock(),
+                leesahMqConsumer = mock()
             ),
             behandlingMetrics = mock(),
             søknadMetrics = mock(),
