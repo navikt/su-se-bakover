@@ -39,7 +39,16 @@ internal class SakRestansRepo(
                      where r.revurderingstype not like ('IVERKSATT%')
                  ),
                  søknader as (
-                     select sak.sakId, sak.saksnummer, s.id, s.opprettet, 'NY_SØKNAD' as status, 'SØKNAD' as type
+                     select 
+                        sak.sakId, 
+                        sak.saksnummer, 
+                        s.id, 
+                        case
+                            when søknadinnhold -> 'forNav' ->> 'type' = 'Papirsøknad' then timestamptz(søknadinnhold -> 'forNav' ->> 'mottaksdatoForSøknad')
+                            when søknadinnhold -> 'forNav' ->> 'type' = 'DigitalSøknad' then s.opprettet
+                        end as opprettet,
+                        'NY_SØKNAD' as status, 
+                        'SØKNAD' as type
                      from sak
                               join søknad s on sak.sakId = s.sakid
                      where s.lukket is null
