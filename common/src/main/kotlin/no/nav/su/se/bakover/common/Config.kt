@@ -379,7 +379,8 @@ data class ApplicationConfig(
                         KafkaAvroDeserializerConfig.USER_INFO_CONFIG to ConsumerCfg.getUserInfoConfig(),
                         ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
                         ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to KafkaAvroDeserializer::class.java,
-                        ConsumerConfig.CLIENT_ID_CONFIG to "su-se-bakover",
+                        ConsumerConfig.CLIENT_ID_CONFIG to getEnvironmentVariableOrDefault("HOSTNAME", "su-se-bakover-hostname"),
+                        ConsumerConfig.GROUP_ID_CONFIG to "su-se-bakover",
                         ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to "false",
                     )
                 )

@@ -119,7 +119,8 @@ internal class ApplicationConfigTest {
                     "value.deserializer" to KafkaAvroDeserializer::class.java,
                     "basic.auth.credentials.source" to "USER_INFO",
                     "basic.auth.user.info" to "usr:pwd",
-                    "client.id" to "su-se-bakover",
+                    "group.id" to "su-se-bakover",
+                    "client.id" to "su-se-bakover-hostname",
                     "enable.auto.commit" to "false"
                 ),
             )
