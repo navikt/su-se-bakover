@@ -372,9 +372,9 @@ data class ApplicationConfig(
                     ),
                 ),
                 consumerCfg = ConsumerCfg(
-                    Common().configure() + mapOf(
+                    Common(brokers = getEnvironmentVariableOrDefault("KAFKA_ONPREM_BROKERS", "kafka_onprem_brokers")).configure() + mapOf(
                         KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to true,
-                        KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG to getEnvironmentVariableOrDefault("KAFKA_SCHEMA_REGISTRY", "schema_registry"),
+                        KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG to getEnvironmentVariableOrDefault("KAFKA_ONPREM_SCHEMA_REGISTRY", "schema_onprem_registry"),
                         KafkaAvroDeserializerConfig.BASIC_AUTH_CREDENTIALS_SOURCE to "USER_INFO",
                         KafkaAvroDeserializerConfig.USER_INFO_CONFIG to ConsumerCfg.getUserInfoConfig(),
                         ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,

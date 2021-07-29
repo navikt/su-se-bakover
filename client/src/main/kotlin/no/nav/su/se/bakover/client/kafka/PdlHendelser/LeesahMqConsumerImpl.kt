@@ -21,7 +21,7 @@ class LeesahMqConsumerImpl(
         timer(
             name = "LeesahMqConsumer",
             daemon = true,
-            period = Duration.ofSeconds(10L).toMillis()
+            period = Duration.ofSeconds(120L).toMillis()
         ) {
             consume()
         }
@@ -55,7 +55,7 @@ class LeesahMqConsumerImpl(
                     )
                     */
             }
-            consumer.commitSync()
+            // consumer.commitSync()
         }
     }
 }

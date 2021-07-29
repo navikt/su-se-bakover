@@ -103,7 +103,7 @@ internal class ApplicationConfigTest {
             ),
             consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(
                 mapOf(
-                    "bootstrap.servers" to "brokers",
+                    "bootstrap.servers" to "kafka_onprem_brokers",
                     "security.protocol" to "SSL",
                     "ssl.endpoint.identification.algorithm" to "",
                     "ssl.truststore.type" to "jks",
@@ -114,7 +114,7 @@ internal class ApplicationConfigTest {
                     "ssl.keystore.password" to "credstorePwd",
                     "ssl.key.password" to "credstorePwd",
                     "specific.avro.reader" to true,
-                    "schema.registry.url" to "schema_registry",
+                    "schema.registry.url" to "schema_onprem_registry",
                     "key.deserializer" to StringDeserializer::class.java,
                     "value.deserializer" to KafkaAvroDeserializer::class.java,
                     "basic.auth.credentials.source" to "USER_INFO",
