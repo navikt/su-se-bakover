@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.EnvironmentConfig.getEnvironmentVariableOrThr
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -372,7 +373,7 @@ data class ApplicationConfig(
                     ),
                 ),
                 consumerCfg = ConsumerCfg(
-                    Common(brokers = getEnvironmentVariableOrDefault("KAFKA_ONPREM_BROKERS", "kafka_onprem_brokers")).configure() + mapOf(
+                    Onprem().configure() + mapOf(
                         KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to true,
                         KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG to getEnvironmentVariableOrDefault("KAFKA_ONPREM_SCHEMA_REGISTRY", "schema_onprem_registry"),
                         KafkaAvroDeserializerConfig.BASIC_AUTH_CREDENTIALS_SOURCE to "USER_INFO",
@@ -429,6 +430,29 @@ data class ApplicationConfig(
                 SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG to keystorePath,
                 SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to credstorePwd,
                 SslConfigs.SSL_KEY_PASSWORD_CONFIG to credstorePwd,
+            )
+        }
+
+        private data class Onprem(
+            val brokers: String = getEnvironmentVariableOrDefault("KAFKA_ONPREM_BROKERS", "kafka_onprem_brokers"),
+            val saslConfigs: Map<String, String> = SaslConfig().configure()
+        ) {
+            fun configure(): Map<String, String> =
+                mapOf(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to brokers) + saslConfigs
+        }
+        private data class SaslConfig(
+            val truststorePath: String = getEnvironmentVariableOrDefault("NAV_TRUSTSTORE_PATH", "truststorePath"),
+            val credstorePwd: String = getEnvironmentVariableOrDefault("NAV_TRUSTSTORE_PASSWORD", "credstorePwd"),
+            val username: String = getEnvironmentVariableOrDefault("username", "not-a-real-srvuser"),
+            val password: String = getEnvironmentVariableOrDefault("password", "not-a-real-srvpassword"),
+        ) {
+            fun configure(): Map<String, String> = mapOf(
+                CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to SecurityProtocol.SASL_SSL.name,
+                SaslConfigs.SASL_MECHANISM to "PLAIN",
+                SaslConfigs.SASL_JAAS_CONFIG to "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"$username\" password=\"$password\";",
+                SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG to truststorePath,
+                SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG to credstorePwd,
+                SslConfigs.SSL_KEY_PASSWORD_CONFIG to credstorePwd
             )
         }
     }
