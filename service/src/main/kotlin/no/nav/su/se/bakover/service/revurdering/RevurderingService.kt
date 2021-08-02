@@ -260,21 +260,27 @@ sealed class KunneIkkeUnderkjenneRevurdering {
 
 sealed class KunneIkkeLeggeTilGrunnlag {
     object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
-    object UgyldigStatus : KunneIkkeLeggeTilGrunnlag()
     object UføregradOgForventetInntektMangler : KunneIkkeLeggeTilGrunnlag()
     object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilGrunnlag()
     object OverlappendeVurderingsperioder : KunneIkkeLeggeTilGrunnlag()
     object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilGrunnlag()
     object AlleVurderingeneMåHaSammeResultat : KunneIkkeLeggeTilGrunnlag()
     object HeleBehandlingsperiodenMåHaVurderinger : KunneIkkeLeggeTilGrunnlag()
+    data class UgyldigTilstand(
+        val fra: KClass<out Revurdering>,
+        val til: KClass<out Revurdering>,
+    ) : KunneIkkeLeggeTilGrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilFradragsgrunnlag {
     object FantIkkeBehandling : KunneIkkeLeggeTilFradragsgrunnlag()
-    object UgyldigStatus : KunneIkkeLeggeTilFradragsgrunnlag()
     object FradragsgrunnlagUtenforRevurderingsperiode : KunneIkkeLeggeTilFradragsgrunnlag()
     object UgyldigFradragstypeForGrunnlag : KunneIkkeLeggeTilFradragsgrunnlag()
     object HarIkkeEktelle : KunneIkkeLeggeTilFradragsgrunnlag()
+    data class UgyldigTilstand(
+        val fra: KClass<out Revurdering>,
+        val til: KClass<out Revurdering>,
+    ) : KunneIkkeLeggeTilFradragsgrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
@@ -282,7 +288,10 @@ sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
     object UgyldigData : KunneIkkeLeggeTilBosituasjongrunnlag()
     object KunneIkkeSlåOppEPS : KunneIkkeLeggeTilBosituasjongrunnlag()
     object EpsAlderErNull : KunneIkkeLeggeTilBosituasjongrunnlag()
-    object UgyldigStatus : KunneIkkeLeggeTilBosituasjongrunnlag()
+    data class UgyldigTilstand(
+        val fra: KClass<out Revurdering>,
+        val til: KClass<out Revurdering>,
+    ) : KunneIkkeLeggeTilBosituasjongrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilFormuegrunnlag {

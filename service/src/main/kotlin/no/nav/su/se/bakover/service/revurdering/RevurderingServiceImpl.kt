@@ -237,7 +237,10 @@ internal class RevurderingServiceImpl(
             }
         }
         return revurdering.oppdaterUføreOgMarkerSomVurdert(uførevilkår).mapLeft {
-            KunneIkkeLeggeTilGrunnlag.UgyldigStatus
+            KunneIkkeLeggeTilGrunnlag.UgyldigTilstand(
+                revurdering::class,
+                OpprettetRevurdering::class,
+            )
         }.map {
             // TODO jah: Flytt denne inn i revurderingRepo.lagre
             vilkårsvurderingService.lagre(it.id, it.vilkårsvurderinger)
@@ -260,7 +263,10 @@ internal class RevurderingServiceImpl(
             }
 
         return revurdering.oppdaterFradragOgMarkerSomVurdert(request.fradragsrunnlag).mapLeft {
-            KunneIkkeLeggeTilFradragsgrunnlag.UgyldigStatus
+            KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
+                revurdering::class,
+                OpprettetRevurdering::class,
+            )
         }.map {
             // TODO jah: Flytt denne inn i revurderingRepo.lagre
             grunnlagService.lagreFradragsgrunnlag(it.id, it.grunnlagsdata.fradragsgrunnlag)
@@ -284,7 +290,10 @@ internal class RevurderingServiceImpl(
             }
 
         return revurdering.oppdaterBosituasjonOgMarkerSomVurdert(bosituasjongrunnlag).mapLeft {
-            KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigStatus
+            KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand(
+                revurdering::class,
+                OpprettetRevurdering::class,
+            )
         }.map {
             // TODO jah: Flytt denne inn i revurderingRepo.lagre
             grunnlagService.lagreBosituasjongrunnlag(it.id, it.grunnlagsdata.bosituasjon)

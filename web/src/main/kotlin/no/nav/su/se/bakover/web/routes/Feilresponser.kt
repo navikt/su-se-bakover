@@ -51,8 +51,4 @@ internal object Feilresponser {
         "Kan ikke ha fradrag knyttet til EPS når bruker ikke har EPS.",
         "kan_ikke_ha_eps_fradrag_uten_eps",
     )
-    val ugyldigBehandlingsstatus = HttpStatusCode.BadRequest.errorJson(
-        "ugyldig status for å legge til",
-        "ugyldig_status_for_å_legge_til",
-    )
 }

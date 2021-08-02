@@ -172,7 +172,12 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
 
         revurderingService.leggTilFradragsgrunnlag(
             request,
-        ).shouldBeLeft(KunneIkkeLeggeTilFradragsgrunnlag.UgyldigStatus)
+        ).shouldBeLeft(
+            KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
+                fra = tidligereRevurdering::class,
+                til = OpprettetRevurdering::class,
+            ),
+        )
 
         verify(revurderingRepoMock).hent(argThat { it shouldBe tidligereRevurdering.id })
 

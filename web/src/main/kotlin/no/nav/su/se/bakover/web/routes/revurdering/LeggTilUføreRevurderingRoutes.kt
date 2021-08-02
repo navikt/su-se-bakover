@@ -94,7 +94,10 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
                                     .mapLeft {
                                         when (it) {
                                             KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
-                                            KunneIkkeLeggeTilGrunnlag.UgyldigStatus -> Feilresponser.ugyldigBehandlingsstatus
+                                            is KunneIkkeLeggeTilGrunnlag.UgyldigTilstand -> Revurderingsfeilresponser.ugyldigTilstand(
+                                                it.fra,
+                                                it.til,
+                                            )
                                             KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler -> Feilresponser.uføregradOgForventetInntektMangler
                                             KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig -> Feilresponser.periodeForGrunnlagOgVurderingErForskjellig
                                             KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder -> Feilresponser.overlappendeVurderingsperioder

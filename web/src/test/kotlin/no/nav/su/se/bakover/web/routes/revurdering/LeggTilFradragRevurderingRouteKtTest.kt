@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
@@ -131,7 +132,10 @@ internal class LeggTilFradragRevurderingRouteKtTest {
     @Test
     fun `feilmelding hvis revurdering har ugyldig status`() {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { leggTilFradragsgrunnlag(any()) } doReturn KunneIkkeLeggeTilFradragsgrunnlag.UgyldigStatus.left()
+            on { leggTilFradragsgrunnlag(any()) } doReturn KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
+                fra = IverksattRevurdering::class,
+                til = OpprettetRevurdering::class,
+            ).left()
         }
 
         withTestApplication(
@@ -147,7 +151,7 @@ internal class LeggTilFradragRevurderingRouteKtTest {
                 setBody(validBody)
             }.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "ugyldig_status_for_å_legge_til"
+                response.content shouldContain "ugyldig_tilstand"
             }
         }
     }

@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -74,5 +73,8 @@ private fun KunneIkkeLeggeTilBosituasjongrunnlag.tilResultat() = when (this) {
         "ugyldig data",
         "ugyldig_data",
     )
-    KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigStatus -> Feilresponser.ugyldigBehandlingsstatus
+    is KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand -> Revurderingsfeilresponser.ugyldigTilstand(
+        this.fra,
+        this.til,
+    )
 }

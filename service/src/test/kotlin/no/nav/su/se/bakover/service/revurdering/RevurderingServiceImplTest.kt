@@ -1867,7 +1867,12 @@ internal class RevurderingServiceImplTest {
 
         revurderingService.leggTilFradragsgrunnlag(
             request,
-        ).shouldBeLeft(KunneIkkeLeggeTilFradragsgrunnlag.UgyldigStatus)
+        ).shouldBeLeft(
+            KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
+                fra = eksisterendeRevurdering::class,
+                til = OpprettetRevurdering::class,
+            ),
+        )
 
         inOrder(
             revurderingRepoMock,
