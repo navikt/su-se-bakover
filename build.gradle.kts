@@ -79,7 +79,7 @@ allprojects {
             implementation("org.apache.httpcomponents:httpclient:4.5.13") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-ORGAPACHEHTTPCOMPONENTS-1016906")
             }
-            implementation("org.postgresql:postgresql:42.2.22") {
+            implementation("org.postgresql:postgresql:42.2.23") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-ORGPOSTGRESQL-571481")
             }
             implementation("org.apache.cxf:cxf-rt-transports-http:3.4.4") {
