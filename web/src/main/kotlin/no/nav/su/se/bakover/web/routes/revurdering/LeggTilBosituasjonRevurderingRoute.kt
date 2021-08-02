@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
+import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -73,8 +74,5 @@ private fun KunneIkkeLeggeTilBosituasjongrunnlag.tilResultat() = when (this) {
         "ugyldig data",
         "ugyldig_data",
     )
-    KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigStatus -> HttpStatusCode.BadRequest.errorJson(
-        "ugyldig status for å legge til",
-        "ugyldig_status_for_å_legge_til",
-    )
+    KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigStatus -> Feilresponser.ugyldigBehandlingsstatus
 }

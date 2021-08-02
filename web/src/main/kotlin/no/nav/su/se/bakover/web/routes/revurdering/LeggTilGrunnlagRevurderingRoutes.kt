@@ -9,7 +9,6 @@ import arrow.core.left
 import arrow.core.right
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
@@ -24,7 +23,6 @@ import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
-import no.nav.su.se.bakover.web.routes.grunnlag.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -96,10 +94,7 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
                                     .mapLeft {
                                         when (it) {
                                             KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
-                                            KunneIkkeLeggeTilGrunnlag.UgyldigStatus -> BadRequest.errorJson(
-                                                "ugyldig status for å legge til",
-                                                "ugyldig_status_for_å_legge_til",
-                                            )
+                                            KunneIkkeLeggeTilGrunnlag.UgyldigStatus -> Feilresponser.ugyldigBehandlingsstatus
                                             KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler -> Feilresponser.uføregradOgForventetInntektMangler
                                             KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig -> Feilresponser.periodeForGrunnlagOgVurderingErForskjellig
                                             KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder -> Feilresponser.overlappendeVurderingsperioder

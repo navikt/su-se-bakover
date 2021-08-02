@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
+import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.kanIkkeHaEpsFradragUtenEps
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson.Companion.toFradrag
@@ -61,13 +62,10 @@ internal fun Route.leggTilFradragRevurdering(
                                 ).mapLeft {
                                     when (it) {
                                         KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling -> Revurderingsfeilresponser.fantIkkeRevurdering
-                                        KunneIkkeLeggeTilFradragsgrunnlag.UgyldigStatus -> BadRequest.errorJson(
-                                            "ugyldig status for å legge til",
-                                            "ugyldig_status_for_å_legge_til",
-                                        )
+                                        KunneIkkeLeggeTilFradragsgrunnlag.UgyldigStatus -> Feilresponser.ugyldigBehandlingsstatus
                                         KunneIkkeLeggeTilFradragsgrunnlag.FradragsgrunnlagUtenforRevurderingsperiode -> BadRequest.errorJson(
                                             "kan ikke legge til fradrag utenfor revurderingsperioden",
-                                            "fradrag_utenfor_revurderingsperiode"
+                                            "fradrag_utenfor_revurderingsperiode",
                                         )
                                         KunneIkkeLeggeTilFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> BadRequest.errorJson(
                                             "ugyldig fradragstype",
