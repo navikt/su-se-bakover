@@ -49,7 +49,7 @@ allprojects {
         implementation("com.networknt:json-schema-validator:1.0.57")
         implementation("no.finn.unleash:unleash-client-java:4.4.0")
 
-        implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.2.0")
+        implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.3.0")
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 
