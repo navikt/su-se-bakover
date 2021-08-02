@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
@@ -23,6 +22,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -151,7 +151,7 @@ internal class StatistikkServiceImplTest {
         }
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = søknadsbehandling.periode.fraOgMed.startOfDay(zoneIdOslo),
+            funksjonellTid = Tidspunkt.now(clock),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = søknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = søknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
@@ -203,7 +203,7 @@ internal class StatistikkServiceImplTest {
         }
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = behandling.periode.fraOgMed.startOfDay(zoneIdOslo),
+            funksjonellTid = Tidspunkt.now(clock),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = behandling.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
@@ -249,12 +249,12 @@ internal class StatistikkServiceImplTest {
             on { status } doReturn BehandlingsStatus.IVERKSATT_INNVILGET
             on { beregning } doReturn beregningMock
             on { saksbehandler } doReturn NavIdentBruker.Saksbehandler("55")
-            on { attestering } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("56"))
+            on { attesteringer } doReturn Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("56"), Tidspunkt.now()))
             on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
         }
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = behandling.periode.fraOgMed.startOfDay(zoneIdOslo),
+            funksjonellTid = Tidspunkt.now(clock),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = behandling.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
@@ -298,13 +298,13 @@ internal class StatistikkServiceImplTest {
             on { saksnummer } doReturn Saksnummer(5959)
             on { status } doReturn BehandlingsStatus.IVERKSATT_AVSLAG
             on { saksbehandler } doReturn NavIdentBruker.Saksbehandler("55")
-            on { attestering } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("56"))
+            on { attesteringer } doReturn Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("56"), Tidspunkt.now()))
             on { avslagsgrunner } doReturn listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER)
             on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
         }
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = behandling.periode.fraOgMed.startOfDay(zoneIdOslo),
+            funksjonellTid = Tidspunkt.now(clock),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = behandling.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
@@ -354,10 +354,13 @@ internal class StatistikkServiceImplTest {
             beregning = beregning,
             simulering = mock(),
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-            attestering = Attestering.Underkjent(
-                NavIdentBruker.Attestant("attestant"),
-                Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                "",
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(
+                Attestering.Underkjent(
+                    attestant = NavIdentBruker.Attestant("attestant"),
+                    grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                    kommentar = "",
+                    opprettet = Tidspunkt.now(clock)
+                )
             ),
             fritekstTilBrev = "",
             stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
@@ -366,7 +369,7 @@ internal class StatistikkServiceImplTest {
         )
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = underkjent.periode.fraOgMed.startOfDay(zoneIdOslo),
+            funksjonellTid = Tidspunkt.now(clock),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = underkjent.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = underkjent.opprettet.toLocalDate(zoneIdOslo),
@@ -483,6 +486,7 @@ internal class StatistikkServiceImplTest {
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            attesteringer = Attesteringshistorikk.empty()
         )
 
         val expected = Statistikk.Behandling(
@@ -534,11 +538,7 @@ internal class StatistikkServiceImplTest {
             },
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
             oppgaveId = OppgaveId("55"),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
             beregning = beregning,
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             simulering = Simulering(
                 gjelderId = FnrGenerator.random(),
                 gjelderNavn = "Mr. Asd",
@@ -547,6 +547,10 @@ internal class StatistikkServiceImplTest {
                 periodeList = listOf(),
             ),
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), Tidspunkt.now(clock))),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )

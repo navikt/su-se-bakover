@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
+import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.AccessCheckProxy
@@ -97,10 +98,19 @@ val applicationConfig = ApplicationConfig(
 
 internal val jwtStub = JwtStub(applicationConfig)
 
+internal val dbMetricsStub: DbMetrics = object : DbMetrics {
+    override fun <T> timeQuery(label: String, block: () -> T): T {
+        return block()
+    }
+}
+
 internal fun Application.testSusebakover(
     clock: Clock = fixedClock,
     clients: Clients = TestClientsBuilder.build(applicationConfig),
-    databaseRepos: DatabaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance()),
+    databaseRepos: DatabaseRepos = DatabaseBuilder.build(
+        embeddedDatasource = EmbeddedDatabase.instance(),
+        dbMetrics = dbMetricsStub
+    ),
     unleash: Unleash = FakeUnleash().apply { enableAll() },
     services: Services = ServiceBuilder.build(
         // build actual clients

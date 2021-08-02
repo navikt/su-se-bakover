@@ -56,6 +56,7 @@ import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.applicationConfig
+import no.nav.su.se.bakover.web.dbMetricsStub
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.jwtStub
@@ -74,7 +75,10 @@ internal class SøknadsbehandlingRoutesKtTest {
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("AB12345")
 
-    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance())
+    private val repos = DatabaseBuilder.build(
+        embeddedDatasource = EmbeddedDatabase.instance(),
+        dbMetrics = dbMetricsStub,
+    )
     private val services = ServiceBuilder.build(
         databaseRepos = repos,
         clients = TestClientsBuilder.build(applicationConfig),
@@ -195,8 +199,12 @@ internal class SøknadsbehandlingRoutesKtTest {
                                 return Either.Left(KunneIkkeOppretteOppgave)
                             }
 
-                            override fun lukkOppgave(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> = Unit.right()
-                            override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> = Unit.right()
+                            override fun lukkOppgave(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> =
+                                Unit.right()
+
+                            override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> =
+                                Unit.right()
+
                             override fun oppdaterOppgave(
                                 oppgaveId: OppgaveId,
                                 beskrivelse: String,
@@ -264,7 +272,8 @@ internal class SøknadsbehandlingRoutesKtTest {
                 }
             }
 
-            val innvilgetVilkårsvurdertSøknadsbehandling = setupMedAlleVilkårOppfylt(uavklartVilkårsvurdertSøknadsbehandling)
+            val innvilgetVilkårsvurdertSøknadsbehandling =
+                setupMedAlleVilkårOppfylt(uavklartVilkårsvurdertSøknadsbehandling)
 
             services.søknadsbehandling.vilkårsvurder(
                 VilkårsvurderRequest(
@@ -476,7 +485,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     .apply {
                         response.status() shouldBe HttpStatusCode.OK
                         deserialize<BehandlingJson>(response.content!!).let { behandlingJson ->
-                            behandlingJson.attestering?.attestant shouldBe navIdentAttestant
+                            behandlingJson.attesteringer.last().attestant shouldBe navIdentAttestant
                             behandlingJson.status shouldBe "IVERKSATT_INNVILGET"
                             behandlingJson.saksbehandler shouldBe navIdentSaksbehandler
                         }

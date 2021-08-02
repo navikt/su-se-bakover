@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -67,6 +68,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             ),
         ),
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+        attesteringer = Attesteringshistorikk.empty()
     )
 
     private val vilkårsvurdertUavklartSøknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
@@ -82,6 +84,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.EMPTY,
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+        attesteringer = Attesteringshistorikk.empty()
     )
 
     private val person = Person(

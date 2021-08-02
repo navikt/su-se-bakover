@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -73,7 +74,7 @@ object RevurderingRoutesTestData {
             beregning = TestBeregning,
             simulering = mock(),
             saksbehandler = NavIdentBruker.Saksbehandler("saks"),
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), Tidspunkt.now())),
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -99,6 +100,7 @@ object RevurderingRoutesTestData {
         grunnlagsdata = Grunnlagsdata.EMPTY,
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+        attesteringer = Attesteringshistorikk.empty()
     )
 
     internal fun formueVilkår(periode: Periode) = Vilkår.Formue.Vurdert.createFromGrunnlag(

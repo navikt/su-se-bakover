@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.sak.SakRestans
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -227,6 +228,12 @@ open class AccessCheckProxy(
                     assertHarTilgangTilPerson(sak.fnr)
 
                     return services.sak.opprettSak(sak)
+                }
+
+                override fun hentRestanserForAlleSaker(): List<SakRestans> {
+                    // vi gjør ikke noe assert fordi vi ikke sender noe sensitiv info.
+                    // Samtidig som at dem går gjennom hentSak() når de skal saksbehandle
+                    return services.sak.hentRestanserForAlleSaker()
                 }
             },
             søknad = object : SøknadService {

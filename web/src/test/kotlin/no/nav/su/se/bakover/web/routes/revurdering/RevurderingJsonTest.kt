@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -78,6 +79,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
+            attesteringer = Attesteringshistorikk.empty()
         )
 
         val revurderingJson =
@@ -120,7 +122,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "attesteringer": []
             }
             """.trimIndent()
 
@@ -153,6 +156,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
+            attesteringer = Attesteringshistorikk.empty()
         )
 
         val revurderingJson =
@@ -200,7 +204,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "attesteringer": []
             }
             """.trimIndent()
 
@@ -233,6 +238,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
+            attesteringer = Attesteringshistorikk.empty()
         )
 
         val revurderingJson =
@@ -280,7 +286,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "attesteringer": []
             }
             """.trimIndent()
 
@@ -313,6 +320,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
+            attesteringer = Attesteringshistorikk.empty()
         )
 
         val revurderingJson =
@@ -360,7 +368,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "attesteringer": []
             }
             """.trimIndent()
 
@@ -394,6 +403,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
+            attesteringer = Attesteringshistorikk.empty()
         )
 
         val revurderingJson =
@@ -445,7 +455,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "attesteringer": []
             }
             """.trimIndent()
 
@@ -479,6 +490,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
+            attesteringer = Attesteringshistorikk.empty()
         )
 
         val revurderingJson =
@@ -530,7 +542,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "attesteringer": []
             }
             """.trimIndent()
 
@@ -564,6 +577,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.Vurdert,
                 ),
             ),
+            attesteringer = Attesteringshistorikk.empty()
         )
 
         val revurderingJson =
@@ -616,7 +630,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "Vurdert",
                   "Inntekt": "Vurdert"
-                }
+                },
+                "attesteringer": []
             }
             """.trimIndent()
 
@@ -650,6 +665,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
+            attesteringer = Attesteringshistorikk.empty()
         )
 
         val revurderingJson =
@@ -702,7 +718,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "attesteringer": []
             }
             """.trimIndent()
 
@@ -736,6 +753,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
+            attesteringer = Attesteringshistorikk.empty()
         )
 
         val revurderingJson =
@@ -785,7 +803,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "attesteringer": []
             }
             """.trimIndent()
 
@@ -798,6 +817,7 @@ internal class RevurderingJsonTest {
         val id = UUID.randomUUID()
         val opprettet = Tidspunkt.now()
         val beregning = TestBeregning
+        val attesteringOpprettet = Tidspunkt.now()
 
         val revurdering = UnderkjentRevurdering.Innvilget(
             id = id,
@@ -805,17 +825,20 @@ internal class RevurderingJsonTest {
             opprettet = opprettet,
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
+            beregning = beregning,
+            simulering = mock(),
             oppgaveId = OppgaveId("OppgaveId"),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(
+                Attestering.Underkjent(
+                    attestant = NavIdentBruker.Attestant("attestant"),
+                    grunn = Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER,
+                    kommentar = "Dokumentasjon mangler",
+                    opprettet = attesteringOpprettet
+                )
+            ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            beregning = beregning,
-            attestering = Attestering.Underkjent(
-                attestant = NavIdentBruker.Attestant("attestant"),
-                grunn = Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER,
-                kommentar = "Dokumentasjon mangler",
-            ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            simulering = mock(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
@@ -848,13 +871,14 @@ internal class RevurderingJsonTest {
                     "fraOgMed": "2020-01-01",
                     "tilOgMed": "2020-12-31"
                 },
-                "attestering": {
+                "attesteringer": [{
                     "attestant": "attestant",
+                    "opprettet": "$attesteringOpprettet",
                     "underkjennelse": {
                         "grunn": "DOKUMENTASJON_MANGLER",
                         "kommentar": "Dokumentasjon mangler"
                     }
-                },
+                }],
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
@@ -896,6 +920,7 @@ internal class RevurderingJsonTest {
         val id = UUID.randomUUID()
         val opprettet = Tidspunkt.now()
         val beregning = TestBeregning
+        val attesteringOpprettet = Tidspunkt.now()
 
         val revurdering = UnderkjentRevurdering.Opphørt(
             id = id,
@@ -903,17 +928,20 @@ internal class RevurderingJsonTest {
             opprettet = opprettet,
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
+            beregning = beregning,
+            simulering = mock(),
             oppgaveId = OppgaveId("OppgaveId"),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(
+                Attestering.Underkjent(
+                    attestant = NavIdentBruker.Attestant("attestant"),
+                    grunn = Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER,
+                    kommentar = "Dokumentasjon mangler",
+                    opprettet = attesteringOpprettet
+                )
+            ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            beregning = beregning,
-            attestering = Attestering.Underkjent(
-                attestant = NavIdentBruker.Attestant("attestant"),
-                grunn = Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER,
-                kommentar = "Dokumentasjon mangler",
-            ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            simulering = mock(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
@@ -946,13 +974,14 @@ internal class RevurderingJsonTest {
                     "fraOgMed": "2020-01-01",
                     "tilOgMed": "2020-12-31"
                 },
-                "attestering": {
+                "attesteringer": [{
                     "attestant": "attestant",
+                    "opprettet": "$attesteringOpprettet",
                     "underkjennelse": {
                         "grunn": "DOKUMENTASJON_MANGLER",
                         "kommentar": "Dokumentasjon mangler"
                     }
-                },
+                }],
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
@@ -994,6 +1023,7 @@ internal class RevurderingJsonTest {
         val id = UUID.randomUUID()
         val opprettet = Tidspunkt.now()
         val beregning = TestBeregning
+        val attesteringOpprettet = Tidspunkt.now()
 
         val revurdering = UnderkjentRevurdering.IngenEndring(
             id = id,
@@ -1003,15 +1033,18 @@ internal class RevurderingJsonTest {
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
             oppgaveId = OppgaveId("OppgaveId"),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(
+                Attestering.Underkjent(
+                    attestant = NavIdentBruker.Attestant("attestant"),
+                    grunn = Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER,
+                    kommentar = "Dokumentasjon mangler",
+                    opprettet = attesteringOpprettet
+                )
+            ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            attestering = Attestering.Underkjent(
-                attestant = NavIdentBruker.Attestant("attestant"),
-                grunn = Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER,
-                kommentar = "Dokumentasjon mangler",
-            ),
-            skalFøreTilBrevutsending = false,
             forhåndsvarsel = null,
+            skalFøreTilBrevutsending = false,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
@@ -1041,13 +1074,14 @@ internal class RevurderingJsonTest {
                     "fraOgMed": "2020-01-01",
                     "tilOgMed": "2020-12-31"
                 },
-                "attestering": {
+                "attesteringer": [{
                     "attestant": "attestant",
+                    "opprettet": "$attesteringOpprettet",
                     "underkjennelse": {
                         "grunn": "DOKUMENTASJON_MANGLER",
                         "kommentar": "Dokumentasjon mangler"
                     }
-                },
+                }],
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": false,
                 "årsak": "MELDING_FRA_BRUKER",
@@ -1089,6 +1123,7 @@ internal class RevurderingJsonTest {
         val id = UUID.randomUUID()
         val opprettet = Tidspunkt.now()
         val beregning = TestBeregning
+        val attesteringOpprettet = Tidspunkt.now()
 
         val revurdering = IverksattRevurdering.Innvilget(
             id = id,
@@ -1097,12 +1132,12 @@ internal class RevurderingJsonTest {
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             oppgaveId = OppgaveId("OppgaveId"),
+            beregning = beregning,
+            simulering = mock(),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), attesteringOpprettet)),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            beregning = beregning,
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            simulering = mock(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
@@ -1135,7 +1170,6 @@ internal class RevurderingJsonTest {
                     "fraOgMed": "2020-01-01",
                     "tilOgMed": "2020-12-31"
                 },
-                "attestant": "attestant",
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
@@ -1164,7 +1198,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "attesteringer": [{"attestant":"attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}]
             }
             """.trimIndent()
 
@@ -1177,6 +1212,7 @@ internal class RevurderingJsonTest {
         val id = UUID.randomUUID()
         val opprettet = Tidspunkt.now()
         val beregning = TestBeregning
+        val attesteringOpprettet = Tidspunkt.now()
 
         val revurdering = IverksattRevurdering.Opphørt(
             id = id,
@@ -1185,11 +1221,11 @@ internal class RevurderingJsonTest {
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             oppgaveId = OppgaveId("OppgaveId"),
+            beregning = beregning,
+            simulering = mock(),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), attesteringOpprettet)),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            beregning = beregning,
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
-            simulering = mock(),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
@@ -1223,7 +1259,6 @@ internal class RevurderingJsonTest {
                     "fraOgMed": "2020-01-01",
                     "tilOgMed": "2020-12-31"
                 },
-                "attestant": "attestant",
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
@@ -1252,7 +1287,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "attesteringer": [{"attestant": "attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}]
             }
             """.trimIndent()
 
@@ -1265,6 +1301,7 @@ internal class RevurderingJsonTest {
         val id = UUID.randomUUID()
         val opprettet = Tidspunkt.now()
         val beregning = TestBeregning
+        val attesteringOpprettet = Tidspunkt.now()
 
         val revurdering = IverksattRevurdering.IngenEndring(
             id = id,
@@ -1272,13 +1309,13 @@ internal class RevurderingJsonTest {
             opprettet = opprettet,
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
-            beregning = beregning,
             oppgaveId = OppgaveId("OppgaveId"),
+            beregning = beregning,
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), attesteringOpprettet)),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
-            skalFøreTilBrevutsending = true,
             forhåndsvarsel = null,
+            skalFøreTilBrevutsending = true,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
@@ -1308,7 +1345,6 @@ internal class RevurderingJsonTest {
                     "fraOgMed": "2020-01-01",
                     "tilOgMed": "2020-12-31"
                 },
-                "attestant": "attestant",
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
@@ -1337,7 +1373,9 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "attesteringer": [{"attestant": "attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}]
+
             }
             """.trimIndent()
 

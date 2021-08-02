@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -172,7 +173,7 @@ internal class VedtakServiceImplTest {
 
     @Test
     fun `henter tidligere informasjon for overlappende vedtak`() {
-        val vedtak1 = vedtakSøknadsbehandlingIverksattInnvilget(Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
+        val vedtak1 = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
             opprettet = Tidspunkt.now(fixedClock)
         )
 
@@ -203,16 +204,16 @@ internal class VedtakServiceImplTest {
 
     @Test
     fun `henter tidligere informasjon for vedtak`() {
-        val vedtak1 = vedtakSøknadsbehandlingIverksattInnvilget(Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
+        val vedtak1 = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
             opprettet = Tidspunkt.now(fixedClock)
         )
-        val vedtak2 = vedtakSøknadsbehandlingIverksattInnvilget(Stønadsperiode.create(Periode.create(1.juni(2021), 31.juli(2021)))).copy(
+        val vedtak2 = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(Periode.create(1.juni(2021), 31.juli(2021)))).copy(
             opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS)
         )
-        val vedtak3 = vedtakSøknadsbehandlingIverksattInnvilget(Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
+        val vedtak3 = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
             opprettet = Tidspunkt.now(fixedClock).plus(2, ChronoUnit.DAYS)
         )
-        val vedtak4 = vedtakSøknadsbehandlingIverksattInnvilget(Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
+        val vedtak4 = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
             opprettet = Tidspunkt.now(fixedClock).plus(3, ChronoUnit.DAYS)
         )
 
@@ -260,7 +261,7 @@ internal class VedtakServiceImplTest {
                 beregning = TestBeregning,
                 simulering = mock(),
                 saksbehandler = saksbehandler,
-                attestering = Attestering.Iverksatt(attestant),
+                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.EPOCH)),
                 fritekstTilBrev = "",
                 stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
                 grunnlagsdata = Grunnlagsdata.EMPTY,

@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -501,5 +502,6 @@ internal class RevurderingLeggTilFormueServiceTest {
         ),
         vilkårsvurderinger = vilkårsvurderinger,
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+        attesteringer = Attesteringshistorikk.empty()
     )
 }

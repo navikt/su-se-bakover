@@ -1,5 +1,5 @@
 val fuelVersion = "2.3.1"
-val wireMockVersion = "2.29.0"
+val wireMockVersion = "2.29.1"
 val orgJsonVersion = "20210307"
 val tjenestespesifikasjonVersion = "2560.d18f9c7"
 val cxfVersion = "3.4.4"
@@ -25,7 +25,6 @@ dependencies {
     implementation("javax.jws:javax.jws-api:1.1")
     // Fails to find SAAJMetaFactoryImpl when either missing or if you upgrade to 2.0.0
     implementation("com.sun.xml.messaging.saaj:saaj-impl:1.5.2")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.3")
 
     testImplementation(project(":test-common"))
     testImplementation("com.github.tomakehurst:wiremock-jre8:$wireMockVersion") {

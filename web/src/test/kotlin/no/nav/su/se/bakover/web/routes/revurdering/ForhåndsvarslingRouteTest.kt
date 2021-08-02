@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -93,6 +94,7 @@ internal class ForhåndsvarslingRouteTest {
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            attesteringer = Attesteringshistorikk.empty()
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -155,6 +157,7 @@ internal class ForhåndsvarslingRouteTest {
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            attesteringer = Attesteringshistorikk.empty()
         )
 
         val revurderingServiceMock = mock<RevurderingService> {

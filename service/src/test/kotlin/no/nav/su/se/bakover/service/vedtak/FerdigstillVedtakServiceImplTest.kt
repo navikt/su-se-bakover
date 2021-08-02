@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
@@ -612,18 +613,18 @@ internal class FerdigstillVedtakServiceImplTest {
             it.copy(
                 behandling = IverksattRevurdering.IngenEndring(
                     id = UUID.randomUUID(),
-                    periode = it.periode,
                     opprettet = Tidspunkt.now(),
-                    tilRevurdering = it,
-                    saksbehandler = saksbehandler,
-                    beregning = TestBeregning,
                     oppgaveId = oppgaveId,
+                    beregning = TestBeregning,
+                    saksbehandler = saksbehandler,
+                    attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
                     fritekstTilBrev = "",
+                    periode = it.periode,
+                    tilRevurdering = it,
                     revurderingsårsak = Revurderingsårsak(
                         Revurderingsårsak.Årsak.ANDRE_KILDER,
                         Revurderingsårsak.Begrunnelse.create("begrunnelse"),
                     ),
-                    attestering = Attestering.Iverksatt(attestant),
                     skalFøreTilBrevutsending = false,
                     forhåndsvarsel = null,
                     grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -1350,7 +1351,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
                 fnr = FnrGenerator.random(),
                 beregning = TestBeregning,
-                attestering = Attestering.Iverksatt(attestant),
+                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.EPOCH)),
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = "",
                 stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
@@ -1408,7 +1409,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 beregning = TestBeregning,
                 simulering = mock(),
                 saksbehandler = saksbehandler,
-                attestering = Attestering.Iverksatt(attestant),
+                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
                 fritekstTilBrev = "",
                 stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
                 grunnlagsdata = Grunnlagsdata(
@@ -1432,20 +1433,20 @@ internal class FerdigstillVedtakServiceImplTest {
         Vedtak.from(
             revurdering = IverksattRevurdering.Innvilget(
                 id = UUID.randomUUID(),
-                periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 opprettet = Tidspunkt.now(),
-                tilRevurdering = innvilgetVedtak(),
-                saksbehandler = saksbehandler,
                 oppgaveId = oppgaveId,
+                beregning = TestBeregning,
+                simulering = mock(),
+                saksbehandler = saksbehandler,
+                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
                 fritekstTilBrev = "",
+                periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                tilRevurdering = innvilgetVedtak(),
                 revurderingsårsak = Revurderingsårsak(
                     Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
                     Revurderingsårsak.Begrunnelse.create("regulert grunnbeløp"),
                 ),
-                beregning = TestBeregning,
-                attestering = Attestering.Iverksatt(attestant),
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                simulering = mock(),
                 grunnlagsdata = Grunnlagsdata.EMPTY,
                 vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),

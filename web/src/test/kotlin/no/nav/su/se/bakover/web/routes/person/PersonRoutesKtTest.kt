@@ -94,6 +94,10 @@ internal class PersonRoutesKtTest {
                         "adressetype": "Bostedsadresse",
                         "adresseformat": "Vegadresse"
                     }],
+                    "sivilstand": {
+                    "type": "GIFT",
+                    "relatertVedSivilstand": "15116414950"
+                    },
                     "statsborgerskap": "NOR",
                     "kjønn": "MANN",
                     "fødselsdato": "1990-01-01",

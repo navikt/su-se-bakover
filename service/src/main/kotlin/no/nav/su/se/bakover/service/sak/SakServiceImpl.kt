@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.sak.SakRestans
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.slf4j.LoggerFactory
@@ -40,5 +41,9 @@ internal class SakServiceImpl(
                 },
             )
         }
+    }
+
+    override fun hentRestanserForAlleSaker(): List<SakRestans> {
+        return sakRepo.hentSakRestanser()
     }
 }

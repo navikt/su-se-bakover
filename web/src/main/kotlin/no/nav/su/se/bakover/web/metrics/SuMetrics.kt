@@ -6,6 +6,7 @@ import io.micrometer.core.instrument.Tags
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import io.prometheus.client.CollectorRegistry
+import io.prometheus.client.Histogram
 
 object SuMetrics {
     private val collectorRegistry = CollectorRegistry(true)
@@ -14,6 +15,9 @@ object SuMetrics {
         collectorRegistry,
         Clock.SYSTEM
     )
+    val dbTimer = Histogram.build("db_query_latency_histogram", "Histogram av eksekveringstid for db-spørringer")
+        .labelNames("query")
+        .register(collectorRegistry)
 
     fun setup(): Pair<CollectorRegistry, PrometheusMeterRegistry> {
         Metrics.addRegistry(prometheusMeterRegistry)

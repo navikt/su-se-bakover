@@ -8,6 +8,9 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -21,6 +24,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -48,10 +52,14 @@ val revurderingsårsak =
  * - Årsak: Melding fra bruker
  */
 fun opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+    saksnr: Saksnummer = saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = periode2021,
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = stønadsperiode),
+    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnr = saksnr,
+        stønadsperiode = stønadsperiode,
+    ),
     // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
     grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
     vilkårsvurderinger: Vilkårsvurderinger = tilRevurdering.behandling.vilkårsvurderinger,
@@ -72,6 +80,7 @@ fun opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         informasjonSomRevurderes = informasjonSomRevurderes,
+        attesteringer = Attesteringshistorikk.empty()
     )
 }
 
@@ -79,10 +88,14 @@ fun opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
  * En innvilget beregnet revurdering med utgangspunkt i et vedtak fra en innvilget søknadsbehandling.
  */
 fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+    saksnr: Saksnummer = saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = periode2021,
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = stønadsperiode),
+    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnr = saksnr,
+        stønadsperiode = stønadsperiode,
+    ),
     // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
     grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
     vilkårsvurderinger: Vilkårsvurderinger = tilRevurdering.behandling.vilkårsvurderinger,
@@ -94,6 +107,7 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     }
 
     return opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+        saksnr = saksnr,
         stønadsperiode = stønadsperiode,
         revurderingsperiode = revurderingsperiode,
         informasjonSomRevurderes = informasjonSomRevurderes,
@@ -109,10 +123,14 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
  * Opphører både på formue+uføre-vilkår
  */
 fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
+    saksnr: Saksnummer = saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = periode2021,
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = stønadsperiode),
+    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnr = saksnr,
+        stønadsperiode = stønadsperiode,
+    ),
     // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
     grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
     vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerAvslåttUføre(
@@ -127,6 +145,7 @@ fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
     }
 
     return opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+        saksnr = saksnr,
         stønadsperiode = stønadsperiode,
         revurderingsperiode = revurderingsperiode,
         informasjonSomRevurderes = informasjonSomRevurderes,
@@ -140,10 +159,14 @@ fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
  * En innvilget simulert revurdering med utgangspunkt i et vedtak fra en innvilget søknadsbehandling.
  */
 fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+    saksnr: Saksnummer = saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = periode2021,
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = stønadsperiode),
+    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnr = saksnr,
+        stønadsperiode = stønadsperiode,
+    ),
     // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
     grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
     vilkårsvurderinger: Vilkårsvurderinger = tilRevurdering.behandling.vilkårsvurderinger,
@@ -155,6 +178,7 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     }
 
     return beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+        saksnr = saksnr,
         stønadsperiode = stønadsperiode,
         revurderingsperiode = revurderingsperiode,
         informasjonSomRevurderes = informasjonSomRevurderes,
@@ -176,10 +200,14 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
 }
 
 fun simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
+    saksnr: Saksnummer = saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = periode2021,
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = stønadsperiode),
+    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnr = saksnr,
+        stønadsperiode = stønadsperiode,
+    ),
     // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
     grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
     vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerAvslåttUføre(
@@ -199,6 +227,7 @@ fun simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
     }
 
     return beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
+        saksnr = saksnr,
         stønadsperiode = stønadsperiode,
         revurderingsperiode = revurderingsperiode,
         informasjonSomRevurderes = informasjonSomRevurderes,
@@ -220,10 +249,14 @@ fun simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
 }
 
 fun tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+    saksnr: Saksnummer = saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = periode2021,
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = stønadsperiode),
+    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnr = saksnr,
+        stønadsperiode = stønadsperiode,
+    ),
     // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
     grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
     vilkårsvurderinger: Vilkårsvurderinger = tilRevurdering.behandling.vilkårsvurderinger,
@@ -234,6 +267,7 @@ fun tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
 ): RevurderingTilAttestering.Innvilget {
     return simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+        saksnr = saksnr,
         stønadsperiode = stønadsperiode,
         revurderingsperiode = revurderingsperiode,
         informasjonSomRevurderes = informasjonSomRevurderes,
@@ -249,11 +283,52 @@ fun tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     )
 }
 
-fun IverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+fun UnderkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak(
+    saksnr: Saksnummer = saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = periode2021,
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = stønadsperiode),
+    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(saksnr = saksnr, stønadsperiode = stønadsperiode),
+    // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
+    grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
+    vilkårsvurderinger: Vilkårsvurderinger = tilRevurdering.behandling.vilkårsvurderinger,
+    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
+    saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler("Saksbehandler"),
+    fritekstTilBrev: String = "",
+    forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+    attestering: Attestering.Underkjent = Attestering.Underkjent(
+        attestant = NavIdentBruker.Attestant(navIdent = "attestant"),
+        grunn = Attestering.Underkjent.Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT,
+        kommentar = "feil vilkår man",
+        opprettet = fixedTidspunkt
+    )
+): UnderkjentRevurdering {
+    return tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+        saksnr = saksnr,
+        stønadsperiode = stønadsperiode,
+        revurderingsperiode = revurderingsperiode,
+        informasjonSomRevurderes = informasjonSomRevurderes,
+        tilRevurdering = tilRevurdering,
+        grunnlagsdata = grunnlagsdata,
+        vilkårsvurderinger = vilkårsvurderinger,
+        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+        attesteringsoppgaveId = attesteringsoppgaveId,
+        saksbehandler = saksbehandler,
+        fritekstTilBrev = fritekstTilBrev,
+        forhåndsvarsel = forhåndsvarsel,
+    ).underkjenn(
+        attestering = attestering,
+        oppgaveId = OppgaveId(value = "oppgaveId")
+    )
+}
+
+fun IverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+    saksnr: Saksnummer = saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    revurderingsperiode: Periode = periode2021,
+    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(saksnr = saksnr, stønadsperiode = stønadsperiode),
     // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
     grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
     vilkårsvurderinger: Vilkårsvurderinger = tilRevurdering.behandling.vilkårsvurderinger,
@@ -266,6 +341,7 @@ fun IverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     utbetal: () -> Either<RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30> = { UUID30.randomUUID().right() }
 ): IverksattRevurdering.Innvilget {
     return tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+        saksnr = saksnr,
         stønadsperiode = stønadsperiode,
         revurderingsperiode = revurderingsperiode,
         informasjonSomRevurderes = informasjonSomRevurderes,

@@ -4,8 +4,8 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
+import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import org.junit.jupiter.api.Test
@@ -13,10 +13,8 @@ import java.util.UUID
 
 internal class BosituasjongrunnlagPostgresRepoTest {
 
-    private val datasource = EmbeddedDatabase.instance()
-    private val grunnlagRepo = BosituasjongrunnlagPostgresRepo(
-        datasource,
-    )
+    private val testDataHelper = TestDataHelper()
+    private val grunnlagRepo = testDataHelper.grunnlagRepo
 
     @Test
     fun `lagrer og henter bor alene`() {

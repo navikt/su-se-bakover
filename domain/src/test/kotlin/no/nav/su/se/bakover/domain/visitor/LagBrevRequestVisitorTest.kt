@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -92,7 +93,7 @@ internal class LagBrevRequestVisitorTest {
             .tilBeregnet(innvilgetBeregning)
             .tilSimulert(simulering)
             .tilAttestering(saksbehandler, "Fritekst!")
-            .tilIverksatt(Attestering.Iverksatt(attestant))
+            .tilIverksatt(Attestering.Iverksatt(attestant, Tidspunkt.now(clock)))
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
@@ -337,9 +338,10 @@ internal class LagBrevRequestVisitorTest {
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilUnderkjent(
                 Attestering.Underkjent(
-                    attestant,
-                    Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                    "kommentar",
+                    attestant = attestant,
+                    grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                    kommentar = "kommentar",
+                    opprettet = Tidspunkt.now(clock)
                 ),
             )
             .let { søknadsbehandling ->
@@ -375,9 +377,11 @@ internal class LagBrevRequestVisitorTest {
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilUnderkjent(
                 Attestering.Underkjent(
-                    attestant,
-                    Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                    "kommentar",
+                    attestant = attestant,
+                    grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                    kommentar = "kommentar",
+                    opprettet = Tidspunkt.now(clock)
+
                 ),
             )
             .let { søknadsbehandling ->
@@ -412,9 +416,10 @@ internal class LagBrevRequestVisitorTest {
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilUnderkjent(
                 Attestering.Underkjent(
-                    attestant,
-                    Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                    "kommentar",
+                    attestant = attestant,
+                    grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                    kommentar = "kommentar",
+                    opprettet = Tidspunkt.now(clock)
                 ),
             )
             .let { søknadsbehandling ->
@@ -447,7 +452,7 @@ internal class LagBrevRequestVisitorTest {
             )
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(
-                Attestering.Iverksatt(attestant),
+                Attestering.Iverksatt(attestant, Tidspunkt.now(clock)),
             )
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
@@ -481,7 +486,7 @@ internal class LagBrevRequestVisitorTest {
             )
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(
-                Attestering.Iverksatt(attestant),
+                Attestering.Iverksatt(attestant, Tidspunkt.now(clock)),
             )
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
@@ -513,7 +518,7 @@ internal class LagBrevRequestVisitorTest {
             .tilBeregnet(innvilgetBeregning)
             .tilSimulert(simulering)
             .tilAttestering(saksbehandler, "Fritekst!")
-            .tilIverksatt(Attestering.Iverksatt(attestant))
+            .tilIverksatt(Attestering.Iverksatt(attestant, Tidspunkt.now(clock)))
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
@@ -543,7 +548,7 @@ internal class LagBrevRequestVisitorTest {
                 .tilBeregnet(innvilgetBeregning)
                 .tilSimulert(simulering)
                 .tilAttestering(saksbehandler, "Fritekst!")
-                .tilIverksatt(Attestering.Iverksatt(attestant))
+                .tilIverksatt(Attestering.Iverksatt(attestant, Tidspunkt.now(clock)))
 
         val innvilgetVedtak = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock)
 
@@ -581,7 +586,7 @@ internal class LagBrevRequestVisitorTest {
                 .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
-            .tilIverksatt(Attestering.Iverksatt(attestant))
+            .tilIverksatt(Attestering.Iverksatt(attestant, Tidspunkt.now(clock)))
 
         val avslåttVedtak = Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(søknadsbehandling, fixedClock)
 
@@ -623,7 +628,7 @@ internal class LagBrevRequestVisitorTest {
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
-            .tilIverksatt(Attestering.Iverksatt(attestant))
+            .tilIverksatt(Attestering.Iverksatt(attestant, Tidspunkt.now(clock)))
 
         val avslåttVedtak = Vedtak.Avslag.fromSøknadsbehandlingUtenBeregning(søknadsbehandling, fixedClock)
 
@@ -665,7 +670,7 @@ internal class LagBrevRequestVisitorTest {
                 .tilBeregnet(innvilgetBeregning)
                 .tilSimulert(simulering)
                 .tilAttestering(saksbehandler, "Fritekst!")
-                .tilIverksatt(Attestering.Iverksatt(attestant))
+                .tilIverksatt(Attestering.Iverksatt(attestant, Tidspunkt.now(clock)))
 
         val revurderingsperiode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
         val revurdering = IverksattRevurdering.Innvilget(
@@ -675,15 +680,6 @@ internal class LagBrevRequestVisitorTest {
             tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
-            fritekstTilBrev = "JEPP",
-            revurderingsårsak = Revurderingsårsak(
-                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-            ),
-            beregning = innvilgetBeregning,
-            attestering = Attestering.Iverksatt(attestant),
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            simulering = simulering,
             grunnlagsdata = Grunnlagsdata(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -694,6 +690,15 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
             ),
+            beregning = innvilgetBeregning,
+            simulering = simulering,
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now(clock))),
+            fritekstTilBrev = "JEPP",
+            revurderingsårsak = Revurderingsårsak(
+                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+            ),
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -734,7 +739,7 @@ internal class LagBrevRequestVisitorTest {
                 .tilBeregnet(innvilgetBeregning)
                 .tilSimulert(simulering)
                 .tilAttestering(saksbehandler, "Fritekst!")
-                .tilIverksatt(Attestering.Iverksatt(attestant))
+                .tilIverksatt(Attestering.Iverksatt(attestant, Tidspunkt.now(clock)))
 
         val revurderingsperiode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
         val revurdering = IverksattRevurdering.Opphørt(
@@ -744,14 +749,14 @@ internal class LagBrevRequestVisitorTest {
             tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
+            beregning = innvilgetBeregning,
+            simulering = simulering,
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
             fritekstTilBrev = "FRITEKST REVURDERING",
             revurderingsårsak = Revurderingsårsak(
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
-            beregning = innvilgetBeregning,
-            attestering = Attestering.Iverksatt(attestant),
-            simulering = simulering,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata(
                 bosituasjon = listOf(
@@ -817,7 +822,7 @@ internal class LagBrevRequestVisitorTest {
                 .tilBeregnet(innvilgetBeregning)
                 .tilSimulert(simulering)
                 .tilAttestering(saksbehandler, "Fritekst!")
-                .tilIverksatt(Attestering.Iverksatt(attestant))
+                .tilIverksatt(Attestering.Iverksatt(attestant, Tidspunkt.now(clock)))
 
         val opphørsperiode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
         val revurdering = IverksattRevurdering.Opphørt(
@@ -827,14 +832,14 @@ internal class LagBrevRequestVisitorTest {
             tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
+            beregning = innvilgetBeregning,
+            simulering = simulering,
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now(clock))),
             fritekstTilBrev = "FRITEKST REVURDERING",
             revurderingsårsak = Revurderingsårsak(
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
-            beregning = innvilgetBeregning,
-            attestering = Attestering.Iverksatt(attestant),
-            simulering = simulering,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata(
                 bosituasjon = listOf(
@@ -904,7 +909,7 @@ internal class LagBrevRequestVisitorTest {
                 .tilBeregnet(innvilgetBeregning)
                 .tilSimulert(simulering)
                 .tilAttestering(saksbehandler, "Fritekst!")
-                .tilIverksatt(Attestering.Iverksatt(attestant))
+                .tilIverksatt(Attestering.Iverksatt(attestant, Tidspunkt.now(clock)))
 
         val revurderingsperiode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
         val revurdering = IverksattRevurdering.IngenEndring(
@@ -913,14 +918,14 @@ internal class LagBrevRequestVisitorTest {
             opprettet = Tidspunkt.now(clock),
             tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
             saksbehandler = saksbehandler,
-            beregning = innvilgetBeregning,
             oppgaveId = OppgaveId("15"),
+            beregning = innvilgetBeregning,
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
             fritekstTilBrev = "EN FIN FRITEKST",
             revurderingsårsak = Revurderingsårsak(
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
-            attestering = Attestering.Iverksatt(attestant),
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata(
@@ -1062,5 +1067,6 @@ internal class LagBrevRequestVisitorTest {
             ),
         ),
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+        attesteringer = Attesteringshistorikk.empty()
     )
 }

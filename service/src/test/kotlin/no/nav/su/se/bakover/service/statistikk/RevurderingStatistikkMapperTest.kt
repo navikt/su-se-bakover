@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -114,15 +115,15 @@ internal class RevurderingStatistikkMapperTest {
             },
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "99"),
             oppgaveId = OppgaveId(value = "7"),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
             beregning = mock {
                 on { this.periode } doReturn periode
             },
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2")),
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             simulering = mock(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2"), Tidspunkt.now(fixedClock))),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -183,15 +184,15 @@ internal class RevurderingStatistikkMapperTest {
                 on { id } doReturn UUID.randomUUID()
             },
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "99"),
+            oppgaveId = OppgaveId(value = "7"),
             beregning = mock {
                 on { this.periode } doReturn periode
             },
-            oppgaveId = OppgaveId(value = "7"),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2"), Tidspunkt.now(fixedClock))),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2")),
-            skalFøreTilBrevutsending = true,
             forhåndsvarsel = null,
+            skalFøreTilBrevutsending = true,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),

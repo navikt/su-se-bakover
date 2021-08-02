@@ -20,6 +20,12 @@ val nySøknad = Søknad.Ny(
     søknadInnhold = søknadinnhold,
 )
 
+val lukketSøknad = nySøknad.lukk(
+    lukketAv = saksbehandler,
+    type = Søknad.Lukket.LukketType.TRUKKET,
+    lukketTidspunkt = fixedTidspunkt,
+)
+
 val journalførtSøknad = nySøknad.journalfør(
     journalpostIdSøknad,
 )

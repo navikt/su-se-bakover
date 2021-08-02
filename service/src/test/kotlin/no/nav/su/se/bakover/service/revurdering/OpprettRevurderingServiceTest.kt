@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -565,12 +566,12 @@ internal class OpprettRevurderingServiceTest {
                 tilRevurdering = opprinneligVedtak,
                 saksbehandler = saksbehandler,
                 oppgaveId = OppgaveId("null"),
+                beregning = opprinneligVedtak.beregning,
+                simulering = opprinneligVedtak.simulering,
+                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(opprinneligVedtak.attestant, fixedTidspunkt)),
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
-                beregning = opprinneligVedtak.beregning,
-                attestering = Attestering.Iverksatt(opprinneligVedtak.attestant),
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                simulering = opprinneligVedtak.simulering,
                 grunnlagsdata = Grunnlagsdata(
                     bosituasjon = listOf(
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -881,7 +882,7 @@ internal class OpprettRevurderingServiceTest {
             tilOgMed = periodeNesteMånedOgTreMånederFram.tilOgMed,
         )
         val revurdering = mock<IverksattRevurdering.Innvilget> {
-            on { attestering } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("attestantSomIverksatte"))
+            on { attestering } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("attestantSomIverksatte"), fixedTidspunkt)
             on { periode } doReturn revurderingsperiode
             on { beregning } doReturn mock()
             on { simulering } doReturn mock()
@@ -953,7 +954,7 @@ internal class OpprettRevurderingServiceTest {
         val revurderingBeregning = lagBeregning(revurderingsperiode)
 
         val revurdering = mock<IverksattRevurdering.Innvilget> {
-            on { attestering } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("attestantSomIverksatte"))
+            on { attestering } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("attestantSomIverksatte"), fixedTidspunkt)
 
             on { periode } doReturn revurderingsperiode
             on { beregning } doReturn revurderingBeregning

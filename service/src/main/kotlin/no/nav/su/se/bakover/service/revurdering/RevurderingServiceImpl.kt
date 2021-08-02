@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
@@ -178,6 +179,7 @@ internal class RevurderingServiceImpl(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
+                attesteringer = Attesteringshistorikk.empty()
             ).also {
                 revurderingRepo.lagre(it)
 
@@ -827,7 +829,7 @@ internal class RevurderingServiceImpl(
                 val iverksattRevurdering = when (revurdering) {
                     is RevurderingTilAttestering.IngenEndring -> {
 
-                        revurdering.tilIverksatt(attestant)
+                        revurdering.tilIverksatt(attestant, clock)
                             .map { iverksattRevurdering ->
                                 if (revurdering.skalFøreTilBrevutsending) {
                                     ferdigstillVedtakService.journalførOgLagre(Vedtak.from(iverksattRevurdering, clock))
@@ -845,7 +847,7 @@ internal class RevurderingServiceImpl(
                             }
                     }
                     is RevurderingTilAttestering.Innvilget -> {
-                        revurdering.tilIverksatt(attestant) {
+                        revurdering.tilIverksatt(attestant, clock) {
                             utbetalingService.utbetal(
                                 sakId = revurdering.sakId,
                                 beregning = revurdering.beregning,
@@ -868,7 +870,7 @@ internal class RevurderingServiceImpl(
                         }
                     }
                     is RevurderingTilAttestering.Opphørt -> {
-                        revurdering.tilIverksatt(attestant) {
+                        revurdering.tilIverksatt(attestant, clock) {
                             utbetalingService.opphør(
                                 sakId = revurdering.sakId,
                                 attestant = attestant,
