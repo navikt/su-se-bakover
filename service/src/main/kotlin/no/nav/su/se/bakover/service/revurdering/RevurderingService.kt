@@ -190,7 +190,6 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
         KunneIkkeBeregneOgSimulereRevurdering()
 
-    object UfullstendigBehandlingsinformasjon : KunneIkkeBeregneOgSimulereRevurdering()
     data class UgyldigBeregningsgrunnlag(
         val reason: no.nav.su.se.bakover.domain.beregning.UgyldigBeregningsgrunnlag,
     ) : KunneIkkeBeregneOgSimulereRevurdering()

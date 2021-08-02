@@ -265,11 +265,11 @@ internal class OppdaterRevurderingServiceTest {
                     attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(
                         Attestering.Iverksatt(
                             attestant = NavIdentBruker.Attestant("navIdent"),
-                            opprettet = fixedTidspunkt
-                        )
+                            opprettet = fixedTidspunkt,
+                        ),
                     ),
-                    forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                     simulering = mock(),
+                    forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                     grunnlagsdata = Grunnlagsdata(
                         bosituasjon = listOf(
                             Grunnlag.Bosituasjon.Fullstendig.Enslig(

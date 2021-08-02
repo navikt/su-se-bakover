@@ -72,14 +72,14 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             EndringIYtelse(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(clock),
-                behandling = søknadsbehandling,
-                saksbehandler = søknadsbehandling.saksbehandler,
-                attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant,
-                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
                 periode = søknadsbehandling.periode,
+                behandling = søknadsbehandling,
                 beregning = søknadsbehandling.beregning,
                 simulering = søknadsbehandling.simulering,
+                saksbehandler = søknadsbehandling.saksbehandler,
+                attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant,
                 utbetalingId = utbetalingId,
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
                 vedtakType = VedtakType.SØKNAD,
             )
 
@@ -87,24 +87,24 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
             behandling = revurdering,
+            periode = revurdering.periode,
+            beregning = revurdering.beregning,
             saksbehandler = revurdering.saksbehandler,
             attestant = revurdering.attestering.attestant,
             journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
-            periode = revurdering.periode,
-            beregning = revurdering.beregning,
         )
 
         fun from(revurdering: IverksattRevurdering.Innvilget, utbetalingId: UUID30, clock: Clock) = EndringIYtelse(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
             behandling = revurdering,
-            saksbehandler = revurdering.saksbehandler,
-            attestant = revurdering.attestering.attestant,
-            journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
             periode = revurdering.periode,
             beregning = revurdering.beregning,
             simulering = revurdering.simulering,
+            saksbehandler = revurdering.saksbehandler,
+            attestant = revurdering.attestering.attestant,
             utbetalingId = utbetalingId,
+            journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
             vedtakType = VedtakType.ENDRING,
         )
 
@@ -112,13 +112,13 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
             behandling = revurdering,
-            saksbehandler = revurdering.saksbehandler,
-            attestant = revurdering.attestering.attestant,
-            journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
             periode = revurdering.periode,
             beregning = revurdering.beregning,
             simulering = revurdering.simulering,
+            saksbehandler = revurdering.saksbehandler,
+            attestant = revurdering.attestering.attestant,
             utbetalingId = utbetalingId,
+            journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
             vedtakType = VedtakType.OPPHØR,
         )
     }
@@ -204,11 +204,11 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(clock),
                     behandling = avslag,
+                    beregning = avslag.beregning,
                     saksbehandler = avslag.saksbehandler,
                     attestant = avslag.attesteringer.hentSisteAttestering().attestant,
                     journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
                     periode = avslag.periode,
-                    beregning = avslag.beregning,
                 )
 
             fun fromSøknadsbehandlingUtenBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning, clock: Clock) =
@@ -232,7 +232,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
             override val periode: Periode,
         ) : Avslag() {
-            // TODO jah: For Søknadsbehandling, migrer resterende fra behandlingsinformasjon til vilkår
+            // TODO jah: I en overgangsfase vil vilkårsvurderingene finnes både i Behandlingsinformasjon og Vilkårsvurderinger, ideelt sett hadde Vilkårsvurderinger eid avslagsgrunnene.
             override val avslagsgrunner: List<Avslagsgrunn> = behandling.behandlingsinformasjon.utledAvslagsgrunner()
 
             override fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, Avslag> {
@@ -267,7 +267,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                 }
 
             // TODO jm: disse bør sannsynligvis peristeres.
-            // TODO jah: For Søknadsbehandling, migrer resterende fra behandlingsinformasjon til vilkår
+            // TODO jah: I en overgangsfase vil vilkårsvurderingene finnes både i Behandlingsinformasjon og Vilkårsvurderinger, ideelt sett hadde Vilkårsvurderinger eid avslagsgrunnene.
             override val avslagsgrunner: List<Avslagsgrunn> =
                 behandling.behandlingsinformasjon.utledAvslagsgrunner() + avslagsgrunnForBeregning
 

@@ -468,6 +468,7 @@ internal class RevurderingLeggTilFormueServiceTest {
         oppgaveId = OppgaveId("oppgaveid"),
         fritekstTilBrev = "",
         revurderingsårsak = revurderingsårsak,
+        forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
         beregning = testBeregning,
         simulering = Simulering(
             gjelderId = fnr,
@@ -476,7 +477,6 @@ internal class RevurderingLeggTilFormueServiceTest {
             nettoBeløp = 100,
             periodeList = emptyList(),
         ),
-        forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
         grunnlagsdata = Grunnlagsdata(
             fradragsgrunnlag = listOf(
                 Grunnlag.Fradragsgrunnlag(
@@ -502,6 +502,6 @@ internal class RevurderingLeggTilFormueServiceTest {
         ),
         vilkårsvurderinger = vilkårsvurderinger,
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-        attesteringer = Attesteringshistorikk.empty()
+        attesteringer = Attesteringshistorikk.empty(),
     )
 }

@@ -464,16 +464,13 @@ internal class StatistikkServiceImplTest {
         }
         val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
             id = UUID.randomUUID(),
-            periode = behandlingsperiode,
             opprettet = LocalDate.now(clock).atStartOfDay().toTidspunkt(zoneIdOslo),
             tilRevurdering = mock {
                 on { behandling } doReturn behandlingMock
                 on { id } doReturn UUID.randomUUID()
             },
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-            oppgaveId = OppgaveId("55"),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
+            periode = behandlingsperiode,
             beregning = beregning,
             simulering = Simulering(
                 gjelderId = FnrGenerator.random(),
@@ -482,11 +479,14 @@ internal class StatistikkServiceImplTest {
                 nettoBeløp = 100,
                 periodeList = listOf(),
             ),
+            oppgaveId = OppgaveId("55"),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val expected = Statistikk.Behandling(

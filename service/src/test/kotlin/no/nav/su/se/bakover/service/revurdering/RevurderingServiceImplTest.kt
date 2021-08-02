@@ -229,16 +229,16 @@ internal class RevurderingServiceImplTest {
             opprettet = Tidspunkt.EPOCH,
             tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
             saksbehandler = saksbehandler,
+            beregning = mock(),
+            simulering = mock(),
             oppgaveId = mock(),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            beregning = mock(),
-            simulering = mock(),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -388,17 +388,17 @@ internal class RevurderingServiceImplTest {
             periode = periodeNesteMånedOgTreMånederFram,
             opprettet = Tidspunkt.EPOCH,
             tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
-            saksbehandler = saksbehandler,
             oppgaveId = OppgaveId(value = "OppgaveId"),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
             beregning = TestBeregning,
             simulering = testsimulering,
+            saksbehandler = saksbehandler,
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -465,17 +465,17 @@ internal class RevurderingServiceImplTest {
             periode = periodeNesteMånedOgTreMånederFram,
             opprettet = Tidspunkt.EPOCH,
             tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
-            saksbehandler = saksbehandler,
             oppgaveId = OppgaveId(value = "OppgaveId"),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
             beregning = TestBeregningSomGirOpphør,
             simulering = mock(),
+            saksbehandler = saksbehandler,
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
 
@@ -534,16 +534,16 @@ internal class RevurderingServiceImplTest {
             opprettet = Tidspunkt.EPOCH,
             tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
             saksbehandler = saksbehandler,
+            beregning = beregning,
+            simulering = mock(),
             oppgaveId = OppgaveId("oppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            beregning = beregning,
-            simulering = mock(),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val attestering = Attestering.Underkjent(
@@ -739,9 +739,6 @@ internal class RevurderingServiceImplTest {
             opprettet = Tidspunkt.now(),
             tilRevurdering = vedtakMock,
             saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveid"),
-            revurderingsårsak = revurderingsårsak,
-            fritekstTilBrev = "",
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = fnr,
@@ -750,6 +747,9 @@ internal class RevurderingServiceImplTest {
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata(
                 bosituasjon = listOf(
@@ -763,7 +763,7 @@ internal class RevurderingServiceImplTest {
             ),
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -1019,9 +1019,6 @@ internal class RevurderingServiceImplTest {
             opprettet = Tidspunkt.now(),
             tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
             saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveid"),
-            revurderingsårsak = revurderingsårsak,
-            fritekstTilBrev = "",
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = fnr,
@@ -1030,6 +1027,9 @@ internal class RevurderingServiceImplTest {
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger(
@@ -1048,7 +1048,7 @@ internal class RevurderingServiceImplTest {
                 formue = formueVilkår(periodeNesteMånedOgTreMånederFram),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -1265,15 +1265,15 @@ internal class RevurderingServiceImplTest {
             opprettet = Tidspunkt.now(),
             tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
             saksbehandler = saksbehandler,
-            beregning = TestBeregning,
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
+            beregning = TestBeregning,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
         testForhåndsvarslerIkkeGittRevurdering(beregnet)
     }
@@ -1430,9 +1430,6 @@ internal class RevurderingServiceImplTest {
             opprettet = Tidspunkt.now(),
             tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
             saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveid"),
-            revurderingsårsak = revurderingsårsak,
-            fritekstTilBrev = "",
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = fnr,
@@ -1441,6 +1438,9 @@ internal class RevurderingServiceImplTest {
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt(
                 journalpostId,
                 brevbestillingId,
@@ -1450,7 +1450,7 @@ internal class RevurderingServiceImplTest {
                 on { resultat } doReturn Resultat.Innvilget
             },
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -1516,9 +1516,6 @@ internal class RevurderingServiceImplTest {
             opprettet = Tidspunkt.now(),
             tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
             saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveid"),
-            revurderingsårsak = revurderingsårsak,
-            fritekstTilBrev = "",
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = fnr,
@@ -1527,6 +1524,9 @@ internal class RevurderingServiceImplTest {
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
                 journalpostId,
                 brevbestillingId,
@@ -1536,7 +1536,7 @@ internal class RevurderingServiceImplTest {
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {

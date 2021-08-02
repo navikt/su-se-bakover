@@ -309,10 +309,10 @@ internal class RegulerGrunnbeløpServiceImplTest {
             opprettet = opprettetRevurdering.opprettet,
             tilRevurdering = opprettetRevurdering.tilRevurdering,
             saksbehandler = opprettetRevurdering.saksbehandler,
-            beregning = opprettetRevurdering.tilRevurdering.beregning,
             oppgaveId = opprettetRevurdering.oppgaveId,
             fritekstTilBrev = opprettetRevurdering.fritekstTilBrev,
             revurderingsårsak = opprettetRevurdering.revurderingsårsak,
+            beregning = opprettetRevurdering.tilRevurdering.beregning,
             forhåndsvarsel = null,
             grunnlagsdata = opprettetRevurdering.grunnlagsdata,
             vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
@@ -322,7 +322,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering
@@ -374,8 +374,8 @@ internal class RegulerGrunnbeløpServiceImplTest {
             tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid"),
-            revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
             fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
             beregning = TestBeregning,
             simulering = mock(),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
@@ -384,7 +384,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 on { resultat } doReturn Resultat.Innvilget
             },
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -491,10 +491,10 @@ internal class RegulerGrunnbeløpServiceImplTest {
             opprettet = Tidspunkt.EPOCH,
             tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
             saksbehandler = saksbehandler,
-            beregning = TestBeregning,
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
+            beregning = TestBeregning,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = mock {
@@ -530,15 +530,15 @@ internal class RegulerGrunnbeløpServiceImplTest {
         ).orNull()!! as RevurderingTilAttestering.IngenEndring
 
         actual shouldBe RevurderingTilAttestering.IngenEndring(
+            tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
             id = revurderingId,
             periode = periodeNesteMånedOgTreMånederFram,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
             saksbehandler = saksbehandler,
-            beregning = actual.beregning,
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "Fritekst",
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
+            beregning = actual.beregning,
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -609,15 +609,15 @@ internal class RegulerGrunnbeløpServiceImplTest {
         ).orNull()!! as RevurderingTilAttestering.IngenEndring
 
         actual shouldBe RevurderingTilAttestering.IngenEndring(
+            tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
             id = revurderingId,
             periode = periodeNesteMånedOgTreMånederFram,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
             saksbehandler = saksbehandler,
-            beregning = actual.beregning,
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "Fritekst",
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
+            beregning = actual.beregning,
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.EMPTY,

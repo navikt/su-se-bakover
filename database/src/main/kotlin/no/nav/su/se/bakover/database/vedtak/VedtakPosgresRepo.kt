@@ -167,17 +167,17 @@ internal class VedtakPosgresRepo(
                 Vedtak.EndringIYtelse(
                     id = id,
                     opprettet = opprettet,
+                    periode = periode,
                     behandling = behandling,
+                    beregning = beregning!!,
+                    simulering = simulering!!,
                     saksbehandler = saksbehandler,
                     attestant = attestant,
+                    utbetalingId = utbetalingId!!,
                     journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
                         iverksattJournalpostId,
                         iverksattBrevbestillingId,
                     ),
-                    periode = periode,
-                    beregning = beregning!!,
-                    simulering = simulering!!,
-                    utbetalingId = utbetalingId!!,
                     vedtakType = vedtakType,
                 )
             }
@@ -188,6 +188,7 @@ internal class VedtakPosgresRepo(
                         opprettet = opprettet,
                         // AVSLAG gjelder kun for søknadsbehandling
                         behandling = behandling as Søknadsbehandling,
+                        beregning = beregning,
                         saksbehandler = saksbehandler,
                         attestant = attestant,
                         journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
@@ -195,7 +196,6 @@ internal class VedtakPosgresRepo(
                             iverksattBrevbestillingId,
                         ),
                         periode = periode,
-                        beregning = beregning,
                     )
                 } else {
                     Vedtak.Avslag.AvslagVilkår(
@@ -216,15 +216,15 @@ internal class VedtakPosgresRepo(
             VedtakType.INGEN_ENDRING -> Vedtak.IngenEndringIYtelse(
                 id = id,
                 opprettet = opprettet,
+                periode = periode,
                 behandling = behandling,
+                beregning = beregning!!,
                 saksbehandler = saksbehandler,
                 attestant = attestant,
                 journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
                     iverksattJournalpostId,
                     iverksattBrevbestillingId,
                 ),
-                periode = periode,
-                beregning = beregning!!,
             )
         }
     }
@@ -239,7 +239,6 @@ internal class VedtakPosgresRepo(
                     tilOgMed,
                     saksbehandler,
                     attestant,
-                    behandlingsinformasjon,
                     utbetalingid,
                     simulering,
                     beregning,
@@ -253,7 +252,6 @@ internal class VedtakPosgresRepo(
                     :tilOgMed,
                     :saksbehandler,
                     :attestant,
-                    to_json(:behandlingsinformasjon::json),
                     :utbetalingid,
                     to_json(:simulering::json),
                     to_json(:beregning::json),
@@ -303,7 +301,6 @@ internal class VedtakPosgresRepo(
                     tilOgMed,
                     saksbehandler,
                     attestant,
-                    behandlingsinformasjon,
                     utbetalingid,
                     simulering,
                     beregning,
@@ -317,7 +314,6 @@ internal class VedtakPosgresRepo(
                     :tilOgMed,
                     :saksbehandler,
                     :attestant,
-                    to_json(:behandlingsinformasjon::json),
                     :utbetalingid,
                     to_json(:simulering::json),
                     to_json(:beregning::json),
@@ -361,7 +357,6 @@ internal class VedtakPosgresRepo(
                     tilOgMed,
                     saksbehandler,
                     attestant,
-                    behandlingsinformasjon,
                     utbetalingid,
                     simulering,
                     beregning,
@@ -375,7 +370,6 @@ internal class VedtakPosgresRepo(
                     :tilOgMed,
                     :saksbehandler,
                     :attestant,
-                    to_json(:behandlingsinformasjon::json),
                     :utbetalingid,
                     to_json(:simulering::json),
                     to_json(:beregning::json),

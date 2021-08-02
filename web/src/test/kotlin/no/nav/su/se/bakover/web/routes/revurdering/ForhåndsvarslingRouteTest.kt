@@ -73,12 +73,6 @@ internal class ForhåndsvarslingRouteTest {
             opprettet = Tidspunkt.now(),
             tilRevurdering = RevurderingRoutesTestData.vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
-            oppgaveId = OppgaveId("OppgaveId"),
-            revurderingsårsak = Revurderingsårsak(
-                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-            ),
-            fritekstTilBrev = "Friteksten",
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678901"),
@@ -87,6 +81,12 @@ internal class ForhåndsvarslingRouteTest {
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
+            oppgaveId = OppgaveId("OppgaveId"),
+            fritekstTilBrev = "Friteksten",
+            revurderingsårsak = Revurderingsårsak(
+                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+            ),
             forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt(
                 journalpostId = JournalpostId("lol"),
                 brevbestillingId = null,
@@ -94,7 +94,7 @@ internal class ForhåndsvarslingRouteTest {
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -139,12 +139,6 @@ internal class ForhåndsvarslingRouteTest {
             opprettet = Tidspunkt.now(),
             tilRevurdering = RevurderingRoutesTestData.vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
-            oppgaveId = OppgaveId("OppgaveId"),
-            revurderingsårsak = Revurderingsårsak(
-                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-            ),
-            fritekstTilBrev = "Friteksten",
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678901"),
@@ -153,11 +147,17 @@ internal class ForhåndsvarslingRouteTest {
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
+            oppgaveId = OppgaveId("OppgaveId"),
+            fritekstTilBrev = "Friteksten",
+            revurderingsårsak = Revurderingsårsak(
+                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+            ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {

@@ -43,7 +43,7 @@ val revurderingsårsak =
 
 /**
  * En revurdering i sin tidligste tilstand der den er basert på et innvilget søknadsbehandlingsvedtak
- * Arver behandlingsinformasjon/grunnlagsdata/vilkårsvurderinger med samme periode som stønadsperioden - TODO jah: Støtte truncating (bruk en domeneklasse/factory til dette)
+ * Arver grunnlagsdata/vilkårsvurderinger med samme periode som stønadsperioden - TODO jah: Støtte truncating (bruk en domeneklasse/factory til dette)
  *
  * Defaults:
  * - jan til des 2021
