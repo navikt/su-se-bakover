@@ -94,7 +94,6 @@ internal class IverksettRevurderingRouteKtTest {
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),

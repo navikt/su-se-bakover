@@ -63,11 +63,8 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.service.revurdering.LeggTilBosituasjongrunnlagRequest
-import no.nav.su.se.bakover.service.revurdering.LeggTilBosituasjongrunnlagResponse
 import no.nav.su.se.bakover.service.revurdering.LeggTilFormuegrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.LeggTilFradragsgrunnlagRequest
-import no.nav.su.se.bakover.service.revurdering.LeggTilFradragsgrunnlagResponse
-import no.nav.su.se.bakover.service.revurdering.LeggTilUføregrunnlagResponse
 import no.nav.su.se.bakover.service.revurdering.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.OpprettRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
@@ -508,22 +505,22 @@ open class AccessCheckProxy(
 
                 override fun leggTilUføregrunnlag(
                     request: LeggTilUførevurderingerRequest,
-                ): Either<KunneIkkeLeggeTilGrunnlag, LeggTilUføregrunnlagResponse> {
+                ): Either<KunneIkkeLeggeTilGrunnlag, OpprettetRevurdering> {
                     assertHarTilgangTilRevurdering(request.behandlingId)
                     return services.revurdering.leggTilUføregrunnlag(request)
                 }
 
-                override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, LeggTilFradragsgrunnlagResponse> {
+                override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, OpprettetRevurdering> {
                     assertHarTilgangTilRevurdering(request.behandlingId)
                     return services.revurdering.leggTilFradragsgrunnlag(request)
                 }
 
-                override fun leggTilBosituasjongrunnlag(request: LeggTilBosituasjongrunnlagRequest): Either<KunneIkkeLeggeTilBosituasjongrunnlag, LeggTilBosituasjongrunnlagResponse> {
+                override fun leggTilBosituasjongrunnlag(request: LeggTilBosituasjongrunnlagRequest): Either<KunneIkkeLeggeTilBosituasjongrunnlag, OpprettetRevurdering> {
                     assertHarTilgangTilRevurdering(request.revurderingId)
                     return services.revurdering.leggTilBosituasjongrunnlag(request)
                 }
 
-                override fun leggTilFormuegrunnlag(request: LeggTilFormuegrunnlagRequest): Either<KunneIkkeLeggeTilFormuegrunnlag, Revurdering> {
+                override fun leggTilFormuegrunnlag(request: LeggTilFormuegrunnlagRequest): Either<KunneIkkeLeggeTilFormuegrunnlag, OpprettetRevurdering> {
                     assertHarTilgangTilRevurdering(request.revurderingId)
                     return services.revurdering.leggTilFormuegrunnlag(request)
                 }

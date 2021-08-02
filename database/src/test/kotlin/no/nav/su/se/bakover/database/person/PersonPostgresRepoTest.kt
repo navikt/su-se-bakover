@@ -188,7 +188,6 @@ internal class PersonPostgresRepoTest {
                     fritekstTilBrev = revurdering.fritekstTilBrev,
                     revurderingsårsak = revurdering.revurderingsårsak,
                     beregning = beregning(revurdering.periode),
-                    behandlingsinformasjon = revurdering.behandlingsinformasjon,
                     simulering = simulering(revurdering.fnr),
                     forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                     grunnlagsdata = revurdering.grunnlagsdata,

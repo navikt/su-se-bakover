@@ -615,8 +615,6 @@ internal class FerdigstillVedtakServiceImplTest {
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(),
                     oppgaveId = oppgaveId,
-                    behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
-                        .withAlleVilkårOppfylt(),
                     beregning = TestBeregning,
                     saksbehandler = saksbehandler,
                     attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
@@ -1437,7 +1435,6 @@ internal class FerdigstillVedtakServiceImplTest {
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
                 oppgaveId = oppgaveId,
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
                 beregning = TestBeregning,
                 simulering = mock(),
                 saksbehandler = saksbehandler,

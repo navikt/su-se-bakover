@@ -6,7 +6,6 @@ import arrow.core.getOrHandle
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
-import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -62,13 +61,13 @@ internal fun Route.leggTilFradragRevurdering(
                                 ).mapLeft {
                                     when (it) {
                                         KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling -> Revurderingsfeilresponser.fantIkkeRevurdering
-                                        KunneIkkeLeggeTilFradragsgrunnlag.UgyldigStatus -> InternalServerError.errorJson(
-                                            "ugyldig status for å legge til",
-                                            "ugyldig_status_for_å_legge_til",
+                                        is KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand -> Revurderingsfeilresponser.ugyldigTilstand(
+                                            fra = it.fra,
+                                            til = it.til,
                                         )
                                         KunneIkkeLeggeTilFradragsgrunnlag.FradragsgrunnlagUtenforRevurderingsperiode -> BadRequest.errorJson(
                                             "kan ikke legge til fradrag utenfor revurderingsperioden",
-                                            "fradrag_utenfor_revurderingsperiode"
+                                            "fradrag_utenfor_revurderingsperiode",
                                         )
                                         KunneIkkeLeggeTilFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> BadRequest.errorJson(
                                             "ugyldig fradragstype",
@@ -80,7 +79,7 @@ internal fun Route.leggTilFradragRevurdering(
                                     call.sikkerlogg("Lagret fradrag for revudering $revurderingId på $sakId")
                                     Resultat.json(
                                         HttpStatusCode.OK,
-                                        serialize(it.revurdering.toJson()),
+                                        serialize(it.toJson()),
                                     )
                                 }
                             }.getOrHandle { it },

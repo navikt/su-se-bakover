@@ -101,10 +101,6 @@ private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
             "Simulering feilet",
             "simulering_feilet",
         )
-        is KunneIkkeBeregneOgSimulereRevurdering.UfullstendigBehandlingsinformasjon -> InternalServerError.errorJson(
-            "Ufullstendig behandlingsinformasjon",
-            "ufullstendig_behandlingsinformasjon",
-        )
         KunneIkkeBeregneOgSimulereRevurdering.MåSendeGrunnbeløpReguleringSomÅrsakSammenMedForventetInntekt -> BadRequest.errorJson(
             "Forventet inntekt kan kun sendes sammen med regulering av grunnbeløp",
             "grunnbelop_forventetinntekt",

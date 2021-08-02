@@ -699,7 +699,6 @@ internal class LagBrevRequestVisitorTest {
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -759,7 +758,6 @@ internal class LagBrevRequestVisitorTest {
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -843,7 +841,6 @@ internal class LagBrevRequestVisitorTest {
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -931,7 +928,6 @@ internal class LagBrevRequestVisitorTest {
             ),
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = null,
-            behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -977,9 +973,9 @@ internal class LagBrevRequestVisitorTest {
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn,
                 fritekst = "EN FIN FRITEKST",
-                harEktefelle = revurdering.behandlingsinformasjon.harEktefelle(),
+                harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
                 forventetInntektStørreEnn0 = false,
-                gjeldendeMånedsutbetaling = 120
+                gjeldendeMånedsutbetaling = 120,
             )
 
             it.lagBrevInnhold(personalia) should beOfType<BrevInnhold.VedtakIngenEndring>()

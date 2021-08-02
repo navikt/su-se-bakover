@@ -101,7 +101,6 @@ internal class VedtakPosgresRepoTest {
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
                 ),
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
                 vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             )
@@ -252,7 +251,6 @@ internal class VedtakPosgresRepoTest {
                 ),
                 skalFøreTilBrevutsending = true,
                 forhåndsvarsel = null,
-                behandlingsinformasjon = nyRevurdering.behandlingsinformasjon,
                 grunnlagsdata = nyRevurdering.grunnlagsdata,
                 vilkårsvurderinger = nyRevurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -275,7 +273,6 @@ internal class VedtakPosgresRepoTest {
                 ),
                 skalFøreTilBrevutsending = true,
                 forhåndsvarsel = null,
-                behandlingsinformasjon = nyRevurdering.behandlingsinformasjon,
                 grunnlagsdata = nyRevurdering.grunnlagsdata,
                 vilkårsvurderinger = nyRevurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
