@@ -2,7 +2,7 @@ repositories {
     maven("https://dl.bintray.com/kotlin/ktor")
 }
 
-val ktorVersion = "1.6.1"
+val ktorVersion = "1.6.2"
 val orgJsonVersion = "20210307"
 val micrometerRegistryPrometheusVersion = "1.7.2"
 
