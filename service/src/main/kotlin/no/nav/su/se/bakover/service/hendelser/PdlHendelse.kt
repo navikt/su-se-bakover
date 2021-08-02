@@ -10,7 +10,5 @@ data class PdlHendelse(
     val endringstype: String,
     val personIdenter: List<String>,
     val dødsdato: LocalDate? = null,
-    val fødselsdato: LocalDate? = null,
-    val fødeland: String? = null,
     val utflyttingsdato: LocalDate? = null,
 )

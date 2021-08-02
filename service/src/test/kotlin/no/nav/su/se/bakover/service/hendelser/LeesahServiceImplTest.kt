@@ -69,8 +69,6 @@ internal class LeesahServiceImplTest {
         endringstype = "OPPRETTET",
         personIdenter = listOf(personIdent.toString()),
         dødsdato = null,
-        fødselsdato = null,
-        fødeland = null,
         utflyttingsdato = null
     )
 }

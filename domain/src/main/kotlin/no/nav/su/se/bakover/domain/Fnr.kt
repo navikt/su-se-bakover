@@ -20,7 +20,11 @@ data class Fnr @JsonCreator(mode = DELEGATING) constructor(private val fnr: Stri
         if (!fnr.matches(fnrPattern)) throw UgyldigFnrException(fnr)
     }
     // tilgjengeliggjør for test
-    companion object
+    companion object {
+        private val fnrPattern = Regex("[0-9]{11}")
+
+        fun erGyldigFnr(fnr: String) = fnr.matches(fnrPattern)
+    }
 }
 
 class UgyldigFnrException(fnr: String?) : RuntimeException("Ugyldig fnr: $fnr")

@@ -29,6 +29,7 @@ class LeesahMqConsumerImpl(
 
     override fun consume() {
         val messages = consumer.poll(POLL_TIMEOUT_DURATION)
+        log.info("Konsumerer meldinger fra PDL - Hentet ${messages.count()}st")
 
         if (!messages.isEmpty) {
             var i = 0

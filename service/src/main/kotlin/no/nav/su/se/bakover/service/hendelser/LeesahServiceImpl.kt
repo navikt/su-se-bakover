@@ -22,10 +22,19 @@ internal class LeesahServiceImpl(
     private val personService: PersonService,
 ) : LeesahService {
     override fun prosesserNyMelding(pdlHendelse: PdlHendelse) {
+        if (!personHarEksisterendeSak(pdlHendelse)) {
+            return
+        }
+
         when (pdlHendelse.opplysningstype) {
             LeesahService.Opplysningstype.DØDSFALL.value -> håndterDødsfallHendelse(pdlHendelse)
             LeesahService.Opplysningstype.UTFLYTTING_FRA_NORGE.value -> {}
         }
+    }
+    private fun personHarEksisterendeSak(pdlHendelse: PdlHendelse): Boolean {
+        val ident = pdlHendelse.personIdenter.singleOrNull() { Fnr.erGyldigFnr(it) } ?: return false
+
+        return sakService.hentSak(Fnr(ident)).isRight()
     }
 
     private fun håndterDødsfallHendelse(pdlHendelse: PdlHendelse) {
