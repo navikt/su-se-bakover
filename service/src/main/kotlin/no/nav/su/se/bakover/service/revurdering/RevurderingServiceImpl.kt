@@ -234,7 +234,7 @@ internal class RevurderingServiceImpl(
                 LeggTilUførevurderingerRequest.UgyldigUførevurdering.HeleBehandlingsperiodenMåHaVurderinger -> KunneIkkeLeggeTilGrunnlag.HeleBehandlingsperiodenMåHaVurderinger.left()
             }
         }
-        return revurdering.oppdaterUføre(uførevilkår).mapLeft {
+        return revurdering.oppdaterUføreOgMarkerSomVurdert(uførevilkår).mapLeft {
             KunneIkkeLeggeTilGrunnlag.UgyldigStatus
         }.map {
             // TODO jah: Flytt denne inn i revurderingRepo.lagre
@@ -257,7 +257,7 @@ internal class RevurderingServiceImpl(
                 }.left()
             }
 
-        return revurdering.oppdaterFradrag(request.fradragsrunnlag).mapLeft {
+        return revurdering.oppdaterFradragOgMarkerSomVurdert(request.fradragsrunnlag).mapLeft {
             KunneIkkeLeggeTilFradragsgrunnlag.UgyldigStatus
         }.map {
             // TODO jah: Flytt denne inn i revurderingRepo.lagre
@@ -281,7 +281,7 @@ internal class RevurderingServiceImpl(
                 return it.left()
             }
 
-        return revurdering.oppdaterBosituasjon(bosituasjongrunnlag).mapLeft {
+        return revurdering.oppdaterBosituasjonOgMarkerSomVurdert(bosituasjongrunnlag).mapLeft {
             KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigStatus
         }.map {
             // TODO jah: Flytt denne inn i revurderingRepo.lagre
@@ -300,7 +300,7 @@ internal class RevurderingServiceImpl(
         val vilkår = request.toDomain(bosituasjon, revurdering.periode, clock).getOrHandle {
             return it.left()
         }
-        return revurdering.oppdaterFormue(vilkår).mapLeft {
+        return revurdering.oppdaterFormueOgMarkerSomVurdert(vilkår).mapLeft {
             KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand(
                 revurdering::class,
                 OpprettetRevurdering::class,
