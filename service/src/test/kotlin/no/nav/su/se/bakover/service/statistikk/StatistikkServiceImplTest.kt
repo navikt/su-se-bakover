@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
@@ -49,7 +48,6 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.LocalDate
@@ -152,7 +150,7 @@ internal class StatistikkServiceImplTest {
         }
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = søknadsbehandling.periode.fraOgMed.startOfDay(zoneIdOslo),
+            funksjonellTid = Tidspunkt.now(clock),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = søknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = søknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
@@ -204,7 +202,7 @@ internal class StatistikkServiceImplTest {
         }
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = behandling.periode.fraOgMed.startOfDay(zoneIdOslo),
+            funksjonellTid = Tidspunkt.now(clock),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = behandling.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
@@ -255,7 +253,7 @@ internal class StatistikkServiceImplTest {
         }
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = behandling.periode.fraOgMed.startOfDay(zoneIdOslo),
+            funksjonellTid = Tidspunkt.now(clock),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = behandling.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
@@ -305,7 +303,7 @@ internal class StatistikkServiceImplTest {
         }
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = behandling.periode.fraOgMed.startOfDay(zoneIdOslo),
+            funksjonellTid = Tidspunkt.now(clock),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = behandling.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
@@ -370,7 +368,7 @@ internal class StatistikkServiceImplTest {
         )
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = underkjent.periode.fraOgMed.startOfDay(zoneIdOslo),
+            funksjonellTid = Tidspunkt.now(clock),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = underkjent.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = underkjent.opprettet.toLocalDate(zoneIdOslo),
@@ -419,7 +417,6 @@ internal class StatistikkServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -485,11 +482,10 @@ internal class StatistikkServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val expected = Statistikk.Behandling(
@@ -554,7 +550,6 @@ internal class StatistikkServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )

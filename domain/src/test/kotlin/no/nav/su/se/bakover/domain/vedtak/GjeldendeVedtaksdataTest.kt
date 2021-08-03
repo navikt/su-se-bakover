@@ -223,7 +223,6 @@ internal class GjeldendeVedtaksdataTest {
             ),
             attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant = NavIdentBruker.Attestant(navIdent = ""), Tidspunkt.now(fixedClock))),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             simulering = Simulering(
                 gjelderId = FnrGenerator.random(),
                 gjelderNavn = "",

@@ -16,6 +16,7 @@ import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.arrow.either.shouldBeRight
+import io.kotest.assertions.fail
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
@@ -96,10 +97,12 @@ import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
+import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Clock
@@ -126,7 +129,6 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 fradragsgrunnlag = listOf(
                     Grunnlag.Fradragsgrunnlag(
@@ -231,7 +233,6 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -276,7 +277,6 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 fradragsgrunnlag = listOf(
                     Grunnlag.Fradragsgrunnlag(
@@ -378,7 +378,6 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -395,7 +394,6 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -473,7 +471,6 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -542,7 +539,6 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -638,7 +634,6 @@ internal class RevurderingServiceImplTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attestering),
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 fradragsgrunnlag = listOf(
                     Grunnlag.Fradragsgrunnlag(
@@ -754,7 +749,6 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -957,7 +951,6 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -992,7 +985,6 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -1035,7 +1027,6 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Uførhet.Vurdert.create(
@@ -1259,7 +1250,6 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -1277,7 +1267,6 @@ internal class RevurderingServiceImplTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             beregning = TestBeregning,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -1429,7 +1418,6 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = mock {
                 on { resultat } doReturn Resultat.Innvilget
@@ -1508,7 +1496,6 @@ internal class RevurderingServiceImplTest {
                 BeslutningEtterForhåndsvarsling.FortsettMedAndreOpplysninger,
                 "",
             ),
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -1717,27 +1704,11 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `lagreFradrag happy case`() {
-        val revurderingId = UUID.randomUUID()
-
         val revurderingsperiode = Periode.create(1.januar(2021), 31.desember(2021))
-        val revuderingMock = mock<OpprettetRevurdering> {
-            on { id } doReturn revurderingId
-            on { periode } doReturn revurderingsperiode
-            on { grunnlagsdata } doReturn Grunnlagsdata(
-                bosituasjon = listOf(
-                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = revurderingsperiode,
-                        begrunnelse = null,
-                    ),
-                ),
-            )
-            on { markerSomVurdert(any()) }.doReturn(this.mock)
-        }
+        val eksisterendeRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak()
 
         val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn revuderingMock
+            on { hent(any()) } doReturn eksisterendeRevurdering
         }
 
         val grunnlagServiceMock = mock<GrunnlagService>()
@@ -1748,7 +1719,7 @@ internal class RevurderingServiceImplTest {
         )
 
         val request = LeggTilFradragsgrunnlagRequest(
-            behandlingId = revurderingId,
+            behandlingId = eksisterendeRevurdering.id,
             fradragsrunnlag = listOf(
                 Grunnlag.Fradragsgrunnlag(
                     fradrag = FradragFactory.ny(
@@ -1765,20 +1736,19 @@ internal class RevurderingServiceImplTest {
 
         val actual = revurderingService.leggTilFradragsgrunnlag(
             request,
-        ).getOrHandle { throw Exception("k") }
+        ).getOrHandle { fail("Feilet med $it") }
 
         inOrder(
             revurderingRepoMock,
             grunnlagServiceMock,
         ) {
-            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+            verify(revurderingRepoMock).hent(argThat { it shouldBe eksisterendeRevurdering.id })
 
             verify(grunnlagServiceMock).lagreFradragsgrunnlag(
-                argThat { it shouldBe revurderingId },
+                argThat { it shouldBe eksisterendeRevurdering.id },
                 argThat { it shouldBe request.fradragsrunnlag },
             )
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.revurdering })
-            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
         }
 
         verifyNoMoreInteractions(revurderingRepoMock, grunnlagServiceMock)
@@ -1829,14 +1799,10 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `leggTilFradragsgrunnlag - lagreFradrag har en status som gjør at man ikke kan legge til fradrag`() {
-        val revurderingId = UUID.randomUUID()
-
-        val revuderingMock = mock<RevurderingTilAttestering> {
-            on { id } doReturn revurderingId
-        }
+        val eksisterendeRevurdering = tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak()
 
         val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn revuderingMock
+            on { hent(any()) } doReturn eksisterendeRevurdering
         }
 
         val grunnlagServiceMock = mock<GrunnlagService>()
@@ -1847,7 +1813,7 @@ internal class RevurderingServiceImplTest {
         )
 
         val request = LeggTilFradragsgrunnlagRequest(
-            behandlingId = revurderingId,
+            behandlingId = eksisterendeRevurdering.id,
             fradragsrunnlag = listOf(
                 Grunnlag.Fradragsgrunnlag(
                     fradrag = FradragFactory.ny(
@@ -1864,13 +1830,18 @@ internal class RevurderingServiceImplTest {
 
         revurderingService.leggTilFradragsgrunnlag(
             request,
-        ).shouldBeLeft(KunneIkkeLeggeTilFradragsgrunnlag.UgyldigStatus)
+        ).shouldBeLeft(
+            KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
+                fra = eksisterendeRevurdering::class,
+                til = OpprettetRevurdering::class,
+            ),
+        )
 
         inOrder(
             revurderingRepoMock,
             grunnlagServiceMock,
         ) {
-            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+            verify(revurderingRepoMock).hent(argThat { it shouldBe eksisterendeRevurdering.id })
         }
 
         verifyNoMoreInteractions(revurderingRepoMock, grunnlagServiceMock)

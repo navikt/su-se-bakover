@@ -7,6 +7,7 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.doReturnConsecutively
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
@@ -24,7 +25,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -77,6 +77,7 @@ import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
@@ -89,7 +90,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
     private val fixedClock = Clock.fixed(15.juni(2020).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
 
     @Test
-    fun `oppdaterer behandlingsinformasjon når uføregrunnlag legges til`() {
+    fun `oppdaterer uførevilkåret når nytt uføregrunnlag legges til`() {
         val opprettetRevurdering = OpprettetRevurdering(
             id = revurderingId,
             periode = periodeNesteMånedOgTreMånederFram,
@@ -99,7 +100,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger(
@@ -147,14 +147,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
-            behandlingsinformasjon = opprettetRevurdering.behandlingsinformasjon.copy(
-                uførhet = Behandlingsinformasjon.Uførhet(
-                    status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
-                    uføregrad = nyttUføregrunnlag.uføregrad.value,
-                    forventetInntekt = nyttUføregrunnlag.forventetInntekt,
-                    begrunnelse = "grunnbeløpet er høyere",
-                ),
-            ),
             forhåndsvarsel = null,
             grunnlagsdata = opprettetRevurdering.grunnlagsdata,
             vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
@@ -194,32 +186,34 @@ internal class RegulerGrunnbeløpServiceImplTest {
             ),
         )
 
-        inOrder(
-            revurderingRepoMock,
-            vilkårsvurderingServiceMock,
-        ) {
-            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe forventetLagretRevurdering })
-            verify(vilkårsvurderingServiceMock).lagre(
-                argThat { it shouldBe opprettetRevurdering.id },
-                any(),
-            )
-            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
-        }
+        verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+        verify(revurderingRepoMock).lagre(
+            argThat {
+                it shouldBe forventetLagretRevurdering.copy(
+                    vilkårsvurderinger = forventetLagretRevurdering.vilkårsvurderinger.copy(
+                        uføre = innvilgetUførevilkår(
+                            vurderingsperiodeId = (it.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.first().id,
+                            grunnlagsId = (it.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).grunnlag.first().id,
+                            opprettet = fixedTidspunkt,
+                            periode = nyttUføregrunnlag.periode,
+                            begrunnelse = "grunnbeløpet er høyere",
+                            forventetInntekt = nyttUføregrunnlag.forventetInntekt,
+                            uføregrad = nyttUføregrunnlag.uføregrad,
+                        ),
+                    ),
+                )
+            },
+        )
+        verify(vilkårsvurderingServiceMock).lagre(
+            argThat { it shouldBe opprettetRevurdering.id },
+            any(),
+        )
         verifyNoMoreInteractions(revurderingRepoMock, vilkårsvurderingServiceMock)
     }
 
     @Test
     fun `G-regulering med uendret fradrag og forventetInntekt fører til IngenEndring`() {
         val periode = Periode.create(1.januar(2020), 31.januar(2020))
-        val behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt().copy(
-            uførhet = Behandlingsinformasjon.Uførhet(
-                status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
-                uføregrad = 20,
-                forventetInntekt = 12000,
-                begrunnelse = "forrigeBegrunnelse",
-            ),
-        )
         val fradrag = object : Fradrag {
             override val fradragstype = Fradragstype.ForventetInntekt
             override val månedsbeløp = 1000.0
@@ -271,13 +265,11 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     override fun getBegrunnelse() = "forrigeBegrunnelse"
                     override fun equals(other: Any?) = throw IllegalStateException("Skal ikke kalles fra testen")
                 },
-                behandlingsinformasjon = behandlingsinformasjon,
             ),
             saksbehandler = BehandlingTestUtils.saksbehandler,
             oppgaveId = BehandlingTestUtils.søknadOppgaveId,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak.copy(årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP),
-            behandlingsinformasjon = behandlingsinformasjon,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata(
                 bosituasjon = listOf(
@@ -320,7 +312,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
             oppgaveId = opprettetRevurdering.oppgaveId,
             fritekstTilBrev = opprettetRevurdering.fritekstTilBrev,
             revurderingsårsak = opprettetRevurdering.revurderingsårsak,
-            behandlingsinformasjon = opprettetRevurdering.behandlingsinformasjon,
             beregning = opprettetRevurdering.tilRevurdering.beregning,
             forhåndsvarsel = null,
             grunnlagsdata = opprettetRevurdering.grunnlagsdata,
@@ -331,7 +322,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering
@@ -385,7 +376,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
             beregning = TestBeregning,
             simulering = mock(),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
@@ -394,7 +384,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 on { resultat } doReturn Resultat.Innvilget
             },
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -445,7 +435,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
             beregning = TestBeregning,
             simulering = mock(),
             attesteringer = mock(),
@@ -505,7 +494,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
             beregning = TestBeregning,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -550,7 +538,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "Fritekst",
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
             beregning = actual.beregning,
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = null,
@@ -585,7 +572,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
             beregning = TestBeregning,
             attesteringer = Attesteringshistorikk.empty(),
             skalFøreTilBrevutsending = true,
@@ -631,7 +617,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "Fritekst",
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
             beregning = actual.beregning,
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
@@ -669,7 +654,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -689,7 +673,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
             attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now(fixedClock))),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,

@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -93,11 +92,10 @@ internal class FortsettEtterForhåndsvarselRouteTest {
                 begrunnelse = "begrunnelse",
 
             ),
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -164,11 +162,10 @@ internal class FortsettEtterForhåndsvarselRouteTest {
                 valg = BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
                 begrunnelse = "begrunnelse",
             ),
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -235,11 +232,10 @@ internal class FortsettEtterForhåndsvarselRouteTest {
                 valg = BeslutningEtterForhåndsvarsling.AvsluttUtenEndringer,
                 begrunnelse = "begrunnelse",
             ),
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {

@@ -19,12 +19,12 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFradragsgrunnlag
-import no.nav.su.se.bakover.service.revurdering.LeggTilFradragsgrunnlagResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
@@ -77,7 +77,6 @@ internal class LeggTilFradragRevurderingRouteKtTest {
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             forhåndsvarsel = null,
-            behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -85,7 +84,7 @@ internal class LeggTilFradragRevurderingRouteKtTest {
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
-            on { leggTilFradragsgrunnlag(any()) } doReturn LeggTilFradragsgrunnlagResponse(opprettetRevurdering).right()
+            on { leggTilFradragsgrunnlag(any()) } doReturn opprettetRevurdering.right()
         }
 
         withTestApplication(
@@ -133,7 +132,10 @@ internal class LeggTilFradragRevurderingRouteKtTest {
     @Test
     fun `feilmelding hvis revurdering har ugyldig status`() {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { leggTilFradragsgrunnlag(any()) } doReturn KunneIkkeLeggeTilFradragsgrunnlag.UgyldigStatus.left()
+            on { leggTilFradragsgrunnlag(any()) } doReturn KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
+                fra = IverksattRevurdering::class,
+                til = OpprettetRevurdering::class,
+            ).left()
         }
 
         withTestApplication(
@@ -148,8 +150,8 @@ internal class LeggTilFradragRevurderingRouteKtTest {
             ) {
                 setBody(validBody)
             }.apply {
-                response.status() shouldBe HttpStatusCode.InternalServerError
-                response.content shouldContain "ugyldig_status_for_å_legge_til"
+                response.status() shouldBe HttpStatusCode.BadRequest
+                response.content shouldContain "ugyldig_tilstand"
             }
         }
     }

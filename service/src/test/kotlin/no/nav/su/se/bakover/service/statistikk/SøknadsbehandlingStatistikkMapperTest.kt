@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -27,7 +26,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.beregning.TestBeregning
-import no.nav.su.se.bakover.service.beregning.TestBeregningSomGirOpphør
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -126,28 +124,6 @@ internal class SøknadsbehandlingStatistikkMapperTest {
     fun `mapper ikke ukjente typer`() {
         assertThrows<ManglendeStatistikkMappingException> {
             SøknadsbehandlingStatistikkMapper(fixedClock).map(beregnetSøknadsbehandling)
-        }
-    }
-
-    @Nested
-    inner class FunksjonellTidMapperTest {
-        @Test
-        fun `funksjonell til settes til opprettet for behandling dersom beregning ikke er tilgjengelig`() {
-            SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(uavklartSøknadsbehandling) shouldBe uavklartSøknadsbehandling.opprettet
-            SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(avslåttBeregnetSøknadsbehandling) shouldBe avslåttBeregnetSøknadsbehandling.opprettet
-        }
-
-        @Test
-        fun `håndterer spesialtilfelle for uavklart behandling uten stønadsperiode`() {
-            SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(uavklartSøknadsbehandling.copy(stønadsperiode = null)) shouldBe uavklartSøknadsbehandling.opprettet
-        }
-
-        @Test
-        fun `funksjonell til settes til dato for beregning dersom tilgjengelig`() {
-            SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(tilAttesteringSøknadsbehandling) shouldBe tilAttesteringSøknadsbehandling.periode
-                .fraOgMed.startOfDay(zoneIdOslo)
-            SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(iverksattSøknadsbehandling) shouldBe tilAttesteringSøknadsbehandling.periode
-                .fraOgMed.startOfDay(zoneIdOslo)
         }
     }
 
@@ -301,14 +277,6 @@ internal class SøknadsbehandlingStatistikkMapperTest {
     )
 
     private val beregning = TestBeregning
-    private val avslagBeregning = TestBeregningSomGirOpphør
-    private val avslåttBeregnetSøknadsbehandling = (
-        uavklartSøknadsbehandling.tilVilkårsvurdert(
-            Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-        )
-            .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
-        )
-        .tilAttestering(NavIdentBruker.Saksbehandler("jonny"), "")
     private val beregnetSøknadsbehandling = uavklartSøknadsbehandling.tilBeregnet(beregning)
     private val simulertSøknadsbehandling = beregnetSøknadsbehandling.tilSimulert(mock())
     private val tilAttesteringSøknadsbehandling =

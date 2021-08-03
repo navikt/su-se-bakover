@@ -3,8 +3,6 @@ package no.nav.su.se.bakover.web.routes.vedtak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakType
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJson
@@ -17,7 +15,6 @@ import java.util.UUID
 internal data class VedtakJson(
     val id: String,
     val opprettet: String,
-    val behandlingsinformasjon: BehandlingsinformasjonJson,
     val beregning: BeregningJson?,
     val simulering: SimuleringJson?,
     val attestant: String,
@@ -43,7 +40,6 @@ internal fun Vedtak.toJson(): VedtakJson {
 internal fun Vedtak.Avslag.AvslagVilkår.toJson(): VedtakJson = VedtakJson(
     id = id.toString(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-    behandlingsinformasjon = behandlingsinformasjon.toJson(),
     beregning = null,
     simulering = null,
     attestant = attestant.navIdent,
@@ -60,7 +56,6 @@ internal fun Vedtak.Avslag.AvslagVilkår.toJson(): VedtakJson = VedtakJson(
 internal fun Vedtak.Avslag.AvslagBeregning.toJson(): VedtakJson = VedtakJson(
     id = id.toString(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-    behandlingsinformasjon = behandlingsinformasjon.toJson(),
     beregning = beregning.toJson(),
     simulering = null,
     attestant = attestant.navIdent,
@@ -77,7 +72,6 @@ internal fun Vedtak.Avslag.AvslagBeregning.toJson(): VedtakJson = VedtakJson(
 internal fun Vedtak.EndringIYtelse.toJson(): VedtakJson = VedtakJson(
     id = id.toString(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-    behandlingsinformasjon = behandlingsinformasjon.toJson(),
     beregning = beregning.toJson(),
     simulering = simulering.toJson(),
     attestant = attestant.navIdent,
@@ -94,7 +88,6 @@ internal fun Vedtak.EndringIYtelse.toJson(): VedtakJson = VedtakJson(
 internal fun Vedtak.IngenEndringIYtelse.toJson(): VedtakJson = VedtakJson(
     id = id.toString(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-    behandlingsinformasjon = behandlingsinformasjon.toJson(),
     beregning = beregning.toJson(),
     simulering = null,
     attestant = attestant.navIdent,
