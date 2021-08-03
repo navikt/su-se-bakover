@@ -170,7 +170,7 @@ internal class JournalpostFactoryTest {
     ) = assertJournalpost(
         journalpost = journalpost,
         tittel = dokument.tittel,
-        pdfRequestJson = dokument.generertDokumentJson,
+        originalJson = dokument.generertDokumentJson,
         dokumentKategori = dokumentKategori,
     )
 
@@ -181,14 +181,14 @@ internal class JournalpostFactoryTest {
     ) = assertJournalpost(
         journalpost = journalpost,
         tittel = brevInnhold.brevTemplate.tittel(),
-        pdfRequestJson = brevInnhold.toJson(),
+        originalJson = brevInnhold.toJson(),
         dokumentKategori = dokumentKategori,
     )
 
     private fun assertJournalpost(
         journalpost: Journalpost,
         tittel: String,
-        pdfRequestJson: String,
+        originalJson: String,
         dokumentKategori: DokumentKategori,
     ) {
         journalpost.tittel shouldBe tittel
@@ -210,7 +210,7 @@ internal class JournalpostFactoryTest {
                 dokumentvarianter = listOf(
                     DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
                     DokumentVariant.OriginalJson(
-                        fysiskDokument = Base64.getEncoder().encodeToString(pdfRequestJson.toByteArray()),
+                        fysiskDokument = Base64.getEncoder().encodeToString(originalJson.toByteArray()),
                     ),
                 ),
             ),

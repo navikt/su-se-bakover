@@ -1131,6 +1131,7 @@ internal class RevurderingServiceImpl(
             )
         }.getOrHandle { return KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument.left() }
 
+        // TODO jah: Det hadde vært tryggere om dette gikk som en transaksjon. Dette kan ikke føre til duplikate dokumentutsender, men det kan føre til ghost-utsendinger, dersom lagreDokument feiler.
         revurdering.forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt
         revurderingRepo.lagre(revurdering)
         brevService.lagreDokument(dokument)

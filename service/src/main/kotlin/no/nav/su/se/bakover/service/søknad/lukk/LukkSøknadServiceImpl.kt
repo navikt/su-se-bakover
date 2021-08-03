@@ -190,6 +190,7 @@ internal class LukkSøknadServiceImpl(
 
         val lukketSøknad = søknad.lukk(request, Tidspunkt.now(clock))
 
+        // TODO jah: Det hadde vært tryggere om dette gikk som en transaksjon. Dette kan ikke føre til duplikate dokumentutsender, men det kan føre til ghost-utsendinger, dersom lagreDokument feiler.
         søknadRepo.oppdaterSøknad(lukketSøknad)
         brevService.lagreDokument(dokument)
 

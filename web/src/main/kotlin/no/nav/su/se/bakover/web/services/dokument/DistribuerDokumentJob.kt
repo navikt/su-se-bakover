@@ -49,8 +49,13 @@ class DistribuerDokumentJob(
                             }
                     }.ifNotEmpty {
                         log.info("Fullført jobb - $jobName")
-                        log.info("Ok: ${this.ok()}")
-                        log.error("Feil: ${this.feil()}")
+                        val ok = this.ok()
+                        val feil = this.feil()
+                        if (feil.isEmpty()) {
+                            log.info("Journalførte/distribuerte distribusjonsidene: $ok")
+                        } else {
+                            log.error("Kunne ikke journalføre/distribuere distribusjonsidene: $feil. Disse gikk ok: $ok")
+                        }
                     }
             }
         }
@@ -67,7 +72,7 @@ class DistribuerDokumentJob(
 
     private fun List<Either<Distribusjonsresultat.Feil, Distribusjonsresultat.Ok>>.ok() =
         this.filterIsInstance<Either.Right<Distribusjonsresultat.Ok>>()
-            .map { it.value }
+            .map { it.value.id.toString() }
 
     private fun List<Either<Distribusjonsresultat.Feil, Distribusjonsresultat.Ok>>.feil() =
         this.filterIsInstance<Either.Left<Distribusjonsresultat.Feil>>()

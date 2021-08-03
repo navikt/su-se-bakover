@@ -146,7 +146,7 @@ internal class DokumentPostgresRepo(
         return dataSource.withSession { session ->
             """
                 select * from dokument_distribusjon 
-                where journalpostId is null or brevbestillingid is null
+                where journalpostId is null or brevbestillingId is null
                 order by opprettet asc
                 limit 10
             """.trimIndent()
