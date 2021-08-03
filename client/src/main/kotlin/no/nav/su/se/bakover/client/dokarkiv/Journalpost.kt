@@ -24,13 +24,12 @@ sealed class Journalpost {
     fun søkersNavn(person: Person): String =
         """${person.navn.etternavn}, ${person.navn.fornavn} ${person.navn.mellomnavn ?: ""}""".trimEnd()
 
-    data class Søknadspost(
+    data class Søknadspost private constructor(
         val person: Person,
         val saksnummer: Saksnummer,
-        val søknadInnhold: SøknadInnhold,
-        val pdf: ByteArray,
+        override val dokumenter: List<JournalpostDokument>,
     ) : Journalpost() {
-        override val tittel: String = "Søknad om supplerende stønad for uføre flyktninger"
+        override val tittel: String = søknadsposttittel
         override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
             id = person.ident.fnr.toString(),
             navn = søkersNavn(person),
@@ -40,28 +39,44 @@ sealed class Journalpost {
         override val journalpostType: JournalPostType = JournalPostType.INNGAAENDE
         override val kanal: String = "INNSENDT_NAV_ANSATT"
         override val journalfoerendeEnhet: String = "9999"
-        override val dokumenter: List<JournalpostDokument> = søknadInnhold.toJournalpostDokument()
 
-        private fun SøknadInnhold.toJournalpostDokument() = listOf(
-            JournalpostDokument(
-                tittel = "Søknad om supplerende stønad for uføre flyktninger",
-                dokumentKategori = DokumentKategori.SOK,
-                dokumentvarianter = listOf(
-                    DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
-                    DokumentVariant.OriginalJson(
-                        fysiskDokument = Base64.getEncoder()
-                            .encodeToString(objectMapper.writeValueAsString(this).toByteArray()),
-                    ),
+        companion object {
+            private const val søknadsposttittel = "Søknad om supplerende stønad for uføre flyktninger"
+            fun from(
+                person: Person,
+                saksnummer: Saksnummer,
+                søknadInnhold: SøknadInnhold,
+                pdf: ByteArray,
+            ) = Søknadspost(
+                person = person,
+                saksnummer = saksnummer,
+                dokumenter = lagDokumenter(
+                    pdf = pdf,
+                    søknadInnhold = søknadInnhold,
                 ),
-            ),
-        )
+            )
+
+            private fun lagDokumenter(pdf: ByteArray, søknadInnhold: SøknadInnhold): List<JournalpostDokument> =
+                listOf(
+                    JournalpostDokument(
+                        tittel = søknadsposttittel,
+                        dokumentKategori = DokumentKategori.SOK,
+                        dokumentvarianter = listOf(
+                            DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
+                            DokumentVariant.OriginalJson(
+                                fysiskDokument = Base64.getEncoder()
+                                    .encodeToString(objectMapper.writeValueAsString(søknadInnhold).toByteArray()),
+                            ),
+                        ),
+                    ),
+                )
+        }
     }
 
     data class Vedtakspost private constructor(
         val person: Person,
         val saksnummer: Saksnummer,
-        val pdfRequestJson: String,
-        val pdf: ByteArray,
+        override val dokumenter: List<JournalpostDokument>,
         override val tittel: String,
     ) : Journalpost() {
         override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
@@ -73,18 +88,6 @@ sealed class Journalpost {
         override val journalpostType: JournalPostType = JournalPostType.UTGAAENDE
         override val kanal: String? = null
         override val journalfoerendeEnhet: String = "4815"
-        override val dokumenter: List<JournalpostDokument> = listOf(
-            JournalpostDokument(
-                tittel = tittel,
-                dokumentKategori = DokumentKategori.VB,
-                dokumentvarianter = listOf(
-                    DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
-                    DokumentVariant.OriginalJson(
-                        fysiskDokument = Base64.getEncoder().encodeToString(pdfRequestJson.toByteArray()),
-                    ),
-                ),
-            ),
-        )
 
         companion object {
             fun from(
@@ -95,8 +98,11 @@ sealed class Journalpost {
             ) = Vedtakspost(
                 person = person,
                 saksnummer = saksnummer,
-                pdfRequestJson = brevInnhold.toJson(),
-                pdf = pdf,
+                dokumenter = lagDokumenter(
+                    tittel = brevInnhold.brevTemplate.tittel(),
+                    pdf = pdf,
+                    originalJson = brevInnhold.toJson(),
+                ),
                 tittel = brevInnhold.brevTemplate.tittel(),
             )
 
@@ -107,18 +113,34 @@ sealed class Journalpost {
             ) = Vedtakspost(
                 person = person,
                 saksnummer = saksnummer,
-                pdfRequestJson = dokument.generertDokumentJson,
-                pdf = dokument.generertDokument,
+                dokumenter = lagDokumenter(
+                    tittel = dokument.tittel,
+                    pdf = dokument.generertDokument,
+                    originalJson = dokument.generertDokumentJson,
+                ),
                 tittel = dokument.tittel,
             )
+
+            private fun lagDokumenter(tittel: String, pdf: ByteArray, originalJson: String): List<JournalpostDokument> =
+                listOf(
+                    JournalpostDokument(
+                        tittel = tittel,
+                        dokumentKategori = DokumentKategori.VB,
+                        dokumentvarianter = listOf(
+                            DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
+                            DokumentVariant.OriginalJson(
+                                fysiskDokument = Base64.getEncoder().encodeToString(originalJson.toByteArray()),
+                            ),
+                        ),
+                    ),
+                )
         }
     }
 
     data class Info private constructor(
         val person: Person,
         val saksnummer: Saksnummer,
-        val pdfRequestJson: String,
-        val pdf: ByteArray,
+        override val dokumenter: List<JournalpostDokument>,
         override val tittel: String,
     ) : Journalpost() {
         override val avsenderMottaker: AvsenderMottaker = AvsenderMottaker(
@@ -130,18 +152,6 @@ sealed class Journalpost {
         override val journalpostType: JournalPostType = JournalPostType.UTGAAENDE
         override val kanal: String? = null
         override val journalfoerendeEnhet: String = "4815"
-        override val dokumenter: List<JournalpostDokument> = listOf(
-            JournalpostDokument(
-                tittel = tittel,
-                dokumentKategori = DokumentKategori.IB,
-                dokumentvarianter = listOf(
-                    DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
-                    DokumentVariant.OriginalJson(
-                        fysiskDokument = Base64.getEncoder().encodeToString(pdfRequestJson.toByteArray()),
-                    ),
-                ),
-            ),
-        )
 
         companion object {
             fun from(
@@ -152,8 +162,11 @@ sealed class Journalpost {
             ) = Info(
                 person = person,
                 saksnummer = saksnummer,
-                pdfRequestJson = brevInnhold.toJson(),
-                pdf = pdf,
+                dokumenter = lagDokumenter(
+                    tittel = brevInnhold.brevTemplate.tittel(),
+                    pdf = pdf,
+                    originalJson = brevInnhold.toJson(),
+                ),
                 tittel = brevInnhold.brevTemplate.tittel(),
             )
 
@@ -164,10 +177,27 @@ sealed class Journalpost {
             ) = Info(
                 person = person,
                 saksnummer = saksnummer,
-                pdfRequestJson = dokument.generertDokumentJson,
-                pdf = dokument.generertDokument,
+                dokumenter = lagDokumenter(
+                    tittel = dokument.tittel,
+                    pdf = dokument.generertDokument,
+                    originalJson = dokument.generertDokumentJson,
+                ),
                 tittel = dokument.tittel,
             )
+
+            private fun lagDokumenter(tittel: String, pdf: ByteArray, originalJson: String): List<JournalpostDokument> =
+                listOf(
+                    JournalpostDokument(
+                        tittel = tittel,
+                        dokumentKategori = DokumentKategori.IB,
+                        dokumentvarianter = listOf(
+                            DokumentVariant.ArkivPDF(fysiskDokument = Base64.getEncoder().encodeToString(pdf)),
+                            DokumentVariant.OriginalJson(
+                                fysiskDokument = Base64.getEncoder().encodeToString(originalJson.toByteArray()),
+                            ),
+                        ),
+                    ),
+                )
         }
     }
 }

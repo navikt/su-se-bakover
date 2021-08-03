@@ -174,12 +174,12 @@ internal class DokArkivClientTest : WiremockBase {
                 )
         )
         client.opprettJournalpost(
-            Journalpost.Søknadspost(
+            Journalpost.Søknadspost.from(
                 saksnummer = Saksnummer(2021),
                 person = person,
                 søknadInnhold = søknadInnhold,
-                pdf = pdf
-            )
+                pdf = pdf,
+            ),
         ).shouldBe(
             JournalpostId("1").right()
         )
@@ -194,12 +194,12 @@ internal class DokArkivClientTest : WiremockBase {
         )
 
         client.opprettJournalpost(
-            Journalpost.Søknadspost(
+            Journalpost.Søknadspost.from(
                 saksnummer = Saksnummer(2021),
                 person = person,
                 søknadInnhold = søknadInnhold,
-                pdf = pdf
-            )
+                pdf = pdf,
+            ),
         ) shouldBe
             ClientError(403, "Feil ved journalføring").left()
     }
