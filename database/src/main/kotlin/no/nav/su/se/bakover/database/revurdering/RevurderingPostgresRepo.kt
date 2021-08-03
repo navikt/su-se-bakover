@@ -26,9 +26,7 @@ import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -720,28 +718,18 @@ internal class RevurderingPostgresRepo(
     sealed class ForhåndsvarselDto {
         object IngenForhåndsvarsel : ForhåndsvarselDto()
 
-        data class Sendt(
-            val journalpostId: JournalpostId,
-            val brevbestillingId: BrevbestillingId?,
-        ) : ForhåndsvarselDto()
+        object Sendt : ForhåndsvarselDto()
 
         data class Besluttet(
-            val journalpostId: JournalpostId,
-            val brevbestillingId: BrevbestillingId?,
             val valg: BeslutningEtterForhåndsvarsling,
             val begrunnelse: String,
         ) : ForhåndsvarselDto()
 
         fun toDomain(): Forhåndsvarsel =
             when (this) {
-                is Sendt -> Forhåndsvarsel.SkalForhåndsvarsles.Sendt(
-                    journalpostId = journalpostId,
-                    brevbestillingId = brevbestillingId,
-                )
+                is Sendt -> Forhåndsvarsel.SkalForhåndsvarsles.Sendt
                 is IngenForhåndsvarsel -> Forhåndsvarsel.IngenForhåndsvarsel
                 is Besluttet -> Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
-                    journalpostId = journalpostId,
-                    brevbestillingId = brevbestillingId,
                     valg = valg,
                     begrunnelse = begrunnelse,
                 )
@@ -750,14 +738,9 @@ internal class RevurderingPostgresRepo(
         companion object {
             fun from(forhåndsvarsel: Forhåndsvarsel) =
                 when (forhåndsvarsel) {
-                    is Forhåndsvarsel.SkalForhåndsvarsles.Sendt -> Sendt(
-                        journalpostId = forhåndsvarsel.journalpostId,
-                        brevbestillingId = forhåndsvarsel.brevbestillingId,
-                    )
+                    is Forhåndsvarsel.SkalForhåndsvarsles.Sendt -> Sendt
                     is Forhåndsvarsel.IngenForhåndsvarsel -> IngenForhåndsvarsel
                     is Forhåndsvarsel.SkalForhåndsvarsles.Besluttet -> Besluttet(
-                        journalpostId = forhåndsvarsel.journalpostId,
-                        brevbestillingId = forhåndsvarsel.brevbestillingId,
                         valg = forhåndsvarsel.valg,
                         begrunnelse = forhåndsvarsel.begrunnelse,
                     )

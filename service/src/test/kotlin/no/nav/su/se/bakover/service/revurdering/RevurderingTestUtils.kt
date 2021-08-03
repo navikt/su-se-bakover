@@ -78,7 +78,7 @@ object RevurderingTestUtils {
         attestant = NavIdentBruker.Attestant("Attes T. Ant"),
         grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
         kommentar = "kommentar",
-        opprettet = fixedTidspunkt
+        opprettet = fixedTidspunkt,
     )
 
     internal val beregning = no.nav.su.se.bakover.test.beregning(

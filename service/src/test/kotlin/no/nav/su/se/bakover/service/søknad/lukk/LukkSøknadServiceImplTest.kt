@@ -9,7 +9,10 @@ import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.stubs.person.MicrosoftGraphApiClientStub
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
@@ -27,9 +30,9 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.Søknad.Lukket.LukketType.AVVIST
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.brev.BrevConfig
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
+import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -37,8 +40,6 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
-import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -46,6 +47,7 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -53,23 +55,23 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.UUID
 
+private val fixedEpochClock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)
+
 internal class LukkSøknadServiceImplTest {
-    private val fixedEpochClock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)
     private val sakId = UUID.randomUUID()
     private val saksnummer = Saksnummer(2021)
     private val saksbehandler = NavIdentBruker.Saksbehandler("Z993156")
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
     private val journalførtSøknadMedOppgaveJournalpostId = JournalpostId("journalførtSøknadMedOppgaveJournalpostId")
-    private val lukketJournalpostId = JournalpostId("lukketJournalpostId")
-    private val brevbestillingId = BrevbestillingId("brevbestillingId")
     private val oppgaveId = OppgaveId("oppgaveId")
     private val fnr = søknadInnhold.personopplysninger.fnr
+    private val generertPdf = "".toByteArray()
     private val person = Person(
         ident = Ident(
             fnr = fnr,
-            aktørId = AktørId(aktørId = "123")
+            aktørId = AktørId(aktørId = "123"),
         ),
-        navn = Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy")
+        navn = Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
     )
     private val sak = Sak(
         id = sakId,
@@ -78,7 +80,7 @@ internal class LukkSøknadServiceImplTest {
         fnr = fnr,
         søknader = emptyList(),
         behandlinger = emptyList(),
-        utbetalinger = emptyList()
+        utbetalinger = emptyList(),
     )
     private val journalførtSøknadMedOppgave = Søknad.Journalført.MedOppgave(
         sakId = sakId,
@@ -86,26 +88,24 @@ internal class LukkSøknadServiceImplTest {
         opprettet = Tidspunkt.EPOCH,
         søknadInnhold = søknadInnhold,
         journalpostId = journalførtSøknadMedOppgaveJournalpostId,
-        oppgaveId = oppgaveId
+        oppgaveId = oppgaveId,
     )
     private val lukketSøknad = Søknad.Lukket(
-        sakId = sakId,
         id = journalførtSøknadMedOppgave.id,
         opprettet = journalførtSøknadMedOppgave.opprettet,
+        sakId = sakId,
         søknadInnhold = søknadInnhold,
         journalpostId = journalførtSøknadMedOppgave.journalpostId,
         oppgaveId = journalførtSøknadMedOppgave.oppgaveId,
         lukketTidspunkt = Tidspunkt.EPOCH,
         lukketAv = saksbehandler,
         lukketType = Søknad.Lukket.LukketType.TRUKKET,
-        lukketJournalpostId = null,
-        lukketBrevbestillingId = null
     )
 
     private val trekkSøknadRequest = LukkSøknadRequest.MedBrev.TrekkSøknad(
         søknadId = journalførtSøknadMedOppgave.id,
         saksbehandler = saksbehandler,
-        trukketDato = 1.januar(2020)
+        trukketDato = 1.januar(2020),
     )
 
     @Test
@@ -113,25 +113,13 @@ internal class LukkSøknadServiceImplTest {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn null
         }
-        val sakServiceMock = mock<SakService>()
-        val brevServiceMock = mock<BrevService>()
-        val oppgaveServiceMock = mock<OppgaveService>()
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-
-        LukkSøknadServiceImpl(
+        ServiceOgMocks(
             søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock,
-            brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = mock(),
-            clock = fixedEpochClock,
-        ).lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
-
-        verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
+        ).let {
+            it.lukkSøknadService.lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
+            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+            it.verifyNoMoreInteractions()
+        }
     }
 
     @Test
@@ -140,31 +128,26 @@ internal class LukkSøknadServiceImplTest {
             on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
             on { harSøknadPåbegyntBehandling(any()) } doReturn false
         }
-        val sakServiceMock = mock<SakService>()
-        val brevServiceMock = mock<BrevService>()
-        val oppgaveServiceMock = mock<OppgaveService>()
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
         }
 
-        LukkSøknadServiceImpl(
+        ServiceOgMocks(
             søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock,
-            brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            microsoftGraphApiClient = mock(),
-            clock = fixedEpochClock,
-        ).lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.FantIkkePerson.left()
+        ).let {
+            it.lukkSøknadService.lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.FantIkkePerson.left()
 
-        inOrder(
-            søknadRepoMock, personServiceMock
-        ) {
-            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+            inOrder(
+                søknadRepoMock,
+                personServiceMock,
+            ) {
+                verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+                verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+                verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+            }
+            it.verifyNoMoreInteractions()
         }
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -177,8 +160,7 @@ internal class LukkSøknadServiceImplTest {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
         val brevServiceMock = mock<BrevService> {
-            on { journalførBrev(any(), any()) } doReturn lukketJournalpostId.right()
-            on { distribuerBrev(any()) } doReturn brevbestillingId.right()
+            on { lagBrev(any()) } doReturn generertPdf.right()
         }
         val oppgaveServiceMock = mock<OppgaveService> {
             on { lukkOppgave(any()) } doReturn Unit.right()
@@ -190,55 +172,66 @@ internal class LukkSøknadServiceImplTest {
 
         val observerMock: EventObserver = mock()
 
-        val actual = LukkSøknadServiceImpl(
+        ServiceOgMocks(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             microsoftGraphApiClient = MicrosoftGraphApiClientStub,
-            clock = fixedEpochClock,
-        ).apply { addObserver(observerMock) }.lukkSøknad(trekkSøknadRequest).getOrHandle { throw RuntimeException("Feil i test") }
-        actual shouldBe LukketSøknad.UtenMangler(sak, actual.søknad)
+        ).let {
+            val actual = it.lukkSøknadService.apply { addObserver(observerMock) }.lukkSøknad(trekkSøknadRequest)
+                .getOrHandle { fail { "Skulle gått bra" } }
 
-        inOrder(
-            søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock, observerMock
-        ) {
-            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+            actual shouldBe sak
 
-            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
-            verify(brevServiceMock).journalførBrev(
-                request = argThat {
-                    it shouldBe TrukketSøknadBrevRequest(
-                        person = person,
-                        søknad = lukketSøknad.copy(
-                            journalpostId = journalførtSøknadMedOppgaveJournalpostId,
-                            oppgaveId = oppgaveId,
-                        ),
-                        trukketDato = 1.januar(2020),
-                        saksbehandlerNavn = "Testbruker, Lokal"
-                    )
-                },
-                saksnummer = argThat { it shouldBe saksnummer }
-            )
-            verify(brevServiceMock).distribuerBrev(argThat { it shouldBe lukketJournalpostId })
-            verify(søknadRepoMock).oppdaterSøknad(
-                argThat {
-                    it shouldBe lukketSøknad.copy(
-                        oppgaveId = oppgaveId,
-                        journalpostId = journalførtSøknadMedOppgaveJournalpostId,
-                        lukketJournalpostId = lukketJournalpostId,
-                        lukketBrevbestillingId = brevbestillingId
-                    )
-                }
-            )
-            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
-            verify(observerMock).handle(argThat { it shouldBe Event.Statistikk.SøknadStatistikk.SøknadLukket(actual.søknad, sak.saksnummer) })
+            inOrder(
+                søknadRepoMock,
+                sakServiceMock,
+                brevServiceMock,
+                oppgaveServiceMock,
+                personServiceMock,
+                it.brevService,
+                observerMock,
+            ) {
+                verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+                verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+                verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+                val expectedRequest = TrukketSøknadBrevRequest(
+                    person = person,
+                    søknad = journalførtSøknadMedOppgave,
+                    trukketDato = 1.januar(2020),
+                    saksbehandlerNavn = "Testbruker, Lokal",
+                )
+                verify(brevServiceMock).lagBrev(expectedRequest)
+                verify(søknadRepoMock).oppdaterSøknad(lukketSøknad)
+                verify(it.brevService).lagreDokument(
+                    argThat { dokument ->
+                        dokument should beOfType<Dokument.MedMetadata.Informasjon>()
+                        dokument.tittel shouldBe expectedRequest.brevInnhold.brevTemplate.tittel()
+                        dokument.generertDokument shouldBe generertPdf
+                        dokument.generertDokumentJson shouldBe expectedRequest.brevInnhold.toJson()
+                        dokument.metadata shouldBe Dokument.Metadata(
+                            sakId = sakId,
+                            søknadId = journalførtSøknadMedOppgave.id,
+                            vedtakId = null,
+                            bestillBrev = true,
+                        )
+                    },
+                )
+                verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+                verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
+                verify(observerMock).handle(
+                    argThat {
+                        it shouldBe Event.Statistikk.SøknadStatistikk.SøknadLukket(
+                            lukketSøknad,
+                            sak.saksnummer,
+                        )
+                    },
+                )
+            }
+            it.verifyNoMoreInteractions()
         }
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock, observerMock)
     }
 
     @Test
@@ -252,8 +245,6 @@ internal class LukkSøknadServiceImplTest {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
 
-        val brevServiceMock = mock<BrevService>()
-
         val oppgaveServiceMock = mock<OppgaveService> {
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
@@ -262,40 +253,42 @@ internal class LukkSøknadServiceImplTest {
             on { hentPerson(any()) } doReturn person.right()
         }
 
-        val resultat = LukkSøknadServiceImpl(
+        ServiceOgMocks(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
-            brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            microsoftGraphApiClient = mock(),
-            clock = fixedEpochClock,
-        ).lukkSøknad(
-            LukkSøknadRequest.UtenBrev.AvvistSøknad(
-                søknadId = journalførtSøknadMedOppgave.id,
-                saksbehandler = saksbehandler
-            )
-        ).getOrHandle { throw RuntimeException("Feil i test") }
+        ).let {
+            val resultat = it.lukkSøknadService.lukkSøknad(
+                LukkSøknadRequest.UtenBrev.AvvistSøknad(
+                    søknadId = journalførtSøknadMedOppgave.id,
+                    saksbehandler = saksbehandler,
+                ),
+            ).getOrHandle { fail { "Skulle gått bra" } }
 
-        resultat shouldBe LukketSøknad.UtenMangler(sak, resultat.søknad)
+            resultat shouldBe sak
 
-        inOrder(
-            søknadRepoMock, sakServiceMock, oppgaveServiceMock, personServiceMock
-        ) {
-            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-            verify(søknadRepoMock).oppdaterSøknad(
-                argThat {
-                    it shouldBe lukketSøknad.copy(
-                        lukketType = AVVIST,
-                    )
-                },
-            )
-            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+            inOrder(
+                søknadRepoMock,
+                sakServiceMock,
+                oppgaveServiceMock,
+                personServiceMock,
+            ) {
+                verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+                verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+                verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+                verify(søknadRepoMock).oppdaterSøknad(
+                    argThat {
+                        it shouldBe lukketSøknad.copy(
+                            lukketType = AVVIST,
+                        )
+                    },
+                )
+                verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+                verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
+                it.verifyNoMoreInteractions()
+            }
         }
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -310,8 +303,7 @@ internal class LukkSøknadServiceImplTest {
         }
 
         val brevServiceMock = mock<BrevService> {
-            on { journalførBrev(any(), any()) } doReturn lukketJournalpostId.right()
-            on { distribuerBrev(any()) } doReturn brevbestillingId.right()
+            on { lagBrev(any()) } doReturn generertPdf.right()
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
@@ -322,103 +314,106 @@ internal class LukkSøknadServiceImplTest {
             on { hentPerson(any()) } doReturn person.right()
         }
 
-        val actual = LukkSøknadServiceImpl(
+        ServiceOgMocks(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             microsoftGraphApiClient = MicrosoftGraphApiClientStub,
-            clock = fixedEpochClock,
-        ).lukkSøknad(
-            LukkSøknadRequest.MedBrev.AvvistSøknad(
-                søknadId = journalførtSøknadMedOppgave.id,
-                saksbehandler = saksbehandler,
-                brevConfig = BrevConfig.Fritekst("Fritekst")
-            )
-        ).getOrHandle { throw RuntimeException("feil i test") }
+        ).let {
+            val actual = it.lukkSøknadService.lukkSøknad(
+                LukkSøknadRequest.MedBrev.AvvistSøknad(
+                    søknadId = journalførtSøknadMedOppgave.id,
+                    saksbehandler = saksbehandler,
+                    brevConfig = BrevConfig.Fritekst("Fritekst"),
+                ),
+            ).getOrHandle { fail { "Skulle gått bra" } }
 
-        actual shouldBe LukketSøknad.UtenMangler(sak, actual.søknad)
+            actual shouldBe sak
 
-        inOrder(
-            søknadRepoMock, sakServiceMock, oppgaveServiceMock, brevServiceMock, personServiceMock
-        ) {
-            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
-            verify(brevServiceMock).journalførBrev(
-                argThat {
-                    it shouldBe AvvistSøknadBrevRequest(
-                        person = person,
-                        saksbehandlerNavn = "Testbruker, Lokal",
-                        brevConfig = BrevConfig.Fritekst("Fritekst")
-                    )
-                },
-                argThat { it shouldBe saksnummer }
+            inOrder(
+                søknadRepoMock,
+                sakServiceMock,
+                oppgaveServiceMock,
+                brevServiceMock,
+                personServiceMock,
+                it.brevService,
+            ) {
+                verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+                verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+                verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+                val expectedRequest = AvvistSøknadBrevRequest(
+                    person = person,
+                    brevConfig = BrevConfig.Fritekst(
+                        fritekst = "Fritekst",
+                    ),
+                    saksbehandlerNavn = "Testbruker, Lokal",
+                )
+                verify(brevServiceMock).lagBrev(expectedRequest)
+                verify(søknadRepoMock).oppdaterSøknad(
+                    argThat {
+                        it shouldBe lukketSøknad.copy(
+                            journalpostId = journalførtSøknadMedOppgaveJournalpostId,
+                            oppgaveId = oppgaveId,
+                            lukketType = AVVIST,
+                        )
+                    },
+                )
+                verify(it.brevService).lagreDokument(
+                    argThat { dokument ->
+                        dokument should beOfType<Dokument.MedMetadata.Informasjon>()
+                        dokument.tittel shouldBe expectedRequest.brevInnhold.brevTemplate.tittel()
+                        dokument.generertDokument shouldBe generertPdf
+                        dokument.generertDokumentJson shouldBe expectedRequest.brevInnhold.toJson()
+                        dokument.metadata shouldBe Dokument.Metadata(
+                            sakId = sakId,
+                            søknadId = journalførtSøknadMedOppgave.id,
+                            vedtakId = null,
+                            bestillBrev = true,
+                        )
+                    },
+                )
+                verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+                verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
+            }
+            verifyNoMoreInteractions(
+                søknadRepoMock,
+                sakServiceMock,
+                brevServiceMock,
+                oppgaveServiceMock,
+                personServiceMock,
             )
-            verify(brevServiceMock).distribuerBrev(argThat { it shouldBe lukketJournalpostId })
-            verify(søknadRepoMock).oppdaterSøknad(
-                argThat {
-                    it shouldBe lukketSøknad.copy(
-                        journalpostId = journalførtSøknadMedOppgaveJournalpostId,
-                        oppgaveId = oppgaveId,
-                        lukketType = AVVIST,
-                        lukketJournalpostId = lukketJournalpostId,
-                        lukketBrevbestillingId = brevbestillingId
-                    )
-                },
-            )
-            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
         }
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
     fun `kan ikke sette lukketDato tidligere enn da søknadeden var opprettet`() {
-
         val treDagerGammelSøknad = Søknad.Ny(
             sakId = sakId,
             id = UUID.randomUUID(),
             opprettet = LocalDateTime.now().minusDays(3).toTidspunkt(zoneIdOslo),
             søknadInnhold = søknadInnhold,
         )
-
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn treDagerGammelSøknad
             on { harSøknadPåbegyntBehandling(any()) } doReturn true
         }
-        val sakServiceMock = mock<SakService>()
-        val brevServiceMock = mock<BrevService>()
-        val oppgaveServiceMock = mock<OppgaveService>()
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
 
-        LukkSøknadServiceImpl(
+        ServiceOgMocks(
             søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock,
-            brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = mock(),
-            clock = fixedEpochClock,
-        ).lukkSøknad(
-            LukkSøknadRequest.MedBrev.TrekkSøknad(
-                søknadId = treDagerGammelSøknad.id,
-                saksbehandler = saksbehandler,
-                trukketDato = LocalDate.now().minusDays(4)
-            )
-        ) shouldBe KunneIkkeLukkeSøknad.UgyldigTrukketDato.left()
+        ).let {
+            it.lukkSøknadService.lukkSøknad(
+                LukkSøknadRequest.MedBrev.TrekkSøknad(
+                    søknadId = treDagerGammelSøknad.id,
+                    saksbehandler = saksbehandler,
+                    trukketDato = LocalDate.now().minusDays(4),
+                ),
+            ) shouldBe KunneIkkeLukkeSøknad.UgyldigTrukketDato.left()
 
-        inOrder(
-            søknadRepoMock, sakServiceMock, brevServiceMock, personServiceMock
-        ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe treDagerGammelSøknad.id })
+            it.verifyNoMoreInteractions()
         }
-
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -427,72 +422,43 @@ internal class LukkSøknadServiceImplTest {
             on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
             on { harSøknadPåbegyntBehandling(any()) } doReturn true
         }
-        val sakServiceMock = mock<SakService>()
-        val brevServiceMock = mock<BrevService>()
-        val oppgaveServiceMock = mock<OppgaveService>()
-
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-        LukkSøknadServiceImpl(
+        ServiceOgMocks(
             søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock,
-            brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = mock(),
-            clock = fixedEpochClock,
-        ).lukkSøknad(
-            LukkSøknadRequest.UtenBrev.BortfaltSøknad(
-                søknadId = journalførtSøknadMedOppgave.id,
-                saksbehandler = saksbehandler
-            )
-        ) shouldBe KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
+        ).let {
+            it.lukkSøknadService.lukkSøknad(
+                LukkSøknadRequest.UtenBrev.BortfaltSøknad(
+                    søknadId = journalførtSøknadMedOppgave.id,
+                    saksbehandler = saksbehandler,
+                ),
+            ) shouldBe KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
 
-        inOrder(
-            søknadRepoMock, sakServiceMock, brevServiceMock, personServiceMock
-        ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+            it.verifyNoMoreInteractions()
         }
-
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
     fun `en allerede trukket søknad skal ikke bli trukket`() {
         val trukketSøknad = lukketSøknad.copy()
         val trekkSøknadRequest = trekkSøknadRequest.copy(
-            søknadId = trukketSøknad.id
+            søknadId = trukketSøknad.id,
         )
 
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn trukketSøknad
             on { harSøknadPåbegyntBehandling(any()) } doReturn false
         }
-        val sakServiceMock = mock<SakService>()
 
-        val brevServiceMock = mock<BrevService>()
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-
-        val oppgaveServiceMock = mock<OppgaveService>()
-        LukkSøknadServiceImpl(
+        ServiceOgMocks(
             søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock,
-            brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = mock(),
-            clock = fixedEpochClock,
-        ).lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
+        ).let {
+            it.lukkSøknadService.lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
 
-        inOrder(søknadRepoMock, personServiceMock) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe trukketSøknad.id })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe trukketSøknad.id })
+            it.verifyNoMoreInteractions()
         }
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -501,41 +467,41 @@ internal class LukkSøknadServiceImplTest {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
         }
-        val sakServiceMock = mock<SakService>()
         val brevServiceMock = mock<BrevService> {
             on { lagBrev(any()) } doReturn pdf.right()
         }
-
-        val oppgaveServiceMock = mock<OppgaveService>()
 
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn person.right()
         }
 
-        LukkSøknadServiceImpl(
+        ServiceOgMocks(
             søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock,
             brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            microsoftGraphApiClient = MicrosoftGraphApiClientStub,
-            clock = fixedEpochClock,
-        ).lagBrevutkast(trekkSøknadRequest) shouldBe pdf.right()
+        ).let {
+            it.lukkSøknadService.lagBrevutkast(trekkSøknadRequest) shouldBe pdf.right()
 
-        inOrder(
-            søknadRepoMock, brevServiceMock, personServiceMock
-        ) {
-            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-
-            verify(brevServiceMock).lagBrev(
-                argThat {
-                    it shouldBe TrukketSøknadBrevRequest(person, journalførtSøknadMedOppgave, 1.januar(2020), "Testbruker, Lokal")
-                }
-            )
+            inOrder(
+                søknadRepoMock,
+                brevServiceMock,
+                personServiceMock,
+            ) {
+                verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+                verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+                verify(brevServiceMock).lagBrev(
+                    argThat {
+                        it shouldBe TrukketSøknadBrevRequest(
+                            person,
+                            journalførtSøknadMedOppgave,
+                            1.januar(2020),
+                            "Testbruker, Lokal",
+                        )
+                    },
+                )
+                it.verifyNoMoreInteractions()
+            }
         }
-
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -543,33 +509,25 @@ internal class LukkSøknadServiceImplTest {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
         }
-        val sakServiceMock = mock<SakService>()
-        val brevServiceMock = mock<BrevService>()
-
-        val oppgaveServiceMock = mock<OppgaveService>()
-
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
         }
 
-        LukkSøknadServiceImpl(
+        ServiceOgMocks(
             søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock,
-            brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            microsoftGraphApiClient = mock(),
-            clock = fixedEpochClock,
-        ).lagBrevutkast(trekkSøknadRequest) shouldBe KunneIkkeLageBrevutkast.FantIkkePerson.left()
+        ).let {
+            it.lukkSøknadService.lagBrevutkast(trekkSøknadRequest) shouldBe KunneIkkeLageBrevutkast.FantIkkePerson.left()
 
-        inOrder(
-            søknadRepoMock, personServiceMock
-        ) {
-            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+            inOrder(
+                søknadRepoMock,
+                personServiceMock,
+            ) {
+                verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+                verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+                it.verifyNoMoreInteractions()
+            }
         }
-
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -577,30 +535,14 @@ internal class LukkSøknadServiceImplTest {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn null
         }
-        val sakServiceMock = mock<SakService>()
-        val brevServiceMock = mock<BrevService>()
-        val oppgaveServiceMock = mock<OppgaveService>()
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-
-        LukkSøknadServiceImpl(
+        ServiceOgMocks(
             søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock,
-            brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = mock(),
-            clock = fixedEpochClock,
-        ).lagBrevutkast(trekkSøknadRequest) shouldBe KunneIkkeLageBrevutkast.FantIkkeSøknad.left()
+        ).let {
+            it.lukkSøknadService.lagBrevutkast(trekkSøknadRequest) shouldBe KunneIkkeLageBrevutkast.FantIkkeSøknad.left()
 
-        inOrder(
-            søknadRepoMock, brevServiceMock
-        ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+            it.verifyNoMoreInteractions()
         }
-
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -608,153 +550,70 @@ internal class LukkSøknadServiceImplTest {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
         }
-        val sakServiceMock = mock<SakService>()
         val brevServiceMock = mock<BrevService> {
             on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
         }
-
-        val oppgaveServiceMock = mock<OppgaveService>()
-
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn person.right()
         }
-        LukkSøknadServiceImpl(
+        ServiceOgMocks(
             søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock,
             brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            microsoftGraphApiClient = MicrosoftGraphApiClientStub,
-            clock = fixedEpochClock,
-        ).lagBrevutkast(trekkSøknadRequest) shouldBe KunneIkkeLageBrevutkast.KunneIkkeLageBrev.left()
+        ).let {
+            it.lukkSøknadService.lagBrevutkast(trekkSøknadRequest) shouldBe KunneIkkeLageBrevutkast.KunneIkkeLageBrev.left()
 
-        inOrder(
-            søknadRepoMock, brevServiceMock, personServiceMock
-        ) {
-            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-
-            verify(brevServiceMock).lagBrev(
-                argThat {
-                    it shouldBe TrukketSøknadBrevRequest(person, journalførtSøknadMedOppgave, 1.januar(2020), "Testbruker, Lokal")
-                }
-            )
+            inOrder(
+                søknadRepoMock,
+                brevServiceMock,
+                personServiceMock,
+            ) {
+                verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+                verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+                verify(brevServiceMock).lagBrev(
+                    argThat {
+                        it shouldBe TrukketSøknadBrevRequest(
+                            person,
+                            journalførtSøknadMedOppgave,
+                            1.januar(2020),
+                            "Testbruker, Lokal",
+                        )
+                    },
+                )
+                it.verifyNoMoreInteractions()
+            }
         }
-
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
     fun `svarer med ukjentBrevType når det ikke skal lages brev`() {
-
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
         }
-        val sakServiceMock = mock<SakService>()
-
-        val brevServiceMock = mock<BrevService>()
-
-        val oppgaveServiceMock = mock<OppgaveService>()
-
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-        LukkSøknadServiceImpl(
-            søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock,
-            brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = mock(),
-            clock = fixedEpochClock,
-        ).lagBrevutkast(
-            LukkSøknadRequest.UtenBrev.BortfaltSøknad(
-                søknadId = journalførtSøknadMedOppgave.id,
-                saksbehandler = saksbehandler
-            )
-        ) shouldBe KunneIkkeLageBrevutkast.UkjentBrevtype.left()
-
-        inOrder(
-            søknadRepoMock, sakServiceMock, brevServiceMock, personServiceMock
-        ) {
-            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-        }
-
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
-    }
-
-    @Test
-    fun `Kan ikke sende brevbestilling og kan ikke lukke oppgave`() {
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
-            on { harSøknadPåbegyntBehandling(any()) } doReturn false
-        }
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(any<UUID>()) } doReturn sak.right()
-        }
-        val brevServiceMock = mock<BrevService> {
-            on { journalførBrev(any(), any()) } doReturn lukketJournalpostId.right()
-            on { distribuerBrev(any()) } doReturn KunneIkkeDistribuereBrev.left()
-        }
-        val oppgaveServiceMock = mock<OppgaveService> {
-            on { lukkOppgave(any()) } doReturn KunneIkkeLukkeOppgave.left()
-        }
-
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn person.right()
         }
 
-        val actual = LukkSøknadServiceImpl(
+        ServiceOgMocks(
             søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock,
-            brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            microsoftGraphApiClient = MicrosoftGraphApiClientStub,
-            clock = fixedEpochClock,
-        ).lukkSøknad(trekkSøknadRequest).getOrHandle { throw RuntimeException("Feil i test") }
+        ).let {
+            it.lukkSøknadService.lagBrevutkast(
+                LukkSøknadRequest.UtenBrev.BortfaltSøknad(
+                    søknadId = journalførtSøknadMedOppgave.id,
+                    saksbehandler = saksbehandler,
+                ),
+            ) shouldBe KunneIkkeLageBrevutkast.UkjentBrevtype.left()
 
-        actual shouldBe LukketSøknad.MedMangler.KunneIkkeDistribuereBrev(sak, actual.søknad)
-
-        inOrder(
-            søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock
-        ) {
-            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
-            verify(brevServiceMock).journalførBrev(
-                argThat {
-                    it shouldBe TrukketSøknadBrevRequest(
-                        person = person,
-                        søknad = lukketSøknad.copy(
-                            lukketJournalpostId = null,
-                            journalpostId = journalførtSøknadMedOppgaveJournalpostId,
-                            oppgaveId = oppgaveId
-                        ),
-                        trukketDato = 1.januar(2020),
-                        saksbehandlerNavn = "Testbruker, Lokal"
-                    )
-                },
-                argThat { it shouldBe saksnummer }
-            )
-            verify(brevServiceMock).distribuerBrev(argThat { it shouldBe lukketJournalpostId })
-            verify(søknadRepoMock).oppdaterSøknad(
-                argThat {
-                    it shouldBe lukketSøknad.copy(
-                        lukketJournalpostId = lukketJournalpostId,
-                        lukketBrevbestillingId = null,
-                        journalpostId = journalførtSøknadMedOppgaveJournalpostId,
-                        oppgaveId = oppgaveId
-                    )
-                }
-            )
-
-            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+            inOrder(
+                søknadRepoMock,
+                personServiceMock,
+            ) {
+                verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+                verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+                it.verifyNoMoreInteractions()
+            }
         }
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -771,38 +630,15 @@ internal class LukkSøknadServiceImplTest {
             on { hentSøknad(any()) } doReturn søknad
             on { harSøknadPåbegyntBehandling(any()) } doReturn false
         }
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(any<UUID>()) } doReturn sak.right()
-        }
-        val brevServiceMock = mock<BrevService> {
-            on { journalførBrev(any(), any()) } doReturn lukketJournalpostId.right()
-            on { distribuerBrev(lukketJournalpostId) } doReturn brevbestillingId.right()
-        }
-
-        val oppgaveServiceMock = mock<OppgaveService>()
-
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-        val actual = LukkSøknadServiceImpl(
+        ServiceOgMocks(
             søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock,
-            brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = mock(),
-            clock = fixedEpochClock,
-        ).lukkSøknad(trekkSøknadRequest)
+        ).let {
+            it.lukkSøknadService.lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.SøknadManglerOppgave.left()
 
-        actual shouldBe KunneIkkeLukkeSøknad.SøknadManglerOppgave.left()
-
-        inOrder(
-            søknadRepoMock, sakServiceMock, brevServiceMock, personServiceMock
-        ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe søknad.id })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe søknad.id })
+            it.verifyNoMoreInteractions()
         }
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
@@ -817,44 +653,23 @@ internal class LukkSøknadServiceImplTest {
             on { hentSøknad(any()) } doReturn nySøknad
             on { harSøknadPåbegyntBehandling(any()) } doReturn false
         }
-        val sakServiceMock = mock<SakService>()
-        val brevServiceMock = mock<BrevService>()
-
-        val oppgaveServiceMock = mock<OppgaveService>()
-
-        val personServiceMock = mock<PersonService>()
-        val actual = LukkSøknadServiceImpl(
+        ServiceOgMocks(
             søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock,
-            brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = mock(),
-            clock = fixedEpochClock,
-        ).lukkSøknad(
-            trekkSøknadRequest.copy(
-                søknadId = nySøknad.id
-            )
-        )
+        ).let {
+            it.lukkSøknadService.lukkSøknad(
+                trekkSøknadRequest.copy(
+                    søknadId = nySøknad.id,
+                ),
+            ) shouldBe KunneIkkeLukkeSøknad.SøknadManglerOppgave.left()
 
-        actual shouldBe KunneIkkeLukkeSøknad.SøknadManglerOppgave.left()
-
-        inOrder(
-            søknadRepoMock
-        ) {
-            verify(søknadRepoMock).hentSøknad(
-                argThat {
-                    it shouldBe nySøknad.id
-                }
-            )
+            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe nySøknad.id })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe nySøknad.id })
+            it.verifyNoMoreInteractions()
         }
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
     fun `Kan ikke lukke oppgave`() {
-
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
             on { harSøknadPåbegyntBehandling(any()) } doReturn false
@@ -863,8 +678,7 @@ internal class LukkSøknadServiceImplTest {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
         val brevServiceMock = mock<BrevService> {
-            on { journalførBrev(any(), any()) } doReturn lukketJournalpostId.right()
-            on { distribuerBrev(any()) } doReturn brevbestillingId.right()
+            on { lagBrev(any()) } doReturn generertPdf.right()
         }
         val oppgaveServiceMock = mock<OppgaveService> {
             on { lukkOppgave(any()) } doReturn KunneIkkeLukkeOppgave.left()
@@ -873,7 +687,7 @@ internal class LukkSøknadServiceImplTest {
             on { hentPerson(any()) } doReturn person.right()
         }
 
-        val actual = LukkSøknadServiceImpl(
+        ServiceOgMocks(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
@@ -881,101 +695,129 @@ internal class LukkSøknadServiceImplTest {
             personService = personServiceMock,
             microsoftGraphApiClient = MicrosoftGraphApiClientStub,
             clock = fixedEpochClock,
-        ).lukkSøknad(trekkSøknadRequest).getOrHandle { throw RuntimeException("Feil i test") }
+        ).let {
+            val actual = it.lukkSøknadService.lukkSøknad(trekkSøknadRequest)
+                .getOrHandle { fail { "Skulle gått bra" } }
 
-        actual shouldBe LukketSøknad.MedMangler.KunneIkkeLukkeOppgave(sak, actual.søknad)
+            actual shouldBe sak
 
-        inOrder(
-            søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock
-        ) {
-            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-
-            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
-            verify(brevServiceMock).journalførBrev(
-                request = argThat {
-                    it shouldBe TrukketSøknadBrevRequest(
-                        person = person,
-                        søknad = lukketSøknad.copy(
-                            journalpostId = journalførtSøknadMedOppgaveJournalpostId,
+            inOrder(
+                søknadRepoMock,
+                sakServiceMock,
+                brevServiceMock,
+                oppgaveServiceMock,
+                personServiceMock,
+                it.brevService,
+            ) {
+                verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+                verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+                verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+                val expectedRequest = TrukketSøknadBrevRequest(
+                    person = person,
+                    søknad = journalførtSøknadMedOppgave,
+                    trukketDato = 1.januar(2020),
+                    saksbehandlerNavn = "Testbruker, Lokal",
+                )
+                verify(brevServiceMock).lagBrev(expectedRequest)
+                verify(søknadRepoMock).oppdaterSøknad(
+                    argThat {
+                        it shouldBe lukketSøknad.copy(
                             oppgaveId = oppgaveId,
-                        ),
-                        trukketDato = 1.januar(2020),
-                        "Testbruker, Lokal"
-                    )
-                },
-                saksnummer = argThat { it shouldBe saksnummer }
-            )
-            verify(brevServiceMock).distribuerBrev(argThat { it shouldBe lukketJournalpostId })
-            verify(søknadRepoMock).oppdaterSøknad(
-                argThat {
-                    it shouldBe lukketSøknad.copy(
-                        oppgaveId = oppgaveId,
-                        journalpostId = journalførtSøknadMedOppgaveJournalpostId,
-                        lukketJournalpostId = lukketJournalpostId,
-                        lukketBrevbestillingId = brevbestillingId
-                    )
-                }
-            )
-            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+                            journalpostId = journalførtSøknadMedOppgaveJournalpostId,
+                        )
+                    },
+                )
+                verify(it.brevService).lagreDokument(
+                    argThat { dokument ->
+                        dokument should beOfType<Dokument.MedMetadata.Informasjon>()
+                        dokument.tittel shouldBe expectedRequest.brevInnhold.brevTemplate.tittel()
+                        dokument.generertDokument shouldBe generertPdf
+                        dokument.generertDokumentJson shouldBe expectedRequest.brevInnhold.toJson()
+                        dokument.metadata shouldBe Dokument.Metadata(
+                            sakId = sakId,
+                            søknadId = journalførtSøknadMedOppgave.id,
+                            vedtakId = null,
+                            bestillBrev = true,
+                        )
+                    },
+                )
+                verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+                verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
+            }
+            it.verifyNoMoreInteractions()
         }
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 
     @Test
-    fun `Kan ikke journalføre`() {
-
+    fun `Feil ved generering av brev ved lukking`() {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
             on { harSøknadPåbegyntBehandling(any()) } doReturn false
         }
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(any<UUID>()) } doReturn sak.right()
-        }
         val brevServiceMock = mock<BrevService> {
-            on { journalførBrev(any(), any()) } doReturn KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost.left()
+            on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
         }
-        val oppgaveServiceMock = mock<OppgaveService>()
-
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn person.right()
         }
 
-        LukkSøknadServiceImpl(
+        ServiceOgMocks(
             søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock,
             brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             microsoftGraphApiClient = MicrosoftGraphApiClientStub,
             clock = fixedEpochClock,
-        ).lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.KunneIkkeJournalføreBrev.left()
+        ).let {
+            it.lukkSøknadService.lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.KunneIkkeGenerereDokument.left()
 
-        inOrder(
-            søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock
-        ) {
-            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-
-            verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
-            verify(brevServiceMock).journalførBrev(
-                request = argThat {
-                    it shouldBe TrukketSøknadBrevRequest(
+            inOrder(
+                søknadRepoMock,
+                brevServiceMock,
+                personServiceMock,
+            ) {
+                verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+                verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
+                verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+                verify(brevServiceMock).lagBrev(
+                    TrukketSøknadBrevRequest(
                         person = person,
-                        søknad = lukketSøknad.copy(
-                            journalpostId = journalførtSøknadMedOppgaveJournalpostId,
-                            oppgaveId = oppgaveId,
-                        ),
+                        søknad = journalførtSøknadMedOppgave,
                         trukketDato = 1.januar(2020),
-                        "Testbruker, Lokal"
-                    )
-                },
-                saksnummer = argThat { it shouldBe sak.saksnummer }
+                        saksbehandlerNavn = "Testbruker, Lokal",
+                    ),
+                )
+                it.verifyNoMoreInteractions()
+            }
+        }
+    }
+
+    private class ServiceOgMocks(
+        val søknadRepo: SøknadRepo = mock(),
+        val sakService: SakService = mock(),
+        val brevService: BrevService = mock(),
+        val oppgaveService: OppgaveService = mock(),
+        val personService: PersonService = mock(),
+        val microsoftGraphApiClient: MicrosoftGraphApiOppslag = MicrosoftGraphApiClientStub,
+        val clock: Clock = fixedEpochClock,
+    ) {
+        val lukkSøknadService = LukkSøknadServiceImpl(
+            søknadRepo = søknadRepo,
+            sakService = sakService,
+            brevService = brevService,
+            oppgaveService = oppgaveService,
+            personService = personService,
+            microsoftGraphApiClient = microsoftGraphApiClient,
+            clock = clock,
+        )
+
+        fun verifyNoMoreInteractions() {
+            verifyNoMoreInteractions(
+                søknadRepo,
+                sakService,
+                brevService,
+                oppgaveService,
+                personService,
             )
         }
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
     }
 }

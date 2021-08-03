@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -641,8 +640,6 @@ internal class StatistikkServiceImplTest {
             lukketTidspunkt = Tidspunkt.now(fixedClock),
             lukketAv = NavIdentBruker.Saksbehandler("Mr Lukker"),
             lukketType = Søknad.Lukket.LukketType.AVVIST,
-            lukketJournalpostId = JournalpostId("journalpostid"),
-            lukketBrevbestillingId = BrevbestillingId("brevbestillingid"),
         )
 
         val expected = Statistikk.Behandling(

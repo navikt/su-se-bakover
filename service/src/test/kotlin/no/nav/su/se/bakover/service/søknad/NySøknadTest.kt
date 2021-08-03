@@ -268,13 +268,13 @@ class NySøknadTest {
             )
             verify(dokArkivMock).opprettJournalpost(
                 argThat {
-                    it shouldBe Journalpost.Søknadspost(
+                    it shouldBe Journalpost.Søknadspost.from(
                         person = person,
                         saksnummer = saksnummer,
                         søknadInnhold = søknadInnhold,
-                        pdf = pdf
+                        pdf = pdf,
                     )
-                }
+                },
             )
         }
         verify(observerMock).handle(argThat { it shouldBe Event.Statistikk.SøknadStatistikk.SøknadMottatt(nySøknad.orNull()!!.second, sak.saksnummer) })
@@ -349,13 +349,13 @@ class NySøknadTest {
             )
             verify(dokArkivMock).opprettJournalpost(
                 argThat {
-                    it shouldBe Journalpost.Søknadspost(
+                    it shouldBe Journalpost.Søknadspost.from(
                         person = person,
                         saksnummer = saksnummer,
                         søknadInnhold = søknadInnhold,
-                        pdf = pdf
+                        pdf = pdf,
                     )
-                }
+                },
             )
         }
         verifyNoMoreInteractions(
@@ -448,13 +448,13 @@ class NySøknadTest {
             )
             verify(dokArkivMock).opprettJournalpost(
                 argThat {
-                    it shouldBe Journalpost.Søknadspost(
+                    it shouldBe Journalpost.Søknadspost.from(
                         person = person,
                         saksnummer = saksnummer,
                         søknadInnhold = søknadInnhold,
-                        pdf = pdf
+                        pdf = pdf,
                     )
-                }
+                },
             )
             verify(søknadRepoMock).oppdaterjournalpostId(
                 argThat {
@@ -573,13 +573,13 @@ class NySøknadTest {
             )
             verify(dokArkivMock).opprettJournalpost(
                 argThat {
-                    it shouldBe Journalpost.Søknadspost(
+                    it shouldBe Journalpost.Søknadspost.from(
                         person = person,
                         saksnummer = saksnummer,
                         søknadInnhold = søknadInnhold,
-                        pdf = pdf
+                        pdf = pdf,
                     )
-                }
+                },
             )
             verify(søknadRepoMock).oppdaterjournalpostId(
                 argThat {

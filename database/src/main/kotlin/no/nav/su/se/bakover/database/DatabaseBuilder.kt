@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.RotatingCred
 import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.StaticCredentials
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
+import no.nav.su.se.bakover.database.dokument.DokumentPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingRepo
@@ -33,6 +34,7 @@ import no.nav.su.se.bakover.database.vedtak.VedtakPosgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotRepo
+import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import javax.sql.DataSource
 
 object DatabaseBuilder {
@@ -154,6 +156,7 @@ object DatabaseBuilder {
             grunnlagRepo = grunnlagRepo,
             uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
             formueVilkårsvurderingRepo = formueVilkårsvurderingRepo,
+            dokumentRepo = DokumentPostgresRepo(dataSource),
         )
     }
 }
@@ -172,4 +175,5 @@ data class DatabaseRepos(
     val grunnlagRepo: GrunnlagRepo,
     val uføreVilkårsvurderingRepo: UføreVilkårsvurderingRepo,
     val formueVilkårsvurderingRepo: FormueVilkårsvurderingRepo,
+    val dokumentRepo: DokumentRepo,
 )

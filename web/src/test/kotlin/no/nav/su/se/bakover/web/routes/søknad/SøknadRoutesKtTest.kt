@@ -50,7 +50,6 @@ import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
-import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -229,11 +228,9 @@ internal class SøknadRoutesKtTest {
 
     @Test
     fun `lager en søknad, så trekker søknaden`() {
-        val lukketSøknad: Søknad.Lukket = mock()
         val lukkSøknadServiceMock = mock<LukkSøknadService> {
-            on { lukkSøknad(any()) } doReturn LukketSøknad.UtenMangler(sak, lukketSøknad).right()
+            on { lukkSøknad(any()) } doReturn sak.right()
         }
-
         withTestApplication(
             {
                 testSusebakover(services = mockServices.copy(lukkSøknad = lukkSøknadServiceMock))

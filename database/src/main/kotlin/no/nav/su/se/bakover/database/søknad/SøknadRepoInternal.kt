@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.UUID
@@ -49,8 +48,6 @@ internal fun Row.toSøknad(): Søknad {
             lukketAv = NavIdentBruker.Saksbehandler(lukket.saksbehandler),
             lukketTidspunkt = lukket.tidspunkt,
             lukketType = lukket.type,
-            lukketJournalpostId = lukket.journalpostId?.let { JournalpostId(it) },
-            lukketBrevbestillingId = lukket.brevbestillingId?.let { BrevbestillingId(it) },
         )
         journalpostId == null -> Søknad.Ny(
             sakId = sakId,
@@ -71,7 +68,7 @@ internal fun Row.toSøknad(): Søknad {
             opprettet = opprettet,
             søknadInnhold = søknadInnhold,
             journalpostId = journalpostId,
-            oppgaveId = oppgaveId
+            oppgaveId = oppgaveId,
         )
     }
 }

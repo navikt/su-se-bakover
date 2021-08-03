@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Validator.valider
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -179,7 +180,7 @@ internal class RevurderingServiceImpl(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
-                attesteringer = Attesteringshistorikk.empty()
+                attesteringer = Attesteringshistorikk.empty(),
             ).also {
                 revurderingRepo.lagre(it)
 
@@ -800,7 +801,7 @@ internal class RevurderingServiceImpl(
                 utbetalingService.hentGjeldendeUtbetaling(sakId, forDato)
                     .bimap(
                         { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling },
-                        { it.beløp }
+                        { it.beløp },
                     )
             },
             clock = clock,
@@ -981,7 +982,7 @@ internal class RevurderingServiceImpl(
                 if (it !is SimulertRevurdering) {
                     Either.Left(FortsettEtterForhåndsvarselFeil.RevurderingErIkkeIRiktigTilstand)
                 } else {
-                    when (val forhåndsvarsel = it.forhåndsvarsel) {
+                    when (it.forhåndsvarsel) {
                         null ->
                             Either.Left(FortsettEtterForhåndsvarselFeil.RevurderingErIkkeForhåndsvarslet)
                         is Forhåndsvarsel.SkalForhåndsvarsles.Besluttet ->
@@ -989,14 +990,12 @@ internal class RevurderingServiceImpl(
                         is Forhåndsvarsel.IngenForhåndsvarsel ->
                             Either.Left(FortsettEtterForhåndsvarselFeil.AlleredeBesluttet)
                         is Forhåndsvarsel.SkalForhåndsvarsles.Sendt ->
-                            Either.Right(Pair(it, forhåndsvarsel))
+                            Either.Right(it)
                     }
                 }
             }
-            .map { (revurdering, eksisterendeForhåndsvarsel) ->
+            .map { revurdering ->
                 val forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
-                    journalpostId = eksisterendeForhåndsvarsel.journalpostId,
-                    brevbestillingId = eksisterendeForhåndsvarsel.brevbestillingId,
                     valg = utledBeslutningEtterForhåndsvarling(request),
                     begrunnelse = request.begrunnelse,
                 )
@@ -1044,41 +1043,34 @@ internal class RevurderingServiceImpl(
             return KunneIkkeForhåndsvarsle.KunneIkkeHenteNavnForSaksbehandler.left()
         }
 
-        brevService.journalførBrev(
-            request = LagBrevRequest.Forhåndsvarsel(
-                person = person,
-                saksbehandlerNavn = saksbehandlerNavn,
-                fritekst = fritekst,
-            ),
-            saksnummer = revurdering.saksnummer,
-        ).mapLeft {
-            log.error("Kunne ikke forhåndsvarsle bruker ${revurdering.id} fordi journalføring feilet")
-            return KunneIkkeForhåndsvarsle.KunneIkkeJournalføre.left()
-        }.flatMap { journalpostId ->
-            val forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt(journalpostId, null)
+        val dokument = LagBrevRequest.Forhåndsvarsel(
+            person = person,
+            saksbehandlerNavn = saksbehandlerNavn,
+            fritekst = fritekst,
+        ).tilDokument {
+            brevService.lagBrev(it).mapLeft { LagBrevRequest.KunneIkkeGenererePdf }
+        }.map {
+            it.leggTilMetadata(
+                metadata = Dokument.Metadata(
+                    sakId = revurdering.sakId,
+                    revurderingId = revurdering.id,
+                    bestillBrev = true,
+                ),
+            )
+        }.getOrHandle { return KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument.left() }
 
-            revurdering.forhåndsvarsel = forhåndsvarsel
+        // TODO jah: Det hadde vært tryggere om dette gikk som en transaksjon. Dette kan ikke føre til duplikate dokumentutsender, men det kan føre til ghost-utsendinger, dersom lagreDokument feiler.
+        revurdering.forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt
+        revurderingRepo.lagre(revurdering)
+        brevService.lagreDokument(dokument)
 
-            brevService.distribuerBrev(journalpostId)
-                .mapLeft {
-                    revurderingRepo.lagre(revurdering)
-                    log.error("Revurdering ${revurdering.id} med journalpostId $journalpostId. Det skjedde en feil ved brevbestilling som må følges opp manuelt")
-                    return KunneIkkeForhåndsvarsle.KunneIkkeDistribuere.left()
-                }
-                .map { brevbestillingId ->
-                    revurdering.forhåndsvarsel = forhåndsvarsel.copy(brevbestillingId = brevbestillingId)
-
-                    revurderingRepo.lagre(revurdering)
-                    log.info("Revurdering ${revurdering.id} med journalpostId $journalpostId og bestilt brev $brevbestillingId")
-
-                    revurdering
-                }
-        }
+        log.info("Forhåndsvarsel sendt for revurdering ${revurdering.id}")
 
         oppgaveService.oppdaterOppgave(
             oppgaveId = revurdering.oppgaveId,
             beskrivelse = "Forhåndsvarsel er sendt.",
         ).mapLeft {
+            log.error("Kunne ikke oppdatere oppgave: ${revurdering.oppgaveId} for revurdering: ${revurdering.id}")
             return KunneIkkeForhåndsvarsle.KunneIkkeOppretteOppgave.left()
         }
 

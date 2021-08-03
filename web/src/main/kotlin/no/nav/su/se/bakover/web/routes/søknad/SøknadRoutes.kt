@@ -7,6 +7,7 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
+import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.response.respond
 import io.ktor.response.respondBytes
 import io.ktor.routing.Route
@@ -28,6 +29,7 @@ import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.receiveTextUTF8
+import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadErrorHandler
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
 import no.nav.su.se.bakover.web.sikkerlogg
@@ -53,7 +55,7 @@ internal fun Route.søknadRoutes(
                             call.svar(
                                 when (kunneIkkeOppretteSøknad) {
                                     KunneIkkeOppretteSøknad.FantIkkePerson -> NotFound.message("Fant ikke person")
-                                }
+                                },
                             )
                         },
                         { (saksnummer, søknad) ->
@@ -65,14 +67,14 @@ internal fun Route.søknadRoutes(
                                     serialize(
                                         OpprettetSøknadJson(
                                             saksnummer = saksnummer.nummer,
-                                            søknad = søknad.toJson()
-                                        )
-                                    )
-                                )
+                                            søknad = søknad.toJson(),
+                                        ),
+                                    ),
+                                ),
                             )
-                        }
+                        },
                     )
-                }
+                },
             )
         }
     }
@@ -92,7 +94,7 @@ internal fun Route.søknadRoutes(
                     },
                     {
                         call.respondBytes(it, ContentType.Application.Pdf)
-                    }
+                    },
                 )
             }
         }
@@ -104,17 +106,17 @@ internal fun Route.søknadRoutes(
                 LukkSøknadInputHandler.handle(
                     body = call.receiveTextUTF8(),
                     søknadId = søknadId,
-                    saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent)
+                    saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                 ).mapLeft {
                     call.svar(BadRequest.message("Ugyldig input"))
                 }.map { request ->
                     lukkSøknadService.lukkSøknad(request).fold(
                         { call.svar(LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(request, it)) },
                         {
-                            call.audit(it.sak.fnr, AuditLogEvent.Action.UPDATE, null)
+                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, null)
                             call.sikkerlogg("Lukket søknad for søknad: $søknadId")
-                            call.svar(LukkSøknadErrorHandler.lukketSøknadResponse(it))
-                        }
+                            call.svar(Resultat.json(OK, serialize(it.toJson())))
+                        },
                     )
                 }
             }
@@ -127,12 +129,12 @@ internal fun Route.søknadRoutes(
                 LukkSøknadInputHandler.handle(
                     body = call.receiveTextUTF8(),
                     søknadId = søknadId,
-                    saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent)
+                    saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                 ).mapLeft {
                     call.svar(BadRequest.message("Ugyldig input"))
                 }.map { request ->
                     lukkSøknadService.lagBrevutkast(
-                        request
+                        request,
                     ).fold(
                         {
                             when (it) {
@@ -144,7 +146,7 @@ internal fun Route.søknadRoutes(
                                     call.svar(InternalServerError.message("Kunne ikke lage brevutkast"))
                             }
                         },
-                        { call.respondBytes(it, ContentType.Application.Pdf) }
+                        { call.respondBytes(it, ContentType.Application.Pdf) },
                     )
                 }
             }
