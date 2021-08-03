@@ -22,6 +22,10 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
 
+/**
+ * TODO jah: Prøve å finne skillet/abstraksjonen mellom brev og dokument
+ *  For domenet er brev mer spesifikt/beskrivende. Samtidig synes jeg det er helt greit å ha en litt bredere abstraksjon i persisteringslaget/klientlaget (Dokument)
+ */
 internal class BrevServiceImpl(
     private val pdfGenerator: PdfGenerator,
     private val dokArkiv: DokArkiv,
@@ -121,6 +125,10 @@ internal class BrevServiceImpl(
             dokumentRepo.oppdaterDokumentdistribusjon(it)
             it
         }
+    }
+
+    override fun hentDokumenterForDistribusjon(): List<Dokumentdistribusjon> {
+        return dokumentRepo.hentDokumenterForDistribusjon()
     }
 
     private fun lagPdf(brevInnhold: BrevInnhold): Either<KunneIkkeLageBrev, ByteArray> {

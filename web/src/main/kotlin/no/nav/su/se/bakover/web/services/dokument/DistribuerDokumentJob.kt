@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.services.dokument
 
 import arrow.core.Either
 import arrow.core.flatMap
-import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
 import no.nav.su.se.bakover.service.brev.BrevService
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
@@ -19,7 +18,6 @@ import kotlin.concurrent.fixedRateTimer
  */
 class DistribuerDokumentJob(
     private val brevService: BrevService,
-    private val dokumentRepo: DokumentRepo,
     private val leaderPodLookup: LeaderPodLookup,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -34,7 +32,7 @@ class DistribuerDokumentJob(
             period = periode,
         ) {
             if (isLeaderPod()) {
-                dokumentRepo.hentDokumenterForDistribusjon()
+                brevService.hentDokumenterForDistribusjon()
                     .map { dokumentdistribusjon ->
                         brevService.journalførDokument(dokumentdistribusjon)
                             .mapLeft {

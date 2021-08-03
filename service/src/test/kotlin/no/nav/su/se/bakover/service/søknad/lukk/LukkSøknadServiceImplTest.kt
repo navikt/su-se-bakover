@@ -33,7 +33,6 @@ import no.nav.su.se.bakover.domain.brev.BrevConfig
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -192,7 +191,7 @@ internal class LukkSøknadServiceImplTest {
                 brevServiceMock,
                 oppgaveServiceMock,
                 personServiceMock,
-                it.dokumentRepo,
+                it.brevService,
                 observerMock,
             ) {
                 verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
@@ -206,7 +205,7 @@ internal class LukkSøknadServiceImplTest {
                 )
                 verify(brevServiceMock).lagBrev(expectedRequest)
                 verify(søknadRepoMock).oppdaterSøknad(lukketSøknad)
-                verify(it.dokumentRepo).lagre(
+                verify(it.brevService).lagreDokument(
                     argThat { dokument ->
                         dokument should beOfType<Dokument.MedMetadata.Informasjon>()
                         dokument.tittel shouldBe expectedRequest.brevInnhold.brevTemplate.tittel()
@@ -339,7 +338,7 @@ internal class LukkSøknadServiceImplTest {
                 oppgaveServiceMock,
                 brevServiceMock,
                 personServiceMock,
-                it.dokumentRepo,
+                it.brevService,
             ) {
                 verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
                 verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
@@ -361,7 +360,7 @@ internal class LukkSøknadServiceImplTest {
                         )
                     },
                 )
-                verify(it.dokumentRepo).lagre(
+                verify(it.brevService).lagreDokument(
                     argThat { dokument ->
                         dokument should beOfType<Dokument.MedMetadata.Informasjon>()
                         dokument.tittel shouldBe expectedRequest.brevInnhold.brevTemplate.tittel()
@@ -696,7 +695,6 @@ internal class LukkSøknadServiceImplTest {
             personService = personServiceMock,
             microsoftGraphApiClient = MicrosoftGraphApiClientStub,
             clock = fixedEpochClock,
-            dokumentRepo = mock(),
         ).let {
             val actual = it.lukkSøknadService.lukkSøknad(trekkSøknadRequest)
                 .getOrHandle { fail { "Skulle gått bra" } }
@@ -709,7 +707,7 @@ internal class LukkSøknadServiceImplTest {
                 brevServiceMock,
                 oppgaveServiceMock,
                 personServiceMock,
-                it.dokumentRepo,
+                it.brevService,
             ) {
                 verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
                 verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
@@ -729,7 +727,7 @@ internal class LukkSøknadServiceImplTest {
                         )
                     },
                 )
-                verify(it.dokumentRepo).lagre(
+                verify(it.brevService).lagreDokument(
                     argThat { dokument ->
                         dokument should beOfType<Dokument.MedMetadata.Informasjon>()
                         dokument.tittel shouldBe expectedRequest.brevInnhold.brevTemplate.tittel()
@@ -801,7 +799,6 @@ internal class LukkSøknadServiceImplTest {
         val personService: PersonService = mock(),
         val microsoftGraphApiClient: MicrosoftGraphApiOppslag = MicrosoftGraphApiClientStub,
         val clock: Clock = fixedEpochClock,
-        val dokumentRepo: DokumentRepo = mock(),
     ) {
         val lukkSøknadService = LukkSøknadServiceImpl(
             søknadRepo = søknadRepo,
@@ -811,7 +808,6 @@ internal class LukkSøknadServiceImplTest {
             personService = personService,
             microsoftGraphApiClient = microsoftGraphApiClient,
             clock = clock,
-            dokumentRepo = dokumentRepo,
         )
 
         fun verifyNoMoreInteractions() {
@@ -821,7 +817,6 @@ internal class LukkSøknadServiceImplTest {
                 brevService,
                 oppgaveService,
                 personService,
-                dokumentRepo,
             )
         }
     }

@@ -41,7 +41,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -1077,15 +1076,12 @@ internal class RevurderingServiceImplTest {
             on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
         }
 
-        val dokumentRepoMock = mock<DokumentRepo>()
-
         val revurdering = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             personService = personServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             microsoftGraphApiClient = microsoftGraphApiClientMock,
-            dokumentRepo = dokumentRepoMock,
         ).forhåndsvarsleEllerSendTilAttestering(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
@@ -1100,7 +1096,6 @@ internal class RevurderingServiceImplTest {
             personServiceMock,
             brevServiceMock,
             oppgaveServiceMock,
-            dokumentRepoMock,
         ) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
@@ -1116,7 +1111,7 @@ internal class RevurderingServiceImplTest {
                     forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt,
                 ),
             )
-            verify(dokumentRepoMock).lagre(
+            verify(brevServiceMock).lagreDokument(
                 argThat {
                     it should beOfType<Dokument.MedMetadata.Informasjon>()
                     it.generertDokument shouldBe "pdf".toByteArray()
@@ -1135,7 +1130,6 @@ internal class RevurderingServiceImplTest {
             personServiceMock,
             brevServiceMock,
             oppgaveServiceMock,
-            dokumentRepoMock,
         )
     }
 
@@ -1184,7 +1178,6 @@ internal class RevurderingServiceImplTest {
         val microsoftGraphApiClientMock = mock<MicrosoftGraphApiClient> {
             on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
         }
-        val dokumentRepoMock = mock<DokumentRepo>()
 
         val response = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
@@ -1192,7 +1185,6 @@ internal class RevurderingServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             microsoftGraphApiClient = microsoftGraphApiClientMock,
-            dokumentRepo = dokumentRepoMock,
         ).forhåndsvarsleEllerSendTilAttestering(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
@@ -1207,7 +1199,7 @@ internal class RevurderingServiceImplTest {
         verify(personServiceMock).hentPerson(any())
         verify(brevServiceMock).lagBrev(any())
         verify(revurderingRepoMock).lagre(any())
-        verify(dokumentRepoMock).lagre(any())
+        verify(brevServiceMock).lagreDokument(any())
         verify(oppgaveServiceMock).oppdaterOppgave(any(), any())
     }
 
@@ -1343,14 +1335,11 @@ internal class RevurderingServiceImplTest {
             on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
         }
 
-        val dokumentRepoMock = mock<DokumentRepo>()
-
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             personService = personServiceMock,
             brevService = brevServiceMock,
             microsoftGraphApiClient = microsoftGraphApiClientMock,
-            dokumentRepo = dokumentRepoMock,
         ).forhåndsvarsleEllerSendTilAttestering(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
@@ -1359,7 +1348,7 @@ internal class RevurderingServiceImplTest {
         ) shouldBe KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument.left()
 
         verify(revurderingRepoMock, never()).lagre(any())
-        verify(dokumentRepoMock, never()).lagre(any())
+        verify(brevServiceMock, never()).lagreDokument(any())
     }
 
     @Test
@@ -1387,7 +1376,6 @@ internal class RevurderingServiceImplTest {
         val microsoftGraphApiClientMock = mock<MicrosoftGraphApiClient> {
             on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
         }
-        val dokumentRepoMock = mock<DokumentRepo>()
 
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
@@ -1395,7 +1383,6 @@ internal class RevurderingServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             microsoftGraphApiClient = microsoftGraphApiClientMock,
-            dokumentRepo = dokumentRepoMock,
         ).forhåndsvarsleEllerSendTilAttestering(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
@@ -1409,7 +1396,7 @@ internal class RevurderingServiceImplTest {
                 forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt,
             ),
         )
-        verify(dokumentRepoMock).lagre(
+        verify(brevServiceMock).lagreDokument(
             argThat {
                 it should beOfType<Dokument.MedMetadata.Informasjon>()
                 it.generertDokument shouldBe "pdf".toByteArray()

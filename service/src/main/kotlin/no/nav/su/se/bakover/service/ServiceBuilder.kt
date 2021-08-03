@@ -111,7 +111,6 @@ object ServiceBuilder {
             vilkårsvurderingService = vilkårsvurderingService,
             grunnlagService = grunnlagService,
             vedtakService = vedtakService,
-            dokumentRepo = databaseRepos.dokumentRepo,
         ).apply { addObserver(statistikkService) }
 
         val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)
@@ -136,7 +135,6 @@ object ServiceBuilder {
                 personService = personService,
                 microsoftGraphApiClient = clients.microsoftGraphApiClient,
                 clock = clock,
-                dokumentRepo = databaseRepos.dokumentRepo,
             ).apply {
                 addObserver(statistikkService)
             },

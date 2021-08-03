@@ -16,6 +16,7 @@ interface BrevService {
     fun lagreDokument(dokument: Dokument.MedMetadata)
     fun journalførDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeJournalføreDokument, Dokumentdistribusjon>
     fun distribuerDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeBestilleBrevForDokument, Dokumentdistribusjon>
+    fun hentDokumenterForDistribusjon(): List<Dokumentdistribusjon>
 }
 
 sealed class KunneIkkeLageBrev {

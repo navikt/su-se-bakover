@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Validator.valider
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -83,7 +82,6 @@ internal class RevurderingServiceImpl(
     private val vilkårsvurderingService: VilkårsvurderingService,
     private val grunnlagService: GrunnlagService,
     private val vedtakService: VedtakService,
-    private val dokumentRepo: DokumentRepo,
 ) : RevurderingService {
 
     private val observers: MutableList<EventObserver> = mutableListOf()
@@ -339,11 +337,11 @@ internal class RevurderingServiceImpl(
             }.getOrHandle {
                 return KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS.left()
             },
-        ).also {
+        ).also { opprettetRevurdering ->
             grunnlagService.lagreBosituasjongrunnlag(revurdering.id, listOf(bosituasjongrunnlag))
             revurderingRepo.lagre(
-                it.copy(
-                    informasjonSomRevurderes = it.informasjonSomRevurderes
+                opprettetRevurdering.copy(
+                    informasjonSomRevurderes = opprettetRevurdering.informasjonSomRevurderes
                         .markerSomVurdert(Revurderingsteg.Bosituasjon).let {
                             if (bosituasjongrunnlag.harEndretEllerFjernetEktefelle(gjeldendeBosituasjon)) {
                                 it.markerSomIkkeVurdert(Revurderingsteg.Inntekt)
@@ -1135,7 +1133,7 @@ internal class RevurderingServiceImpl(
 
         revurdering.forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt
         revurderingRepo.lagre(revurdering)
-        dokumentRepo.lagre(dokument)
+        brevService.lagreDokument(dokument)
 
         log.info("Forhåndsvarsel sendt for revurdering ${revurdering.id}")
 

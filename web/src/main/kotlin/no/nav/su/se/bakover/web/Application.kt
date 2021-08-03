@@ -267,7 +267,6 @@ internal fun Application.susebakover(
 
         DistribuerDokumentJob(
             brevService = services.brev,
-            dokumentRepo = databaseRepos.dokumentRepo,
             leaderPodLookup = clients.leaderPodLookup,
         ).schedule()
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
@@ -275,7 +274,6 @@ internal fun Application.susebakover(
 
         DistribuerDokumentJob(
             brevService = services.brev,
-            dokumentRepo = databaseRepos.dokumentRepo,
             leaderPodLookup = clients.leaderPodLookup,
         ).schedule()
     }

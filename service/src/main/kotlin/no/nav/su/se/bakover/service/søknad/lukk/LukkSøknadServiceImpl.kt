@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest.Companion.lukk
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -40,7 +39,6 @@ internal class LukkSøknadServiceImpl(
     private val personService: PersonService,
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     private val clock: Clock,
-    private val dokumentRepo: DokumentRepo,
 ) : LukkSøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val observers = mutableListOf<EventObserver>()
@@ -193,7 +191,7 @@ internal class LukkSøknadServiceImpl(
         val lukketSøknad = søknad.lukk(request, Tidspunkt.now(clock))
 
         søknadRepo.oppdaterSøknad(lukketSøknad)
-        dokumentRepo.lagre(dokument)
+        brevService.lagreDokument(dokument)
 
         return lukketSøknad.right()
     }

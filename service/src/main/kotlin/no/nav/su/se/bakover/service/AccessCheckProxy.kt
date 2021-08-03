@@ -281,6 +281,10 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
+                override fun hentDokumenterForDistribusjon(): List<Dokumentdistribusjon> {
+                    kastKanKunKallesFraAnnenService()
+                }
+
                 override fun lagreDokument(dokument: Dokument.MedMetadata) {
                     kastKanKunKallesFraAnnenService()
                 }
