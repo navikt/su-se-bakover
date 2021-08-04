@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
 import no.nav.su.se.bakover.service.brev.BrevService
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import java.net.InetAddress
 import java.time.Duration
 import java.time.temporal.ChronoUnit
@@ -33,6 +34,8 @@ class DistribuerDokumentJob(
             period = periode,
         ) {
             Either.catch {
+                // Ktor legger på X-Correlation-ID for web-requests, men vi har ikke noe tilsvarende automagi for meldingskøen.
+                MDC.put("X-Correlation-ID", UUID.randomUUID().toString())
                 if (isLeaderPod()) {
                     brevService.hentDokumenterForDistribusjon()
                         .map { dokumentdistribusjon ->
