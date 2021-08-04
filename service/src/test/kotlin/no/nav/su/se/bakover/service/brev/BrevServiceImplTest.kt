@@ -143,7 +143,7 @@ internal class BrevServiceImplTest {
             on { hentSak(any<UUID>()) } doReturn sak().right()
         }
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+            on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
         }
 
         val dokumentdistribusjon = dokumentdistribusjon()
@@ -154,7 +154,7 @@ internal class BrevServiceImplTest {
         ).let {
             it.brevService.journalførDokument(dokumentdistribusjon) shouldBe KunneIkkeJournalføreDokument.KunneIkkeFinnePerson.left()
             verify(sakServiceMock).hentSak(dokumentdistribusjon.dokument.metadata.sakId)
-            verify(personServiceMock).hentPerson(fnr)
+            verify(personServiceMock).hentPersonMedSystembruker(fnr)
             it.verifyNoMoreInteraction()
         }
     }
@@ -165,7 +165,7 @@ internal class BrevServiceImplTest {
             on { hentSak(any<UUID>()) } doReturn sak().right()
         }
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
+            on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
 
         val dokarkivMock = mock<DokArkiv> {
@@ -181,7 +181,7 @@ internal class BrevServiceImplTest {
         ).let {
             it.brevService.journalførDokument(dokumentdistribusjon) shouldBe KunneIkkeJournalføreDokument.FeilVedOpprettelseAvJournalpost.left()
             verify(sakServiceMock).hentSak(dokumentdistribusjon.dokument.metadata.sakId)
-            verify(personServiceMock).hentPerson(fnr)
+            verify(personServiceMock).hentPersonMedSystembruker(fnr)
             verify(dokarkivMock).opprettJournalpost(any())
             it.verifyNoMoreInteraction()
         }
@@ -193,7 +193,7 @@ internal class BrevServiceImplTest {
             on { hentSak(any<UUID>()) } doReturn sak().right()
         }
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
+            on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
 
         val dokumentdistribusjon = dokumentdistribusjon()
@@ -205,7 +205,7 @@ internal class BrevServiceImplTest {
         ).let {
             it.brevService.journalførDokument(dokumentdistribusjon) shouldBe dokumentdistribusjon.right()
             verify(sakServiceMock).hentSak(dokumentdistribusjon.dokument.metadata.sakId)
-            verify(personServiceMock).hentPerson(fnr)
+            verify(personServiceMock).hentPersonMedSystembruker(fnr)
             it.verifyNoMoreInteraction()
         }
     }
@@ -216,7 +216,7 @@ internal class BrevServiceImplTest {
             on { hentSak(any<UUID>()) } doReturn sak().right()
         }
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
+            on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
 
         val dokarkivMock = mock<DokArkiv> {
@@ -238,7 +238,7 @@ internal class BrevServiceImplTest {
         ).let {
             it.brevService.journalførDokument(dokumentdistribusjon) shouldBe expected.right()
             verify(sakServiceMock).hentSak(dokumentdistribusjon.dokument.metadata.sakId)
-            verify(personServiceMock).hentPerson(fnr)
+            verify(personServiceMock).hentPersonMedSystembruker(fnr)
             verify(dokarkivMock).opprettJournalpost(any())
             verify(dokumentRepoMock).oppdaterDokumentdistribusjon(expected)
             it.verifyNoMoreInteraction()
