@@ -25,38 +25,43 @@ class DistribuerDokumentJob(
     private val periode = Duration.of(1, ChronoUnit.MINUTES).toMillis()
 
     fun schedule() {
-        log.info("Schedulerer jobb med intervall: $periode ms")
+        log.info("Starter skeduleringsjobb '$jobName' med intervall: $periode ms")
+
         fixedRateTimer(
             name = jobName,
             daemon = true,
             period = periode,
         ) {
-            if (isLeaderPod()) {
-                brevService.hentDokumenterForDistribusjon()
-                    .map { dokumentdistribusjon ->
-                        brevService.journalførDokument(dokumentdistribusjon)
-                            .mapLeft {
-                                Distribusjonsresultat.Feil.Journalføring(dokumentdistribusjon.id)
+            Either.catch {
+                if (isLeaderPod()) {
+                    brevService.hentDokumenterForDistribusjon()
+                        .map { dokumentdistribusjon ->
+                            brevService.journalførDokument(dokumentdistribusjon)
+                                .mapLeft {
+                                    Distribusjonsresultat.Feil.Journalføring(dokumentdistribusjon.id)
+                                }
+                                .flatMap { journalført ->
+                                    brevService.distribuerDokument(journalført)
+                                        .mapLeft {
+                                            Distribusjonsresultat.Feil.Brevdistribusjon(journalført.id)
+                                        }
+                                        .map { distribuert ->
+                                            Distribusjonsresultat.Ok(distribuert.id)
+                                        }
+                                }
+                        }.ifNotEmpty {
+                            log.info("Fullførte skeduleringsjobb '$jobName'")
+                            val ok = this.ok()
+                            val feil = this.feil()
+                            if (feil.isEmpty()) {
+                                log.info("Journalførte/distribuerte distribusjonsidene: $ok")
+                            } else {
+                                log.error("Kunne ikke journalføre/distribuere distribusjonsidene: $feil. Disse gikk ok: $ok")
                             }
-                            .flatMap { journalført ->
-                                brevService.distribuerDokument(journalført)
-                                    .mapLeft {
-                                        Distribusjonsresultat.Feil.Brevdistribusjon(journalført.id)
-                                    }
-                                    .map { distribuert ->
-                                        Distribusjonsresultat.Ok(distribuert.id)
-                                    }
-                            }
-                    }.ifNotEmpty {
-                        log.info("Fullført jobb - $jobName")
-                        val ok = this.ok()
-                        val feil = this.feil()
-                        if (feil.isEmpty()) {
-                            log.info("Journalførte/distribuerte distribusjonsidene: $ok")
-                        } else {
-                            log.error("Kunne ikke journalføre/distribuere distribusjonsidene: $feil. Disse gikk ok: $ok")
                         }
-                    }
+                }
+            }.mapLeft {
+                log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)
             }
         }
     }

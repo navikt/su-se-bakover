@@ -80,10 +80,14 @@ internal class BrevServiceImpl(
         dokumentRepo.lagre(dokument)
     }
 
+    /**
+     * Henter Person fra PersonService med systembruker.
+     * Ment brukt fra async-operasjoner som ikke er knyttet til en bruker med token.
+     */
     override fun journalførDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeJournalføreDokument, Dokumentdistribusjon> {
         val sak = sakService.hentSak(dokumentdistribusjon.dokument.metadata.sakId)
             .getOrHandle { return KunneIkkeJournalføreDokument.KunneIkkeFinneSak.left() }
-        val person = personService.hentPerson(sak.fnr)
+        val person = personService.hentPersonMedSystembruker(sak.fnr)
             .getOrHandle { return KunneIkkeJournalføreDokument.KunneIkkeFinnePerson.left() }
 
         return dokumentdistribusjon.journalfør {
