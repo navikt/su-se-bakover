@@ -6,6 +6,10 @@ val ktorVersion = "1.6.2"
 val orgJsonVersion = "20210307"
 val micrometerRegistryPrometheusVersion = "1.7.2"
 
+plugins {
+    id("com.github.davidmc24.gradle.plugin.avro") version "1.2.1"
+}
+
 dependencies {
     implementation(project(":common"))
     implementation(project(":domain"))

@@ -2,9 +2,11 @@ package no.nav.su.se.bakover.database.person
 
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.DbMetrics
+import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Saksnummer
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -138,4 +140,20 @@ internal class PersonPostgresRepo(
                 .map { Fnr(it) }
         }
     }
+
+    override fun hentSaksnummerForIdenter(personidenter: List<String>): Saksnummer? {
+        return dataSource.withSession { session ->
+            """
+                SELECT
+                    saksnummer
+                FROM sak
+                WHERE fnr IN ( :fnrs )
+            """.trimIndent().hent(
+                mapOf("fnrs" to mapIdenterToSqlList(personidenter)),
+                session
+            ) { row -> row.longOrNull("saksnummer")?.let { Saksnummer(it) } }
+        }
+    }
+    private fun mapIdenterToSqlList(personidenter: List<String>) =
+        personidenter.joinToString { "\'$it\'" }
 }

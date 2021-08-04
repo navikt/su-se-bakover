@@ -28,6 +28,7 @@ internal class ServiceBuilderTest {
                 grunnlagRepo = mock(),
                 uføreVilkårsvurderingRepo = mock(),
                 formueVilkårsvurderingRepo = mock(),
+                hendelseRepo = mock(),
                 dokumentRepo = mock(),
             ),
             clients = Clients(
@@ -46,7 +47,6 @@ internal class ServiceBuilderTest {
                 digitalKontaktinformasjon = mock(),
                 leaderPodLookup = mock(),
                 kafkaPublisher = mock(),
-                leesahMqConsumer = mock()
             ),
             behandlingMetrics = mock(),
             søknadMetrics = mock(),

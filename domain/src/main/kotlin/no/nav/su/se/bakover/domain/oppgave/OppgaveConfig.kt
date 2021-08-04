@@ -65,4 +65,17 @@ sealed class OppgaveConfig {
         override val behandlingstype = Behandlingstype.REVURDERING
         override val oppgavetype = Oppgavetype.ATTESTERING
     }
+
+    data class VurderKonsekvensForYtelse(
+        val saksnummer: Saksnummer,
+        val beskrivelse: String,
+        override val aktørId: AktørId,
+        override val tilordnetRessurs: NavIdentBruker? = null
+    ) : OppgaveConfig() {
+        override val saksreferanse = saksnummer.toString()
+        override val journalpostId: JournalpostId? = null
+        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
+        override val behandlingstype = Behandlingstype.REVURDERING
+        override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
+    }
 }

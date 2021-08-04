@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.client.dkif.DkifClient
 import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordelingClient
 import no.nav.su.se.bakover.client.kafka.KafkaPublisherClient
-import no.nav.su.se.bakover.client.kafka.PdlHendelser.LeesahMqConsumerImpl
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.nais.LeaderPodLookupClient
 import no.nav.su.se.bakover.client.oppdrag.IbmMqPublisher
@@ -25,7 +24,6 @@ import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.JmsConfig
-import org.apache.kafka.clients.consumer.KafkaConsumer
 import java.time.Clock
 
 data class ProdClientsBuilder(
@@ -104,7 +102,6 @@ data class ProdClientsBuilder(
             digitalKontaktinformasjon = dkif,
             leaderPodLookup = LeaderPodLookupClient(applicationConfig.leaderPodLookupPath),
             kafkaPublisher = KafkaPublisherClient(applicationConfig.kafkaConfig.producerCfg),
-            leesahMqConsumer = LeesahMqConsumerImpl("aapen-person-pdl-leesah-v1", KafkaConsumer(applicationConfig.kafkaConfig.consumerCfg.kafkaConfig))
         )
     }
 }
