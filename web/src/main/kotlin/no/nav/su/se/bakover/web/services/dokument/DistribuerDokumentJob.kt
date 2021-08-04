@@ -26,7 +26,7 @@ class DistribuerDokumentJob(
     private val periode = Duration.of(1, ChronoUnit.MINUTES).toMillis()
 
     fun schedule() {
-        log.info("Starter skeduleringsjobb '$jobName' med intervall: $periode ms")
+        log.info("Starter skeduleringsjobb '$jobName' med intervall: $periode ms. Mitt hostnavn er $hostName. Jeg er ${if (isLeaderPod()) "" else "ikke "}leder.")
 
         fixedRateTimer(
             name = jobName,
@@ -86,5 +86,6 @@ class DistribuerDokumentJob(
         this.filterIsInstance<Either.Left<Distribusjonsresultat.Feil>>()
             .map { it.value }
 
-    private fun isLeaderPod() = leaderPodLookup.amITheLeader(InetAddress.getLocalHost().hostName).isRight()
+    private val hostName = InetAddress.getLocalHost().hostName
+    private fun isLeaderPod() = leaderPodLookup.amITheLeader(hostName).isRight()
 }
