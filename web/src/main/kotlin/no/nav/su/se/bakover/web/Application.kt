@@ -54,6 +54,7 @@ import no.nav.su.se.bakover.web.features.SuUserFeature
 import no.nav.su.se.bakover.web.features.SuUserFeaturefeil
 import no.nav.su.se.bakover.web.features.withUser
 import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
+import no.nav.su.se.bakover.web.metrics.DbMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.metrics.SøknadMicrometerMetrics
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
@@ -72,6 +73,7 @@ import no.nav.su.se.bakover.web.routes.toggleRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.gjenoppta.gjenopptaUtbetalingRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.stans.stansutbetalingRoutes
 import no.nav.su.se.bakover.web.services.avstemming.AvstemmingJob
+import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringIbmMqConsumer
@@ -93,7 +95,10 @@ internal fun Application.susebakover(
     søknadMetrics: SøknadMetrics = SøknadMicrometerMetrics(),
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
     unleash: Unleash = UnleashBuilder.build(applicationConfig),
-    databaseRepos: DatabaseRepos = DatabaseBuilder.build(applicationConfig.database),
+    databaseRepos: DatabaseRepos = DatabaseBuilder.build(
+        databaseConfig = applicationConfig.database,
+        dbMetrics = DbMicrometerMetrics(),
+    ),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
     clients: Clients =
         if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais)
@@ -259,8 +264,18 @@ internal fun Application.susebakover(
             avstemmingService = services.avstemming,
             leaderPodLookup = clients.leaderPodLookup,
         ).schedule()
+
+        DistribuerDokumentJob(
+            brevService = services.brev,
+            leaderPodLookup = clients.leaderPodLookup,
+        ).schedule()
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         LokalKvitteringJob(databaseRepos.utbetaling, utbetalingKvitteringConsumer).schedule()
+
+        DistribuerDokumentJob(
+            brevService = services.brev,
+            leaderPodLookup = clients.leaderPodLookup,
+        ).schedule()
     }
 }
 

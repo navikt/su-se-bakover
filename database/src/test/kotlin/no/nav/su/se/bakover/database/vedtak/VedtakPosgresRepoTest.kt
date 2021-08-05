@@ -1,17 +1,21 @@
 package no.nav.su.se.bakover.database.vedtak
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.attestant
+import no.nav.su.se.bakover.database.beregning
 import no.nav.su.se.bakover.database.fixedClock
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -90,14 +94,13 @@ internal class VedtakPosgresRepoTest {
                 beregning = søknadsbehandlingVedtak.beregning,
                 simulering = søknadsbehandlingVedtak.simulering,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
-                attestering = Attestering.Iverksatt(søknadsbehandlingVedtak.attestant),
+                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(søknadsbehandlingVedtak.attestant, Tidspunkt.now())),
                 fritekstTilBrev = "",
                 revurderingsårsak = Revurderingsårsak(
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
                 ),
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
                 vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             )
@@ -235,12 +238,12 @@ internal class VedtakPosgresRepoTest {
             val nyRevurdering = testDataHelper.nyRevurdering(søknadsbehandlingVedtak, søknadsbehandlingVedtak.periode)
             val attestertRevurdering = RevurderingTilAttestering.IngenEndring(
                 id = nyRevurdering.id,
-                periode = søknadsbehandlingVedtak.periode,
+                periode = nyRevurdering.periode,
                 opprettet = nyRevurdering.opprettet,
                 tilRevurdering = søknadsbehandlingVedtak,
-                saksbehandler = søknadsbehandlingVedtak.saksbehandler,
+                saksbehandler = nyRevurdering.saksbehandler,
                 oppgaveId = OppgaveId(""),
-                beregning = søknadsbehandlingVedtak.beregning,
+                beregning = beregning(nyRevurdering.periode),
                 fritekstTilBrev = "",
                 revurderingsårsak = Revurderingsårsak(
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
@@ -248,21 +251,21 @@ internal class VedtakPosgresRepoTest {
                 ),
                 skalFøreTilBrevutsending = true,
                 forhåndsvarsel = null,
-                behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
-                grunnlagsdata = søknadsbehandlingVedtak.behandling.grunnlagsdata,
-                vilkårsvurderinger = søknadsbehandlingVedtak.behandling.vilkårsvurderinger,
+                grunnlagsdata = nyRevurdering.grunnlagsdata,
+                vilkårsvurderinger = nyRevurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+                attesteringer = Attesteringshistorikk.empty()
             )
             testDataHelper.revurderingRepo.lagre(attestertRevurdering)
             val iverksattRevurdering = IverksattRevurdering.IngenEndring(
                 id = nyRevurdering.id,
-                periode = søknadsbehandlingVedtak.periode,
+                periode = nyRevurdering.periode,
                 opprettet = nyRevurdering.opprettet,
                 tilRevurdering = søknadsbehandlingVedtak,
-                saksbehandler = søknadsbehandlingVedtak.saksbehandler,
+                saksbehandler = nyRevurdering.saksbehandler,
                 oppgaveId = OppgaveId(""),
-                beregning = søknadsbehandlingVedtak.beregning,
-                attestering = Attestering.Iverksatt(søknadsbehandlingVedtak.attestant),
+                beregning = beregning(nyRevurdering.periode),
+                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
                 fritekstTilBrev = "",
                 revurderingsårsak = Revurderingsårsak(
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
@@ -270,9 +273,8 @@ internal class VedtakPosgresRepoTest {
                 ),
                 skalFøreTilBrevutsending = true,
                 forhåndsvarsel = null,
-                behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
-                grunnlagsdata = Grunnlagsdata.EMPTY,
-                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+                grunnlagsdata = nyRevurdering.grunnlagsdata,
+                vilkårsvurderinger = nyRevurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
@@ -280,11 +282,7 @@ internal class VedtakPosgresRepoTest {
             val revurderingVedtak = Vedtak.from(iverksattRevurdering, fixedClock)
 
             vedtakRepo.lagre(revurderingVedtak)
-            testDataHelper.lagreVilkårOgGrunnlag(
-                revurderingVedtak.id,
-                iverksattRevurdering.vilkårsvurderinger,
-                iverksattRevurdering.grunnlagsdata,
-            )
+
             datasource.withSession {
                 vedtakRepo.hent(revurderingVedtak.id, it) shouldBe revurderingVedtak
             }

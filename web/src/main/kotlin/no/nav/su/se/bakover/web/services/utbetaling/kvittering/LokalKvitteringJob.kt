@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.services.utbetaling.kvittering
 
+import arrow.core.Either
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import org.slf4j.LoggerFactory
@@ -19,14 +20,19 @@ class LokalKvitteringJob(
     fun schedule() {
         val delayISekunder = 10L
         log.error("Lokal jobb: Startet skedulert jobb for kvitteringer og ferdigstillelse av innvilgelser som kjører hvert $delayISekunder sekund")
+        val jobName = "local-ferdigstill-utbetaling"
         fixedRateTimer(
-            name = "local-ferdigstill-utbetaling",
+            name = jobName,
             daemon = true,
             period = 1000L * delayISekunder
         ) {
-            utbetalingRepo.hentUkvitterteUtbetalinger().forEach {
-                log.error("Lokal jobb: Persisterer kvittering og ferdigstiller innvilget behandling for utbetaling ${it.id}")
-                utbetalingKvitteringConsumer.onMessage(kvitteringXml(it))
+            Either.catch {
+                utbetalingRepo.hentUkvitterteUtbetalinger().forEach {
+                    log.error("Lokal jobb: Persisterer kvittering og ferdigstiller innvilget behandling for utbetaling ${it.id}")
+                    utbetalingKvitteringConsumer.onMessage(kvitteringXml(it))
+                }
+            }.mapLeft {
+                log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)
             }
         }
     }

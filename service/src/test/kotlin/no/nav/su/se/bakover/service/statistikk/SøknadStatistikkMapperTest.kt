@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.Test
@@ -81,8 +80,6 @@ internal class SøknadStatistikkMapperTest {
             lukketTidspunkt = Tidspunkt.now(fixedClock),
             lukketAv = NavIdentBruker.Saksbehandler(navIdent = "Mr Lukker"),
             lukketType = Søknad.Lukket.LukketType.AVVIST,
-            lukketJournalpostId = JournalpostId("journalpostid"),
-            lukketBrevbestillingId = BrevbestillingId("brevbestillingid"),
         )
 
         SøknadStatistikkMapper(fixedClock).map(søknad, saksnummer, Statistikk.Behandling.SøknadStatus.SØKNAD_LUKKET) shouldBe Statistikk.Behandling(

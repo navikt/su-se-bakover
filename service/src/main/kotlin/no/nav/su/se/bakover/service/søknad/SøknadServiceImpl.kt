@@ -174,12 +174,12 @@ internal class SøknadServiceImpl(
         log.info("Ny søknad: Generert PDF ok.")
 
         val journalpostId = dokArkiv.opprettJournalpost(
-            Journalpost.Søknadspost(
+            Journalpost.Søknadspost.from(
                 søknadInnhold = søknad.søknadInnhold,
                 pdf = pdfByteArray,
                 saksnummer = saksnummer,
-                person = person
-            )
+                person = person,
+            ),
         ).getOrHandle {
             log.error("Ny søknad: Kunne ikke opprette journalpost. Originalfeil: $it")
             return KunneIkkeOppretteJournalpost(søknad.sakId, søknad.id, "Kunne ikke opprette journalpost").left()

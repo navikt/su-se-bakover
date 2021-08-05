@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
@@ -66,6 +67,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.EMPTY,
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+        attesteringer = Attesteringshistorikk.empty()
     )
 
     @Test
@@ -106,6 +108,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             stønadsperiode = opprettetBehandling.stønadsperiode!!,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            attesteringer = Attesteringshistorikk.empty()
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -147,6 +150,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             stønadsperiode = opprettetBehandling.stønadsperiode!!,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            attesteringer = Attesteringshistorikk.empty()
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -187,7 +191,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             beregning = testBeregning,
             simulering = simulering,
             saksbehandler = saksbehandler,
-            attestering = Attestering.Iverksatt(attestant),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
             fritekstTilBrev = "",
             stønadsperiode = opprettetBehandling.stønadsperiode!!,
             grunnlagsdata = Grunnlagsdata.EMPTY,

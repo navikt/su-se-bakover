@@ -19,15 +19,14 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
@@ -53,7 +52,6 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.stønadsper
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.søknadsbehandlingsvedtakIverksattInnvilget
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
-import no.nav.su.se.bakover.test.behandlingsinformasjonAlleVilkårInnvilget
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
@@ -188,10 +186,7 @@ internal class OppdaterRevurderingServiceTest {
     fun `Kan ikke oppdatere sendt forhåndsvarslet revurdering`() {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering.copy(
-                forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt(
-                    journalpostId = JournalpostId("journalpostId"),
-                    brevbestillingId = BrevbestillingId("brevbestillingId"),
-                ),
+                forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt,
             )
         }
         val mocks = RevurderingServiceMocks(revurderingRepo = revurderingRepoMock)
@@ -215,10 +210,8 @@ internal class OppdaterRevurderingServiceTest {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering.copy(
                 forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
-                    journalpostId = JournalpostId("journalpostId"),
-                    brevbestillingId = BrevbestillingId("brevbestillingId"),
-                    begrunnelse = "besluttetForhåndsvarslingBegrunnelse",
                     valg = BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
+                    begrunnelse = "besluttetForhåndsvarslingBegrunnelse",
                 ),
             )
         }
@@ -262,10 +255,12 @@ internal class OppdaterRevurderingServiceTest {
                     fritekstTilBrev = it.fritekstTilBrev,
                     revurderingsårsak = it.revurderingsårsak,
                     beregning = mock(),
-                    attestering = Attestering.Iverksatt(
-                        attestant = NavIdentBruker.Attestant("navIdent"),
+                    attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(
+                        Attestering.Iverksatt(
+                            attestant = NavIdentBruker.Attestant("navIdent"),
+                            opprettet = fixedTidspunkt,
+                        ),
                     ),
-                    behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
                     simulering = mock(),
                     forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                     grunnlagsdata = Grunnlagsdata(
@@ -360,7 +355,6 @@ internal class OppdaterRevurderingServiceTest {
                 begrunnelse = Revurderingsårsak.Begrunnelse.create("bør bli oppdatert"),
             )
             oppdatertRevurdering.forhåndsvarsel shouldBe null
-            oppdatertRevurdering.behandlingsinformasjon shouldBe tilRevurderingInnvilget.behandlingsinformasjon
             oppdatertRevurdering.vilkårsvurderinger.uføre.grunnlag.let {
                 it shouldHaveSize 1
                 it[0].ekvivalentMed(tilRevurderingInnvilget.behandling.vilkårsvurderinger.uføre.grunnlag.first())
@@ -588,8 +582,7 @@ internal class OppdaterRevurderingServiceTest {
         val revurderingBeregning = lagBeregning(revurderingsperiode)
 
         val revurdering = mock<IverksattRevurdering.Innvilget> {
-            on { attestering } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("attestantSomIverksatte"))
-            on { behandlingsinformasjon } doReturn mock()
+            on { attestering } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("attestantSomIverksatte"), fixedTidspunkt)
 
             on { periode } doReturn revurderingsperiode
             on { beregning } doReturn revurderingBeregning
@@ -671,8 +664,7 @@ internal class OppdaterRevurderingServiceTest {
         val revurderingBeregning = lagBeregning(revurderingsperiode)
 
         val revurdering = mock<IverksattRevurdering.Innvilget> {
-            on { attestering } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("attestantSomIverksatte"))
-            on { behandlingsinformasjon } doReturn mock()
+            on { attestering } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("attestantSomIverksatte"), fixedTidspunkt)
 
             on { periode } doReturn revurderingsperiode
             on { beregning } doReturn revurderingBeregning

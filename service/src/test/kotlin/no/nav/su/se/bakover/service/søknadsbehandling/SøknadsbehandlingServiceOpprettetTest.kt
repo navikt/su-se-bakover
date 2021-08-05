@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -74,8 +75,6 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             lukketTidspunkt = Tidspunkt.now(),
             lukketAv = NavIdentBruker.Saksbehandler("sas"),
             lukketType = Søknad.Lukket.LukketType.BORTFALT,
-            lukketJournalpostId = null,
-            lukketBrevbestillingId = null,
         )
 
         val søknadServiceMock = mock<SøknadService> {
@@ -192,6 +191,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            attesteringer = Attesteringshistorikk.empty()
         )
         val søknadService: SøknadService = mock {
             on { hentSøknad(any()) } doReturn søknad.right()

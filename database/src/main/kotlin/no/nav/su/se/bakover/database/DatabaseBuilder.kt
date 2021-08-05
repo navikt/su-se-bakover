@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.RotatingCred
 import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.StaticCredentials
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
+import no.nav.su.se.bakover.database.dokument.DokumentPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingRepo
@@ -33,10 +34,14 @@ import no.nav.su.se.bakover.database.vedtak.VedtakPosgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotRepo
+import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import javax.sql.DataSource
 
 object DatabaseBuilder {
-    fun build(databaseConfig: ApplicationConfig.DatabaseConfig): DatabaseRepos {
+    fun build(
+        databaseConfig: ApplicationConfig.DatabaseConfig,
+        dbMetrics: DbMetrics,
+    ): DatabaseRepos {
         val abstractDatasource = Postgres(databaseConfig = databaseConfig).build()
 
         val dataSource = abstractDatasource.getDatasource(Postgres.Role.Admin)
@@ -53,19 +58,31 @@ object DatabaseBuilder {
         }.migrate()
 
         val userDatastore = abstractDatasource.getDatasource(Postgres.Role.User)
-        return buildInternal(userDatastore)
+        return buildInternal(userDatastore, dbMetrics)
     }
 
-    fun build(embeddedDatasource: DataSource): DatabaseRepos {
+    fun build(
+        embeddedDatasource: DataSource,
+        dbMetrics: DbMetrics,
+    ): DatabaseRepos {
         // I testene ønsker vi ikke noe herjing med rolle; embedded-oppsettet sørger for at vi har riktige tilganger her.
         Flyway(embeddedDatasource).migrate()
-        return buildInternal(embeddedDatasource)
+        return buildInternal(embeddedDatasource, dbMetrics)
     }
 
-    private fun buildInternal(dataSource: DataSource): DatabaseRepos {
+    private fun buildInternal(
+        dataSource: DataSource,
+        dbMetrics: DbMetrics,
+    ): DatabaseRepos {
         val uføregrunnlagRepo = UføregrunnlagPostgresRepo()
-        val fradragsgrunnlag = FradragsgrunnlagPostgresRepo(dataSource)
-        val bosituasjongrunnlag = BosituasjongrunnlagPostgresRepo(dataSource)
+        val fradragsgrunnlag = FradragsgrunnlagPostgresRepo(
+            dataSource = dataSource,
+            dbMetrics = dbMetrics,
+        )
+        val bosituasjongrunnlag = BosituasjongrunnlagPostgresRepo(
+            dataSource = dataSource,
+            dbMetrics = dbMetrics,
+        )
         val formuegrunnlagRepo = FormuegrunnlagPostgresRepo()
 
         val grunnlagRepo = GrunnlagPostgresRepo(
@@ -76,33 +93,62 @@ object DatabaseBuilder {
         val uføreVilkårsvurderingRepo = UføreVilkårsvurderingPostgresRepo(
             dataSource = dataSource,
             uføregrunnlagRepo = uføregrunnlagRepo,
+            dbMetrics = dbMetrics,
         )
 
         val formueVilkårsvurderingRepo = FormueVilkårsvurderingPostgresRepo(
             dataSource = dataSource,
             formuegrunnlagPostgresRepo = formuegrunnlagRepo,
+            dbMetrics = dbMetrics,
         )
 
-        val saksbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource, uføregrunnlagRepo, fradragsgrunnlag, bosituasjongrunnlag, uføreVilkårsvurderingRepo)
+        val saksbehandlingRepo = SøknadsbehandlingPostgresRepo(
+            dataSource = dataSource,
+            uføregrunnlagRepo = uføregrunnlagRepo,
+            fradragsgrunnlagPostgresRepo = fradragsgrunnlag,
+            bosituasjongrunnlagRepo = bosituasjongrunnlag,
+            uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
+            dbMetrics = dbMetrics,
+        )
 
         val revurderingRepo = RevurderingPostgresRepo(
-            dataSource,
-            uføregrunnlagRepo,
-            fradragsgrunnlag,
-            bosituasjongrunnlag,
-            uføreVilkårsvurderingRepo,
-            formueVilkårsvurderingRepo,
-            saksbehandlingRepo,
+            dataSource = dataSource,
+            fradragsgrunnlagPostgresRepo = fradragsgrunnlag,
+            bosituasjonsgrunnlagPostgresRepo = bosituasjongrunnlag,
+            uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
+            formueVilkårsvurderingRepo = formueVilkårsvurderingRepo,
+            søknadsbehandlingRepo = saksbehandlingRepo,
+            dbMetrics = dbMetrics,
         )
-        val vedtakRepo = VedtakPosgresRepo(dataSource, saksbehandlingRepo, revurderingRepo)
+        val vedtakRepo = VedtakPosgresRepo(
+            dataSource = dataSource,
+            søknadsbehandlingRepo = saksbehandlingRepo,
+            revurderingRepo = revurderingRepo,
+            dbMetrics = dbMetrics,
+        )
 
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(dataSource),
-            utbetaling = UtbetalingPostgresRepo(dataSource),
-            søknad = SøknadPostgresRepo(dataSource),
+            utbetaling = UtbetalingPostgresRepo(
+                dataSource = dataSource,
+                dbMetrics = dbMetrics,
+            ),
+            søknad = SøknadPostgresRepo(
+                dataSource = dataSource,
+                dbMetrics = dbMetrics,
+            ),
             hendelseslogg = HendelsesloggPostgresRepo(dataSource),
-            sak = SakPostgresRepo(dataSource, saksbehandlingRepo, revurderingRepo, vedtakRepo),
-            person = PersonPostgresRepo(dataSource),
+            sak = SakPostgresRepo(
+                dataSource = dataSource,
+                søknadsbehandlingRepo = saksbehandlingRepo,
+                revurderingRepo = revurderingRepo,
+                vedtakPosgresRepo = vedtakRepo,
+                dbMetrics = dbMetrics,
+            ),
+            person = PersonPostgresRepo(
+                dataSource = dataSource,
+                dbMetrics = dbMetrics,
+            ),
             vedtakssnapshot = VedtakssnapshotPostgresRepo(dataSource),
             søknadsbehandling = saksbehandlingRepo,
             revurderingRepo = revurderingRepo,
@@ -110,6 +156,7 @@ object DatabaseBuilder {
             grunnlagRepo = grunnlagRepo,
             uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
             formueVilkårsvurderingRepo = formueVilkårsvurderingRepo,
+            dokumentRepo = DokumentPostgresRepo(dataSource),
         )
     }
 }
@@ -128,4 +175,5 @@ data class DatabaseRepos(
     val grunnlagRepo: GrunnlagRepo,
     val uføreVilkårsvurderingRepo: UføreVilkårsvurderingRepo,
     val formueVilkårsvurderingRepo: FormueVilkårsvurderingRepo,
+    val dokumentRepo: DokumentRepo,
 )

@@ -46,7 +46,7 @@ internal fun Route.LeggTilBosituasjonRevurderingRoute(
                             call.svar(
                                 Resultat.json(
                                     HttpStatusCode.OK,
-                                    serialize(it.revurdering.toJson()),
+                                    serialize(it.toJson()),
                                 ),
                             )
                         }.mapLeft {
@@ -72,5 +72,9 @@ private fun KunneIkkeLeggeTilBosituasjongrunnlag.tilResultat() = when (this) {
     KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData -> HttpStatusCode.BadRequest.errorJson(
         "ugyldig data",
         "ugyldig_data",
+    )
+    is KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand -> Revurderingsfeilresponser.ugyldigTilstand(
+        this.fra,
+        this.til,
     )
 }

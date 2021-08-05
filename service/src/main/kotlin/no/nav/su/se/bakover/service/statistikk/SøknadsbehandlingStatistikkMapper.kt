@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.service.statistikk
 
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.ForNav
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
@@ -14,7 +13,7 @@ internal class SøknadsbehandlingStatistikkMapper(
     fun map(søknadsbehandling: Søknadsbehandling): Statistikk.Behandling = Statistikk.Behandling(
         behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
         behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
-        funksjonellTid = FunksjonellTidMapper.map(søknadsbehandling),
+        funksjonellTid = Tidspunkt.now(clock), // Burde nok være tidspunktet når noe faktisk skjedde, typisk knyttet til en statusendring på behandlingen
         tekniskTid = Tidspunkt.now(clock),
         registrertDato = RegistrertDatoMapper.map(søknadsbehandling),
         mottattDato = søknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
@@ -34,7 +33,7 @@ internal class SøknadsbehandlingStatistikkMapper(
             is Søknadsbehandling.Iverksatt -> {
                 copy(
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
-                    beslutter = søknadsbehandling.attestering.attestant.navIdent,
+                    beslutter = søknadsbehandling.attesteringer.hentSisteAttestering().attestant.navIdent,
                     resultat = ResultatOgBegrunnelseMapper.map(søknadsbehandling).resultat,
                     resultatBegrunnelse = ResultatOgBegrunnelseMapper.map(søknadsbehandling).begrunnelse,
                     avsluttet = true,
@@ -48,7 +47,7 @@ internal class SøknadsbehandlingStatistikkMapper(
             is Søknadsbehandling.Underkjent -> {
                 copy(
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
-                    beslutter = søknadsbehandling.attestering.attestant.navIdent,
+                    beslutter = søknadsbehandling.attesteringer.hentSisteAttestering().attestant.navIdent,
                 )
             }
             else -> throw ManglendeStatistikkMappingException(this, søknadsbehandling::class.java)
@@ -111,28 +110,6 @@ internal class SøknadsbehandlingStatistikkMapper(
             is Søknadsbehandling.Iverksatt.Avslag -> {
                 ResultatOgBegrunnelse(avslått, søknadsbehandling.avslagsgrunner.joinToString(","))
             }
-            else -> throw ManglendeStatistikkMappingException(this, søknadsbehandling::class.java)
-        }
-    }
-
-    // TODO ai 08.03.2021: Se over dette igen, misstänker att det har blivit misstolkat
-    internal object FunksjonellTidMapper {
-        fun map(søknadsbehandling: Søknadsbehandling) = when (søknadsbehandling) {
-            is Søknadsbehandling.Vilkårsvurdert.Uavklart,
-            -> {
-                try {
-                    søknadsbehandling.periode.fraOgMed.startOfDay(zoneIdOslo)
-                } catch (ex: Søknadsbehandling.Vilkårsvurdert.StønadsperiodeIkkeDefinertException) {
-                    søknadsbehandling.opprettet
-                }
-            }
-            is Søknadsbehandling.Iverksatt.Avslag,
-            is Søknadsbehandling.Iverksatt.Innvilget,
-            is Søknadsbehandling.TilAttestering.Avslag,
-            is Søknadsbehandling.TilAttestering.Innvilget,
-            is Søknadsbehandling.Underkjent.Avslag,
-            is Søknadsbehandling.Underkjent.Innvilget,
-            -> søknadsbehandling.periode.fraOgMed.startOfDay(zoneIdOslo)
             else -> throw ManglendeStatistikkMappingException(this, søknadsbehandling::class.java)
         }
     }

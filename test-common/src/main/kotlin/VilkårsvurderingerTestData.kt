@@ -19,10 +19,12 @@ val uføregrunnlagId: UUID = UUID.randomUUID()
  * 0 forventet inntekt
  * */
 fun uføregrunnlagForventetInntekt0(
+    id: UUID = uføregrunnlagId,
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = periode2021,
 ): Grunnlag.Uføregrunnlag {
     return uføregrunnlagForventetInntekt(
+        id = id,
         opprettet = opprettet,
         periode = periode,
         forventetInntekt = 0,
@@ -34,10 +36,12 @@ fun uføregrunnlagForventetInntekt0(
  * 12000 forventet inntekt per år / 1000 per måned
  * */
 fun uføregrunnlagForventetInntekt12000(
+    id: UUID = uføregrunnlagId,
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = periode2021,
 ): Grunnlag.Uføregrunnlag {
     return uføregrunnlagForventetInntekt(
+        id = id,
         opprettet = opprettet,
         periode = periode,
         forventetInntekt = 12000,
@@ -46,15 +50,32 @@ fun uføregrunnlagForventetInntekt12000(
 
 /** 100% uføregrad */
 fun uføregrunnlagForventetInntekt(
+    id: UUID = uføregrunnlagId,
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = periode2021,
     forventetInntekt: Int,
 ): Grunnlag.Uføregrunnlag {
     return Grunnlag.Uføregrunnlag(
-        id = uføregrunnlagId,
+        id = id,
         opprettet = opprettet,
         periode = periode,
         uføregrad = Uføregrad.parse(100),
+        forventetInntekt = forventetInntekt,
+    )
+}
+
+fun uføregrunnlag(
+    id: UUID = uføregrunnlagId,
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = periode2021,
+    forventetInntekt: Int = 0,
+    uføregrad: Uføregrad = Uføregrad.parse(100),
+): Grunnlag.Uføregrunnlag {
+    return Grunnlag.Uføregrunnlag(
+        id = id,
+        opprettet = opprettet,
+        periode = periode,
+        uføregrad = uføregrad,
         forventetInntekt = forventetInntekt,
     )
 }
@@ -71,7 +92,7 @@ fun innvilgetUførevilkårForventetInntekt0(
                 id = uførevilkårId,
                 opprettet = opprettet,
                 resultat = Resultat.Innvilget,
-                grunnlag = uføregrunnlagForventetInntekt0(opprettet, periode),
+                grunnlag = uføregrunnlagForventetInntekt0(opprettet = opprettet, periode = periode),
                 periode = periode,
                 begrunnelse = "innvilgetUførevilkårForventetInntekt0",
             ),
@@ -89,9 +110,38 @@ fun innvilgetUførevilkårForventetInntekt12000(
                 id = uførevilkårId,
                 opprettet = opprettet,
                 resultat = Resultat.Innvilget,
-                grunnlag = uføregrunnlagForventetInntekt12000(opprettet, periode),
+                grunnlag = uføregrunnlagForventetInntekt12000(opprettet = opprettet, periode = periode),
                 periode = periode,
                 begrunnelse = "innvilgetUførevilkårForventetInntekt12000",
+            ),
+        ),
+    )
+}
+
+fun innvilgetUførevilkår(
+    vurderingsperiodeId: UUID = uførevilkårId,
+    grunnlagsId: UUID = uføregrunnlagId,
+    opprettet: Tidspunkt = fixedTidspunkt,
+    periode: Periode = periode2021,
+    begrunnelse: String? = "innvilgetUførevilkårForventetInntekt0",
+    forventetInntekt: Int = 0,
+    uføregrad: Uføregrad = Uføregrad.parse(100),
+): Vilkår.Uførhet.Vurdert {
+    return Vilkår.Uførhet.Vurdert.create(
+        vurderingsperioder = nonEmptyListOf(
+            Vurderingsperiode.Uføre.create(
+                id = vurderingsperiodeId,
+                opprettet = opprettet,
+                resultat = Resultat.Innvilget,
+                grunnlag = uføregrunnlag(
+                    id = grunnlagsId,
+                    opprettet = opprettet,
+                    periode = periode,
+                    forventetInntekt = forventetInntekt,
+                    uføregrad = uføregrad,
+                ),
+                periode = periode,
+                begrunnelse = begrunnelse,
             ),
         ),
     )

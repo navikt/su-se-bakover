@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.sak
 
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.behandling.ÅpenBehandling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingJson
@@ -61,25 +60,5 @@ internal data class SakJson(
             revurderinger = revurderinger.map { it.toJson() },
             vedtak = vedtakListe.map { it.toJson() },
         )
-    }
-}
-
-internal data class ÅpenBehandlingJson(
-    val saksnummer: String,
-    val behandlingId: String,
-    val typeBehandling: String,
-    val status: String,
-    val opprettet: String,
-) {
-    companion object {
-        fun List<ÅpenBehandling>.toJson() = this.map {
-            ÅpenBehandlingJson(
-                saksnummer = it.saksnummer.toString(),
-                behandlingId = it.behandlingsId.toString(),
-                typeBehandling = it.åpenBehandlingType.toString(),
-                status = it.status.toString(),
-                opprettet = it.opprettet.toString(),
-            )
-        }
     }
 }

@@ -97,7 +97,7 @@ internal sealed class VedtakssnapshotJson {
                     fnr = fnr.toString(),
                     status = status.toString(),
                     saksbehandler = saksbehandler.toString(),
-                    attestering = attestering,
+                    attestering = attesteringer.hentSisteAttestering(),
                     oppgaveId = oppgaveId.toString(),
                     // TODO jah: Denne vil alltid være null for innvilgelse siden vi ikke gjør dette før vi får kvitteringen
                     iverksattJournalpostId = journalføringOgBrevdistribusjon.journalpostId()?.toString(),
@@ -123,7 +123,7 @@ internal sealed class VedtakssnapshotJson {
                     fnr = fnr.toString(),
                     status = status.toString(),
                     saksbehandler = saksbehandler.toString(),
-                    attestering = attestering,
+                    attestering = attesteringer.hentSisteAttestering(),
                     oppgaveId = oppgaveId.toString(),
                     iverksattJournalpostId = journalføringOgBrevdistribusjon.journalpostId()?.toString(),
                     iverksattBrevbestillingId = (journalføringOgBrevdistribusjon as? JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev)?.brevbestillingId?.toString(),

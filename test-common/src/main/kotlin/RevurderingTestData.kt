@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -43,7 +43,7 @@ val revurderingsårsak =
 
 /**
  * En revurdering i sin tidligste tilstand der den er basert på et innvilget søknadsbehandlingsvedtak
- * Arver behandlingsinformasjon/grunnlagsdata/vilkårsvurderinger med samme periode som stønadsperioden - TODO jah: Støtte truncating (bruk en domeneklasse/factory til dette)
+ * Arver grunnlagsdata/vilkårsvurderinger med samme periode som stønadsperioden - TODO jah: Støtte truncating (bruk en domeneklasse/factory til dette)
  *
  * Defaults:
  * - jan til des 2021
@@ -63,7 +63,6 @@ fun opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
     // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
     grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
     vilkårsvurderinger: Vilkårsvurderinger = tilRevurdering.behandling.vilkårsvurderinger,
-    behandlingsinformasjon: Behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
 ): OpprettetRevurdering {
     require(stønadsperiode.periode == revurderingsperiode && revurderingsperiode == tilRevurdering.periode) {
         "En foreløpig begrensning for å bruke testfunksjonen opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak er at stønadsperiode == revurderingsperiode. stønadsperiode=${stønadsperiode.periode}, Revurderingsperiode=$revurderingsperiode, tilRevurdering's periode=${tilRevurdering.periode}"
@@ -77,11 +76,11 @@ fun opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
         oppgaveId = oppgaveIdRevurdering,
         fritekstTilBrev = "",
         revurderingsårsak = revurderingsårsak,
-        behandlingsinformasjon = behandlingsinformasjon,
         forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         informasjonSomRevurderes = informasjonSomRevurderes,
+        attesteringer = Attesteringshistorikk.empty()
     )
 }
 
@@ -100,7 +99,6 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
     grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
     vilkårsvurderinger: Vilkårsvurderinger = tilRevurdering.behandling.vilkårsvurderinger,
-    behandlingsinformasjon: Behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
 ): BeregnetRevurdering.Innvilget {
 
@@ -116,7 +114,6 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         tilRevurdering = tilRevurdering,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
-        behandlingsinformasjon = behandlingsinformasjon,
     ).beregn(eksisterendeUtbetalinger).orNull() as BeregnetRevurdering.Innvilget
 }
 
@@ -140,7 +137,6 @@ fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         periode = stønadsperiode.periode,
         bosituasjon = tilRevurdering.behandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
     ),
-    behandlingsinformasjon: Behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
 ): BeregnetRevurdering.Opphørt {
 
@@ -156,7 +152,6 @@ fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         tilRevurdering = tilRevurdering,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
-        behandlingsinformasjon = behandlingsinformasjon,
     ).beregn(eksisterendeUtbetalinger).getOrHandle { throw IllegalStateException("Kunne ikke instansiere testdata. Underliggende feil: $it") } as BeregnetRevurdering.Opphørt
 }
 
@@ -175,7 +170,6 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
     grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
     vilkårsvurderinger: Vilkårsvurderinger = tilRevurdering.behandling.vilkårsvurderinger,
-    behandlingsinformasjon: Behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
 ): SimulertRevurdering.Innvilget {
 
@@ -191,7 +185,6 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         tilRevurdering = tilRevurdering,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
-        behandlingsinformasjon = behandlingsinformasjon,
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
     ).let {
         it.toSimulert(
@@ -221,7 +214,6 @@ fun simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         periode = stønadsperiode.periode,
         bosituasjon = tilRevurdering.behandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
     ),
-    behandlingsinformasjon: Behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
     /** Krever minst en utbetaling som man kan opphøre*/
     eksisterendeUtbetalinger: NonEmptyList<Utbetaling> = nonEmptyListOf(
         oversendtUtbetalingUtenKvittering(
@@ -242,7 +234,6 @@ fun simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         tilRevurdering = tilRevurdering,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
-        behandlingsinformasjon = behandlingsinformasjon,
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
     ).let {
         it.toSimulert(
@@ -269,7 +260,6 @@ fun tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
     grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
     vilkårsvurderinger: Vilkårsvurderinger = tilRevurdering.behandling.vilkårsvurderinger,
-    behandlingsinformasjon: Behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler("Saksbehandler"),
@@ -284,7 +274,6 @@ fun tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         tilRevurdering = tilRevurdering,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
-        behandlingsinformasjon = behandlingsinformasjon,
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
     ).tilAttestering(
         attesteringsoppgaveId = attesteringsoppgaveId,
@@ -303,7 +292,6 @@ fun UnderkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak(
     // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
     grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
     vilkårsvurderinger: Vilkårsvurderinger = tilRevurdering.behandling.vilkårsvurderinger,
-    behandlingsinformasjon: Behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler("Saksbehandler"),
@@ -312,7 +300,8 @@ fun UnderkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak(
     attestering: Attestering.Underkjent = Attestering.Underkjent(
         attestant = NavIdentBruker.Attestant(navIdent = "attestant"),
         grunn = Attestering.Underkjent.Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT,
-        kommentar = "feil vilkår man"
+        kommentar = "feil vilkår man",
+        opprettet = fixedTidspunkt
     )
 ): UnderkjentRevurdering {
     return tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
@@ -323,7 +312,6 @@ fun UnderkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak(
         tilRevurdering = tilRevurdering,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
-        behandlingsinformasjon = behandlingsinformasjon,
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
         attesteringsoppgaveId = attesteringsoppgaveId,
         saksbehandler = saksbehandler,
@@ -344,7 +332,6 @@ fun IverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
     grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
     vilkårsvurderinger: Vilkårsvurderinger = tilRevurdering.behandling.vilkårsvurderinger,
-    behandlingsinformasjon: Behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler("Saksbehandler"),
@@ -361,7 +348,6 @@ fun IverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         tilRevurdering = tilRevurdering,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
-        behandlingsinformasjon = behandlingsinformasjon,
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
         attesteringsoppgaveId = attesteringsoppgaveId,
         saksbehandler = saksbehandler,

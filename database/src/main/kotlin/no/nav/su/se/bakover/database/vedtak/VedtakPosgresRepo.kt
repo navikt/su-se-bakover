@@ -5,6 +5,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
@@ -19,7 +20,7 @@ import no.nav.su.se.bakover.database.uuid30OrNull
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -45,10 +46,14 @@ internal class VedtakPosgresRepo(
     private val dataSource: DataSource,
     private val søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
     private val revurderingRepo: RevurderingPostgresRepo,
+    private val dbMetrics: DbMetrics,
 ) : VedtakRepo {
 
-    override fun hentForSakId(sakId: UUID): List<Vedtak> =
-        dataSource.withSession { session -> hentForSakId(sakId, session) }
+    override fun hentForSakId(sakId: UUID): List<Vedtak> {
+        return dbMetrics.timeQuery("hentVedtakForSakId") {
+            dataSource.withSession { session -> hentForSakId(sakId, session) }
+        }
+    }
 
     internal fun hentForSakId(sakId: UUID, session: Session): List<Vedtak> =
         """
@@ -137,7 +142,7 @@ internal class VedtakPosgresRepo(
             fraOgMed = localDate("fraOgMed"),
             tilOgMed = localDate("tilOgMed"),
         )
-        val behandling = when (val knytning = hentBehandlingVedtakKnytning(id, session)) {
+        val behandling: Behandling = when (val knytning = hentBehandlingVedtakKnytning(id, session)) {
             is BehandlingVedtakKnytning.ForSøknadsbehandling ->
                 søknadsbehandlingRepo.hent(knytning.søknadsbehandlingId, session)!!
             is BehandlingVedtakKnytning.ForRevurdering ->
@@ -148,7 +153,6 @@ internal class VedtakPosgresRepo(
 
         val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }!!
         val attestant = stringOrNull("attestant")?.let { NavIdentBruker.Attestant(it) }!!
-        val behandlingsinformasjon = objectMapper.readValue<Behandlingsinformasjon>(string("behandlingsinformasjon"))
         val utbetalingId = uuid30OrNull("utbetalingId")
         val beregning = stringOrNull("beregning")?.let { objectMapper.readValue<PersistertBeregning>(it) }
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
@@ -165,7 +169,6 @@ internal class VedtakPosgresRepo(
                     opprettet = opprettet,
                     periode = periode,
                     behandling = behandling,
-                    behandlingsinformasjon = behandlingsinformasjon,
                     beregning = beregning!!,
                     simulering = simulering!!,
                     saksbehandler = saksbehandler,
@@ -183,8 +186,8 @@ internal class VedtakPosgresRepo(
                     Vedtak.Avslag.AvslagBeregning(
                         id = id,
                         opprettet = opprettet,
-                        behandling = behandling,
-                        behandlingsinformasjon = behandlingsinformasjon,
+                        // AVSLAG gjelder kun for søknadsbehandling
+                        behandling = behandling as Søknadsbehandling,
                         beregning = beregning,
                         saksbehandler = saksbehandler,
                         attestant = attestant,
@@ -198,8 +201,8 @@ internal class VedtakPosgresRepo(
                     Vedtak.Avslag.AvslagVilkår(
                         id = id,
                         opprettet = opprettet,
-                        behandling = behandling,
-                        behandlingsinformasjon = behandlingsinformasjon,
+                        // AVSLAG gjelder kun for søknadsbehandling
+                        behandling = behandling as Søknadsbehandling,
                         saksbehandler = saksbehandler,
                         attestant = attestant,
                         journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
@@ -215,7 +218,6 @@ internal class VedtakPosgresRepo(
                 opprettet = opprettet,
                 periode = periode,
                 behandling = behandling,
-                behandlingsinformasjon = behandlingsinformasjon,
                 beregning = beregning!!,
                 saksbehandler = saksbehandler,
                 attestant = attestant,
@@ -237,7 +239,6 @@ internal class VedtakPosgresRepo(
                     tilOgMed,
                     saksbehandler,
                     attestant,
-                    behandlingsinformasjon,
                     utbetalingid,
                     simulering,
                     beregning,
@@ -251,7 +252,6 @@ internal class VedtakPosgresRepo(
                     :tilOgMed,
                     :saksbehandler,
                     :attestant,
-                    to_json(:behandlingsinformasjon::json),
                     :utbetalingid,
                     to_json(:simulering::json),
                     to_json(:beregning::json),
@@ -273,7 +273,6 @@ internal class VedtakPosgresRepo(
                         "utbetalingid" to vedtak.utbetalingId,
                         "simulering" to objectMapper.writeValueAsString(vedtak.simulering),
                         "beregning" to objectMapper.writeValueAsString(vedtak.beregning.toSnapshot()),
-                        "behandlingsinformasjon" to objectMapper.writeValueAsString(vedtak.behandlingsinformasjon),
                         "iverksattjournalpostId" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(
                             vedtak.journalføringOgBrevdistribusjon,
                         )?.toString(),
@@ -302,7 +301,6 @@ internal class VedtakPosgresRepo(
                     tilOgMed,
                     saksbehandler,
                     attestant,
-                    behandlingsinformasjon,
                     utbetalingid,
                     simulering,
                     beregning,
@@ -316,7 +314,6 @@ internal class VedtakPosgresRepo(
                     :tilOgMed,
                     :saksbehandler,
                     :attestant,
-                    to_json(:behandlingsinformasjon::json),
                     :utbetalingid,
                     to_json(:simulering::json),
                     to_json(:beregning::json),
@@ -336,7 +333,6 @@ internal class VedtakPosgresRepo(
                         "saksbehandler" to vedtak.saksbehandler,
                         "attestant" to vedtak.attestant,
                         "beregning" to beregning?.let { objectMapper.writeValueAsString(it.toSnapshot()) },
-                        "behandlingsinformasjon" to objectMapper.writeValueAsString(vedtak.behandlingsinformasjon),
                         "iverksattjournalpostId" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(
                             vedtak.journalføringOgBrevdistribusjon,
                         )?.toString(),
@@ -361,7 +357,6 @@ internal class VedtakPosgresRepo(
                     tilOgMed,
                     saksbehandler,
                     attestant,
-                    behandlingsinformasjon,
                     utbetalingid,
                     simulering,
                     beregning,
@@ -375,7 +370,6 @@ internal class VedtakPosgresRepo(
                     :tilOgMed,
                     :saksbehandler,
                     :attestant,
-                    to_json(:behandlingsinformasjon::json),
                     :utbetalingid,
                     to_json(:simulering::json),
                     to_json(:beregning::json),
@@ -397,7 +391,6 @@ internal class VedtakPosgresRepo(
                         "utbetalingid" to null,
                         "simulering" to null,
                         "beregning" to objectMapper.writeValueAsString(vedtak.beregning.toSnapshot()),
-                        "behandlingsinformasjon" to objectMapper.writeValueAsString(vedtak.behandlingsinformasjon),
                         "iverksattjournalpostId" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(
                             vedtak.journalføringOgBrevdistribusjon,
                         )?.toString(),
@@ -470,7 +463,7 @@ internal class VedtakPosgresRepo(
             )
     }
 
-    private fun hentBehandlingVedtakKnytning(vedtakId: UUID, session: Session) =
+    private fun hentBehandlingVedtakKnytning(vedtakId: UUID, session: Session): BehandlingVedtakKnytning? =
         """
             SELECT *
             FROM behandling_vedtak

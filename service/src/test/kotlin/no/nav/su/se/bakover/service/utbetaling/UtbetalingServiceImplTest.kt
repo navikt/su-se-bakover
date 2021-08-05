@@ -512,7 +512,7 @@ internal class UtbetalingServiceImplTest {
         }
 
         val simuleringClientMock = mock<SimuleringClient> {
-            on { simulerUtbetaling(any()) } doReturn simulering.copy(nettoBeløp = 1234).right()
+            on { simulerUtbetaling(any()) } doReturn simulering.copy(gjelderNavn = "Anne T. Navn").right()
         }
 
         val utbetalingRepoMock = mock<UtbetalingRepo>()

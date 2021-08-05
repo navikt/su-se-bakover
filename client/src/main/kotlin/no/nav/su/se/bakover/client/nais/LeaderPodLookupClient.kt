@@ -37,7 +37,7 @@ internal class LeaderPodLookupClient(
                     .mapLeft { LeaderPodLookupFeil.UkjentSvarFraLeaderElectorContainer }
             }
             .map { leaderName ->
-                log.info("Fant leder med navn '$leaderName'. Mitt hostname er '$localHostName'.")
+                log.debug("Fant leder med navn '$leaderName'. Mitt hostname er '$localHostName'.")
                 leaderName == localHostName
             }
     }

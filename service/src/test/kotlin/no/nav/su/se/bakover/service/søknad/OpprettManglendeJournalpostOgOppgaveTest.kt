@@ -379,13 +379,13 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             )
             verify(dokArkivMock).opprettJournalpost(
                 argThat {
-                    it shouldBe Journalpost.Søknadspost(
+                    it shouldBe Journalpost.Søknadspost.from(
                         person = person,
                         saksnummer = Saksnummer(2021),
                         søknadInnhold = søknadInnhold,
-                        pdf = pdf
+                        pdf = pdf,
                     )
-                }
+                },
             )
             verify(søknadRepoMock).oppdaterjournalpostId(argThat { journalførtSøknad.id })
             verify(søknadRepoMock).hentSøknaderMedJournalpostMenUtenOppgave()

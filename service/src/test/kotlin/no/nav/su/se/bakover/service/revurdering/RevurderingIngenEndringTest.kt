@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -80,7 +81,6 @@ class RevurderingIngenEndringTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -150,7 +150,6 @@ class RevurderingIngenEndringTest {
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
-                behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
                 forhåndsvarsel = null,
                 grunnlagsdata = opprettetRevurdering.grunnlagsdata,
                 vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
@@ -159,6 +158,7 @@ class RevurderingIngenEndringTest {
                         Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                     ),
                 ),
+                attesteringer = Attesteringshistorikk.empty(),
             ),
             // beregningstypen er internal i domene modulen
             BeregnetRevurdering.IngenEndring::beregning,
@@ -192,10 +192,10 @@ class RevurderingIngenEndringTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = vilkårsvurderingerMock,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            attesteringer = Attesteringshistorikk.empty(),
         )
         val endretSaksbehandler = NavIdentBruker.Saksbehandler("endretSaksbehandler")
         val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
@@ -210,10 +210,10 @@ class RevurderingIngenEndringTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             skalFøreTilBrevutsending = true,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = vilkårsvurderingerMock,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            attesteringer = Attesteringshistorikk.empty(),
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn beregnetRevurdering
@@ -291,10 +291,10 @@ class RevurderingIngenEndringTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             skalFøreTilBrevutsending = false,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            attesteringer = Attesteringshistorikk.empty(),
         )
         val underkjentRevurdering = UnderkjentRevurdering.IngenEndring(
             id = revurderingId,
@@ -307,9 +307,8 @@ class RevurderingIngenEndringTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            attestering = attesteringUnderkjent,
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attesteringUnderkjent),
             skalFøreTilBrevutsending = false,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -385,13 +384,13 @@ class RevurderingIngenEndringTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             skalFøreTilBrevutsending = true,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            attesteringer = Attesteringshistorikk.empty(),
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
-        val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant).orNull()!!
+        val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant, fixedClock).orNull()!!
         val vedtak = Vedtak.from(iverksattRevurdering, fixedClock)
         val journalførtVedtak = vedtak.journalfør { JournalpostId("journalført").right() }.orNull()!!
         val vedtakMedDistribuertBrev = journalførtVedtak.distribuerBrev { BrevbestillingId("bestiltBrev").right() }.orNull()!!
@@ -448,13 +447,13 @@ class RevurderingIngenEndringTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             skalFøreTilBrevutsending = false,
-            behandlingsinformasjon = søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            attesteringer = Attesteringshistorikk.empty(),
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
-        val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant).orNull()!!
+        val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant, fixedClock).orNull()!!
         val vedtak = Vedtak.from(iverksattRevurdering, fixedClock)
 
         val revurderingRepoMock = mock<RevurderingRepo> {

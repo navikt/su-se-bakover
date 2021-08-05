@@ -76,19 +76,19 @@ interface RevurderingService {
 
     fun leggTilUføregrunnlag(
         request: LeggTilUførevurderingerRequest,
-    ): Either<KunneIkkeLeggeTilGrunnlag, LeggTilUføregrunnlagResponse>
+    ): Either<KunneIkkeLeggeTilGrunnlag, OpprettetRevurdering>
 
     fun leggTilFradragsgrunnlag(
         request: LeggTilFradragsgrunnlagRequest,
-    ): Either<KunneIkkeLeggeTilFradragsgrunnlag, LeggTilFradragsgrunnlagResponse>
+    ): Either<KunneIkkeLeggeTilFradragsgrunnlag, OpprettetRevurdering>
 
     fun leggTilBosituasjongrunnlag(
         request: LeggTilBosituasjongrunnlagRequest,
-    ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, LeggTilBosituasjongrunnlagResponse>
+    ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, OpprettetRevurdering>
 
     fun leggTilFormuegrunnlag(
         request: LeggTilFormuegrunnlagRequest,
-    ): Either<KunneIkkeLeggeTilFormuegrunnlag, Revurdering>
+    ): Either<KunneIkkeLeggeTilFormuegrunnlag, OpprettetRevurdering>
 
     fun hentGjeldendeGrunnlagsdataOgVilkårsvurderinger(
         revurderingId: UUID,
@@ -190,7 +190,6 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
         KunneIkkeBeregneOgSimulereRevurdering()
 
-    object UfullstendigBehandlingsinformasjon : KunneIkkeBeregneOgSimulereRevurdering()
     data class UgyldigBeregningsgrunnlag(
         val reason: no.nav.su.se.bakover.domain.beregning.UgyldigBeregningsgrunnlag,
     ) : KunneIkkeBeregneOgSimulereRevurdering()
@@ -212,6 +211,7 @@ sealed class KunneIkkeForhåndsvarsle {
         KunneIkkeForhåndsvarsle()
 
     data class Attestering(val subError: KunneIkkeSendeRevurderingTilAttestering) : KunneIkkeForhåndsvarsle()
+    object KunneIkkeGenerereDokument : KunneIkkeForhåndsvarsle()
 }
 
 sealed class KunneIkkeSendeRevurderingTilAttestering {
@@ -224,7 +224,8 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
 
     object ManglerBeslutningPåForhåndsvarsel : KunneIkkeSendeRevurderingTilAttestering()
     object FeilutbetalingStøttesIkke : KunneIkkeSendeRevurderingTilAttestering()
-    data class RevurderingsutfallStøttesIkke(val feilmeldinger: List<RevurderingsutfallSomIkkeStøttes>) : KunneIkkeSendeRevurderingTilAttestering()
+    data class RevurderingsutfallStøttesIkke(val feilmeldinger: List<RevurderingsutfallSomIkkeStøttes>) :
+        KunneIkkeSendeRevurderingTilAttestering()
 }
 
 sealed class KunneIkkeIverksetteRevurdering {
@@ -261,21 +262,27 @@ sealed class KunneIkkeUnderkjenneRevurdering {
 
 sealed class KunneIkkeLeggeTilGrunnlag {
     object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
-    object UgyldigStatus : KunneIkkeLeggeTilGrunnlag()
     object UføregradOgForventetInntektMangler : KunneIkkeLeggeTilGrunnlag()
     object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilGrunnlag()
     object OverlappendeVurderingsperioder : KunneIkkeLeggeTilGrunnlag()
     object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilGrunnlag()
     object AlleVurderingeneMåHaSammeResultat : KunneIkkeLeggeTilGrunnlag()
     object HeleBehandlingsperiodenMåHaVurderinger : KunneIkkeLeggeTilGrunnlag()
+    data class UgyldigTilstand(
+        val fra: KClass<out Revurdering>,
+        val til: KClass<out Revurdering>,
+    ) : KunneIkkeLeggeTilGrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilFradragsgrunnlag {
     object FantIkkeBehandling : KunneIkkeLeggeTilFradragsgrunnlag()
-    object UgyldigStatus : KunneIkkeLeggeTilFradragsgrunnlag()
     object FradragsgrunnlagUtenforRevurderingsperiode : KunneIkkeLeggeTilFradragsgrunnlag()
     object UgyldigFradragstypeForGrunnlag : KunneIkkeLeggeTilFradragsgrunnlag()
     object HarIkkeEktelle : KunneIkkeLeggeTilFradragsgrunnlag()
+    data class UgyldigTilstand(
+        val fra: KClass<out Revurdering>,
+        val til: KClass<out Revurdering>,
+    ) : KunneIkkeLeggeTilFradragsgrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
@@ -283,6 +290,10 @@ sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
     object UgyldigData : KunneIkkeLeggeTilBosituasjongrunnlag()
     object KunneIkkeSlåOppEPS : KunneIkkeLeggeTilBosituasjongrunnlag()
     object EpsAlderErNull : KunneIkkeLeggeTilBosituasjongrunnlag()
+    data class UgyldigTilstand(
+        val fra: KClass<out Revurdering>,
+        val til: KClass<out Revurdering>,
+    ) : KunneIkkeLeggeTilBosituasjongrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilFormuegrunnlag {
@@ -301,24 +312,13 @@ sealed class KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {
     object FantIkkeBehandling : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
     object FantIkkeSak : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
     object FantIngentingSomKanRevurderes : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
-    data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
+    data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) :
+        KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
 }
 
 data class HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse(
     val grunnlagsdata: Grunnlagsdata,
     val vilkårsvurderinger: Vilkårsvurderinger,
-)
-
-data class LeggTilUføregrunnlagResponse(
-    val revurdering: Revurdering,
-)
-
-data class LeggTilFradragsgrunnlagResponse(
-    val revurdering: Revurdering,
-)
-
-data class LeggTilBosituasjongrunnlagResponse(
-    val revurdering: Revurdering,
 )
 
 data class LeggTilFradragsgrunnlagRequest(
@@ -339,6 +339,10 @@ data class LeggTilBosituasjongrunnlagRequest(
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
     ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, Grunnlag.Bosituasjon.Fullstendig> {
         val log = LoggerFactory.getLogger(this::class.java)
+
+        if ((epsFnr == null && delerBolig == null) || (epsFnr != null && delerBolig != null)) {
+            return KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData.left()
+        }
 
         if (epsFnr != null) {
             val eps = hentPerson(Fnr(epsFnr)).getOrHandle {

@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.slf4j.MDC
@@ -304,6 +305,12 @@ internal class PdlClientTest : WiremockBase {
                       "gyldigTilOgMed": null
                     }
                   ],
+                  "sivilstand": [
+                      {
+                      "type": "GIFT",
+                      "relatertVedSivilstand": "12345678901"
+                      }
+                  ],
                   "kjoenn": [
                     {
                       "kjoenn": "MANN"
@@ -369,6 +376,10 @@ internal class PdlClientTest : WiremockBase {
             adressebeskyttelse = null,
             vergemålEllerFremtidsfullmakt = false,
             fullmakt = false,
+            sivilstand = SivilstandResponse(
+                type = SivilstandTyper.GIFT,
+                relatertVedSivilstand = "12345678901",
+            ),
         ).right()
     }
 
@@ -444,6 +455,12 @@ internal class PdlClientTest : WiremockBase {
                       "gyldigTilOgMed": null
                     }
                   ],
+                  "sivilstand": [
+                      {
+                      "type": "GIFT",
+                      "relatertVedSivilstand": "12345678901"
+                      }
+                  ],
                   "kjoenn": [
                     {
                       "kjoenn": "MANN"
@@ -517,6 +534,10 @@ internal class PdlClientTest : WiremockBase {
             adressebeskyttelse = null,
             vergemålEllerFremtidsfullmakt = false,
             fullmakt = false,
+            sivilstand = SivilstandResponse(
+                type = SivilstandTyper.GIFT,
+                relatertVedSivilstand = "12345678901",
+            ),
         ).right()
     }
 
@@ -590,6 +611,12 @@ internal class PdlClientTest : WiremockBase {
                       "gyldigFraOgMed": null,
                       "gyldigTilOgMed": null
                     }
+                  ],
+                  "sivilstand": [
+                      {
+                      "type": "GIFT",
+                      "relatertVedSivilstand": "12345678901"
+                      }
                   ],
                   "kjoenn": [
                     {
@@ -672,6 +699,10 @@ internal class PdlClientTest : WiremockBase {
             adressebeskyttelse = null,
             vergemålEllerFremtidsfullmakt = false,
             fullmakt = false,
+            sivilstand = SivilstandResponse(
+                type = SivilstandTyper.GIFT,
+                relatertVedSivilstand = "12345678901",
+            ),
         ).right()
     }
 
@@ -700,7 +731,8 @@ internal class PdlClientTest : WiremockBase {
                   "foedsel": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
-                  "fullmakt": []
+                  "fullmakt": [],
+                  "sivilstand": []
                 },
                 "hentIdenter": {
                   "identer": [
@@ -744,6 +776,7 @@ internal class PdlClientTest : WiremockBase {
             adressebeskyttelse = null,
             vergemålEllerFremtidsfullmakt = false,
             fullmakt = false,
+            sivilstand = null,
         ).right()
     }
 
@@ -772,7 +805,8 @@ internal class PdlClientTest : WiremockBase {
                   "foedsel": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
-                  "fullmakt": []
+                  "fullmakt": [],
+                  "sivilstand": []
                 },
                 "hentIdenter": {
                   "identer": [
@@ -821,6 +855,7 @@ internal class PdlClientTest : WiremockBase {
             adressebeskyttelse = null,
             vergemålEllerFremtidsfullmakt = false,
             fullmakt = false,
+            sivilstand = null,
         ).right()
     }
 
@@ -843,7 +878,8 @@ internal class PdlClientTest : WiremockBase {
                   "foedsel": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
-                  "fullmakt": []
+                  "fullmakt": [],
+                  "sivilstand": []
                 },
                 "hentIdenter": {
                   "identer": [

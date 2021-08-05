@@ -55,7 +55,6 @@ class RevurderingBeregnOgSimulerTest {
             fritekstTilBrev = "",
             revurderingsårsak = RevurderingTestUtils.revurderingsårsak,
             forhåndsvarsel = null,
-            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingsvedtakIverksattInnvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 fradragsgrunnlag = listOf(
                     Grunnlag.Fradragsgrunnlag(

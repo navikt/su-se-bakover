@@ -15,8 +15,8 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.beregning.TestBeregning
-import no.nav.su.se.bakover.service.beregning.TestBeregningSomGirOpphør
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -110,7 +109,7 @@ internal class SøknadsbehandlingStatistikkMapperTest {
             resultatBegrunnelse = null,
             resultatBegrunnelseBeskrivelse = null,
             resultatBeskrivelse = null,
-            beslutter = iverksattSøknadsbehandling.attestering.attestant.navIdent,
+            beslutter = iverksattSøknadsbehandling.attesteringer.hentSisteAttestering().attestant.navIdent,
             saksbehandler = iverksattSøknadsbehandling.saksbehandler.navIdent,
             behandlingOpprettetAv = null,
             behandlingOpprettetType = null,
@@ -125,28 +124,6 @@ internal class SøknadsbehandlingStatistikkMapperTest {
     fun `mapper ikke ukjente typer`() {
         assertThrows<ManglendeStatistikkMappingException> {
             SøknadsbehandlingStatistikkMapper(fixedClock).map(beregnetSøknadsbehandling)
-        }
-    }
-
-    @Nested
-    inner class FunksjonellTidMapperTest {
-        @Test
-        fun `funksjonell til settes til opprettet for behandling dersom beregning ikke er tilgjengelig`() {
-            SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(uavklartSøknadsbehandling) shouldBe uavklartSøknadsbehandling.opprettet
-            SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(avslåttBeregnetSøknadsbehandling) shouldBe avslåttBeregnetSøknadsbehandling.opprettet
-        }
-
-        @Test
-        fun `håndterer spesialtilfelle for uavklart behandling uten stønadsperiode`() {
-            SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(uavklartSøknadsbehandling.copy(stønadsperiode = null)) shouldBe uavklartSøknadsbehandling.opprettet
-        }
-
-        @Test
-        fun `funksjonell til settes til dato for beregning dersom tilgjengelig`() {
-            SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(tilAttesteringSøknadsbehandling) shouldBe tilAttesteringSøknadsbehandling.periode
-                .fraOgMed.startOfDay(zoneIdOslo)
-            SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(iverksattSøknadsbehandling) shouldBe tilAttesteringSøknadsbehandling.periode
-                .fraOgMed.startOfDay(zoneIdOslo)
         }
     }
 
@@ -296,17 +273,10 @@ internal class SøknadsbehandlingStatistikkMapperTest {
         stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
         grunnlagsdata = Grunnlagsdata.EMPTY,
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+        attesteringer = Attesteringshistorikk.empty()
     )
 
     private val beregning = TestBeregning
-    private val avslagBeregning = TestBeregningSomGirOpphør
-    private val avslåttBeregnetSøknadsbehandling = (
-        uavklartSøknadsbehandling.tilVilkårsvurdert(
-            Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-        )
-            .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
-        )
-        .tilAttestering(NavIdentBruker.Saksbehandler("jonny"), "")
     private val beregnetSøknadsbehandling = uavklartSøknadsbehandling.tilBeregnet(beregning)
     private val simulertSøknadsbehandling = beregnetSøknadsbehandling.tilSimulert(mock())
     private val tilAttesteringSøknadsbehandling =
@@ -314,6 +284,7 @@ internal class SøknadsbehandlingStatistikkMapperTest {
     private val iverksattSøknadsbehandling = tilAttesteringSøknadsbehandling.tilIverksatt(
         Attestering.Iverksatt(
             NavIdentBruker.Attestant("att"),
+            Tidspunkt.now(fixedClock)
         ),
     )
 }

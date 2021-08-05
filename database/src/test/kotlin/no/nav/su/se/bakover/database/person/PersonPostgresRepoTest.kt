@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.database.beregning
 import no.nav.su.se.bakover.database.simulering
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -16,8 +17,9 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import org.junit.jupiter.api.Test
 
 internal class PersonPostgresRepoTest {
+    private val testDataHelper = TestDataHelper()
     private val ektefellePartnerSamboerFnr = FnrGenerator.random()
-    private val repo = PersonPostgresRepo(EmbeddedDatabase.instance())
+    private val repo = testDataHelper.personRepo
 
     @Test
     fun `hent fnr for sak gir søkers fnr`() {
@@ -186,12 +188,12 @@ internal class PersonPostgresRepoTest {
                     fritekstTilBrev = revurdering.fritekstTilBrev,
                     revurderingsårsak = revurdering.revurderingsårsak,
                     beregning = beregning(revurdering.periode),
-                    behandlingsinformasjon = revurdering.behandlingsinformasjon,
                     simulering = simulering(revurdering.fnr),
                     forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                     grunnlagsdata = revurdering.grunnlagsdata,
                     vilkårsvurderinger = revurdering.vilkårsvurderinger,
                     informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
+                    attesteringer = Attesteringshistorikk.empty(),
                 ),
             ).first
             val revurderingAvRevurdering = testDataHelper.nyRevurdering(

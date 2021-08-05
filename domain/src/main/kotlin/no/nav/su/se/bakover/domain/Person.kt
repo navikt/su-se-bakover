@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import java.time.LocalDate
 import java.time.Period
 
@@ -9,6 +10,7 @@ data class Person(
     val telefonnummer: Telefonnummer? = null,
     val adresse: List<Adresse>? = null,
     val statsborgerskap: String? = null,
+    val sivilstand: Sivilstand? = null,
     val kjønn: String? = null,
     val fødselsdato: LocalDate? = null,
     val adressebeskyttelse: String? = null,
@@ -52,5 +54,10 @@ data class Person(
         val reservert: Boolean,
         val kanVarsles: Boolean,
         val språk: String?,
+    )
+
+    data class Sivilstand(
+        val type: SivilstandTyper,
+        val relatertVedSivilstand: Fnr?
     )
 }

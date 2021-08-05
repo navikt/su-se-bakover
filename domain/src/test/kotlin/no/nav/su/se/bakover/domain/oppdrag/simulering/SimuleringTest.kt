@@ -31,13 +31,12 @@ internal class SimuleringTest {
     }
 
     @Test
-    fun `equals`() {
+    fun equals() {
         simulering shouldBe simulering
         simulering shouldBe simulering.copy()
 
         simulering shouldNotBe simulering.copy(gjelderId = Fnr("10101010101"))
         simulering shouldNotBe simulering.copy(gjelderNavn = "MYGG DUM")
-        simulering shouldNotBe simulering.copy(nettoBeløp = 70)
         simulering shouldNotBe simulering.copy(periodeList = emptyList())
     }
 

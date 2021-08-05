@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -118,7 +119,7 @@ internal class SøknadsbehandlingJsonTest {
             "totalBruttoYtelse": 0,
             "perioder": []
           },
-          "attestering" : { "attestant" : "kjella", "underkjennelse":  null},
+          "attesteringer" : [{ "attestant" : "kjella", "underkjennelse":  null, "opprettet": "${Tidspunkt.EPOCH}"}],
           "saksbehandler" : "pro-saksbehandler",
           "sakId": "$sakId",
           "hendelser": [],
@@ -178,6 +179,7 @@ internal class SøknadsbehandlingJsonTest {
             stønadsperiode = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            attesteringer = Attesteringshistorikk.empty()
         )
         val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(behandlingWithNulls.opprettet)
 
@@ -204,7 +206,7 @@ internal class SøknadsbehandlingJsonTest {
           "status": "OPPRETTET",
           "simulering": null,
           "opprettet": "$opprettetTidspunkt",
-          "attestering": null,
+          "attesteringer": [],
           "saksbehandler": null,
           "sakId": "$sakId",
           "hendelser": [],

@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.FnrGenerator
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -156,6 +157,7 @@ internal class FinnAttestantVisitorTest {
         stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
         grunnlagsdata = Grunnlagsdata.EMPTY,
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+        attesteringer = Attesteringshistorikk.empty()
     )
 
     private val behandlingsinformasjonMedAlleVilkårOppfylt = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
@@ -191,22 +193,24 @@ internal class FinnAttestantVisitorTest {
             .tilAttestering(saksbehandler, "")
     private val underkjentInnvilgetSøknadsbehandling = tilAttesteringInnvilgetSøknadsbehandlng.tilUnderkjent(
         Attestering.Underkjent(
-            attestant,
-            Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-            "",
+            attestant = attestant,
+            grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+            kommentar = "",
+            opprettet = Tidspunkt.now()
         ),
     )
     private val underkjentAvslagSøknadsbehandling = tilAttesteringAvslagSøknadsbehandlng.tilUnderkjent(
         Attestering.Underkjent(
-            attestant,
-            Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-            "",
+            attestant = attestant,
+            grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+            kommentar = "",
+            opprettet = Tidspunkt.now()
         ),
     )
     private val iverksattInnvilgetSøknadsbehandling =
-        tilAttesteringInnvilgetSøknadsbehandlng.tilIverksatt(Attestering.Iverksatt(attestant))
+        tilAttesteringInnvilgetSøknadsbehandlng.tilIverksatt(Attestering.Iverksatt(attestant, Tidspunkt.now()))
     private val iverksattAvslagSøknadsbehandling =
-        tilAttesteringAvslagSøknadsbehandlng.tilIverksatt(Attestering.Iverksatt(attestant))
+        tilAttesteringAvslagSøknadsbehandlng.tilIverksatt(Attestering.Iverksatt(attestant, Tidspunkt.now()))
 
     private val beregningMock = mock<Beregning> {
         on { getMånedsberegninger() } doReturn listOf(
@@ -235,9 +239,7 @@ internal class FinnAttestantVisitorTest {
         id = UUID.randomUUID(),
         periode = periode,
         opprettet = Tidspunkt.now(),
-        tilRevurdering = mock() {
-
-            on { behandlingsinformasjon } doReturn behandlingsinformasjonMedAlleVilkårOppfylt
+        tilRevurdering = mock {
             on { beregning } doReturn beregningMock
         },
         saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
@@ -248,7 +250,6 @@ internal class FinnAttestantVisitorTest {
             Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
         ),
         forhåndsvarsel = null,
-        behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
         grunnlagsdata = Grunnlagsdata(
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -274,6 +275,7 @@ internal class FinnAttestantVisitorTest {
             formue = innvilgetFormueVilkår(periode),
         ),
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+        attesteringer = Attesteringshistorikk.empty()
     )
 
     private val beregnetRevurdering =

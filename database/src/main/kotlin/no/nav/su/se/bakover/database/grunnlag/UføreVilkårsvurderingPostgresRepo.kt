@@ -4,6 +4,7 @@ import arrow.core.Nel
 import arrow.core.getOrHandle
 import kotliquery.Row
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -21,6 +22,7 @@ import javax.sql.DataSource
 internal class UføreVilkårsvurderingPostgresRepo(
     private val dataSource: DataSource,
     private val uføregrunnlagRepo: UføregrunnlagPostgresRepo,
+    private val dbMetrics: DbMetrics,
 ) : UføreVilkårsvurderingRepo {
 
     override fun lagre(behandlingId: UUID, vilkår: Vilkår.Uførhet) {
@@ -93,24 +95,27 @@ internal class UføreVilkårsvurderingPostgresRepo(
     }
 
     internal fun hent(behandlingId: UUID, session: Session): Vilkår.Uførhet {
-        return """
-                select * from vilkårsvurdering_uføre where behandlingId = :behandlingId
-        """.trimIndent()
-            .hentListe(
-                mapOf(
-                    "behandlingId" to behandlingId,
-                ),
-                session,
-            ) {
-                it.toVurderingsperioder(session)
-            }.let {
-                when (it.isNotEmpty()) {
-                    true -> Vilkår.Uførhet.Vurdert.tryCreate(vurderingsperioder = Nel.fromListUnsafe(it)).getOrHandle {
-                        throw IllegalArgumentException("Kunne ikke instansiere ${Vilkår.Uførhet.Vurdert::class.simpleName}. Melding: $it")
+        return dbMetrics.timeQuery("hentVilkårsvurderingUføre") {
+            """
+                    select * from vilkårsvurdering_uføre where behandlingId = :behandlingId
+            """.trimIndent()
+                .hentListe(
+                    mapOf(
+                        "behandlingId" to behandlingId,
+                    ),
+                    session,
+                ) {
+                    it.toVurderingsperioder(session)
+                }.let {
+                    when (it.isNotEmpty()) {
+                        true -> Vilkår.Uførhet.Vurdert.tryCreate(vurderingsperioder = Nel.fromListUnsafe(it))
+                            .getOrHandle {
+                                throw IllegalArgumentException("Kunne ikke instansiere ${Vilkår.Uførhet.Vurdert::class.simpleName}. Melding: $it")
+                            }
+                        false -> Vilkår.Uførhet.IkkeVurdert
                     }
-                    false -> Vilkår.Uførhet.IkkeVurdert
                 }
-            }
+        }
     }
 
     private fun Row.toVurderingsperioder(session: Session): Vurderingsperiode.Uføre {

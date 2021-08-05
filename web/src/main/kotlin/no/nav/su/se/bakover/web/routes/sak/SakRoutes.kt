@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.sak.ÅpenBehandlingJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.sak.SakRestansJson.Companion.toJson
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withSakId
@@ -87,9 +87,9 @@ internal fun Route.sakRoutes(
         }
     }
     authorize(Brukerrolle.Saksbehandler) {
-        get("$sakPath/") {
-            val sakerMedÅpneBehandlinger = sakService.hentÅpneBehandlingerForAlleSaker()
-            call.svar(Resultat.json(OK, serialize(sakerMedÅpneBehandlinger.toJson())))
+        get("$sakPath/restanser") {
+            val restanser = sakService.hentRestanserForAlleSaker()
+            call.svar(Resultat.json(OK, serialize(restanser.toJson())))
         }
     }
 }
