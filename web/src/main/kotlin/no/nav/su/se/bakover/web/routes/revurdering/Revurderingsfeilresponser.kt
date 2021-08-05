@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
+import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import kotlin.reflect.KClass
 
 internal object Revurderingsfeilresponser {
@@ -16,10 +17,7 @@ internal object Revurderingsfeilresponser {
         "Fant ikke sak",
         "fant_ikke_sak",
     )
-    val fantIkkePerson = NotFound.errorJson(
-        "Fant ikke person",
-        "fant_ikke_person",
-    )
+
     val fantIkkeAktørId = NotFound.errorJson(
         "Fant ikke aktør id",
         "fant_ikke_aktør_id",
@@ -83,11 +81,6 @@ internal object Revurderingsfeilresponser {
     val formueListeKanIkkeVæreTom = BadRequest.errorJson(
         "Formueliste kan ikke være tom",
         "formueliste_kan_ikke_være_tom",
-    )
-
-    val depositumKanIkkeVæreHøyereEnnInnskudd = BadRequest.errorJson(
-        "Depositum kan ikke være høyere enn innskudd",
-        "depositum_kan_ikke_være_høyere_enn_innskudd",
     )
 
     val ikkeLovMedOverlappendePerioder = BadRequest.errorJson(

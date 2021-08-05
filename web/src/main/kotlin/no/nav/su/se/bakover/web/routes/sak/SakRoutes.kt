@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
+import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.SakRestansJson.Companion.toJson
 import no.nav.su.se.bakover.web.svar
@@ -38,12 +38,24 @@ internal fun Route.sakRoutes(
             when {
                 body.fnr != null -> {
                     Either.catch { Fnr(body.fnr) }.fold(
-                        ifLeft = { call.svar(BadRequest.message("${body.fnr} er ikke et gyldig fødselsnummer")) },
+                        ifLeft = {
+                            call.svar(
+                                BadRequest.errorJson(
+                                    "${body.fnr} er ikke et gyldig fødselsnummer",
+                                    "fnr_ikke_gyldig"
+                                )
+                            )
+                        },
                         ifRight = { fnr ->
                             sakService.hentSak(fnr)
                                 .mapLeft {
                                     call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
-                                    call.svar(NotFound.message("Fant ikke noen sak for person: ${body.fnr}"))
+                                    call.svar(
+                                        NotFound.errorJson(
+                                            "Fant ikke noen sak for person: ${body.fnr}",
+                                            "fant_ikke_sak_for_person"
+                                        )
+                                    )
                                 }
                                 .map {
                                     call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
@@ -54,11 +66,23 @@ internal fun Route.sakRoutes(
                 }
                 body.saksnummer != null -> {
                     Saksnummer.tryParse(body.saksnummer).fold(
-                        ifLeft = { call.svar(BadRequest.message("${body.saksnummer} er ikke et gyldig saksnummer")) },
+                        ifLeft = {
+                            call.svar(
+                                BadRequest.errorJson(
+                                    "${body.saksnummer} er ikke et gyldig saksnummer",
+                                    "saksnummer_ikke_gyldig"
+                                )
+                            )
+                        },
                         ifRight = { saksnummer ->
                             call.svar(
                                 sakService.hentSak(saksnummer).fold(
-                                    { NotFound.message("Fant ikke sak med saksnummer: ${body.saksnummer}") },
+                                    {
+                                        NotFound.errorJson(
+                                            "Fant ikke sak med saksnummer: ${body.saksnummer}",
+                                            "fant_ikke_sak"
+                                        )
+                                    },
                                     {
                                         call.audit(it.fnr, AuditLogEvent.Action.ACCESS, null)
                                         Resultat.json(OK, serialize((it.toJson())))
@@ -68,7 +92,12 @@ internal fun Route.sakRoutes(
                         },
                     )
                 }
-                else -> call.svar(BadRequest.message("Må oppgi enten saksnummer eller fødselsnummer"))
+                else -> call.svar(
+                    BadRequest.errorJson(
+                        "Må oppgi enten saksnummer eller fødselsnummer",
+                        "mangler_saksnummer_fødselsnummer"
+                    )
+                )
             }
         }
     }
@@ -77,7 +106,7 @@ internal fun Route.sakRoutes(
         call.withSakId { sakId ->
             call.svar(
                 sakService.hentSak(sakId).fold(
-                    { NotFound.message("Fant ikke sak med id: $sakId") },
+                    { NotFound.errorJson("Fant ikke sak med id: $sakId", "fant_ikke_sak") },
                     {
                         call.audit(it.fnr, AuditLogEvent.Action.ACCESS, null)
                         Resultat.json(OK, serialize((it.toJson())))

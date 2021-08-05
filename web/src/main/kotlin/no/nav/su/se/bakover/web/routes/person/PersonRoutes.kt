@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web.routes.person
 import arrow.core.Either
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.objectMapper
@@ -16,6 +15,7 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
+import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.person.PersonResponseJson.Companion.toJson
 import no.nav.su.se.bakover.web.svar
@@ -43,14 +43,12 @@ internal fun Route.personRoutes(
                             {
                                 call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
                                 when (it) {
-                                    FantIkkePerson -> Resultat.message(NotFound, "Fant ikke person")
-                                    IkkeTilgangTilPerson -> Resultat.message(
-                                        HttpStatusCode.Forbidden,
-                                        "Ikke tilgang til å se person"
+                                    FantIkkePerson -> Feilresponser.fantIkkePerson
+                                    IkkeTilgangTilPerson -> HttpStatusCode.Forbidden.errorJson(
+                                        "Ikke tilgang til å se person", "ikke_tilgang_til_person"
                                     )
-                                    Ukjent -> Resultat.message(
-                                        HttpStatusCode.InternalServerError,
-                                        "Feil ved oppslag på person"
+                                    Ukjent -> HttpStatusCode.InternalServerError.errorJson(
+                                        "Feil ved oppslag på person", "feil_ved_oppslag_person"
                                     )
                                 }
                             },

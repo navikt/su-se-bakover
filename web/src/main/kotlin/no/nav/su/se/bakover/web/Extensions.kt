@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.web.features.suUserContext
+import no.nav.su.se.bakover.web.routes.Feilresponser
 import java.util.UUID
 
 internal fun ApplicationCall.sikkerlogg(msg: String) {
@@ -36,8 +37,8 @@ internal fun ApplicationCall.audit(berørtBruker: Fnr, action: AuditLogEvent.Act
             berørtBruker,
             action,
             behandlingId,
-            this.callId
-        )
+            this.callId,
+        ),
     )
 }
 
@@ -55,7 +56,7 @@ private fun getGroupsFromJWT(applicationConfig: ApplicationConfig, payload: Payl
                 it.veileder,
                 it.saksbehandler,
                 it.attestant,
-                it.drift
+                it.drift,
             )
         }
     } else {
@@ -86,7 +87,8 @@ internal fun ApplicationCall.lesUUID(param: String) =
     } ?: Either.Left("$param er ikke et parameter")
 
 internal fun ApplicationCall.parameter(parameterName: String) =
-    this.parameters[parameterName]?.let { Either.Right(it) } ?: Either.Left("$parameterName er ikke et parameter")
+    this.parameters[parameterName]?.let { Either.Right(it) }
+        ?: Either.Left(HttpStatusCode.BadRequest.errorJson("$parameterName er ikke et parameter", "parameter_mangler"))
 
 fun ApplicationCall.authHeader() = this.request.header(HttpHeaders.Authorization).toString()
 
@@ -101,35 +103,35 @@ internal suspend inline fun ApplicationCall.receiveTextUTF8(): String {
 
 internal suspend fun ApplicationCall.withSakId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("sakId").fold(
-        ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
+        ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "sakId_mangler_eller_feil_format")) },
         ifRight = { ifRight(it) },
     )
 }
 
 internal suspend fun ApplicationCall.withRevurderingId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("revurderingId").fold(
-        ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
+        ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "revurderingId_mangler_eller_feil_format")) },
         ifRight = { ifRight(it) },
     )
 }
 
 internal suspend fun ApplicationCall.withSøknadId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("søknadId").fold(
-        ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
+        ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "søknadId_mangler_eller_feil_format")) },
         ifRight = { ifRight(it) },
     )
 }
 
 internal suspend fun ApplicationCall.withBehandlingId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("behandlingId").fold(
-        ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
+        ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "behandlingId_mangler_eller_feil_format")) },
         ifRight = { ifRight(it) },
     )
 }
 
 internal suspend fun ApplicationCall.withVedtakId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("vedtakId").fold(
-        ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
+        ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "vedtakId_mangler_eller_feil_format")) },
         ifRight = { ifRight(it) },
     )
 }
@@ -138,7 +140,7 @@ internal suspend inline fun <reified T> ApplicationCall.withBody(ifRight: (T) ->
     Either.catch { deserialize<T>(this) }.fold(
         ifLeft = {
             log.error("Feil ved deserialisering", it)
-            this.svar(HttpStatusCode.BadRequest.message("Ugyldig body"))
+            this.svar(Feilresponser.ugyldigBody)
         },
         ifRight = { ifRight(it) },
     )

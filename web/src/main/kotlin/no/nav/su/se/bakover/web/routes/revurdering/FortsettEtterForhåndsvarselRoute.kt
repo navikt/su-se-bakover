@@ -13,9 +13,9 @@ import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarslingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.Resultat
+import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
-import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
@@ -63,12 +63,15 @@ internal fun Route.fortsettEtterForhåndsvarselRoute(
                                     saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                                 ),
                             )
-                        else -> Either.Left(HttpStatusCode.BadRequest.message("Ugyldig valg"))
+                        else -> Either.Left(HttpStatusCode.BadRequest.errorJson("Ugyldig valg", "ugyldig_valg"))
                     }
                         .flatMap {
                             revurderingService.fortsettEtterForhåndsvarsling(it)
                                 .mapLeft {
-                                    HttpStatusCode.BadRequest.message("TODO: korrekt feilmelding")
+                                    HttpStatusCode.BadRequest.errorJson(
+                                        "Klarte ikke fortsette revurdering etter forhåndsvarsling",
+                                        "klarte_ikke_fortsette_revurdering_etter_forhåndsvarsling",
+                                    )
                                 }
                         }
                         .fold(
