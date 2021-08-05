@@ -10,17 +10,14 @@ import org.junit.jupiter.api.assertThrows
 class ResultatTest {
     @Test
     fun `equality tests`() {
-        OK.message("blabla") shouldBe OK.message("blabla")
-        OK.message("blabla") shouldNotBe OK.message("blabla2")
+        OK.errorJson("blabla", "din_feilkode_her") shouldBe OK.errorJson("blabla", "din_feilkode_her")
+        OK.errorJson("blabla", "din_feilkode_her") shouldNotBe OK.errorJson("blabla2", "din_feilkode_her")
     }
 
     @Test
     fun `throw exception if unknown http status code`() {
         assertThrows<IllegalArgumentException> {
             Resultat.json(HttpStatusCode.fromValue(-1), """{}""")
-        }
-        assertThrows<IllegalArgumentException> {
-            Resultat.message(HttpStatusCode.fromValue(-1), """{}""")
         }
     }
 }
