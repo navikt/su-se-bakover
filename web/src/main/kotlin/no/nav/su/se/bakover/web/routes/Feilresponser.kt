@@ -10,7 +10,7 @@ internal object Feilresponser {
         "fant_ikke_behandling",
     )
 
-    val klarteIkkeHentePerson = HttpStatusCode.NotFound.errorJson(
+    val fantIkkePerson = HttpStatusCode.NotFound.errorJson(
         "Fant ikke person",
         "fant_ikke_person",
     )
@@ -50,5 +50,15 @@ internal object Feilresponser {
     val kanIkkeHaEpsFradragUtenEps = HttpStatusCode.BadRequest.errorJson(
         "Kan ikke ha fradrag knyttet til EPS når bruker ikke har EPS.",
         "kan_ikke_ha_eps_fradrag_uten_eps",
+    )
+
+    val ugyldigBody = HttpStatusCode.BadRequest.errorJson(
+        "Ugyldig body",
+        "ugyldig_body"
+    )
+
+    val ugyldigInput = HttpStatusCode.BadRequest.errorJson(
+        "Ugyldig input",
+        "ugyldig_input"
     )
 }

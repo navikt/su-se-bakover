@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad.SøknadHa
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad.UgyldigTrukketDato
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
+import no.nav.su.se.bakover.web.routes.Feilresponser
 
 internal object LukkSøknadErrorHandler {
     fun kunneIkkeLukkeSøknadResponse(request: LukkSøknadRequest, error: KunneIkkeLukkeSøknad): Resultat {
@@ -30,7 +31,7 @@ internal object LukkSøknadErrorHandler {
                 "Ugyldig lukket dato. Dato må være etter opprettet og kan ikke være frem i tid",
                 "ugyldig_dato"
             )
-            is FantIkkePerson -> NotFound.errorJson("Fant ikke person", "fant_ikke_person")
+            is FantIkkePerson -> Feilresponser.fantIkkePerson
             is KunneIkkeLukkeSøknad.SøknadManglerOppgave -> InternalServerError.errorJson(
                 "Søknad med id $søknadId mangler oppgave",
                 "søknad_mangler_oppgave"

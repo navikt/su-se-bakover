@@ -51,7 +51,9 @@ import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
+import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
+import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.kanIkkeHaEpsFradragUtenEps
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
@@ -145,9 +147,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                 .mapLeft { error ->
                                     call.svar(
                                         when (error) {
-                                            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> {
-                                                NotFound.errorJson("Fant ikke behandling", "fant_ikke_behandling")
-                                            }
+                                            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> fantIkkeBehandling
                                             SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FraOgMedDatoKanIkkeVæreFør2021 -> {
                                                 BadRequest.errorJson(
                                                     "En stønadsperiode kan ikke starte før 2021",
@@ -203,9 +203,7 @@ internal fun Route.søknadsbehandlingRoutes(
                         {
                             call.svar(
                                 when (it) {
-                                    KunneIkkeVilkårsvurdere.FantIkkeBehandling -> {
-                                        NotFound.errorJson("Fant ikke behandling", "fant_ikke_behandling")
-                                    }
+                                    KunneIkkeVilkårsvurdere.FantIkkeBehandling -> fantIkkeBehandling
                                     KunneIkkeVilkårsvurdere.HarIkkeEktefelle -> {
                                         BadRequest.errorJson(
                                             "Kan ikke ha formue for eps når søker ikke har eps",
@@ -306,9 +304,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                     "kunne_ikke_lage_brevutkast"
                                 )
                             }
-                            is KunneIkkeLageBrev.FantIkkePerson -> {
-                                NotFound.errorJson("Fant ikke person", "fant_ikke_person")
-                            }
+                            is KunneIkkeLageBrev.FantIkkePerson -> fantIkkePerson
                             is KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant -> {
                                 InternalServerError.errorJson(
                                     "Klarte ikke hente informasjon om saksbehandler og/eller attestant",
@@ -336,7 +332,7 @@ internal fun Route.søknadsbehandlingRoutes(
                 call.withBody<WithFritekstBody> { body ->
                     søknadsbehandlingService.hent(HentRequest(behandlingId))
                         .fold(
-                            { call.svar(NotFound.errorJson("Fant ikke behandling", "fant_ikke_behandling")) },
+                            { call.svar(fantIkkeBehandling) },
                             { lagBrevutkast(call, BrevRequest.MedFritekst(it, body.fritekst)) },
                         )
                 }
@@ -346,7 +342,7 @@ internal fun Route.søknadsbehandlingRoutes(
             call.withBehandlingId { behandlingId ->
                 søknadsbehandlingService.hent(HentRequest(behandlingId))
                     .fold(
-                        { call.svar(NotFound.errorJson("Fant ikke behandling", "fant_ikke_behandling")) },
+                        { call.svar(fantIkkeBehandling) },
                         { lagBrevutkast(call, BrevRequest.UtenFritekst(it)) },
                     )
             }
@@ -367,9 +363,7 @@ internal fun Route.søknadsbehandlingRoutes(
                             KunneIkkeSimulereBehandling.KunneIkkeSimulere -> {
                                 InternalServerError.errorJson("Kunne ikke gjennomføre simulering", "kunne_ikke_simulere")
                             }
-                            KunneIkkeSimulereBehandling.FantIkkeBehandling -> {
-                                NotFound.errorJson("Kunne ikke finne behandling", "fant_ikke_behandling")
-                            }
+                            KunneIkkeSimulereBehandling.FantIkkeBehandling -> fantIkkeBehandling
                         }
                         call.svar(resultat)
                     },
@@ -407,9 +401,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                     KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId -> {
                                         InternalServerError.errorJson("Kunne ikke finne person", "kunne_ikke_finne_aktørid")
                                     }
-                                    KunneIkkeSendeTilAttestering.FantIkkeBehandling -> {
-                                        NotFound.errorJson("Kunne ikke finne behandling", "fant_ikke_behandling")
-                                    }
+                                    KunneIkkeSendeTilAttestering.FantIkkeBehandling -> fantIkkeBehandling
                                 }
                                 call.svar(resultat)
                             },
@@ -447,12 +439,8 @@ internal fun Route.søknadsbehandlingRoutes(
                 is KunneIkkeIverksette.KunneIkkeJournalføreBrev -> {
                     InternalServerError.errorJson("Feil ved journalføring av vedtaksbrev", "kunne_ikke_journalføre_brev")
                 }
-                is KunneIkkeIverksette.FantIkkeBehandling -> {
-                    NotFound.errorJson("Fant ikke behandling", "fant_ikke_behandling")
-                }
-                is KunneIkkeIverksette.FantIkkePerson -> {
-                    NotFound.errorJson("Fant ikke person", "fant_ikke_person")
-                }
+                is KunneIkkeIverksette.FantIkkeBehandling -> fantIkkeBehandling
+                is KunneIkkeIverksette.FantIkkePerson -> fantIkkePerson
                 is KunneIkkeIverksette.FikkIkkeHentetSaksbehandlerEllerAttestant -> {
                     InternalServerError.errorJson(
                         "Klarte ikke hente informasjon om saksbehandler og/eller attestant",
@@ -501,7 +489,7 @@ internal fun Route.søknadsbehandlingRoutes(
                 Either.catch { deserialize<UnderkjennBody>(call) }.fold(
                     ifLeft = {
                         log.info("Ugyldig behandling-body: ", it)
-                        call.svar(BadRequest.errorJson("Ugyldig body", "ugyldig_body"))
+                        call.svar(Feilresponser.ugyldigBody)
                     },
                     ifRight = { body ->
                         if (body.valid()) {
@@ -518,9 +506,7 @@ internal fun Route.søknadsbehandlingRoutes(
                             ).fold(
                                 ifLeft = {
                                     val resultat = when (it) {
-                                        KunneIkkeUnderkjenne.FantIkkeBehandling -> {
-                                            NotFound.errorJson("Fant ikke behandling", "fant_ikke_behandling")
-                                        }
+                                        KunneIkkeUnderkjenne.FantIkkeBehandling -> fantIkkeBehandling
                                         KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> {
                                             Forbidden.errorJson(
                                                 "Attestant og saksbehandler kan ikke være samme person",

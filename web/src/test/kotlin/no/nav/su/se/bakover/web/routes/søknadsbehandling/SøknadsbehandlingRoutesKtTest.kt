@@ -268,7 +268,7 @@ internal class SøknadsbehandlingRoutesKtTest {
             ).apply {
                 assertSoftly {
                     response.status() shouldBe HttpStatusCode.NotFound
-                    response.content shouldContain "Kunne ikke finne behandling"
+                    response.content shouldContain "Fant ikke behandling"
                 }
             }
 
