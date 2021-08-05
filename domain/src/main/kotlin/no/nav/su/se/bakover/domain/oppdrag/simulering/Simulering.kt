@@ -17,12 +17,22 @@ data class Simulering(
 
     fun harFeilutbetalinger() = TolketSimulering(this).simulertePerioder.any { it.harFeilutbetalinger() }
 
+    /**
+     * Nettobeløpet påvirkes av skatt, så tas ikke med i equals-sjekken.
+     * Bruttobeløpet, altså summen av månedsbeløpene, brukes i stedet .
+     */
     override fun equals(other: Any?) = other is Simulering &&
         other.gjelderId == this.gjelderId &&
         other.gjelderNavn == this.gjelderNavn &&
-        other.nettoBeløp == this.nettoBeløp &&
         other.periodeList == this.periodeList &&
         other.bruttoYtelse() == this.bruttoYtelse()
+
+    override fun hashCode(): Int {
+        var result = gjelderId.hashCode()
+        result = 31 * result + gjelderNavn.hashCode()
+        result = 31 * result + periodeList.hashCode()
+        return result
+    }
 }
 
 data class SimulertPeriode(
@@ -55,6 +65,15 @@ data class SimulertUtbetaling(
         other.utbetalesTilNavn == this.utbetalesTilNavn &&
         other.feilkonto == this.feilkonto &&
         other.detaljer == this.detaljer
+
+    override fun hashCode(): Int {
+        var result = fagSystemId.hashCode()
+        result = 31 * result + utbetalesTilId.hashCode()
+        result = 31 * result + utbetalesTilNavn.hashCode()
+        result = 31 * result + feilkonto.hashCode()
+        result = 31 * result + detaljer.hashCode()
+        return result
+    }
 }
 
 data class SimulertDetaljer(
