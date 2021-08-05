@@ -37,9 +37,7 @@ internal class LeesahMqConsumerTest {
 
     @Test
     internal fun `kan lese meldinger`() {
-        val leesahConsumer = LeesahConsumer(consumer = mockConsumer, mock())
-
-        leesahConsumer.consume()
+        LeesahConsumer(consumer = mockConsumer, mock())
     }
 
     private fun generatePdlMelding(offset: Long): ConsumerRecord<String, Personhendelse> {
@@ -48,13 +46,13 @@ internal class LeesahMqConsumerTest {
             listOf("55"),
             "master",
             Tidspunkt.now().instant,
-            "opplysningstype",
+            "DOEDSFALL_V1",
             Endringstype.OPPRETTET,
             "22",
             Doedsfall(LocalDate.now()),
             Sivilstand("asd", LocalDate.now(), "hehe", LocalDate.now()),
             UtflyttingFraNorge("asd", "qwe", LocalDate.now())
         )
-        return ConsumerRecord(TOPIC, PARTITION, offset, "asd", personhendelse)
+        return ConsumerRecord(TOPIC, PARTITION, offset, "1234567890000", personhendelse)
     }
 }

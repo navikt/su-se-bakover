@@ -10,6 +10,11 @@ plugins {
     id("com.github.davidmc24.gradle.plugin.avro") version "1.2.1"
 }
 
+avro {
+    isGettersReturnOptional.set(true)
+    isOptionalGettersForNullableFieldsOnly.set(true)
+}
+
 dependencies {
     implementation(project(":common"))
     implementation(project(":domain"))

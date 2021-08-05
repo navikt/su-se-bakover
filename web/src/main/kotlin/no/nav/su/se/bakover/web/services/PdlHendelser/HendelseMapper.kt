@@ -9,6 +9,7 @@ import no.nav.person.pdl.leesah.Personhendelse
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.hendelse.PdlHendelse
 import no.nav.su.se.bakover.web.services.PdlHendelser.HendelseMapperException.IkkeAktuellOpplysningstype
+import org.apache.kafka.clients.consumer.ConsumerRecord
 
 internal object HendelseMapper {
     internal enum class Opplysningstype(val value: String) {
@@ -16,42 +17,53 @@ internal object HendelseMapper {
         UTFLYTTING_FRA_NORGE("UTFLYTTING_FRA_NORGE");
     }
 
-    internal fun map(key: String, offset: Long, personhendelse: Personhendelse): Either<HendelseMapperException, PdlHendelse> {
+    internal fun map(
+        message: ConsumerRecord<String, Personhendelse>,
+    ): Either<HendelseMapperException, PdlHendelse.Ny> {
+        val key: String = message.key()
+        val offset: Long = message.offset()
+        val personhendelse: Personhendelse = message.value()
+
         val aktørId = hentAktørId(personhendelse, key).getOrHandle {
             return it.left()
         }
 
         return when (personhendelse.getOpplysningstype()) {
             Opplysningstype.DØDSFALL.value -> {
-                val dødsdato = personhendelse.getDoedsfall().getDoedsdato()
+                val dødsdato = personhendelse.getDoedsfall().get().getDoedsdato().get()
 
-                PdlHendelse.Dødsfall(
+                PdlHendelse.Ny(
                     hendelseId = personhendelse.getHendelseId(),
                     offset = offset,
                     gjeldendeAktørId = aktørId,
                     endringstype = hentEndringstype(personhendelse.getEndringstype()),
-                    dødsdato = dødsdato,
-                    personidenter = personhendelse.getPersonidenter()
+                    personidenter = personhendelse.getPersonidenter(),
+                    hendelse = PdlHendelse.Hendelse.Dødsfall(dødsdato = dødsdato),
                 ).right()
             }
 
             Opplysningstype.UTFLYTTING_FRA_NORGE.value -> {
-                val utflyttetDato = personhendelse.getUtflyttingFraNorge().getUtflyttingsdato()
+                val utflyttetDato = personhendelse.getUtflyttingFraNorge().get().getUtflyttingsdato().get()
 
-                PdlHendelse.UtflyttingFraNorge(
+                PdlHendelse.Ny(
                     hendelseId = personhendelse.getHendelseId(),
                     offset = offset,
                     gjeldendeAktørId = aktørId,
                     endringstype = hentEndringstype(personhendelse.getEndringstype()),
-                    utflyttingsdato = utflyttetDato,
-                    personidenter = personhendelse.getPersonidenter()
+                    personidenter = personhendelse.getPersonidenter(),
+                    hendelse = PdlHendelse.Hendelse.UtflyttingFraNorge(utflyttingsdato = utflyttetDato),
                 ).right()
             }
-            else -> { IkkeAktuellOpplysningstype.left() }
+            else -> {
+                IkkeAktuellOpplysningstype.left()
+            }
         }
     }
 
-    private fun hentAktørId(personhendelse: Personhendelse, key: String): Either<HendelseMapperException.KunneIkkeHenteAktørId, AktørId> {
+    private fun hentAktørId(
+        personhendelse: Personhendelse,
+        key: String,
+    ): Either<HendelseMapperException.KunneIkkeHenteAktørId, AktørId> {
         val id = key.substring(6) // Nyckeln på Kafka-meldinger fra Pdl er aktør-id prepend:et med 6 rare tegn.
         val idFinnesSomPersonident = personhendelse.getPersonidenter().any { it == id }
 
@@ -70,6 +82,7 @@ internal object HendelseMapper {
             Endringstype.OPPHOERT -> PdlHendelse.Endringstype.OPPHOERT
         }
 }
+
 internal sealed class HendelseMapperException {
     object IkkeAktuellOpplysningstype : HendelseMapperException()
     object KunneIkkeHenteAktørId : HendelseMapperException()
