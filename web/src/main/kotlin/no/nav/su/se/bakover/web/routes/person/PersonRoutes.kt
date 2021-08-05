@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
+import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.person.PersonResponseJson.Companion.toJson
 import no.nav.su.se.bakover.web.svar
@@ -43,14 +44,12 @@ internal fun Route.personRoutes(
                             {
                                 call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
                                 when (it) {
-                                    FantIkkePerson -> Resultat.message(NotFound, "Fant ikke person")
-                                    IkkeTilgangTilPerson -> Resultat.message(
-                                        HttpStatusCode.Forbidden,
-                                        "Ikke tilgang til å se person"
+                                    FantIkkePerson -> NotFound.errorJson("Fant ikke person", "fant_ikke_person")
+                                    IkkeTilgangTilPerson -> HttpStatusCode.Forbidden.errorJson(
+                                        "Ikke tilgang til å se person", "ikke_tilgang_til_person"
                                     )
-                                    Ukjent -> Resultat.message(
-                                        HttpStatusCode.InternalServerError,
-                                        "Feil ved oppslag på person"
+                                    Ukjent -> HttpStatusCode.InternalServerError.errorJson(
+                                        "Feil ved oppslag på person", "feil_ved_oppslag_person"
                                     )
                                 }
                             },

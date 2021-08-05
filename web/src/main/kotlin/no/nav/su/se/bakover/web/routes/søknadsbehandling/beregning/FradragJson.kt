@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.web.Resultat
-import no.nav.su.se.bakover.web.message
+import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.UtenlandskInntektJson.Companion.toJson
 
@@ -41,7 +41,11 @@ internal data class FradragJson(
     }
 
     internal fun toFradrag(): Either<Resultat, Fradrag> {
-        return if (this.periode == null) HttpStatusCode.BadRequest.message("Fradrag mangler periode").left()
+        return if (this.periode == null) HttpStatusCode.BadRequest.errorJson(
+            "Fradrag mangler periode",
+            "fradrag_mangler_periode"
+        )
+            .left()
         else
             toFradrag(this.periode.toPeriode().getOrHandle { return it.left() })
     }

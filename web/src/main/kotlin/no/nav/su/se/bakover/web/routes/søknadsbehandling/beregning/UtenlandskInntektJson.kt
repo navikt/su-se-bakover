@@ -4,7 +4,7 @@ import arrow.core.Either
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.web.Resultat
-import no.nav.su.se.bakover.web.message
+import no.nav.su.se.bakover.web.errorJson
 
 internal data class UtenlandskInntektJson(
     val beløpIUtenlandskValuta: Int,
@@ -18,9 +18,18 @@ internal data class UtenlandskInntektJson(
             kurs = kurs
         ).mapLeft {
             when (it) {
-                UtenlandskInntekt.UgyldigUtenlandskInntekt.BeløpKanIkkeVæreNegativ -> HttpStatusCode.BadRequest.message("Beløpet kan ikke være negativt")
-                UtenlandskInntekt.UgyldigUtenlandskInntekt.ValutaMåFyllesUt -> HttpStatusCode.BadRequest.message("Valuta må fylles ut")
-                UtenlandskInntekt.UgyldigUtenlandskInntekt.KursKanIkkeVæreNegativ -> HttpStatusCode.BadRequest.message("Kursen kan ikke være negativ")
+                UtenlandskInntekt.UgyldigUtenlandskInntekt.BeløpKanIkkeVæreNegativ -> HttpStatusCode.BadRequest.errorJson(
+                    "Beløpet kan ikke være negativt",
+                    "utenlandsk_inntekt_negativt_beløp"
+                )
+                UtenlandskInntekt.UgyldigUtenlandskInntekt.ValutaMåFyllesUt -> HttpStatusCode.BadRequest.errorJson(
+                    "Valuta må fylles ut",
+                    "utenlandsk_inntekt_mangler_valuta"
+                )
+                UtenlandskInntekt.UgyldigUtenlandskInntekt.KursKanIkkeVæreNegativ -> HttpStatusCode.BadRequest.errorJson(
+                    "Kursen kan ikke være negativ",
+                    "utenlandsk_inntekt_negativ_kurs"
+                )
             }
         }
     }

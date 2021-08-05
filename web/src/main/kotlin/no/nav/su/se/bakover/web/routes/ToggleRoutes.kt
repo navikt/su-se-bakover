@@ -9,7 +9,7 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.web.deserialize
-import no.nav.su.se.bakover.web.message
+import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.parameter
 import no.nav.su.se.bakover.web.svar
 
@@ -21,7 +21,7 @@ internal fun Route.toggleRoutes(toggleService: ToggleService) {
 
     get("$TOGGLES_PATH/{toggleName}") {
         call.parameter("toggleName").fold(
-            ifLeft = { call.svar(HttpStatusCode.BadRequest.message(it)) },
+            ifLeft = { call.svar(HttpStatusCode.BadRequest.errorJson(it, "parameter_mangler")) },
             ifRight = { toggleName ->
                 val toggle = mapOf(Pair(toggleName, toggleService.isEnabled(toggleName)))
                 call.respond(toggle)
@@ -33,7 +33,7 @@ internal fun Route.toggleRoutes(toggleService: ToggleService) {
         Either.catch { deserialize<List<String>>(call) }.fold(
             ifLeft = {
                 call.application.environment.log.info(it.message, it)
-                call.svar(HttpStatusCode.BadRequest.message("Ugyldig body"))
+                call.svar(HttpStatusCode.BadRequest.errorJson("Ugyldig body", "ugyldig_body"))
             },
             ifRight = { toggleNames ->
                 val toggles = toggleNames.map { Pair(it, toggleService.isEnabled(it)) }.toMap()

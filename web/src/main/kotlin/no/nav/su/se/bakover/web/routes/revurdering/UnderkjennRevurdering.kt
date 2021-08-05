@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
-import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeAktørId
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.kunneIkkeOppretteOppgave
@@ -65,7 +64,7 @@ internal fun Route.underkjennRevurdering(
                 Either.catch { deserialize<UnderkjennBody>(call) }.fold(
                     ifLeft = {
                         log.info("Ugyldig body: ", it)
-                        call.svar(HttpStatusCode.BadRequest.message("Ugyldig body"))
+                        call.svar(HttpStatusCode.BadRequest.errorJson("Ugyldig body", "ugyldig_body"))
                     },
                     ifRight = { body ->
                         body.toDomain(navIdent).fold(

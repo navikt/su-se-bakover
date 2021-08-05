@@ -4,7 +4,7 @@ import arrow.core.Either
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.web.Resultat
-import no.nav.su.se.bakover.web.message
+import no.nav.su.se.bakover.web.errorJson
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -15,9 +15,18 @@ internal data class PeriodeJson(
     fun toPeriode(): Either<Resultat, Periode> {
         return Periode.tryCreate(LocalDate.parse(fraOgMed), LocalDate.parse(tilOgMed)).mapLeft {
             when (it) {
-                Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden -> HttpStatusCode.BadRequest.message("Perioder kan kun starte på første dag i måneden")
-                Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden -> HttpStatusCode.BadRequest.message("Perioder kan kun avsluttes siste dag i måneden")
-                Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato -> HttpStatusCode.BadRequest.message("Startmåned må være tidligere eller lik sluttmåned")
+                Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden -> HttpStatusCode.BadRequest.errorJson(
+                    "Perioder kan kun starte på første dag i måneden",
+                    "ugyldig_periode_fom"
+                )
+                Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden -> HttpStatusCode.BadRequest.errorJson(
+                    "Perioder kan kun avsluttes siste dag i måneden",
+                    "ugyldig_periode_tom"
+                )
+                Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato -> HttpStatusCode.BadRequest.errorJson(
+                    "Startmåned må være tidligere eller lik sluttmåned",
+                    "ugyldig_periode_start_slutt"
+                )
             }
         }
     }

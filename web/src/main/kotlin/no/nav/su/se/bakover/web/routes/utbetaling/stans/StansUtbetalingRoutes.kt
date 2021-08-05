@@ -13,9 +13,9 @@ import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.audit
+import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
-import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.sikkerlogg
@@ -45,7 +45,10 @@ internal fun Route.stansutbetalingRoutes(
                                     "Simulering av stans inneholdt beløp for utbetaling ulikt 0"
                                 )
                         }
-                        InternalServerError.message("Kunne ikke stanse utbetalinger for sak med id $sakId")
+                        InternalServerError.errorJson(
+                            "Kunne ikke stanse utbetalinger for sak med id $sakId",
+                            "kunne_ikke_stanse_utbetalinger"
+                        )
                     },
                     {
                         call.audit(it.fnr, AuditLogEvent.Action.UPDATE, null)

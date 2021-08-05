@@ -21,14 +21,11 @@ internal data class Resultat private constructor(
         call.respondText(contentType = contentType, status = httpCode, text = json)
 
     companion object {
-        fun message(httpCode: HttpStatusCode, message: String): Resultat = json(httpCode, """{"message": "$message"}""")
         fun json(httpCode: HttpStatusCode, json: String): Resultat =
             Resultat(httpCode, json, contentType = ContentType.Application.Json)
     }
 }
 
-/** Deprecated: Det er ønskelig å bytte til HttpStatusCode.errorJson(message: String, code: String) på sikt. */
-internal fun HttpStatusCode.message(nonJsonMessage: String): Resultat = Resultat.message(this, nonJsonMessage)
 internal fun HttpStatusCode.errorJson(message: String, code: String): Resultat {
     return json(this, serialize(ErrorJson(message, code)))
 }

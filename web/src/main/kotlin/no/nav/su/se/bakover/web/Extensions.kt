@@ -101,35 +101,35 @@ internal suspend inline fun ApplicationCall.receiveTextUTF8(): String {
 
 internal suspend fun ApplicationCall.withSakId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("sakId").fold(
-        ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
+        ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "sakId_mangler_eller_feil_format")) },
         ifRight = { ifRight(it) },
     )
 }
 
 internal suspend fun ApplicationCall.withRevurderingId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("revurderingId").fold(
-        ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
+        ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "revurderingId_mangler_eller_feil_format")) },
         ifRight = { ifRight(it) },
     )
 }
 
 internal suspend fun ApplicationCall.withSøknadId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("søknadId").fold(
-        ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
+        ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "søknadId_mangler_eller_feil_format")) },
         ifRight = { ifRight(it) },
     )
 }
 
 internal suspend fun ApplicationCall.withBehandlingId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("behandlingId").fold(
-        ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
+        ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "behandlingId_mangler_eller_feil_format")) },
         ifRight = { ifRight(it) },
     )
 }
 
 internal suspend fun ApplicationCall.withVedtakId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("vedtakId").fold(
-        ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
+        ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "vedtakId_mangler_eller_feil_format")) },
         ifRight = { ifRight(it) },
     )
 }
@@ -138,7 +138,7 @@ internal suspend inline fun <reified T> ApplicationCall.withBody(ifRight: (T) ->
     Either.catch { deserialize<T>(this) }.fold(
         ifLeft = {
             log.error("Feil ved deserialisering", it)
-            this.svar(HttpStatusCode.BadRequest.message("Ugyldig body"))
+            this.svar(HttpStatusCode.BadRequest.errorJson("Ugyldig body", "ugyldig_body"))
         },
         ifRight = { ifRight(it) },
     )

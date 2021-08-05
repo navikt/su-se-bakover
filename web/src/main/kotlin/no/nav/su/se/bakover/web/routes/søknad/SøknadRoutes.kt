@@ -25,9 +25,9 @@ import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
+import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
-import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.receiveTextUTF8
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadErrorHandler
@@ -47,14 +47,17 @@ internal fun Route.søknadRoutes(
             Either.catch { deserialize<SøknadInnholdJson>(call) }.fold(
                 ifLeft = {
                     call.application.environment.log.info(it.message, it)
-                    call.svar(BadRequest.message("Ugyldig body"))
+                    call.svar(BadRequest.errorJson("Ugyldig body", "ugyldig_body"))
                 },
                 ifRight = {
                     søknadService.nySøknad(it.toSøknadInnhold()).fold(
                         { kunneIkkeOppretteSøknad ->
                             call.svar(
                                 when (kunneIkkeOppretteSøknad) {
-                                    KunneIkkeOppretteSøknad.FantIkkePerson -> NotFound.message("Fant ikke person")
+                                    KunneIkkeOppretteSøknad.FantIkkePerson -> NotFound.errorJson(
+                                        "Fant ikke person",
+                                        "fant_ikke_person"
+                                    )
                                 },
                             )
                         },
@@ -85,10 +88,22 @@ internal fun Route.søknadRoutes(
                 søknadService.hentSøknadPdf(søknadId).fold(
                     {
                         val responseMessage = when (it) {
-                            KunneIkkeLageSøknadPdf.FantIkkeSøknad -> NotFound.message("Fant ikke søknad")
-                            KunneIkkeLageSøknadPdf.KunneIkkeLagePdf -> InternalServerError.message("Kunne ikke lage PDF")
-                            KunneIkkeLageSøknadPdf.FantIkkePerson -> NotFound.message("Fant ikke person")
-                            KunneIkkeLageSøknadPdf.FantIkkeSak -> NotFound.message("Fant ikke sak")
+                            KunneIkkeLageSøknadPdf.FantIkkeSøknad -> NotFound.errorJson(
+                                "Fant ikke søknad",
+                                "fant_ikke_søknad"
+                            )
+                            KunneIkkeLageSøknadPdf.KunneIkkeLagePdf -> InternalServerError.errorJson(
+                                "Kunne ikke lage PDF",
+                                "kunne_ikke_lage_pdf"
+                            )
+                            KunneIkkeLageSøknadPdf.FantIkkePerson -> NotFound.errorJson(
+                                "Fant ikke person",
+                                "fant_ikke_person"
+                            )
+                            KunneIkkeLageSøknadPdf.FantIkkeSak -> NotFound.errorJson(
+                                "Fant ikke sak",
+                                "din_feilkode_her"
+                            )
                         }
                         call.respond(responseMessage)
                     },
@@ -108,7 +123,7 @@ internal fun Route.søknadRoutes(
                     søknadId = søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                 ).mapLeft {
-                    call.svar(BadRequest.message("Ugyldig input"))
+                    call.svar(BadRequest.errorJson("Ugyldig input", "ugyldig_input"))
                 }.map { request ->
                     lukkSøknadService.lukkSøknad(request).fold(
                         { call.svar(LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(request, it)) },
@@ -131,7 +146,7 @@ internal fun Route.søknadRoutes(
                     søknadId = søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                 ).mapLeft {
-                    call.svar(BadRequest.message("Ugyldig input"))
+                    call.svar(BadRequest.errorJson("Ugyldig input", "ugyldig_input"))
                 }.map { request ->
                     lukkSøknadService.lagBrevutkast(
                         request,
@@ -139,11 +154,21 @@ internal fun Route.søknadRoutes(
                         {
                             when (it) {
                                 KunneIkkeLageBrevutkast.FantIkkeSøknad ->
-                                    call.svar(NotFound.message("Fant Ikke Søknad"))
+                                    call.svar(NotFound.errorJson("Fant Ikke Søknad", "fant_ikke_søknad"))
                                 KunneIkkeLageBrevutkast.UkjentBrevtype ->
-                                    call.svar(BadRequest.message("Kunne ikke lage brev for ukjent brevtype"))
+                                    call.svar(
+                                        BadRequest.errorJson(
+                                            "Kunne ikke lage brev for ukjent brevtype",
+                                            "ukjent_brevtype"
+                                        )
+                                    )
                                 else ->
-                                    call.svar(InternalServerError.message("Kunne ikke lage brevutkast"))
+                                    call.svar(
+                                        InternalServerError.errorJson(
+                                            "Kunne ikke lage brevutkast",
+                                            "kunne_ikke_lage_brevutkast"
+                                        )
+                                    )
                             }
                         },
                         { call.respondBytes(it, ContentType.Application.Pdf) },
