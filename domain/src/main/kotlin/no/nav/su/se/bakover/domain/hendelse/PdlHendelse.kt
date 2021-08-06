@@ -37,7 +37,7 @@ sealed class PdlHendelse {
     ) : PdlHendelse()
 
     sealed class Hendelse {
-        data class Dødsfall(val dødsdato: LocalDate) : Hendelse()
-        data class UtflyttingFraNorge(val utflyttingsdato: LocalDate) : Hendelse()
+        data class Dødsfall(val dødsdato: LocalDate?) : Hendelse()
+        data class UtflyttingFraNorge(val utflyttingsdato: LocalDate?) : Hendelse()
     }
 }

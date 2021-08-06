@@ -30,7 +30,9 @@ internal object HendelseMapper {
 
         return when (personhendelse.getOpplysningstype()) {
             Opplysningstype.DØDSFALL.value -> {
-                val dødsdato = personhendelse.getDoedsfall().get().getDoedsdato().get()
+                val dødsdato = personhendelse.getDoedsfall().get().let {
+                    if (it.getDoedsdato().isPresent) it.getDoedsdato().get() else null
+                }
 
                 PdlHendelse.Ny(
                     hendelseId = personhendelse.getHendelseId(),
@@ -43,7 +45,9 @@ internal object HendelseMapper {
             }
 
             Opplysningstype.UTFLYTTING_FRA_NORGE.value -> {
-                val utflyttetDato = personhendelse.getUtflyttingFraNorge().get().getUtflyttingsdato().get()
+                val utflyttetDato = personhendelse.getUtflyttingFraNorge().get().let {
+                    if (it.getUtflyttingsdato().isPresent) it.getUtflyttingsdato().get() else null
+                }
 
                 PdlHendelse.Ny(
                     hendelseId = personhendelse.getHendelseId(),
