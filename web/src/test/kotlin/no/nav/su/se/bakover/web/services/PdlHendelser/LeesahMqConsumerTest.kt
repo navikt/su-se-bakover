@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.services.PdlHendelser
 
-import com.nhaarman.mockitokotlin2.mock
 import no.nav.person.pdl.leesah.Endringstype
 import no.nav.person.pdl.leesah.Personhendelse
 import no.nav.person.pdl.leesah.doedsfall.Doedsfall
@@ -12,7 +11,6 @@ import org.apache.kafka.clients.consumer.MockConsumer
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.apache.kafka.common.TopicPartition
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 internal class LeesahMqConsumerTest {
@@ -26,18 +24,17 @@ internal class LeesahMqConsumerTest {
     private fun setup() {
         mockConsumer.schedulePollTask {
             mockConsumer.rebalance(listOf(TopicPartition(TOPIC, STARTING_OFFSET)))
+
             val record = generatePdlMelding(0)
             val record2 = generatePdlMelding(1)
+            val record3 = generatePdlMelding(2)
+
             mockConsumer.addRecord(record)
             mockConsumer.addRecord(record2)
+            mockConsumer.addRecord(record3)
         }
 
         mockConsumer.updateBeginningOffsets(mapOf(TopicPartition(TOPIC, PARTITION) to STARTING_OFFSET.toLong()))
-    }
-
-    @Test
-    internal fun `kan lese meldinger`() {
-        LeesahConsumer(consumer = mockConsumer, mock())
     }
 
     private fun generatePdlMelding(offset: Long): ConsumerRecord<String, Personhendelse> {

@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.web.services.PdlHendelser
 import no.nav.person.pdl.leesah.Personhendelse
 import no.nav.su.se.bakover.service.hendelser.PersonhendelseService
 import org.apache.kafka.clients.consumer.Consumer
+import org.apache.kafka.clients.consumer.OffsetAndMetadata
+import org.apache.kafka.common.TopicPartition
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import kotlin.concurrent.timer
@@ -30,26 +32,32 @@ class LeesahConsumer(
 
     private fun consume() {
         val messages = consumer.poll(POLL_TIMEOUT_DURATION)
+        val processedMessages = mutableMapOf<TopicPartition, OffsetAndMetadata>()
 
         if (!messages.isEmpty) {
-            messages.forEach { message ->
-                HendelseMapper.map(
-                    message
-                ).fold(
-                    ifLeft = {
-                        when (it) {
-                            HendelseMapperException.IkkeAktuellOpplysningstype -> {}
-                            HendelseMapperException.KunneIkkeHenteAktørId -> {
-                                log.error("Feil skjedde ved henting av aktørId for melding med offset: ${message.offset()}")
+            run processMessages@{
+                messages.forEach { message ->
+                    HendelseMapper.map(
+                        message
+                    ).fold(
+                        ifLeft = {
+                            when (it) {
+                                HendelseMapperException.IkkeAktuellOpplysningstype -> {}
+                                HendelseMapperException.KunneIkkeHenteAktørId -> {
+                                    log.error("Feil skjedde ved henting av aktørId for melding med offset: ${message.offset()}")
+                                    // TODO ai: Muligt å hoppe over meldinger i Q som feiler men ikke i prod
+                                    return@processMessages
+                                }
                             }
+                        },
+                        ifRight = {
+                            personhendelseService.prosesserNyMelding(it)
+                            processedMessages[TopicPartition(message.topic(), message.partition())] = OffsetAndMetadata(it.offset + 1)
                         }
-                    },
-                    ifRight = {
-                        personhendelseService.prosesserNyMelding(it)
-                    }
-                )
+                    )
+                }
             }
-            // consumer.commitSync()
+            consumer.commitSync(processedMessages)
         }
     }
 }
