@@ -119,6 +119,9 @@ interface SøknadsbehandlingService {
     sealed class KunneIkkeSimulereBehandling {
         object KunneIkkeSimulere : KunneIkkeSimulereBehandling()
         object FantIkkeBehandling : KunneIkkeSimulereBehandling()
+        object OppdragStengtEllerNede : KunneIkkeSimulereBehandling()
+        object FinnerIkkePerson : KunneIkkeSimulereBehandling()
+        object FinnerIkkeKjøreplanForFom : KunneIkkeSimulereBehandling()
     }
 
     data class SendTilAttesteringRequest(
@@ -154,6 +157,9 @@ interface SøknadsbehandlingService {
         object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksette()
         object KunneIkkeUtbetale : KunneIkkeIverksette()
         object KunneIkkeKontrollsimulere : KunneIkkeIverksette()
+        object KunneIkkeKontrollsimulereFantIkkePerson : KunneIkkeIverksette()
+        object KunneIkkeKontrollsimulereOppdragStengtEllerNede : KunneIkkeIverksette()
+        object KunneIkkeKontrollsimulereFinnerIkkeKjøreplansperiodeForFom : KunneIkkeIverksette()
         object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeIverksette()
         object KunneIkkeJournalføreBrev : KunneIkkeIverksette()
         object FantIkkeBehandling : KunneIkkeIverksette()

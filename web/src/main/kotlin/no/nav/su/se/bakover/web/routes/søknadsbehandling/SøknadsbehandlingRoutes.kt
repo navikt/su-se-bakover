@@ -364,6 +364,15 @@ internal fun Route.søknadsbehandlingRoutes(
                                 InternalServerError.errorJson("Kunne ikke gjennomføre simulering", "kunne_ikke_simulere")
                             }
                             KunneIkkeSimulereBehandling.FantIkkeBehandling -> fantIkkeBehandling
+                            KunneIkkeSimulereBehandling.OppdragStengtEllerNede -> {
+                                InternalServerError.errorJson("Simuleringsfeil: Oppdrag/UR er stengt eller nede", "simulering_oppdrag_stengt_eller_nede")
+                            }
+                            KunneIkkeSimulereBehandling.FinnerIkkePerson -> {
+                                InternalServerError.errorJson("Simuleringsfeil: Finner ikke person i TPS", "simulering_finner_ikke_person_i_tps")
+                            }
+                            KunneIkkeSimulereBehandling.FinnerIkkeKjøreplanForFom -> {
+                                InternalServerError.errorJson("Simuleringsfeil: Finner ikke kjøreplansperiode for fom-dato", "simulering_finner_ikke_kjøreplansperiode_for_fom")
+                            }
                         }
                         call.svar(resultat)
                     },
@@ -430,6 +439,18 @@ internal fun Route.søknadsbehandlingRoutes(
                 is KunneIkkeIverksette.KunneIkkeKontrollsimulere -> {
                     InternalServerError.errorJson("Kunne ikke utføre kontrollsimulering", "kunne_ikke_kontrollsimulere")
                 }
+                KunneIkkeIverksette.KunneIkkeKontrollsimulereFantIkkePerson -> InternalServerError.errorJson(
+                    "Kontrollsimulering feilet: Finner ikke person i TPS",
+                    "kontrollsimulering_finner_ikke_person_i_tps",
+                )
+                KunneIkkeIverksette.KunneIkkeKontrollsimulereFinnerIkkeKjøreplansperiodeForFom -> InternalServerError.errorJson(
+                    "Kontrollsimulering feilet: Finner ikke kjøreplansperiode for fom-dato",
+                    "kontrollsimulering_finner_ikke_kjøreplansperiode_for_fom",
+                )
+                KunneIkkeIverksette.KunneIkkeKontrollsimulereOppdragStengtEllerNede -> InternalServerError.errorJson(
+                    "Kontrollsimulering feilet: Oppdrag er stengt eller nede",
+                    "kontrollsimulering_oppdrag_er_stengt_eller_nede",
+                )
                 is KunneIkkeIverksette.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> {
                     InternalServerError.errorJson(
                         "Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres",

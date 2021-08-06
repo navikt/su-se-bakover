@@ -63,6 +63,18 @@ private fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
         "Kunne ikke utføre kontrollsimulering",
         "kunne_ikke_kontrollsimulere",
     )
+    KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulereFinnerIkkeKjøreplansperiodeForFom -> InternalServerError.errorJson(
+        "Kontrollsimulering feilet: Finner ikke kjøreplansperiode for fom-dato",
+        "kontrollsimulering_finner_ikke_kjøreplansperiode_for_fom",
+    )
+    KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulereFinnerIkkePerson -> InternalServerError.errorJson(
+        "Kontrollsimulering feilet: Finner ikke person i TPS",
+        "kontrollsimulering_finner_ikke_person_i_tps",
+    )
+    KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulereOppdragErStengtEllerNede -> InternalServerError.errorJson(
+        "Kontrollsimulering feilet: Oppdrag er stengt eller nede",
+        "kontrollsimulering_oppdrag_er_stengt_eller_nede",
+    )
     is KunneIkkeUtbetale -> InternalServerError.errorJson(
         "Kunne ikke utføre utbetaling",
         "kunne_ikke_utbetale",

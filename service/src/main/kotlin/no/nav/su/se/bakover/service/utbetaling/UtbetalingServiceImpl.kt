@@ -96,7 +96,12 @@ internal class UtbetalingServiceImpl(
             saksbehandler = attestant,
             beregning = beregning,
         ).mapLeft {
-            KunneIkkeUtbetale.KunneIkkeSimulere
+            when (it) {
+                SimuleringFeilet.OPPDRAG_UR_ER_STENGT -> KunneIkkeUtbetale.KunneIkkeSimulereOppdragStengtEllerNede
+                SimuleringFeilet.PERSONEN_FINNES_IKKE_I_TPS -> KunneIkkeUtbetale.KunneIkkeSimulereFinnerIkkePerson
+                SimuleringFeilet.FINNER_IKKE_KJØREPLANSPERIODE_FOR_FOM -> KunneIkkeUtbetale.KunneIkkeSimulereFinnerIkkeKjøreplansperiodeForFom
+                else -> KunneIkkeUtbetale.KunneIkkeSimulere
+            }
         }.flatMap { simulertUtbetaling ->
             if (harEndringerIUtbetalingSidenSaksbehandlersSimulering(
                     simulering,

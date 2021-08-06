@@ -72,6 +72,9 @@ sealed class KunneIkkeUtbetale {
     object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeUtbetale()
     object Protokollfeil : KunneIkkeUtbetale()
     object KunneIkkeSimulere : KunneIkkeUtbetale()
+    object KunneIkkeSimulereOppdragStengtEllerNede : KunneIkkeUtbetale()
+    object KunneIkkeSimulereFinnerIkkePerson : KunneIkkeUtbetale()
+    object KunneIkkeSimulereFinnerIkkeKjøreplansperiodeForFom : KunneIkkeUtbetale()
 }
 
 sealed class KunneIkkeStanseUtbetalinger {

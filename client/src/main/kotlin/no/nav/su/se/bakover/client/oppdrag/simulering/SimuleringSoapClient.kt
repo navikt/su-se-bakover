@@ -39,7 +39,13 @@ internal class SimuleringSoapClient(
                 "Simulering feilet med feiltype:${e.faultInfo.errorType}, feilmelding=${e.faultInfo.errorMessage} for request:${simulerRequest.print()}",
                 e,
             )
-            SimuleringFeilet.FUNKSJONELL_FEIL.left()
+            with(e.faultInfo.errorMessage) {
+                when {
+                    startsWith("Personen finnes ikke i TPS") -> SimuleringFeilet.PERSONEN_FINNES_IKKE_I_TPS.left()
+                    startsWith("Finner ikke kjøreplansperiode for fom-dato") -> SimuleringFeilet.FINNER_IKKE_KJØREPLANSPERIODE_FOR_FOM.left()
+                    else -> SimuleringFeilet.FUNKSJONELL_FEIL.left()
+                }
+            }
         } catch (e: SOAPFaultException) {
             when (e.cause) {
                 is WstxEOFException -> utenforÅpningstidResponse(e)

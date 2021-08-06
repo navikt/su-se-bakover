@@ -98,8 +98,10 @@ data class SimulertDetaljer(
 
 enum class SimuleringFeilet {
     OPPDRAG_UR_ER_STENGT,
+    PERSONEN_FINNES_IKKE_I_TPS,
+    FINNER_IKKE_KJØREPLANSPERIODE_FOR_FOM,
     FUNKSJONELL_FEIL,
-    TEKNISK_FEIL
+    TEKNISK_FEIL,
 }
 
 enum class KlasseType {
