@@ -11,7 +11,7 @@ import kotlin.concurrent.timer
 
 class LeesahConsumer(
     private val consumer: Consumer<String, Personhendelse>,
-    private val personhendelseService: PersonhendelseService
+    private val personhendelseService: PersonhendelseService,
 ) {
     private val topicName = "aapen-person-pdl-leesah-v1"
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -37,9 +37,7 @@ class LeesahConsumer(
         if (!messages.isEmpty) {
             run processMessages@{
                 messages.forEach { message ->
-                    HendelseMapper.map(
-                        message
-                    ).fold(
+                    HendelseMapper.map(message).fold(
                         ifLeft = {
                             when (it) {
                                 HendelseMapperException.IkkeAktuellOpplysningstype -> {}
@@ -52,8 +50,9 @@ class LeesahConsumer(
                         },
                         ifRight = {
                             personhendelseService.prosesserNyMelding(it)
-                            processedMessages[TopicPartition(message.topic(), message.partition())] = OffsetAndMetadata(it.offset + 1)
-                        }
+                            processedMessages[TopicPartition(message.topic(), message.partition())] =
+                                OffsetAndMetadata(it.offset + 1)
+                        },
                     )
                 }
             }

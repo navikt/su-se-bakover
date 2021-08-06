@@ -383,6 +383,7 @@ data class ApplicationConfig(
                         ConsumerConfig.CLIENT_ID_CONFIG to getEnvironmentVariableOrDefault("HOSTNAME", "su-se-bakover-hostname"),
                         ConsumerConfig.GROUP_ID_CONFIG to "su-se-bakover",
                         ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to "false",
+                        ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 100
                     )
                 )
             )

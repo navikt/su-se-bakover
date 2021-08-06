@@ -118,7 +118,8 @@ internal class ApplicationConfigTest {
                     "basic.auth.user.info" to "usr:pwd",
                     "group.id" to "su-se-bakover",
                     "client.id" to "su-se-bakover-hostname",
-                    "enable.auto.commit" to "false"
+                    "enable.auto.commit" to "false",
+                    "max.poll.records" to 100,
                 ),
             )
         ),
