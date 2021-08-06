@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.client.oppdrag.avstemming
 
+import arrow.core.NonEmptyList
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -115,7 +117,7 @@ internal fun lagUtbetaling(
     id: UUID30 = UUID30.randomUUID(),
     opprettet: LocalDate,
     status: Kvittering.Utbetalingsstatus?,
-    linjer: List<Utbetalingslinje>,
+    linjer: NonEmptyList<Utbetalingslinje>,
     oppdragsmelding: Utbetalingsrequest = Utbetalingsrequest(
         value = "Melding"
     )
@@ -170,7 +172,7 @@ internal fun alleUtbetalinger() = listOf(
         id = ok1Id,
         opprettet = 1.mars(2020),
         status = Kvittering.Utbetalingsstatus.OK,
-        linjer = listOf(
+        linjer = nonEmptyListOf(
             lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 100),
             lagUtbetalingLinje(1.april(2020), 30.april(2020), 200)
         )
@@ -179,7 +181,7 @@ internal fun alleUtbetalinger() = listOf(
         id = ok2Id,
         opprettet = 1.mars(2020),
         status = Kvittering.Utbetalingsstatus.OK,
-        linjer = listOf(
+        linjer = nonEmptyListOf(
             lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 600),
             lagUtbetalingLinje(1.april(2020), 30.april(2020), 700)
         )
@@ -188,7 +190,7 @@ internal fun alleUtbetalinger() = listOf(
         id = okMedVarselId,
         opprettet = 2.mars(2020),
         status = Kvittering.Utbetalingsstatus.OK_MED_VARSEL,
-        linjer = listOf(
+        linjer = nonEmptyListOf(
             lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 400),
             lagUtbetalingLinje(1.april(2020), 30.april(2020), 500),
             lagUtbetalingLinje(1.mai(2020), 31.mai(2020), 500)
@@ -198,7 +200,7 @@ internal fun alleUtbetalinger() = listOf(
         id = feildId,
         opprettet = 1.mars(2020),
         status = Kvittering.Utbetalingsstatus.FEIL,
-        linjer = listOf(
+        linjer = nonEmptyListOf(
             lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 1000),
             lagUtbetalingLinje(1.april(2020), 30.april(2020), 2000),
             lagUtbetalingLinje(1.mai(2020), 31.mai(2020), 3000),
@@ -209,7 +211,7 @@ internal fun alleUtbetalinger() = listOf(
         id = manglerKvitteringId,
         opprettet = 2.mars(2020),
         status = null,
-        linjer = listOf(
+        linjer = nonEmptyListOf(
             lagUtbetalingLinje(1.januar(2020), 31.desember(2020), 5000)
         )
     )

@@ -26,6 +26,8 @@ data class TolketSimulering(
             utbetalinger,
         )
     }
+
+    fun harFeilutbetalinger() = simulertePerioder.any { it.harFeilutbetalinger() }
 }
 
 data class TolketPeriode(

@@ -4,7 +4,6 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
@@ -22,7 +21,6 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -1056,59 +1054,6 @@ internal class TidslinjeTest {
         )
     }
 
-    /**
-     *  |------| a
-     *     |---| b
-     *  |------| resultat
-     */
-    @Test
-    fun `kan lage tidslinje for utbetalingslinjer`() {
-        val id = UUID30.randomUUID()
-
-        val a = Utbetalingslinje.Ny(
-            id = id,
-            opprettet = Tidspunkt.now(fixedClock),
-            fraOgMed = 1.januar(2021),
-            tilOgMed = 31.desember(2021),
-            forrigeUtbetalingslinjeId = null,
-            beløp = 17000,
-        )
-
-        val b = Utbetalingslinje.Ny(
-            opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
-            fraOgMed = 1.juni(2021),
-            tilOgMed = 31.desember(2021),
-            forrigeUtbetalingslinjeId = id,
-            beløp = 10000,
-        )
-
-        Tidslinje(
-            periode = Periode.create(
-                fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021),
-            ),
-            objekter = listOf(a, b),
-            clock = fixedClock,
-        ).tidslinje shouldBe listOf(
-            Utbetalingslinje.Ny(
-                id = a.id,
-                opprettet = a.opprettet,
-                fraOgMed = 1.januar(2021),
-                tilOgMed = 31.mai(2021),
-                forrigeUtbetalingslinjeId = null,
-                beløp = 17000,
-            ),
-            Utbetalingslinje.Ny(
-                id = b.id,
-                opprettet = b.opprettet,
-                fraOgMed = 1.juni(2021),
-                tilOgMed = 31.desember(2021),
-                forrigeUtbetalingslinjeId = a.id,
-                beløp = 10000,
-            ),
-        )
-    }
-
     @Test
     fun `kan lage tidslinje for forskjellige typer objekter`() {
         val a = Grunnlag.Uføregrunnlag(
@@ -1131,7 +1076,7 @@ internal class TidslinjeTest {
             forventetInntekt = 0,
         )
 
-        Tidslinje<Grunnlag.Uføregrunnlag>(
+        Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.desember(2021),

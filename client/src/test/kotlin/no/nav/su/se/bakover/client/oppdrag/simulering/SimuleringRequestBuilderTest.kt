@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequestTest
@@ -15,6 +16,7 @@ import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
+import java.time.Clock
 
 internal class SimuleringRequestBuilderTest {
 
@@ -37,19 +39,17 @@ internal class SimuleringRequestBuilderTest {
 
     @Test
     fun `bygger simulering request ved endring av eksisterende oppdragslinjer`() {
-        val linjeSomSkalEndres = UtbetalingRequestTest.nyUtbetaling.sisteUtbetalingslinje()!!
+        val linjeSomSkalEndres = UtbetalingRequestTest.nyUtbetaling.sisteUtbetalingslinje()
 
-        val linjeMedEndring = Utbetalingslinje.Endring(
+        val linjeMedEndring = Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = linjeSomSkalEndres,
-            statusendring = Utbetalingslinje.Statusendring(
-                status = Utbetalingslinje.LinjeStatus.OPPHØR,
-                fraOgMed = 1.februar(2020),
-            ),
+            virkningstidspunkt = 1.februar(2020),
+            clock = Clock.systemUTC(),
         )
         val utbetalingMedEndring = UtbetalingRequestTest.nyUtbetaling.copy(
             type = Utbetaling.UtbetalingsType.OPPHØR,
             avstemmingsnøkkel = Avstemmingsnøkkel(18.september(2020).startOfDay()),
-            utbetalingslinjer = listOf(linjeMedEndring),
+            utbetalingslinjer = nonEmptyListOf(linjeMedEndring),
         )
 
         val utbetalingsRequest = toUtbetalingRequest(utbetalingMedEndring).oppdragRequest

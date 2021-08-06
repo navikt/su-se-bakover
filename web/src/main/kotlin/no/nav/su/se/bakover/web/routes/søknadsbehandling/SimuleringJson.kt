@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.TolketUtbetaling
 import java.time.LocalDate
 
 internal data class UtbetalingJson(
-    val id: String,
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
     val beløp: Int,

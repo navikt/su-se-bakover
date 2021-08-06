@@ -103,8 +103,8 @@ internal class UtbetalingPostgresRepo(
             is Utbetalingslinje.Endring -> {
                 baseParams.plus(
                     mapOf(
-                        "status" to utbetalingslinje.statusendring.status,
-                        "statusFraOgMed" to utbetalingslinje.statusendring.fraOgMed,
+                        "status" to utbetalingslinje.linjeStatus,
+                        "statusFraOgMed" to utbetalingslinje.virkningstidspunkt,
                     ),
                 )
             }

@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -25,43 +25,44 @@ interface UtbetalingService {
     fun simulerUtbetaling(
         sakId: UUID,
         saksbehandler: NavIdentBruker,
-        beregning: Beregning
+        beregning: Beregning,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 
     fun simulerOpphør(
         sakId: UUID,
         saksbehandler: NavIdentBruker,
-        opphørsdato: LocalDate
+        opphørsdato: LocalDate,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 
     fun utbetal(
         sakId: UUID,
         attestant: NavIdentBruker,
         beregning: Beregning,
-        simulering: Simulering
+        simulering: Simulering,
     ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun stansUtbetalinger(
         sakId: UUID,
-        saksbehandler: NavIdentBruker
+        saksbehandler: NavIdentBruker,
+        stansDato: LocalDate,
     ): Either<KunneIkkeStanseUtbetalinger, Sak>
 
     fun gjenopptaUtbetalinger(
         sakId: UUID,
-        saksbehandler: NavIdentBruker
+        saksbehandler: NavIdentBruker,
     ): Either<KunneIkkeGjenopptaUtbetalinger, Sak>
 
     fun opphør(
         sakId: UUID,
         attestant: NavIdentBruker,
         simulering: Simulering,
-        opphørsdato: LocalDate
+        opphørsdato: LocalDate,
     ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun hentGjeldendeUtbetaling(
         sakId: UUID,
-        forDato: LocalDate
-    ): Either<FantIkkeGjeldendeUtbetaling, Utbetalingslinje>
+        forDato: LocalDate,
+    ): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje>
 }
 
 object FantIkkeUtbetaling
@@ -76,8 +77,8 @@ sealed class KunneIkkeUtbetale {
 sealed class KunneIkkeStanseUtbetalinger {
     object FantIkkeSak : KunneIkkeStanseUtbetalinger()
     object SimuleringAvStansFeilet : KunneIkkeStanseUtbetalinger()
-    object SendingAvUtebetalingTilOppdragFeilet : KunneIkkeStanseUtbetalinger()
-    object SimulertStansHarBeløpUlikt0 : KunneIkkeStanseUtbetalinger()
+    object SendingAvUtbetalingTilOppdragFeilet : KunneIkkeStanseUtbetalinger()
+    object KontrollAvSimuleringFeilet : KunneIkkeStanseUtbetalinger()
 }
 
 sealed class KunneIkkeGjenopptaUtbetalinger {
@@ -85,5 +86,6 @@ sealed class KunneIkkeGjenopptaUtbetalinger {
     object HarIngenOversendteUtbetalinger : KunneIkkeGjenopptaUtbetalinger()
     object SisteUtbetalingErIkkeEnStansutbetaling : KunneIkkeGjenopptaUtbetalinger()
     object SimuleringAvStartutbetalingFeilet : KunneIkkeGjenopptaUtbetalinger()
-    object SendingAvUtebetalingTilOppdragFeilet : KunneIkkeGjenopptaUtbetalinger()
+    object SendingAvUtbetalingTilOppdragFeilet : KunneIkkeGjenopptaUtbetalinger()
+    object KontrollAvSimuleringFeilet : KunneIkkeGjenopptaUtbetalinger()
 }

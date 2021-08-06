@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.oppdrag.utbetaling
 
+import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.client.oppdrag.XmlMapper
 import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test
 import org.xmlunit.diff.DefaultNodeMatcher
 import org.xmlunit.diff.ElementSelectors
 import org.xmlunit.matchers.CompareMatcher.isSimilarTo
+import java.time.Clock
 
 class UtbetalingXmlMappingTest {
 
@@ -42,19 +44,17 @@ class UtbetalingXmlMappingTest {
         forrigeUtbetalingslinjeId = førsteUtbetalingsLinje.id,
     )
 
-    private val tredjeUtbetalingslinje = Utbetalingslinje.Endring(
+    private val tredjeUtbetalingslinje = Utbetalingslinje.Endring.Opphør(
         andreUtbetalingslinje,
-        statusendring = Utbetalingslinje.Statusendring(
-            status = Utbetalingslinje.LinjeStatus.OPPHØR,
-            fraOgMed = 1.februar(2020),
-        ),
+        virkningstidspunkt = 1.februar(2020),
+        clock = Clock.systemUTC(),
     )
 
     private val fnr = Fnr("12345678910")
     private val utbetaling = Utbetaling.UtbetalingForSimulering(
         sakId = sakId,
         saksnummer = saksnummer,
-        utbetalingslinjer = listOf(
+        utbetalingslinjer = nonEmptyListOf(
             førsteUtbetalingsLinje,
             andreUtbetalingslinje,
             tredjeUtbetalingslinje,

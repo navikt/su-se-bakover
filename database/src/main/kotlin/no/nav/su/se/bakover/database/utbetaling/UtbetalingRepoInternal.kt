@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.utbetaling
 
+import arrow.core.NonEmptyList
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
@@ -70,7 +71,7 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling 
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
-        utbetalingslinjer = utbetalingslinjer,
+        utbetalingslinjer = NonEmptyList.fromListUnsafe(utbetalingslinjer),
         type = type,
         avstemmingsnøkkel = avstemmingsnøkkel,
         simulering = simulering,
@@ -95,18 +96,41 @@ internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
     )
 
     return if (status != null && statusFraOgMed != null) {
-        Utbetalingslinje.Endring(
-            id = linje.id,
-            opprettet = linje.opprettet,
-            fraOgMed = linje.fraOgMed,
-            tilOgMed = linje.tilOgMed,
-            forrigeUtbetalingslinjeId = linje.forrigeUtbetalingslinjeId,
-            beløp = linje.beløp,
-            statusendring = Utbetalingslinje.Statusendring(
-                status = Utbetalingslinje.LinjeStatus.valueOf(status),
-                fraOgMed = statusFraOgMed,
-            ),
-        )
+        when (Utbetalingslinje.Endring.LinjeStatus.valueOf(status)) {
+            Utbetalingslinje.Endring.LinjeStatus.OPPHØR -> {
+                Utbetalingslinje.Endring.Opphør(
+                    id = linje.id,
+                    opprettet = linje.opprettet,
+                    fraOgMed = linje.fraOgMed,
+                    tilOgMed = linje.tilOgMed,
+                    forrigeUtbetalingslinjeId = linje.forrigeUtbetalingslinjeId,
+                    beløp = linje.beløp,
+                    virkningstidspunkt = statusFraOgMed,
+                )
+            }
+            Utbetalingslinje.Endring.LinjeStatus.STANS -> {
+                Utbetalingslinje.Endring.Stans(
+                    id = linje.id,
+                    opprettet = linje.opprettet,
+                    fraOgMed = linje.fraOgMed,
+                    tilOgMed = linje.tilOgMed,
+                    forrigeUtbetalingslinjeId = linje.forrigeUtbetalingslinjeId,
+                    beløp = linje.beløp,
+                    virkningstidspunkt = statusFraOgMed,
+                )
+            }
+            Utbetalingslinje.Endring.LinjeStatus.REAKTIVERING -> {
+                Utbetalingslinje.Endring.Reaktivering(
+                    id = linje.id,
+                    opprettet = linje.opprettet,
+                    fraOgMed = linje.fraOgMed,
+                    tilOgMed = linje.tilOgMed,
+                    forrigeUtbetalingslinjeId = linje.forrigeUtbetalingslinjeId,
+                    beløp = linje.beløp,
+                    virkningstidspunkt = statusFraOgMed,
+                )
+            }
+        }
     } else {
         linje
     }

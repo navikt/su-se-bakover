@@ -16,14 +16,15 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KontrollerSimulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -68,17 +69,20 @@ internal class UtbetalingServiceImpl(
             } ?: FantIkkeUtbetaling.left()
     }
 
-    override fun hentGjeldendeUtbetaling(sakId: UUID, forDato: LocalDate): Either<FantIkkeGjeldendeUtbetaling, Utbetalingslinje> {
-        val utbetalingslinjer = hentUtbetalinger(sakId).flatMap { it.utbetalingslinjer }.filterIsInstance<Utbetalingslinje.Ny>()
-        return Tidslinje(
+    override fun hentGjeldendeUtbetaling(
+        sakId: UUID,
+        forDato: LocalDate,
+    ): Either<FantIkkeGjeldendeUtbetaling, UtbetalingslinjePåTidslinje> {
+        val utbetalingslinjer = hentUtbetalinger(sakId).flatMap { it.utbetalingslinjer }
+
+        return TidslinjeForUtbetalinger(
             periode = Periode.create(
                 fraOgMed = utbetalingslinjer.minOf { it.fraOgMed },
-                tilOgMed = utbetalingslinjer.maxOf { it.tilOgMed }
+                tilOgMed = utbetalingslinjer.maxOf { it.tilOgMed },
             ),
-            objekter = utbetalingslinjer,
+            utbetalingslinjer = utbetalingslinjer,
             clock = clock,
-        ).gjeldendeForDato(forDato)
-            .rightIfNotNull { FantIkkeGjeldendeUtbetaling }
+        ).gjeldendeForDato(forDato).rightIfNotNull { FantIkkeGjeldendeUtbetaling }
     }
 
     override fun utbetal(
@@ -87,7 +91,11 @@ internal class UtbetalingServiceImpl(
         beregning: Beregning,
         simulering: Simulering,
     ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering> {
-        return simulerUtbetaling(sakId, attestant, beregning).mapLeft {
+        return simulerUtbetaling(
+            sakId = sakId,
+            saksbehandler = attestant,
+            beregning = beregning,
+        ).mapLeft {
             KunneIkkeUtbetale.KunneIkkeSimulere
         }.flatMap { simulertUtbetaling ->
             if (harEndringerIUtbetalingSidenSaksbehandlersSimulering(
@@ -199,6 +207,7 @@ internal class UtbetalingServiceImpl(
     override fun stansUtbetalinger(
         sakId: UUID,
         saksbehandler: NavIdentBruker,
+        stansDato: LocalDate,
     ): Either<KunneIkkeStanseUtbetalinger, Sak> {
         val sak = sakService.hentSak(sakId).getOrElse {
             return KunneIkkeStanseUtbetalinger.FantIkkeSak.left()
@@ -210,32 +219,34 @@ internal class UtbetalingServiceImpl(
                 fnr = sak.fnr,
                 utbetalinger = sak.utbetalinger,
                 behandler = saksbehandler,
+                stansDato = stansDato,
                 clock = clock,
             ).generate()
-        return simulerUtbetaling(utbetalingTilSimulering).mapLeft {
-            KunneIkkeStanseUtbetalinger.SimuleringAvStansFeilet
-        }.flatMap {
-            if (simulertStansHarBeløpUlikt0(it)) return KunneIkkeStanseUtbetalinger.SimulertStansHarBeløpUlikt0.left()
-            utbetal(it).mapLeft {
-                KunneIkkeStanseUtbetalinger.SendingAvUtebetalingTilOppdragFeilet
+        return simulerUtbetaling(utbetalingTilSimulering)
+            .mapLeft {
+                KunneIkkeStanseUtbetalinger.SimuleringAvStansFeilet
+            }.flatMap { simulertUtbetaling ->
+                KontrollerSimulering(
+                    simulertUtbetaling = simulertUtbetaling,
+                    eksisterendeUtbetalinger = sak.utbetalinger,
+                    clock = clock,
+                ).resultat.mapLeft {
+                    KunneIkkeStanseUtbetalinger.KontrollAvSimuleringFeilet
+                }.flatMap {
+                    utbetal(it)
+                        .mapLeft {
+                            KunneIkkeStanseUtbetalinger.SendingAvUtbetalingTilOppdragFeilet
+                        }
+                }
+            }.map {
+                sakService.hentSak(sakId).orNull()!!
             }
-        }.map {
-            sakService.hentSak(sakId).orNull()!!
-        }
-    }
-
-    private fun simulertStansHarBeløpUlikt0(simulertUtbetaling: Utbetaling.SimulertUtbetaling): Boolean {
-        return if (simulertUtbetaling.simulering.nettoBeløp != 0 || simulertUtbetaling.simulering.bruttoYtelse() != 0) {
-            log.error("Simulering av stansutbetaling der vi sendte inn beløp 0, nettobeløp i simulering var ${simulertUtbetaling.simulering.nettoBeløp}, bruttobeløp var:${simulertUtbetaling.simulering.bruttoYtelse()}")
-            true
-        } else false
     }
 
     override fun gjenopptaUtbetalinger(
         sakId: UUID,
         saksbehandler: NavIdentBruker,
     ): Either<KunneIkkeGjenopptaUtbetalinger, Sak> {
-
         val sak = sakService.hentSak(sakId).getOrElse {
             return KunneIkkeGjenopptaUtbetalinger.FantIkkeSak.left()
         }
@@ -249,14 +260,24 @@ internal class UtbetalingServiceImpl(
                 clock = clock,
             ).generate()
 
-        return simulerUtbetaling(utbetalingTilSimulering).mapLeft {
-            KunneIkkeGjenopptaUtbetalinger.SimuleringAvStartutbetalingFeilet
-        }.flatMap {
-            utbetal(it).mapLeft {
-                KunneIkkeGjenopptaUtbetalinger.SendingAvUtebetalingTilOppdragFeilet
+        return simulerUtbetaling(utbetalingTilSimulering)
+            .mapLeft {
+                KunneIkkeGjenopptaUtbetalinger.SimuleringAvStartutbetalingFeilet
+            }.flatMap { simulertUtbetaling ->
+                KontrollerSimulering(
+                    simulertUtbetaling = simulertUtbetaling,
+                    eksisterendeUtbetalinger = sak.utbetalinger,
+                    clock = clock,
+                ).resultat.mapLeft {
+                    KunneIkkeGjenopptaUtbetalinger.KontrollAvSimuleringFeilet
+                }.flatMap {
+                    utbetal(it)
+                        .mapLeft {
+                            KunneIkkeGjenopptaUtbetalinger.SendingAvUtbetalingTilOppdragFeilet
+                        }
+                }
+            }.map {
+                sakService.hentSak(sakId).orNull()!!
             }
-        }.map {
-            sakService.hentSak(sakId).orNull()!!
-        }
     }
 }

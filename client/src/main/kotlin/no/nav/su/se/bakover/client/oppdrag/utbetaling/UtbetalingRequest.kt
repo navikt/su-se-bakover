@@ -4,12 +4,14 @@ import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.system.os.entiteter.typer.simpletypes.FradragTillegg
 
 // Ref: https://github.com/navikt/tjenestespesifikasjoner/blob/master/nav-virksomhet-oppdragsbehandling-v1-meldingsdefinisjon/src/main/xsd/no/trygdeetaten/skjema/oppdrag/oppdragskjema-1.xsd
 @JacksonXmlRootElement(localName = "Oppdrag")
 data class UtbetalingRequest(
     @field:JacksonXmlProperty(localName = "oppdrag-110")
-    val oppdragRequest: OppdragRequest
+    val oppdragRequest: OppdragRequest,
 ) {
 
     data class OppdragRequest(
@@ -33,7 +35,7 @@ data class UtbetalingRequest(
         @JacksonXmlElementWrapper(useWrapping = false)
         val oppdragsEnheter: List<OppdragsEnhet>,
         @field:JacksonXmlProperty(localName = "oppdrags-linje-150")
-        val oppdragslinjer: List<Oppdragslinje>
+        val oppdragslinjer: List<Oppdragslinje>,
     )
 
     enum class KodeAksjon(@JsonValue val value: Int) {
@@ -106,7 +108,7 @@ data class UtbetalingRequest(
         val refDelytelseId: String?,
         val refFagsystemId: String?,
         @field:JacksonXmlProperty(localName = "attestant-180")
-        val attestant: List<Attestant>
+        val attestant: List<Attestant>,
     ) {
         enum class KodeEndringLinje(@JsonValue val value: String) {
             NY("NY"),
@@ -116,10 +118,39 @@ data class UtbetalingRequest(
         }
 
         enum class KodeStatusLinje(@JsonValue val value: String) {
+            /**
+             * Ny oppdragslinje som ikke tidligere er oversendt
+             */
             NY("NY"),
-            OPPHØR("OPPH");
+
+            /**
+             * Opphør/annullering av tidligere oversendte oppdragslinjer.
+             */
+            OPPHØR("OPPH"),
+
+            /**
+             * Hviler utbetalingene inntil nye instruks blir gitt (f.eks reaktivering eller erstattes av nye linjer).
+             * Fører til at OS ikke inkluderer aktuelle linjer ved beregning av ytelsen.
+             */
+            HVIL("HVIL"),
+
+            /**
+             * Reaktivering oppdragsliner med status OPPH/HVIL.
+             */
+            REAKTIVER("REAK");
 
             override fun toString() = value
+
+            companion object {
+                internal fun Utbetalingslinje.tilKodeStatusLinje(): KodeStatusLinje {
+                    return when (this) {
+                        is Utbetalingslinje.Endring.Opphør -> OPPHØR
+                        is Utbetalingslinje.Endring.Reaktivering -> REAKTIVER
+                        is Utbetalingslinje.Endring.Stans -> HVIL
+                        is Utbetalingslinje.Ny -> NY
+                    }
+                }
+            }
         }
 
         enum class FradragTillegg(@JsonValue val value: String) {
@@ -145,7 +176,7 @@ data class UtbetalingRequest(
 
         data class Attestant(
             /** [1,8] tegn */
-            val attestantId: String
+            val attestantId: String,
         )
     }
 }
