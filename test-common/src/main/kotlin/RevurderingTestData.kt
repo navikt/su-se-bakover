@@ -63,6 +63,7 @@ fun opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
     // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
     grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
     vilkårsvurderinger: Vilkårsvurderinger = tilRevurdering.behandling.vilkårsvurderinger,
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak
 ): OpprettetRevurdering {
     require(stønadsperiode.periode == revurderingsperiode && revurderingsperiode == tilRevurdering.periode) {
         "En foreløpig begrensning for å bruke testfunksjonen opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak er at stønadsperiode == revurderingsperiode. stønadsperiode=${stønadsperiode.periode}, Revurderingsperiode=$revurderingsperiode, tilRevurdering's periode=${tilRevurdering.periode}"
@@ -100,6 +101,7 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
     vilkårsvurderinger: Vilkårsvurderinger = tilRevurdering.behandling.vilkårsvurderinger,
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak
 ): BeregnetRevurdering.Innvilget {
 
     require(stønadsperiode.periode == revurderingsperiode && revurderingsperiode == tilRevurdering.periode) {
@@ -114,6 +116,7 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         tilRevurdering = tilRevurdering,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
+        revurderingsårsak = revurderingsårsak,
     ).beregn(eksisterendeUtbetalinger).orNull() as BeregnetRevurdering.Innvilget
 }
 
@@ -138,6 +141,7 @@ fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         bosituasjon = tilRevurdering.behandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
     ),
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak
 ): BeregnetRevurdering.Opphørt {
 
     require(stønadsperiode.periode == revurderingsperiode && revurderingsperiode == tilRevurdering.periode) {
@@ -152,6 +156,7 @@ fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         tilRevurdering = tilRevurdering,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
+        revurderingsårsak = revurderingsårsak,
     ).beregn(eksisterendeUtbetalinger).getOrHandle { throw IllegalStateException("Kunne ikke instansiere testdata. Underliggende feil: $it") } as BeregnetRevurdering.Opphørt
 }
 
@@ -171,6 +176,7 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
     vilkårsvurderinger: Vilkårsvurderinger = tilRevurdering.behandling.vilkårsvurderinger,
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak
 ): SimulertRevurdering.Innvilget {
 
     require(stønadsperiode.periode == revurderingsperiode && revurderingsperiode == tilRevurdering.periode) {
@@ -186,6 +192,7 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+        revurderingsårsak = revurderingsårsak,
     ).let {
         it.toSimulert(
             simuleringNy(
@@ -220,6 +227,7 @@ fun simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
             periode = stønadsperiode.periode,
         ),
     ),
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak
 ): SimulertRevurdering.Opphørt {
 
     require(stønadsperiode.periode == revurderingsperiode && revurderingsperiode == tilRevurdering.periode) {
@@ -235,6 +243,7 @@ fun simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+        revurderingsårsak = revurderingsårsak,
     ).let {
         it.toSimulert(
             simuleringOpphørt(
@@ -265,6 +274,7 @@ fun tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler("Saksbehandler"),
     fritekstTilBrev: String = "",
     forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak
 ): RevurderingTilAttestering.Innvilget {
     return simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         saksnr = saksnr,
@@ -275,6 +285,7 @@ fun tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+        revurderingsårsak = revurderingsårsak,
     ).tilAttestering(
         attesteringsoppgaveId = attesteringsoppgaveId,
         saksbehandler = saksbehandler,
@@ -302,7 +313,8 @@ fun UnderkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak(
         grunn = Attestering.Underkjent.Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT,
         kommentar = "feil vilkår man",
         opprettet = fixedTidspunkt
-    )
+    ),
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
 ): UnderkjentRevurdering {
     return tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         saksnr = saksnr,
@@ -317,6 +329,7 @@ fun UnderkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak(
         saksbehandler = saksbehandler,
         fritekstTilBrev = fritekstTilBrev,
         forhåndsvarsel = forhåndsvarsel,
+        revurderingsårsak = revurderingsårsak,
     ).underkjenn(
         attestering = attestering,
         oppgaveId = OppgaveId(value = "oppgaveId")
@@ -338,7 +351,8 @@ fun IverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     fritekstTilBrev: String = "",
     forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
     attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant("Attestant"),
-    utbetal: () -> Either<RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30> = { UUID30.randomUUID().right() }
+    utbetal: () -> Either<RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30> = { UUID30.randomUUID().right() },
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
 ): IverksattRevurdering.Innvilget {
     return tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         saksnr = saksnr,
@@ -353,6 +367,7 @@ fun IverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         saksbehandler = saksbehandler,
         fritekstTilBrev = fritekstTilBrev,
         forhåndsvarsel = forhåndsvarsel,
+        revurderingsårsak = revurderingsårsak,
     ).tilIverksatt(
         attestant = attestant,
         utbetal = utbetal,

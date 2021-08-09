@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.LocalDate
@@ -53,7 +54,6 @@ internal class RevurderingPostgresRepoTest {
     private val fradragsgrunnlagPostgresRepo = testDataHelper.grunnlagRepo
     private val repo = testDataHelper.revurderingRepo
 
-    private val saksbehandler = Saksbehandler("Sak S. Behandler")
     private val periode = Periode.create(
         fraOgMed = 1.januar(2020),
         tilOgMed = 31.desember(2020),

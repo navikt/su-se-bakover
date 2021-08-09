@@ -20,7 +20,7 @@ import io.kotest.assertions.fail
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -94,6 +94,7 @@ import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.aktørId
+import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
@@ -101,6 +102,7 @@ import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandl
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.saksbehandlerNavn
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import org.junit.jupiter.api.Test
@@ -353,7 +355,6 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `iverksett - iverksetter endring av ytelse`() {
-        val attestant = NavIdentBruker.Attestant("attestant")
         val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, zoneIdOslo)
 
         val testsimulering = Simulering(
@@ -476,7 +477,6 @@ internal class RevurderingServiceImplTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
         )
-        val attestant = NavIdentBruker.Attestant("ATTT")
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn revurderingTilAttestering
@@ -772,7 +772,7 @@ internal class RevurderingServiceImplTest {
             on { hentPerson(any()) } doReturn person.right()
         }
 
-        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiClient> {
+        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiOppslag> {
             on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
         }
 
@@ -866,7 +866,7 @@ internal class RevurderingServiceImplTest {
             on { hentPerson(any()) } doReturn person.right()
         }
 
-        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiClient> {
+        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiOppslag> {
             on { hentNavnForNavIdent(any()) } doReturn MicrosoftGraphApiOppslagFeil.FantIkkeBrukerForNavIdent.left()
         }
 
@@ -905,7 +905,7 @@ internal class RevurderingServiceImplTest {
             on { hentPerson(any()) } doReturn person.right()
         }
 
-        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiClient> {
+        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiOppslag> {
             on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
         }
 
@@ -1063,8 +1063,8 @@ internal class RevurderingServiceImplTest {
             on { oppdaterOppgave(any(), any()) } doReturn Unit.right()
         }
 
-        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiClient> {
-            on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
+        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiOppslag> {
+            on { hentNavnForNavIdent(any()) } doReturn saksbehandlerNavn.right()
         }
 
         val revurdering = createRevurderingService(
@@ -1093,7 +1093,7 @@ internal class RevurderingServiceImplTest {
             verify(brevServiceMock).lagBrev(
                 LagBrevRequest.Forhåndsvarsel(
                     person = person,
-                    saksbehandlerNavn = "Sak S. Behandler",
+                    saksbehandlerNavn = saksbehandlerNavn,
                     fritekst = "",
                 ),
             )
@@ -1166,7 +1166,7 @@ internal class RevurderingServiceImplTest {
             on { oppdaterOppgave(any(), any()) } doReturn Unit.right()
         }
 
-        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiClient> {
+        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiOppslag> {
             on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
         }
 
@@ -1320,7 +1320,7 @@ internal class RevurderingServiceImplTest {
             on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
         }
 
-        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiClient> {
+        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiOppslag> {
             on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
         }
 
@@ -1362,7 +1362,7 @@ internal class RevurderingServiceImplTest {
             on { oppdaterOppgave(any(), any()) } doReturn OppgaveFeil.KunneIkkeOppdatereOppgave.left()
         }
 
-        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiClient> {
+        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiOppslag> {
             on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
         }
 
@@ -1588,7 +1588,7 @@ internal class RevurderingServiceImplTest {
             on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
         }
 
-        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiClient> {
+        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiOppslag> {
             on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
         }
 

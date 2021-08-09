@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.test
 
+import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -42,7 +43,7 @@ fun søknadsbehandlingVilkårsvurdertUavklart(
         stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.EMPTY,
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-        attesteringer = Attesteringshistorikk.empty()
+        attesteringer = Attesteringshistorikk.empty(),
     )
 }
 
@@ -54,7 +55,10 @@ fun søknadsbehandlingVilkårsvurdertInnvilget(
     vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
 ): Søknadsbehandling.Vilkårsvurdert.Innvilget {
     return (
-        søknadsbehandlingVilkårsvurdertUavklart(saksnr = saksnr, stønadsperiode = stønadsperiode).tilVilkårsvurdert(
+        søknadsbehandlingVilkårsvurdertUavklart(
+            saksnr = saksnr,
+            stønadsperiode = stønadsperiode,
+        ).tilVilkårsvurdert(
             behandlingsinformasjon,
         ) as Søknadsbehandling.Vilkårsvurdert.Innvilget
         ).copy(
@@ -78,6 +82,36 @@ fun søknadsbehandlingBeregnetInnvilget(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
     ).tilBeregnet(beregning) as Søknadsbehandling.Beregnet.Innvilget
+}
+
+/**
+ * Defaultverdier:
+ * - Forventet inntekt: 1_000_000
+ *
+ * @param beregning må gi avslag, hvis ikke får man en runtime exception
+ */
+fun søknadsbehandlingBeregnetAvslag(
+    saksnr: Saksnummer = saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
+    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    beregning: Beregning = beregning(
+        uføregrunnlag = nonEmptyListOf(
+            uføregrunnlagForventetInntekt(
+                periode = stønadsperiode.periode,
+                forventetInntekt = 1_000_000,
+            ),
+        ),
+    ),
+): Søknadsbehandling.Beregnet.Avslag {
+    return søknadsbehandlingVilkårsvurdertInnvilget(
+        saksnr = saksnr,
+        stønadsperiode = stønadsperiode,
+        behandlingsinformasjon = behandlingsinformasjon,
+        grunnlagsdata = grunnlagsdata,
+        vilkårsvurderinger = vilkårsvurderinger,
+    ).tilBeregnet(beregning) as Søknadsbehandling.Beregnet.Avslag
 }
 
 fun søknadsbehandlingSimulert(
@@ -121,6 +155,27 @@ fun søknadsbehandlingTilAttesteringInnvilget(
     )
 }
 
+fun søknadsbehandlingTilAttesteringAvslagMedBeregning(
+    saksnr: Saksnummer = saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
+    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    beregning: Beregning = beregning(),
+): Søknadsbehandling.TilAttestering.Avslag.MedBeregning {
+    return søknadsbehandlingBeregnetAvslag(
+        saksnr = saksnr,
+        stønadsperiode = stønadsperiode,
+        behandlingsinformasjon = behandlingsinformasjon,
+        grunnlagsdata = grunnlagsdata,
+        vilkårsvurderinger = vilkårsvurderinger,
+        beregning = beregning,
+    ).tilAttestering(
+        saksbehandler = saksbehandler,
+        fritekstTilBrev = "",
+    )
+}
+
 fun søknadsbehandlingUnderkjentInnvilget(
     saksnr: Saksnummer = saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
@@ -151,6 +206,26 @@ fun søknadsbehandlingIverksattInnvilget(
     beregning: Beregning = beregning(),
 ): Søknadsbehandling.Iverksatt.Innvilget {
     return søknadsbehandlingTilAttesteringInnvilget(
+        saksnr = saksnr,
+        stønadsperiode = stønadsperiode,
+        behandlingsinformasjon = behandlingsinformasjon,
+        grunnlagsdata = grunnlagsdata,
+        vilkårsvurderinger = vilkårsvurderinger,
+        beregning = beregning,
+    ).tilIverksatt(
+        attestering = attesteringIverksatt,
+    )
+}
+
+fun søknadsbehandlingIverksattAvslagMedBeregning(
+    saksnr: Saksnummer = saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
+    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    beregning: Beregning = beregning(),
+): Søknadsbehandling.Iverksatt.Avslag.MedBeregning {
+    return søknadsbehandlingTilAttesteringAvslagMedBeregning(
         saksnr = saksnr,
         stønadsperiode = stønadsperiode,
         behandlingsinformasjon = behandlingsinformasjon,
