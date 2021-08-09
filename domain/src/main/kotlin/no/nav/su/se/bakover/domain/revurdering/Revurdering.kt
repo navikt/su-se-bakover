@@ -848,6 +848,9 @@ sealed class RevurderingTilAttestering : Revurdering() {
             object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeUtbetale()
             object Protokollfeil : KunneIkkeUtbetale()
             object KunneIkkeSimulere : KunneIkkeUtbetale()
+            object KunneIkkeSimulereFinnerIkkeKjøreplansperiodeForFom : KunneIkkeUtbetale()
+            object KunneIkkeSimulereFinnerIkkePerson : KunneIkkeUtbetale()
+            object KunneIkkeSimulereOppdragErStengtEllerNede : KunneIkkeUtbetale()
         }
     }
 

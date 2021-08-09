@@ -85,7 +85,12 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
         }
     }
 
-    object KunneIkkeSimulereBehandling
+    sealed class KunneIkkeSimulereBehandling {
+        object OppdragErStengtEllerNede : KunneIkkeSimulereBehandling()
+        object FinnerIkkePerson : KunneIkkeSimulereBehandling()
+        object FinnerIkkeKjøreplanForFom : KunneIkkeSimulereBehandling()
+        object KunneIkkeSimulere : KunneIkkeSimulereBehandling()
+    }
 
     class TilSimulert(
         private val simulering: (beregning: Beregning) -> Either<KunneIkkeSimulereBehandling, Simulering>
@@ -93,19 +98,19 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
             simulering(søknadsbehandling.beregning)
-                .mapLeft { result = KunneIkkeSimulereBehandling.left() }
+                .mapLeft { result = it.left() }
                 .map { result = søknadsbehandling.tilSimulert(it).right() }
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
             simulering(søknadsbehandling.beregning)
-                .mapLeft { result = KunneIkkeSimulereBehandling.left() }
+                .mapLeft { result = it.left() }
                 .map { result = søknadsbehandling.tilSimulert(it).right() }
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
             simulering(søknadsbehandling.beregning)
-                .mapLeft { result = KunneIkkeSimulereBehandling.left() }
+                .mapLeft { result = it.left() }
                 .map { result = søknadsbehandling.tilSimulert(it).right() }
         }
     }
@@ -181,6 +186,9 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
             object TekniskFeil : KunneIkkeUtbetale()
             object KunneIkkeKontrollsimulere : KunneIkkeUtbetale()
+            object KunneIkkeKontrollsimulereFantIkkePerson : KunneIkkeUtbetale()
+            object KunneIkkeKontrollsimulereOppdragStengtEllerNede : KunneIkkeUtbetale()
+            object KunneIkkeKontrollsimulereFinnerIkkeKjøreplansperiodeForFom : KunneIkkeUtbetale()
         }
 
         object FantIkkePerson : KunneIkkeIverksetteSøknadsbehandling()
