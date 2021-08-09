@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequestTest
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.toUtbetalingRequest
 import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -65,6 +66,39 @@ internal class SimuleringRequestBuilderTest {
             }
             it.simuleringsPeriode.assert(
                 fraOgMed = "2020-02-01",
+                tilOgMed = "2020-12-31",
+            )
+        }
+    }
+
+    @Test
+    fun `opphører fra oktober og ut men simulerer hele siste utbetalingslinje`() {
+        val linjeSomSkalEndres = UtbetalingRequestTest.nyUtbetaling.sisteUtbetalingslinje()
+
+        val linjeMedEndring = Utbetalingslinje.Endring.Opphør(
+            utbetalingslinje = linjeSomSkalEndres,
+            virkningstidspunkt = 1.oktober(2020),
+            clock = Clock.systemUTC(),
+        )
+        val utbetalingMedEndring = UtbetalingRequestTest.nyUtbetaling.copy(
+            type = Utbetaling.UtbetalingsType.OPPHØR,
+            avstemmingsnøkkel = Avstemmingsnøkkel(18.september(2020).startOfDay()),
+            utbetalingslinjer = nonEmptyListOf(linjeMedEndring),
+        )
+
+        val utbetalingsRequest = toUtbetalingRequest(utbetalingMedEndring).oppdragRequest
+        SimuleringRequestBuilder(utbetalingsRequest).build().request.let {
+            it.oppdrag.let { oppdrag ->
+                oppdrag.assert(utbetalingsRequest)
+                oppdrag.oppdragslinje.forEachIndexed { index, oppdragslinje ->
+                    oppdragslinje.assert(utbetalingsRequest.oppdragslinjer[index])
+                }
+                oppdrag.oppdragslinje.forEachIndexed { index, oppdragslinje ->
+                    oppdragslinje.assert(utbetalingsRequest.oppdragslinjer[index])
+                }
+            }
+            it.simuleringsPeriode.assert(
+                fraOgMed = "2020-05-01",
                 tilOgMed = "2020-12-31",
             )
         }
