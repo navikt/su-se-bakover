@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Validator.
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.service.revurdering.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
@@ -37,6 +38,7 @@ interface SøknadsbehandlingService {
     fun leggTilUføregrunnlag(request: LeggTilUførevurderingRequest): Either<KunneIkkeLeggeTilGrunnlag, Søknadsbehandling>
     fun leggTilBosituasjonEpsgrunnlag(request: LeggTilBosituasjonEpsRequest): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling>
     fun fullførBosituasjongrunnlag(request: FullførBosituasjonRequest): Either<KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling>
+    fun leggTilFradragGrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling>
 
     data class OpprettRequest(
         val søknadId: UUID,
@@ -78,7 +80,11 @@ interface SøknadsbehandlingService {
             object HarIkkeEktelle : UgyldigFradrag()
         }
 
-        fun toFradrag(stønadsperiode: Stønadsperiode, harEktefelle: Boolean, clock: Clock): Either<UgyldigFradrag, List<Fradrag>> =
+        fun toFradrag(
+            stønadsperiode: Stønadsperiode,
+            harEktefelle: Boolean,
+            clock: Clock,
+        ): Either<UgyldigFradrag, List<Fradrag>> =
             fradrag.map {
                 // map til grunnlag for å låne valideringer
                 Grunnlag.Fradragsgrunnlag(
@@ -208,7 +214,9 @@ interface SøknadsbehandlingService {
 
     sealed class KunneIkkeLeggeTilGrunnlag {
         object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
-        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Søknadsbehandling>) : KunneIkkeLeggeTilGrunnlag()
+        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Søknadsbehandling>) :
+            KunneIkkeLeggeTilGrunnlag()
+
         object UføregradOgForventetInntektMangler : KunneIkkeLeggeTilGrunnlag()
         object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilGrunnlag()
         object OverlappendeVurderingsperioder : KunneIkkeLeggeTilGrunnlag()
@@ -217,14 +225,28 @@ interface SøknadsbehandlingService {
 
     sealed class KunneIkkeLeggeTilBosituasjonEpsGrunnlag {
         object FantIkkeBehandling : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
-        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Søknadsbehandling>) : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
+        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Søknadsbehandling>) :
+            KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
+
         object KlarteIkkeHentePersonIPdl : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
     }
 
     sealed class KunneIkkeFullføreBosituasjonGrunnlag {
         object FantIkkeBehandling : KunneIkkeFullføreBosituasjonGrunnlag()
-        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Søknadsbehandling>) : KunneIkkeFullføreBosituasjonGrunnlag()
+        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Søknadsbehandling>) :
+            KunneIkkeFullføreBosituasjonGrunnlag()
+
         object KlarteIkkeLagreBosituasjon : KunneIkkeFullføreBosituasjonGrunnlag()
         object KlarteIkkeHentePersonIPdl : KunneIkkeFullføreBosituasjonGrunnlag()
+    }
+
+    sealed class KunneIkkeLeggeTilFradragsgrunnlag {
+        object FantIkkeBehandling : KunneIkkeLeggeTilFradragsgrunnlag()
+        object FradragsgrunnlagUtenforPeriode : KunneIkkeLeggeTilFradragsgrunnlag()
+        object UgyldigFradragstypeForGrunnlag : KunneIkkeLeggeTilFradragsgrunnlag()
+        object HarIkkeEktelle : KunneIkkeLeggeTilFradragsgrunnlag()
+        object KlarteIkkeLagreFradrag : KunneIkkeLeggeTilFradragsgrunnlag()
+        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Søknadsbehandling>) :
+            KunneIkkeLeggeTilFradragsgrunnlag()
     }
 }

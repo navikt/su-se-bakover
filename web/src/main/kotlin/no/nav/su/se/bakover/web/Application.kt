@@ -239,7 +239,7 @@ internal fun Application.susebakover(
                         accessProtectedServices.søknad,
                         accessProtectedServices.lukkSøknad,
                     )
-                    overordnetSøknadsbehandligRoutes(accessProtectedServices.søknadsbehandling)
+                    overordnetSøknadsbehandligRoutes(accessProtectedServices.søknadsbehandling, clock)
                     avstemmingRoutes(accessProtectedServices.avstemming)
                     stansutbetalingRoutes(accessProtectedServices.utbetaling)
                     gjenopptaUtbetalingRoutes(accessProtectedServices.utbetaling)
