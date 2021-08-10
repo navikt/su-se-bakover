@@ -14,8 +14,6 @@ import com.nhaarman.mockitokotlin2.never
 import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
-import io.kotest.assertions.arrow.either.shouldBeLeft
-import io.kotest.assertions.arrow.either.shouldBeRight
 import io.kotest.assertions.fail
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -1183,9 +1181,9 @@ internal class RevurderingServiceImplTest {
             fritekst = "",
         )
 
-        response shouldBeRight simulertRevurdering.copy(
+        response shouldBe simulertRevurdering.copy(
             forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt,
-        )
+        ).right()
 
         verify(personServiceMock).hentPerson(any())
         verify(brevServiceMock).lagBrev(any())
@@ -1215,9 +1213,9 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
             revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
             fritekst = "",
-        ) shouldBeLeft KunneIkkeForhåndsvarsle.Attestering(
+        ) shouldBe KunneIkkeForhåndsvarsle.Attestering(
             KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke,
-        )
+        ).left()
     }
 
     private fun testForhåndsvarslerIkkeGittRevurdering(revurdering: Revurdering) {
@@ -1467,10 +1465,10 @@ internal class RevurderingServiceImplTest {
 
         verify(revurderingRepoMock).oppdaterForhåndsvarsel(any(), any())
 
-        revurdering.map { it.forhåndsvarsel } shouldBeRight Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
+        revurdering.map { it.forhåndsvarsel } shouldBe Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
             valg = BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
             begrunnelse = "",
-        )
+        ).right()
     }
 
     @Test
@@ -1515,7 +1513,7 @@ internal class RevurderingServiceImplTest {
                 begrunnelse = "",
                 fritekstTilBrev = "",
             ),
-        ) shouldBeLeft FortsettEtterForhåndsvarselFeil.AlleredeBesluttet
+        ) shouldBe FortsettEtterForhåndsvarselFeil.AlleredeBesluttet.left()
     }
 
     @Test
@@ -1535,7 +1533,7 @@ internal class RevurderingServiceImplTest {
                 begrunnelse = "",
                 fritekstTilBrev = "",
             ),
-        ) shouldBeLeft FortsettEtterForhåndsvarselFeil.AlleredeBesluttet
+        ) shouldBe FortsettEtterForhåndsvarselFeil.AlleredeBesluttet.left()
     }
 
     @Test
@@ -1549,7 +1547,7 @@ internal class RevurderingServiceImplTest {
         ).lagBrevutkastForForhåndsvarsling(
             UUID.randomUUID(),
             "fritekst til forhåndsvarsling",
-        ) shouldBeLeft KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering
+        ) shouldBe KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering.left()
     }
 
     @Test
@@ -1570,7 +1568,7 @@ internal class RevurderingServiceImplTest {
         ).lagBrevutkastForForhåndsvarsling(
             UUID.randomUUID(),
             "fritekst til forhåndsvarsling",
-        ) shouldBeLeft KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson
+        ) shouldBe KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson.left()
     }
 
     @Test
@@ -1600,7 +1598,7 @@ internal class RevurderingServiceImplTest {
         ).lagBrevutkastForForhåndsvarsling(
             UUID.randomUUID(),
             "fritekst til forhåndsvarsling",
-        ) shouldBeLeft KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast
+        ) shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast.left()
     }
 
     @Test
@@ -1785,7 +1783,7 @@ internal class RevurderingServiceImplTest {
 
         revurderingService.leggTilFradragsgrunnlag(
             request,
-        ).shouldBeLeft(KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling)
+        ) shouldBe KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
 
         inOrder(
             revurderingRepoMock,
@@ -1830,12 +1828,11 @@ internal class RevurderingServiceImplTest {
 
         revurderingService.leggTilFradragsgrunnlag(
             request,
-        ).shouldBeLeft(
+        ) shouldBe
             KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
                 fra = eksisterendeRevurdering::class,
                 til = OpprettetRevurdering::class,
-            ),
-        )
+            ).left()
 
         inOrder(
             revurderingRepoMock,
@@ -1901,6 +1898,6 @@ internal class RevurderingServiceImplTest {
 
         revurderingService.leggTilFradragsgrunnlag(
             request,
-        ).shouldBeLeft(KunneIkkeLeggeTilFradragsgrunnlag.FradragsgrunnlagUtenforRevurderingsperiode)
+        ) shouldBe KunneIkkeLeggeTilFradragsgrunnlag.FradragsgrunnlagUtenforRevurderingsperiode.left()
     }
 }

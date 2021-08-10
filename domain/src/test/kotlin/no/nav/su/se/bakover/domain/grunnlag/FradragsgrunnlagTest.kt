@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
-import io.kotest.assertions.arrow.either.shouldBeLeft
+import arrow.core.left
+import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
@@ -31,7 +32,7 @@ internal class FradragsgrunnlagTest {
         ).valider(
             behandlingsperiode,
             false,
-        ) shouldBeLeft Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UtenforBehandlingsperiode
+        ) shouldBe Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UtenforBehandlingsperiode.left()
     }
 
     @Test
@@ -48,7 +49,7 @@ internal class FradragsgrunnlagTest {
         ).valider(
             behandlingsperiode,
             false,
-        ) shouldBeLeft Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag
+        ) shouldBe Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
 
         Grunnlag.Fradragsgrunnlag(
             fradrag = FradragFactory.ny(
@@ -62,7 +63,7 @@ internal class FradragsgrunnlagTest {
         ).valider(
             behandlingsperiode,
             true,
-        ) shouldBeLeft Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag
+        ) shouldBe Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
 
         Grunnlag.Fradragsgrunnlag(
             fradrag = FradragFactory.ny(
@@ -76,7 +77,7 @@ internal class FradragsgrunnlagTest {
         ).valider(
             behandlingsperiode,
             false,
-        ) shouldBeLeft Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag
+        ) shouldBe Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
     }
 
     @Test
@@ -102,6 +103,9 @@ internal class FradragsgrunnlagTest {
                 ),
                 opprettet = fixedTidspunkt,
             ),
-        ).valider(behandlingsperiode, true) shouldBeLeft Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag
+        ).valider(
+            behandlingsperiode,
+            true,
+        ) shouldBe Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
     }
 }

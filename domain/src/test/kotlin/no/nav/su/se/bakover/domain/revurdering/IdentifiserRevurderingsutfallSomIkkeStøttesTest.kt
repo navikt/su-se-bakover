@@ -1,10 +1,11 @@
 package no.nav.su.se.bakover.domain.revurdering
 
+import arrow.core.left
 import arrow.core.nonEmptyListOf
+import arrow.core.right
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
-import io.kotest.assertions.arrow.either.shouldBeLeft
-import io.kotest.assertions.arrow.either.shouldBeRight
+import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
@@ -34,9 +35,9 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
             vilkårsvurderinger = vilkårsvurderingerAvslåttUføre(periode = periodeJuni2021),
             tidligereBeregning = beregning,
             nyBeregning = beregning,
-        ).resultat shouldBeLeft setOf(
+        ).resultat shouldBe setOf(
             RevurderingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned,
-        )
+        ).left()
     }
 
     @Test
@@ -46,9 +47,9 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
             vilkårsvurderinger = vilkårsvurderingerAvslåttAlle(periode = periodeDesember2021),
             tidligereBeregning = beregning,
             nyBeregning = beregning,
-        ).resultat shouldBeLeft setOf(
+        ).resultat shouldBe setOf(
             RevurderingsutfallSomIkkeStøttes.OpphørAvFlereVilkår,
-        )
+        ).left()
     }
 
     @Test
@@ -79,10 +80,10 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
                     ),
                 ),
             ),
-        ).resultat shouldBeLeft setOf(
+        ).resultat shouldBe setOf(
             RevurderingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned,
             RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
-        )
+        ).left()
     }
 
     @Test
@@ -124,10 +125,10 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
             vilkårsvurderinger = vilkårsvurderingerMock,
             tidligereBeregning = tidligereBeregningMock,
             nyBeregning = nyBeregningMock,
-        ).resultat shouldBeLeft setOf(
+        ).resultat shouldBe setOf(
             RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
             RevurderingsutfallSomIkkeStøttes.DelvisOpphør,
-        )
+        ).left()
     }
 
     @Test
@@ -169,10 +170,10 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
             vilkårsvurderinger = vilkårsvurderingerMock,
             tidligereBeregning = tidligereBeregningMock,
             nyBeregning = nyBeregningMock,
-        ).resultat shouldBeLeft setOf(
+        ).resultat shouldBe setOf(
             RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
             RevurderingsutfallSomIkkeStøttes.DelvisOpphør,
-        )
+        ).left()
     }
 
     @Test
@@ -216,7 +217,7 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
             vilkårsvurderinger = vilkårsvurderingerMock,
             tidligereBeregning = tidligereBeregningMock,
             nyBeregning = nyBeregningMock,
-        ).resultat shouldBeRight Unit
+        ).resultat shouldBe Unit.right()
     }
 
     @Test
@@ -258,9 +259,9 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
             vilkårsvurderinger = vilkårsvurderingerMock,
             tidligereBeregning = tidligereBeregningMock,
             nyBeregning = nyBeregningMock,
-        ).resultat shouldBeLeft setOf(
+        ).resultat shouldBe setOf(
             RevurderingsutfallSomIkkeStøttes.DelvisOpphør,
-        )
+        ).left()
     }
 
     @Test
@@ -302,9 +303,9 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
             vilkårsvurderinger = vilkårsvurderingerMock,
             tidligereBeregning = tidligereBeregningMock,
             nyBeregning = nyBeregningMock,
-        ).resultat shouldBeLeft setOf(
+        ).resultat shouldBe setOf(
             RevurderingsutfallSomIkkeStøttes.DelvisOpphør,
-        )
+        ).left()
     }
 
     @Test
@@ -315,7 +316,7 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
             vilkårsvurderinger = vilkårsvurderingerInnvilget(periodeDesember2021),
             tidligereBeregning = beregning,
             nyBeregning = beregning,
-        ).resultat shouldBeRight Unit
+        ).resultat shouldBe Unit.right()
     }
 
     @Test
@@ -351,9 +352,9 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
                     ),
                 ),
             ),
-        ).resultat shouldBeLeft setOf(
+        ).resultat shouldBe setOf(
             RevurderingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned,
-        )
+        ).left()
     }
 
     @Test
@@ -370,9 +371,9 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
                     ),
                 ),
             ),
-        ).resultat shouldBeLeft setOf(
+        ).resultat shouldBe setOf(
             RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
-        )
+        ).left()
     }
 
     @Test
@@ -392,8 +393,8 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
                 periode = periodeDesember2021,
 
             ),
-        ).resultat shouldBeLeft setOf(
+        ).resultat shouldBe setOf(
             RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
-        )
+        ).left()
     }
 }

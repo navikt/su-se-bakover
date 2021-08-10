@@ -1,8 +1,7 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.left
-import io.kotest.assertions.arrow.either.shouldBeLeft
-import io.kotest.assertions.arrow.either.shouldBeRight
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
@@ -174,7 +173,7 @@ internal class FormuegrunnlagTest {
                 begrunnelse = null,
                 bosituasjon = enslig,
                 behandlingsPeriode = Periode.create(1.januar(2021), 31.mars(2021)),
-            ) shouldBeLeft KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden
+            ) shouldBe KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden.left()
         }
 
         @Test
@@ -193,7 +192,7 @@ internal class FormuegrunnlagTest {
                 behandlingsPeriode = Periode.create(1.januar(2021), 31.desember(2021)),
             )
 
-            formueTryCreate shouldBeRight Formuegrunnlag.create(
+            formueTryCreate shouldBe Formuegrunnlag.create(
                 id = id,
                 periode = periode,
                 opprettet = Tidspunkt.EPOCH,
@@ -202,7 +201,7 @@ internal class FormuegrunnlagTest {
                 begrunnelse = null,
                 bosituasjon = enslig,
                 behandlingsPeriode = Periode.create(1.januar(2021), 31.desember(2021)),
-            )
+            ).right()
         }
     }
 }

@@ -6,7 +6,6 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
-import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
@@ -908,7 +907,7 @@ internal class PdlClientTest : WiremockBase {
                 azureAd = mock(),
             ),
         )
-        client.personForSystembruker(Fnr("07028820547")) shouldBeLeft KunneIkkeHentePerson.FantIkkePerson
+        client.personForSystembruker(Fnr("07028820547")) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
     }
 
     private fun wiremockBuilderSystembruker(authorization: String) = WireMock.post(WireMock.urlPathEqualTo("/graphql"))

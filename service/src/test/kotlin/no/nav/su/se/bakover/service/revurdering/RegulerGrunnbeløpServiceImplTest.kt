@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
@@ -9,7 +10,6 @@ import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
-import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -410,7 +410,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 fritekstTilBrev = "Fritekst",
                 skalFøreTilBrevutsending = true,
             ),
-        ) shouldBeLeft KunneIkkeSendeRevurderingTilAttestering.KanIkkeRegulereGrunnbeløpTilOpphør
+        ) shouldBe KunneIkkeSendeRevurderingTilAttestering.KanIkkeRegulereGrunnbeløpTilOpphør.left()
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
             verify(revurderingRepoMock).hent(revurderingId)
@@ -469,7 +469,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 fritekstTilBrev = "Fritekst",
                 skalFøreTilBrevutsending = true,
             ),
-        ) shouldBeLeft KunneIkkeSendeRevurderingTilAttestering.KanIkkeRegulereGrunnbeløpTilOpphør
+        ) shouldBe KunneIkkeSendeRevurderingTilAttestering.KanIkkeRegulereGrunnbeløpTilOpphør.left()
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
             verify(revurderingRepoMock).hent(revurderingId)

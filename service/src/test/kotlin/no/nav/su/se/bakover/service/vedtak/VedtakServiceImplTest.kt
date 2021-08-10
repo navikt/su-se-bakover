@@ -9,7 +9,6 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
-import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -47,7 +46,6 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
-import java.lang.RuntimeException
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -123,7 +121,10 @@ internal class VedtakServiceImplTest {
         }
         createService(
             sakService = sakServiceMock,
-        ).kopierGjeldendeVedtaksdata(UUID.randomUUID(), LocalDate.EPOCH) shouldBeLeft KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak
+        ).kopierGjeldendeVedtaksdata(
+            UUID.randomUUID(),
+            LocalDate.EPOCH,
+        ) shouldBe KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak.left()
     }
 
     @Test
@@ -143,7 +144,10 @@ internal class VedtakServiceImplTest {
         }
         createService(
             sakService = sakServiceMock,
-        ).kopierGjeldendeVedtaksdata(UUID.randomUUID(), LocalDate.EPOCH) shouldBeLeft KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak
+        ).kopierGjeldendeVedtaksdata(
+            UUID.randomUUID(),
+            LocalDate.EPOCH,
+        ) shouldBe KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak.left()
     }
 
     @Test
@@ -168,7 +172,11 @@ internal class VedtakServiceImplTest {
         }
         createService(
             sakService = sakServiceMock,
-        ).kopierGjeldendeVedtaksdata(UUID.randomUUID(), LocalDate.EPOCH.plusDays(7)) shouldBeLeft KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode(Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden)
+        ).kopierGjeldendeVedtaksdata(
+            UUID.randomUUID(),
+            LocalDate.EPOCH.plusDays(7),
+        ) shouldBe KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode(Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden)
+            .left()
     }
 
     @Test
