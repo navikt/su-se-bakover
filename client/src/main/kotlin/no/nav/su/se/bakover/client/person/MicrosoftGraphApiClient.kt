@@ -100,14 +100,14 @@ class MicrosoftGraphApiClient(
             .mapLeft { error ->
                 val errorMessage = error.response.body().asString("application/json")
                 val statusCode = error.response.statusCode
-                log.info("Kall til Microsoft Graph API feilet med kode $statusCode og melding: $errorMessage")
+                log.error("Kall til Microsoft Graph API feilet med kode $statusCode, melding: $errorMessage, request-parametre: ${req.parameters}")
                 MicrosoftGraphApiOppslagFeil.KallTilMicrosoftGraphApiFeilet
             }
             .flatMap { res ->
                 Either.catch {
                     objectMapper.readValue<T>(res)
                 }.mapLeft {
-                    log.info("Deserialisering av respons fra Microsoft Graph API feilet: $it")
+                    log.error("Deserialisering av respons fra Microsoft Graph API feilet: $it, request-parametre: ${req.parameters}, response-string: $res")
                     MicrosoftGraphApiOppslagFeil.DeserialiseringAvResponsFeilet
                 }
             }
