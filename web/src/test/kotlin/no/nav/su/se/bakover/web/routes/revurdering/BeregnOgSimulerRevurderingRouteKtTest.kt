@@ -126,7 +126,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             periode = TestBeregning.periode,
             opprettet = Tidspunkt.now(),
             tilRevurdering = vedtak.copy(beregning = beregning),
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = Revurderingsårsak(
@@ -159,7 +159,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 formue = formueVilkår(periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         ).beregn(eksisterendeUtbetalinger = emptyList()).orNull()!!
 
         val simulertRevurdering = when (beregnetRevurdering) {

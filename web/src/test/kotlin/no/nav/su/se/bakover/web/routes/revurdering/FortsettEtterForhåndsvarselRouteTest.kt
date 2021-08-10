@@ -72,7 +72,7 @@ internal class FortsettEtterForhåndsvarselRouteTest {
             periode = RevurderingRoutesTestData.periode,
             opprettet = Tidspunkt.now(),
             tilRevurdering = RevurderingRoutesTestData.vedtak,
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678901"),
@@ -143,7 +143,7 @@ internal class FortsettEtterForhåndsvarselRouteTest {
             periode = RevurderingRoutesTestData.periode,
             opprettet = Tidspunkt.now(),
             tilRevurdering = RevurderingRoutesTestData.vedtak,
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678901"),
@@ -213,7 +213,7 @@ internal class FortsettEtterForhåndsvarselRouteTest {
             periode = RevurderingRoutesTestData.periode,
             opprettet = Tidspunkt.now(),
             tilRevurdering = RevurderingRoutesTestData.vedtak,
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678901"),

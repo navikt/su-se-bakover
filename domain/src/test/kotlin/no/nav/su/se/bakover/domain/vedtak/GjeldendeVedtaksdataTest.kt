@@ -114,11 +114,11 @@ internal class GjeldendeVedtaksdataTest {
                 opprettet = Tidspunkt.now(),
                 sakId = UUID.randomUUID(),
                 søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-                journalpostId = JournalpostId(value = ""),
-                oppgaveId = OppgaveId(value = ""),
+                journalpostId = JournalpostId(value = "journalpostId"),
+                oppgaveId = OppgaveId(value = "oppgaveId"),
 
             ),
-            oppgaveId = OppgaveId(value = ""),
+            oppgaveId = OppgaveId(value = "oppgaveId"),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
             fnr = FnrGenerator.random(),
             beregning = BeregningFactory.ny(
@@ -147,7 +147,13 @@ internal class GjeldendeVedtaksdataTest {
             ),
             simulering = mock(),
             saksbehandler = NavIdentBruker.Saksbehandler("saks"),
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), Tidspunkt.now(fixedClock))),
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(
+                    Attestering.Iverksatt(
+                        NavIdentBruker.Attestant("attestant"),
+                        Tidspunkt.now(fixedClock)
+                    )
+                ),
             fritekstTilBrev = "",
             stønadsperiode = Stønadsperiode.create(
                 periode = periode,
@@ -181,7 +187,7 @@ internal class GjeldendeVedtaksdataTest {
             ),
         ),
         utbetalingId = UUID30.randomUUID(),
-        clock = fixedClock
+        clock = fixedClock,
     )
 
     private fun revurdering(periode: Periode, førstegangsvedtak: Vedtak.EndringIYtelse) = Vedtak.from(
@@ -190,8 +196,8 @@ internal class GjeldendeVedtaksdataTest {
             periode = periode,
             opprettet = Tidspunkt.now(),
             tilRevurdering = førstegangsvedtak,
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
-            oppgaveId = OppgaveId(value = ""),
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
+            oppgaveId = OppgaveId(value = "oppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = Revurderingsårsak(
                 årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
@@ -221,7 +227,13 @@ internal class GjeldendeVedtaksdataTest {
                 fradragStrategy = FradragStrategy.Enslig,
                 begrunnelse = "just becausre",
             ),
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant = NavIdentBruker.Attestant(navIdent = ""), Tidspunkt.now(fixedClock))),
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(
+                    Attestering.Iverksatt(
+                        attestant = NavIdentBruker.Attestant(navIdent = "attestant"),
+                        Tidspunkt.now(fixedClock),
+                    ),
+                ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             simulering = Simulering(
                 gjelderId = FnrGenerator.random(),

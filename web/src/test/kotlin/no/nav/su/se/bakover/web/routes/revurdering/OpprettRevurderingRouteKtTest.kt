@@ -82,7 +82,7 @@ internal class OpprettRevurderingRouteKtTest {
             periode = periode,
             opprettet = Tidspunkt.now(),
             tilRevurdering = vedtak,
-            saksbehandler = NavIdentBruker.Saksbehandler(""),
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = Revurderingsårsak(
@@ -93,7 +93,7 @@ internal class OpprettRevurderingRouteKtTest {
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
         val revurderingServiceMock = mock<RevurderingService> {
             on { opprettRevurdering(any()) } doReturn opprettetRevurdering.right()

@@ -491,8 +491,8 @@ internal class RevurderingTest {
         periode = periode,
         opprettet = Tidspunkt.now(),
         tilRevurdering = tilRevurdering,
-        saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
-        oppgaveId = OppgaveId(value = ""),
+        saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
+        oppgaveId = OppgaveId(value = "oppgaveId"),
         fritekstTilBrev = "",
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = null,
@@ -502,7 +502,7 @@ internal class RevurderingTest {
             fradragsgrunnlag = fradrag,
         ),
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-        attesteringer = Attesteringshistorikk.empty()
+        attesteringer = Attesteringshistorikk.empty(),
     )
 
     private fun lagUtbetaling(

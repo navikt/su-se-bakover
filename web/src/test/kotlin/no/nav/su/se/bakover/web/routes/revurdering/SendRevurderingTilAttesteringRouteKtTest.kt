@@ -78,7 +78,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             periode = periode,
             opprettet = Tidspunkt.now(),
             tilRevurdering = vedtak,
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = vedtak.behandling.fnr,
@@ -131,7 +131,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             periode = periode,
             opprettet = Tidspunkt.now(),
             tilRevurdering = vedtak,
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             beregning = TestBeregning,
             oppgaveId = OppgaveId("OppgaveId"),
             fritekstTilBrev = "",
@@ -144,7 +144,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -180,7 +180,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             periode = periode,
             opprettet = Tidspunkt.now(),
             tilRevurdering = vedtak,
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             beregning = TestBeregning,
             oppgaveId = OppgaveId("OppgaveId"),
             fritekstTilBrev = "Friteksten",
@@ -193,7 +193,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
