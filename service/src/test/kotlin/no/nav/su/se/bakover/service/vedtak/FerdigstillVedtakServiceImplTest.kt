@@ -971,7 +971,7 @@ internal class FerdigstillVedtakServiceImplTest {
         }
 
         val oppgaveServiceMock = mock<OppgaveService>() {
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
         val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
@@ -1029,7 +1029,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 argThat { it shouldBe vedtak.behandling.saksnummer },
             )
             verify(vedtakRepoMock).hentUtenBrevbestilling()
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe vedtak.behandling.oppgaveId })
+            verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(argThat { it shouldBe vedtak.behandling.oppgaveId })
         }
         verifyNoMoreInteractions(vedtakRepoMock, brevServiceMock)
     }
@@ -1057,7 +1057,7 @@ internal class FerdigstillVedtakServiceImplTest {
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()
         val oppgaveServiceMock = mock<OppgaveService>() {
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
         val response = createService(
@@ -1099,7 +1099,7 @@ internal class FerdigstillVedtakServiceImplTest {
             )
             verify(behandlingMetricsMock).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT)
             verify(vedtakRepoMock).hentUtenBrevbestilling()
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe avslagsVedtak.behandling.oppgaveId })
+            verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(argThat { it shouldBe avslagsVedtak.behandling.oppgaveId })
         }
     }
 
@@ -1125,7 +1125,7 @@ internal class FerdigstillVedtakServiceImplTest {
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()
         val oppgaveServiceMock = mock<OppgaveService>() {
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
         val response = createService(
@@ -1170,7 +1170,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 },
             )
             verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe innvilgelseUtenBrevbestilling.behandling.oppgaveId })
+            verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(argThat { it shouldBe innvilgelseUtenBrevbestilling.behandling.oppgaveId })
             verifyNoMoreInteractions(vedtakRepoMock, brevServiceMock, utbetalingRepoMock)
         }
     }
@@ -1193,7 +1193,7 @@ internal class FerdigstillVedtakServiceImplTest {
 
         val brevServiceMock = mock<BrevService>()
         val oppgaveServiceMock = mock<OppgaveService>() {
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
         val response = createService(
@@ -1222,7 +1222,7 @@ internal class FerdigstillVedtakServiceImplTest {
             verify(vedtakRepoMock).hentUtenJournalpost()
             verify(vedtakRepoMock).hentUtenBrevbestilling()
             verify(utbetalingRepoMock).hentUtbetaling(innvilgelseUtenBrevbestilling.utbetalingId)
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe innvilgelseUtenBrevbestilling.behandling.oppgaveId })
+            verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(argThat { it shouldBe innvilgelseUtenBrevbestilling.behandling.oppgaveId })
         }
         verifyNoMoreInteractions(vedtakRepoMock, brevServiceMock)
     }
@@ -1251,9 +1251,7 @@ internal class FerdigstillVedtakServiceImplTest {
         }
 
         val brevServiceMock = mock<BrevService>()
-        val oppgaveServiceMock = mock<OppgaveService>() {
-            on { lukkOppgave(any()) } doReturn Unit.right()
-        }
+        val oppgaveServiceMock = mock<OppgaveService>()
 
         val response = createService(
             vedtakRepo = vedtakRepoMock,
