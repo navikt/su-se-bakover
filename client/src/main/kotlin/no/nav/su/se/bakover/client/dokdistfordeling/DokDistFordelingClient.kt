@@ -13,12 +13,13 @@ import org.json.JSONObject
 import org.slf4j.LoggerFactory
 
 internal const val dokDistFordelingPath = "/rest/v1/distribuerjournalpost"
+
 class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag) : DokDistFordeling {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun bestillDistribusjon(
-        journalPostId: JournalpostId
+        journalPostId: JournalpostId,
     ): Either<KunneIkkeBestilleDistribusjon, BrevbestillingId> {
         val body = byggDistribusjonPostJson(journalPostId)
         val (_, _, result) = "$baseUrl$dokDistFordelingPath".httpPost()
@@ -27,7 +28,7 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
             .header("Accept", "application/json")
             .header("X-Correlation-ID", getOrCreateCorrelationId())
             .body(
-                body
+                body,
             ).responseString()
 
         return result.fold(
@@ -47,7 +48,6 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
                 val response = it.response
                 log.error(
                     "Feil ved bestilling av distribusjon. status=${response.statusCode} body=${String(response.data)}",
-                    it,
                 )
                 KunneIkkeBestilleDistribusjon.left()
             },
