@@ -6,7 +6,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
@@ -130,7 +130,7 @@ object RevurderingTestUtils {
         revurderingRepo: RevurderingRepo = mock(),
         oppgaveService: OppgaveService = mock(),
         personService: PersonService = mock(),
-        microsoftGraphApiClient: MicrosoftGraphApiClient = mock(),
+        microsoftGraphApiClient: MicrosoftGraphApiOppslag = mock(),
         brevService: BrevService = mock(),
         clock: Clock = fixedClock,
         vedtakRepo: VedtakRepo = mock(),

@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.service.behandling
 
-import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
@@ -122,17 +121,4 @@ object BehandlingTestUtils {
         ),
         ektefelle = ektefelle
     )
-
-    internal object microsoftGraphMock {
-        val response = MicrosoftGraphResponse(
-            displayName = "Nav Navesen",
-            givenName = "",
-            mail = "",
-            officeLocation = "",
-            surname = "",
-            userPrincipalName = "",
-            id = "",
-            jobTitle = ""
-        )
-    }
 }

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.revurdering
 
 import com.nhaarman.mockitokotlin2.mock
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -20,7 +20,7 @@ internal data class RevurderingServiceMocks(
     val revurderingRepo: RevurderingRepo = mock(),
     val oppgaveService: OppgaveService = mock(),
     val personService: PersonService = mock(),
-    val microsoftGraphApiClient: MicrosoftGraphApiClient = mock(),
+    val microsoftGraphApiClient: MicrosoftGraphApiOppslag = mock(),
     val brevService: BrevService = mock(),
     val vedtakRepo: VedtakRepo = mock(),
     val ferdigstillVedtakService: FerdigstillVedtakService = mock(),

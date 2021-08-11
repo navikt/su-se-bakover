@@ -4,7 +4,9 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -28,7 +30,8 @@ val fixedTidspunkt: Tidspunkt = Tidspunkt.now(fixedClock)
  */
 val fixedLocalDate: LocalDate = LocalDate.of(2021, 1, 1)
 
-val saksbehandler = NavIdentBruker.Saksbehandler("Sak S. Behandler")
+val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
+const val saksbehandlerNavn = "Sak S. Behandler"
 
 val saksnummer = Saksnummer(nummer = 12345676)
 
@@ -36,13 +39,25 @@ val fnr = Fnr.generer()
 
 val aktørId = AktørId("aktørId")
 
+fun person(
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    aktørId: AktørId = no.nav.su.se.bakover.test.aktørId,
+) = Person(
+    ident = Ident(
+        fnr = fnr,
+        aktørId = aktørId,
+    ),
+    navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
+)
+
 val stønadsperiode2021 = Stønadsperiode.create(periode2021, "stønadsperiode2021")
 
 val attestant = NavIdentBruker.Attestant("attestant")
+const val attestantNavn = "Att E. Stant"
 
 val attesteringIverksatt = Attestering.Iverksatt(
     attestant = attestant,
-    opprettet = fixedTidspunkt
+    opprettet = fixedTidspunkt,
 )
 
 val attesteringUnderkjent = Attestering.Underkjent(
