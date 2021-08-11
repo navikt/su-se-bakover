@@ -39,7 +39,7 @@ import java.util.UUID
 class RevurderingServiceLeggTilFradragsgrunnlagTest {
     @Test
     fun `lagreFradrag happy case`() {
-        val revurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak()
+        val revurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn revurdering
@@ -141,7 +141,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
     @Test
     fun `lagreFradrag har en status som gjør at man ikke kan legge til fradrag`() {
 
-        val tidligereRevurdering = tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak()
+        val tidligereRevurdering = tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn tidligereRevurdering

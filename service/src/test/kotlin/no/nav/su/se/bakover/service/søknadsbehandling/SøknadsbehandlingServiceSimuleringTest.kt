@@ -73,9 +73,9 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             simulering = simulering,
             fritekstTilBrev = "",
             stønadsperiode = beregnetBehandling.stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         response shouldBe expected.right()
@@ -162,9 +162,9 @@ internal class SøknadsbehandlingServiceSimuleringTest {
         oppgaveId = oppgaveId,
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.EMPTY,
+        grunnlagsdata = Grunnlagsdata.IkkeVurdert,
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-        attesteringer = Attesteringshistorikk.empty()
+        attesteringer = Attesteringshistorikk.empty(),
     )
 
     private val simulering = Simulering(

@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
@@ -103,7 +104,7 @@ internal class FerdigstillVedtakServiceImplTest {
     @Test
     fun `ferdigstill NY kaster feil hvis utbetalinga ikke kan kobles til et vedtak`() {
 
-        val vedtak = innvilgetSøknadsbehandlingVedtak()
+        val (sak, vedtak) = innvilgetSøknadsbehandlingVedtak()
 
         FerdigstillVedtakServiceMocks(
             vedtakRepo = mock {
@@ -111,7 +112,7 @@ internal class FerdigstillVedtakServiceImplTest {
             },
         ) {
             assertThrows<FerdigstillVedtakServiceImpl.KunneIkkeFerdigstilleVedtakException> {
-                service.ferdigstillVedtakEtterUtbetaling(oversendtUtbetalingMedKvittering(id = vedtak.utbetalingId))
+                service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
             }.message shouldContain vedtak.utbetalingId.toString()
 
             verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
@@ -121,7 +122,7 @@ internal class FerdigstillVedtakServiceImplTest {
     @Test
     fun `ferdigstill NY kaster feil hvis man ikke finner person for journalpost`() {
 
-        val vedtak = innvilgetSøknadsbehandlingVedtak()
+        val (sak, vedtak) = innvilgetSøknadsbehandlingVedtak()
 
         FerdigstillVedtakServiceMocks(
             vedtakRepo = mock {
@@ -132,7 +133,7 @@ internal class FerdigstillVedtakServiceImplTest {
             },
         ) {
             assertThrows<FerdigstillVedtakServiceImpl.KunneIkkeFerdigstilleVedtakException> {
-                service.ferdigstillVedtakEtterUtbetaling(oversendtUtbetalingMedKvittering(id = vedtak.utbetalingId))
+                service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
             }.message shouldContain vedtak.id.toString()
 
             verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
@@ -143,7 +144,7 @@ internal class FerdigstillVedtakServiceImplTest {
     @Test
     fun `ferdigstillelse etter utbetaling kaster feil hvis journalføring feiler`() {
 
-        val vedtak = innvilgetSøknadsbehandlingVedtak()
+        val (sak, vedtak) = innvilgetSøknadsbehandlingVedtak()
 
         FerdigstillVedtakServiceMocks(
             vedtakRepo = mock {
@@ -167,10 +168,7 @@ internal class FerdigstillVedtakServiceImplTest {
         ) {
             assertThrows<FerdigstillVedtakServiceImpl.KunneIkkeFerdigstilleVedtakException> {
                 service.ferdigstillVedtakEtterUtbetaling(
-                    oversendtUtbetalingMedKvittering(
-                        id = vedtak.utbetalingId,
-                        type = Utbetaling.UtbetalingsType.OPPHØR,
-                    ),
+                    sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering,
                 )
             }.message shouldContain vedtak.id.toString()
 
@@ -202,7 +200,7 @@ internal class FerdigstillVedtakServiceImplTest {
     @Test
     fun `ferdigstillelse etter utbetaling kaster feil hvis distribusjon feiler`() {
 
-        val vedtak = innvilgetSøknadsbehandlingVedtak()
+        val (sak, vedtak) = innvilgetSøknadsbehandlingVedtak()
 
         FerdigstillVedtakServiceMocks(
             vedtakRepo = mock {
@@ -222,10 +220,7 @@ internal class FerdigstillVedtakServiceImplTest {
         ) {
             assertThrows<FerdigstillVedtakServiceImpl.KunneIkkeFerdigstilleVedtakException> {
                 service.ferdigstillVedtakEtterUtbetaling(
-                    oversendtUtbetalingMedKvittering(
-                        type = Utbetaling.UtbetalingsType.OPPHØR,
-                        id = vedtak.utbetalingId,
-                    ),
+                    sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering,
                 )
             }.message shouldContain vedtak.id.toString()
 
@@ -268,7 +263,7 @@ internal class FerdigstillVedtakServiceImplTest {
     @Test
     fun `ferdigstill NY etter utbetaling hopper over journalføring dersom det allerede er utført`() {
 
-        val vedtak = journalførtInnvilgetVedtak()
+        val (sak, vedtak) = journalførtInnvilgetVedtak()
 
         FerdigstillVedtakServiceMocks(
             vedtakRepo = mock {
@@ -288,7 +283,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
             },
         ) {
-            service.ferdigstillVedtakEtterUtbetaling(oversendtUtbetalingMedKvittering(id = vedtak.utbetalingId))
+            service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
 
             verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
             verify(personService).hentPersonMedSystembruker(vedtak.behandling.fnr)
@@ -316,7 +311,7 @@ internal class FerdigstillVedtakServiceImplTest {
     @Test
     fun `ferdigstill OPPHØR etter utbetaling hopper over journalføring og distribusjon dersom det allerede er utført`() {
 
-        val vedtak = journalførtOgDistribuertInnvilgetVedtak()
+        val (sak, vedtak) = journalførtOgDistribuertInnvilgetVedtak()
 
         FerdigstillVedtakServiceMocks(
             vedtakRepo = mock {
@@ -334,10 +329,7 @@ internal class FerdigstillVedtakServiceImplTest {
             },
         ) {
             service.ferdigstillVedtakEtterUtbetaling(
-                oversendtUtbetalingMedKvittering(
-                    id = vedtak.utbetalingId,
-                    type = Utbetaling.UtbetalingsType.OPPHØR,
-                ),
+                sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering,
             )
 
             verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
@@ -354,7 +346,7 @@ internal class FerdigstillVedtakServiceImplTest {
     @Test
     fun `ferdigstill NY etter utbetaling går fint`() {
 
-        val vedtak = innvilgetSøknadsbehandlingVedtak()
+        val (sak, vedtak) = innvilgetSøknadsbehandlingVedtak()
 
         FerdigstillVedtakServiceMocks(
             vedtakRepo = mock {
@@ -375,7 +367,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
             },
         ) {
-            service.ferdigstillVedtakEtterUtbetaling(oversendtUtbetalingMedKvittering(id = vedtak.utbetalingId))
+            service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
 
             inOrder(
                 vedtakRepo,
@@ -435,8 +427,8 @@ internal class FerdigstillVedtakServiceImplTest {
     @Test
     fun `ferdigstill NY av regulering av grunnbeløp etter utbetaling skal ikke sende brev men skal lukke oppgave`() {
 
-        val vedtak = vedtakRevurderingIverksattInnvilget(
-            tilRevurdering = innvilgetSøknadsbehandlingVedtak(),
+        val (sak, vedtak) = vedtakRevurderingIverksattInnvilget(
+            sakOgVedtakSomKanRevurderes = innvilgetSøknadsbehandlingVedtak(),
             revurderingsårsak = Revurderingsårsak(
                 årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
                 Revurderingsårsak.Begrunnelse.create("Regulering av grunnbeløpet påvirket ytelsen."),
@@ -451,7 +443,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
             },
         ) {
-            service.ferdigstillVedtakEtterUtbetaling(oversendtUtbetalingMedKvittering(id = vedtak.utbetalingId))
+            service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger[1] as Utbetaling.OversendtUtbetaling.MedKvittering)
 
             inOrder(
                 vedtakRepo,
@@ -542,7 +534,7 @@ internal class FerdigstillVedtakServiceImplTest {
 
     @Test
     fun `sender ikke brev for revurdering ingen endring som ikke skal føre til brevutsending`() {
-        val vedtak = innvilgetSøknadsbehandlingVedtak().let {
+        val vedtak = innvilgetSøknadsbehandlingVedtak().second.let {
             it.copy(
                 behandling = IverksattRevurdering.IngenEndring(
                     id = UUID.randomUUID(),
@@ -561,7 +553,7 @@ internal class FerdigstillVedtakServiceImplTest {
                     ),
                     skalFøreTilBrevutsending = false,
                     forhåndsvarsel = null,
-                    grunnlagsdata = Grunnlagsdata.EMPTY,
+                    grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                     vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                     informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
                 ),
@@ -608,7 +600,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 }
                 verify(brevService).journalførBrev(
                     request = argThat {
-                        it shouldBe LagBrevRequest.AvslagBrevRequest(
+                        it shouldBe AvslagBrevRequest(
                             person = person(),
                             saksbehandlerNavn = saksbehandlerNavn,
                             attestantNavn = attestantNavn,
@@ -1010,7 +1002,7 @@ internal class FerdigstillVedtakServiceImplTest {
 
     @Test
     fun `oppretter manglende brevbestilling for journalført vedtak`() {
-        val innvilgelseUtenBrevbestilling = journalførtInnvilgetVedtak()
+        val (sak, innvilgelseUtenBrevbestilling) = journalførtInnvilgetVedtak()
 
         FerdigstillVedtakServiceMocks(
             vedtakRepo = mock {
@@ -1018,7 +1010,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentUtenBrevbestilling() } doReturn listOf(innvilgelseUtenBrevbestilling)
             },
             utbetalingRepo = mock {
-                on { hentUtbetaling(innvilgelseUtenBrevbestilling.utbetalingId) } doReturn oversendtUtbetalingMedKvittering()
+                on { hentUtbetaling(innvilgelseUtenBrevbestilling.utbetalingId) } doReturn sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling
             },
             brevService = mock {
                 on { distribuerBrev(any()) } doReturn brevbestillingIdVedtak.right()
@@ -1067,7 +1059,7 @@ internal class FerdigstillVedtakServiceImplTest {
     @Test
     fun `kan ikke opprette manglende brevbestilling hvis vedtak ikke er journalført`() {
 
-        val innvilgelseUtenBrevbestilling = innvilgetSøknadsbehandlingVedtak()
+        val (sak, innvilgelseUtenBrevbestilling) = innvilgetSøknadsbehandlingVedtak()
 
         FerdigstillVedtakServiceMocks(
             vedtakRepo = mock {
@@ -1075,7 +1067,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentUtenBrevbestilling() } doReturn listOf(innvilgelseUtenBrevbestilling)
             },
             utbetalingRepo = mock {
-                on { hentUtbetaling(innvilgelseUtenBrevbestilling.utbetalingId) } doReturn oversendtUtbetalingMedKvittering()
+                on { hentUtbetaling(innvilgelseUtenBrevbestilling.utbetalingId) } doReturn sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling
             },
             oppgaveService = mock {
                 on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
@@ -1110,10 +1102,10 @@ internal class FerdigstillVedtakServiceImplTest {
 
     @Test
     fun `oppretter ikke manglende journalpost for vedtak med ukvitterte utbetalinger eller kvitteringer med feil`() {
-        val innvilgetVedtakUkvittertUtbetaling = innvilgetSøknadsbehandlingVedtak()
+        val innvilgetVedtakUkvittertUtbetaling = innvilgetSøknadsbehandlingVedtak().second
         val ukvittertUtbetaling = mock<Utbetaling.OversendtUtbetaling.UtenKvittering>()
 
-        val innvilgetVedtakKvitteringMedFeil = innvilgetSøknadsbehandlingVedtak()
+        val innvilgetVedtakKvitteringMedFeil = innvilgetSøknadsbehandlingVedtak().second
         val kvitteringMedFeil = mock<Utbetaling.OversendtUtbetaling.MedKvittering> {
             on { kvittering } doReturn Kvittering(Kvittering.Utbetalingsstatus.FEIL, "")
         }
@@ -1185,7 +1177,8 @@ internal class FerdigstillVedtakServiceImplTest {
         }
     }
 
-    private fun avslagsVedtak(): Vedtak.Avslag.AvslagBeregning = vedtakSøknadsbehandlingIverksattAvslagMedBeregning()
+    private fun avslagsVedtak(): Vedtak.Avslag.AvslagBeregning =
+        vedtakSøknadsbehandlingIverksattAvslagMedBeregning().second
 
     private fun journalførtAvslagsVedtak(): Vedtak.Avslag.AvslagBeregning {
         return avslagsVedtak().copy(
@@ -1204,19 +1197,27 @@ internal class FerdigstillVedtakServiceImplTest {
         )
     }
 
-    private fun innvilgetSøknadsbehandlingVedtak(): Vedtak.EndringIYtelse {
+    private fun innvilgetSøknadsbehandlingVedtak(): Pair<Sak, Vedtak.EndringIYtelse> {
         return vedtakSøknadsbehandlingIverksattInnvilget()
     }
 
-    private fun journalførtInnvilgetVedtak(): Vedtak.EndringIYtelse {
-        return innvilgetSøknadsbehandlingVedtak().copy(
-            journalføringOgBrevdistribusjon = journalført,
-        )
+    private fun journalførtInnvilgetVedtak(): Pair<Sak, Vedtak.EndringIYtelse> {
+        return innvilgetSøknadsbehandlingVedtak().let {
+            it.copy(
+                second = it.second.copy(
+                    journalføringOgBrevdistribusjon = journalført,
+                ),
+            )
+        }
     }
 
-    private fun journalførtOgDistribuertInnvilgetVedtak(): Vedtak.EndringIYtelse {
-        return innvilgetSøknadsbehandlingVedtak().copy(
-            journalføringOgBrevdistribusjon = journalførtOgDistribuertBrev,
-        )
+    private fun journalførtOgDistribuertInnvilgetVedtak(): Pair<Sak, Vedtak.EndringIYtelse> {
+        return innvilgetSøknadsbehandlingVedtak().let {
+            it.copy(
+                second = it.second.copy(
+                    journalføringOgBrevdistribusjon = journalførtOgDistribuertBrev,
+                ),
+            )
+        }
     }
 }

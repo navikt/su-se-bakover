@@ -32,12 +32,14 @@ fun oversendtUtbetalingUtenKvittering(
     søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
     utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje(periode = periode)),
+    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
 ) = oversendtUtbetalingUtenKvittering(
     fnr = søknadsbehandling.fnr,
     sakId = søknadsbehandling.sakId,
     saksnummer = søknadsbehandling.saksnummer,
     utbetalingslinjer = utbetalingslinjer,
     avstemmingsnøkkel = avstemmingsnøkkel,
+    eksisterendeUtbetalinger = eksisterendeUtbetalinger,
 )
 
 @Suppress("unused")
@@ -46,12 +48,14 @@ fun oversendtUtbetalingUtenKvittering(
     revurdering: RevurderingTilAttestering,
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
     utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje(periode = periode)),
+    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
 ) = oversendtUtbetalingUtenKvittering(
     fnr = revurdering.fnr,
     sakId = revurdering.sakId,
     saksnummer = revurdering.saksnummer,
     utbetalingslinjer = utbetalingslinjer,
     avstemmingsnøkkel = avstemmingsnøkkel,
+    eksisterendeUtbetalinger = eksisterendeUtbetalinger,
 )
 
 fun oversendtUtbetalingUtenKvittering(
@@ -63,6 +67,7 @@ fun oversendtUtbetalingUtenKvittering(
     utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje(periode = periode)),
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
     type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
+    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
 ) = Utbetaling.OversendtUtbetaling.UtenKvittering(
     id = id,
     opprettet = fixedTidspunkt,
@@ -73,7 +78,7 @@ fun oversendtUtbetalingUtenKvittering(
     type = type,
     behandler = attestant,
     avstemmingsnøkkel = avstemmingsnøkkel,
-    simulering = simuleringNy(fnr = fnr),
+    simulering = simuleringNy(fnr = fnr, eksisterendeUtbetalinger = eksisterendeUtbetalinger),
     utbetalingsrequest = Utbetalingsrequest("<xml></xml>"),
 )
 
@@ -87,8 +92,19 @@ fun oversendtUtbetalingMedKvittering(
     id: UUID30 = UUID30.randomUUID(),
     utbetalingsstatus: Kvittering.Utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
     type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
 ): Utbetaling.OversendtUtbetaling.MedKvittering {
-    return oversendtUtbetalingUtenKvittering(id = id, type = type)
+    return oversendtUtbetalingUtenKvittering(
+        id = id,
+        type = type,
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+    )
         .toKvittertUtbetaling(kvittering(utbetalingsstatus = utbetalingsstatus))
 }
 

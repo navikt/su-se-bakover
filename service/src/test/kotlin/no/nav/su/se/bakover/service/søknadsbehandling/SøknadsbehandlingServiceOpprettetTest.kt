@@ -189,9 +189,9 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             fnr = fnr,
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
         val søknadService: SøknadService = mock {
             on { hentSøknad(any()) } doReturn søknad.right()

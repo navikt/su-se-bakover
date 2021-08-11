@@ -97,7 +97,7 @@ internal class OpprettRevurderingServiceTest {
         vilkårsvurderinger = vilkårsvurderingerInnvilget().copy(
             uføre = vilkårsvurderingUføre,
         ),
-    )
+    ).second
 
     private fun createSøknadsbehandlingVedtak() =
         Vedtak.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID(), fixedClock)

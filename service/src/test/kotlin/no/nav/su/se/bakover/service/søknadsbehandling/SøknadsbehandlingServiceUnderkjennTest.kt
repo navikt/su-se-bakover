@@ -96,9 +96,9 @@ class SøknadsbehandlingServiceUnderkjennTest {
         oppgaveId = oppgaveId,
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.EMPTY,
+        grunnlagsdata = Grunnlagsdata.IkkeVurdert,
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-        attesteringer = Attesteringshistorikk.empty()
+        attesteringer = Attesteringshistorikk.empty(),
     )
 
     private val oppgaveConfig = OppgaveConfig.Saksbehandling(
@@ -363,7 +363,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(underkjentAttestering),
             fritekstTilBrev = "",
             stønadsperiode = innvilgetBehandlingTilAttestering.stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
@@ -448,7 +448,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(underkjentAttestering),
             fritekstTilBrev = "",
             stønadsperiode = innvilgetBehandlingTilAttestering.stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 

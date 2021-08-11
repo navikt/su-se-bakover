@@ -65,9 +65,9 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.EMPTY,
+        grunnlagsdata = Grunnlagsdata.IkkeVurdert,
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-        attesteringer = Attesteringshistorikk.empty()
+        attesteringer = Attesteringshistorikk.empty(),
     )
 
     @Test
@@ -106,9 +106,9 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             fnr = opprettetBehandling.fnr,
             fritekstTilBrev = "",
             stønadsperiode = opprettetBehandling.stønadsperiode!!,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -148,9 +148,9 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             fnr = opprettetBehandling.fnr,
             fritekstTilBrev = "",
             stønadsperiode = opprettetBehandling.stønadsperiode!!,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -191,10 +191,11 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             beregning = testBeregning,
             simulering = simulering,
             saksbehandler = saksbehandler,
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
             fritekstTilBrev = "",
             stønadsperiode = opprettetBehandling.stønadsperiode!!,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 

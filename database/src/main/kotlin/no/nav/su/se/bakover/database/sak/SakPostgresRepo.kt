@@ -93,7 +93,7 @@ internal class SakPostgresRepo(
             fnr = Fnr(string("fnr")),
             opprettet = tidspunkt("opprettet"),
             søknader = SøknadRepoInternal.hentSøknaderInternal(sakId, session),
-            behandlinger = søknadsbehandlingRepo.hentForSak(sakId, session),
+            søknadsbehandlinger = søknadsbehandlingRepo.hentForSak(sakId, session),
             utbetalinger = UtbetalingInternalRepo.hentUtbetalinger(sakId, session),
             revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session),
             vedtakListe = vedtakPosgresRepo.hentForSakId(sakId, session),

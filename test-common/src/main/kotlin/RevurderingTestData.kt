@@ -1,19 +1,17 @@
 package no.nav.su.se.bakover.test
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -26,8 +24,8 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.vedtak.VedtakFelles
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
 val revurderingId: UUID = UUID.randomUUID()
@@ -43,7 +41,6 @@ val revurderingsårsak =
 
 /**
  * En revurdering i sin tidligste tilstand der den er basert på et innvilget søknadsbehandlingsvedtak
- * Arver grunnlagsdata/vilkårsvurderinger med samme periode som stønadsperioden - TODO jah: Støtte truncating (bruk en domeneklasse/factory til dette)
  *
  * Defaults:
  * - jan til des 2021
@@ -52,36 +49,54 @@ val revurderingsårsak =
  * - Årsak: Melding fra bruker
  */
 fun opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
-    saksnr: Saksnummer = saksnummer,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = periode2021,
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
-        saksnr = saksnr,
+    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
     ),
-    // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
-    grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
-    vilkårsvurderinger: Vilkårsvurderinger = tilRevurdering.behandling.vilkårsvurderinger,
-    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak
-): OpprettetRevurdering {
-    require(stønadsperiode.periode == revurderingsperiode && revurderingsperiode == tilRevurdering.periode) {
-        "En foreløpig begrensning for å bruke testfunksjonen opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak er at stønadsperiode == revurderingsperiode. stønadsperiode=${stønadsperiode.periode}, Revurderingsperiode=$revurderingsperiode, tilRevurdering's periode=${tilRevurdering.periode}"
+    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
+        revurderingsperiode,
+        fixedClock,
+    ),
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
+): Pair<Sak, OpprettetRevurdering> {
+    // Får kompileringsfeil i denne versjonen av Kotlin/Java hvis vi tar vekk type arguments: '<VedtakFelles>'.
+    @Suppress("RemoveExplicitTypeArguments")
+    require(sakOgVedtakSomKanRevurderes.first.vedtakListe.contains<VedtakFelles>(sakOgVedtakSomKanRevurderes.second)) {
+        "Dersom man sender inn vedtak som skal revurderes, må man også sende inn en sak som inneholder nevnt vedtak."
     }
-    return OpprettetRevurdering(
+    require(
+        stønadsperiode.periode.inneholder(revurderingsperiode) &&
+            stønadsperiode.periode.inneholder(
+                sakOgVedtakSomKanRevurderes.second.periode,
+            ),
+    ) {
+        "Stønadsperioden (${stønadsperiode.periode}) må inneholde revurderingsperioden ($revurderingsperiode) og tilRevurdering's periode (${sakOgVedtakSomKanRevurderes.second.periode})}"
+    }
+    val opprettetRevurdering = OpprettetRevurdering(
         id = revurderingId,
         periode = revurderingsperiode,
         opprettet = fixedTidspunkt,
-        tilRevurdering = tilRevurdering,
+        tilRevurdering = sakOgVedtakSomKanRevurderes.second,
         saksbehandler = saksbehandler,
         oppgaveId = oppgaveIdRevurdering,
         fritekstTilBrev = "",
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
+        grunnlagsdata = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
+        vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
         informasjonSomRevurderes = informasjonSomRevurderes,
-        attesteringer = Attesteringshistorikk.empty()
+        attesteringer = Attesteringshistorikk.empty(),
+    )
+    return Pair(
+        sakOgVedtakSomKanRevurderes.first.copy(
+            // For å støtte revurderinger av revurderinger (burde nok legge inn litt validering)
+            revurderinger = sakOgVedtakSomKanRevurderes.first.revurderinger + opprettetRevurdering,
+        ),
+        opprettetRevurdering,
     )
 }
 
@@ -89,35 +104,40 @@ fun opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
  * En innvilget beregnet revurdering med utgangspunkt i et vedtak fra en innvilget søknadsbehandling.
  */
 fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
-    saksnr: Saksnummer = saksnummer,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = periode2021,
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
-        saksnr = saksnr,
+    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
     ),
-    // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
-    grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
-    vilkårsvurderinger: Vilkårsvurderinger = tilRevurdering.behandling.vilkårsvurderinger,
-    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
-    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak
-): BeregnetRevurdering.Innvilget {
-
-    require(stønadsperiode.periode == revurderingsperiode && revurderingsperiode == tilRevurdering.periode) {
-        "En foreløpig begrensning for å bruke testfunksjonen opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak er at stønadsperiode == revurderingsperiode. stønadsperiode=${stønadsperiode.periode}, Revurderingsperiode=$revurderingsperiode, tilRevurdering's periode=${tilRevurdering.periode}"
-    }
+    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
+        revurderingsperiode,
+        fixedClock,
+    ),
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
+): Pair<Sak, BeregnetRevurdering.Innvilget> {
 
     return opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
-        saksnr = saksnr,
+        saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
         revurderingsperiode = revurderingsperiode,
         informasjonSomRevurderes = informasjonSomRevurderes,
-        tilRevurdering = tilRevurdering,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
+        sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
+        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
-    ).beregn(eksisterendeUtbetalinger).orNull() as BeregnetRevurdering.Innvilget
+    ).let { (sak, revurdering) ->
+        val innvilgetBeregnetRevurdering =
+            revurdering.beregn(sak.utbetalinger).orNull() as BeregnetRevurdering.Innvilget
+        Pair(
+            sak.copy(
+                // Erstatter den gamle versjonen av samme revurderinger.
+                revurderinger = sak.revurderinger.filterNot { it.id == innvilgetBeregnetRevurdering.id } + innvilgetBeregnetRevurdering,
+            ),
+            innvilgetBeregnetRevurdering,
+        )
+    }
 }
 
 /**
@@ -126,184 +146,204 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
  * Opphører både på formue+uføre-vilkår
  */
 fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
-    saksnr: Saksnummer = saksnummer,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = periode2021,
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
-        saksnr = saksnr,
+    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
     ),
-    // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
-    grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
-    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerAvslåttUføre(
-        periode = stønadsperiode.periode,
-        bosituasjon = tilRevurdering.behandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
-    ),
-    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
-    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak
-): BeregnetRevurdering.Opphørt {
-
-    require(stønadsperiode.periode == revurderingsperiode && revurderingsperiode == tilRevurdering.periode) {
-        "En foreløpig begrensning for å bruke testfunksjonen opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak er at stønadsperiode == revurderingsperiode. stønadsperiode=${stønadsperiode.periode}, Revurderingsperiode=$revurderingsperiode, tilRevurdering's periode=${tilRevurdering.periode}"
-    }
+    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
+        revurderingsperiode,
+        fixedClock,
+    ).let {
+        it.copy(
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(
+                periode = stønadsperiode.periode,
+                bosituasjon = it.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
+            ),
+        )
+    },
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
+): Pair<Sak, BeregnetRevurdering.Opphørt> {
 
     return opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
-        saksnr = saksnr,
+        saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
         revurderingsperiode = revurderingsperiode,
         informasjonSomRevurderes = informasjonSomRevurderes,
-        tilRevurdering = tilRevurdering,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
+        sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
+        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
-    ).beregn(eksisterendeUtbetalinger).getOrHandle { throw IllegalStateException("Kunne ikke instansiere testdata. Underliggende feil: $it") } as BeregnetRevurdering.Opphørt
+    ).let { (sak, revurdering) ->
+        val opphørtBeregnetRevurdering = revurdering.beregn(sak.utbetalinger)
+            .getOrHandle { throw IllegalStateException("Kunne ikke instansiere testdata. Underliggende feil: $it") } as BeregnetRevurdering.Opphørt
+        Pair(
+            sak.copy(
+                // Erstatter den gamle versjonen av samme revurderinger.
+                revurderinger = sak.revurderinger.filterNot { it.id == opphørtBeregnetRevurdering.id } + opphørtBeregnetRevurdering,
+            ),
+            opphørtBeregnetRevurdering,
+        )
+    }
 }
 
 /**
  * En innvilget simulert revurdering med utgangspunkt i et vedtak fra en innvilget søknadsbehandling.
  */
 fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
-    saksnr: Saksnummer = saksnummer,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = periode2021,
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
-        saksnr = saksnr,
+    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
     ),
-    // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
-    grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
-    vilkårsvurderinger: Vilkårsvurderinger = tilRevurdering.behandling.vilkårsvurderinger,
-    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
-    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak
-): SimulertRevurdering.Innvilget {
-
-    require(stønadsperiode.periode == revurderingsperiode && revurderingsperiode == tilRevurdering.periode) {
-        "En foreløpig begrensning for å bruke testfunksjonen opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak er at stønadsperiode == revurderingsperiode. stønadsperiode=${stønadsperiode.periode}, Revurderingsperiode=$revurderingsperiode, tilRevurdering's periode=${tilRevurdering.periode}"
-    }
+    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
+        revurderingsperiode,
+        fixedClock,
+    ),
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
+): Pair<Sak, SimulertRevurdering.Innvilget> {
 
     return beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
-        saksnr = saksnr,
+        saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
         revurderingsperiode = revurderingsperiode,
         informasjonSomRevurderes = informasjonSomRevurderes,
-        tilRevurdering = tilRevurdering,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
-        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+        sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
+        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
-    ).let {
-        it.toSimulert(
+    ).let { (sak, revurdering) ->
+        val innvilgetSimulertRevurdering = revurdering.toSimulert(
             simuleringNy(
-                beregning = it.beregning,
-                eksisterendeUtbetalinger = eksisterendeUtbetalinger,
-                fnr = it.fnr,
-                sakId = it.sakId,
-                saksnummer = it.saksnummer,
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                beregning = revurdering.beregning,
+                fnr = revurdering.fnr,
+                sakId = revurdering.sakId,
+                saksnummer = revurdering.saksnummer,
             ),
+        )
+        Pair(
+            sak.copy(
+                // Erstatter den gamle versjonen av samme revurderinger.
+                revurderinger = sak.revurderinger.filterNot { it.id == innvilgetSimulertRevurdering.id } + innvilgetSimulertRevurdering,
+            ),
+            innvilgetSimulertRevurdering,
         )
     }
 }
 
 fun simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
-    saksnr: Saksnummer = saksnummer,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = periode2021,
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
-        saksnr = saksnr,
+    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
     ),
-    // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
-    grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
-    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerAvslåttUføre(
-        periode = stønadsperiode.periode,
-        bosituasjon = tilRevurdering.behandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
-    ),
-    /** Krever minst en utbetaling som man kan opphøre*/
-    eksisterendeUtbetalinger: NonEmptyList<Utbetaling> = nonEmptyListOf(
-        oversendtUtbetalingUtenKvittering(
-            periode = stønadsperiode.periode,
-        ),
-    ),
-    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak
-): SimulertRevurdering.Opphørt {
-
-    require(stønadsperiode.periode == revurderingsperiode && revurderingsperiode == tilRevurdering.periode) {
-        "En foreløpig begrensning for å bruke testfunksjonen opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak er at stønadsperiode == revurderingsperiode. stønadsperiode=${stønadsperiode.periode}, Revurderingsperiode=$revurderingsperiode, tilRevurdering's periode=${tilRevurdering.periode}"
-    }
+    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
+        revurderingsperiode,
+        fixedClock,
+    ).let {
+        it.copy(
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(
+                periode = stønadsperiode.periode,
+                bosituasjon = it.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
+            ),
+        )
+    },
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
+): Pair<Sak, SimulertRevurdering.Opphørt> {
 
     return beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
-        saksnr = saksnr,
+        saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
         revurderingsperiode = revurderingsperiode,
         informasjonSomRevurderes = informasjonSomRevurderes,
-        tilRevurdering = tilRevurdering,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
-        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+        sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
+        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
-    ).let {
-        it.toSimulert(
+    ).let { (sak, revurdering) ->
+        val opphørtSimulertRevurdering = revurdering.toSimulert(
             simuleringOpphørt(
-                opphørsdato = it.periode.fraOgMed,
-                eksisterendeUtbetalinger = eksisterendeUtbetalinger,
-                fnr = it.fnr,
-                sakId = it.sakId,
-                saksnummer = it.saksnummer,
+                opphørsdato = revurdering.periode.fraOgMed,
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                fnr = revurdering.fnr,
+                sakId = revurdering.sakId,
+                saksnummer = revurdering.saksnummer,
             ),
+        )
+        Pair(
+            sak.copy(
+                // Erstatter den gamle versjonen av samme revurderinger.
+                revurderinger = sak.revurderinger.filterNot { it.id == opphørtSimulertRevurdering.id } + opphørtSimulertRevurdering,
+            ),
+            opphørtSimulertRevurdering,
         )
     }
 }
 
 fun tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
-    saksnr: Saksnummer = saksnummer,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = periode2021,
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(
-        saksnr = saksnr,
+    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
     ),
-    // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
-    grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
-    vilkårsvurderinger: Vilkårsvurderinger = tilRevurdering.behandling.vilkårsvurderinger,
-    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
+        revurderingsperiode,
+        fixedClock,
+    ),
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler("Saksbehandler"),
     fritekstTilBrev: String = "",
     forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak
-): RevurderingTilAttestering.Innvilget {
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
+): Pair<Sak, RevurderingTilAttestering.Innvilget> {
     return simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
-        saksnr = saksnr,
+        saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
         revurderingsperiode = revurderingsperiode,
         informasjonSomRevurderes = informasjonSomRevurderes,
-        tilRevurdering = tilRevurdering,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
-        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+        sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
+        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
-    ).tilAttestering(
-        attesteringsoppgaveId = attesteringsoppgaveId,
-        saksbehandler = saksbehandler,
-        fritekstTilBrev = fritekstTilBrev,
-        forhåndsvarsel = forhåndsvarsel,
-    )
+    ).let { (sak, revurdering) ->
+        val innvilgetRevurderingTilAttestering = revurdering.tilAttestering(
+            attesteringsoppgaveId = attesteringsoppgaveId,
+            saksbehandler = saksbehandler,
+            fritekstTilBrev = fritekstTilBrev,
+            forhåndsvarsel = forhåndsvarsel,
+        )
+        Pair(
+            sak.copy(
+                // Erstatter den gamle versjonen av samme revurderinger.
+                revurderinger = sak.revurderinger.filterNot { it.id == innvilgetRevurderingTilAttestering.id } + innvilgetRevurderingTilAttestering,
+            ),
+            innvilgetRevurderingTilAttestering,
+        )
+    }
 }
 
-fun UnderkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak(
-    saksnr: Saksnummer = saksnummer,
+fun underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = periode2021,
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(saksnr = saksnr, stønadsperiode = stønadsperiode),
-    // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
-    grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
-    vilkårsvurderinger: Vilkårsvurderinger = tilRevurdering.behandling.vilkårsvurderinger,
-    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+    ),
+    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
+        revurderingsperiode,
+        fixedClock,
+    ),
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler("Saksbehandler"),
     fritekstTilBrev: String = "",
@@ -312,64 +352,83 @@ fun UnderkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak(
         attestant = NavIdentBruker.Attestant(navIdent = "attestant"),
         grunn = Attestering.Underkjent.Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT,
         kommentar = "feil vilkår man",
-        opprettet = fixedTidspunkt
+        opprettet = fixedTidspunkt,
     ),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-): UnderkjentRevurdering {
+): Pair<Sak, UnderkjentRevurdering> {
     return tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
-        saksnr = saksnr,
+        saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
         revurderingsperiode = revurderingsperiode,
         informasjonSomRevurderes = informasjonSomRevurderes,
-        tilRevurdering = tilRevurdering,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
-        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+        sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
+        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         attesteringsoppgaveId = attesteringsoppgaveId,
         saksbehandler = saksbehandler,
         fritekstTilBrev = fritekstTilBrev,
         forhåndsvarsel = forhåndsvarsel,
         revurderingsårsak = revurderingsårsak,
-    ).underkjenn(
-        attestering = attestering,
-        oppgaveId = OppgaveId(value = "oppgaveId")
-    )
+    ).let { (sak, revurdering) ->
+        val underkjentRevurdering = revurdering.underkjenn(
+            attestering = attestering,
+            oppgaveId = OppgaveId(value = "oppgaveId"),
+        )
+        Pair(
+            sak.copy(
+                // Erstatter den gamle versjonen av samme revurderinger.
+                revurderinger = sak.revurderinger.filterNot { it.id == underkjentRevurdering.id } + underkjentRevurdering,
+            ),
+            underkjentRevurdering,
+        )
+    }
 }
 
-fun IverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
-    saksnr: Saksnummer = saksnummer,
+fun iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = periode2021,
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-    tilRevurdering: VedtakSomKanRevurderes = vedtakSøknadsbehandlingIverksattInnvilget(saksnr = saksnr, stønadsperiode = stønadsperiode),
-    // TODO jah: Grunnlagsdata/vilkårsvurderinger bør truncates basert på revurderingsperioden. Dette er noe domenemodellen bør tilby på en enkel måte, uten å gå via en service.
-    grunnlagsdata: Grunnlagsdata = tilRevurdering.behandling.grunnlagsdata,
-    vilkårsvurderinger: Vilkårsvurderinger = tilRevurdering.behandling.vilkårsvurderinger,
-    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+    ),
+    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
+        revurderingsperiode,
+        fixedClock,
+    ),
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
     saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler("Saksbehandler"),
     fritekstTilBrev: String = "",
     forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
     attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant("Attestant"),
-    utbetal: () -> Either<RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30> = { UUID30.randomUUID().right() },
+    utbetal: () -> Either<RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30> = {
+        UUID30.randomUUID().right()
+    },
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-): IverksattRevurdering.Innvilget {
+): Pair<Sak, IverksattRevurdering.Innvilget> {
     return tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
-        saksnr = saksnr,
+        saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
         revurderingsperiode = revurderingsperiode,
         informasjonSomRevurderes = informasjonSomRevurderes,
-        tilRevurdering = tilRevurdering,
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
-        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+        sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
+        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         attesteringsoppgaveId = attesteringsoppgaveId,
         saksbehandler = saksbehandler,
         fritekstTilBrev = fritekstTilBrev,
         forhåndsvarsel = forhåndsvarsel,
         revurderingsårsak = revurderingsårsak,
-    ).tilIverksatt(
-        attestant = attestant,
-        utbetal = utbetal,
-    ).getOrHandle { throw RuntimeException("Feilet med generering av test data for Iverksatt-revurdering") }
+    ).let { (sak, revurdering) ->
+        val innvilgetIverksattRevurdering = revurdering.tilIverksatt(
+            attestant = attestant,
+            utbetal = utbetal,
+        ).getOrHandle { throw RuntimeException("Feilet med generering av test data for Iverksatt-revurdering") }
+        Pair(
+            sak.copy(
+                // Erstatter den gamle versjonen av samme revurderinger.
+                revurderinger = sak.revurderinger.filterNot { it.id == innvilgetIverksattRevurdering.id } + innvilgetIverksattRevurdering,
+            ),
+            innvilgetIverksattRevurdering,
+        )
+    }
 }

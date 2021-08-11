@@ -575,6 +575,7 @@ internal class SøknadsbehandlingServiceImpl(
         ).mapLeft {
             KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling
         }.map {
+            // TODO jah: Legg til Søknadsbehandling.leggTilUføre(...) som for Revurdering og persister Søknadsbehandlingen som returnerers. Da slipper man og det ekstra hent(...) kallet.
             vilkårsvurderingService.lagre(
                 it.id,
                 Vilkårsvurderinger(uføre = vilkår),
@@ -609,6 +610,7 @@ internal class SøknadsbehandlingServiceImpl(
         ).mapLeft {
             return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
         }.map {
+            // TODO jah: Legg til Søknadsbehandling.leggTilBosituasjonEpsgrunnlag(...) som for Revurdering og persister Søknadsbehandlingen som returnerers. Da slipper man og det ekstra hent(...) kallet.
             grunnlagService.lagreBosituasjongrunnlag(behandlingId = request.behandlingId, listOf(bosituasjon))
             return when (it) {
                 is Søknadsbehandling.Vilkårsvurdert.Avslag -> it.copy(
@@ -659,6 +661,7 @@ internal class SøknadsbehandlingServiceImpl(
         ).mapLeft {
             return KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
         }.map {
+            // TODO jah: Legg til Søknadsbehandling.fullførBosituasjongrunnlag(...) som for Revurdering og persister Søknadsbehandlingen som returnerers. Da slipper man og det ekstra hent(...) kallet.
             grunnlagService.lagreBosituasjongrunnlag(behandlingId = request.behandlingId, listOf(bosituasjon))
             return when (it) {
                 is Søknadsbehandling.Vilkårsvurdert.Avslag -> it.copy(
