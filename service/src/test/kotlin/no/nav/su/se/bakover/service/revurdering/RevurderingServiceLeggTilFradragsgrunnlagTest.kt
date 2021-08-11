@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.getOrHandle
+import arrow.core.left
 import arrow.core.nonEmptyListOf
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
@@ -8,7 +9,6 @@ import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
-import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -126,7 +126,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
 
         revurderingService.leggTilFradragsgrunnlag(
             request,
-        ).shouldBeLeft(KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling)
+        ) shouldBe KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
 
         inOrder(
             revurderingRepoMock,
@@ -172,12 +172,10 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
 
         revurderingService.leggTilFradragsgrunnlag(
             request,
-        ).shouldBeLeft(
-            KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
-                fra = tidligereRevurdering::class,
-                til = OpprettetRevurdering::class,
-            ),
-        )
+        ) shouldBe KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
+            fra = tidligereRevurdering::class,
+            til = OpprettetRevurdering::class,
+        ).left()
 
         verify(revurderingRepoMock).hent(argThat { it shouldBe tidligereRevurdering.id })
 
@@ -238,6 +236,6 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
 
         revurderingService.leggTilFradragsgrunnlag(
             request,
-        ).shouldBeLeft(KunneIkkeLeggeTilFradragsgrunnlag.FradragsgrunnlagUtenforRevurderingsperiode)
+        ) shouldBe KunneIkkeLeggeTilFradragsgrunnlag.FradragsgrunnlagUtenforRevurderingsperiode.left()
     }
 }

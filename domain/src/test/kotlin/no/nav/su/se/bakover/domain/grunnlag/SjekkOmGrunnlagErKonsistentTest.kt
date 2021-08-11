@@ -1,7 +1,8 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
-import io.kotest.assertions.arrow.either.shouldBeLeft
-import io.kotest.assertions.arrow.either.shouldBeRight
+import arrow.core.left
+import arrow.core.right
+import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -24,7 +25,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
     inner class Uføre {
         @Test
         fun `uføregrunnlag mangler`() {
-            SjekkOmGrunnlagErKonsistent.Uføre(emptyList()).resultat shouldBeLeft setOf(Konsistensproblem.Uføre.Mangler)
+            SjekkOmGrunnlagErKonsistent.Uføre(emptyList()).resultat shouldBe setOf(Konsistensproblem.Uføre.Mangler).left()
         }
     }
 
@@ -37,7 +38,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 opprettet = Tidspunkt.now(),
                 periode = periode,
             )
-            SjekkOmGrunnlagErKonsistent.Bosituasjon(listOf(bosituasjon)).resultat shouldBeLeft setOf(Konsistensproblem.Bosituasjon.Ufullstendig)
+            SjekkOmGrunnlagErKonsistent.Bosituasjon(listOf(bosituasjon)).resultat shouldBe setOf(Konsistensproblem.Bosituasjon.Ufullstendig).left()
         }
 
         @Test
@@ -55,12 +56,14 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 periode = periode,
                 begrunnelse = "",
             )
-            SjekkOmGrunnlagErKonsistent.Bosituasjon(listOf(bosituasjon1, bosituasjon2)).resultat shouldBeLeft setOf(Konsistensproblem.Bosituasjon.Flere)
+            SjekkOmGrunnlagErKonsistent.Bosituasjon(listOf(bosituasjon1, bosituasjon2)).resultat shouldBe setOf(
+                Konsistensproblem.Bosituasjon.Flere,
+            ).left()
         }
 
         @Test
         fun `bosituasjon mangler`() {
-            SjekkOmGrunnlagErKonsistent.Bosituasjon(emptyList()).resultat shouldBeLeft setOf(Konsistensproblem.Bosituasjon.Mangler)
+            SjekkOmGrunnlagErKonsistent.Bosituasjon(emptyList()).resultat shouldBe setOf(Konsistensproblem.Bosituasjon.Mangler).left()
         }
     }
 
@@ -94,9 +97,9 @@ internal class SjekkOmGrunnlagErKonsistentTest {
             SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
                 listOf(bosituasjon1, bosituasjon2),
                 listOf(arbEps),
-            ).resultat shouldBeLeft setOf(
+            ).resultat shouldBe setOf(
                 Konsistensproblem.BosituasjonOgFradrag.FlereBosituasjonerOgFradragForEPS,
-            )
+            ).left()
         }
 
         @Test
@@ -120,9 +123,9 @@ internal class SjekkOmGrunnlagErKonsistentTest {
             SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
                 listOf(bosituasjon),
                 listOf(arbEps),
-            ).resultat shouldBeLeft setOf(
+            ).resultat shouldBe setOf(
                 Konsistensproblem.BosituasjonOgFradrag.IngenEPSMenFradragForEPS,
-            )
+            ).left()
         }
     }
 
@@ -158,11 +161,11 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 uføregrunnlag = emptyList(),
                 bosituasjongrunnlag = listOf(bosituasjon1, bosituasjon2),
                 fradragsgrunnlag = listOf(arbEps),
-            ).resultat shouldBeLeft setOf(
+            ).resultat shouldBe setOf(
                 Konsistensproblem.Uføre.Mangler,
                 Konsistensproblem.Bosituasjon.Flere,
                 Konsistensproblem.BosituasjonOgFradrag.FlereBosituasjonerOgFradragForEPS,
-            )
+            ).left()
         }
     }
 
@@ -198,7 +201,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 uføregrunnlag = listOf(uføregrunnlag),
                 bosituasjongrunnlag = listOf(bosituasjon),
                 fradragsgrunnlag = listOf(arbEps),
-            ).resultat shouldBeRight Unit
+            ).resultat shouldBe Unit.right()
         }
     }
 }

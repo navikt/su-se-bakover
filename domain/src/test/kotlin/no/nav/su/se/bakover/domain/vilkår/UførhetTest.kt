@@ -1,7 +1,8 @@
 package no.nav.su.se.bakover.domain.vilkår
 
+import arrow.core.left
 import arrow.core.nonEmptyListOf
-import io.kotest.assertions.arrow.either.shouldBeLeft
+import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
@@ -28,6 +29,6 @@ internal class UførhetTest {
                     begrunnelse = "",
                 ),
             ),
-        ) shouldBeLeft Vilkår.Uførhet.Vurdert.UgyldigUførevilkår.OverlappendeVurderingsperioder
+        ) shouldBe Vilkår.Uførhet.Vurdert.UgyldigUførevilkår.OverlappendeVurderingsperioder.left()
     }
 }

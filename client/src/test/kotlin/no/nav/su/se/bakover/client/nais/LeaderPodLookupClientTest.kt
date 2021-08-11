@@ -1,8 +1,9 @@
 package no.nav.su.se.bakover.client.nais
 
+import arrow.core.left
+import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
-import io.kotest.assertions.arrow.either.shouldBeLeft
-import io.kotest.assertions.arrow.either.shouldBeRight
+import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookupFeil
@@ -28,7 +29,7 @@ internal class LeaderPodLookupClientTest : WiremockBase {
                 )
         )
 
-        LeaderPodLookupClient("${wireMockServer.baseUrl()}$endpoint").amITheLeader(localHostName) shouldBeRight true
+        LeaderPodLookupClient("${wireMockServer.baseUrl()}$endpoint").amITheLeader(localHostName) shouldBe true.right()
     }
 
     @Test
@@ -46,7 +47,7 @@ internal class LeaderPodLookupClientTest : WiremockBase {
                 )
         )
 
-        LeaderPodLookupClient("${wireMockServer.baseUrl()}$endpoint").amITheLeader(localHostName) shouldBeRight false
+        LeaderPodLookupClient("${wireMockServer.baseUrl()}$endpoint").amITheLeader(localHostName) shouldBe false.right()
     }
 
     @Test
@@ -64,6 +65,6 @@ internal class LeaderPodLookupClientTest : WiremockBase {
                 )
         )
 
-        LeaderPodLookupClient("${wireMockServer.baseUrl()}$endpoint").amITheLeader(localHostName) shouldBeLeft LeaderPodLookupFeil.UkjentSvarFraLeaderElectorContainer
+        LeaderPodLookupClient("${wireMockServer.baseUrl()}$endpoint").amITheLeader(localHostName) shouldBe LeaderPodLookupFeil.UkjentSvarFraLeaderElectorContainer.left()
     }
 }

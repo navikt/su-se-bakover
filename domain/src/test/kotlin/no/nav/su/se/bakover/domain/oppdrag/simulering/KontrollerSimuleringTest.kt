@@ -1,9 +1,10 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
 import arrow.core.NonEmptyList
+import arrow.core.left
 import arrow.core.nonEmptyListOf
-import io.kotest.assertions.arrow.either.shouldBeLeft
-import io.kotest.assertions.arrow.either.shouldBeRight
+import arrow.core.right
+import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
@@ -65,7 +66,7 @@ internal class KontrollerSimuleringTest {
             simulertUtbetaling = simulertUtbetaling,
             eksisterendeUtbetalinger = listOf(eksisterendeUtetaling),
             clock = fixedClock,
-        ).resultat shouldBeRight simulertUtbetaling
+        ).resultat shouldBe simulertUtbetaling.right()
     }
 
     @Test
@@ -89,7 +90,7 @@ internal class KontrollerSimuleringTest {
             simulertUtbetaling = simulertUtbetaling,
             eksisterendeUtbetalinger = listOf(),
             clock = fixedClock,
-        ).resultat shouldBeRight simulertUtbetaling
+        ).resultat shouldBe simulertUtbetaling.right()
     }
 
     @Test
@@ -113,7 +114,7 @@ internal class KontrollerSimuleringTest {
             simulertUtbetaling = simulertUtbetaling,
             eksisterendeUtbetalinger = listOf(),
             clock = fixedClock,
-        ).resultat shouldBeLeft KontrollerSimulering.KontrollAvSimuleringFeilet.SimulertBeløpErForskjelligFraBeløpPåTidslinje
+        ).resultat shouldBe KontrollerSimulering.KontrollAvSimuleringFeilet.SimulertBeløpErForskjelligFraBeløpPåTidslinje.left()
     }
 
     @Test
@@ -176,7 +177,7 @@ internal class KontrollerSimuleringTest {
             simulertUtbetaling = simulertUtbetaling,
             eksisterendeUtbetalinger = listOf(eksisterendeUtetaling),
             clock = fixedClock,
-        ).resultat shouldBeRight simulertUtbetaling
+        ).resultat shouldBe simulertUtbetaling.right()
     }
 
     @Test
@@ -240,7 +241,7 @@ internal class KontrollerSimuleringTest {
             simulertUtbetaling = simulertUtbetaling,
             eksisterendeUtbetalinger = listOf(eksisterendeUtetaling),
             clock = fixedClock,
-        ).resultat shouldBeLeft KontrollerSimulering.KontrollAvSimuleringFeilet.SimuleringInneholderFeilutbetaling
+        ).resultat shouldBe KontrollerSimulering.KontrollAvSimuleringFeilet.SimuleringInneholderFeilutbetaling.left()
     }
 
     private fun simulertUtbetaling(

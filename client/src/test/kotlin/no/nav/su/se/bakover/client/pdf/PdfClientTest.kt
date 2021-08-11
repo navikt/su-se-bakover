@@ -1,8 +1,9 @@
 package no.nav.su.se.bakover.client.pdf
 
+import arrow.core.left
+import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
-import io.kotest.assertions.arrow.either.shouldBeLeft
-import io.kotest.assertions.arrow.either.shouldBeRight
+import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
@@ -43,7 +44,8 @@ internal class PdfClientTest : WiremockBase {
                 )
         )
         val client = PdfClient(wireMockServer.baseUrl())
-        client.genererPdf(søknadPdfInnhold).map { String(it) } shouldBeRight String("pdf-byte-array-here".toByteArray())
+        client.genererPdf(søknadPdfInnhold)
+            .map { String(it) } shouldBe String("pdf-byte-array-here".toByteArray()).right()
     }
 
     @Test
@@ -56,10 +58,10 @@ internal class PdfClientTest : WiremockBase {
         )
         val client = PdfClient(wireMockServer.baseUrl())
 
-        client.genererPdf(søknadPdfInnhold) shouldBeLeft ClientError(
+        client.genererPdf(søknadPdfInnhold) shouldBe ClientError(
             403,
-            "Kall mot PdfClient feilet"
-        )
+            "Kall mot PdfClient feilet",
+        ).left()
     }
 
     private val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo("/api/v1/genpdf/supdfgen/soknad"))

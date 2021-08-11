@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.oppgave
 
+import arrow.core.left
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
@@ -15,8 +16,6 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
-import io.kotest.assertions.arrow.either.shouldBeLeft
-import io.kotest.assertions.arrow.either.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
@@ -123,9 +122,9 @@ internal class OppgaveHttpClientTest : WiremockBase {
             OppgaveConfig.Saksbehandling(
                 journalpostId,
                 søknadId,
-                AktørId(aktørId)
-            )
-        ) shouldBeRight OppgaveId("111")
+                AktørId(aktørId),
+            ),
+        ) shouldBe OppgaveId("111").right()
 
         verify(oathMock).onBehalfOfToken(
             originalToken = argThat { it shouldBe "Bearer token" },
@@ -137,9 +136,9 @@ internal class OppgaveHttpClientTest : WiremockBase {
             OppgaveConfig.Saksbehandling(
                 journalpostId,
                 søknadId,
-                AktørId(aktørId)
-            )
-        ) shouldBeRight OppgaveId("111")
+                AktørId(aktørId),
+            ),
+        ) shouldBe OppgaveId("111").right()
 
         verify(tokenoppslagMock).token()
         verifyNoMoreInteractions(oathMock, tokenoppslagMock)
@@ -217,9 +216,9 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 journalpostId = journalpostId,
                 søknadId = søknadId,
                 aktørId = AktørId(aktørId),
-                tilordnetRessurs = saksbehandler
-            )
-        ) shouldBeRight OppgaveId("111")
+                tilordnetRessurs = saksbehandler,
+            ),
+        ) shouldBe OppgaveId("111").right()
     }
 
     @Test
@@ -290,9 +289,9 @@ internal class OppgaveHttpClientTest : WiremockBase {
         client.opprettOppgave(
             OppgaveConfig.Attestering(
                 søknadId = søknadId,
-                aktørId = AktørId(aktørId)
-            )
-        ) shouldBeRight OppgaveId("111")
+                aktørId = AktørId(aktørId),
+            ),
+        ) shouldBe OppgaveId("111").right()
     }
 
     @Test
@@ -317,7 +316,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 søknadId,
                 AktørId(aktørId),
             ),
-        ) shouldBeLeft OppgaveFeil.KunneIkkeOppretteOppgave
+        ) shouldBe OppgaveFeil.KunneIkkeOppretteOppgave.left()
     }
 
     @Test
@@ -694,9 +693,9 @@ internal class OppgaveHttpClientTest : WiremockBase {
 
         client.opprettOppgave(
             OppgaveConfig.Revurderingsbehandling(
-                saksnummer = saksnummer, aktørId = AktørId(aktørId), tilordnetRessurs = null
-            )
-        ) shouldBeRight OppgaveId("111")
+                saksnummer = saksnummer, aktørId = AktørId(aktørId), tilordnetRessurs = null,
+            ),
+        ) shouldBe OppgaveId("111").right()
 
         verify(oathMock).onBehalfOfToken(
             originalToken = argThat { it shouldBe "Bearer token" },
@@ -706,9 +705,9 @@ internal class OppgaveHttpClientTest : WiremockBase {
 
         client.opprettOppgaveMedSystembruker(
             OppgaveConfig.Revurderingsbehandling(
-                saksnummer = saksnummer, aktørId = AktørId(aktørId), tilordnetRessurs = null
-            )
-        ) shouldBeRight OppgaveId("111")
+                saksnummer = saksnummer, aktørId = AktørId(aktørId), tilordnetRessurs = null,
+            ),
+        ) shouldBe OppgaveId("111").right()
 
         verify(tokenoppslagMock).token()
         verifyNoMoreInteractions(oathMock, tokenoppslagMock)
@@ -785,7 +784,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 aktørId = AktørId(aktørId),
                 tilordnetRessurs = null,
             ),
-        ) shouldBeRight OppgaveId("111")
+        ) shouldBe OppgaveId("111").right()
     }
 
     @Test
@@ -816,7 +815,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 aktørId = AktørId(aktørId),
                 tilordnetRessurs = null,
             ),
-        ) shouldBeLeft OppgaveFeil.KunneIkkeOppretteOppgave
+        ) shouldBe OppgaveFeil.KunneIkkeOppretteOppgave.left()
     }
 
     @Test
