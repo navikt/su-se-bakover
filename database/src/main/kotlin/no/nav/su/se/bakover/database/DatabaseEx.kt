@@ -57,6 +57,7 @@ internal fun Row.uuidOrNull(name: String) = stringOrNull(name)?.let { uuid(name)
 internal fun Row.uuid30(name: String) = UUID30.fromString(string(name))
 internal fun Row.uuid30OrNull(name: String) = stringOrNull(name)?.let { UUID30.fromString(it) }
 internal fun Row.tidspunkt(name: String) = this.instant(name).toTidspunkt()
+internal fun Row.tidspunktOrNull(name: String) = this.instantOrNull(name)?.toTidspunkt()
 
 internal fun Session.inClauseWith(values: List<String>): Array =
     this.connection.underlying.createArrayOf("text", values.toTypedArray())

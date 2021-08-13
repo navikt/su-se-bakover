@@ -78,7 +78,7 @@ internal class SakServiceImplTest {
                     behandlingsId = nySakMedjournalførtSøknadOgOppgave.id,
                     restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
                     status = SakRestans.RestansStatus.NY_SØKNAD,
-                    opprettet = nySakMedjournalførtSøknadOgOppgave.opprettet,
+                    behandlingStartet = nySakMedjournalførtSøknadOgOppgave.opprettet,
                 ),
             )
         }
@@ -92,7 +92,7 @@ internal class SakServiceImplTest {
                 behandlingsId = nySakMedjournalførtSøknadOgOppgave.id,
                 restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
                 status = SakRestans.RestansStatus.NY_SØKNAD,
-                opprettet = nySakMedjournalførtSøknadOgOppgave.opprettet,
+                behandlingStartet = nySakMedjournalførtSøknadOgOppgave.opprettet,
             ),
         )
     }
@@ -113,21 +113,21 @@ internal class SakServiceImplTest {
                     behandlingsId = uavklartSøkandsbehandling.id,
                     restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
                     status = SakRestans.RestansStatus.UNDER_BEHANDLING,
-                    opprettet = uavklartSøkandsbehandling.opprettet,
+                    behandlingStartet = uavklartSøkandsbehandling.opprettet,
                 ),
                 SakRestans(
                     saksnummer = saksnr1,
                     behandlingsId = underkjentSøknadsbehandling.id,
                     restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
                     status = SakRestans.RestansStatus.UNDERKJENT,
-                    opprettet = underkjentSøknadsbehandling.opprettet,
+                    behandlingStartet = underkjentSøknadsbehandling.opprettet,
                 ),
                 SakRestans(
                     saksnummer = saksnr2,
                     behandlingsId = tilAttesteringSøknadsbehandling.id,
                     restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
                     status = SakRestans.RestansStatus.TIL_ATTESTERING,
-                    opprettet = tilAttesteringSøknadsbehandling.opprettet,
+                    behandlingStartet = tilAttesteringSøknadsbehandling.opprettet,
                 ),
             )
         }
@@ -141,21 +141,21 @@ internal class SakServiceImplTest {
                 behandlingsId = uavklartSøkandsbehandling.id,
                 restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
                 status = SakRestans.RestansStatus.UNDER_BEHANDLING,
-                opprettet = uavklartSøkandsbehandling.opprettet,
+                behandlingStartet = uavklartSøkandsbehandling.opprettet,
             ),
             SakRestans(
                 saksnummer = saksnr1,
                 behandlingsId = underkjentSøknadsbehandling.id,
                 restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
                 status = SakRestans.RestansStatus.UNDERKJENT,
-                opprettet = underkjentSøknadsbehandling.opprettet,
+                behandlingStartet = underkjentSøknadsbehandling.opprettet,
             ),
             SakRestans(
                 saksnummer = saksnr2,
                 behandlingsId = tilAttesteringSøknadsbehandling.id,
                 restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
                 status = SakRestans.RestansStatus.TIL_ATTESTERING,
-                opprettet = tilAttesteringSøknadsbehandling.opprettet,
+                behandlingStartet = tilAttesteringSøknadsbehandling.opprettet,
             ),
         )
     }
@@ -180,28 +180,28 @@ internal class SakServiceImplTest {
                     behandlingsId = opprettetRevurdering.id,
                     restansType = SakRestans.RestansType.REVURDERING,
                     status = SakRestans.RestansStatus.UNDER_BEHANDLING,
-                    opprettet = opprettetRevurdering.opprettet,
+                    behandlingStartet = opprettetRevurdering.opprettet,
                 ),
                 SakRestans(
                     saksnummer = saknr1,
                     behandlingsId = simulertRevurdering.id,
                     restansType = SakRestans.RestansType.REVURDERING,
                     status = SakRestans.RestansStatus.UNDER_BEHANDLING,
-                    opprettet = simulertRevurdering.opprettet,
+                    behandlingStartet = simulertRevurdering.opprettet,
                 ),
                 SakRestans(
                     saksnummer = saknr2,
                     behandlingsId = underkjentInnvilgetRevurdering.id,
                     restansType = SakRestans.RestansType.REVURDERING,
                     status = SakRestans.RestansStatus.UNDERKJENT,
-                    opprettet = underkjentInnvilgetRevurdering.opprettet,
+                    behandlingStartet = underkjentInnvilgetRevurdering.opprettet,
                 ),
                 SakRestans(
                     saksnummer = saknr2,
                     behandlingsId = tilAttesteringRevurdering.id,
                     restansType = SakRestans.RestansType.REVURDERING,
                     status = SakRestans.RestansStatus.TIL_ATTESTERING,
-                    opprettet = tilAttesteringRevurdering.opprettet,
+                    behandlingStartet = tilAttesteringRevurdering.opprettet,
                 ),
             )
         }
@@ -215,28 +215,28 @@ internal class SakServiceImplTest {
                 behandlingsId = opprettetRevurdering.id,
                 restansType = SakRestans.RestansType.REVURDERING,
                 status = SakRestans.RestansStatus.UNDER_BEHANDLING,
-                opprettet = opprettetRevurdering.opprettet,
+                behandlingStartet = opprettetRevurdering.opprettet,
             ),
             SakRestans(
                 saksnummer = saknr1,
                 behandlingsId = simulertRevurdering.id,
                 restansType = SakRestans.RestansType.REVURDERING,
                 status = SakRestans.RestansStatus.UNDER_BEHANDLING,
-                opprettet = simulertRevurdering.opprettet,
+                behandlingStartet = simulertRevurdering.opprettet,
             ),
             SakRestans(
                 saksnummer = saknr2,
                 behandlingsId = underkjentInnvilgetRevurdering.id,
                 restansType = SakRestans.RestansType.REVURDERING,
                 status = SakRestans.RestansStatus.UNDERKJENT,
-                opprettet = underkjentInnvilgetRevurdering.opprettet,
+                behandlingStartet = underkjentInnvilgetRevurdering.opprettet,
             ),
             SakRestans(
                 saksnummer = saknr2,
                 behandlingsId = tilAttesteringRevurdering.id,
                 restansType = SakRestans.RestansType.REVURDERING,
                 status = SakRestans.RestansStatus.TIL_ATTESTERING,
-                opprettet = tilAttesteringRevurdering.opprettet,
+                behandlingStartet = tilAttesteringRevurdering.opprettet,
             ),
         )
     }
