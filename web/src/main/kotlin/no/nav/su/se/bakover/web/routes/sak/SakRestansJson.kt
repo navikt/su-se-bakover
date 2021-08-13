@@ -7,7 +7,7 @@ internal data class SakRestansJson(
     val behandlingId: String,
     val typeBehandling: String,
     val status: String,
-    val opprettet: String,
+    val behandlingStartet: String?,
 ) {
     companion object {
         fun List<SakRestans>.toJson() = this.map {
@@ -16,7 +16,7 @@ internal data class SakRestansJson(
                 behandlingId = it.behandlingsId.toString(),
                 typeBehandling = it.restansType.toString(),
                 status = it.status.toString(),
-                opprettet = it.opprettet.toString(),
+                behandlingStartet = it.behandlingStartet?.toString(),
             )
         }
     }

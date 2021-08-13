@@ -4,7 +4,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
-import no.nav.su.se.bakover.database.tidspunkt
+import no.nav.su.se.bakover.database.tidspunktOrNull
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.sak.SakRestans
@@ -16,6 +16,9 @@ internal class SakRestansRepo(
     private val dataSource: DataSource,
     private val dbMetrics: DbMetrics,
 ) {
+    /**
+     * Henter åpne behandlinger, åpne revurderinger, og nye søknader
+     */
     fun hentSakRestanser(): List<SakRestans> {
         return dbMetrics.timeQuery("hentSakRestanser") {
             dataSource.withSession { session ->
@@ -42,11 +45,8 @@ internal class SakRestansRepo(
                      select 
                         sak.sakId, 
                         sak.saksnummer, 
-                        s.id, 
-                        case
-                            when søknadinnhold -> 'forNav' ->> 'type' = 'Papirsøknad' then timestamptz(søknadinnhold -> 'forNav' ->> 'mottaksdatoForSøknad')
-                            when søknadinnhold -> 'forNav' ->> 'type' = 'DigitalSøknad' then s.opprettet
-                        end as opprettet,
+                        s.id,
+                        null::timestamp as opprettet,
                         'NY_SØKNAD' as status, 
                         'SØKNAD' as type
                      from sak
@@ -90,7 +90,7 @@ internal class SakRestansRepo(
                 RestansTypeDB.REVURDERING -> revurderingTypeTilRestansStatus(RevurderingsType.valueOf(string("status")))
                 RestansTypeDB.SØKNAD -> SakRestans.RestansStatus.NY_SØKNAD
             },
-            opprettet = tidspunkt("opprettet"),
+            behandlingStartet = tidspunktOrNull("opprettet"),
         )
     }
 

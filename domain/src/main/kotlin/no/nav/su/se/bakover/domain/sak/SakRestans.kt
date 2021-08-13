@@ -9,7 +9,7 @@ data class SakRestans(
     val behandlingsId: UUID,
     val restansType: RestansType,
     val status: RestansStatus,
-    val opprettet: Tidspunkt,
+    val behandlingStartet: Tidspunkt?,
 ) {
     enum class RestansType {
         SØKNADSBEHANDLING,
