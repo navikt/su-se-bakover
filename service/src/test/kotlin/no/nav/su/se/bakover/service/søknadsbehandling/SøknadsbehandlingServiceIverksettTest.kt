@@ -288,10 +288,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
             beregning = behandling.beregning,
             simulering = behandling.simulering,
             saksbehandler = behandling.saksbehandler,
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, attesteringstidspunkt)),
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(Attestering.Iverksatt(attestant, attesteringstidspunkt)),
             fritekstTilBrev = "",
             stønadsperiode = behandling.stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
@@ -368,10 +369,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
             fnr = behandling.fnr,
             beregning = behandling.beregning,
             saksbehandler = behandling.saksbehandler,
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, attesteringstidspunkt)),
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(Attestering.Iverksatt(attestant, attesteringstidspunkt)),
             fritekstTilBrev = "",
             stønadsperiode = behandling.stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
@@ -461,9 +463,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 fnr = it.fnr,
                 fritekstTilBrev = "",
                 stønadsperiode = it.stønadsperiode,
-                grunnlagsdata = Grunnlagsdata.EMPTY,
+                grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-                attesteringer = Attesteringshistorikk.empty()
+                attesteringer = Attesteringshistorikk.empty(),
             )
         }
 
@@ -510,9 +512,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
             simulering = simulering,
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
     private fun avslagTilAttestering() =
@@ -536,9 +538,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
             beregning = beregning,
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
     private val beregning = TestBeregning

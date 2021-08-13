@@ -13,10 +13,15 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset
+import java.time.temporal.TemporalUnit
 
-/** Fixed UTC clock at 2021-01-01T01:02:03.456789000Z */
+/** Fixed UTC Clock at 2021-01-01T01:02:03.456789000Z */
 val fixedClock: Clock =
     Clock.fixed(1.januar(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+
+/** Fixed UTC Clock */
+fun Clock.plus(amountToAdd: Long, unit: TemporalUnit): Clock =
+    Clock.fixed(this.instant().plus(amountToAdd, unit), ZoneOffset.UTC)
 
 /**
  * Fixed Tidspunkt at 2021-01-01T01:02:03.456789000Z

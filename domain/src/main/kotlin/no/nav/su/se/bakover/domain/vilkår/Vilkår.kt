@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.LocalDate
 import java.util.UUID
 
@@ -44,6 +45,8 @@ data class Vilkårsvurderinger(
     val uføre: Vilkår.Uførhet,
     val formue: Vilkår.Formue = Vilkår.Formue.IkkeVurdert,
 ) {
+
+    // TODO jah: Valider at de vurderte uføre-periodene er de samme som de vurderte formue-periodene
     private val vilkår = setOf(uføre, formue)
 
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vilkårsvurderinger =
@@ -77,6 +80,17 @@ data class Vilkårsvurderinger(
                 is Vilkår.Formue.Vurdert -> if (it.erAvslag) it.vilkår.tilOpphørsgrunn() else null
                 Vilkår.Formue.IkkeVurdert, Vilkår.Uførhet.IkkeVurdert -> null
             }
+        }
+    }
+
+    val periode: Periode? by lazy {
+        val uføreperioder = (uføre as? Vilkår.Uførhet.Vurdert)?.vurderingsperioder?.map { it.periode } ?: emptyList()
+        val formueperioder = (formue as? Vilkår.Formue.Vurdert)?.vurderingsperioder?.map { it.periode } ?: emptyList()
+        uføreperioder.plus(formueperioder).ifNotEmpty {
+            Periode.create(
+                fraOgMed = this.minOf { it.fraOgMed },
+                tilOgMed = this.maxOf { it.tilOgMed },
+            )
         }
     }
 }

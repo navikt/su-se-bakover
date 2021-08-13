@@ -36,7 +36,7 @@ internal data class SakJson(
             saksnummer = saksnummer.nummer,
             fnr = fnr.toString(),
             søknader = søknader.map { it.toJson() },
-            behandlinger = behandlinger.map { it.toJson() },
+            behandlinger = søknadsbehandlinger.map { it.toJson() },
             utbetalinger = utbetalingstidslinje().tidslinje.map {
                 UtbetalingJson(
                     fraOgMed = it.periode.fraOgMed,

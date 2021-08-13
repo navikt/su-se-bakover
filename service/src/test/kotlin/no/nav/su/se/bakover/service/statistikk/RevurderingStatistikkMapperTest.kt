@@ -52,7 +52,7 @@ internal class RevurderingStatistikkMapperTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -119,8 +119,14 @@ internal class RevurderingStatistikkMapperTest {
                 on { this.periode } doReturn periode
             },
             simulering = mock(),
-            grunnlagsdata = Grunnlagsdata.EMPTY,
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2"), Tidspunkt.now(fixedClock))),
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(
+                    Attestering.Iverksatt(
+                        NavIdentBruker.Attestant(navIdent = "2"),
+                        Tidspunkt.now(fixedClock),
+                    ),
+                ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
@@ -188,12 +194,18 @@ internal class RevurderingStatistikkMapperTest {
             beregning = mock {
                 on { this.periode } doReturn periode
             },
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2"), Tidspunkt.now(fixedClock))),
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(
+                    Attestering.Iverksatt(
+                        NavIdentBruker.Attestant(navIdent = "2"),
+                        Tidspunkt.now(fixedClock),
+                    ),
+                ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             skalFøreTilBrevutsending = true,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )

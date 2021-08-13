@@ -723,7 +723,7 @@ internal class SøknadsbehandlingRoutesKtTest {
     private fun setup(): UavklartVilkårsvurdertSøknadsbehandling {
         val søknadInnhold = SøknadInnholdTestdataBuilder.build()
         val fnr: Fnr = FnrGenerator.random()
-        SakFactory(clock = fixedClock).nySak(fnr, søknadInnhold).also {
+        SakFactory(clock = fixedClock).nySakMedNySøknad(fnr, søknadInnhold).also {
             repos.sak.opprettSak(it)
         }
         val sak: Sak = repos.sak.hentSak(fnr)!!

@@ -42,7 +42,7 @@ internal class SakRoutesKtTest {
                 }
                 )
         ) {
-            SakFactory(clock = fixedClock).nySak(Fnr(sakFnr01), søknadInnhold).also {
+            SakFactory(clock = fixedClock).nySakMedNySøknad(Fnr(sakFnr01), søknadInnhold).also {
                 repos.sak.opprettSak(it)
             }
             val opprettetSakId: Sak = repos.sak.hentSak(Fnr(sakFnr01))!!
@@ -67,7 +67,7 @@ internal class SakRoutesKtTest {
                 }
                 )
         ) {
-            repos.sak.opprettSak(SakFactory(clock = fixedClock).nySak(Fnr(sakFnr01), søknadInnhold))
+            repos.sak.opprettSak(SakFactory(clock = fixedClock).nySakMedNySøknad(Fnr(sakFnr01), søknadInnhold))
 
             defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Saksbehandler)) {
                 setBody("""{"fnr":"$sakFnr01"}""")

@@ -79,7 +79,7 @@ internal class LukkSøknadServiceImplTest {
         opprettet = Tidspunkt.EPOCH,
         fnr = fnr,
         søknader = emptyList(),
-        behandlinger = emptyList(),
+        søknadsbehandlinger = emptyList(),
         utbetalinger = emptyList(),
     )
     private val journalførtSøknadMedOppgave = Søknad.Journalført.MedOppgave(

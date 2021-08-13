@@ -308,7 +308,7 @@ fun vilkårsvurderingerAvslåttAlle(
  * uføre: avslag
  * formue: innvilget
  */
-fun vilkårsvurderingerAvslåttUføre(
+fun vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(
     periode: Periode = periode2021,
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode),
 ): Vilkårsvurderinger {

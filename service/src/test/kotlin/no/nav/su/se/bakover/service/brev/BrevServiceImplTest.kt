@@ -380,7 +380,7 @@ internal class BrevServiceImplTest {
         opprettet = Tidspunkt.now(),
         fnr = fnr,
         søknader = listOf(),
-        behandlinger = listOf(),
+        søknadsbehandlinger = listOf(),
         utbetalinger = listOf(),
         revurderinger = listOf(),
         vedtakListe = listOf(),
