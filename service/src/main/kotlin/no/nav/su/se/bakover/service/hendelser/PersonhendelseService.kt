@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.service.hendelser
 import no.nav.su.se.bakover.database.hendelse.HendelseRepo
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.hendelse.PdlHendelse
+import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import org.slf4j.LoggerFactory
 
 // gjelder - ufør_flykning
@@ -18,13 +18,13 @@ class PersonhendelseService(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    fun prosesserNyMelding(pdlHendelse: PdlHendelse.Ny) {
-        val eksisterendeSaksnummer = hentEksisterendeSaksnummer(pdlHendelse) ?: return
+    fun prosesserNyMelding(personhendelse: Personhendelse.Ny) {
+        val eksisterendeSaksnummer = hentEksisterendeSaksnummer(personhendelse) ?: return
 
-        log.info("Prosserer melding med offset: ${pdlHendelse.offset}, opplysningstype: $pdlHendelse")
-        hendelseRepo.lagre(pdlHendelse, eksisterendeSaksnummer)
+        log.info("Prosserer melding med offset: ${personhendelse.offset}, opplysningstype: $personhendelse")
+        hendelseRepo.lagre(personhendelse, eksisterendeSaksnummer)
     }
 
-    private fun hentEksisterendeSaksnummer(pdlHendelse: PdlHendelse.Ny): Saksnummer? =
-        personRepo.hentSaksnummerForIdenter(pdlHendelse.personidenter)
+    private fun hentEksisterendeSaksnummer(personhendelse: Personhendelse.Ny): Saksnummer? =
+        personRepo.hentSaksnummerForIdenter(personhendelse.personidenter)
 }

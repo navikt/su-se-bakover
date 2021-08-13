@@ -1,7 +1,6 @@
-package no.nav.su.se.bakover.web.services.PdlHendelser
+package no.nav.su.se.bakover.web.services.personhendelser
 
 import no.nav.person.pdl.leesah.Endringstype
-import no.nav.person.pdl.leesah.Personhendelse
 import no.nav.person.pdl.leesah.doedsfall.Doedsfall
 import no.nav.person.pdl.leesah.sivilstand.Sivilstand
 import no.nav.person.pdl.leesah.utflytting.UtflyttingFraNorge
@@ -12,13 +11,14 @@ import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.apache.kafka.common.TopicPartition
 import org.junit.jupiter.api.BeforeEach
 import java.time.LocalDate
+import no.nav.person.pdl.leesah.Personhendelse as EksternPersonhendelse
 
-internal class LeesahMqConsumerTest {
+internal class PersonhendelseConsumerTest {
     private val TOPIC = "kafkaTopic"
     private val PARTITION = 0
     private val STARTING_OFFSET = 0
 
-    private val mockConsumer = MockConsumer<String, Personhendelse>(OffsetResetStrategy.EARLIEST)
+    private val mockConsumer = MockConsumer<String, EksternPersonhendelse>(OffsetResetStrategy.EARLIEST)
 
     @BeforeEach
     private fun setup() {
@@ -37,8 +37,8 @@ internal class LeesahMqConsumerTest {
         mockConsumer.updateBeginningOffsets(mapOf(TopicPartition(TOPIC, PARTITION) to STARTING_OFFSET.toLong()))
     }
 
-    private fun generatePdlMelding(offset: Long): ConsumerRecord<String, Personhendelse> {
-        val personhendelse = Personhendelse(
+    private fun generatePdlMelding(offset: Long): ConsumerRecord<String, EksternPersonhendelse> {
+        val personhendelse = EksternPersonhendelse(
             "23",
             listOf("55"),
             "master",
@@ -48,7 +48,7 @@ internal class LeesahMqConsumerTest {
             "22",
             Doedsfall(LocalDate.now()),
             Sivilstand("asd", LocalDate.now(), "hehe", LocalDate.now()),
-            UtflyttingFraNorge("asd", "qwe", LocalDate.now())
+            UtflyttingFraNorge("asd", "qwe", LocalDate.now()),
         )
         return ConsumerRecord(TOPIC, PARTITION, offset, "1234567890000", personhendelse)
     }

@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.database.hendelse.HendelseRepo
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.hendelse.PdlHendelse
+import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import org.junit.jupiter.api.Test
@@ -18,9 +18,10 @@ import java.time.LocalDate
 import java.util.UUID
 
 internal class PersonhendelseServiceTest {
+
     @Test
-    internal fun `kan lagre pdlhendelser`() {
-        val dødsfallshendelse = lagNyPdlhendelse()
+    internal fun `kan lagre personhendelser`() {
+        val dødsfallshendelse = lagNyPersonhendelse()
         val personRepoMock = mock<PersonRepo> {
             on { hentSaksnummerForIdenter(any()) } doReturn Saksnummer(2021)
         }
@@ -28,12 +29,12 @@ internal class PersonhendelseServiceTest {
             on { lagre(any(), any()) }.then {}
         }
 
-        val leesahService = PersonhendelseService(
+        val personhendelseService = PersonhendelseService(
             personRepoMock,
-            hendelseRepoMock
+            hendelseRepoMock,
         )
 
-        leesahService.prosesserNyMelding(dødsfallshendelse)
+        personhendelseService.prosesserNyMelding(dødsfallshendelse)
 
         verify(personRepoMock).hentSaksnummerForIdenter(argThat { it shouldBe dødsfallshendelse.personidenter })
         verify(hendelseRepoMock).lagre(argThat { it shouldBe dødsfallshendelse }, argThat { it shouldBe Saksnummer(2021) })
@@ -41,29 +42,29 @@ internal class PersonhendelseServiceTest {
 
     @Test
     internal fun `ignorerer hendelser for personer som ikke har en sak`() {
-        val dødsfallshendelse = lagNyPdlhendelse()
+        val dødsfallshendelse = lagNyPersonhendelse()
         val personRepoMock = mock<PersonRepo> {
             on { hentSaksnummerForIdenter(any()) } doReturn null
         }
         val hendelseRepoMock = mock<HendelseRepo> {}
 
-        val leesahService = PersonhendelseService(
+        val personhendelseService = PersonhendelseService(
             personRepoMock,
-            hendelseRepoMock
+            hendelseRepoMock,
         )
 
-        leesahService.prosesserNyMelding(dødsfallshendelse)
+        personhendelseService.prosesserNyMelding(dødsfallshendelse)
 
         verify(personRepoMock).hentSaksnummerForIdenter(argThat { it shouldBe dødsfallshendelse.personidenter })
         verifyNoMoreInteractions(hendelseRepoMock)
     }
 
-    private fun lagNyPdlhendelse() = PdlHendelse.Ny(
+    private fun lagNyPersonhendelse() = Personhendelse.Ny(
         hendelseId = UUID.randomUUID().toString(),
         gjeldendeAktørId = AktørId("123456b7890000"),
         offset = 0,
-        endringstype = PdlHendelse.Endringstype.OPPRETTET,
+        endringstype = Personhendelse.Endringstype.OPPRETTET,
         personidenter = listOf(FnrGenerator.random().toString(), "123456789010"),
-        hendelse = PdlHendelse.Hendelse.Dødsfall(dødsdato = LocalDate.now()),
+        hendelse = Personhendelse.Hendelse.Dødsfall(dødsdato = LocalDate.now()),
     )
 }

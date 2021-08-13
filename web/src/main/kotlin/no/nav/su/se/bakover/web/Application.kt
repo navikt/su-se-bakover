@@ -73,9 +73,9 @@ import no.nav.su.se.bakover.web.routes.togglePaths
 import no.nav.su.se.bakover.web.routes.toggleRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.gjenoppta.gjenopptaUtbetalingRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.stans.stansutbetalingRoutes
-import no.nav.su.se.bakover.web.services.PdlHendelser.LeesahConsumer
 import no.nav.su.se.bakover.web.services.avstemming.AvstemmingJob
 import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
+import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringIbmMqConsumer
@@ -267,7 +267,7 @@ internal fun Application.susebakover(
             avstemmingService = services.avstemming,
             leaderPodLookup = clients.leaderPodLookup,
         ).schedule()
-        LeesahConsumer(
+        PersonhendelseConsumer(
             consumer = KafkaConsumer(applicationConfig.kafkaConfig.consumerCfg.kafkaConfig),
             personhendelseService = PersonhendelseService(databaseRepos.person, databaseRepos.hendelseRepo),
         )

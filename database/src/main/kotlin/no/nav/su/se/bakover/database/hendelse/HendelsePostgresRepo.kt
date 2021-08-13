@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.hendelse.PdlHendelse
+import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.time.LocalDate
 import javax.sql.DataSource
@@ -21,7 +21,7 @@ class HendelsePostgresRepo(private val datasource: DataSource) : HendelseRepo {
         UTFLYTTING_FRA_NORGE("utflytting_fra_norge");
     }
 
-    override fun lagre(pdlHendelse: PdlHendelse.Ny, saksnummer: Saksnummer) {
+    override fun lagre(personhendelse: Personhendelse.Ny, saksnummer: Saksnummer) {
         val tidspunkt = Tidspunkt.now()
         datasource.withSession { session ->
             """
@@ -41,26 +41,26 @@ class HendelsePostgresRepo(private val datasource: DataSource) : HendelseRepo {
                 on conflict do nothing
             """.trimIndent().insert(
                 mapOf(
-                    "id" to pdlHendelse.hendelseId,
-                    "offset" to pdlHendelse.offset,
+                    "id" to personhendelse.hendelseId,
+                    "offset" to personhendelse.offset,
                     "opprettet" to tidspunkt,
                     "endret" to tidspunkt,
-                    "aktoerId" to pdlHendelse.gjeldendeAktørId.toString(),
-                    "endringstype" to pdlHendelse.endringstype.value,
+                    "aktoerId" to personhendelse.gjeldendeAktørId.toString(),
+                    "endringstype" to personhendelse.endringstype.value,
                     "saksnummer" to saksnummer.nummer,
-                    "hendelse" to when (pdlHendelse.hendelse) {
-                        is PdlHendelse.Hendelse.Dødsfall -> objectMapper.writeValueAsString(pdlHendelse.hendelse)
-                        is PdlHendelse.Hendelse.UtflyttingFraNorge -> objectMapper.writeValueAsString(pdlHendelse.hendelse)
+                    "hendelse" to when (personhendelse.hendelse) {
+                        is Personhendelse.Hendelse.Dødsfall -> objectMapper.writeValueAsString(personhendelse.hendelse)
+                        is Personhendelse.Hendelse.UtflyttingFraNorge -> objectMapper.writeValueAsString(personhendelse.hendelse)
                     },
                     "oppgaveId" to null,
-                    "type" to pdlHendelse.hendelse.type()
+                    "type" to personhendelse.hendelse.type(),
                 ),
                 session,
             )
         }
     }
 
-    override fun hent(hendelseId: String): PdlHendelse.Persistert? = datasource.withSession { session ->
+    override fun hent(hendelseId: String): Personhendelse.Persistert? = datasource.withSession { session ->
         """
         select * from personhendelse where id = :hendelseId
         """.trimIndent()
@@ -70,10 +70,10 @@ class HendelsePostgresRepo(private val datasource: DataSource) : HendelseRepo {
                 ),
                 session,
             ) {
-                PdlHendelse.Persistert(
+                Personhendelse.Persistert(
                     hendelseId = it.string("id"),
                     gjeldendeAktørId = AktørId(it.string("aktørId")),
-                    endringstype = PdlHendelse.Endringstype.valueOf(it.string("endringstype")),
+                    endringstype = Personhendelse.Endringstype.valueOf(it.string("endringstype")),
                     hendelse = it.hentHendelse(),
                     saksnummer = Saksnummer(it.long("saksnummer")),
                     oppgaveId = it.stringOrNull("oppgaveId")?.let { id -> OppgaveId(id) },
@@ -96,18 +96,18 @@ class HendelsePostgresRepo(private val datasource: DataSource) : HendelseRepo {
         }
     }
 
-    private fun Row.hentHendelse(): PdlHendelse.Hendelse = when (string("type")) {
+    private fun Row.hentHendelse(): Personhendelse.Hendelse = when (string("type")) {
         PersonhendelseType.DØDSFALL.value -> {
-            objectMapper.readValue<PdlHendelse.Hendelse.Dødsfall>(string("hendelse"))
+            objectMapper.readValue<Personhendelse.Hendelse.Dødsfall>(string("hendelse"))
         }
         PersonhendelseType.UTFLYTTING_FRA_NORGE.value -> {
-            objectMapper.readValue<PdlHendelse.Hendelse.UtflyttingFraNorge>(string("hendelse"))
+            objectMapper.readValue<Personhendelse.Hendelse.UtflyttingFraNorge>(string("hendelse"))
         }
         else -> throw RuntimeException("Feil skjedde ved deserialisering av personhendelse")
     }
 
-    private fun PdlHendelse.Hendelse.type(): String = when (this) {
-        is PdlHendelse.Hendelse.Dødsfall -> PersonhendelseType.DØDSFALL.value
-        is PdlHendelse.Hendelse.UtflyttingFraNorge -> PersonhendelseType.UTFLYTTING_FRA_NORGE.value
+    private fun Personhendelse.Hendelse.type(): String = when (this) {
+        is Personhendelse.Hendelse.Dødsfall -> PersonhendelseType.DØDSFALL.value
+        is Personhendelse.Hendelse.UtflyttingFraNorge -> PersonhendelseType.UTFLYTTING_FRA_NORGE.value
     }
 }

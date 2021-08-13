@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.time.LocalDate
 
-sealed class PdlHendelse {
+sealed class Personhendelse {
     enum class Endringstype(val value: String) {
         OPPRETTET("OPPRETTET"),
         KORRIGERT("KORRIGERT"),
@@ -25,7 +25,7 @@ sealed class PdlHendelse {
         override val hendelse: Hendelse,
         val offset: Long,
         val personidenter: List<String>,
-    ) : PdlHendelse()
+    ) : Personhendelse()
 
     data class Persistert(
         override val hendelseId: String,
@@ -34,7 +34,7 @@ sealed class PdlHendelse {
         override val hendelse: Hendelse,
         val saksnummer: Saksnummer,
         val oppgaveId: OppgaveId?,
-    ) : PdlHendelse()
+    ) : Personhendelse()
 
     sealed class Hendelse {
         data class Dødsfall(val dødsdato: LocalDate?) : Hendelse()

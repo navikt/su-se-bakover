@@ -1,16 +1,15 @@
-package no.nav.su.se.bakover.web.services.PdlHendelser
+package no.nav.su.se.bakover.web.services.personhendelser
 
 import arrow.core.getOrElse
 import arrow.core.left
 import io.kotest.matchers.shouldBe
 import no.nav.person.pdl.leesah.Endringstype
-import no.nav.person.pdl.leesah.Personhendelse
 import no.nav.person.pdl.leesah.doedsfall.Doedsfall
 import no.nav.person.pdl.leesah.utflytting.UtflyttingFraNorge
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.hendelse.PdlHendelse
+import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.service.FnrGenerator
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.junit.jupiter.api.Test
@@ -18,6 +17,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
+import no.nav.person.pdl.leesah.Personhendelse as EksternPersonhendelse
 
 internal class HendelseMapperTest {
     private val TOPIC = "topic"
@@ -34,8 +34,8 @@ internal class HendelseMapperTest {
     private val key = "${preprendedText}$aktørId"
 
     @Test
-    fun `mapper fra personhendelser-dødsfall til pdlhendelse-type`() {
-        val personhendelse = Personhendelse(
+    fun `mapper fra ekstern dødsfalltype til intern`() {
+        val personhendelse = EksternPersonhendelse(
             "hendelseId",
             listOf(fnr, aktørId),
             "master",
@@ -45,24 +45,24 @@ internal class HendelseMapperTest {
             null,
             Doedsfall(tidspunkt),
             null,
-            null
+            null,
         )
         val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, key, personhendelse)
         val actual = HendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
 
-        actual shouldBe PdlHendelse.Ny(
+        actual shouldBe Personhendelse.Ny(
             hendelseId = "hendelseId",
             gjeldendeAktørId = AktørId(aktørId),
-            endringstype = PdlHendelse.Endringstype.OPPRETTET,
-            hendelse = PdlHendelse.Hendelse.Dødsfall(tidspunkt),
+            endringstype = Personhendelse.Endringstype.OPPRETTET,
+            hendelse = Personhendelse.Hendelse.Dødsfall(tidspunkt),
             offset = OFFSET,
             personidenter = personhendelse.getPersonidenter(),
         )
     }
 
     @Test
-    fun `mapper fra personhendelser-utflytting til pdlhendelse-type`() {
-        val personhendelse = Personhendelse(
+    fun `mapper fra ekstern utflyttingstype til intern`() {
+        val personhendelse = EksternPersonhendelse(
             "hendelseId",
             listOf(fnr, aktørId),
             "master",
@@ -72,24 +72,24 @@ internal class HendelseMapperTest {
             null,
             null,
             null,
-            UtflyttingFraNorge("Sverige", "Stockholm", tidspunkt)
+            UtflyttingFraNorge("Sverige", "Stockholm", tidspunkt),
         )
         val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, key, personhendelse)
         val actual = HendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
 
-        actual shouldBe PdlHendelse.Ny(
+        actual shouldBe Personhendelse.Ny(
             hendelseId = "hendelseId",
             gjeldendeAktørId = AktørId(aktørId),
-            endringstype = PdlHendelse.Endringstype.OPPRETTET,
-            hendelse = PdlHendelse.Hendelse.UtflyttingFraNorge(tidspunkt),
+            endringstype = no.nav.su.se.bakover.domain.hendelse.Personhendelse.Endringstype.OPPRETTET,
+            hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(tidspunkt),
             offset = OFFSET,
             personidenter = personhendelse.getPersonidenter(),
         )
     }
 
     @Test
-    fun `mapped aktørId som ikke finnes i personidenter gir error`() {
-        val personhendelse = Personhendelse(
+    fun `aktørId som ikke finnes i personidenter gir feil`() {
+        val personhendelse = EksternPersonhendelse(
             "hendelseId",
             listOf(fnr),
             "master",
@@ -99,7 +99,7 @@ internal class HendelseMapperTest {
             null,
             null,
             null,
-            UtflyttingFraNorge("Sverige", "Stockholm", tidspunkt)
+            UtflyttingFraNorge("Sverige", "Stockholm", tidspunkt),
         )
         val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, key, personhendelse)
         val actual = HendelseMapper.map(message)
@@ -109,7 +109,7 @@ internal class HendelseMapperTest {
 
     @Test
     fun `skipper hendelser vi ikke er intressert i`() {
-        val personhendelse = Personhendelse(
+        val personhendelse = EksternPersonhendelse(
             "hendelseId",
             listOf(fnr, aktørId),
             "master",
@@ -119,7 +119,7 @@ internal class HendelseMapperTest {
             null,
             null,
             null,
-            UtflyttingFraNorge("Sverige", "Stockholm", tidspunkt)
+            UtflyttingFraNorge("Sverige", "Stockholm", tidspunkt),
         )
         val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, key, personhendelse)
         val actual = HendelseMapper.map(message)
