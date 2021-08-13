@@ -101,7 +101,17 @@ private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
             "Simulering feilet",
             "simulering_feilet",
         )
-        KunneIkkeBeregneOgSimulereRevurdering.MåSendeGrunnbeløpReguleringSomÅrsakSammenMedForventetInntekt -> BadRequest.errorJson(
+        is KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeiletFinnerIkkeKjøreplansperiodeForFom -> InternalServerError.errorJson(
+            "Simuleringsfeil: Finner ikke kjøreplansperiode for fom-dato",
+            "simulering_finner_ikke_kjøreplansperiode_for_fom",
+        )
+        is KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeiletFinnerIkkePerson -> InternalServerError.errorJson(
+            "Simuleringsfeil: Finner ikke person i TPS", "simulering_finner_ikke_person_i_tps",
+        )
+        is KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeiletOppdragStengtEllerNede -> InternalServerError.errorJson(
+            "Simuleringsfeil: Oppdrag/UR er stengt eller nede", "simulering_oppdrag_stengt_eller_nede",
+        )
+        is KunneIkkeBeregneOgSimulereRevurdering.MåSendeGrunnbeløpReguleringSomÅrsakSammenMedForventetInntekt -> BadRequest.errorJson(
             "Forventet inntekt kan kun sendes sammen med regulering av grunnbeløp",
             "grunnbelop_forventetinntekt",
         )
@@ -109,10 +119,10 @@ private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
             "Ugyldig beregningsgrunnlag. Underliggende årsak: ${this.reason}",
             "ugyldig_beregningsgrunnlag",
         )
-        KunneIkkeBeregneOgSimulereRevurdering.UfullstendigVilkårsvurdering -> InternalServerError.errorJson(
+        is KunneIkkeBeregneOgSimulereRevurdering.UfullstendigVilkårsvurdering -> InternalServerError.errorJson(
             "Vurdering av vilkår er ufullstendig",
             "ufullstendig_vilkårsvurdering",
         )
-        KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> kanIkkeHaEpsFradragUtenEps
+        is KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> kanIkkeHaEpsFradragUtenEps
     }
 }

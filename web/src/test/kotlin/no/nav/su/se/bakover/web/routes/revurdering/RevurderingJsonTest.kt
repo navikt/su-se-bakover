@@ -148,7 +148,7 @@ internal class RevurderingJsonTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
@@ -156,7 +156,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingJson =
@@ -230,7 +230,7 @@ internal class RevurderingJsonTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
@@ -238,7 +238,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingJson =
@@ -312,7 +312,7 @@ internal class RevurderingJsonTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
@@ -320,7 +320,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingJson =
@@ -395,7 +395,7 @@ internal class RevurderingJsonTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
@@ -482,7 +482,7 @@ internal class RevurderingJsonTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
@@ -569,7 +569,7 @@ internal class RevurderingJsonTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
@@ -657,7 +657,7 @@ internal class RevurderingJsonTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
@@ -745,7 +745,7 @@ internal class RevurderingJsonTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             skalFøreTilBrevutsending = false,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
@@ -833,13 +833,13 @@ internal class RevurderingJsonTest {
                     attestant = NavIdentBruker.Attestant("attestant"),
                     grunn = Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER,
                     kommentar = "Dokumentasjon mangler",
-                    opprettet = attesteringOpprettet
-                )
+                    opprettet = attesteringOpprettet,
+                ),
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
@@ -936,13 +936,13 @@ internal class RevurderingJsonTest {
                     attestant = NavIdentBruker.Attestant("attestant"),
                     grunn = Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER,
                     kommentar = "Dokumentasjon mangler",
-                    opprettet = attesteringOpprettet
-                )
+                    opprettet = attesteringOpprettet,
+                ),
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
@@ -1038,14 +1038,14 @@ internal class RevurderingJsonTest {
                     attestant = NavIdentBruker.Attestant("attestant"),
                     grunn = Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER,
                     kommentar = "Dokumentasjon mangler",
-                    opprettet = attesteringOpprettet
-                )
+                    opprettet = attesteringOpprettet,
+                ),
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             skalFøreTilBrevutsending = false,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
@@ -1134,11 +1134,17 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId("OppgaveId"),
             beregning = beregning,
             simulering = mock(),
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), attesteringOpprettet)),
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(
+                    Attestering.Iverksatt(
+                        NavIdentBruker.Attestant("attestant"),
+                        attesteringOpprettet,
+                    ),
+                ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
@@ -1223,11 +1229,17 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId("OppgaveId"),
             beregning = beregning,
             simulering = mock(),
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), attesteringOpprettet)),
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(
+                    Attestering.Iverksatt(
+                        NavIdentBruker.Attestant("attestant"),
+                        attesteringOpprettet,
+                    ),
+                ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
@@ -1311,12 +1323,18 @@ internal class RevurderingJsonTest {
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             oppgaveId = OppgaveId("OppgaveId"),
             beregning = beregning,
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), attesteringOpprettet)),
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(
+                    Attestering.Iverksatt(
+                        NavIdentBruker.Attestant("attestant"),
+                        attesteringOpprettet,
+                    ),
+                ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             skalFøreTilBrevutsending = true,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(

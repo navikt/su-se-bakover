@@ -66,7 +66,7 @@ object RevurderingRoutesTestData {
                     ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
                     delerBolig = true,
                     ektemakeEllerSamboerUførFlyktning = true,
-                    begrunnelse = null
+                    begrunnelse = null,
                 ),
                 ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
             ),
@@ -74,14 +74,15 @@ object RevurderingRoutesTestData {
             beregning = TestBeregning,
             simulering = mock(),
             saksbehandler = NavIdentBruker.Saksbehandler("saks"),
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), Tidspunkt.now())),
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), Tidspunkt.now())),
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         ),
         utbetalingId = UUID30.randomUUID(),
-        clock = fixedClock
+        clock = fixedClock,
     )
 
     internal val opprettetRevurdering = OpprettetRevurdering(
@@ -97,10 +98,10 @@ object RevurderingRoutesTestData {
             Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
         ),
         forhåndsvarsel = null,
-        grunnlagsdata = Grunnlagsdata.EMPTY,
+        grunnlagsdata = Grunnlagsdata.IkkeVurdert,
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-        attesteringer = Attesteringshistorikk.empty()
+        attesteringer = Attesteringshistorikk.empty(),
     )
 
     internal fun formueVilkår(periode: Periode) = Vilkår.Formue.Vurdert.createFromGrunnlag(

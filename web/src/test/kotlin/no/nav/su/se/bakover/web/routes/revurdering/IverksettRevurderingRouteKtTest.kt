@@ -77,7 +77,7 @@ internal class IverksettRevurderingRouteKtTest {
             periode = periode,
             opprettet = Tidspunkt.now(),
             tilRevurdering = vedtak,
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             oppgaveId = OppgaveId("OppgaveId"),
             beregning = TestBeregning,
             simulering = Simulering(
@@ -87,14 +87,15 @@ internal class IverksettRevurderingRouteKtTest {
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), Tidspunkt.now())),
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), Tidspunkt.now())),
             fritekstTilBrev = "",
             revurderingsårsak = Revurderingsårsak(
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )

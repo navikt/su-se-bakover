@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.test
 
+import arrow.core.nonEmptyListOf
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -26,138 +28,298 @@ val behandlingsinformasjonAlleVilkårInnvilget = Behandlingsinformasjon
  * TODO jah: Vi bør kunne gjøre dette via NySøknadsbehandling og en funksjon som tar inn saksnummer og gir oss Søknadsbehandling.Vilkårsvurdert.Uavklart
  */
 fun søknadsbehandlingVilkårsvurdertUavklart(
-    saksnr: Saksnummer = saksnummer,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
-): Søknadsbehandling.Vilkårsvurdert.Uavklart {
-    return Søknadsbehandling.Vilkårsvurdert.Uavklart(
-        id = søknadsbehandlingId,
-        opprettet = fixedTidspunkt,
+): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
+    return nySakMedjournalførtSøknadOgOppgave(
         sakId = sakId,
-        saksnummer = saksnr,
-        søknad = journalførtSøknadMedOppgave,
+        saksnummer = saksnummer,
         oppgaveId = oppgaveIdSøknad,
-        behandlingsinformasjon = behandlingsinformasjonAlleVilkårUavklart,
         fnr = fnr,
-        fritekstTilBrev = "",
-        stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.EMPTY,
-        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-        attesteringer = Attesteringshistorikk.empty()
-    )
+    ).let { (sak, journalførtSøknadMedOppgave) ->
+        val søknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
+            id = søknadsbehandlingId,
+            opprettet = fixedTidspunkt,
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            søknad = journalførtSøknadMedOppgave,
+            oppgaveId = journalførtSøknadMedOppgave.oppgaveId,
+            behandlingsinformasjon = behandlingsinformasjonAlleVilkårUavklart,
+            fnr = sak.fnr,
+            fritekstTilBrev = "",
+            stønadsperiode = stønadsperiode,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            attesteringer = Attesteringshistorikk.empty(),
+        )
+        Pair(
+            sak.copy(
+                søknadsbehandlinger = nonEmptyListOf(søknadsbehandling),
+            ),
+            søknadsbehandling,
+        )
+    }
 }
 
 fun søknadsbehandlingVilkårsvurdertInnvilget(
-    saksnr: Saksnummer = saksnummer,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-): Søknadsbehandling.Vilkårsvurdert.Innvilget {
-    return (
-        søknadsbehandlingVilkårsvurdertUavklart(saksnr = saksnr, stønadsperiode = stønadsperiode).tilVilkårsvurdert(
-            behandlingsinformasjon,
-        ) as Søknadsbehandling.Vilkårsvurdert.Innvilget
-        ).copy(
-        grunnlagsdata = grunnlagsdata,
-        vilkårsvurderinger = vilkårsvurderinger,
-    )
+): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Innvilget> {
+    return søknadsbehandlingVilkårsvurdertUavklart(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+    ).let { (sak, søknadsbehandling) ->
+        val oppdatertSøknadsbehandling = (
+            søknadsbehandling.tilVilkårsvurdert(
+                behandlingsinformasjon,
+                // TODO jah: Bytt til å bruke en mer spesifikk funksjon på søknadsbehandling når/hvis det kommer.
+            ) as Søknadsbehandling.Vilkårsvurdert.Innvilget
+            ).copy(
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
+        )
+        Pair(
+            sak.copy(
+                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
+            ),
+            oppdatertSøknadsbehandling,
+        )
+    }
 }
 
 fun søknadsbehandlingBeregnetInnvilget(
-    saksnr: Saksnummer = saksnummer,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
     beregning: Beregning = beregning(),
-): Søknadsbehandling.Beregnet.Innvilget {
+): Pair<Sak, Søknadsbehandling.Beregnet.Innvilget> {
     return søknadsbehandlingVilkårsvurdertInnvilget(
-        saksnr = saksnr,
+        saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
-    ).tilBeregnet(beregning) as Søknadsbehandling.Beregnet.Innvilget
+    ).let { (sak, søknadsbehandling) ->
+        val oppdatertSøknadsbehandling =
+            søknadsbehandling.tilBeregnet(beregning) as Søknadsbehandling.Beregnet.Innvilget
+        Pair(
+            sak.copy(
+                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
+            ),
+            oppdatertSøknadsbehandling,
+        )
+    }
+}
+
+/**
+ * Defaultverdier:
+ * - Forventet inntekt: 1_000_000
+ *
+ * @param beregning må gi avslag, hvis ikke får man en runtime exception
+ */
+fun søknadsbehandlingBeregnetAvslag(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
+    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    beregning: Beregning = beregning(
+        uføregrunnlag = nonEmptyListOf(
+            uføregrunnlagForventetInntekt(
+                periode = stønadsperiode.periode,
+                forventetInntekt = 1_000_000,
+            ),
+        ),
+    ),
+): Pair<Sak, Søknadsbehandling.Beregnet.Avslag> {
+    return søknadsbehandlingVilkårsvurdertInnvilget(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+        behandlingsinformasjon = behandlingsinformasjon,
+        grunnlagsdata = grunnlagsdata,
+        vilkårsvurderinger = vilkårsvurderinger,
+    ).let { (sak, søknadsbehandling) ->
+        val oppdatertSøknadsbehandling = søknadsbehandling.tilBeregnet(beregning) as Søknadsbehandling.Beregnet.Avslag
+        Pair(
+            sak.copy(
+                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
+            ),
+            oppdatertSøknadsbehandling,
+        )
+    }
 }
 
 fun søknadsbehandlingSimulert(
-    saksnr: Saksnummer = saksnummer,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
     beregning: Beregning = beregning(),
-): Søknadsbehandling.Simulert {
+): Pair<Sak, Søknadsbehandling.Simulert> {
     return søknadsbehandlingBeregnetInnvilget(
-        saksnr = saksnr,
+        saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         beregning = beregning,
-    ).tilSimulert(
-        simulering = simuleringNy(),
-    )
+    ).let { (sak, søknadsbehandling) ->
+        val oppdatertSøknadsbehandling =
+            søknadsbehandling.tilSimulert(simulering = simuleringNy(eksisterendeUtbetalinger = sak.utbetalinger))
+        Pair(
+            sak.copy(
+                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
+            ),
+            oppdatertSøknadsbehandling,
+        )
+    }
 }
 
 fun søknadsbehandlingTilAttesteringInnvilget(
-    saksnr: Saksnummer = saksnummer,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
     beregning: Beregning = beregning(),
-): Søknadsbehandling.TilAttestering.Innvilget {
+): Pair<Sak, Søknadsbehandling.TilAttestering.Innvilget> {
     return søknadsbehandlingSimulert(
-        saksnr = saksnr,
+        saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         beregning = beregning,
-    ).tilAttestering(
-        saksbehandler = saksbehandler,
-        fritekstTilBrev = "",
-    )
+    ).let { (sak, søknadsbehandling) ->
+        val oppdatertSøknadsbehandling = søknadsbehandling.tilAttestering(
+            saksbehandler = saksbehandler,
+            fritekstTilBrev = "",
+        )
+        Pair(
+            sak.copy(
+                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
+            ),
+            oppdatertSøknadsbehandling,
+        )
+    }
+}
+
+fun søknadsbehandlingTilAttesteringAvslagMedBeregning(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
+    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    beregning: Beregning = beregning(),
+): Pair<Sak, Søknadsbehandling.TilAttestering.Avslag.MedBeregning> {
+    return søknadsbehandlingBeregnetAvslag(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+        behandlingsinformasjon = behandlingsinformasjon,
+        grunnlagsdata = grunnlagsdata,
+        vilkårsvurderinger = vilkårsvurderinger,
+        beregning = beregning,
+    ).let { (sak, søknadsbehandling) ->
+        val oppdatertSøknadsbehandling = søknadsbehandling.tilAttestering(
+            saksbehandler = saksbehandler,
+            fritekstTilBrev = "",
+        )
+        Pair(
+            sak.copy(
+                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
+            ),
+            oppdatertSøknadsbehandling,
+        )
+    }
 }
 
 fun søknadsbehandlingUnderkjentInnvilget(
-    saksnr: Saksnummer = saksnummer,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
     beregning: Beregning = beregning(),
     attestering: Attestering = attesteringUnderkjent,
-): Søknadsbehandling.Underkjent.Innvilget {
+): Pair<Sak, Søknadsbehandling.Underkjent.Innvilget> {
     return søknadsbehandlingTilAttesteringInnvilget(
-        saksnr = saksnr,
+        saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         beregning = beregning,
-    ).tilUnderkjent(
-        attestering = attestering,
-    )
+    ).let { (sak, søknadsbehandling) ->
+        val oppdatertSøknadsbehandling = søknadsbehandling.tilUnderkjent(
+            attestering = attestering,
+        )
+        Pair(
+            sak.copy(
+                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
+            ),
+            oppdatertSøknadsbehandling,
+        )
+    }
 }
 
 fun søknadsbehandlingIverksattInnvilget(
-    saksnr: Saksnummer = saksnummer,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
     beregning: Beregning = beregning(),
-): Søknadsbehandling.Iverksatt.Innvilget {
+): Pair<Sak, Søknadsbehandling.Iverksatt.Innvilget> {
     return søknadsbehandlingTilAttesteringInnvilget(
-        saksnr = saksnr,
+        saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         beregning = beregning,
-    ).tilIverksatt(
-        attestering = attesteringIverksatt,
-    )
+    ).let { (sak, søknadsbehandling) ->
+        val oppdatertSøknadsbehandling = søknadsbehandling.tilIverksatt(
+            attestering = attesteringIverksatt,
+        )
+        Pair(
+            sak.copy(
+                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
+            ),
+            oppdatertSøknadsbehandling,
+        )
+    }
+}
+
+fun søknadsbehandlingIverksattAvslagMedBeregning(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
+    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    beregning: Beregning = beregning(),
+): Pair<Sak, Søknadsbehandling.Iverksatt.Avslag.MedBeregning> {
+    return søknadsbehandlingTilAttesteringAvslagMedBeregning(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+        behandlingsinformasjon = behandlingsinformasjon,
+        grunnlagsdata = grunnlagsdata,
+        vilkårsvurderinger = vilkårsvurderinger,
+        beregning = beregning,
+    ).let { (sak, søknadsbehandling) ->
+        val oppdatertSøknadsbehandling = søknadsbehandling.tilIverksatt(
+            attestering = attesteringIverksatt,
+        )
+        Pair(
+            sak.copy(
+                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
+            ),
+            oppdatertSøknadsbehandling,
+        )
+    }
 }

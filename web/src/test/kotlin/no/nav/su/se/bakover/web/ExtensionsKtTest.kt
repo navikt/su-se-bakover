@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web
 
-import io.kotest.assertions.arrow.either.shouldBeLeft
-import io.kotest.assertions.arrow.either.shouldBeRight
+import arrow.core.left
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.limitedUpwardsTo
@@ -15,7 +15,7 @@ internal class ExtensionsKtTest {
     @Test
     fun `String toUUID gir fin feilmelding`() {
         runBlocking {
-            "heisann".toUUID() shouldBeLeft "heisann er ikke en gyldig UUID"
+            "heisann".toUUID() shouldBe "heisann er ikke en gyldig UUID".left()
         }
     }
 
@@ -23,7 +23,7 @@ internal class ExtensionsKtTest {
     fun `String toUUID funker på gyldig UUID`() {
         runBlocking {
             UUID.randomUUID().let {
-                it.toString().toUUID() shouldBeRight it
+                it.toString().toUUID() shouldBe it.right()
             }
         }
     }

@@ -271,9 +271,9 @@ internal class SøknadsbehandlingStatistikkMapperTest {
         fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
         stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
-        grunnlagsdata = Grunnlagsdata.EMPTY,
+        grunnlagsdata = Grunnlagsdata.IkkeVurdert,
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-        attesteringer = Attesteringshistorikk.empty()
+        attesteringer = Attesteringshistorikk.empty(),
     )
 
     private val beregning = TestBeregning

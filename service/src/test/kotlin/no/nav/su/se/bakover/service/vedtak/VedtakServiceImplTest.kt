@@ -9,7 +9,6 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
-import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -41,13 +40,13 @@ import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.beregning.TestBeregning
-import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
-import java.lang.RuntimeException
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -60,7 +59,7 @@ internal class VedtakServiceImplTest {
         val fnr = FnrGenerator.random()
         val vedtak = innvilgetVedtak(fnr)
 
-        val vedtakRepoMock = mock<VedtakRepo>() {
+        val vedtakRepoMock = mock<VedtakRepo> {
             on { hentAktive(any()) } doReturn listOf(vedtak)
         }
 
@@ -80,7 +79,7 @@ internal class VedtakServiceImplTest {
         val fnr = FnrGenerator.random()
         val vedtak = innvilgetVedtak(fnr)
 
-        val vedtakRepoMock = mock<VedtakRepo>() {
+        val vedtakRepoMock = mock<VedtakRepo> {
             on { hentAktive(any()) } doReturn listOf(vedtak, vedtak)
         }
 
@@ -102,7 +101,7 @@ internal class VedtakServiceImplTest {
         val vedtakFørst = innvilgetVedtak(fnrSist)
         val vedtakSist = innvilgetVedtak(fnrFørst)
 
-        val vedtakRepoMock = mock<VedtakRepo>() {
+        val vedtakRepoMock = mock<VedtakRepo> {
             on { hentAktive(any()) } doReturn listOf(vedtakFørst, vedtakSist)
         }
 
@@ -123,7 +122,10 @@ internal class VedtakServiceImplTest {
         }
         createService(
             sakService = sakServiceMock,
-        ).kopierGjeldendeVedtaksdata(UUID.randomUUID(), LocalDate.EPOCH) shouldBeLeft KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak
+        ).kopierGjeldendeVedtaksdata(
+            UUID.randomUUID(),
+            LocalDate.EPOCH,
+        ) shouldBe KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak.left()
     }
 
     @Test
@@ -135,7 +137,7 @@ internal class VedtakServiceImplTest {
                 opprettet = Tidspunkt.now(),
                 fnr = FnrGenerator.random(),
                 søknader = listOf(),
-                behandlinger = listOf(),
+                søknadsbehandlinger = listOf(),
                 utbetalinger = listOf(),
                 revurderinger = listOf(),
                 vedtakListe = listOf(),
@@ -143,12 +145,15 @@ internal class VedtakServiceImplTest {
         }
         createService(
             sakService = sakServiceMock,
-        ).kopierGjeldendeVedtaksdata(UUID.randomUUID(), LocalDate.EPOCH) shouldBeLeft KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak
+        ).kopierGjeldendeVedtaksdata(
+            UUID.randomUUID(),
+            LocalDate.EPOCH,
+        ) shouldBe KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak.left()
     }
 
     @Test
     fun `kopier gjeldende vedtaksdata - ugyldig periode`() {
-        val vedtakMock = mock<Vedtak.EndringIYtelse>() {
+        val vedtakMock = mock<Vedtak.EndringIYtelse> {
             on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
         }
         val sakServiceMock = mock<SakService> {
@@ -158,7 +163,7 @@ internal class VedtakServiceImplTest {
                 opprettet = Tidspunkt.now(),
                 fnr = FnrGenerator.random(),
                 søknader = listOf(),
-                behandlinger = listOf(),
+                søknadsbehandlinger = listOf(),
                 utbetalinger = listOf(),
                 revurderinger = listOf(),
                 vedtakListe = listOf(
@@ -168,66 +173,84 @@ internal class VedtakServiceImplTest {
         }
         createService(
             sakService = sakServiceMock,
-        ).kopierGjeldendeVedtaksdata(UUID.randomUUID(), LocalDate.EPOCH.plusDays(7)) shouldBeLeft KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode(Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden)
+        ).kopierGjeldendeVedtaksdata(
+            UUID.randomUUID(),
+            LocalDate.EPOCH.plusDays(7),
+        ) shouldBe KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode(Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden)
+            .left()
     }
 
     @Test
     fun `henter tidligere informasjon for overlappende vedtak`() {
-        val vedtak1 = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
-            opprettet = Tidspunkt.now(fixedClock)
-        )
 
-        val vedtak2 = vedtakRevurderingIverksattInnvilget(
+        val sakOgVedtak1 = vedtakSøknadsbehandlingIverksattInnvilget(
             stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
-            tilRevurdering = vedtak1,
-        ).copy(
-            opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS)
+            clock = fixedClock,
         )
-        val vedtak3 = vedtakRevurderingIverksattInnvilget(
+        val sakOgVedtak2 = vedtakRevurderingIverksattInnvilget(
             stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
-            tilRevurdering = vedtak2
-        ).copy(
-            opprettet = Tidspunkt.now(fixedClock).plus(2, ChronoUnit.DAYS)
+            clock = fixedClock.plus(1, ChronoUnit.DAYS),
+            sakOgVedtakSomKanRevurderes = sakOgVedtak1,
         )
+        val sakOgVedtak3 = vedtakRevurderingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
+            clock = fixedClock.plus(2, ChronoUnit.DAYS),
+            sakOgVedtakSomKanRevurderes = sakOgVedtak2,
+        )
+        // TODO jah: Fjern igjen
+        sakOgVedtak3.first.vedtakListe shouldBe listOf(sakOgVedtak1.second, sakOgVedtak2.second, sakOgVedtak3.second)
 
         val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentForSakId(any()) } doReturn listOf(vedtak1, vedtak2, vedtak3)
+            on { hentForSakId(any()) } doReturn listOf(sakOgVedtak1.second, sakOgVedtak2.second, sakOgVedtak3.second)
         }
         createService(
             vedtakRepo = vedtakRepoMock,
-        ).historiskGrunnlagForVedtaksperiode(UUID.randomUUID(), vedtakId = vedtak2.id) shouldBe GjeldendeVedtaksdata(
+        ).historiskGrunnlagForVedtaksperiode(
+            UUID.randomUUID(),
+            vedtakId = sakOgVedtak2.second.id,
+        ) shouldBe GjeldendeVedtaksdata(
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
-            vedtakListe = nonEmptyListOf(vedtak1),
-            fixedClock
+            vedtakListe = nonEmptyListOf(sakOgVedtak1.second),
+            clock = fixedClock,
         ).right()
     }
 
     @Test
     fun `henter tidligere informasjon for vedtak`() {
-        val vedtak1 = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
-            opprettet = Tidspunkt.now(fixedClock)
+        val sakOgVedtak1 = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
+            clock = fixedClock,
         )
-        val vedtak2 = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(Periode.create(1.juni(2021), 31.juli(2021)))).copy(
-            opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS)
+        val sakOgVedtak2 = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.juni(2021), 31.juli(2021))),
+            clock = fixedClock.plus(1, ChronoUnit.DAYS),
         )
-        val vedtak3 = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
-            opprettet = Tidspunkt.now(fixedClock).plus(2, ChronoUnit.DAYS)
+        val sakOgVedtak3 = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
+            clock = fixedClock.plus(2, ChronoUnit.DAYS),
         )
-        val vedtak4 = vedtakSøknadsbehandlingIverksattInnvilget(stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))).copy(
-            opprettet = Tidspunkt.now(fixedClock).plus(3, ChronoUnit.DAYS)
+        val sakOgVedtak4 = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
+            clock = fixedClock.plus(3, ChronoUnit.DAYS),
         )
 
         val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentForSakId(any()) } doReturn listOf(vedtak1, vedtak2, vedtak3, vedtak4)
+            on { hentForSakId(any()) } doReturn listOf(
+                sakOgVedtak1.second,
+                sakOgVedtak2.second,
+                sakOgVedtak3.second,
+                sakOgVedtak4.second,
+            )
         }
         val actual = createService(
             vedtakRepo = vedtakRepoMock,
-        ).historiskGrunnlagForVedtaksperiode(UUID.randomUUID(), vedtakId = vedtak3.id).getOrElse { throw RuntimeException("Test feilet") }
+        ).historiskGrunnlagForVedtaksperiode(UUID.randomUUID(), vedtakId = sakOgVedtak3.second.id)
+            .getOrElse { throw RuntimeException("Test feilet") }
 
         actual shouldBe GjeldendeVedtaksdata(
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
-            vedtakListe = nonEmptyListOf(vedtak1, vedtak2),
-            fixedClock
+            vedtakListe = nonEmptyListOf(sakOgVedtak1.second, sakOgVedtak2.second),
+            fixedClock,
         )
     }
 
@@ -261,14 +284,15 @@ internal class VedtakServiceImplTest {
                 beregning = TestBeregning,
                 simulering = mock(),
                 saksbehandler = saksbehandler,
-                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.EPOCH)),
+                attesteringer = Attesteringshistorikk.empty()
+                    .leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.EPOCH)),
                 fritekstTilBrev = "",
                 stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
-                grunnlagsdata = Grunnlagsdata.EMPTY,
+                grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             ),
             UUID30.randomUUID(),
-            fixedClock
+            fixedClock,
         )
 
     private val oppgaveId = OppgaveId("2")

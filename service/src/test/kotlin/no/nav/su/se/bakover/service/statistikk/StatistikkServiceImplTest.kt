@@ -102,7 +102,7 @@ internal class StatistikkServiceImplTest {
             opprettet = Tidspunkt.now(fixedClock),
             fnr = FnrGenerator.random(),
             søknader = listOf(),
-            behandlinger = listOf(),
+            søknadsbehandlinger = listOf(),
             utbetalinger = listOf(),
         )
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
@@ -358,12 +358,12 @@ internal class StatistikkServiceImplTest {
                     attestant = NavIdentBruker.Attestant("attestant"),
                     grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                     kommentar = "",
-                    opprettet = Tidspunkt.now(clock)
-                )
+                    opprettet = Tidspunkt.now(clock),
+                ),
             ),
             fritekstTilBrev = "",
             stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
@@ -417,7 +417,7 @@ internal class StatistikkServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -482,7 +482,7 @@ internal class StatistikkServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
@@ -545,8 +545,14 @@ internal class StatistikkServiceImplTest {
                 nettoBeløp = 100,
                 periodeList = listOf(),
             ),
-            grunnlagsdata = Grunnlagsdata.EMPTY,
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), Tidspunkt.now(clock))),
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(
+                    Attestering.Iverksatt(
+                        NavIdentBruker.Attestant("attestant"),
+                        Tidspunkt.now(clock),
+                    ),
+                ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,

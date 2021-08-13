@@ -9,7 +9,6 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
-import io.kotest.assertions.arrow.either.shouldBeRight
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -98,7 +97,7 @@ internal class OpprettRevurderingServiceTest {
         vilkårsvurderinger = vilkårsvurderingerInnvilget().copy(
             uføre = vilkårsvurderingUføre,
         ),
-    )
+    ).second
 
     private fun createSøknadsbehandlingVedtak() =
         Vedtak.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID(), fixedClock)
@@ -535,9 +534,7 @@ internal class OpprettRevurderingServiceTest {
             ),
         )
 
-        revurderingForFebruar shouldBeRight {
-            it.tilRevurdering shouldBe vedtakForFørsteJanuarLagetNå
-        }
+        revurderingForFebruar.orNull()!!.tilRevurdering shouldBe vedtakForFørsteJanuarLagetNå
 
         val revurderingForApril = mocks.revurderingService.opprettRevurdering(
             OpprettRevurderingRequest(
@@ -550,9 +547,7 @@ internal class OpprettRevurderingServiceTest {
             ),
         )
 
-        revurderingForApril shouldBeRight {
-            it.tilRevurdering shouldBe vedtakForFørsteMarsLagetNå
-        }
+        revurderingForApril.orNull()!!.tilRevurdering shouldBe vedtakForFørsteMarsLagetNå
     }
 
     @Test
@@ -633,7 +628,7 @@ internal class OpprettRevurderingServiceTest {
             ),
         )
 
-        actual shouldBeRight {
+        actual.orNull()!!.also {
             it.saksnummer shouldBe saksnummer
             it.tilRevurdering.id shouldBe revurdering.id
         }

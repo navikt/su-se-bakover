@@ -7,7 +7,7 @@ buildscript {
 plugins {
     kotlin("jvm") version "1.5.21"
     // Støtter unicode filer (i motsetning til https://github.com/JLLeitschuh/ktlint-gradle 10.0.0) og har nyere dependencies som gradle. Virker som den oppdateres hyppigere.
-    id("org.jmailen.kotlinter") version "3.4.5"
+    id("org.jmailen.kotlinter") version "3.5.0"
     id("com.github.ben-manes.versions") version "0.39.0" // Finds latest versions
     id("se.patrikerdes.use-latest-versions") version "0.2.17"
 }
@@ -60,7 +60,7 @@ allprojects {
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
         testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
         testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
-        testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.0.2")
+        testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.0.3")
         testImplementation("io.kotest:kotest-extensions:$kotestVersion")
         testImplementation("org.skyscreamer:jsonassert:1.5.0")
         testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")

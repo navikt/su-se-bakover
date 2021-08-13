@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.vilkår
 
-import io.kotest.assertions.arrow.either.shouldBeLeft
+import arrow.core.left
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -187,7 +187,7 @@ internal class VurderingsperiodeTest {
             ),
             vurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
             begrunnelse = "begrunnelsen",
-        ) shouldBeLeft Vurderingsperiode.Uføre.UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig
+        ) shouldBe Vurderingsperiode.Uføre.UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
     }
 
     @Test

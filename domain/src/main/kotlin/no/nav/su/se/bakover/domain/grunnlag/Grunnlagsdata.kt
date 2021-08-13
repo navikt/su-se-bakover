@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
+import no.nav.su.se.bakover.common.periode.Periode
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+
 // TODO: Del inn i tom og utleda grunnlagsdata. F.eks. ved å bruke NonEmptyList
 /**
  * Grunnlagene til vilkårene finnes under Vilkårsvurderinger
@@ -12,8 +15,18 @@ data class Grunnlagsdata(
      * */
     val bosituasjon: List<Grunnlag.Bosituasjon> = emptyList(),
 ) {
+    // TODO jah: Valider at de vurderte uføre-periodene er de samme som de vurderte formue-periodene
     companion object {
-        val EMPTY = Grunnlagsdata()
+        val IkkeVurdert = Grunnlagsdata()
+    }
+
+    val periode: Periode? by lazy {
+        fradragsgrunnlag.map { it.fradrag.periode }.plus(bosituasjon.map { it.periode }).ifNotEmpty {
+            Periode.create(
+                fraOgMed = this.minOf { it.fraOgMed },
+                tilOgMed = this.maxOf { it.tilOgMed },
+            )
+        }
     }
 }
 

@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
@@ -166,7 +167,7 @@ internal class SøknadsbehandlingServiceImpl(
         val fradrag = request.toFradrag(
             søknadsbehandling.stønadsperiode!!,
             søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
-            clock
+            clock,
         ).getOrHandle {
             return when (it) {
                 SøknadsbehandlingService.BeregnRequest.UgyldigFradrag.IkkeLovMedFradragUtenforPerioden -> SøknadsbehandlingService.KunneIkkeBeregne.IkkeLovMedFradragUtenforPerioden.left()
@@ -197,13 +198,23 @@ internal class SøknadsbehandlingServiceImpl(
             statusovergang = Statusovergang.TilSimulert { beregning ->
                 utbetalingService.simulerUtbetaling(saksbehandling.sakId, request.saksbehandler, beregning)
                     .mapLeft {
-                        Statusovergang.KunneIkkeSimulereBehandling
+                        when (it) {
+                            SimuleringFeilet.OPPDRAG_UR_ER_STENGT -> Statusovergang.KunneIkkeSimulereBehandling.OppdragErStengtEllerNede
+                            SimuleringFeilet.PERSONEN_FINNES_IKKE_I_TPS -> Statusovergang.KunneIkkeSimulereBehandling.FinnerIkkePerson
+                            SimuleringFeilet.FINNER_IKKE_KJØREPLANSPERIODE_FOR_FOM -> Statusovergang.KunneIkkeSimulereBehandling.FinnerIkkeKjøreplanForFom
+                            else -> Statusovergang.KunneIkkeSimulereBehandling.KunneIkkeSimulere
+                        }
                     }.map {
                         it.simulering
                     }
             },
         ).mapLeft {
-            SøknadsbehandlingService.KunneIkkeSimulereBehandling.KunneIkkeSimulere
+            when (it) {
+                Statusovergang.KunneIkkeSimulereBehandling.OppdragErStengtEllerNede -> SøknadsbehandlingService.KunneIkkeSimulereBehandling.OppdragStengtEllerNede
+                Statusovergang.KunneIkkeSimulereBehandling.FinnerIkkePerson -> SøknadsbehandlingService.KunneIkkeSimulereBehandling.FinnerIkkePerson
+                Statusovergang.KunneIkkeSimulereBehandling.FinnerIkkeKjøreplanForFom -> SøknadsbehandlingService.KunneIkkeSimulereBehandling.FinnerIkkeKjøreplanForFom
+                else -> SøknadsbehandlingService.KunneIkkeSimulereBehandling.KunneIkkeSimulere
+            }
         }.map {
             søknadsbehandlingRepo.lagre(it)
             it
@@ -341,6 +352,9 @@ internal class SøknadsbehandlingServiceImpl(
                     log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $kunneIkkeUtbetale")
                     when (kunneIkkeUtbetale) {
                         KunneIkkeUtbetale.KunneIkkeSimulere -> Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulere
+                        KunneIkkeUtbetale.KunneIkkeSimulereFinnerIkkeKjøreplansperiodeForFom -> Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulereFinnerIkkeKjøreplansperiodeForFom
+                        KunneIkkeUtbetale.KunneIkkeSimulereFinnerIkkePerson -> Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulereFantIkkePerson
+                        KunneIkkeUtbetale.KunneIkkeSimulereOppdragStengtEllerNede -> Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulereOppdragStengtEllerNede
                         KunneIkkeUtbetale.Protokollfeil -> Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.TekniskFeil
                         KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
                     }
@@ -436,6 +450,9 @@ internal class SøknadsbehandlingServiceImpl(
         fun map(feil: Statusovergang.KunneIkkeIverksetteSøknadsbehandling) = when (feil) {
             Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeJournalføre -> SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeJournalføreBrev
             Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulere -> SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeKontrollsimulere
+            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulereFantIkkePerson -> SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeKontrollsimulereFantIkkePerson
+            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulereFinnerIkkeKjøreplansperiodeForFom -> SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeKontrollsimulereFinnerIkkeKjøreplansperiodeForFom
+            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulereOppdragStengtEllerNede -> SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeKontrollsimulereOppdragStengtEllerNede
             Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> SøknadsbehandlingService.KunneIkkeIverksette.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
             Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.TekniskFeil -> SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeUtbetale
             Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson -> SøknadsbehandlingService.KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
@@ -558,6 +575,7 @@ internal class SøknadsbehandlingServiceImpl(
         ).mapLeft {
             KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling
         }.map {
+            // TODO jah: Legg til Søknadsbehandling.leggTilUføre(...) som for Revurdering og persister Søknadsbehandlingen som returnerers. Da slipper man og det ekstra hent(...) kallet.
             vilkårsvurderingService.lagre(
                 it.id,
                 Vilkårsvurderinger(uføre = vilkår),
@@ -592,6 +610,7 @@ internal class SøknadsbehandlingServiceImpl(
         ).mapLeft {
             return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
         }.map {
+            // TODO jah: Legg til Søknadsbehandling.leggTilBosituasjonEpsgrunnlag(...) som for Revurdering og persister Søknadsbehandlingen som returnerers. Da slipper man og det ekstra hent(...) kallet.
             grunnlagService.lagreBosituasjongrunnlag(behandlingId = request.behandlingId, listOf(bosituasjon))
             return when (it) {
                 is Søknadsbehandling.Vilkårsvurdert.Avslag -> it.copy(
@@ -642,6 +661,7 @@ internal class SøknadsbehandlingServiceImpl(
         ).mapLeft {
             return KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
         }.map {
+            // TODO jah: Legg til Søknadsbehandling.fullførBosituasjongrunnlag(...) som for Revurdering og persister Søknadsbehandlingen som returnerers. Da slipper man og det ekstra hent(...) kallet.
             grunnlagService.lagreBosituasjongrunnlag(behandlingId = request.behandlingId, listOf(bosituasjon))
             return when (it) {
                 is Søknadsbehandling.Vilkårsvurdert.Avslag -> it.copy(

@@ -11,6 +11,20 @@ import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 
 /**
+ * forventet inntekt 1 000 000
+ */
+fun beregningAvslag(
+    periode: Periode = periode2021,
+): Beregning {
+    return beregning(
+        periode = periode,
+        uføregrunnlag = nonEmptyListOf(
+            uføregrunnlagForventetInntekt(periode = periode, forventetInntekt = 1_000_000),
+        ),
+    )
+}
+
+/**
  * Defaultverdier:
  * periode: 2021
  * bosituasjon: bosituasjongrunnlagEnslig (høy sats)

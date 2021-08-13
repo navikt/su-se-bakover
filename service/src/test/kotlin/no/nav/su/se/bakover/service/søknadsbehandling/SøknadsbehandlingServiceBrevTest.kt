@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.FnrGenerator
-import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
@@ -82,9 +81,9 @@ internal class SøknadsbehandlingServiceBrevTest {
         fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.EMPTY,
+        grunnlagsdata = Grunnlagsdata.IkkeVurdert,
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-        attesteringer = Attesteringshistorikk.empty()
+        attesteringer = Attesteringshistorikk.empty(),
     )
 
     private val person = Person(
@@ -147,7 +146,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         }
 
         val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturn BehandlingTestUtils.microsoftGraphMock.response.displayName.right()
+            on { hentNavnForNavIdent(any()) } doReturn "Nav Navesen".right()
         }
 
         val brevServiceMock = mock<BrevService> {
@@ -175,7 +174,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         }
 
         val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturn BehandlingTestUtils.microsoftGraphMock.response.displayName.right()
+            on { hentNavnForNavIdent(any()) } doReturn "Nav Navesen".right()
         }
 
         val pdf = "".toByteArray()

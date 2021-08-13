@@ -7,7 +7,6 @@ import com.nhaarman.mockitokotlin2.doReturnConsecutively
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
-import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
@@ -90,9 +89,9 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             fnr = FnrGenerator.random(),
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         ).tilAttestering(Saksbehandler("saksa"), "")
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -103,10 +102,10 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).leggTilBosituasjonEpsgrunnlag(
             LeggTilBosituasjonEpsRequest(behandlingId = behandlingId, epsFnr = null),
-        ) shouldBeLeft KunneIkkeLeggeTilBosituasjonEpsGrunnlag.UgyldigTilstand(
+        ) shouldBe KunneIkkeLeggeTilBosituasjonEpsGrunnlag.UgyldigTilstand(
             fra = Søknadsbehandling.TilAttestering.Avslag.UtenBeregning::class,
             til = Søknadsbehandling.Vilkårsvurdert::class,
-        )
+        ).left()
     }
 
     @Test
@@ -129,9 +128,9 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             fnr = FnrGenerator.random(),
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
@@ -236,9 +235,9 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             fnr = FnrGenerator.random(),
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         ).tilAttestering(Saksbehandler("saksa"), "")
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -253,10 +252,10 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                 bosituasjon = BosituasjonValg.BOR_ALENE,
                 "begrunnelse",
             ),
-        ) shouldBeLeft KunneIkkeFullføreBosituasjonGrunnlag.UgyldigTilstand(
+        ) shouldBe KunneIkkeFullføreBosituasjonGrunnlag.UgyldigTilstand(
             fra = Søknadsbehandling.TilAttestering.Avslag.UtenBeregning::class,
             til = Søknadsbehandling.Vilkårsvurdert::class,
-        )
+        ).left()
     }
 
     @Test

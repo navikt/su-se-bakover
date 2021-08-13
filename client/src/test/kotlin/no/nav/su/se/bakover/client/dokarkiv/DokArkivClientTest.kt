@@ -209,7 +209,6 @@ internal class DokArkivClientTest : WiremockBase {
         wireMockServer.stubFor(
             wiremockBuilder
                 .withRequestBody(WireMock.equalToJson(forventetVedtaksRequest))
-
                 .willReturn(
                     WireMock.okJson(
                         """

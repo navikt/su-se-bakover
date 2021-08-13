@@ -72,7 +72,7 @@ internal class FortsettEtterForhåndsvarselRouteTest {
             periode = RevurderingRoutesTestData.periode,
             opprettet = Tidspunkt.now(),
             tilRevurdering = RevurderingRoutesTestData.vedtak,
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678901"),
@@ -92,7 +92,7 @@ internal class FortsettEtterForhåndsvarselRouteTest {
                 begrunnelse = "begrunnelse",
 
             ),
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
@@ -143,7 +143,7 @@ internal class FortsettEtterForhåndsvarselRouteTest {
             periode = RevurderingRoutesTestData.periode,
             opprettet = Tidspunkt.now(),
             tilRevurdering = RevurderingRoutesTestData.vedtak,
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678901"),
@@ -162,7 +162,7 @@ internal class FortsettEtterForhåndsvarselRouteTest {
                 valg = BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
                 begrunnelse = "begrunnelse",
             ),
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
@@ -213,7 +213,7 @@ internal class FortsettEtterForhåndsvarselRouteTest {
             periode = RevurderingRoutesTestData.periode,
             opprettet = Tidspunkt.now(),
             tilRevurdering = RevurderingRoutesTestData.vedtak,
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678901"),
@@ -232,7 +232,7 @@ internal class FortsettEtterForhåndsvarselRouteTest {
                 valg = BeslutningEtterForhåndsvarsling.AvsluttUtenEndringer,
                 begrunnelse = "begrunnelse",
             ),
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),

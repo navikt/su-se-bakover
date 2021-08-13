@@ -9,7 +9,6 @@ import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
-import io.kotest.assertions.arrow.either.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -620,14 +619,14 @@ internal class UtbetalingServiceImplTest {
                 forDato = 15.januar(2020),
             )
 
-            actual shouldBeRight UtbetalingslinjePåTidslinje.Ny(
+            actual shouldBe UtbetalingslinjePåTidslinje.Ny(
                 opprettet = expectedGjeldendeUtbetalingslinje.opprettet,
                 periode = Periode.create(
                     expectedGjeldendeUtbetalingslinje.fraOgMed,
                     expectedGjeldendeUtbetalingslinje.tilOgMed,
                 ),
                 beløp = expectedGjeldendeUtbetalingslinje.beløp,
-            )
+            ).right()
         }
     }
 }

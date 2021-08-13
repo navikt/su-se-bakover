@@ -57,7 +57,7 @@ internal class StatusovergangTest {
 
     private val opprettet = søknadsbehandlingVilkårsvurdertUavklart(
         stønadsperiode = stønadsperiode,
-    )
+    ).second
 
     private val simulering = no.nav.su.se.bakover.test.simuleringNy()
 
@@ -412,9 +412,9 @@ internal class StatusovergangTest {
             forsøkStatusovergang(
                 beregnetInnvilget,
                 Statusovergang.TilSimulert {
-                    Statusovergang.KunneIkkeSimulereBehandling.left()
+                    Statusovergang.KunneIkkeSimulereBehandling.KunneIkkeSimulere.left()
                 },
-            ) shouldBe Statusovergang.KunneIkkeSimulereBehandling.left()
+            ) shouldBe Statusovergang.KunneIkkeSimulereBehandling.KunneIkkeSimulere.left()
         }
 
         @Test
@@ -432,9 +432,9 @@ internal class StatusovergangTest {
             forsøkStatusovergang(
                 simulert,
                 Statusovergang.TilSimulert {
-                    Statusovergang.KunneIkkeSimulereBehandling.left()
+                    Statusovergang.KunneIkkeSimulereBehandling.KunneIkkeSimulere.left()
                 },
-            ) shouldBe Statusovergang.KunneIkkeSimulereBehandling.left()
+            ) shouldBe Statusovergang.KunneIkkeSimulereBehandling.KunneIkkeSimulere.left()
         }
 
         @Test
@@ -452,9 +452,9 @@ internal class StatusovergangTest {
             forsøkStatusovergang(
                 underkjentInnvilget,
                 Statusovergang.TilSimulert {
-                    Statusovergang.KunneIkkeSimulereBehandling.left()
+                    Statusovergang.KunneIkkeSimulereBehandling.KunneIkkeSimulere.left()
                 },
-            ) shouldBe Statusovergang.KunneIkkeSimulereBehandling.left()
+            ) shouldBe Statusovergang.KunneIkkeSimulereBehandling.KunneIkkeSimulere.left()
         }
 
         @Test

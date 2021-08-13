@@ -93,8 +93,9 @@ internal class VedtakPosgresRepoTest {
                 oppgaveId = OppgaveId(""),
                 beregning = søknadsbehandlingVedtak.beregning,
                 simulering = søknadsbehandlingVedtak.simulering,
-                grunnlagsdata = Grunnlagsdata.EMPTY,
-                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(søknadsbehandlingVedtak.attestant, Tidspunkt.now())),
+                grunnlagsdata = Grunnlagsdata.IkkeVurdert,
+                attesteringer = Attesteringshistorikk.empty()
+                    .leggTilNyAttestering(Attestering.Iverksatt(søknadsbehandlingVedtak.attestant, Tidspunkt.now())),
                 fritekstTilBrev = "",
                 revurderingsårsak = Revurderingsårsak(
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,

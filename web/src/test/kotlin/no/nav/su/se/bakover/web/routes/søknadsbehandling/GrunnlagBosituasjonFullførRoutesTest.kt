@@ -50,9 +50,9 @@ class GrunnlagBosituasjonFullførRoutesTest {
         fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.EMPTY,
+        grunnlagsdata = Grunnlagsdata.IkkeVurdert,
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-        attesteringer = Attesteringshistorikk.empty()
+        attesteringer = Attesteringshistorikk.empty(),
     )
 
     @Test

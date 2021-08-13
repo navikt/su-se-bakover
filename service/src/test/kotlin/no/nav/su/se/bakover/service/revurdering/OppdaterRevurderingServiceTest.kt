@@ -49,7 +49,6 @@ import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.periodeNesteMånedOgTreMånederFram
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.stønadsperiodeNesteMånedOgTreMånederFram
-import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.søknadsbehandlingsvedtakIverksattInnvilget
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.create
@@ -62,14 +61,16 @@ import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandl
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class OppdaterRevurderingServiceTest {
 
-    private val tilRevurderingInnvilget =
-        søknadsbehandlingsvedtakIverksattInnvilget.copy(periode = periodeNesteMånedOgTreMånederFram)
+    private val sakOgIverksattInnvilgetSøknadsbehandlingsvedtak = vedtakSøknadsbehandlingIverksattInnvilget(
+        stønadsperiode = stønadsperiodeNesteMånedOgTreMånederFram,
+    )
 
     // Merk at søknadsbehandlingens uførevilkår ikke er likt som OpprettetRevurdering før vi kaller oppdater-funksjonen, men vi forventer at de er like etter oppdateringa.
     private val vilkårsvurderingUføre =
@@ -79,8 +80,8 @@ internal class OppdaterRevurderingServiceTest {
     private val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
         stønadsperiode = stønadsperiodeNesteMånedOgTreMånederFram,
         revurderingsperiode = periodeNesteMånedOgTreMånederFram,
-        tilRevurdering = tilRevurderingInnvilget,
-    ).copy(
+        sakOgVedtakSomKanRevurderes = sakOgIverksattInnvilgetSøknadsbehandlingsvedtak,
+    ).second.copy(
         grunnlagsdata = Grunnlagsdata(
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -235,7 +236,7 @@ internal class OppdaterRevurderingServiceTest {
     fun `Oppdatering av iverksatt revurdering gir ugyldig tilstand`() {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
             periode = periodeNesteMånedOgTreMånederFram,
-            vedtakListe = nonEmptyListOf(tilRevurderingInnvilget),
+            vedtakListe = nonEmptyListOf(sakOgIverksattInnvilgetSøknadsbehandlingsvedtak.second),
             clock = fixedClock,
         )
 
@@ -306,7 +307,7 @@ internal class OppdaterRevurderingServiceTest {
     fun `oppdater en revurdering`() {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
             periode = periodeNesteMånedOgTreMånederFram,
-            vedtakListe = nonEmptyListOf(tilRevurderingInnvilget),
+            vedtakListe = nonEmptyListOf(sakOgIverksattInnvilgetSøknadsbehandlingsvedtak.second),
             clock = fixedClock,
         )
 
@@ -346,7 +347,7 @@ internal class OppdaterRevurderingServiceTest {
 
         actual.let { oppdatertRevurdering ->
             oppdatertRevurdering.periode shouldBe periodeNesteMånedOgTreMånederFram
-            oppdatertRevurdering.tilRevurdering shouldBe tilRevurderingInnvilget
+            oppdatertRevurdering.tilRevurdering shouldBe sakOgIverksattInnvilgetSøknadsbehandlingsvedtak.second
             oppdatertRevurdering.saksbehandler shouldBe saksbehandler
             oppdatertRevurdering.oppgaveId shouldBe oppgaveIdRevurdering
             oppdatertRevurdering.fritekstTilBrev shouldBe ""
@@ -357,9 +358,9 @@ internal class OppdaterRevurderingServiceTest {
             oppdatertRevurdering.forhåndsvarsel shouldBe null
             oppdatertRevurdering.vilkårsvurderinger.uføre.grunnlag.let {
                 it shouldHaveSize 1
-                it[0].ekvivalentMed(tilRevurderingInnvilget.behandling.vilkårsvurderinger.uføre.grunnlag.first())
+                it[0].ekvivalentMed(sakOgIverksattInnvilgetSøknadsbehandlingsvedtak.second.behandling.vilkårsvurderinger.uføre.grunnlag.first())
             }
-            oppdatertRevurdering.vilkårsvurderinger.uføre.ekvivalentMed(tilRevurderingInnvilget.behandling.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert)
+            oppdatertRevurdering.vilkårsvurderinger.uføre.ekvivalentMed(sakOgIverksattInnvilgetSøknadsbehandlingsvedtak.second.behandling.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert)
             oppdatertRevurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert))
         }
 
@@ -416,7 +417,7 @@ internal class OppdaterRevurderingServiceTest {
     fun `grunnlag resettes dersom man oppdaterer revurderingen`() {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
             periode = periodeNesteMånedOgTreMånederFram,
-            vedtakListe = nonEmptyListOf(tilRevurderingInnvilget),
+            vedtakListe = nonEmptyListOf(sakOgIverksattInnvilgetSøknadsbehandlingsvedtak.second),
             clock = fixedClock,
         )
 
@@ -477,7 +478,7 @@ internal class OppdaterRevurderingServiceTest {
 
     @Test
     fun `støtter ikke tilfeller hvor gjeldende vedtaksdata ikke er sammenhengende i tid`() {
-        val førsteVedtak = søknadsbehandlingsvedtakIverksattInnvilget
+        val førsteVedtak = vedtakSøknadsbehandlingIverksattInnvilget().second
         val periodePlussEtÅr = periodeNesteMånedOgTreMånederFram.copy(
             periodeNesteMånedOgTreMånederFram.fraOgMed.plusYears(1),
             periodeNesteMånedOgTreMånederFram.tilOgMed.plusYears(1),
@@ -506,9 +507,9 @@ internal class OppdaterRevurderingServiceTest {
             ),
         )
         val andreVedtakFormueVilkår = formueVilkår(periodePlussEtÅr)
-        val andreVedtak = søknadsbehandlingsvedtakIverksattInnvilget.copy(
+        val andreVedtak = vedtakSøknadsbehandlingIverksattInnvilget().second.copy(
             periode = periodePlussEtÅr,
-            behandling = (søknadsbehandlingsvedtakIverksattInnvilget.behandling as Søknadsbehandling.Iverksatt.Innvilget).copy(
+            behandling = (vedtakSøknadsbehandlingIverksattInnvilget().second.behandling as Søknadsbehandling.Iverksatt.Innvilget).copy(
                 stønadsperiode = Stønadsperiode.create(periodePlussEtÅr),
                 grunnlagsdata = Grunnlagsdata(bosituasjon = listOf(bosituasjon)),
                 vilkårsvurderinger = Vilkårsvurderinger(
@@ -606,7 +607,7 @@ internal class OppdaterRevurderingServiceTest {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
             periode = periodeNesteMånedOgTreMånederFram,
             vedtakListe = nonEmptyListOf(
-                søknadsbehandlingsvedtakIverksattInnvilget.copy(
+                vedtakSøknadsbehandlingIverksattInnvilget().second.copy(
                     beregning = lagBeregning(periodeNesteMånedOgTreMånederFram),
                 ),
                 Vedtak.from(revurdering, UUID30.randomUUID(), fixedClock),
@@ -688,7 +689,7 @@ internal class OppdaterRevurderingServiceTest {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
             periode = periodeNesteMånedOgTreMånederFram,
             vedtakListe = nonEmptyListOf(
-                søknadsbehandlingsvedtakIverksattInnvilget.copy(
+                vedtakSøknadsbehandlingIverksattInnvilget().second.copy(
                     beregning = lagBeregning(periodeNesteMånedOgTreMånederFram),
                 ),
                 Vedtak.from(revurdering, UUID30.randomUUID(), fixedClock),

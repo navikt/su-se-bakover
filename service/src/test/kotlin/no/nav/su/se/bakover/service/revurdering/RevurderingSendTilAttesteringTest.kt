@@ -15,6 +15,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -41,6 +42,7 @@ import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgInnvilgetFormue
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
@@ -259,9 +261,11 @@ class RevurderingSendTilAttesteringTest {
                 simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
                     stønadsperiode = stønadsperiode,
                     revurderingsperiode = revurderingsperiode,
-                    grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
-                    vilkårsvurderinger = vilkårsvurderinger,
-                )
+                    grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
+                        grunnlagsdataEnsligUtenFradrag(periode = revurderingsperiode),
+                        vilkårsvurderinger,
+                    ),
+                ).second
             on { hent(revurderingId) } doReturn simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
         }
 
@@ -293,8 +297,16 @@ class RevurderingSendTilAttesteringTest {
             on { hent(revurderingId) } doReturn simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
                 stønadsperiode = stønadsperiode,
                 revurderingsperiode = revurderingsperiode,
-                grunnlagsdata = grunnlagsdataEnsligMedFradrag(periode = revurderingsperiode),
-            )
+                grunnlagsdataOgVilkårsvurderinger = grunnlagsdataEnsligMedFradrag(periode = revurderingsperiode).let {
+                    GrunnlagsdataOgVilkårsvurderinger(
+                        it,
+                        vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(
+                            periode = stønadsperiode.periode,
+                            bosituasjon = it.bosituasjon.singleFullstendigOrThrow(),
+                        ),
+                    )
+                },
+            ).second
         }
         val actual = RevurderingTestUtils.createRevurderingService(
             revurderingRepo = revurderingRepoMock,
