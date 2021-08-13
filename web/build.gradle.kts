@@ -47,6 +47,7 @@ dependencies {
     testImplementation("com.opentable.components:otj-pg-embedded:0.13.4") {
         exclude(group = "com.github.spotbugs")
     }
+    testImplementation("no.nav:kafka-embedded-env:2.7.0")
 }
 
 tasks.named<Jar>("jar") {
