@@ -17,7 +17,7 @@ internal class SakRestansRepo(
     private val dbMetrics: DbMetrics,
 ) {
     /**
-     * Henter åpne behandlinger, åpne revurderinger, og nye søknader
+     * Henter åpne søknadsbehandlinger, åpne revurderinger, og nye søknader
      */
     fun hentSakRestanser(): List<SakRestans> {
         return dbMetrics.timeQuery("hentSakRestanser") {
