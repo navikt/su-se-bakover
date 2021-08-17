@@ -38,6 +38,8 @@ sealed class Personhendelse {
 
     sealed class Hendelse {
         data class Dødsfall(val dødsdato: LocalDate?) : Hendelse()
+
+        // TODO jah: Her finnes det 2 felter vi ignorerer: [tilflyttingsland, tilflyttingsstedIUtlandet], finn ut om det er tiltenkt eller ikke.
         data class UtflyttingFraNorge(val utflyttingsdato: LocalDate?) : Hendelse()
     }
 }

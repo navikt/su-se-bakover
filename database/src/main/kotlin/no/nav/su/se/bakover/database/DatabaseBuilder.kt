@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.hendelse.HendelsePostgresRepo
-import no.nav.su.se.bakover.database.hendelse.HendelseRepo
+import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
+import no.nav.su.se.bakover.database.hendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
@@ -128,7 +128,7 @@ object DatabaseBuilder {
             revurderingRepo = revurderingRepo,
             dbMetrics = dbMetrics,
         )
-        val hendelseRepo = HendelsePostgresRepo(dataSource)
+        val hendelseRepo = PersonhendelsePostgresRepo(dataSource)
 
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(dataSource),
@@ -160,7 +160,7 @@ object DatabaseBuilder {
             uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
             formueVilkårsvurderingRepo = formueVilkårsvurderingRepo,
             dokumentRepo = DokumentPostgresRepo(dataSource),
-            hendelseRepo = hendelseRepo
+            personhendelseRepo = hendelseRepo,
         )
     }
 }
@@ -179,6 +179,6 @@ data class DatabaseRepos(
     val grunnlagRepo: GrunnlagRepo,
     val uføreVilkårsvurderingRepo: UføreVilkårsvurderingRepo,
     val formueVilkårsvurderingRepo: FormueVilkårsvurderingRepo,
-    val hendelseRepo: HendelseRepo,
+    val personhendelseRepo: PersonhendelseRepo,
     val dokumentRepo: DokumentRepo,
 )

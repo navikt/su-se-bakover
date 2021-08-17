@@ -67,7 +67,7 @@ internal class PersonhendelseConsumerTest {
             producer.send(generatePdlMelding(TOPIC1, index))
         }
         val hendelser = argumentCaptor<Personhendelse.Ny>()
-        verify(personhendelseService, timeout(10000).times(6)).prosesserNyMelding(hendelser.capture())
+        verify(personhendelseService, timeout(10000).times(6)).prosesserNyHendelse(hendelser.capture())
         hendelser.allValues shouldBe (0..5L).map {
             Personhendelse.Ny(
                 hendelseId = it.toString(),
@@ -97,7 +97,7 @@ internal class PersonhendelseConsumerTest {
         // Tvinger en nullpointer exception
         producer.send(ProducerRecord(TOPIC2, PARTITION, "HEADER$ident", null))
         producer.send(generatePdlMelding(TOPIC2, 0))
-        verify(personhendelseService, timeout(1000).times(0)).prosesserNyMelding(any())
+        verify(personhendelseService, timeout(1000).times(0)).prosesserNyHendelse(any())
         verifyNoMoreInteractions(personhendelseService)
     }
 
