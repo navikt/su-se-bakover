@@ -66,11 +66,11 @@ sealed class OppgaveConfig {
         override val oppgavetype = Oppgavetype.ATTESTERING
     }
 
-    data class VurderKonsekvensForYtelse(
+    data class Personhendelse(
         val saksnummer: Saksnummer,
         val beskrivelse: String,
         override val aktørId: AktørId,
-        override val tilordnetRessurs: NavIdentBruker? = null
+        override val tilordnetRessurs: NavIdentBruker? = null,
     ) : OppgaveConfig() {
         override val saksreferanse = saksnummer.toString()
         override val journalpostId: JournalpostId? = null

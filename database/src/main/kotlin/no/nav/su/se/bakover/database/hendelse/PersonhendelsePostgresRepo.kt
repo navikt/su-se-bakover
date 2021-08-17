@@ -7,29 +7,32 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo.HendelseJson.Companion.toJson
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.insert
+import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.time.LocalDate
+import java.util.UUID
 import javax.sql.DataSource
 
 class PersonhendelsePostgresRepo(private val datasource: DataSource) : PersonhendelseRepo {
 
-    override fun lagre(personhendelse: Personhendelse.Ny, saksnummer: Saksnummer) {
+    override fun lagre(personhendelse: Personhendelse.Ny, id: UUID, sakId: UUID) {
         val tidspunkt = Tidspunkt.now()
         datasource.withSession { session ->
             """
-                insert into personhendelse (id, meldingoffset, opprettet, endret, aktørId, endringstype, saksnummer, hendelse, oppgaveId, type)
+                insert into personhendelse (id, sakId, hendelseId, meldingoffset, opprettet, endret, aktørId, endringstype, hendelse, oppgaveId, type)
                 values(
                     :id,
+                    :sakId,
+                    :hendelseId,
                     :offset,
                     :opprettet,
                     :endret,
                     :aktoerId,
                     :endringstype,
-                    :saksnummer,
                     to_jsonb(:hendelse::jsonb),
                     :oppgaveId,
                     :type
@@ -37,13 +40,14 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
                 on conflict do nothing
             """.trimIndent().insert(
                 mapOf(
-                    "id" to personhendelse.hendelseId,
+                    "id" to id,
+                    "sakId" to sakId,
+                    "hendelseId" to personhendelse.hendelseId,
                     "offset" to personhendelse.offset,
                     "opprettet" to tidspunkt,
                     "endret" to tidspunkt,
                     "aktoerId" to personhendelse.gjeldendeAktørId.toString(),
                     "endringstype" to personhendelse.endringstype.value,
-                    "saksnummer" to saksnummer.nummer,
                     "hendelse" to objectMapper.writeValueAsString(personhendelse.hendelse.toJson()),
                     "oppgaveId" to null,
                     "type" to personhendelse.hendelse.type(),
@@ -53,18 +57,21 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
         }
     }
 
-    internal fun hent(hendelseId: String): Personhendelse.Persistert? = datasource.withSession { session ->
+    internal fun hent(id: UUID): Personhendelse.TilknyttetSak? = datasource.withSession { session ->
         """
-        select * from personhendelse where id = :hendelseId
+        select p.*, s.saksnummer as saksnummer from personhendelse p
+        left join sak s on s.id = p.sakId
+        where p.id = :id
         """.trimIndent()
             .hent(
                 mapOf(
-                    "hendelseId" to hendelseId,
+                    "id" to id,
                 ),
                 session,
             ) {
-                Personhendelse.Persistert(
-                    hendelseId = it.string("id"),
+                Personhendelse.TilknyttetSak(
+                    id = id,
+                    sakId = it.uuid("sakId"),
                     gjeldendeAktørId = AktørId(it.string("aktørId")),
                     endringstype = Personhendelse.Endringstype.valueOf(it.string("endringstype")),
                     hendelse = it.hentHendelse(),

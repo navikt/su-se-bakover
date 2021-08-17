@@ -7,9 +7,8 @@ import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.hendelse.PersonhendelseRepo
-import no.nav.su.se.bakover.database.person.PersonRepo
+import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
@@ -21,41 +20,43 @@ internal class PersonhendelseServiceTest {
 
     @Test
     internal fun `kan lagre personhendelser`() {
-        val personRepoMock = mock<PersonRepo> {
-            on { hentSaksnummerForIdenter(any()) } doReturn Saksnummer(2021)
+        val sakId = UUID.randomUUID()
+        val sakRepoMock = mock<SakRepo> {
+            on { hentSakIdForIdenter(any()) } doReturn sakId
         }
         val personhendelseRepoMock = mock<PersonhendelseRepo>()
         val personhendelseService = PersonhendelseService(
-            personRepo = personRepoMock,
+            sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
         )
         val nyPersonhendelse = lagNyPersonhendelse()
         personhendelseService.prosesserNyHendelse(nyPersonhendelse)
 
-        verify(personRepoMock).hentSaksnummerForIdenter(argThat { it shouldBe nyPersonhendelse.personidenter })
+        verify(sakRepoMock).hentSakIdForIdenter(argThat { it shouldBe nyPersonhendelse.personidenter })
         verify(personhendelseRepoMock).lagre(
-            argThat { it shouldBe nyPersonhendelse },
-            argThat { it shouldBe Saksnummer(2021) },
+            personhendelse = argThat { it shouldBe nyPersonhendelse },
+            id = any(),
+            sakId = argThat { it shouldBe sakId },
         )
-        verifyNoMoreInteractions(personhendelseRepoMock, personRepoMock)
+        verifyNoMoreInteractions(personhendelseRepoMock, sakRepoMock)
     }
 
     @Test
     internal fun `ignorerer hendelser for personer som ikke har en sak`() {
-        val personRepoMock = mock<PersonRepo> {
-            on { hentSaksnummerForIdenter(any()) } doReturn null
+        val sakRepoMock = mock<SakRepo> {
+            on { hentSakIdForIdenter(any()) } doReturn null
         }
         val personhendelseRepoMock = mock<PersonhendelseRepo>()
 
         val personhendelseService = PersonhendelseService(
-            personRepo = personRepoMock,
+            sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
         )
         val nyPersonhendelse = lagNyPersonhendelse()
         personhendelseService.prosesserNyHendelse(nyPersonhendelse)
 
-        verify(personRepoMock).hentSaksnummerForIdenter(argThat { it shouldBe nyPersonhendelse.personidenter })
-        verifyNoMoreInteractions(personhendelseRepoMock, personRepoMock)
+        verify(sakRepoMock).hentSakIdForIdenter(argThat { it shouldBe nyPersonhendelse.personidenter })
+        verifyNoMoreInteractions(personhendelseRepoMock, sakRepoMock)
     }
 
     private fun lagNyPersonhendelse() = Personhendelse.Ny(

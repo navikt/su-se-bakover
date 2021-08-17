@@ -31,11 +31,15 @@ internal class HendelsePostgresRepoTest {
                 personidenter = listOf(aktørId, fnr.toString()),
                 hendelse = Personhendelse.Hendelse.Dødsfall(LocalDate.now()),
             )
+            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            val id = UUID.randomUUID()
+            hendelsePostgresRepo.lagre(hendelse, id, sak.id)
 
-            hendelsePostgresRepo.lagre(hendelse, Saksnummer(2021))
-            val lagretHendelse = hendelsePostgresRepo.hent(hendelseId)
-
-            lagretHendelse shouldBe hendelse.tilPersistert(Saksnummer(2021))
+            hendelsePostgresRepo.hent(id) shouldBe hendelse.tilknyttSak(
+                id = id,
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+            )
         }
     }
 
@@ -50,11 +54,48 @@ internal class HendelsePostgresRepoTest {
                 personidenter = listOf(aktørId, fnr.toString()),
                 hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(LocalDate.now()),
             )
+            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            val id = UUID.randomUUID()
 
-            hendelsePostgresRepo.lagre(hendelse, Saksnummer(2021))
-            val lagretHendelse = hendelsePostgresRepo.hent(hendelseId)
+            hendelsePostgresRepo.lagre(hendelse, id, sak.id)
 
-            lagretHendelse shouldBe hendelse.tilPersistert(Saksnummer(2021))
+            hendelsePostgresRepo.hent(id) shouldBe hendelse.tilknyttSak(
+                id = id,
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+            )
+        }
+    }
+
+    @Test
+    fun `lagring av duplikate hendelser ignoreres`() {
+        withMigratedDb {
+            val hendelse = Personhendelse.Ny(
+                hendelseId = hendelseId,
+                gjeldendeAktørId = AktørId(aktørId),
+                endringstype = Personhendelse.Endringstype.OPPRETTET,
+                offset = 0,
+                personidenter = listOf(aktørId, fnr.toString()),
+                hendelse = Personhendelse.Hendelse.Dødsfall(LocalDate.now()),
+            )
+
+            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            val id = UUID.randomUUID()
+
+            hendelsePostgresRepo.lagre(hendelse, id, sak.id)
+            hendelsePostgresRepo.lagre(
+                personhendelse = hendelse.copy(
+                    // Skal ikke lagres.
+                    endringstype = Personhendelse.Endringstype.ANNULLERT,
+                ),
+                id = id,
+                sakId = sak.id,
+            )
+            hendelsePostgresRepo.hent(id) shouldBe hendelse.tilknyttSak(
+                id = id,
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+            )
         }
     }
 
@@ -79,33 +120,18 @@ internal class HendelsePostgresRepoTest {
     //     }
     // }
 
-    @Test
-    fun `lagring av hendelser med samma hendelseId ignoreres`() {
-        withMigratedDb {
-            val hendelse1 = Personhendelse.Ny(
-                hendelseId = hendelseId,
-                gjeldendeAktørId = AktørId(aktørId),
-                endringstype = Personhendelse.Endringstype.OPPRETTET,
-                offset = 0,
-                personidenter = listOf(aktørId, fnr.toString()),
-                hendelse = Personhendelse.Hendelse.Dødsfall(LocalDate.now()),
-            )
-            val hendelse2 = hendelse1.copy(hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(LocalDate.now()))
-
-            hendelsePostgresRepo.lagre(hendelse1, Saksnummer(2021))
-            hendelsePostgresRepo.lagre(hendelse2, Saksnummer(2022))
-
-            val oppdatertHendelse = hendelsePostgresRepo.hent(hendelseId)
-            oppdatertHendelse shouldBe hendelse1.tilPersistert(Saksnummer(2021))
-        }
-    }
-
-    private fun Personhendelse.Ny.tilPersistert(saksnummer: Saksnummer, oppgaveId: OppgaveId? = null) =
-        Personhendelse.Persistert(
-            hendelseId = hendelseId,
+    private fun Personhendelse.Ny.tilknyttSak(
+        id: UUID,
+        sakId: UUID,
+        saksnummer: Saksnummer,
+        oppgaveId: OppgaveId? = null,
+    ) =
+        Personhendelse.TilknyttetSak(
+            id = id,
             gjeldendeAktørId = gjeldendeAktørId,
             endringstype = endringstype,
             hendelse = hendelse,
+            sakId = sakId,
             saksnummer = saksnummer,
             oppgaveId = oppgaveId,
         )

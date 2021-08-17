@@ -269,7 +269,7 @@ internal fun Application.susebakover(
         ).schedule()
         PersonhendelseConsumer(
             consumer = KafkaConsumer(applicationConfig.kafkaConfig.consumerCfg.kafkaConfig),
-            personhendelseService = PersonhendelseService(databaseRepos.person, databaseRepos.personhendelseRepo),
+            personhendelseService = PersonhendelseService(databaseRepos.sak, databaseRepos.personhendelseRepo),
         )
 
         DistribuerDokumentJob(

@@ -108,10 +108,10 @@ internal class OppgaveHttpClient(
                 "--- ${
                 Tidspunkt.now(clock).toOppgaveFormat()
                 } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
-            is OppgaveConfig.VurderKonsekvensForYtelse ->
+            is OppgaveConfig.Personhendelse ->
                 "--- ${
                 Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\nHendelse: ${config.beskrivelse}"
+                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\nPersonhendelse: ${config.beskrivelse}"
         }
 
         return Either.catch {

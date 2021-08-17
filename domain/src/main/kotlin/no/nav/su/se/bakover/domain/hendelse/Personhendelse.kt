@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.time.LocalDate
+import java.util.UUID
 
 sealed class Personhendelse {
     enum class Endringstype(val value: String) {
@@ -12,14 +13,12 @@ sealed class Personhendelse {
         ANNULLERT("ANNULLERT"),
         OPPHOERT("OPPHOERT"),
     }
-
-    abstract val hendelseId: String
     abstract val gjeldendeAktørId: AktørId
     abstract val endringstype: Endringstype
     abstract val hendelse: Hendelse
 
     data class Ny(
-        override val hendelseId: String,
+        val hendelseId: String,
         override val gjeldendeAktørId: AktørId,
         override val endringstype: Endringstype,
         override val hendelse: Hendelse,
@@ -27,12 +26,13 @@ sealed class Personhendelse {
         val personidenter: List<String>,
     ) : Personhendelse()
 
-    data class Persistert(
-        override val hendelseId: String,
+    data class TilknyttetSak(
+        val id: UUID,
         override val gjeldendeAktørId: AktørId,
         override val endringstype: Endringstype,
         override val hendelse: Hendelse,
         val saksnummer: Saksnummer,
+        val sakId: UUID,
         val oppgaveId: OppgaveId?,
     ) : Personhendelse()
 

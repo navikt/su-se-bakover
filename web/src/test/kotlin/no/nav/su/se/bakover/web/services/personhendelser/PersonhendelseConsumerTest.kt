@@ -97,7 +97,7 @@ internal class PersonhendelseConsumerTest {
         // Tvinger en nullpointer exception
         producer.send(ProducerRecord(TOPIC2, PARTITION, "HEADER$ident", null))
         producer.send(generatePdlMelding(TOPIC2, 0))
-        verify(personhendelseService, timeout(1000).times(0)).prosesserNyHendelse(any())
+        verify(personhendelseService, timeout(5000).times(0)).prosesserNyHendelse(any())
         verifyNoMoreInteractions(personhendelseService)
     }
 

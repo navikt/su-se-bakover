@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.database.person
 
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Saksnummer
 import java.util.UUID
 
 /**
@@ -14,5 +13,4 @@ interface PersonRepo {
     fun hentFnrForBehandling(behandlingId: UUID): List<Fnr>
     fun hentFnrForUtbetaling(utbetalingId: UUID30): List<Fnr>
     fun hentFnrForRevurdering(revurderingId: UUID): List<Fnr>
-    fun hentSaksnummerForIdenter(personidenter: List<String>): Saksnummer?
 }
