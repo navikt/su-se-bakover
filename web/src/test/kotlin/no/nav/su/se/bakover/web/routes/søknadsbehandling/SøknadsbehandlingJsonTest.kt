@@ -108,7 +108,7 @@ internal class SøknadsbehandlingJsonTest {
                     "fødselsdato": "1975-08-17",
                     "adressebeskyttelse": null,
                     "skjermet": null,
-                    "alder": 45
+                    "alder": 46
                 },
                 "utledetSats": "HØY"
           },

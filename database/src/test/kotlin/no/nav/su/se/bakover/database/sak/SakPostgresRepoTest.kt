@@ -63,28 +63,28 @@ internal class SakPostgresRepoTest {
                     behandlingsId = sak.søknad.id,
                     restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
                     status = SakRestans.RestansStatus.NY_SØKNAD,
-                    opprettet = sak.søknad.opprettet,
+                    behandlingStartet = null,
                 ),
                 SakRestans(
                     saksnummer = Saksnummer(nummer = 2022),
                     behandlingsId = søknadsbehandling.id,
                     restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
                     status = SakRestans.RestansStatus.UNDER_BEHANDLING,
-                    opprettet = søknadsbehandling.opprettet,
+                    behandlingStartet = søknadsbehandling.opprettet,
                 ),
                 SakRestans(
                     saksnummer = Saksnummer(nummer = 2023),
                     behandlingsId = underkjent.id,
                     restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
                     status = SakRestans.RestansStatus.UNDERKJENT,
-                    opprettet = underkjent.opprettet,
+                    behandlingStartet = underkjent.opprettet,
                 ),
                 SakRestans(
                     saksnummer = Saksnummer(nummer = 2024),
                     behandlingsId = tilAttestering.id,
                     restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
                     status = SakRestans.RestansStatus.TIL_ATTESTERING,
-                    opprettet = tilAttestering.opprettet,
+                    behandlingStartet = tilAttestering.opprettet,
                 ),
                 // Vi hopper over 1 saksnummer siden den blir lagret som en del når vi lager en revurdering gjennom
                 // hjelpe funksjoner
@@ -93,21 +93,21 @@ internal class SakPostgresRepoTest {
                     behandlingsId = opprettetRevurdering.id,
                     restansType = SakRestans.RestansType.REVURDERING,
                     status = SakRestans.RestansStatus.UNDER_BEHANDLING,
-                    opprettet = opprettetRevurdering.opprettet,
+                    behandlingStartet = opprettetRevurdering.opprettet,
                 ),
                 SakRestans(
                     saksnummer = Saksnummer(nummer = 2027),
                     behandlingsId = tilAttesteringRevurdering.id,
                     restansType = SakRestans.RestansType.REVURDERING,
                     status = SakRestans.RestansStatus.TIL_ATTESTERING,
-                    opprettet = tilAttesteringRevurdering.opprettet,
+                    behandlingStartet = tilAttesteringRevurdering.opprettet,
                 ),
                 SakRestans(
                     saksnummer = Saksnummer(nummer = 2028),
                     behandlingsId = underkjentRevurdering.id,
                     restansType = SakRestans.RestansType.REVURDERING,
                     status = SakRestans.RestansStatus.UNDERKJENT,
-                    opprettet = underkjentRevurdering.opprettet,
+                    behandlingStartet = underkjentRevurdering.opprettet,
                 ),
             )
         }
