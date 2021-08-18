@@ -70,6 +70,7 @@ internal class PersonhendelseServiceTest {
             offset = 0,
             partisjon = 0,
             master = "FREG",
+            key = "someKey",
         ),
     )
 }

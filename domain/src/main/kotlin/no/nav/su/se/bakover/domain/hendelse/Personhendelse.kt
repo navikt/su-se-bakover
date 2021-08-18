@@ -52,5 +52,7 @@ sealed class Personhendelse {
         val partisjon: Int,
         /** f.eks. FREG */
         val master: String,
+        /** Kafkameldinger kommer som key-value pairs (keyen inneholder aktørid) */
+        val key: String,
     )
 }

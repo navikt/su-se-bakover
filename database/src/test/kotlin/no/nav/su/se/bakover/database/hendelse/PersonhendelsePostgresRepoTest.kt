@@ -37,6 +37,7 @@ internal class PersonhendelsePostgresRepoTest {
                     offset = 0,
                     partisjon = 0,
                     master = "FREG",
+                    key = "someKey",
                 ),
             )
             val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
@@ -54,6 +55,7 @@ internal class PersonhendelsePostgresRepoTest {
                 offset = 0,
                 partisjon = 0,
                 master = "FREG",
+                key = "someKey",
             )
         }
     }
@@ -72,6 +74,7 @@ internal class PersonhendelsePostgresRepoTest {
                     offset = 0,
                     partisjon = 0,
                     master = "FREG",
+                    key = "someKey",
                 ),
             )
             val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
@@ -90,6 +93,7 @@ internal class PersonhendelsePostgresRepoTest {
                 offset = 0,
                 partisjon = 0,
                 master = "FREG",
+                key = "someKey",
             )
         }
     }
@@ -108,6 +112,7 @@ internal class PersonhendelsePostgresRepoTest {
                     offset = 0,
                     partisjon = 0,
                     master = "FREG",
+                    key = "someKey",
                 ),
             )
 
@@ -134,6 +139,7 @@ internal class PersonhendelsePostgresRepoTest {
                 offset = 0,
                 partisjon = 0,
                 master = "FREG",
+                key = "someKey",
             )
         }
     }

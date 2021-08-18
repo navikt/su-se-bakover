@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.hendelser
 
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.database.hendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
@@ -22,6 +23,7 @@ class PersonhendelseService(
         val eksisterendeSakId =
             sakRepo.hentSakIdForIdenter(personhendelse.personidenter) ?: return Unit.also {
                 log.debug("Personhendelse ikke knyttet til sak: Ignorerer ${personhendelse.hendelse} med hendelsesid ${personhendelse.metadata.hendelseId} og endringstype ${personhendelse.endringstype}")
+                sikkerLogg.debug("Personhendelse ikke knyttet til sak: $personhendelse")
             }
         log.info("Personhendelse for sak id $eksisterendeSakId: Persisterer ${personhendelse.hendelse} med hendelsesid ${personhendelse.metadata.hendelseId} og endringstype ${personhendelse.endringstype}")
         personhendelseRepo.lagre(

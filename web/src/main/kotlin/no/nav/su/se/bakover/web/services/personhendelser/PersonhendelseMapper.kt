@@ -58,6 +58,7 @@ internal object HendelseMapper {
                     offset = message.offset(),
                     partisjon = message.partition(),
                     master = personhendelse.getMaster(),
+                    key = message.key(),
                 ),
             )
         }

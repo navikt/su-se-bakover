@@ -49,6 +49,7 @@ internal class PersonhendelseConsumerTest {
     private val PARTITION = 0
     private val fnr = Fnr.generer()
     private val ident = fnr.toString() + "00"
+    private val key = "HEADER$ident"
 
     @Test
     fun `Mottar alle personhendelsene`() {
@@ -80,6 +81,7 @@ internal class PersonhendelseConsumerTest {
                     offset = it,
                     partisjon = PARTITION,
                     master = "FREG",
+                    key = key,
                 ),
             )
         }
@@ -100,7 +102,7 @@ internal class PersonhendelseConsumerTest {
         )
         val producer = kafkaProducer(kafkaServer)
         // Tvinger en nullpointer exception
-        producer.send(ProducerRecord(TOPIC2, PARTITION, "HEADER$ident", null))
+        producer.send(ProducerRecord(TOPIC2, PARTITION, key, null))
         producer.send(generatePdlMelding(TOPIC2, 0))
         verify(personhendelseService, timeout(5000).times(0)).prosesserNyHendelse(any())
         verifyNoMoreInteractions(personhendelseService)
@@ -133,7 +135,7 @@ internal class PersonhendelseConsumerTest {
             ), // utflyttingFraNorge (https://navikt.github.io/pdl/#_utflytting)
         )
         // Emulerer at PDL-kafka legger på 6 ukjente karakterer før de appender key
-        return ProducerRecord(topic, PARTITION, offset, "HEADER$ident", personhendelse)
+        return ProducerRecord(topic, PARTITION, offset, key, personhendelse)
     }
 
     companion object {

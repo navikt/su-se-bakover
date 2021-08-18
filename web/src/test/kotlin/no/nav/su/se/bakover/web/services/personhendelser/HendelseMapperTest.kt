@@ -61,6 +61,7 @@ internal class HendelseMapperTest {
                 offset = OFFSET,
                 partisjon = PARTITION,
                 master = "FREG",
+                key = key,
             ),
         )
     }
@@ -93,6 +94,7 @@ internal class HendelseMapperTest {
                 offset = OFFSET,
                 partisjon = PARTITION,
                 master = "FREG",
+                key = key,
             ),
         )
     }

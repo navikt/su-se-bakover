@@ -171,6 +171,7 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
         val offset: Long,
         val partisjon: Int,
         val master: String,
+        val key: String,
     ) {
         companion object {
             fun Personhendelse.Metadata.toJson() = MetadataJson(
@@ -179,6 +180,7 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
                 offset = offset,
                 partisjon = partisjon,
                 master = master,
+                key = key,
             )
         }
     }
