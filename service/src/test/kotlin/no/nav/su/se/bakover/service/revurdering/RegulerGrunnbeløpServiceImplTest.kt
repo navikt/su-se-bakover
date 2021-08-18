@@ -127,7 +127,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val nyttUføregrunnlag = Grunnlag.Uføregrunnlag(
@@ -156,7 +156,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -271,7 +271,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak.copy(årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP),
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -670,7 +670,8 @@ internal class RegulerGrunnbeløpServiceImplTest {
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId(value = "OppgaveId"),
             beregning = TestBeregning,
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now(fixedClock))),
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now(fixedClock))),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             skalFøreTilBrevutsending = false,
@@ -690,7 +691,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             vedtakRepo = vedtakRepoMock,
-            clock = fixedClock
+            clock = fixedClock,
         ).apply { addObserver(eventObserver) }
             .iverksett(
                 revurderingId = revurderingTilAttestering.id,

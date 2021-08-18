@@ -81,7 +81,7 @@ internal class OppdaterRevurderingServiceTest {
         revurderingsperiode = periodeNesteMånedOgTreMånederFram,
         tilRevurdering = tilRevurderingInnvilget,
     ).copy(
-        grunnlagsdata = Grunnlagsdata(
+        grunnlagsdata = Grunnlagsdata.tryCreate(
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
@@ -134,7 +134,13 @@ internal class OppdaterRevurderingServiceTest {
     @Test
     fun `ugyldig periode`() {
         val vedtakServiceMock = mock<VedtakService> {
-            on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode(Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden).left()
+            on {
+                kopierGjeldendeVedtaksdata(
+                    any(),
+                    any(),
+                )
+            } doReturn KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode(Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden)
+                .left()
         }
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering
@@ -155,7 +161,8 @@ internal class OppdaterRevurderingServiceTest {
             ),
         )
 
-        actual shouldBe KunneIkkeOppdatereRevurdering.UgyldigPeriode(Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden).left()
+        actual shouldBe KunneIkkeOppdatereRevurdering.UgyldigPeriode(Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden)
+            .left()
         verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(any(), any())
         verify(revurderingRepoMock).hent(any())
         mocks.verifyNoMoreInteractions()
@@ -263,7 +270,7 @@ internal class OppdaterRevurderingServiceTest {
                     ),
                     simulering = mock(),
                     forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                    grunnlagsdata = Grunnlagsdata(
+                    grunnlagsdata = Grunnlagsdata.tryCreate(
                         bosituasjon = listOf(
                             Grunnlag.Bosituasjon.Fullstendig.Enslig(
                                 id = UUID.randomUUID(),
@@ -298,7 +305,10 @@ internal class OppdaterRevurderingServiceTest {
             OpprettetRevurdering::class,
         ).left()
         verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
-        verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(opprettetRevurdering.sakId, opprettetRevurdering.periode.fraOgMed)
+        verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(
+            opprettetRevurdering.sakId,
+            opprettetRevurdering.periode.fraOgMed,
+        )
         mocks.verifyNoMoreInteractions()
     }
 
@@ -430,7 +440,7 @@ internal class OppdaterRevurderingServiceTest {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering.copy(
                 // simuler at det er gjort endringer før oppdatering
-                grunnlagsdata = Grunnlagsdata(),
+                grunnlagsdata = Grunnlagsdata.tryCreate(),
                 vilkårsvurderinger = Vilkårsvurderinger(
                     uføre = Vilkår.Uførhet.IkkeVurdert,
                 ),
@@ -466,7 +476,10 @@ internal class OppdaterRevurderingServiceTest {
             grunnlagServiceMock,
         ) {
             verify(revurderingRepoMock).hent(revurderingId)
-            verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(opprettetRevurdering.sakId, opprettetRevurdering.periode.fraOgMed)
+            verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(
+                opprettetRevurdering.sakId,
+                opprettetRevurdering.periode.fraOgMed,
+            )
             verify(revurderingRepoMock).lagre(actual)
             verify(vilkårsvurderingServiceMock).lagre(actual.id, actual.vilkårsvurderinger)
             verify(grunnlagServiceMock).lagreFradragsgrunnlag(actual.id, actual.grunnlagsdata.fradragsgrunnlag)
@@ -501,7 +514,7 @@ internal class OppdaterRevurderingServiceTest {
                     grunnlag = uføregrunnlag,
                     periode = periodePlussEtÅr,
                     begrunnelse = "ok",
-                    opprettet = fixedTidspunkt
+                    opprettet = fixedTidspunkt,
                 ),
             ),
         )
@@ -510,7 +523,7 @@ internal class OppdaterRevurderingServiceTest {
             periode = periodePlussEtÅr,
             behandling = (søknadsbehandlingsvedtakIverksattInnvilget.behandling as Søknadsbehandling.Iverksatt.Innvilget).copy(
                 stønadsperiode = Stønadsperiode.create(periodePlussEtÅr),
-                grunnlagsdata = Grunnlagsdata(bosituasjon = listOf(bosituasjon)),
+                grunnlagsdata = Grunnlagsdata.tryCreate(bosituasjon = listOf(bosituasjon)),
                 vilkårsvurderinger = Vilkårsvurderinger(
                     uføre = uførevilkår,
                     formue = andreVedtakFormueVilkår,
@@ -582,13 +595,16 @@ internal class OppdaterRevurderingServiceTest {
         val revurderingBeregning = lagBeregning(revurderingsperiode)
 
         val revurdering = mock<IverksattRevurdering.Innvilget> {
-            on { attestering } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("attestantSomIverksatte"), fixedTidspunkt)
+            on { attestering } doReturn Attestering.Iverksatt(
+                NavIdentBruker.Attestant("attestantSomIverksatte"),
+                fixedTidspunkt,
+            )
 
             on { periode } doReturn revurderingsperiode
             on { beregning } doReturn revurderingBeregning
             on { simulering } doReturn mock()
             on { saksbehandler } doReturn mock()
-            on { grunnlagsdata } doReturn Grunnlagsdata(
+            on { grunnlagsdata } doReturn Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -664,13 +680,16 @@ internal class OppdaterRevurderingServiceTest {
         val revurderingBeregning = lagBeregning(revurderingsperiode)
 
         val revurdering = mock<IverksattRevurdering.Innvilget> {
-            on { attestering } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("attestantSomIverksatte"), fixedTidspunkt)
+            on { attestering } doReturn Attestering.Iverksatt(
+                NavIdentBruker.Attestant("attestantSomIverksatte"),
+                fixedTidspunkt,
+            )
 
             on { periode } doReturn revurderingsperiode
             on { beregning } doReturn revurderingBeregning
             on { simulering } doReturn mock()
             on { saksbehandler } doReturn mock()
-            on { grunnlagsdata } doReturn Grunnlagsdata(
+            on { grunnlagsdata } doReturn Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),

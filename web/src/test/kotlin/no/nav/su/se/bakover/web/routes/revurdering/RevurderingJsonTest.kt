@@ -64,9 +64,9 @@ internal class RevurderingJsonTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 fradragsgrunnlag = listOf(fradragsgrunnlag),
-                bosituasjon = listOf(bosituasjon)
+                bosituasjon = listOf(bosituasjon),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Uførhet.Vurdert.create(
@@ -79,7 +79,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingJson =
@@ -156,7 +156,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingJson =
@@ -238,7 +238,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingJson =
@@ -320,7 +320,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingJson =
@@ -833,8 +833,8 @@ internal class RevurderingJsonTest {
                     attestant = NavIdentBruker.Attestant("attestant"),
                     grunn = Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER,
                     kommentar = "Dokumentasjon mangler",
-                    opprettet = attesteringOpprettet
-                )
+                    opprettet = attesteringOpprettet,
+                ),
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
@@ -936,8 +936,8 @@ internal class RevurderingJsonTest {
                     attestant = NavIdentBruker.Attestant("attestant"),
                     grunn = Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER,
                     kommentar = "Dokumentasjon mangler",
-                    opprettet = attesteringOpprettet
-                )
+                    opprettet = attesteringOpprettet,
+                ),
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
@@ -1038,8 +1038,8 @@ internal class RevurderingJsonTest {
                     attestant = NavIdentBruker.Attestant("attestant"),
                     grunn = Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER,
                     kommentar = "Dokumentasjon mangler",
-                    opprettet = attesteringOpprettet
-                )
+                    opprettet = attesteringOpprettet,
+                ),
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
@@ -1134,7 +1134,13 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId("OppgaveId"),
             beregning = beregning,
             simulering = mock(),
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), attesteringOpprettet)),
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(
+                    Attestering.Iverksatt(
+                        NavIdentBruker.Attestant("attestant"),
+                        attesteringOpprettet,
+                    ),
+                ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
@@ -1223,7 +1229,13 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId("OppgaveId"),
             beregning = beregning,
             simulering = mock(),
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), attesteringOpprettet)),
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(
+                    Attestering.Iverksatt(
+                        NavIdentBruker.Attestant("attestant"),
+                        attesteringOpprettet,
+                    ),
+                ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
@@ -1311,7 +1323,13 @@ internal class RevurderingJsonTest {
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             oppgaveId = OppgaveId("OppgaveId"),
             beregning = beregning,
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), attesteringOpprettet)),
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(
+                    Attestering.Iverksatt(
+                        NavIdentBruker.Attestant("attestant"),
+                        attesteringOpprettet,
+                    ),
+                ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,

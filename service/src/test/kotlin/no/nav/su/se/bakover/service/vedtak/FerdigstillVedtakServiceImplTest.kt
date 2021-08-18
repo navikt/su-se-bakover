@@ -617,7 +617,8 @@ internal class FerdigstillVedtakServiceImplTest {
                     oppgaveId = oppgaveId,
                     beregning = TestBeregning,
                     saksbehandler = saksbehandler,
-                    attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
+                    attesteringer = Attesteringshistorikk.empty()
+                        .leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
                     fritekstTilBrev = "",
                     periode = it.periode,
                     tilRevurdering = it,
@@ -772,7 +773,7 @@ internal class FerdigstillVedtakServiceImplTest {
                         saksbehandlerNavn = vedtak.saksbehandler.navIdent,
                         attestantNavn = vedtak.attestant.navIdent,
                         fritekst = "",
-                        forventetInntektStørreEnn0 = false
+                        forventetInntektStørreEnn0 = false,
                     )
                 },
                 argThat { it shouldBe vedtak.behandling.saksnummer },
@@ -938,7 +939,7 @@ internal class FerdigstillVedtakServiceImplTest {
         val response = createService(
             vedtakRepo = vedtakRepoMock,
             behandlingMetrics = behandlingMetricsMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
         ).opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver()
 
         response shouldBe FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -948,7 +949,7 @@ internal class FerdigstillVedtakServiceImplTest {
 
         inOrder(
             vedtakRepoMock,
-            oppgaveServiceMock
+            oppgaveServiceMock,
         ) {
             verify(vedtakRepoMock).hentUtenJournalpost()
             verify(vedtakRepoMock).hentUtenBrevbestilling()
@@ -990,7 +991,7 @@ internal class FerdigstillVedtakServiceImplTest {
             brevService = brevServiceMock,
             personService = personServiceMock,
             microsoftGraphApiClient = microsoftGraphApiOppslagMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
         ).opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver()
 
         response shouldBe FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -1007,7 +1008,7 @@ internal class FerdigstillVedtakServiceImplTest {
         inOrder(
             vedtakRepoMock,
             brevServiceMock,
-            oppgaveServiceMock
+            oppgaveServiceMock,
         ) {
             verify(vedtakRepoMock).hentUtenJournalpost()
             verify(brevServiceMock).journalførBrev(
@@ -1023,7 +1024,7 @@ internal class FerdigstillVedtakServiceImplTest {
                         saksbehandlerNavn = "saksa",
                         attestantNavn = "atta",
                         fritekst = "",
-                        forventetInntektStørreEnn0 = false
+                        forventetInntektStørreEnn0 = false,
                     )
                 },
                 argThat { it shouldBe vedtak.behandling.saksnummer },
@@ -1066,7 +1067,7 @@ internal class FerdigstillVedtakServiceImplTest {
             personService = personServiceMock,
             microsoftGraphApiClient = microsoftGraphApiOppslagMock,
             behandlingMetrics = behandlingMetricsMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
         ).opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver()
 
         response shouldBe FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -1084,7 +1085,7 @@ internal class FerdigstillVedtakServiceImplTest {
             vedtakRepoMock,
             brevServiceMock,
             behandlingMetricsMock,
-            oppgaveServiceMock
+            oppgaveServiceMock,
         ) {
             verify(vedtakRepoMock).hentUtenJournalpost()
             verify(brevServiceMock).journalførBrev(any(), any())
@@ -1133,7 +1134,7 @@ internal class FerdigstillVedtakServiceImplTest {
             utbetalingRepo = utbetalingRepoMock,
             brevService = brevServiceMock,
             behandlingMetrics = behandlingMetricsMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
         ).opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver()
 
         response shouldBe FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -1199,7 +1200,7 @@ internal class FerdigstillVedtakServiceImplTest {
         val response = createService(
             vedtakRepo = vedtakRepoMock,
             utbetalingRepo = utbetalingRepoMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
         ).opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver()
 
         response shouldBe FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -1217,7 +1218,7 @@ internal class FerdigstillVedtakServiceImplTest {
         inOrder(
             vedtakRepoMock,
             utbetalingRepoMock,
-            oppgaveServiceMock
+            oppgaveServiceMock,
         ) {
             verify(vedtakRepoMock).hentUtenJournalpost()
             verify(vedtakRepoMock).hentUtenBrevbestilling()
@@ -1351,11 +1352,12 @@ internal class FerdigstillVedtakServiceImplTest {
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
                 fnr = FnrGenerator.random(),
                 beregning = TestBeregning,
-                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.EPOCH)),
+                attesteringer = Attesteringshistorikk.empty()
+                    .leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.EPOCH)),
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = "",
                 stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
-                grunnlagsdata = Grunnlagsdata(
+                grunnlagsdata = Grunnlagsdata.tryCreate(
                     bosituasjon = listOf(
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
                             id = UUID.randomUUID(),
@@ -1409,10 +1411,11 @@ internal class FerdigstillVedtakServiceImplTest {
                 beregning = TestBeregning,
                 simulering = mock(),
                 saksbehandler = saksbehandler,
-                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
+                attesteringer = Attesteringshistorikk.empty()
+                    .leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
                 fritekstTilBrev = "",
                 stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
-                grunnlagsdata = Grunnlagsdata(
+                grunnlagsdata = Grunnlagsdata.tryCreate(
                     bosituasjon = listOf(
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
                             id = UUID.randomUUID(),
@@ -1438,7 +1441,8 @@ internal class FerdigstillVedtakServiceImplTest {
                 beregning = TestBeregning,
                 simulering = mock(),
                 saksbehandler = saksbehandler,
-                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
+                attesteringer = Attesteringshistorikk.empty()
+                    .leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
                 fritekstTilBrev = "",
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 tilRevurdering = innvilgetVedtak(),
@@ -1452,7 +1456,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             ),
             utbetalingId = UUID30.randomUUID(),
-            clock = fixedClock
+            clock = fixedClock,
         )
 
     private fun journalførtInnvilgetVedtak() =

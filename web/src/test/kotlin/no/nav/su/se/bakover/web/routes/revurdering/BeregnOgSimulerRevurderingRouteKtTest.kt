@@ -134,7 +134,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -152,14 +152,14 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                             grunnlag = uføregrunnlag,
                             periode = TestBeregning.periode,
                             begrunnelse = null,
-                            opprettet = fixedTidspunkt
+                            opprettet = fixedTidspunkt,
                         ),
                     ),
                 ),
                 formue = formueVilkår(periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         ).beregn(eksisterendeUtbetalinger = emptyList()).orNull()!!
 
         val simulertRevurdering = when (beregnetRevurdering) {
@@ -196,7 +196,8 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             }.apply {
                 response.status() shouldBe HttpStatusCode.Created
                 val actualResponse = objectMapper.readValue<Map<String, Any>>(response.content!!)
-                val revurdering = objectMapper.readValue<SimulertRevurderingJson>(objectMapper.writeValueAsString(actualResponse["revurdering"]))
+                val revurdering =
+                    objectMapper.readValue<SimulertRevurderingJson>(objectMapper.writeValueAsString(actualResponse["revurdering"]))
                 verify(revurderingServiceMock).beregnOgSimuler(
                     argThat { it shouldBe simulertRevurdering.id },
                     argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },

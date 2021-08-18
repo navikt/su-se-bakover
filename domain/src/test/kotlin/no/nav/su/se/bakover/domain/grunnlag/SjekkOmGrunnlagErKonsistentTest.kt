@@ -55,7 +55,9 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 periode = periode,
                 begrunnelse = "",
             )
-            SjekkOmGrunnlagErKonsistent.Bosituasjon(listOf(bosituasjon1, bosituasjon2)).resultat shouldBeLeft setOf(Konsistensproblem.Bosituasjon.Flere)
+            SjekkOmGrunnlagErKonsistent.Bosituasjon(listOf(bosituasjon1, bosituasjon2)).resultat shouldBeLeft setOf(
+                Konsistensproblem.Bosituasjon.Flere,
+            )
         }
 
         @Test
@@ -81,7 +83,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 periode = periode,
                 begrunnelse = "",
             )
-            val arbEps = Grunnlag.Fradragsgrunnlag(
+            val arbEps = Grunnlag.Fradragsgrunnlag.tryCreate(
                 fradrag = FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 5000.0,
@@ -90,7 +92,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                     tilhører = FradragTilhører.EPS,
                 ),
                 opprettet = fixedTidspunkt,
-            )
+            ).orNull()!!
             SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
                 listOf(bosituasjon1, bosituasjon2),
                 listOf(arbEps),
@@ -107,7 +109,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 periode = periode,
                 begrunnelse = "",
             )
-            val arbEps = Grunnlag.Fradragsgrunnlag(
+            val arbEps = Grunnlag.Fradragsgrunnlag.tryCreate(
                 fradrag = FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 5000.0,
@@ -116,7 +118,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                     tilhører = FradragTilhører.EPS,
                 ),
                 opprettet = fixedTidspunkt,
-            )
+            ).orNull()!!
             SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
                 listOf(bosituasjon),
                 listOf(arbEps),
@@ -143,7 +145,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 periode = periode,
                 begrunnelse = "",
             )
-            val arbEps = Grunnlag.Fradragsgrunnlag(
+            val arbEps = Grunnlag.Fradragsgrunnlag.tryCreate(
                 fradrag = FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 5000.0,
@@ -152,7 +154,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                     tilhører = FradragTilhører.EPS,
                 ),
                 opprettet = fixedTidspunkt,
-            )
+            ).orNull()!!
             SjekkOmGrunnlagErKonsistent(
                 formuegrunnlag = emptyList(),
                 uføregrunnlag = emptyList(),
@@ -183,7 +185,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 fnr = FnrGenerator.random(),
                 begrunnelse = "",
             )
-            val arbEps = Grunnlag.Fradragsgrunnlag(
+            val arbEps = Grunnlag.Fradragsgrunnlag.tryCreate(
                 fradrag = FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 5000.0,
@@ -192,7 +194,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                     tilhører = FradragTilhører.EPS,
                 ),
                 opprettet = fixedTidspunkt,
-            )
+            ).orNull()!!
             SjekkOmGrunnlagErKonsistent(
                 formuegrunnlag = innvilgetFormueVilkår(periode).grunnlag,
                 uføregrunnlag = listOf(uføregrunnlag),

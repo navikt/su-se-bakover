@@ -136,7 +136,7 @@ internal class RevurderingTest {
                 ),
             ),
             fradrag = listOf(
-                Grunnlag.Fradragsgrunnlag(
+                Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 20535.0,
@@ -145,8 +145,8 @@ internal class RevurderingTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     opprettet = fixedTidspunkt,
-                ),
-                Grunnlag.Fradragsgrunnlag(
+                ).orNull()!!,
+                Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 21735.0,
@@ -155,7 +155,7 @@ internal class RevurderingTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     opprettet = fixedTidspunkt,
-                ),
+                ).orNull()!!,
             ),
         ).beregn(
             eksisterendeUtbetalinger = listOf(
@@ -331,7 +331,7 @@ internal class RevurderingTest {
                 formue = innvilgetFormueVilkår(periode),
             ),
             fradrag = listOf(
-                Grunnlag.Fradragsgrunnlag(
+                Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 350_000.0,
@@ -340,7 +340,7 @@ internal class RevurderingTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     opprettet = fixedTidspunkt,
-                ),
+                ).orNull()!!,
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -397,7 +397,7 @@ internal class RevurderingTest {
                 ),
             ),
             fradrag = listOf(
-                Grunnlag.Fradragsgrunnlag(
+                Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 350_000.0,
@@ -406,7 +406,7 @@ internal class RevurderingTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     opprettet = fixedTidspunkt,
-                ),
+                ).orNull()!!,
             ),
         ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(14000, periode)))).orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
@@ -449,7 +449,7 @@ internal class RevurderingTest {
                 ),
             ),
             fradrag = listOf(
-                Grunnlag.Fradragsgrunnlag(
+                Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 20800.0,
@@ -458,8 +458,8 @@ internal class RevurderingTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     opprettet = fixedTidspunkt,
-                ),
-                Grunnlag.Fradragsgrunnlag(
+                ).orNull()!!,
+                Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 21800.0,
@@ -468,7 +468,7 @@ internal class RevurderingTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     opprettet = fixedTidspunkt,
-                ),
+                ).orNull()!!,
             ),
         ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(14000, periode)))).orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
@@ -497,12 +497,12 @@ internal class RevurderingTest {
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = null,
         vilkårsvurderinger = vilkårsvurderinger,
-        grunnlagsdata = Grunnlagsdata(
+        grunnlagsdata = Grunnlagsdata.tryCreate(
             bosituasjon = bosituasjon,
             fradragsgrunnlag = fradrag,
         ),
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-        attesteringer = Attesteringshistorikk.empty()
+        attesteringer = Attesteringshistorikk.empty(),
     )
 
     private fun lagUtbetaling(

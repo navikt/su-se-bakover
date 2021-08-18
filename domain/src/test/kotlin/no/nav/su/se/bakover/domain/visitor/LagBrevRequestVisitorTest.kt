@@ -694,7 +694,7 @@ internal class LagBrevRequestVisitorTest {
             tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -781,7 +781,7 @@ internal class LagBrevRequestVisitorTest {
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -872,7 +872,7 @@ internal class LagBrevRequestVisitorTest {
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -960,7 +960,7 @@ internal class LagBrevRequestVisitorTest {
             ),
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -1092,7 +1092,7 @@ internal class LagBrevRequestVisitorTest {
         fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata(
+        grunnlagsdata = Grunnlagsdata.tryCreate(
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),

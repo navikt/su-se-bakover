@@ -55,9 +55,9 @@ class RevurderingBeregnOgSimulerTest {
             fritekstTilBrev = "",
             revurderingsårsak = RevurderingTestUtils.revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 fradragsgrunnlag = listOf(
-                    Grunnlag.Fradragsgrunnlag(
+                    Grunnlag.Fradragsgrunnlag.tryCreate(
                         fradrag = FradragFactory.ny(
                             type = Fradragstype.Arbeidsinntekt,
                             månedsbeløp = 150500.0,
@@ -66,7 +66,7 @@ class RevurderingBeregnOgSimulerTest {
                             tilhører = FradragTilhører.BRUKER,
                         ),
                         opprettet = fixedTidspunkt,
-                    ),
+                    ).orNull()!!,
                 ),
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(

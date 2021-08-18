@@ -57,7 +57,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata(
+        grunnlagsdata = Grunnlagsdata.tryCreate(
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
@@ -68,7 +68,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             ),
         ),
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-        attesteringer = Attesteringshistorikk.empty()
+        attesteringer = Attesteringshistorikk.empty(),
     )
 
     private val vilkårsvurdertUavklartSøknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
@@ -84,13 +84,13 @@ internal class SøknadsbehandlingServiceBrevTest {
         stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.EMPTY,
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-        attesteringer = Attesteringshistorikk.empty()
+        attesteringer = Attesteringshistorikk.empty(),
     )
 
     private val person = Person(
         ident = Ident(
             fnr = FnrGenerator.random(),
-            aktørId = AktørId(aktørId = "")
+            aktørId = AktørId(aktørId = ""),
         ),
         navn = Person.Navn(fornavn = "", mellomnavn = null, etternavn = ""),
     )
@@ -107,7 +107,7 @@ internal class SøknadsbehandlingServiceBrevTest {
 
         createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            personService = personServiceMock
+            personService = personServiceMock,
         ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag)).let {
             it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.FantIkkePerson.left()
         }
@@ -130,7 +130,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             personService = personServiceMock,
-            microsoftGraphApiOppslag = microsoftGraphApiOppslagMock
+            microsoftGraphApiOppslag = microsoftGraphApiOppslagMock,
         ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag)).let {
             it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant.left()
         }
@@ -158,7 +158,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = microsoftGraphApiOppslagMock,
-            brevService = brevServiceMock
+            brevService = brevServiceMock,
         ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag)).let {
             it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.KunneIkkeLagePDF.left()
         }
@@ -187,7 +187,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = microsoftGraphApiOppslagMock,
-            brevService = brevServiceMock
+            brevService = brevServiceMock,
         ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag)).let {
             it shouldBe pdf.right()
         }

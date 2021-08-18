@@ -26,7 +26,7 @@ fun fradragsgrunnlagArbeidsinntekt(
     periode: Periode = periode2021,
     arbeidsinntekt: Double,
 ): Grunnlag.Fradragsgrunnlag {
-    return Grunnlag.Fradragsgrunnlag(
+    return Grunnlag.Fradragsgrunnlag.tryCreate(
         id = fradragsgrunnlagId,
         opprettet = fixedTidspunkt,
         fradrag = FradragFactory.ny(
@@ -36,7 +36,7 @@ fun fradragsgrunnlagArbeidsinntekt(
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER,
         ),
-    )
+    ).orNull()!!
 }
 
 val bosituasjonId: UUID = UUID.randomUUID()
@@ -64,7 +64,7 @@ fun grunnlagsdataEnsligUtenFradrag(
     fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = emptyList(),
     bosituasjon: Nel<Grunnlag.Bosituasjon> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode)),
 ): Grunnlagsdata {
-    return Grunnlagsdata(
+    return Grunnlagsdata.tryCreate(
         fradragsgrunnlag = fradragsgrunnlag,
         bosituasjon = bosituasjon,
     )
@@ -78,10 +78,14 @@ fun grunnlagsdataEnsligUtenFradrag(
  */
 fun grunnlagsdataEnsligMedFradrag(
     periode: Periode = periode2021,
-    fradragsgrunnlag: NonEmptyList<Grunnlag.Fradragsgrunnlag> = nonEmptyListOf(fradragsgrunnlagArbeidsinntekt1000(periode = periode)),
+    fradragsgrunnlag: NonEmptyList<Grunnlag.Fradragsgrunnlag> = nonEmptyListOf(
+        fradragsgrunnlagArbeidsinntekt1000(
+            periode = periode,
+        ),
+    ),
     bosituasjon: Nel<Grunnlag.Bosituasjon> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode)),
 ): Grunnlagsdata {
-    return Grunnlagsdata(
+    return Grunnlagsdata.tryCreate(
         fradragsgrunnlag = fradragsgrunnlag,
         bosituasjon = bosituasjon,
     )

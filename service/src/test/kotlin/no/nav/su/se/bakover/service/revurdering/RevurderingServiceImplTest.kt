@@ -79,6 +79,7 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.formueVilkår
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
+import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.beregning
@@ -129,9 +130,9 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 fradragsgrunnlag = listOf(
-                    Grunnlag.Fradragsgrunnlag(
+                    Grunnlag.Fradragsgrunnlag.tryCreate(
                         fradrag = FradragFactory.ny(
                             type = Fradragstype.Arbeidsinntekt,
                             månedsbeløp = 10000.0,
@@ -140,7 +141,7 @@ internal class RevurderingServiceImplTest {
                             tilhører = FradragTilhører.BRUKER,
                         ),
                         opprettet = fixedTidspunkt,
-                    ),
+                    ).orNull()!!,
                 ),
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -277,9 +278,9 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 fradragsgrunnlag = listOf(
-                    Grunnlag.Fradragsgrunnlag(
+                    Grunnlag.Fradragsgrunnlag.tryCreate(
                         fradrag = FradragFactory.ny(
                             type = Fradragstype.Arbeidsinntekt,
                             månedsbeløp = 10000.0,
@@ -288,7 +289,7 @@ internal class RevurderingServiceImplTest {
                             tilhører = FradragTilhører.BRUKER,
                         ),
                         opprettet = fixedTidspunkt,
-                    ),
+                    ).orNull()!!,
                 ),
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -634,9 +635,9 @@ internal class RevurderingServiceImplTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attestering),
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 fradragsgrunnlag = listOf(
-                    Grunnlag.Fradragsgrunnlag(
+                    Grunnlag.Fradragsgrunnlag.tryCreate(
                         fradrag = FradragFactory.ny(
                             type = Fradragstype.Arbeidsinntekt,
                             månedsbeløp = 4000.0,
@@ -645,7 +646,7 @@ internal class RevurderingServiceImplTest {
                             tilhører = FradragTilhører.BRUKER,
                         ),
                         opprettet = fixedTidspunkt,
-                    ),
+                    ).orNull()!!,
                 ),
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -749,7 +750,7 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -1721,7 +1722,7 @@ internal class RevurderingServiceImplTest {
         val request = LeggTilFradragsgrunnlagRequest(
             behandlingId = eksisterendeRevurdering.id,
             fradragsrunnlag = listOf(
-                Grunnlag.Fradragsgrunnlag(
+                Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 0.0,
@@ -1730,7 +1731,7 @@ internal class RevurderingServiceImplTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     opprettet = fixedTidspunkt,
-                ),
+                ).orNull()!!,
             ),
         )
 
@@ -1770,7 +1771,7 @@ internal class RevurderingServiceImplTest {
         val request = LeggTilFradragsgrunnlagRequest(
             behandlingId = revurderingId,
             fradragsrunnlag = listOf(
-                Grunnlag.Fradragsgrunnlag(
+                Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 0.0,
@@ -1779,7 +1780,7 @@ internal class RevurderingServiceImplTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     opprettet = fixedTidspunkt,
-                ),
+                ).orNull()!!,
             ),
         )
 
@@ -1815,7 +1816,7 @@ internal class RevurderingServiceImplTest {
         val request = LeggTilFradragsgrunnlagRequest(
             behandlingId = eksisterendeRevurdering.id,
             fradragsrunnlag = listOf(
-                Grunnlag.Fradragsgrunnlag(
+                Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 0.0,
@@ -1824,7 +1825,7 @@ internal class RevurderingServiceImplTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     opprettet = fixedTidspunkt,
-                ),
+                ).orNull()!!,
             ),
         )
 
@@ -1853,7 +1854,7 @@ internal class RevurderingServiceImplTest {
         val revurderingMock = mock<OpprettetRevurdering> {
 
             on { periode } doReturn revurderingsperiode
-            on { grunnlagsdata } doReturn Grunnlagsdata(
+            on { grunnlagsdata } doReturn Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -1876,7 +1877,7 @@ internal class RevurderingServiceImplTest {
         val request = LeggTilFradragsgrunnlagRequest(
             behandlingId = revurderingId,
             fradragsrunnlag = listOf(
-                Grunnlag.Fradragsgrunnlag(
+                Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 0.0,
@@ -1885,8 +1886,8 @@ internal class RevurderingServiceImplTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     opprettet = fixedTidspunkt,
-                ),
-                Grunnlag.Fradragsgrunnlag(
+                ).orNull()!!,
+                Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Kontantstøtte,
                         månedsbeløp = 0.0,
@@ -1895,7 +1896,7 @@ internal class RevurderingServiceImplTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     opprettet = fixedTidspunkt,
-                ),
+                ).orNull()!!,
             ),
         )
 

@@ -38,10 +38,10 @@ class FradragsgrunnlagJsonTest {
             }
         """.trimIndent()
 
-        internal val fradragsgrunnlag = Grunnlag.Fradragsgrunnlag(
+        internal val fradragsgrunnlag = Grunnlag.Fradragsgrunnlag.tryCreate(
             id = fradragsgrunnlagId,
             opprettet = fradragsgrunnlagOpprettet,
-            fradrag = TestFradrag
-        )
+            fradrag = TestFradrag,
+        ).orNull()!!
     }
 }

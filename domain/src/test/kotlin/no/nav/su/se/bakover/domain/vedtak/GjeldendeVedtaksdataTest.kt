@@ -147,14 +147,19 @@ internal class GjeldendeVedtaksdataTest {
             ),
             simulering = mock(),
             saksbehandler = NavIdentBruker.Saksbehandler("saks"),
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), Tidspunkt.now(fixedClock))),
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(
+                    Attestering.Iverksatt(
+                        NavIdentBruker.Attestant("attestant"),
+                        Tidspunkt.now(fixedClock),
+                    ),
+                ),
             fritekstTilBrev = "",
             stønadsperiode = Stønadsperiode.create(
                 periode = periode,
                 begrunnelse = "",
             ),
-            grunnlagsdata = Grunnlagsdata(
-                fradragsgrunnlag = listOf(),
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -181,7 +186,7 @@ internal class GjeldendeVedtaksdataTest {
             ),
         ),
         utbetalingId = UUID30.randomUUID(),
-        clock = fixedClock
+        clock = fixedClock,
     )
 
     private fun revurdering(periode: Periode, førstegangsvedtak: Vedtak.EndringIYtelse) = Vedtak.from(
@@ -221,7 +226,13 @@ internal class GjeldendeVedtaksdataTest {
                 fradragStrategy = FradragStrategy.Enslig,
                 begrunnelse = "just becausre",
             ),
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant = NavIdentBruker.Attestant(navIdent = ""), Tidspunkt.now(fixedClock))),
+            attesteringer = Attesteringshistorikk.empty()
+                .leggTilNyAttestering(
+                    Attestering.Iverksatt(
+                        attestant = NavIdentBruker.Attestant(navIdent = ""),
+                        Tidspunkt.now(fixedClock),
+                    ),
+                ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             simulering = Simulering(
                 gjelderId = FnrGenerator.random(),
@@ -230,7 +241,7 @@ internal class GjeldendeVedtaksdataTest {
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 fradragsgrunnlag = listOf(),
                 bosituasjon = listOf(),
             ),

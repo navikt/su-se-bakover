@@ -50,7 +50,7 @@ import java.util.UUID
 internal class RevurderingPostgresRepoTest {
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
     private val uføregrunnlagPostgresRepo = testDataHelper.uføregrunnlagPostgresRepo
-    private val fradragsgrunnlagPostgresRepo = testDataHelper.grunnlagRepo
+    private val grunnlagPostgresRepo = testDataHelper.grunnlagRepo
     private val repo = testDataHelper.revurderingRepo
 
     private val saksbehandler = Saksbehandler("Sak S. Behandler")
@@ -91,7 +91,7 @@ internal class RevurderingPostgresRepoTest {
         grunnlagsdata = Grunnlagsdata.EMPTY,
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
-        attesteringer = Attesteringshistorikk.empty()
+        attesteringer = Attesteringshistorikk.empty(),
     )
 
     private fun beregnetIngenEndring(
@@ -131,7 +131,7 @@ internal class RevurderingPostgresRepoTest {
         grunnlagsdata = Grunnlagsdata.EMPTY,
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
-        attesteringer = Attesteringshistorikk.empty()
+        attesteringer = Attesteringshistorikk.empty(),
     )
 
     private fun beregnetOpphørt(
@@ -151,7 +151,7 @@ internal class RevurderingPostgresRepoTest {
         grunnlagsdata = Grunnlagsdata.EMPTY,
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
-        attesteringer = Attesteringshistorikk.empty()
+        attesteringer = Attesteringshistorikk.empty(),
     )
 
     private fun simulertInnvilget(beregnet: BeregnetRevurdering.Innvilget) = SimulertRevurdering.Innvilget(
@@ -393,9 +393,17 @@ internal class RevurderingPostgresRepoTest {
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                grunnlagsdata = Grunnlagsdata(
+                grunnlagsdata = Grunnlagsdata.tryCreate(
+                    bosituasjon = listOf(
+                        Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            periode = periode,
+                            begrunnelse = null,
+                        ),
+                    ),
                     fradragsgrunnlag = listOf(
-                        Grunnlag.Fradragsgrunnlag(
+                        Grunnlag.Fradragsgrunnlag.tryCreate(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             fradrag =
@@ -406,7 +414,7 @@ internal class RevurderingPostgresRepoTest {
                                 utenlandskInntekt = null,
                                 tilhører = FradragTilhører.BRUKER,
                             ),
-                        ),
+                        ).orNull()!!,
                     ),
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
@@ -414,9 +422,13 @@ internal class RevurderingPostgresRepoTest {
                 attesteringer = Attesteringshistorikk.empty(),
             )
 
-            fradragsgrunnlagPostgresRepo.lagreFradragsgrunnlag(
+            grunnlagPostgresRepo.lagreFradragsgrunnlag(
                 tilAttestering.id,
                 tilAttestering.grunnlagsdata.fradragsgrunnlag,
+            )
+            grunnlagPostgresRepo.lagreBosituasjongrunnlag(
+                behandlingId = tilAttestering.id,
+                grunnlag = tilAttestering.grunnlagsdata.bosituasjon,
             )
             testDataHelper.datasource.withTransaction { tx ->
                 uføregrunnlagPostgresRepo.lagre(
@@ -474,7 +486,7 @@ internal class RevurderingPostgresRepoTest {
                 attestant = attestant,
                 grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                 kommentar = "feil",
-                opprettet = fixedTidspunkt
+                opprettet = fixedTidspunkt,
             )
 
             val underkjent = tilAttestering.underkjenn(attestering, OppgaveId("nyOppgaveId"))
@@ -523,8 +535,8 @@ internal class RevurderingPostgresRepoTest {
                         attestant = attestant,
                         grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                         kommentar = "kommentar",
-                        opprettet = fixedTidspunkt
-                    )
+                        opprettet = fixedTidspunkt,
+                    ),
                 ),
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -562,7 +574,7 @@ internal class RevurderingPostgresRepoTest {
                 grunnlagsdata = Grunnlagsdata.EMPTY,
                 vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
-                attesteringer = Attesteringshistorikk.empty()
+                attesteringer = Attesteringshistorikk.empty(),
             )
 
             repo.lagre(underkjent)
@@ -604,8 +616,8 @@ internal class RevurderingPostgresRepoTest {
                 attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(
                     Attestering.Iverksatt(
                         attestant,
-                        fixedTidspunkt
-                    )
+                        fixedTidspunkt,
+                    ),
                 ),
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -661,8 +673,8 @@ internal class RevurderingPostgresRepoTest {
                         attestant = attestant,
                         grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                         kommentar = "kommentar",
-                        opprettet = fixedTidspunkt
-                    )
+                        opprettet = fixedTidspunkt,
+                    ),
                 ),
                 skalFøreTilBrevutsending = false,
                 forhåndsvarsel = null,
@@ -748,8 +760,8 @@ internal class RevurderingPostgresRepoTest {
                 attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(
                     Attestering.Iverksatt(
                         attestant,
-                        fixedTidspunkt
-                    )
+                        fixedTidspunkt,
+                    ),
                 ),
                 skalFøreTilBrevutsending = false,
                 forhåndsvarsel = null,
@@ -873,7 +885,7 @@ internal class RevurderingPostgresRepoTest {
         //language=JSON
         val sendtJson = """
             {
-              "type": "Sendt",
+              "type": "Sendt"
             }
         """.trimIndent()
 

@@ -9,10 +9,10 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.assertions.arrow.either.shouldBeLeft
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
+import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
@@ -55,7 +56,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
         val request = LeggTilFradragsgrunnlagRequest(
             behandlingId = revurdering.id,
             fradragsrunnlag = listOf(
-                Grunnlag.Fradragsgrunnlag(
+                Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 5000.0,
@@ -64,7 +65,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     opprettet = fixedTidspunkt,
-                ),
+                ).orNull()!!,
             ),
         )
 
@@ -81,10 +82,11 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
                     informasjonSomRevurderes = InformasjonSomRevurderes.create(
                         mapOf(Revurderingsteg.Inntekt to Vurderingstatus.Vurdert),
                     ),
-                    grunnlagsdata = revurdering.grunnlagsdata.copy(
+                    grunnlagsdata = Grunnlagsdata.tryCreate(
+                        bosituasjon = revurdering.grunnlagsdata.bosituasjon,
                         fradragsgrunnlag = nonEmptyListOf(
                             fradragsgrunnlagArbeidsinntekt(periode = revurdering.periode, arbeidsinntekt = 5000.0).copy(
-                                id = it.grunnlagsdata.fradragsgrunnlag.first().id
+                                id = it.grunnlagsdata.fradragsgrunnlag.first().id,
                             ),
                         ),
                     ),
@@ -111,7 +113,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
         val request = LeggTilFradragsgrunnlagRequest(
             behandlingId = revurderingId,
             fradragsrunnlag = listOf(
-                Grunnlag.Fradragsgrunnlag(
+                Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 0.0,
@@ -120,7 +122,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     opprettet = fixedTidspunkt,
-                ),
+                ).orNull()!!,
             ),
         )
 
@@ -157,7 +159,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
         val request = LeggTilFradragsgrunnlagRequest(
             behandlingId = tidligereRevurdering.id,
             fradragsrunnlag = listOf(
-                Grunnlag.Fradragsgrunnlag(
+                Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 0.0,
@@ -166,7 +168,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     opprettet = fixedTidspunkt,
-                ),
+                ).orNull()!!,
             ),
         )
 
@@ -187,10 +189,9 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
     @Test
     fun `validerer fradragsgrunnlag`() {
         val revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021))
-        val revurderingMock = mock<OpprettetRevurdering> {
-
-            on { periode } doReturn revurderingsperiode
-            on { grunnlagsdata } doReturn Grunnlagsdata(
+        val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+            revurderingsperiode = revurderingsperiode,
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -199,11 +200,11 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
                         begrunnelse = null,
                     ),
                 ),
-            )
-        }
+            ),
+        )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn revurderingMock
+            on { hent(any()) } doReturn opprettetRevurdering
         }
 
         val revurderingService = RevurderingTestUtils.createRevurderingService(
@@ -213,31 +214,36 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
         val request = LeggTilFradragsgrunnlagRequest(
             behandlingId = revurderingId,
             fradragsrunnlag = listOf(
-                Grunnlag.Fradragsgrunnlag(
+                Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 0.0,
-                        periode = revurderingsperiode,
+                        periode = opprettetRevurdering.periode,
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     opprettet = fixedTidspunkt,
-                ),
-                Grunnlag.Fradragsgrunnlag(
+                ).orNull()!!,
+                Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Kontantstøtte,
                         månedsbeløp = 0.0,
-                        periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.juli(2021)),
+                        periode = Periode.create(
+                            fraOgMed = opprettetRevurdering.periode.fraOgMed.minusMonths(3),
+                            tilOgMed = opprettetRevurdering.periode.tilOgMed,
+                        ),
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     opprettet = fixedTidspunkt,
-                ),
+                ).orNull()!!,
             ),
         )
 
-        revurderingService.leggTilFradragsgrunnlag(
-            request,
-        ).shouldBeLeft(KunneIkkeLeggeTilFradragsgrunnlag.FradragsgrunnlagUtenforRevurderingsperiode)
+        shouldThrow<IllegalArgumentException> {
+            revurderingService.leggTilFradragsgrunnlag(
+                request,
+            )
+        }
     }
 }

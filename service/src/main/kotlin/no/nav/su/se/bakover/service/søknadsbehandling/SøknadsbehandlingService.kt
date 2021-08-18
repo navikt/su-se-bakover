@@ -1,26 +1,16 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Validator.valider
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.service.revurdering.LeggTilFradragsgrunnlagRequest
+import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
-import java.time.Clock
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -63,52 +53,8 @@ interface SøknadsbehandlingService {
 
     data class BeregnRequest(
         val behandlingId: UUID,
-        val fradrag: List<FradragRequest>,
         val begrunnelse: String?,
-    ) {
-        data class FradragRequest(
-            val periode: Periode?,
-            val type: Fradragstype,
-            val månedsbeløp: Double,
-            val utenlandskInntekt: UtenlandskInntekt?,
-            val tilhører: FradragTilhører,
-        )
-
-        sealed class UgyldigFradrag {
-            object IkkeLovMedFradragUtenforPerioden : UgyldigFradrag()
-            object UgyldigFradragstype : UgyldigFradrag()
-            object HarIkkeEktelle : UgyldigFradrag()
-        }
-
-        fun toFradrag(
-            stønadsperiode: Stønadsperiode,
-            harEktefelle: Boolean,
-            clock: Clock,
-        ): Either<UgyldigFradrag, List<Fradrag>> =
-            fradrag.map {
-                // map til grunnlag for å låne valideringer
-                Grunnlag.Fradragsgrunnlag(
-                    fradrag = FradragFactory.ny(
-                        type = it.type,
-                        månedsbeløp = it.månedsbeløp,
-                        periode = it.periode ?: stønadsperiode.periode,
-                        utenlandskInntekt = it.utenlandskInntekt,
-                        tilhører = it.tilhører,
-                    ),
-                    opprettet = Tidspunkt.now(clock),
-                )
-            }.valider(stønadsperiode.periode, harEktefelle)
-                .mapLeft { valideringsfeil ->
-                    when (valideringsfeil) {
-                        Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> UgyldigFradrag.UgyldigFradragstype
-                        Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UtenforBehandlingsperiode -> UgyldigFradrag.IkkeLovMedFradragUtenforPerioden
-                        Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.HarIkkeEktelle -> UgyldigFradrag.HarIkkeEktelle
-                    }
-                }
-                .map { fradragsgrunnlag ->
-                    fradragsgrunnlag.map { it.fradrag }
-                }
-    }
+    )
 
     sealed class KunneIkkeBeregne {
         object FantIkkeBehandling : KunneIkkeBeregne()

@@ -81,7 +81,7 @@ class RevurderingIngenEndringTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -393,7 +393,8 @@ class RevurderingIngenEndringTest {
         val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant, fixedClock).orNull()!!
         val vedtak = Vedtak.from(iverksattRevurdering, fixedClock)
         val journalførtVedtak = vedtak.journalfør { JournalpostId("journalført").right() }.orNull()!!
-        val vedtakMedDistribuertBrev = journalførtVedtak.distribuerBrev { BrevbestillingId("bestiltBrev").right() }.orNull()!!
+        val vedtakMedDistribuertBrev =
+            journalførtVedtak.distribuerBrev { BrevbestillingId("bestiltBrev").right() }.orNull()!!
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn revurderingTilAttestering

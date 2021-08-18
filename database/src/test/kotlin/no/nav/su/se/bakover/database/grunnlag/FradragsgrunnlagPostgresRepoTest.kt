@@ -26,7 +26,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
         withMigratedDb {
             val behandling = testDataHelper.nySøknadsbehandling()
 
-            val fradragsgrunnlag1 = Grunnlag.Fradragsgrunnlag(
+            val fradragsgrunnlag1 = Grunnlag.Fradragsgrunnlag.tryCreate(
                 fradrag = FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 5000.0,
@@ -37,9 +37,9 @@ internal class FradragsgrunnlagPostgresRepoTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 opprettet = fixedTidspunkt,
-            )
+            ).orNull()!!
 
-            val fradragsgrunnlag2 = Grunnlag.Fradragsgrunnlag(
+            val fradragsgrunnlag2 = Grunnlag.Fradragsgrunnlag.tryCreate(
                 fradrag = FradragFactory.ny(
                     type = Fradragstype.Kontantstøtte,
                     månedsbeløp = 15000.0,
@@ -48,7 +48,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
                     tilhører = FradragTilhører.EPS,
                 ),
                 opprettet = fixedTidspunkt,
-            )
+            ).orNull()!!
 
             grunnlagRepo.lagreFradragsgrunnlag(
                 behandlingId = behandling.id,
@@ -58,7 +58,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
                 ),
             )
 
-            grunnlagRepo.hentFradragsgrunnlag(behandling.id) shouldBe listOf(
+            testDataHelper.fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandling.id) shouldBe listOf(
                 fradragsgrunnlag1.copy(
                     fradrag = PersistertFradrag(
                         fradragstype = Fradragstype.Arbeidsinntekt,
@@ -86,7 +86,7 @@ internal class FradragsgrunnlagPostgresRepoTest {
                 fradragsgrunnlag = emptyList(),
             )
 
-            grunnlagRepo.hentFradragsgrunnlag(behandling.id) shouldBe emptyList()
+            testDataHelper.fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandling.id) shouldBe emptyList()
         }
     }
 }

@@ -156,7 +156,7 @@ internal class SøknadsbehandlingPostgresRepo(
         val stønadsperiode = stringOrNull("stønadsperiode")?.let { objectMapper.readValue<Stønadsperiode>(it) }
 
         val fnr = Fnr(string("fnr"))
-        val grunnlagsdata = Grunnlagsdata(
+        val grunnlagsdata = Grunnlagsdata.tryCreate(
             fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingId, session),
             bosituasjon = bosituasjongrunnlagRepo.hentBosituasjongrunnlag(behandlingId, session),
         )

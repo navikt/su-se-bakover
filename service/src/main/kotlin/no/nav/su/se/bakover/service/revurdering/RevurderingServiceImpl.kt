@@ -18,12 +18,9 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Validator.valider
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
-import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
 import no.nav.su.se.bakover.domain.grunnlag.harFlerEnnEnBosituasjonsperiode
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -52,6 +49,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
+import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -214,8 +212,9 @@ internal class RevurderingServiceImpl(
         // Dette kan oppstå når vi revurderer en revurdering. Da må vi vise eksisterende, men skal ikke preutfylle.
         val harFlerEnnEnBosituasjon = gjeldendeBosituasjon.harFlerEnnEnBosituasjonsperiode()
 
-        return gjeldendeVedtaksdata.grunnlagsdata.copy(
-            // Foreløpig støtter vi kun en aktiv bosituasjon, dersom det er fler, preutfyller vi ikke.
+        // Foreløpig støtter vi kun en aktiv bosituasjon, dersom det er fler, preutfyller vi ikke.
+        return Grunnlagsdata.tryCreate(
+            fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
             bosituasjon = if (harFlerEnnEnBosituasjon) emptyList() else listOf(
                 gjeldendeBosituasjon.singleFullstendigOrThrow(),
             ),
@@ -254,15 +253,6 @@ internal class RevurderingServiceImpl(
     override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, OpprettetRevurdering> {
         val revurdering = revurderingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
-
-        request.fradragsrunnlag.valider(revurdering.periode, revurdering.grunnlagsdata.bosituasjon.harEktefelle())
-            .getOrHandle {
-                return when (it) {
-                    Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> KunneIkkeLeggeTilFradragsgrunnlag.UgyldigFradragstypeForGrunnlag
-                    Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UtenforBehandlingsperiode -> KunneIkkeLeggeTilFradragsgrunnlag.FradragsgrunnlagUtenforRevurderingsperiode
-                    Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.HarIkkeEktelle -> KunneIkkeLeggeTilFradragsgrunnlag.HarIkkeEktelle
-                }.left()
-            }
 
         return revurdering.oppdaterFradragOgMarkerSomVurdert(request.fradragsrunnlag).mapLeft {
             KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(

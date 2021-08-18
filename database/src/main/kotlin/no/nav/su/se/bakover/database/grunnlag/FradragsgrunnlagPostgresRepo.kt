@@ -34,7 +34,7 @@ internal class FradragsgrunnlagPostgresRepo(
         }
     }
 
-    override fun hentFradragsgrunnlag(behandlingId: UUID): List<Grunnlag.Fradragsgrunnlag> {
+    fun hentFradragsgrunnlag(behandlingId: UUID): List<Grunnlag.Fradragsgrunnlag> {
         return dataSource.withSession { session ->
             hentFradragsgrunnlag(behandlingId, session)
         }
@@ -69,7 +69,7 @@ internal class FradragsgrunnlagPostgresRepo(
     }
 
     private fun Row.toFradragsgrunnlag(): Grunnlag.Fradragsgrunnlag {
-        return Grunnlag.Fradragsgrunnlag(
+        return Grunnlag.Fradragsgrunnlag.tryCreate(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
             fradrag = PersistertFradrag(
@@ -79,7 +79,7 @@ internal class FradragsgrunnlagPostgresRepo(
                 periode = Periode.create(fraOgMed = localDate("fraOgMed"), tilOgMed = localDate("tilOgMed")),
                 tilhører = FradragTilhører.valueOf(string("tilhører")),
             ),
-        )
+        ).orNull()!!
     }
 
     private fun lagre(fradragsgrunnlag: Grunnlag.Fradragsgrunnlag, behandlingId: UUID, session: Session) {

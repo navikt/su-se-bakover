@@ -2,11 +2,9 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import io.ktor.routing.Route
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
-import java.time.Clock
 
 internal fun Route.overordnetSøknadsbehandligRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
-    clock: Clock,
 ) {
     søknadsbehandlingRoutes(søknadsbehandlingService)
 
@@ -14,5 +12,5 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
 
     leggTilGrunnlagBosituasjonRoutes(søknadsbehandlingService)
 
-    leggTilGrunnlagFradrag(søknadsbehandlingService, clock)
+    leggTilGrunnlagFradrag(søknadsbehandlingService)
 }

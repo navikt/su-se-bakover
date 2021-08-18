@@ -92,7 +92,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         ).tilAttestering(Saksbehandler("saksa"), "")
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -131,7 +131,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
@@ -141,7 +141,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         val expected = uavklart.copy(
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     bosituasjon,
                 ),
@@ -176,7 +176,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         ).orNull()!!
 
         response shouldBe expected.copy(
-            grunnlagsdata = expected.grunnlagsdata.copy(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     bosituasjon.copy(
                         id = (response as Søknadsbehandling.Vilkårsvurdert).grunnlagsdata.bosituasjon.first().id,
@@ -238,7 +238,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         ).tilAttestering(Saksbehandler("saksa"), "")
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -279,7 +279,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             fnr = FnrGenerator.random(),
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
                         id = UUID.randomUUID(),
@@ -289,7 +289,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                 ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -300,7 +300,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         val expected = uavklart.copy(
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     bosituasjon,
                 ),
@@ -339,7 +339,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         ).orNull()!!
 
         response shouldBe expected.copy(
-            grunnlagsdata = expected.grunnlagsdata.copy(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     bosituasjon.copy(
                         id = (response as Søknadsbehandling.Vilkårsvurdert).grunnlagsdata.bosituasjon.first().id,

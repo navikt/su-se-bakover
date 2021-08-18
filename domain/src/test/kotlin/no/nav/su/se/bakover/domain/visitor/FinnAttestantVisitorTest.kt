@@ -157,7 +157,7 @@ internal class FinnAttestantVisitorTest {
         stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
         grunnlagsdata = Grunnlagsdata.EMPTY,
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-        attesteringer = Attesteringshistorikk.empty()
+        attesteringer = Attesteringshistorikk.empty(),
     )
 
     private val behandlingsinformasjonMedAlleVilkårOppfylt = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
@@ -196,7 +196,7 @@ internal class FinnAttestantVisitorTest {
             attestant = attestant,
             grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
             kommentar = "",
-            opprettet = Tidspunkt.now()
+            opprettet = Tidspunkt.now(),
         ),
     )
     private val underkjentAvslagSøknadsbehandling = tilAttesteringAvslagSøknadsbehandlng.tilUnderkjent(
@@ -204,7 +204,7 @@ internal class FinnAttestantVisitorTest {
             attestant = attestant,
             grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
             kommentar = "",
-            opprettet = Tidspunkt.now()
+            opprettet = Tidspunkt.now(),
         ),
     )
     private val iverksattInnvilgetSøknadsbehandling =
@@ -250,7 +250,7 @@ internal class FinnAttestantVisitorTest {
             Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
         ),
         forhåndsvarsel = null,
-        grunnlagsdata = Grunnlagsdata(
+        grunnlagsdata = Grunnlagsdata.tryCreate(
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
@@ -275,7 +275,7 @@ internal class FinnAttestantVisitorTest {
             formue = innvilgetFormueVilkår(periode),
         ),
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-        attesteringer = Attesteringshistorikk.empty()
+        attesteringer = Attesteringshistorikk.empty(),
     )
 
     private val beregnetRevurdering =

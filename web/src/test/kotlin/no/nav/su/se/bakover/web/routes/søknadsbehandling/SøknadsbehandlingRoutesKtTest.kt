@@ -165,7 +165,6 @@ internal class SøknadsbehandlingRoutesKtTest {
             services.søknadsbehandling.beregn(
                 BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
-                    fradrag = emptyList(),
                     begrunnelse = null,
                 ),
             )
@@ -220,7 +219,6 @@ internal class SøknadsbehandlingRoutesKtTest {
             services.søknadsbehandling.beregn(
                 BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
-                    fradrag = emptyList(),
                     begrunnelse = null,
                 ),
             )
@@ -284,7 +282,6 @@ internal class SøknadsbehandlingRoutesKtTest {
             services.søknadsbehandling.beregn(
                 BeregnRequest(
                     behandlingId = innvilgetVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
-                    fradrag = emptyList(),
                     begrunnelse = null,
                 ),
             )
@@ -310,7 +307,6 @@ internal class SøknadsbehandlingRoutesKtTest {
             services.søknadsbehandling.beregn(
                 BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
-                    fradrag = emptyList(),
                     begrunnelse = null,
                 ),
             )
@@ -375,7 +371,6 @@ internal class SøknadsbehandlingRoutesKtTest {
                     services.søknadsbehandling.beregn(
                         BeregnRequest(
                             behandlingId = søknadsbehandling.id,
-                            fradrag = emptyList(),
                             begrunnelse = null,
                         ),
                     )
@@ -504,7 +499,6 @@ internal class SøknadsbehandlingRoutesKtTest {
                     services.søknadsbehandling.beregn(
                         BeregnRequest(
                             behandlingId = søknadsbehandling.id,
-                            fradrag = emptyList(),
                             begrunnelse = null,
                         ),
                     )
@@ -685,7 +679,6 @@ internal class SøknadsbehandlingRoutesKtTest {
                 services.søknadsbehandling.beregn(
                     BeregnRequest(
                         behandlingId = objects.søknadsbehandling.id,
-                        fradrag = emptyList(),
                         begrunnelse = null,
                     ),
                 )

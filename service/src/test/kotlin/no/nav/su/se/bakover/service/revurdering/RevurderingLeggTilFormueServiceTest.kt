@@ -150,7 +150,8 @@ internal class RevurderingLeggTilFormueServiceTest {
     fun `skal ikke være lov å legge inn formue for eps, hvis man ikke har noen eps`() {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering.copy(
-                grunnlagsdata = opprettetRevurdering.grunnlagsdata.copy(
+                grunnlagsdata = Grunnlagsdata.tryCreate(
+                    fradragsgrunnlag = opprettetRevurdering.grunnlagsdata.fradragsgrunnlag,
                     bosituasjon = listOf(
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
                             id = UUID.randomUUID(),
@@ -432,9 +433,9 @@ internal class RevurderingLeggTilFormueServiceTest {
         fritekstTilBrev = "",
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = null,
-        grunnlagsdata = Grunnlagsdata(
+        grunnlagsdata = Grunnlagsdata.tryCreate(
             fradragsgrunnlag = listOf(
-                Grunnlag.Fradragsgrunnlag(
+                Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 10000.0,
@@ -443,7 +444,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     opprettet = fixedTidspunkt,
-                ),
+                ).orNull()!!,
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
@@ -477,9 +478,9 @@ internal class RevurderingLeggTilFormueServiceTest {
             nettoBeløp = 100,
             periodeList = emptyList(),
         ),
-        grunnlagsdata = Grunnlagsdata(
+        grunnlagsdata = Grunnlagsdata.tryCreate(
             fradragsgrunnlag = listOf(
-                Grunnlag.Fradragsgrunnlag(
+                Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 10000.0,
@@ -488,7 +489,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                         tilhører = FradragTilhører.BRUKER,
                     ),
                     opprettet = fixedTidspunkt,
-                ),
+                ).orNull()!!,
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(

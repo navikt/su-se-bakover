@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
@@ -15,7 +18,9 @@ import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.toAvslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.periode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -34,6 +39,15 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på revurderinger)
     abstract val fritekstTilBrev: String
 
+    sealed class KunneIkkeLeggeTilFradragsgrunnlag {
+        object IkkeLovÅLeggeTilFradragIDenneStatusen : KunneIkkeLeggeTilFradragsgrunnlag()
+        object GrunnlagetMåVæreInneforBehandlingen : KunneIkkeLeggeTilFradragsgrunnlag()
+        object PeriodeMåFyllesUt : KunneIkkeLeggeTilFradragsgrunnlag()
+    }
+
+    open fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> =
+        KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
+
     sealed class Vilkårsvurdert : Søknadsbehandling() {
         fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
             opprett(
@@ -49,7 +63,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 stønadsperiode,
                 grunnlagsdata,
                 vilkårsvurderinger,
-                attesteringer
+                attesteringer,
             )
 
         fun tilBeregnet(beregning: Beregning): Beregnet =
@@ -67,7 +81,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 stønadsperiode!!,
                 grunnlagsdata,
                 vilkårsvurderinger,
-                attesteringer
+                attesteringer,
             )
 
         companion object {
@@ -102,7 +116,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                             stønadsperiode!!,
                             grunnlagsdata,
                             vilkårsvurderinger,
-                            attesteringer
+                            attesteringer,
                         )
                     }
                     // TODO jah: Burde vi ikke sjekke Vilkår.Grunnlag også?
@@ -120,7 +134,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                             stønadsperiode!!,
                             grunnlagsdata,
                             vilkårsvurderinger,
-                            attesteringer
+                            attesteringer,
                         )
                     }
                     else -> {
@@ -137,7 +151,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                             stønadsperiode,
                             grunnlagsdata,
                             vilkårsvurderinger,
-                            attesteringer
+                            attesteringer,
                         )
                     }
                 }
@@ -166,6 +180,24 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
             }
+
+            override fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Innvilget> {
+                if (fradragsgrunnlag.isNotEmpty()) {
+                    if (fradragsgrunnlag.periode() != null) {
+                        if (!(periode inneholder fradragsgrunnlag.periode()!!)) {
+                            return KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInneforBehandlingen.left()
+                        }
+                    } else {
+                        return KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMåFyllesUt.left()
+                    }
+                }
+                return this.copy(
+                    grunnlagsdata = Grunnlagsdata.tryCreate(
+                        fradragsgrunnlag = fradragsgrunnlag,
+                        bosituasjon = this.grunnlagsdata.bosituasjon,
+                    ),
+                ).right()
+            }
         }
 
         data class Avslag(
@@ -191,7 +223,10 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 visitor.visit(this)
             }
 
-            fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler, fritekstTilBrev: String): TilAttestering.Avslag.UtenBeregning =
+            fun tilAttestering(
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                fritekstTilBrev: String,
+            ): TilAttestering.Avslag.UtenBeregning =
                 TilAttestering.Avslag.UtenBeregning(
                     id,
                     opprettet,
@@ -206,7 +241,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     stønadsperiode,
                     grunnlagsdata,
                     vilkårsvurderinger,
-                    attesteringer
+                    attesteringer,
                 )
 
             override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner()
@@ -261,7 +296,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 stønadsperiode,
                 grunnlagsdata,
                 vilkårsvurderinger,
-                attesteringer
+                attesteringer,
             )
 
         fun tilBeregnet(beregning: Beregning): Beregnet =
@@ -279,7 +314,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 stønadsperiode,
                 grunnlagsdata,
                 vilkårsvurderinger,
-                attesteringer
+                attesteringer,
             )
 
         fun tilSimulert(simulering: Simulering): Simulert =
@@ -298,7 +333,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 stønadsperiode,
                 grunnlagsdata,
                 vilkårsvurderinger,
-                attesteringer
+                attesteringer,
             )
 
         companion object {
@@ -349,7 +384,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         stønadsperiode,
                         grunnlagsdata,
                         vilkårsvurderinger,
-                        attesteringer
+                        attesteringer,
                     )
                 }
         }
@@ -407,7 +442,10 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 visitor.visit(this)
             }
 
-            fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler, fritekstTilBrev: String): TilAttestering.Avslag.MedBeregning =
+            fun tilAttestering(
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                fritekstTilBrev: String,
+            ): TilAttestering.Avslag.MedBeregning =
                 TilAttestering.Avslag.MedBeregning(
                     id,
                     opprettet,
@@ -423,7 +461,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     stønadsperiode,
                     grunnlagsdata,
                     vilkårsvurderinger,
-                    attesteringer
+                    attesteringer,
                 )
 
             override val avslagsgrunner: List<Avslagsgrunn> =
@@ -469,7 +507,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 stønadsperiode,
                 grunnlagsdata,
                 vilkårsvurderinger,
-                attesteringer
+                attesteringer,
             )
 
         fun tilBeregnet(beregning: Beregning): Beregnet =
@@ -487,7 +525,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 stønadsperiode,
                 grunnlagsdata,
                 vilkårsvurderinger,
-                attesteringer
+                attesteringer,
             )
 
         fun tilSimulert(simulering: Simulering): Simulert =
@@ -506,10 +544,13 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 stønadsperiode,
                 grunnlagsdata,
                 vilkårsvurderinger,
-                attesteringer
+                attesteringer,
             )
 
-        fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler, fritekstTilBrev: String): TilAttestering.Innvilget =
+        fun tilAttestering(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            fritekstTilBrev: String,
+        ): TilAttestering.Innvilget =
             TilAttestering.Innvilget(
                 id,
                 opprettet,
@@ -526,7 +567,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 stønadsperiode,
                 grunnlagsdata,
                 vilkårsvurderinger,
-                attesteringer
+                attesteringer,
             )
     }
 
@@ -791,7 +832,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 stønadsperiode,
                 grunnlagsdata,
                 vilkårsvurderinger,
-                attesteringer
+                attesteringer,
             )
 
         data class Innvilget(
@@ -839,7 +880,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     stønadsperiode,
                     grunnlagsdata,
                     vilkårsvurderinger,
-                    attesteringer
+                    attesteringer,
                 )
 
             fun tilSimulert(simulering: Simulering): Simulert =
@@ -858,7 +899,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     stønadsperiode,
                     grunnlagsdata,
                     vilkårsvurderinger,
-                    attesteringer
+                    attesteringer,
                 )
 
             fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Innvilget =
@@ -878,7 +919,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     stønadsperiode,
                     grunnlagsdata,
                     vilkårsvurderinger,
-                    attesteringer
+                    attesteringer,
                 )
         }
 
@@ -932,7 +973,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         stønadsperiode,
                         grunnlagsdata,
                         vilkårsvurderinger,
-                        attesteringer
+                        attesteringer,
                     )
 
                 fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Avslag.MedBeregning =
@@ -951,7 +992,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         stønadsperiode,
                         grunnlagsdata,
                         vilkårsvurderinger,
-                        attesteringer
+                        attesteringer,
                     )
 
                 override val avslagsgrunner: List<Avslagsgrunn> =
@@ -1000,7 +1041,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         stønadsperiode,
                         grunnlagsdata,
                         vilkårsvurderinger,
-                        attesteringer
+                        attesteringer,
                     )
 
                 override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner()

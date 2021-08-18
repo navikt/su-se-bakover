@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -325,11 +326,6 @@ sealed class KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {
 data class HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse(
     val grunnlagsdata: Grunnlagsdata,
     val vilkårsvurderinger: Vilkårsvurderinger,
-)
-
-data class LeggTilFradragsgrunnlagRequest(
-    val behandlingId: UUID,
-    val fradragsrunnlag: List<Grunnlag.Fradragsgrunnlag>,
 )
 
 data class LeggTilBosituasjongrunnlagRequest(
