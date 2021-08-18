@@ -4,76 +4,61 @@ import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.doReturnConsecutively
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.never
-import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
-import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
-import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
-import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Ident
-import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.satsgrunn
-import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
-import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
-import no.nav.su.se.bakover.service.fixedClock
-import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.test.attestant
+import no.nav.su.se.bakover.test.attestantNavn
+import no.nav.su.se.bakover.test.beregning
+import no.nav.su.se.bakover.test.brevbestillingIdVedtak
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.journalført
+import no.nav.su.se.bakover.test.journalførtOgDistribuertBrev
+import no.nav.su.se.bakover.test.journalpostIdVedtak
+import no.nav.su.se.bakover.test.oversendtUtbetalingMedKvittering
+import no.nav.su.se.bakover.test.person
+import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.saksbehandlerNavn
+import no.nav.su.se.bakover.test.saksnummer
+import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
+import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattAvslagMedBeregning
+import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Clock
@@ -83,539 +68,479 @@ internal class FerdigstillVedtakServiceImplTest {
 
     @Test
     fun `prøver ikke ferdigstille dersom kvittering er feil`() {
-        val utbetalingMock = mock<Utbetaling.OversendtUtbetaling.MedKvittering> {
-            on { kvittering } doReturn Kvittering(Kvittering.Utbetalingsstatus.FEIL, "")
-            on { id } doReturn utbetalingId
-            on { type } doReturn Utbetaling.UtbetalingsType.OPPHØR
+        FerdigstillVedtakServiceMocks {
+            service.ferdigstillVedtakEtterUtbetaling(
+                oversendtUtbetalingMedKvittering(
+                    utbetalingsstatus = Kvittering.Utbetalingsstatus.FEIL,
+                ),
+            )
         }
-        val mocks = FerdigstillVedtakServiceMocks()
-        mocks.ferdigstillVedtakService.ferdigstillVedtakEtterUtbetaling(utbetalingMock)
-        mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `prøver ikke å ferdigstille dersom utbetalingstype er gjennoppta`() {
-        val utbetalingMock = mock<Utbetaling.OversendtUtbetaling.MedKvittering> {
-            on { kvittering } doReturn Kvittering(Kvittering.Utbetalingsstatus.OK, "")
-            on { id } doReturn utbetalingId
-            on { type } doReturn Utbetaling.UtbetalingsType.GJENOPPTA
+        FerdigstillVedtakServiceMocks {
+            service.ferdigstillVedtakEtterUtbetaling(
+                oversendtUtbetalingMedKvittering(
+                    utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
+                    type = Utbetaling.UtbetalingsType.GJENOPPTA,
+                ),
+            )
         }
-        val mocks = FerdigstillVedtakServiceMocks()
-        mocks.ferdigstillVedtakService.ferdigstillVedtakEtterUtbetaling(utbetalingMock)
-        mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `prøver ikke å ferdigstille dersom utbetalingstype er stans`() {
-        val utbetalingMock = mock<Utbetaling.OversendtUtbetaling.MedKvittering> {
-            on { kvittering } doReturn Kvittering(Kvittering.Utbetalingsstatus.OK, "")
-            on { id } doReturn utbetalingId
-            on { type } doReturn Utbetaling.UtbetalingsType.STANS
+        FerdigstillVedtakServiceMocks {
+            service.ferdigstillVedtakEtterUtbetaling(
+                oversendtUtbetalingMedKvittering(
+                    utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
+                    type = Utbetaling.UtbetalingsType.STANS,
+                ),
+            )
         }
-        val mocks = FerdigstillVedtakServiceMocks()
-        mocks.ferdigstillVedtakService.ferdigstillVedtakEtterUtbetaling(utbetalingMock)
-        mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `ferdigstill NY kaster feil hvis utbetalinga ikke kan kobles til et vedtak`() {
-        val vedtak = innvilgetVedtak()
 
-        val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentForUtbetaling(any()) } doReturn null
-        }
+        val (sak, vedtak) = innvilgetSøknadsbehandlingVedtak()
 
-        val utbetalingMock = mock<Utbetaling.OversendtUtbetaling.MedKvittering> {
-            on { kvittering } doReturn Kvittering(Kvittering.Utbetalingsstatus.OK, "")
-            on { id } doReturn vedtak.utbetalingId
-            on { type } doReturn Utbetaling.UtbetalingsType.NY
+        FerdigstillVedtakServiceMocks(
+            vedtakRepo = mock {
+                on { hentForUtbetaling(any()) } doReturn null
+            },
+        ) {
+            assertThrows<FerdigstillVedtakServiceImpl.KunneIkkeFerdigstilleVedtakException> {
+                service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
+            }.message shouldContain vedtak.utbetalingId.toString()
+
+            verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
         }
-        val personServiceMock = mock<PersonService>()
-        assertThrows<FerdigstillVedtakServiceImpl.KunneIkkeFerdigstilleVedtakException> {
-            createService(
-                vedtakRepo = vedtakRepoMock,
-                personService = personServiceMock,
-            ).ferdigstillVedtakEtterUtbetaling(utbetalingMock)
-        }.message shouldContain vedtak.utbetalingId.toString()
-        verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
-        verifyNoMoreInteractions(personServiceMock, vedtakRepoMock)
     }
 
     @Test
     fun `ferdigstill NY kaster feil hvis man ikke finner person for journalpost`() {
-        val vedtak = innvilgetVedtak()
 
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
-        }
+        val (sak, vedtak) = innvilgetSøknadsbehandlingVedtak()
 
-        val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentForUtbetaling(any()) } doReturn vedtak
-        }
+        FerdigstillVedtakServiceMocks(
+            vedtakRepo = mock {
+                on { hentForUtbetaling(any()) } doReturn vedtak
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+            },
+        ) {
+            assertThrows<FerdigstillVedtakServiceImpl.KunneIkkeFerdigstilleVedtakException> {
+                service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
+            }.message shouldContain vedtak.id.toString()
 
-        val utbetalingMock = mock<Utbetaling.OversendtUtbetaling.MedKvittering> {
-            on { kvittering } doReturn Kvittering(Kvittering.Utbetalingsstatus.OK, "")
-            on { id } doReturn vedtak.utbetalingId
-            on { type } doReturn Utbetaling.UtbetalingsType.NY
+            verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
+            verify(personService).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
         }
-
-        assertThrows<FerdigstillVedtakServiceImpl.KunneIkkeFerdigstilleVedtakException> {
-            createService(
-                vedtakRepo = vedtakRepoMock,
-                personService = personServiceMock,
-            ).ferdigstillVedtakEtterUtbetaling(utbetalingMock)
-        }
-        verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
-        verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
-        verifyNoMoreInteractions(personServiceMock, vedtakRepoMock)
     }
 
     @Test
     fun `ferdigstillelse etter utbetaling kaster feil hvis journalføring feiler`() {
-        val vedtak = innvilgetVedtak()
 
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
-        }
+        val (sak, vedtak) = innvilgetSøknadsbehandlingVedtak()
 
-        val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturn graphApiResponse.displayName.right()
-        }
-
-        val brevServiceMock = mock<BrevService> {
-            on { journalførBrev(any(), any()) } doReturn KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost.left()
-        }
-
-        val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentForUtbetaling(any()) } doReturn vedtak
-        }
-
-        val utbetalingMock = mock<Utbetaling.OversendtUtbetaling.MedKvittering> {
-            on { kvittering } doReturn Kvittering(Kvittering.Utbetalingsstatus.OK, "")
-            on { id } doReturn vedtak.utbetalingId
-            on { type } doReturn Utbetaling.UtbetalingsType.OPPHØR
-        }
-
-        assertThrows<FerdigstillVedtakServiceImpl.KunneIkkeFerdigstilleVedtakException> {
-            createService(
-                vedtakRepo = vedtakRepoMock,
-                personService = personServiceMock,
-                microsoftGraphApiClient = microsoftGraphApiOppslagMock,
-                brevService = brevServiceMock,
-            ).ferdigstillVedtakEtterUtbetaling(utbetalingMock)
-        }
-
-        verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
-        verify(personServiceMock).hentPersonMedSystembruker(vedtak.behandling.fnr)
-        verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
-        verify(brevServiceMock).journalførBrev(any(), any())
-
-        verifyNoMoreInteractions(personServiceMock, vedtakRepoMock, microsoftGraphApiOppslagMock, brevServiceMock)
-    }
-
-    @Test
-    fun `ferdigstillelse etter utbetaling kaster feil hvis distribusjon feiler`() {
-        val vedtak = innvilgetVedtak()
-
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
-        }
-
-        val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturn graphApiResponse.displayName.right()
-        }
-
-        val brevServiceMock = mock<BrevService> {
-            on { journalførBrev(any(), any()) } doReturn iverksattJournalpostId.right()
-            on { distribuerBrev(any()) } doReturn KunneIkkeDistribuereBrev.left()
-        }
-
-        val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentForUtbetaling(any()) } doReturn vedtak
-        }
-
-        val utbetalingMock = mock<Utbetaling.OversendtUtbetaling.MedKvittering> {
-            on { kvittering } doReturn Kvittering(Kvittering.Utbetalingsstatus.OK, "")
-            on { id } doReturn vedtak.utbetalingId
-            on { type } doReturn Utbetaling.UtbetalingsType.OPPHØR
-        }
-
-        assertThrows<FerdigstillVedtakServiceImpl.KunneIkkeFerdigstilleVedtakException> {
-            createService(
-                vedtakRepo = vedtakRepoMock,
-                personService = personServiceMock,
-                microsoftGraphApiClient = microsoftGraphApiOppslagMock,
-                brevService = brevServiceMock,
-            ).ferdigstillVedtakEtterUtbetaling(utbetalingMock)
-        }
-        verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
-        verify(personServiceMock).hentPersonMedSystembruker(vedtak.behandling.fnr)
-        verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
-        verify(brevServiceMock).journalførBrev(any(), any())
-        verify(brevServiceMock).distribuerBrev(any())
-        verify(vedtakRepoMock).lagre(
-            argThat {
-                it shouldBe vedtak.copy(
-                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(
-                        journalpostId = iverksattJournalpostId,
-                    ),
-                )
+        FerdigstillVedtakServiceMocks(
+            vedtakRepo = mock {
+                on { hentForUtbetaling(any()) } doReturn vedtak
             },
-        )
-
-        verifyNoMoreInteractions(personServiceMock, vedtakRepoMock, microsoftGraphApiOppslagMock, brevServiceMock)
-    }
-
-    @Test
-    fun `ferdigstill NY etter utbetaling hopper over journalføring dersom det allerede er utført`() {
-        val vedtak = journalførtInnvilgetVedtak()
-
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
-        }
-
-        val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturn graphApiResponse.displayName.right()
-        }
-
-        val brevServiceMock = mock<BrevService> {
-            on { distribuerBrev(any()) } doReturn iverksattBrevbestillingId.right()
-        }
-
-        val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentForUtbetaling(any()) } doReturn vedtak
-        }
-
-        val oppgaveServiceMock = mock<OppgaveService> {
-            on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
-        }
-
-        val utbetalingMock = mock<Utbetaling.OversendtUtbetaling.MedKvittering> {
-            on { kvittering } doReturn Kvittering(Kvittering.Utbetalingsstatus.OK, "")
-            on { id } doReturn vedtak.utbetalingId
-            on { type } doReturn Utbetaling.UtbetalingsType.NY
-        }
-
-        val behandlingMetricsMock = mock<BehandlingMetrics>()
-
-        createService(
-            vedtakRepo = vedtakRepoMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = microsoftGraphApiOppslagMock,
-            brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            behandlingMetrics = behandlingMetricsMock,
-        ).ferdigstillVedtakEtterUtbetaling(utbetalingMock)
-
-        verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
-        verify(personServiceMock).hentPersonMedSystembruker(vedtak.behandling.fnr)
-        verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
-        verify(brevServiceMock, never()).journalførBrev(any(), any())
-        verify(brevServiceMock).distribuerBrev(iverksattJournalpostId)
-        verify(vedtakRepoMock).lagre(
-            argThat {
-                it shouldBe vedtak.copy(
-                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
-                        journalpostId = iverksattJournalpostId,
-                        brevbestillingId = iverksattBrevbestillingId,
-                    ),
-                )
+            personService = mock {
+                on { hentPersonMedSystembruker(any()) } doReturn person().right()
             },
-        )
-        verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
-        verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(vedtak.behandling.oppgaveId)
-        verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
-
-        verifyNoMoreInteractions(
-            personServiceMock,
-            vedtakRepoMock,
-            microsoftGraphApiOppslagMock,
-            brevServiceMock,
-            oppgaveServiceMock,
-            behandlingMetricsMock,
-        )
-    }
-
-    @Test
-    fun `ferdigstill OPPHØR etter utbetaling hopper over journalføring og distribusjon dersom det allerede er utført`() {
-        val vedtak = journalførtOgDistribuertInnvilgetVedtak()
-
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
-        }
-
-        val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturn graphApiResponse.displayName.right()
-        }
-
-        val brevServiceMock = mock<BrevService>()
-
-        val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentForUtbetaling(any()) } doReturn vedtak
-        }
-
-        val oppgaveServiceMock = mock<OppgaveService> {
-            on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
-        }
-
-        val behandlingMetricsMock = mock<BehandlingMetrics>()
-
-        val utbetalingMock = mock<Utbetaling.OversendtUtbetaling.MedKvittering> {
-            on { kvittering } doReturn Kvittering(Kvittering.Utbetalingsstatus.OK, "")
-            on { id } doReturn vedtak.utbetalingId
-            on { type } doReturn Utbetaling.UtbetalingsType.OPPHØR
-        }
-
-        createService(
-            vedtakRepo = vedtakRepoMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = microsoftGraphApiOppslagMock,
-            brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            behandlingMetrics = behandlingMetricsMock,
-        ).ferdigstillVedtakEtterUtbetaling(utbetalingMock)
-
-        verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
-        verify(personServiceMock).hentPersonMedSystembruker(vedtak.behandling.fnr)
-        verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
-        verify(brevServiceMock, never()).journalførBrev(any(), any())
-        verify(brevServiceMock, never()).distribuerBrev(any())
-        verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(vedtak.behandling.oppgaveId)
-        verify(vedtakRepoMock, never()).lagre(any())
-        verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
-        verifyNoMoreInteractions(behandlingMetricsMock)
-
-        verifyNoMoreInteractions(
-            personServiceMock,
-            vedtakRepoMock,
-            microsoftGraphApiOppslagMock,
-            brevServiceMock,
-            oppgaveServiceMock,
-            behandlingMetricsMock,
-        )
-    }
-
-    @Test
-    fun `ferdigstill NY etter utbetaling går fint`() {
-        val vedtak = innvilgetVedtak()
-
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
-        }
-
-        val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturnConsecutively listOf(
-                saksbehandler.navIdent.right(),
-                attestant.navIdent.right(),
-            )
-        }
-
-        val brevServiceMock = mock<BrevService> {
-            on { journalførBrev(any(), any()) } doReturn iverksattJournalpostId.right()
-            on { distribuerBrev(any()) } doReturn iverksattBrevbestillingId.right()
-        }
-
-        val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentForUtbetaling(any()) } doReturn vedtak
-        }
-
-        val oppgaveServiceMock = mock<OppgaveService> {
-            on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
-        }
-
-        val behandlingMetricsMock = mock<BehandlingMetrics>()
-        val utbetalingMock = mock<Utbetaling.OversendtUtbetaling.MedKvittering> {
-            on { kvittering } doReturn Kvittering(Kvittering.Utbetalingsstatus.OK, "")
-            on { id } doReturn vedtak.utbetalingId
-            on { type } doReturn Utbetaling.UtbetalingsType.NY
-        }
-
-        createService(
-            vedtakRepo = vedtakRepoMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = microsoftGraphApiOppslagMock,
-            brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            behandlingMetrics = behandlingMetricsMock,
-        ).ferdigstillVedtakEtterUtbetaling(utbetalingMock)
-
-        inOrder(
-            vedtakRepoMock,
-            personServiceMock,
-            microsoftGraphApiOppslagMock,
-            brevServiceMock,
-            oppgaveServiceMock,
-            behandlingMetricsMock,
+            microsoftGraphApiClient = mock {
+                on { hentNavnForNavIdent(saksbehandler) } doReturn saksbehandlerNavn.right()
+                on { hentNavnForNavIdent(attestant) } doReturn attestantNavn.right()
+            },
+            brevService = mock {
+                on {
+                    journalførBrev(
+                        any(),
+                        any(),
+                    )
+                } doReturn KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost.left()
+            },
         ) {
-            verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
-            verify(personServiceMock).hentPersonMedSystembruker(vedtak.behandling.fnr)
-            verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
-            verify(brevServiceMock).journalførBrev(
-                argThat {
-                    LagBrevRequest.InnvilgetVedtak(
-                        person = person,
+            assertThrows<FerdigstillVedtakServiceImpl.KunneIkkeFerdigstilleVedtakException> {
+                service.ferdigstillVedtakEtterUtbetaling(
+                    sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering,
+                )
+            }.message shouldContain vedtak.id.toString()
+
+            verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
+            verify(personService).hentPersonMedSystembruker(vedtak.behandling.fnr)
+            inOrder(microsoftGraphApiClient) {
+                verify(microsoftGraphApiClient).hentNavnForNavIdent(saksbehandler)
+                verify(microsoftGraphApiClient).hentNavnForNavIdent(attestant)
+            }
+            verify(brevService).journalførBrev(
+                request = argThat {
+                    it shouldBe LagBrevRequest.InnvilgetVedtak(
+                        person = person(),
                         beregning = vedtak.beregning,
-                        satsgrunn = vedtak.behandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
+                        satsgrunn = vedtak.behandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow()
+                            .satsgrunn(),
                         harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
-                        saksbehandlerNavn = vedtak.saksbehandler.navIdent,
-                        attestantNavn = vedtak.saksbehandler.navIdent,
+                        saksbehandlerNavn = saksbehandlerNavn,
+                        attestantNavn = attestantNavn,
                         fritekst = "",
                         forventetInntektStørreEnn0 = false,
                     )
                 },
-                argThat { vedtak.behandling.saksnummer },
+                saksnummer = argThat { it shouldBe saksnummer },
             )
-            verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.JOURNALFØRT)
-            verify(brevServiceMock).distribuerBrev(iverksattJournalpostId)
-            verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
-            verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(vedtak.behandling.oppgaveId)
-            verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
         }
     }
 
     @Test
-    fun `ferdigstill NY av regulering av grunnbeløp etter utbetaling skal ikke sende brev men skal sende oppgave`() {
-        val vedtak = innvilgetRevurdertVedtak()
+    fun `ferdigstillelse etter utbetaling kaster feil hvis distribusjon feiler`() {
 
-        val personServiceMock = mock<PersonService>()
+        val (sak, vedtak) = innvilgetSøknadsbehandlingVedtak()
 
-        val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag>()
-
-        val brevServiceMock = mock<BrevService>()
-
-        val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentForUtbetaling(any()) } doReturn vedtak
-        }
-
-        val oppgaveServiceMock = mock<OppgaveService> {
-            on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
-        }
-
-        val behandlingMetricsMock = mock<BehandlingMetrics>()
-
-        val utbetalingMock = mock<Utbetaling.OversendtUtbetaling.MedKvittering> {
-            on { kvittering } doReturn Kvittering(Kvittering.Utbetalingsstatus.OK, "")
-            on { id } doReturn vedtak.utbetalingId
-            on { type } doReturn Utbetaling.UtbetalingsType.NY
-        }
-
-        createService(
-            vedtakRepo = vedtakRepoMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = microsoftGraphApiOppslagMock,
-            brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            behandlingMetrics = behandlingMetricsMock,
-        ).ferdigstillVedtakEtterUtbetaling(utbetalingMock)
-
-        inOrder(
-            vedtakRepoMock,
-            personServiceMock,
-            microsoftGraphApiOppslagMock,
-            brevServiceMock,
-            oppgaveServiceMock,
-            behandlingMetricsMock,
+        FerdigstillVedtakServiceMocks(
+            vedtakRepo = mock {
+                on { hentForUtbetaling(any()) } doReturn vedtak
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any()) } doReturn person().right()
+            },
+            microsoftGraphApiClient = mock {
+                on { hentNavnForNavIdent(saksbehandler) } doReturn saksbehandlerNavn.right()
+                on { hentNavnForNavIdent(attestant) } doReturn attestantNavn.right()
+            },
+            brevService = mock {
+                on { journalførBrev(any(), any()) } doReturn journalpostIdVedtak.right()
+                on { distribuerBrev(any()) } doReturn KunneIkkeDistribuereBrev.left()
+            },
         ) {
-            verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
-            verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(vedtak.behandling.oppgaveId)
+            assertThrows<FerdigstillVedtakServiceImpl.KunneIkkeFerdigstilleVedtakException> {
+                service.ferdigstillVedtakEtterUtbetaling(
+                    sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering,
+                )
+            }.message shouldContain vedtak.id.toString()
+
+            verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
+            verify(personService).hentPersonMedSystembruker(vedtak.behandling.fnr)
+            inOrder(microsoftGraphApiClient) {
+                verify(microsoftGraphApiClient).hentNavnForNavIdent(saksbehandler)
+                verify(microsoftGraphApiClient).hentNavnForNavIdent(attestant)
+            }
+            verify(brevService).journalførBrev(
+                request = argThat {
+                    it shouldBe LagBrevRequest.InnvilgetVedtak(
+                        person = person(),
+                        beregning = vedtak.beregning,
+                        satsgrunn = vedtak.behandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow()
+                            .satsgrunn(),
+                        harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
+                        saksbehandlerNavn = saksbehandlerNavn,
+                        attestantNavn = attestantNavn,
+                        fritekst = "",
+                        forventetInntektStørreEnn0 = false,
+                    )
+                },
+                saksnummer = argThat { it shouldBe vedtak.behandling.saksnummer },
+            )
+            verify(brevService).distribuerBrev(journalpostIdVedtak)
+            verify(vedtakRepo).lagre(
+                argThat {
+                    it shouldBe vedtak.copy(
+                        journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(
+                            journalpostId = journalpostIdVedtak,
+                        ),
+                    )
+                },
+            )
+            verify(behandlingMetrics).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.JOURNALFØRT)
         }
-        verifyNoMoreInteractions(
-            vedtakRepoMock,
-            personServiceMock,
-            microsoftGraphApiOppslagMock,
-            brevServiceMock,
-            oppgaveServiceMock,
-            behandlingMetricsMock,
+    }
+
+    @Test
+    fun `ferdigstill NY etter utbetaling hopper over journalføring dersom det allerede er utført`() {
+
+        val (sak, vedtak) = journalførtInnvilgetVedtak()
+
+        FerdigstillVedtakServiceMocks(
+            vedtakRepo = mock {
+                on { hentForUtbetaling(any()) } doReturn vedtak
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any()) } doReturn person().right()
+            },
+            microsoftGraphApiClient = mock {
+                on { hentNavnForNavIdent(saksbehandler) } doReturn saksbehandlerNavn.right()
+                on { hentNavnForNavIdent(attestant) } doReturn attestantNavn.right()
+            },
+            brevService = mock {
+                on { distribuerBrev(any()) } doReturn brevbestillingIdVedtak.right()
+            },
+            oppgaveService = mock {
+                on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
+            },
+        ) {
+            service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
+
+            verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
+            verify(personService).hentPersonMedSystembruker(vedtak.behandling.fnr)
+            inOrder(microsoftGraphApiClient) {
+                verify(microsoftGraphApiClient).hentNavnForNavIdent(saksbehandler)
+                verify(microsoftGraphApiClient).hentNavnForNavIdent(attestant)
+            }
+            verify(brevService).distribuerBrev(journalpostIdVedtak)
+            verify(vedtakRepo).lagre(
+                argThat {
+                    it shouldBe vedtak.copy(
+                        journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                            journalpostId = journalpostIdVedtak,
+                            brevbestillingId = brevbestillingIdVedtak,
+                        ),
+                    )
+                },
+            )
+            verify(behandlingMetrics).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
+            verify(oppgaveService).lukkOppgaveMedSystembruker(vedtak.behandling.oppgaveId)
+            verify(behandlingMetrics).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
+        }
+    }
+
+    @Test
+    fun `ferdigstill OPPHØR etter utbetaling hopper over journalføring og distribusjon dersom det allerede er utført`() {
+
+        val (sak, vedtak) = journalførtOgDistribuertInnvilgetVedtak()
+
+        FerdigstillVedtakServiceMocks(
+            vedtakRepo = mock {
+                on { hentForUtbetaling(any()) } doReturn vedtak
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any()) } doReturn person().right()
+            },
+            microsoftGraphApiClient = mock {
+                on { hentNavnForNavIdent(saksbehandler) } doReturn saksbehandlerNavn.right()
+                on { hentNavnForNavIdent(attestant) } doReturn attestantNavn.right()
+            },
+            oppgaveService = mock {
+                on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
+            },
+        ) {
+            service.ferdigstillVedtakEtterUtbetaling(
+                sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering,
+            )
+
+            verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
+            verify(personService).hentPersonMedSystembruker(vedtak.behandling.fnr)
+            inOrder(microsoftGraphApiClient) {
+                verify(microsoftGraphApiClient).hentNavnForNavIdent(saksbehandler)
+                verify(microsoftGraphApiClient).hentNavnForNavIdent(attestant)
+            }
+            verify(oppgaveService).lukkOppgaveMedSystembruker(vedtak.behandling.oppgaveId)
+            verify(behandlingMetrics).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
+        }
+    }
+
+    @Test
+    fun `ferdigstill NY etter utbetaling går fint`() {
+
+        val (sak, vedtak) = innvilgetSøknadsbehandlingVedtak()
+
+        FerdigstillVedtakServiceMocks(
+            vedtakRepo = mock {
+                on { hentForUtbetaling(any()) } doReturn vedtak
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any()) } doReturn person().right()
+            },
+            microsoftGraphApiClient = mock {
+                on { hentNavnForNavIdent(saksbehandler) } doReturn saksbehandlerNavn.right()
+                on { hentNavnForNavIdent(attestant) } doReturn attestantNavn.right()
+            },
+            brevService = mock {
+                on { journalførBrev(any(), any()) } doReturn journalpostIdVedtak.right()
+                on { distribuerBrev(any()) } doReturn brevbestillingIdVedtak.right()
+            },
+            oppgaveService = mock {
+                on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
+            },
+        ) {
+            service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
+
+            inOrder(
+                vedtakRepo,
+                personService,
+                microsoftGraphApiClient,
+                brevService,
+                oppgaveService,
+                behandlingMetrics,
+            ) {
+                verify(vedtakRepo).hentForUtbetaling(argThat { it shouldBe vedtak.utbetalingId })
+                verify(personService).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
+                inOrder(microsoftGraphApiClient) {
+                    verify(microsoftGraphApiClient).hentNavnForNavIdent(saksbehandler)
+                    verify(microsoftGraphApiClient).hentNavnForNavIdent(attestant)
+                }
+                verify(brevService).journalførBrev(
+                    argThat {
+                        it shouldBe
+                            LagBrevRequest.InnvilgetVedtak(
+                                person = person(),
+                                beregning = vedtak.beregning,
+                                satsgrunn = vedtak.behandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow()
+                                    .satsgrunn(),
+                                harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
+                                saksbehandlerNavn = saksbehandlerNavn,
+                                attestantNavn = attestantNavn,
+                                fritekst = "",
+                                forventetInntektStørreEnn0 = false,
+                            )
+                    },
+                    argThat { it shouldBe vedtak.behandling.saksnummer },
+                )
+                verify(vedtakRepo).lagre(
+                    vedtak.copy(
+                        journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(
+                            journalpostIdVedtak,
+                        ),
+                    ),
+                )
+                verify(behandlingMetrics).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.JOURNALFØRT)
+                verify(brevService).distribuerBrev(argThat { it shouldBe journalpostIdVedtak })
+                verify(vedtakRepo).lagre(
+                    vedtak.copy(
+                        journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                            journalpostId = journalpostIdVedtak,
+                            brevbestillingId = brevbestillingIdVedtak,
+                        ),
+                    ),
+                )
+                verify(behandlingMetrics).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
+                verify(oppgaveService).lukkOppgaveMedSystembruker(argThat { it shouldBe vedtak.behandling.oppgaveId })
+                verify(behandlingMetrics).incrementInnvilgetCounter(argThat { it shouldBe BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE })
+            }
+        }
+    }
+
+    @Test
+    fun `ferdigstill NY av regulering av grunnbeløp etter utbetaling skal ikke sende brev men skal lukke oppgave`() {
+
+        val (sak, vedtak) = vedtakRevurderingIverksattInnvilget(
+            sakOgVedtakSomKanRevurderes = innvilgetSøknadsbehandlingVedtak(),
+            revurderingsårsak = Revurderingsårsak(
+                årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
+                Revurderingsårsak.Begrunnelse.create("Regulering av grunnbeløpet påvirket ytelsen."),
+            ),
         )
+
+        FerdigstillVedtakServiceMocks(
+            vedtakRepo = mock {
+                on { hentForUtbetaling(any()) } doReturn vedtak
+            },
+            oppgaveService = mock {
+                on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
+            },
+        ) {
+            service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger[1] as Utbetaling.OversendtUtbetaling.MedKvittering)
+
+            inOrder(
+                vedtakRepo,
+                personService,
+                microsoftGraphApiClient,
+                brevService,
+                oppgaveService,
+                behandlingMetrics,
+            ) {
+                verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
+                verify(oppgaveService).lukkOppgaveMedSystembruker(vedtak.behandling.oppgaveId)
+            }
+        }
     }
 
     @Test
     fun `svarer med feil hvis man ikke finner saksbehandler for journalpost`() {
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
-        }
-
-        val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturn MicrosoftGraphApiOppslagFeil.FantIkkeBrukerForNavIdent.left()
-        }
 
         val vedtak = avslagsVedtak()
 
-        val response = createService(
-            personService = personServiceMock,
-            microsoftGraphApiClient = microsoftGraphApiOppslagMock,
-        ).journalførOgLagre(vedtak)
-
-        response shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.FantIkkeNavnPåSaksbehandlerEllerAttestant.left()
-
-        inOrder(
-            personServiceMock,
-            microsoftGraphApiOppslagMock,
+        FerdigstillVedtakServiceMocks(
+            personService = mock {
+                on { hentPersonMedSystembruker(any()) } doReturn person().right()
+            },
+            microsoftGraphApiClient = mock {
+                on { hentNavnForNavIdent(saksbehandler) } doReturn MicrosoftGraphApiOppslagFeil.FantIkkeBrukerForNavIdent.left()
+            },
         ) {
-            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
-            verify(microsoftGraphApiOppslagMock).hentNavnForNavIdent(argThat { it shouldBe vedtak.saksbehandler })
+
+            service.journalførOgLagre(vedtak) shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.FantIkkeNavnPåSaksbehandlerEllerAttestant.left()
+
+            inOrder(
+                personService,
+                microsoftGraphApiClient,
+            ) {
+                verify(personService).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
+                verify(microsoftGraphApiClient).hentNavnForNavIdent(argThat { it shouldBe vedtak.saksbehandler })
+            }
         }
     }
 
     @Test
     fun `svarer med feil hvis man ikke finner person for journalpost`() {
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
-        }
 
         val vedtak = avslagsVedtak()
 
-        val response = createService(
-            personService = personServiceMock,
-        ).journalførOgLagre(vedtak)
+        FerdigstillVedtakServiceMocks(
+            personService = mock {
+                on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+            },
+        ) {
+            service.journalførOgLagre(vedtak) shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.FantIkkePerson.left()
 
-        response shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.FantIkkePerson.left()
-
-        inOrder(personServiceMock) {
-            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
+            inOrder(personService) {
+                verify(personService).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
+            }
         }
     }
 
     @Test
     fun `svarer med feil hvis man ikke finner attestant for journalpost`() {
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
-        }
-
-        val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturnConsecutively listOf(
-                graphApiResponse.displayName.right(),
-                MicrosoftGraphApiOppslagFeil.FantIkkeBrukerForNavIdent.left(),
-            )
-        }
 
         val vedtak = avslagsVedtak()
 
-        val response = createService(
-            personService = personServiceMock,
-            microsoftGraphApiClient = microsoftGraphApiOppslagMock,
-        ).journalførOgLagre(vedtak)
-
-        response shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.FantIkkeNavnPåSaksbehandlerEllerAttestant.left()
-
-        inOrder(
-            personServiceMock,
-            microsoftGraphApiOppslagMock,
+        FerdigstillVedtakServiceMocks(
+            personService = mock {
+                on { hentPersonMedSystembruker(any()) } doReturn person().right()
+            },
+            microsoftGraphApiClient = mock {
+                on { hentNavnForNavIdent(saksbehandler) } doReturn saksbehandlerNavn.right()
+                on { hentNavnForNavIdent(attestant) } doReturn MicrosoftGraphApiOppslagFeil.FantIkkeBrukerForNavIdent.left()
+            },
         ) {
-            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
-            verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
+            service.journalførOgLagre(vedtak) shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.FantIkkeNavnPåSaksbehandlerEllerAttestant.left()
+
+            inOrder(
+                personService,
+                microsoftGraphApiClient,
+            ) {
+                verify(personService).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
+                inOrder(microsoftGraphApiClient) {
+                    verify(microsoftGraphApiClient).hentNavnForNavIdent(saksbehandler)
+                    verify(microsoftGraphApiClient).hentNavnForNavIdent(attestant)
+                }
+            }
         }
     }
 
     @Test
     fun `sender ikke brev for revurdering ingen endring som ikke skal føre til brevutsending`() {
-        val vedtak = innvilgetVedtak().let {
+        val vedtak = innvilgetSøknadsbehandlingVedtak().second.let {
             it.copy(
                 behandling = IverksattRevurdering.IngenEndring(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(),
-                    oppgaveId = oppgaveId,
-                    beregning = TestBeregning,
+                    oppgaveId = it.behandling.oppgaveId,
+                    beregning = beregning(),
                     saksbehandler = saksbehandler,
                     attesteringer = Attesteringshistorikk.empty()
                         .leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
@@ -628,674 +553,586 @@ internal class FerdigstillVedtakServiceImplTest {
                     ),
                     skalFøreTilBrevutsending = false,
                     forhåndsvarsel = null,
-                    grunnlagsdata = Grunnlagsdata.EMPTY,
+                    grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                     vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                     informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
                 ),
             )
         }
-
-        val mocks = FerdigstillVedtakServiceMocks()
-        mocks.ferdigstillVedtakService.journalførOgLagre(vedtak) shouldBe vedtak.right()
-        mocks.verifyNoMoreInteractions()
+        FerdigstillVedtakServiceMocks {
+            service.journalførOgLagre(vedtak) shouldBe vedtak.right()
+        }
     }
 
     @Test
     fun `svarer med feil dersom journalføring av brev feiler`() {
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
-        }
-
-        val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturn graphApiResponse.displayName.right()
-        }
-
-        val brevServiceMock = mock<BrevService> {
-            on { journalførBrev(any(), any()) } doReturn KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost.left()
-        }
 
         val vedtak = avslagsVedtak()
 
-        val response = createService(
-            personService = personServiceMock,
-            microsoftGraphApiClient = microsoftGraphApiOppslagMock,
-            brevService = brevServiceMock,
-        ).journalførOgLagre(vedtak)
-
-        response shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.FeilVedJournalføring.left()
-
-        inOrder(
-            personServiceMock,
-            microsoftGraphApiOppslagMock,
-            brevServiceMock,
+        FerdigstillVedtakServiceMocks(
+            personService = mock {
+                on { hentPersonMedSystembruker(any()) } doReturn person().right()
+            },
+            microsoftGraphApiClient = mock {
+                on { hentNavnForNavIdent(saksbehandler) } doReturn saksbehandlerNavn.right()
+                on { hentNavnForNavIdent(attestant) } doReturn attestantNavn.right()
+            },
+            brevService = mock {
+                on {
+                    journalførBrev(
+                        any(),
+                        any(),
+                    )
+                } doReturn KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost.left()
+            },
         ) {
-            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
-            verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
-            verify(brevServiceMock).journalførBrev(any(), any())
+            service.journalførOgLagre(vedtak) shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.FeilVedJournalføring.left()
+
+            inOrder(
+                personService,
+                microsoftGraphApiClient,
+                brevService,
+            ) {
+                verify(personService).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
+                inOrder(microsoftGraphApiClient) {
+                    verify(microsoftGraphApiClient).hentNavnForNavIdent(saksbehandler)
+                    verify(microsoftGraphApiClient).hentNavnForNavIdent(attestant)
+                }
+                verify(brevService).journalførBrev(
+                    request = argThat {
+                        it shouldBe AvslagBrevRequest(
+                            person = person(),
+                            saksbehandlerNavn = saksbehandlerNavn,
+                            attestantNavn = attestantNavn,
+                            fritekst = "",
+                            forventetInntektStørreEnn0 = false,
+                            avslag = Avslag(
+                                Tidspunkt.now(fixedClock),
+                                avslagsgrunner = vedtak.avslagsgrunner,
+                                harEktefelle = false,
+                                beregning = vedtak.beregning,
+                            ),
+                        )
+                    },
+                    saksnummer = argThat { it shouldBe vedtak.behandling.saksnummer },
+                )
+            }
         }
     }
 
     @Test
     fun `svarer med feil dersom journalføring av brev allerede er utført`() {
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
-        }
-
-        val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturn graphApiResponse.displayName.right()
-        }
-
-        val vedtakRepoMock = mock<VedtakRepo>()
-        val brevServiceMock = mock<BrevService>()
 
         val vedtak = journalførtAvslagsVedtak()
-        val behandlingMetricsMock = mock<BehandlingMetrics>()
 
-        val response = createService(
-            personService = personServiceMock,
-            microsoftGraphApiClient = microsoftGraphApiOppslagMock,
-            vedtakRepo = vedtakRepoMock,
-            brevService = brevServiceMock,
-            behandlingMetrics = behandlingMetricsMock,
-        ).journalførOgLagre(vedtak)
-
-        response shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.AlleredeJournalført(
-            iverksattJournalpostId,
-        ).left()
-
-        inOrder(
-            personServiceMock,
-            microsoftGraphApiOppslagMock,
-            vedtakRepoMock,
+        FerdigstillVedtakServiceMocks(
+            personService = mock {
+                on { hentPersonMedSystembruker(any()) } doReturn person().right()
+            },
+            microsoftGraphApiClient = mock {
+                on { hentNavnForNavIdent(saksbehandler) } doReturn saksbehandlerNavn.right()
+                on { hentNavnForNavIdent(attestant) } doReturn attestantNavn.right()
+            },
         ) {
-            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
-            verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
-            verifyZeroInteractions(vedtakRepoMock, brevServiceMock, behandlingMetricsMock)
+            service.journalførOgLagre(vedtak) shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.AlleredeJournalført(
+                journalpostIdVedtak,
+            ).left()
+
+            inOrder(
+                personService,
+                microsoftGraphApiClient,
+                vedtakRepo,
+            ) {
+                verify(personService).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
+                inOrder(microsoftGraphApiClient) {
+                    verify(microsoftGraphApiClient).hentNavnForNavIdent(saksbehandler)
+                    verify(microsoftGraphApiClient).hentNavnForNavIdent(attestant)
+                }
+            }
         }
     }
 
     @Test
     fun `oppdaterer vedtak og lagrer dersom journalføring går fint`() {
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
-        }
-
-        val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturnConsecutively listOf(
-                saksbehandler.navIdent.right(),
-                attestant.navIdent.right(),
-            )
-        }
-
-        val brevServiceMock = mock<BrevService> {
-            on { journalførBrev(any(), any()) } doReturn iverksattJournalpostId.right()
-        }
-
-        val vedtakRepoMock = mock<VedtakRepo>()
-
-        val behandlingMetricsMock = mock<BehandlingMetrics>()
 
         val vedtak = avslagsVedtak()
 
-        val response = createService(
-            personService = personServiceMock,
-            microsoftGraphApiClient = microsoftGraphApiOppslagMock,
-            brevService = brevServiceMock,
-            vedtakRepo = vedtakRepoMock,
-            behandlingMetrics = behandlingMetricsMock,
-        ).journalførOgLagre(vedtak)
-
-        response shouldBe vedtak.copy(
-            journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(
-                iverksattJournalpostId,
-            ),
-        ).right()
-
-        inOrder(
-            personServiceMock,
-            microsoftGraphApiOppslagMock,
-            brevServiceMock,
-            vedtakRepoMock,
-            behandlingMetricsMock,
+        FerdigstillVedtakServiceMocks(
+            personService = mock {
+                on { hentPersonMedSystembruker(any()) } doReturn person().right()
+            },
+            microsoftGraphApiClient = mock {
+                on { hentNavnForNavIdent(saksbehandler) } doReturn saksbehandlerNavn.right()
+                on { hentNavnForNavIdent(attestant) } doReturn attestantNavn.right()
+            },
+            brevService = mock {
+                on { journalførBrev(any(), any()) } doReturn journalpostIdVedtak.right()
+            },
         ) {
-            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
-            verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
-            verify(brevServiceMock).journalførBrev(
-                argThat {
-                    it shouldBe AvslagBrevRequest(
-                        person = person,
-                        avslag = Avslag(
-                            Tidspunkt.now(fixedClock),
-                            avslagsgrunner = vedtak.avslagsgrunner,
-                            harEktefelle = false,
-                            beregning = vedtak.beregning,
-                        ),
-                        saksbehandlerNavn = vedtak.saksbehandler.navIdent,
-                        attestantNavn = vedtak.attestant.navIdent,
-                        fritekst = "",
-                        forventetInntektStørreEnn0 = false,
-                    )
-                },
-                argThat { it shouldBe vedtak.behandling.saksnummer },
-            )
-            verify(vedtakRepoMock).lagre(
-                vedtak.copy(
-                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(
-                        iverksattJournalpostId,
-                    ),
+            service.journalførOgLagre(vedtak) shouldBe vedtak.copy(
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(
+                    journalpostIdVedtak,
                 ),
-            )
-            verify(behandlingMetricsMock).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT)
+            ).right()
+
+            inOrder(
+                personService,
+                microsoftGraphApiClient,
+                brevService,
+                vedtakRepo,
+                behandlingMetrics,
+            ) {
+                verify(personService).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
+                inOrder(microsoftGraphApiClient) {
+                    verify(microsoftGraphApiClient).hentNavnForNavIdent(saksbehandler)
+                    verify(microsoftGraphApiClient).hentNavnForNavIdent(attestant)
+                }
+                verify(brevService).journalførBrev(
+                    argThat {
+                        it shouldBe AvslagBrevRequest(
+                            person = person(),
+                            avslag = Avslag(
+                                Tidspunkt.now(fixedClock),
+                                avslagsgrunner = vedtak.avslagsgrunner,
+                                harEktefelle = false,
+                                beregning = vedtak.beregning,
+                            ),
+                            saksbehandlerNavn = saksbehandlerNavn,
+                            attestantNavn = attestantNavn,
+                            fritekst = "",
+                            forventetInntektStørreEnn0 = false,
+                        )
+                    },
+                    argThat { it shouldBe vedtak.behandling.saksnummer },
+                )
+                verify(vedtakRepo).lagre(
+                    vedtak.copy(
+                        journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(
+                            journalpostIdVedtak,
+                        ),
+                    ),
+                )
+                verify(behandlingMetrics).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT)
+            }
         }
     }
 
     @Test
     fun `svarer med feil dersom brevdistribusjon feiler`() {
-        val brevServiceMock = mock<BrevService> {
-            on { distribuerBrev(any()) } doReturn KunneIkkeDistribuereBrev.left()
-        }
 
         val vedtak = journalførtAvslagsVedtak()
 
-        val response = createService(
-            brevService = brevServiceMock,
-        ).distribuerOgLagre(vedtak)
+        FerdigstillVedtakServiceMocks(
+            brevService = mock {
+                on { distribuerBrev(any()) } doReturn KunneIkkeDistribuereBrev.left()
+            },
+        ) {
+            service.distribuerOgLagre(vedtak) shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeDistribuereBrev.FeilVedDistribusjon(
+                journalpostIdVedtak,
+            ).left()
 
-        response shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeDistribuereBrev.FeilVedDistribusjon(
-            iverksattJournalpostId,
-        ).left()
-
-        inOrder(brevServiceMock) {
-            verify(brevServiceMock).distribuerBrev(iverksattJournalpostId)
+            inOrder(brevService) {
+                verify(brevService).distribuerBrev(journalpostIdVedtak)
+            }
         }
     }
 
     @Test
     fun `svarer med feil dersom distribusjon ikke er journalført først`() {
-        val vedtakRepoMock = mock<VedtakRepo>()
-        val brevServiceMock = mock<BrevService>()
 
         val vedtak = avslagsVedtak()
 
-        val response = createService(
-            vedtakRepo = vedtakRepoMock,
-            brevService = brevServiceMock,
-        ).distribuerOgLagre(vedtak)
-
-        response shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeDistribuereBrev.MåJournalføresFørst.left()
-
-        inOrder(
-            vedtakRepoMock,
-            brevServiceMock,
-        ) {
-            verifyZeroInteractions(vedtakRepoMock, brevServiceMock)
+        FerdigstillVedtakServiceMocks {
+            service.distribuerOgLagre(vedtak) shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeDistribuereBrev.MåJournalføresFørst.left()
         }
     }
 
     @Test
     fun `svarer med feil dersom distribusjon av brev allerede er utført`() {
-        val vedtakRepoMock = mock<VedtakRepo>()
-        val brevServiceMock = mock<BrevService>()
 
         val vedtak = journalførtOgDistribuertAvslagsVedtak()
 
-        val response = createService(
-            vedtakRepo = vedtakRepoMock,
-            brevService = brevServiceMock,
-        ).distribuerOgLagre(vedtak)
-
-        response shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeDistribuereBrev.AlleredeDistribuert(
-            iverksattJournalpostId,
-        ).left()
-
-        inOrder(
-            vedtakRepoMock,
-            brevServiceMock,
-        ) {
-            verifyZeroInteractions(vedtakRepoMock, brevServiceMock)
+        FerdigstillVedtakServiceMocks {
+            service.distribuerOgLagre(vedtak) shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeDistribuereBrev.AlleredeDistribuert(
+                journalpostIdVedtak,
+            ).left()
         }
     }
 
     @Test
     fun `oppdaterer vedtak og lagrer dersom brevdistribusjon går fint`() {
-        val brevServiceMock = mock<BrevService> {
-            on { distribuerBrev(any()) } doReturn iverksattBrevbestillingId.right()
-        }
-
-        val vedtakRepoMock = mock<VedtakRepo>()
-
-        val behandlingMetricsMock = mock<BehandlingMetrics>()
 
         val vedtak = journalførtAvslagsVedtak()
 
-        val response = createService(
-            brevService = brevServiceMock,
-            vedtakRepo = vedtakRepoMock,
-            behandlingMetrics = behandlingMetricsMock,
-        ).distribuerOgLagre(vedtak)
-
-        response shouldBe vedtak.copy(
-            journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
-                iverksattJournalpostId,
-                iverksattBrevbestillingId,
-            ),
-        ).right()
-
-        inOrder(
-            brevServiceMock,
-            vedtakRepoMock,
-            behandlingMetricsMock,
+        FerdigstillVedtakServiceMocks(
+            brevService = mock {
+                on { distribuerBrev(any()) } doReturn brevbestillingIdVedtak.right()
+            },
         ) {
-            verify(brevServiceMock).distribuerBrev(iverksattJournalpostId)
-            verify(vedtakRepoMock).lagre(
-                vedtak.copy(
-                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
-                        iverksattJournalpostId,
-                        iverksattBrevbestillingId,
-                    ),
+            service.distribuerOgLagre(vedtak) shouldBe vedtak.copy(
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                    journalpostIdVedtak,
+                    brevbestillingIdVedtak,
                 ),
-            )
-            verify(behandlingMetricsMock).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV)
+            ).right()
+
+            inOrder(
+                brevService,
+                vedtakRepo,
+                behandlingMetrics,
+            ) {
+                verify(brevService).distribuerBrev(journalpostIdVedtak)
+                verify(vedtakRepo).lagre(
+                    vedtak.copy(
+                        journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                            journalpostIdVedtak,
+                            brevbestillingIdVedtak,
+                        ),
+                    ),
+                )
+                verify(behandlingMetrics).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV)
+            }
         }
     }
 
     @Test
     fun `svarer med feil dersom lukking av oppgave feiler`() {
-        val oppgaveServiceMock = mock<OppgaveService> {
-            on { lukkOppgave(any()) } doReturn KunneIkkeLukkeOppgave.left()
-        }
 
         val vedtak = journalførtOgDistribuertAvslagsVedtak()
 
-        val behandlingMetricsMock = mock<BehandlingMetrics>()
-
-        val response = createService(
-            oppgaveService = oppgaveServiceMock,
-            behandlingMetrics = behandlingMetricsMock,
-        ).lukkOppgaveMedBruker(vedtak)
-
-        response shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave.left()
-
-        inOrder(
-            oppgaveServiceMock,
-            behandlingMetricsMock,
+        FerdigstillVedtakServiceMocks(
+            oppgaveService = mock {
+                on { lukkOppgave(any()) } doReturn KunneIkkeLukkeOppgave.left()
+            },
         ) {
-            verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
-            verifyZeroInteractions(behandlingMetricsMock)
+            service.lukkOppgaveMedBruker(vedtak) shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave.left()
+
+            inOrder(
+                oppgaveService,
+                behandlingMetrics,
+            ) {
+                verify(oppgaveService).lukkOppgave(vedtak.behandling.oppgaveId)
+            }
         }
     }
 
     @Test
     fun `opprettelse av manglende journalpost og brevbestilling gjør ingenting hvis ingenting mangler`() {
-        val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentUtenJournalpost() } doReturn emptyList()
-            on { hentUtenBrevbestilling() } doReturn emptyList()
-        }
 
-        val behandlingMetricsMock = mock<BehandlingMetrics>()
-
-        val oppgaveServiceMock = mock<OppgaveService>()
-
-        val response = createService(
-            vedtakRepo = vedtakRepoMock,
-            behandlingMetrics = behandlingMetricsMock,
-            oppgaveService = oppgaveServiceMock,
-        ).opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver()
-
-        response shouldBe FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
-            journalpostresultat = emptyList(),
-            brevbestillingsresultat = emptyList(),
-        )
-
-        inOrder(
-            vedtakRepoMock,
-            oppgaveServiceMock,
+        FerdigstillVedtakServiceMocks(
+            vedtakRepo = mock {
+                on { hentUtenJournalpost() } doReturn emptyList()
+                on { hentUtenBrevbestilling() } doReturn emptyList()
+            },
         ) {
-            verify(vedtakRepoMock).hentUtenJournalpost()
-            verify(vedtakRepoMock).hentUtenBrevbestilling()
+            service.opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver() shouldBe FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+                journalpostresultat = emptyList(),
+                brevbestillingsresultat = emptyList(),
+            )
+
+            inOrder(
+                vedtakRepo,
+                oppgaveService,
+            ) {
+                verify(vedtakRepo).hentUtenJournalpost()
+                verify(vedtakRepo).hentUtenBrevbestilling()
+            }
         }
-        verifyNoMoreInteractions(vedtakRepoMock, behandlingMetricsMock)
-        verifyNoMoreInteractions(oppgaveServiceMock)
     }
 
     @Test
     fun `opprettelse av manglende journalpost feiler teknisk`() {
+
         val vedtak = avslagsVedtak()
 
-        val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentUtenJournalpost() } doReturn listOf(vedtak)
-            on { hentUtenBrevbestilling() } doReturn emptyList()
-        }
-
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
-        }
-
-        val oppgaveServiceMock = mock<OppgaveService>() {
-            on { lukkOppgave(any()) } doReturn Unit.right()
-        }
-
-        val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturnConsecutively listOf(
-                "saksa".right(),
-                "atta".right(),
-            )
-        }
-
-        val brevServiceMock = mock<BrevService> {
-            on { journalførBrev(any(), any()) } doReturn KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost.left()
-        }
-
-        val response = createService(
-            vedtakRepo = vedtakRepoMock,
-            brevService = brevServiceMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = microsoftGraphApiOppslagMock,
-            oppgaveService = oppgaveServiceMock,
-        ).opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver()
-
-        response shouldBe FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
-            journalpostresultat = listOf(
-                FerdigstillVedtakService.KunneIkkeOppretteJournalpostForIverksetting(
-                    sakId = vedtak.behandling.sakId,
-                    behandlingId = vedtak.behandling.id,
-                    grunn = "FeilVedJournalføring",
-                ).left(),
-            ),
-            brevbestillingsresultat = emptyList(),
-        )
-
-        inOrder(
-            vedtakRepoMock,
-            brevServiceMock,
-            oppgaveServiceMock,
-        ) {
-            verify(vedtakRepoMock).hentUtenJournalpost()
-            verify(brevServiceMock).journalførBrev(
-                argThat {
-                    it shouldBe AvslagBrevRequest(
-                        person = person,
-                        avslag = Avslag(
-                            Tidspunkt.now(fixedClock),
-                            avslagsgrunner = vedtak.avslagsgrunner,
-                            harEktefelle = false,
-                            beregning = vedtak.beregning,
-                        ),
-                        saksbehandlerNavn = "saksa",
-                        attestantNavn = "atta",
-                        fritekst = "",
-                        forventetInntektStørreEnn0 = false,
+        FerdigstillVedtakServiceMocks(
+            vedtakRepo = mock {
+                on { hentUtenJournalpost() } doReturn listOf(vedtak)
+                on { hentUtenBrevbestilling() } doReturn emptyList()
+            },
+            brevService = mock {
+                on {
+                    journalførBrev(
+                        any(),
+                        any(),
                     )
-                },
-                argThat { it shouldBe vedtak.behandling.saksnummer },
+                } doReturn KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost.left()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any()) } doReturn person().right()
+            },
+            microsoftGraphApiClient = mock {
+                on { hentNavnForNavIdent(saksbehandler) } doReturn saksbehandlerNavn.right()
+                on { hentNavnForNavIdent(attestant) } doReturn attestantNavn.right()
+            },
+            oppgaveService = mock {
+                on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
+            },
+        ) {
+            service.opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver() shouldBe FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+                journalpostresultat = listOf(
+                    FerdigstillVedtakService.KunneIkkeOppretteJournalpostForIverksetting(
+                        sakId = vedtak.behandling.sakId,
+                        behandlingId = vedtak.behandling.id,
+                        grunn = "FeilVedJournalføring",
+                    ).left(),
+                ),
+                brevbestillingsresultat = emptyList(),
             )
-            verify(vedtakRepoMock).hentUtenBrevbestilling()
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe vedtak.behandling.oppgaveId })
+            inOrder(
+                vedtakRepo,
+                brevService,
+                oppgaveService,
+                personService,
+                microsoftGraphApiClient,
+                behandlingMetrics,
+            ) {
+                verify(vedtakRepo).hentUtenJournalpost()
+                verify(personService).hentPersonMedSystembruker(vedtak.behandling.fnr)
+                inOrder(microsoftGraphApiClient) {
+                    verify(microsoftGraphApiClient).hentNavnForNavIdent(saksbehandler)
+                    verify(microsoftGraphApiClient).hentNavnForNavIdent(attestant)
+                }
+                verify(brevService).journalførBrev(
+                    argThat {
+                        it shouldBe AvslagBrevRequest(
+                            person = person(),
+                            avslag = Avslag(
+                                Tidspunkt.now(fixedClock),
+                                avslagsgrunner = vedtak.avslagsgrunner,
+                                harEktefelle = false,
+                                beregning = vedtak.beregning,
+                            ),
+                            saksbehandlerNavn = saksbehandlerNavn,
+                            attestantNavn = attestantNavn,
+                            fritekst = "",
+                            forventetInntektStørreEnn0 = false,
+                        )
+                    },
+                    argThat { it shouldBe vedtak.behandling.saksnummer },
+                )
+                verify(vedtakRepo).hentUtenBrevbestilling()
+                verify(oppgaveService).lukkOppgaveMedSystembruker(argThat { it shouldBe vedtak.behandling.oppgaveId })
+                verify(behandlingMetrics).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE)
+            }
         }
-        verifyNoMoreInteractions(vedtakRepoMock, brevServiceMock)
     }
 
     @Test
-    fun `oppretter manglende jornalpost for vedtak`() {
+    fun `oppretter manglende journalpost for vedtak`() {
+
         val avslagsVedtak = avslagsVedtak()
 
-        val personServiceMock = mock<PersonService> {
-            on { hentPersonMedSystembruker(any()) } doReturn person.right()
-        }
-
-        val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturn graphApiResponse.displayName.right()
-        }
-
-        val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentUtenJournalpost() } doReturn listOf(avslagsVedtak)
-            on { hentUtenBrevbestilling() } doReturn emptyList()
-        }
-
-        val brevServiceMock = mock<BrevService> {
-            on { journalførBrev(any(), any()) } doReturn iverksattJournalpostId.right()
-        }
-
-        val behandlingMetricsMock = mock<BehandlingMetrics>()
-        val oppgaveServiceMock = mock<OppgaveService>() {
-            on { lukkOppgave(any()) } doReturn Unit.right()
-        }
-
-        val response = createService(
-            vedtakRepo = vedtakRepoMock,
-            brevService = brevServiceMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = microsoftGraphApiOppslagMock,
-            behandlingMetrics = behandlingMetricsMock,
-            oppgaveService = oppgaveServiceMock,
-        ).opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver()
-
-        response shouldBe FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
-            journalpostresultat = listOf(
-                FerdigstillVedtakService.OpprettetJournalpostForIverksetting(
-                    sakId = avslagsVedtak.behandling.sakId,
-                    behandlingId = avslagsVedtak.behandling.id,
-                    journalpostId = iverksattJournalpostId,
-                ).right(),
-            ),
-            brevbestillingsresultat = emptyList(),
-        )
-
-        inOrder(
-            vedtakRepoMock,
-            brevServiceMock,
-            behandlingMetricsMock,
-            oppgaveServiceMock,
+        FerdigstillVedtakServiceMocks(
+            vedtakRepo = mock {
+                on { hentUtenJournalpost() } doReturn listOf(avslagsVedtak)
+                on { hentUtenBrevbestilling() } doReturn emptyList()
+            },
+            brevService = mock {
+                on { journalførBrev(any(), any()) } doReturn journalpostIdVedtak.right()
+            },
+            personService = mock {
+                on { hentPersonMedSystembruker(any()) } doReturn person().right()
+            },
+            microsoftGraphApiClient = mock {
+                on { hentNavnForNavIdent(saksbehandler) } doReturn saksbehandlerNavn.right()
+                on { hentNavnForNavIdent(attestant) } doReturn attestantNavn.right()
+            },
+            oppgaveService = mock {
+                on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
+            },
         ) {
-            verify(vedtakRepoMock).hentUtenJournalpost()
-            verify(brevServiceMock).journalførBrev(any(), any())
-            verify(vedtakRepoMock).lagre(
-                argThat {
-                    it shouldBe avslagsVedtak.copy(
-                        journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(
-                            iverksattJournalpostId,
-                        ),
-                    )
-                },
+            service.opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver() shouldBe FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+                journalpostresultat = listOf(
+                    FerdigstillVedtakService.OpprettetJournalpostForIverksetting(
+                        sakId = avslagsVedtak.behandling.sakId,
+                        behandlingId = avslagsVedtak.behandling.id,
+                        journalpostId = journalpostIdVedtak,
+                    ).right(),
+                ),
+                brevbestillingsresultat = emptyList(),
             )
-            verify(behandlingMetricsMock).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT)
-            verify(vedtakRepoMock).hentUtenBrevbestilling()
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe avslagsVedtak.behandling.oppgaveId })
+
+            inOrder(
+                vedtakRepo,
+                brevService,
+                behandlingMetrics,
+                oppgaveService,
+                personService,
+                microsoftGraphApiClient,
+            ) {
+                verify(vedtakRepo).hentUtenJournalpost()
+                verify(personService).hentPersonMedSystembruker(argThat { it shouldBe avslagsVedtak.behandling.fnr })
+                inOrder(microsoftGraphApiClient) {
+                    verify(microsoftGraphApiClient).hentNavnForNavIdent(saksbehandler)
+                    verify(microsoftGraphApiClient).hentNavnForNavIdent(attestant)
+                }
+                verify(brevService).journalførBrev(
+                    request = argThat {
+                        it shouldBe AvslagBrevRequest(
+                            person = person(),
+                            saksbehandlerNavn = saksbehandlerNavn,
+                            attestantNavn = attestantNavn,
+                            fritekst = "",
+                            forventetInntektStørreEnn0 = false,
+                            avslag = Avslag(
+                                Tidspunkt.now(fixedClock),
+                                avslagsgrunner = avslagsVedtak.avslagsgrunner,
+                                harEktefelle = false,
+                                beregning = avslagsVedtak.beregning,
+                            ),
+                        )
+                    },
+                    saksnummer = argThat { it shouldBe avslagsVedtak.behandling.saksnummer },
+                )
+                verify(vedtakRepo).lagre(
+                    argThat {
+                        it shouldBe avslagsVedtak.copy(
+                            journalføringOgBrevdistribusjon = journalført,
+                        )
+                    },
+                )
+                verify(behandlingMetrics).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT)
+                verify(vedtakRepo).hentUtenBrevbestilling()
+                verify(oppgaveService).lukkOppgaveMedSystembruker(argThat { it shouldBe avslagsVedtak.behandling.oppgaveId })
+                verify(behandlingMetrics).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE)
+            }
         }
     }
 
     @Test
     fun `oppretter manglende brevbestilling for journalført vedtak`() {
-        val innvilgelseUtenBrevbestilling = journalførtInnvilgetVedtak()
-        val utbetalingMock = mock<Utbetaling.OversendtUtbetaling.MedKvittering> {
-            on { kvittering } doReturn Kvittering(Kvittering.Utbetalingsstatus.OK, "")
-        }
+        val (sak, innvilgelseUtenBrevbestilling) = journalførtInnvilgetVedtak()
 
-        val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentUtenJournalpost() } doReturn emptyList()
-            on { hentUtenBrevbestilling() } doReturn listOf(innvilgelseUtenBrevbestilling)
-        }
-
-        val utbetalingRepoMock = mock<UtbetalingRepo> {
-            on { hentUtbetaling(innvilgelseUtenBrevbestilling.utbetalingId) } doReturn utbetalingMock
-        }
-
-        val brevServiceMock = mock<BrevService> {
-            on { distribuerBrev(any()) } doReturn iverksattBrevbestillingId.right()
-        }
-
-        val behandlingMetricsMock = mock<BehandlingMetrics>()
-        val oppgaveServiceMock = mock<OppgaveService>() {
-            on { lukkOppgave(any()) } doReturn Unit.right()
-        }
-
-        val response = createService(
-            vedtakRepo = vedtakRepoMock,
-            utbetalingRepo = utbetalingRepoMock,
-            brevService = brevServiceMock,
-            behandlingMetrics = behandlingMetricsMock,
-            oppgaveService = oppgaveServiceMock,
-        ).opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver()
-
-        response shouldBe FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
-            journalpostresultat = emptyList(),
-            brevbestillingsresultat = listOf(
-                FerdigstillVedtakService.BestiltBrev(
-                    sakId = innvilgelseUtenBrevbestilling.behandling.sakId,
-                    behandlingId = innvilgelseUtenBrevbestilling.behandling.id,
-                    journalpostId = iverksattJournalpostId,
-                    brevbestillingId = iverksattBrevbestillingId,
-                ).right(),
-            ),
-        )
-
-        inOrder(
-            vedtakRepoMock,
-            brevServiceMock,
-            utbetalingRepoMock,
-            behandlingMetricsMock,
-            oppgaveServiceMock,
+        FerdigstillVedtakServiceMocks(
+            vedtakRepo = mock {
+                on { hentUtenJournalpost() } doReturn emptyList()
+                on { hentUtenBrevbestilling() } doReturn listOf(innvilgelseUtenBrevbestilling)
+            },
+            utbetalingRepo = mock {
+                on { hentUtbetaling(innvilgelseUtenBrevbestilling.utbetalingId) } doReturn sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling
+            },
+            brevService = mock {
+                on { distribuerBrev(any()) } doReturn brevbestillingIdVedtak.right()
+            },
+            oppgaveService = mock {
+                on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
+            },
         ) {
-            verify(vedtakRepoMock).hentUtenJournalpost()
-            verify(vedtakRepoMock).hentUtenBrevbestilling()
-            verify(utbetalingRepoMock).hentUtbetaling(innvilgelseUtenBrevbestilling.utbetalingId)
-            verify(brevServiceMock).distribuerBrev(iverksattJournalpostId)
-            verify(vedtakRepoMock).lagre(
-                argThat {
-                    it shouldBe innvilgelseUtenBrevbestilling.copy(
-                        journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
-                            iverksattJournalpostId,
-                            iverksattBrevbestillingId,
-                        ),
-                    )
-                },
+            service.opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver() shouldBe FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+                journalpostresultat = emptyList(),
+                brevbestillingsresultat = listOf(
+                    FerdigstillVedtakService.BestiltBrev(
+                        sakId = innvilgelseUtenBrevbestilling.behandling.sakId,
+                        behandlingId = innvilgelseUtenBrevbestilling.behandling.id,
+                        journalpostId = journalpostIdVedtak,
+                        brevbestillingId = brevbestillingIdVedtak,
+                    ).right(),
+                ),
             )
-            verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe innvilgelseUtenBrevbestilling.behandling.oppgaveId })
-            verifyNoMoreInteractions(vedtakRepoMock, brevServiceMock, utbetalingRepoMock)
+
+            inOrder(
+                vedtakRepo,
+                brevService,
+                utbetalingRepo,
+                behandlingMetrics,
+                oppgaveService,
+            ) {
+                verify(vedtakRepo).hentUtenJournalpost()
+                verify(vedtakRepo).hentUtenBrevbestilling()
+                verify(utbetalingRepo).hentUtbetaling(innvilgelseUtenBrevbestilling.utbetalingId)
+                verify(brevService).distribuerBrev(journalpostIdVedtak)
+                verify(vedtakRepo).lagre(
+                    argThat {
+                        it shouldBe innvilgelseUtenBrevbestilling.copy(
+                            journalføringOgBrevdistribusjon = journalførtOgDistribuertBrev,
+                        )
+                    },
+                )
+                verify(behandlingMetrics).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
+                verify(oppgaveService).lukkOppgaveMedSystembruker(argThat { it shouldBe innvilgelseUtenBrevbestilling.behandling.oppgaveId })
+                verify(behandlingMetrics).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
+            }
         }
     }
 
     @Test
     fun `kan ikke opprette manglende brevbestilling hvis vedtak ikke er journalført`() {
-        val innvilgelseUtenBrevbestilling = innvilgetVedtak()
-        val utbetalingMock = mock<Utbetaling.OversendtUtbetaling.MedKvittering> {
-            on { kvittering } doReturn Kvittering(Kvittering.Utbetalingsstatus.OK, "")
-        }
 
-        val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentUtenJournalpost() } doReturn emptyList()
-            on { hentUtenBrevbestilling() } doReturn listOf(innvilgelseUtenBrevbestilling)
-        }
+        val (sak, innvilgelseUtenBrevbestilling) = innvilgetSøknadsbehandlingVedtak()
 
-        val utbetalingRepoMock = mock<UtbetalingRepo> {
-            on { hentUtbetaling(innvilgelseUtenBrevbestilling.utbetalingId) } doReturn utbetalingMock
-        }
-
-        val brevServiceMock = mock<BrevService>()
-        val oppgaveServiceMock = mock<OppgaveService>() {
-            on { lukkOppgave(any()) } doReturn Unit.right()
-        }
-
-        val response = createService(
-            vedtakRepo = vedtakRepoMock,
-            utbetalingRepo = utbetalingRepoMock,
-            oppgaveService = oppgaveServiceMock,
-        ).opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver()
-
-        response shouldBe FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
-            journalpostresultat = emptyList(),
-            brevbestillingsresultat = listOf(
-                FerdigstillVedtakService.KunneIkkeBestilleBrev(
-                    sakId = innvilgelseUtenBrevbestilling.behandling.sakId,
-                    behandlingId = innvilgelseUtenBrevbestilling.behandling.id,
-                    journalpostId = null,
-                    grunn = "MåJournalføresFørst",
-                ).left(),
-            ),
-        )
-
-        inOrder(
-            vedtakRepoMock,
-            utbetalingRepoMock,
-            oppgaveServiceMock,
+        FerdigstillVedtakServiceMocks(
+            vedtakRepo = mock {
+                on { hentUtenJournalpost() } doReturn emptyList()
+                on { hentUtenBrevbestilling() } doReturn listOf(innvilgelseUtenBrevbestilling)
+            },
+            utbetalingRepo = mock {
+                on { hentUtbetaling(innvilgelseUtenBrevbestilling.utbetalingId) } doReturn sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling
+            },
+            oppgaveService = mock {
+                on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
+            },
         ) {
-            verify(vedtakRepoMock).hentUtenJournalpost()
-            verify(vedtakRepoMock).hentUtenBrevbestilling()
-            verify(utbetalingRepoMock).hentUtbetaling(innvilgelseUtenBrevbestilling.utbetalingId)
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe innvilgelseUtenBrevbestilling.behandling.oppgaveId })
+            service.opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver() shouldBe FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+                journalpostresultat = emptyList(),
+                brevbestillingsresultat = listOf(
+                    FerdigstillVedtakService.KunneIkkeBestilleBrev(
+                        sakId = innvilgelseUtenBrevbestilling.behandling.sakId,
+                        behandlingId = innvilgelseUtenBrevbestilling.behandling.id,
+                        journalpostId = null,
+                        grunn = "MåJournalføresFørst",
+                    ).left(),
+                ),
+            )
+
+            inOrder(
+                vedtakRepo,
+                utbetalingRepo,
+                oppgaveService,
+                behandlingMetrics,
+            ) {
+                verify(vedtakRepo).hentUtenJournalpost()
+                verify(vedtakRepo).hentUtenBrevbestilling()
+                verify(utbetalingRepo).hentUtbetaling(innvilgelseUtenBrevbestilling.utbetalingId)
+                verify(oppgaveService).lukkOppgaveMedSystembruker(argThat { it shouldBe innvilgelseUtenBrevbestilling.behandling.oppgaveId })
+                verify(behandlingMetrics).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
+            }
         }
-        verifyNoMoreInteractions(vedtakRepoMock, brevServiceMock)
     }
 
     @Test
     fun `oppretter ikke manglende journalpost for vedtak med ukvitterte utbetalinger eller kvitteringer med feil`() {
-        val innvilgetVedtakUkvittertUtbetaling = innvilgetVedtak()
+        val innvilgetVedtakUkvittertUtbetaling = innvilgetSøknadsbehandlingVedtak().second
         val ukvittertUtbetaling = mock<Utbetaling.OversendtUtbetaling.UtenKvittering>()
 
-        val innvilgetVedtakKvitteringMedFeil = innvilgetVedtak()
+        val innvilgetVedtakKvitteringMedFeil = innvilgetSøknadsbehandlingVedtak().second
         val kvitteringMedFeil = mock<Utbetaling.OversendtUtbetaling.MedKvittering> {
             on { kvittering } doReturn Kvittering(Kvittering.Utbetalingsstatus.FEIL, "")
         }
 
-        val vedtakRepoMock = mock<VedtakRepo> {
-            on { hentUtenJournalpost() } doReturn emptyList()
-            on { hentUtenBrevbestilling() } doReturn listOf(
-                innvilgetVedtakUkvittertUtbetaling,
-                innvilgetVedtakKvitteringMedFeil,
+        FerdigstillVedtakServiceMocks(
+            vedtakRepo = mock {
+                on { hentUtenJournalpost() } doReturn emptyList()
+                on { hentUtenBrevbestilling() } doReturn listOf(
+                    innvilgetVedtakUkvittertUtbetaling,
+                    innvilgetVedtakKvitteringMedFeil,
+                )
+            },
+            utbetalingRepo = mock {
+                on { hentUtbetaling(innvilgetVedtakUkvittertUtbetaling.utbetalingId) } doReturn ukvittertUtbetaling
+                on { hentUtbetaling(innvilgetVedtakKvitteringMedFeil.utbetalingId) } doReturn kvitteringMedFeil
+            },
+        ) {
+            service.opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver() shouldBe FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+                journalpostresultat = emptyList(),
+                brevbestillingsresultat = emptyList(),
             )
+            verify(vedtakRepo).hentUtenJournalpost()
+            verify(vedtakRepo).hentUtenBrevbestilling()
+            verify(utbetalingRepo).hentUtbetaling(innvilgetVedtakUkvittertUtbetaling.utbetalingId)
+            verify(utbetalingRepo).hentUtbetaling(innvilgetVedtakKvitteringMedFeil.utbetalingId)
         }
-
-        val utbetalingRepoMock = mock<UtbetalingRepo> {
-            on { hentUtbetaling(innvilgetVedtakUkvittertUtbetaling.utbetalingId) } doReturn ukvittertUtbetaling
-            on { hentUtbetaling(innvilgetVedtakKvitteringMedFeil.utbetalingId) } doReturn kvitteringMedFeil
-        }
-
-        val brevServiceMock = mock<BrevService>()
-        val oppgaveServiceMock = mock<OppgaveService>() {
-            on { lukkOppgave(any()) } doReturn Unit.right()
-        }
-
-        val response = createService(
-            vedtakRepo = vedtakRepoMock,
-            utbetalingRepo = utbetalingRepoMock,
-            brevService = brevServiceMock,
-        ).opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver()
-
-        response shouldBe FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
-            journalpostresultat = emptyList(),
-            brevbestillingsresultat = emptyList(),
-        )
-
-        verify(vedtakRepoMock).hentUtenJournalpost()
-        verify(vedtakRepoMock).hentUtenBrevbestilling()
-        verify(utbetalingRepoMock).hentUtbetaling(innvilgetVedtakUkvittertUtbetaling.utbetalingId)
-        verify(utbetalingRepoMock).hentUtbetaling(innvilgetVedtakKvitteringMedFeil.utbetalingId)
-        verifyNoMoreInteractions(oppgaveServiceMock)
-        verifyNoMoreInteractions(vedtakRepoMock, brevServiceMock, utbetalingRepoMock)
     }
-
-    private fun createService(
-        oppgaveService: OppgaveService = mock(),
-        personService: PersonService = mock(),
-        clock: Clock = fixedClock,
-        microsoftGraphApiClient: MicrosoftGraphApiOppslag = mock(),
-        brevService: BrevService = mock(),
-        utbetalingService: UtbetalingService = mock(),
-        vedtakRepo: VedtakRepo = mock(),
-        utbetalingRepo: UtbetalingRepo = mock(),
-        behandlingMetrics: BehandlingMetrics = mock(),
-    ) = FerdigstillVedtakServiceImpl(
-        oppgaveService = oppgaveService,
-        personService = personService,
-        utbetalingService = utbetalingService,
-        clock = clock,
-        microsoftGraphApiOppslag = microsoftGraphApiClient,
-        brevService = brevService,
-        vedtakRepo = vedtakRepo,
-        utbetalingRepo = utbetalingRepo,
-        behandlingMetrics = behandlingMetrics,
-    )
 
     internal data class FerdigstillVedtakServiceMocks(
         val oppgaveService: OppgaveService = mock(),
@@ -1307,8 +1144,9 @@ internal class FerdigstillVedtakServiceImplTest {
         val vedtakRepo: VedtakRepo = mock(),
         val utbetalingRepo: UtbetalingRepo = mock(),
         val behandlingMetrics: BehandlingMetrics = mock(),
+        val runTest: FerdigstillVedtakServiceMocks.() -> Unit,
     ) {
-        val ferdigstillVedtakService = FerdigstillVedtakServiceImpl(
+        val service = FerdigstillVedtakServiceImpl(
             oppgaveService = oppgaveService,
             personService = personService,
             utbetalingService = utbetalingService,
@@ -1320,12 +1158,18 @@ internal class FerdigstillVedtakServiceImplTest {
             behandlingMetrics = behandlingMetrics,
         )
 
-        fun verifyNoMoreInteractions() {
-            verifyNoMoreInteractions(
+        init {
+            runTest()
+            verifyNoMoreInteractions()
+        }
+
+        private fun verifyNoMoreInteractions() {
+            com.nhaarman.mockitokotlin2.verifyNoMoreInteractions(
                 oppgaveService,
                 personService,
                 microsoftGraphApiClient,
                 brevService,
+                utbetalingService,
                 vedtakRepo,
                 utbetalingRepo,
                 behandlingMetrics,
@@ -1333,170 +1177,47 @@ internal class FerdigstillVedtakServiceImplTest {
         }
     }
 
-    private fun avslagsVedtak() =
-        Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(
-            Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
-                sakId = UUID.randomUUID(),
-                saksnummer = Saksnummer(2021),
-                søknad = Søknad.Journalført.MedOppgave(
-                    id = BehandlingTestUtils.søknadId,
-                    opprettet = Tidspunkt.EPOCH,
-                    sakId = UUID.randomUUID(),
-                    søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-                    oppgaveId = BehandlingTestUtils.søknadOppgaveId,
-                    journalpostId = BehandlingTestUtils.søknadJournalpostId,
-                ),
-                oppgaveId = oppgaveId,
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                fnr = FnrGenerator.random(),
-                beregning = TestBeregning,
-                attesteringer = Attesteringshistorikk.empty()
-                    .leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.EPOCH)),
-                saksbehandler = saksbehandler,
-                fritekstTilBrev = "",
-                stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
-                grunnlagsdata = Grunnlagsdata.tryCreate(
-                    bosituasjon = listOf(
-                        Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
-                            begrunnelse = null,
-                        ),
-                    ),
-                ),
-                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            ),
-            fixedClock,
-        )
+    private fun avslagsVedtak(): Vedtak.Avslag.AvslagBeregning =
+        vedtakSøknadsbehandlingIverksattAvslagMedBeregning().second
 
-    private fun journalførtAvslagsVedtak() =
-        avslagsVedtak().copy(
+    private fun journalførtAvslagsVedtak(): Vedtak.Avslag.AvslagBeregning {
+        return avslagsVedtak().copy(
             journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(
-                iverksattJournalpostId,
+                journalpostIdVedtak,
             ),
-        )
-
-    private fun journalførtOgDistribuertAvslagsVedtak() =
-        avslagsVedtak().copy(
-            journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
-                iverksattJournalpostId,
-                iverksattBrevbestillingId,
-            ),
-        )
-
-    private fun createSøknad() = Søknad.Journalført.MedOppgave(
-        id = BehandlingTestUtils.søknadId,
-        opprettet = Tidspunkt.EPOCH,
-        sakId = UUID.randomUUID(),
-        søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-        oppgaveId = BehandlingTestUtils.søknadOppgaveId,
-        journalpostId = BehandlingTestUtils.søknadJournalpostId,
-    )
-
-    private fun innvilgetVedtak(): Vedtak.EndringIYtelse {
-
-        return Vedtak.fromSøknadsbehandling(
-            søknadsbehandling = Søknadsbehandling.Iverksatt.Innvilget(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
-                sakId = UUID.randomUUID(),
-                saksnummer = Saksnummer(2021),
-                søknad = createSøknad(),
-                oppgaveId = oppgaveId,
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                fnr = FnrGenerator.random(),
-                beregning = TestBeregning,
-                simulering = mock(),
-                saksbehandler = saksbehandler,
-                attesteringer = Attesteringshistorikk.empty()
-                    .leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
-                fritekstTilBrev = "",
-                stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
-                grunnlagsdata = Grunnlagsdata.tryCreate(
-                    bosituasjon = listOf(
-                        Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
-                            begrunnelse = null,
-                        ),
-                    ),
-                ),
-                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            ),
-            utbetalingId = UUID30.randomUUID(),
-            clock = fixedClock,
         )
     }
 
-    private fun innvilgetRevurdertVedtak() =
-        Vedtak.from(
-            revurdering = IverksattRevurdering.Innvilget(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
-                oppgaveId = oppgaveId,
-                beregning = TestBeregning,
-                simulering = mock(),
-                saksbehandler = saksbehandler,
-                attesteringer = Attesteringshistorikk.empty()
-                    .leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
-                fritekstTilBrev = "",
-                periode = Periode.create(1.januar(2021), 31.desember(2021)),
-                tilRevurdering = innvilgetVedtak(),
-                revurderingsårsak = Revurderingsårsak(
-                    Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
-                    Revurderingsårsak.Begrunnelse.create("regulert grunnbeløp"),
-                ),
-                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                grunnlagsdata = Grunnlagsdata.EMPTY,
-                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            ),
-            utbetalingId = UUID30.randomUUID(),
-            clock = fixedClock,
-        )
-
-    private fun journalførtInnvilgetVedtak() =
-        innvilgetVedtak().copy(
-            journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(
-                iverksattJournalpostId,
-            ),
-        )
-
-    private fun journalførtOgDistribuertInnvilgetVedtak() =
-        innvilgetVedtak().copy(
+    private fun journalførtOgDistribuertAvslagsVedtak(): Vedtak.Avslag.AvslagBeregning {
+        return avslagsVedtak().copy(
             journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
-                iverksattJournalpostId,
-                iverksattBrevbestillingId,
+                journalpostIdVedtak,
+                brevbestillingIdVedtak,
             ),
         )
+    }
 
-    private val person = Person(
-        ident = Ident(
-            fnr = BehandlingTestUtils.fnr,
-            aktørId = AktørId(aktørId = "123"),
-        ),
-        navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
-    )
-    private val iverksattJournalpostId = JournalpostId("j")
-    private val iverksattBrevbestillingId = BrevbestillingId("b")
-    private val oppgaveId = OppgaveId("2")
-    private val saksbehandler = NavIdentBruker.Saksbehandler("saks")
-    private val attestant = NavIdentBruker.Attestant("atte")
+    private fun innvilgetSøknadsbehandlingVedtak(): Pair<Sak, Vedtak.EndringIYtelse> {
+        return vedtakSøknadsbehandlingIverksattInnvilget()
+    }
 
-    private val graphApiResponse = MicrosoftGraphResponse(
-        displayName = "Nav Navesen",
-        givenName = "",
-        mail = "",
-        officeLocation = "",
-        surname = "",
-        userPrincipalName = "",
-        id = "",
-        jobTitle = "",
-    )
+    private fun journalførtInnvilgetVedtak(): Pair<Sak, Vedtak.EndringIYtelse> {
+        return innvilgetSøknadsbehandlingVedtak().let {
+            it.copy(
+                second = it.second.copy(
+                    journalføringOgBrevdistribusjon = journalført,
+                ),
+            )
+        }
+    }
 
-    private val utbetalingId = UUID30.randomUUID()
+    private fun journalførtOgDistribuertInnvilgetVedtak(): Pair<Sak, Vedtak.EndringIYtelse> {
+        return innvilgetSøknadsbehandlingVedtak().let {
+            it.copy(
+                second = it.second.copy(
+                    journalføringOgBrevdistribusjon = journalførtOgDistribuertBrev,
+                ),
+            )
+        }
+    }
 }

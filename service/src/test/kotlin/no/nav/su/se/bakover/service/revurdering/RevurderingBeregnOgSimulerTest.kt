@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -39,17 +40,19 @@ class RevurderingBeregnOgSimulerTest {
 
     @Test
     fun `legger ved feilmeldinger for tilfeller som ikke støttes`() {
+        val tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second
         val uføregrunnlag = Grunnlag.Uføregrunnlag(
-            periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
+            periode = tilRevurdering.periode,
             uføregrad = Uføregrad.parse(20),
             forventetInntekt = 10,
             opprettet = fixedTidspunkt,
         )
+
         val opprettetRevurdering = OpprettetRevurdering(
             id = revurderingId,
-            periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
+            periode = tilRevurdering.periode,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = RevurderingTestUtils.søknadsbehandlingsvedtakIverksattInnvilget,
+            tilRevurdering = tilRevurdering,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
@@ -61,7 +64,7 @@ class RevurderingBeregnOgSimulerTest {
                         fradrag = FradragFactory.ny(
                             type = Fradragstype.Arbeidsinntekt,
                             månedsbeløp = 150500.0,
-                            periode = RevurderingTestUtils.søknadsbehandlingsvedtakIverksattInnvilget.periode,
+                            periode = tilRevurdering.periode,
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
@@ -72,7 +75,7 @@ class RevurderingBeregnOgSimulerTest {
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
+                        periode = tilRevurdering.periode,
                         begrunnelse = null,
                     ),
                 ),
@@ -85,7 +88,7 @@ class RevurderingBeregnOgSimulerTest {
                             opprettet = fixedTidspunkt,
                             resultat = Resultat.Avslag,
                             grunnlag = uføregrunnlag,
-                            periode = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram,
+                            periode = tilRevurdering.periode,
                             begrunnelse = "ok2k",
                         ),
                     ),
@@ -103,8 +106,8 @@ class RevurderingBeregnOgSimulerTest {
         val utbetalingMock = mock<Utbetaling> {
             on { utbetalingslinjer } doReturn nonEmptyListOf(
                 Utbetalingslinje.Ny(
-                    fraOgMed = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram.fraOgMed,
-                    tilOgMed = RevurderingTestUtils.periodeNesteMånedOgTreMånederFram.tilOgMed,
+                    fraOgMed = tilRevurdering.periode.fraOgMed,
+                    tilOgMed = tilRevurdering.periode.tilOgMed,
                     forrigeUtbetalingslinjeId = null,
                     beløp = 20000,
                 ),

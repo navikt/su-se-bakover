@@ -242,7 +242,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             saksbehandler = saksbehandler,
                             fritekstTilBrev = "",
                             stønadsperiode = stønadsperiode,
-                            grunnlagsdata = Grunnlagsdata.EMPTY,
+                            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                             attesteringer = Attesteringshistorikk.empty(),
                         )
@@ -336,7 +336,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(underkjentAttestering),
                             fritekstTilBrev = "",
                             stønadsperiode = stønadsperiode,
-                            grunnlagsdata = Grunnlagsdata.EMPTY,
+                            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                         )
                     }
@@ -407,7 +407,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(iverksattAttestering),
                 fritekstTilBrev = "Dette er fritekst",
                 stønadsperiode = stønadsperiode,
-                grunnlagsdata = Grunnlagsdata.EMPTY,
+                grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             )
             repo.hent(iverksatt.id).also {

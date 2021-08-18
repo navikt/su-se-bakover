@@ -44,20 +44,20 @@ import no.nav.su.se.bakover.service.beregning.TestBeregningSomGirOpphør
 import no.nav.su.se.bakover.service.formueVilkår
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.attesteringUnderkjent
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.createRevurderingService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.periodeNesteMånedOgTreMånederFram
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingsårsak
-import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.søknadsbehandlingsvedtakIverksattInnvilget
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.test.aktørId
+import no.nav.su.se.bakover.test.attesteringUnderkjent
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksnummer
+import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -71,11 +71,12 @@ class RevurderingIngenEndringTest {
             forventetInntekt = 12000,
             opprettet = fixedTidspunkt,
         )
+        val tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second
         val opprettetRevurdering = OpprettetRevurdering(
             id = revurderingId,
             periode = periodeNesteMånedOgTreMånederFram,
             opprettet = fixedTidspunkt,
-            tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
+            tilRevurdering = tilRevurdering,
             saksbehandler = saksbehandler,
             oppgaveId = søknadOppgaveId,
             fritekstTilBrev = "",
@@ -144,7 +145,7 @@ class RevurderingIngenEndringTest {
                 id = revurderingId,
                 periode = periodeNesteMånedOgTreMånederFram,
                 opprettet = fixedTidspunkt,
-                tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
+                tilRevurdering = tilRevurdering,
                 oppgaveId = søknadOppgaveId,
                 beregning = TestBeregning,
                 saksbehandler = saksbehandler,
@@ -181,18 +182,19 @@ class RevurderingIngenEndringTest {
         val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
             on { resultat } doReturn Resultat.Innvilget
         }
+        val tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second
         val beregnetRevurdering = BeregnetRevurdering.IngenEndring(
             id = revurderingId,
             periode = periodeNesteMånedOgTreMånederFram,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
+            tilRevurdering = tilRevurdering,
             oppgaveId = søknadOppgaveId,
             beregning = TestBeregningSomGirOpphør,
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = vilkårsvurderingerMock,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
@@ -202,7 +204,7 @@ class RevurderingIngenEndringTest {
             id = revurderingId,
             periode = periodeNesteMånedOgTreMånederFram,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
+            tilRevurdering = tilRevurdering,
             oppgaveId = søknadOppgaveId,
             beregning = TestBeregningSomGirOpphør,
             saksbehandler = endretSaksbehandler,
@@ -210,7 +212,7 @@ class RevurderingIngenEndringTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             skalFøreTilBrevutsending = true,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = vilkårsvurderingerMock,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
@@ -279,11 +281,12 @@ class RevurderingIngenEndringTest {
 
     @Test
     fun `underkjenn revurdering`() {
+        val tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second
         val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
             id = revurderingId,
             periode = periodeNesteMånedOgTreMånederFram,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
+            tilRevurdering = tilRevurdering,
             oppgaveId = søknadOppgaveId,
             beregning = TestBeregningSomGirOpphør,
             saksbehandler = saksbehandler,
@@ -291,7 +294,7 @@ class RevurderingIngenEndringTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             skalFøreTilBrevutsending = false,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
@@ -300,7 +303,7 @@ class RevurderingIngenEndringTest {
             id = revurderingId,
             periode = periodeNesteMånedOgTreMånederFram,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
+            tilRevurdering = tilRevurdering,
             oppgaveId = søknadOppgaveId,
             beregning = TestBeregningSomGirOpphør,
             saksbehandler = saksbehandler,
@@ -309,7 +312,7 @@ class RevurderingIngenEndringTest {
             forhåndsvarsel = null,
             attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attesteringUnderkjent),
             skalFøreTilBrevutsending = false,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -376,7 +379,7 @@ class RevurderingIngenEndringTest {
             id = revurderingId,
             periode = periodeNesteMånedOgTreMånederFram,
             opprettet = fixedTidspunkt,
-            tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
+            tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second,
             oppgaveId = OppgaveId(value = "OppgaveId"),
             beregning = TestBeregningSomGirOpphør,
             saksbehandler = saksbehandler,
@@ -384,7 +387,7 @@ class RevurderingIngenEndringTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             skalFøreTilBrevutsending = true,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
@@ -440,7 +443,7 @@ class RevurderingIngenEndringTest {
             id = revurderingId,
             periode = periodeNesteMånedOgTreMånederFram,
             opprettet = fixedTidspunkt,
-            tilRevurdering = søknadsbehandlingsvedtakIverksattInnvilget,
+            tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second,
             oppgaveId = OppgaveId(value = "OppgaveId"),
             beregning = TestBeregningSomGirOpphør,
             saksbehandler = saksbehandler,
@@ -448,7 +451,7 @@ class RevurderingIngenEndringTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             skalFøreTilBrevutsending = false,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),

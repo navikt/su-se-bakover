@@ -17,8 +17,12 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.juni
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -30,6 +34,10 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -43,6 +51,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.ServiceBuilder
+import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
@@ -318,24 +327,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 setBody(
                     """
                     {
-                        "begrunnelse": "Begrunnelse!",
-                        "fradrag":
-                            [
-                                {
-                                    "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
-                                    "beløp":9879,
-                                    "type":"Arbeidsinntekt",
-                                    "utenlandskInntekt":null,
-                                    "tilhører":"EPS"
-                                },
-                                {
-                                    "periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-12-31"},
-                                    "beløp":10000,
-                                    "type":"Kontantstøtte",
-                                    "utenlandskInntekt":null,
-                                    "tilhører":"BRUKER"
-                                }
-                            ]
+                        "begrunnelse": "Begrunnelse!"
                     }
                     """.trimIndent(),
                 )
@@ -716,7 +708,7 @@ internal class SøknadsbehandlingRoutesKtTest {
     private fun setup(): UavklartVilkårsvurdertSøknadsbehandling {
         val søknadInnhold = SøknadInnholdTestdataBuilder.build()
         val fnr: Fnr = FnrGenerator.random()
-        SakFactory(clock = fixedClock).nySak(fnr, søknadInnhold).also {
+        SakFactory(clock = fixedClock).nySakMedNySøknad(fnr, søknadInnhold).also {
             repos.sak.opprettSak(it)
         }
         val sak: Sak = repos.sak.hentSak(fnr)!!
@@ -793,7 +785,59 @@ internal class SøknadsbehandlingRoutesKtTest {
                 behandlingsinformasjon,
             ),
         )
-
+        if (epsFnr == null) {
+            services.søknadsbehandling.leggTilFradragGrunnlag(
+                LeggTilFradragsgrunnlagRequest(
+                    behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
+                    fradragsrunnlag = listOf(
+                        Grunnlag.Fradragsgrunnlag.tryCreate(
+                            fradrag = FradragFactory.ny(
+                                periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),
+                                type = Fradragstype.Arbeidsinntekt,
+                                månedsbeløp = 9879.00,
+                                utenlandskInntekt = null,
+                                tilhører = FradragTilhører.BRUKER,
+                            ),
+                        ).orNull()!!,
+                        Grunnlag.Fradragsgrunnlag.tryCreate(
+                            fradrag = FradragFactory.ny(
+                                periode = Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021)),
+                                type = Fradragstype.Kontantstøtte,
+                                månedsbeløp = 10000.00,
+                                utenlandskInntekt = null,
+                                tilhører = FradragTilhører.BRUKER,
+                            ),
+                        ).orNull()!!,
+                    ),
+                ),
+            )
+        } else {
+            services.søknadsbehandling.leggTilFradragGrunnlag(
+                LeggTilFradragsgrunnlagRequest(
+                    behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
+                    fradragsrunnlag = listOf(
+                        Grunnlag.Fradragsgrunnlag.tryCreate(
+                            fradrag = FradragFactory.ny(
+                                periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),
+                                type = Fradragstype.Arbeidsinntekt,
+                                månedsbeløp = 9879.00,
+                                utenlandskInntekt = null,
+                                tilhører = FradragTilhører.EPS,
+                            ),
+                        ).orNull()!!,
+                        Grunnlag.Fradragsgrunnlag.tryCreate(
+                            fradrag = FradragFactory.ny(
+                                periode = Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021)),
+                                type = Fradragstype.Kontantstøtte,
+                                månedsbeløp = 10000.00,
+                                utenlandskInntekt = null,
+                                tilhører = FradragTilhører.BRUKER,
+                            ),
+                        ).orNull()!!,
+                    ),
+                ),
+            )
+        }
         return InnvilgetVilkårsvurdertSøknadsbehandling(
             repos.sak.hentSak(uavklartVilkårsvurdertSøknadsbehandling.sak.id)!!,
             repos.søknadsbehandling.hent(uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id) as Søknadsbehandling.Vilkårsvurdert.Innvilget,

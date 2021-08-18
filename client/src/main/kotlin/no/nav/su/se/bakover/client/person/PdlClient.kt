@@ -7,7 +7,10 @@ import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
+import com.github.kittinunf.fuel.core.FuelError
+import com.github.kittinunf.fuel.core.Response
 import com.github.kittinunf.fuel.httpPost
+import com.github.kittinunf.result.Result
 import finnRiktigAdresseformatOgMapTilPdlAdresse
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.person.PdlData.Ident
@@ -40,8 +43,8 @@ internal class PdlClient(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    private val hentPersonQuery = this::class.java.getResource("/hentPerson.graphql").readText()
-    private val hentIdenterQuery = this::class.java.getResource("/hentIdenter.graphql").readText()
+    private val hentPersonQuery = this::class.java.getResource("/hentPerson.graphql")?.readText()!!
+    private val hentIdenterQuery = this::class.java.getResource("/hentIdenter.graphql")?.readText()!!
 
     fun person(fnr: Fnr): Either<KunneIkkeHentePerson, PdlData> {
         return config.azureAd.onBehalfOfToken(MDC.get("Authorization"), config.vars.clientId).let { token ->
@@ -61,8 +64,8 @@ internal class PdlClient(
 
         val pdlIdent = finnIdent(identer)
 
-        if (person.navn.isNullOrEmpty()) {
-            log.info("Fant person i pdl, men feltene var tomme")
+        if (person.navn.isEmpty()) {
+            log.warn("Fant person i pdl, men feltene var tomme")
             return FantIkkePerson.left()
         }
 
@@ -125,22 +128,7 @@ internal class PdlClient(
             .header("Content-Type", "application/json")
             .body(objectMapper.writeValueAsString(pdlRequest))
             .responseString()
-        return result.fold(
-            {
-                val pdlResponse: PdlResponse<T> = objectMapper.readValue(it, specializedType(T::class.java))
-                if (pdlResponse.hasErrors()) {
-                    håndtererPdlFeil(pdlResponse).left()
-                } else {
-                    pdlResponse.data.right()
-                }
-            },
-            {
-                val statusCode = response.statusCode
-                val body = response.body().asString("application/json")
-                log.error("Feil i kallet mot PDL, status:$statusCode, body:$body", it)
-                Ukjent.left()
-            },
-        )
+        return håndterPdlSvar(result, response)
     }
 
     private inline fun <reified T> kallPDLMedOnBehalfOfToken(fnr: Fnr, query: String, jwtOnBehalfOf: String): Either<KunneIkkeHentePerson, T> {
@@ -152,11 +140,15 @@ internal class PdlClient(
             .header("Content-Type", "application/json")
             .body(objectMapper.writeValueAsString(pdlRequest))
             .responseString()
+        return håndterPdlSvar(result, response)
+    }
+
+    private inline fun <reified T> håndterPdlSvar(result: Result<String, FuelError>, response: Response): Either<KunneIkkeHentePerson, T> {
         return result.fold(
             {
                 val pdlResponse: PdlResponse<T> = objectMapper.readValue(it, specializedType(T::class.java))
                 if (pdlResponse.hasErrors()) {
-                    håndtererPdlFeil(pdlResponse).left()
+                    håndterPdlFeil(pdlResponse).left()
                 } else {
                     pdlResponse.data.right()
                 }
@@ -170,7 +162,7 @@ internal class PdlClient(
         )
     }
 
-    private fun <T> håndtererPdlFeil(pdlResponse: PdlResponse<T>): KunneIkkeHentePerson {
+    private fun <T> håndterPdlFeil(pdlResponse: PdlResponse<T>): KunneIkkeHentePerson {
         val feil = pdlResponse.toKunneIkkeHentePerson()
         if (feil.any { it is Ukjent }) {
             // Vi ønsker å logge ukjente respons-koder i alle tilfeller.

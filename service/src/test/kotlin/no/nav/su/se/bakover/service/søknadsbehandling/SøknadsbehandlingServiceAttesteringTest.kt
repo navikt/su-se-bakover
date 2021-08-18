@@ -81,9 +81,9 @@ class SøknadsbehandlingServiceAttesteringTest {
         oppgaveId = oppgaveId,
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.EMPTY,
+        grunnlagsdata = Grunnlagsdata.IkkeVurdert,
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-        attesteringer = Attesteringshistorikk.empty()
+        attesteringer = Attesteringshistorikk.empty(),
     )
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("Z12345")
@@ -127,9 +127,9 @@ class SøknadsbehandlingServiceAttesteringTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             stønadsperiode = simulertBehandling.stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         actual shouldBe expected.right()
@@ -284,9 +284,9 @@ class SøknadsbehandlingServiceAttesteringTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             stønadsperiode = simulertBehandling.stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         actual shouldBe expected.right()

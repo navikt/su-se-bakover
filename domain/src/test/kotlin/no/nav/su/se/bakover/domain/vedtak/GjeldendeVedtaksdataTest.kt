@@ -114,11 +114,11 @@ internal class GjeldendeVedtaksdataTest {
                 opprettet = Tidspunkt.now(),
                 sakId = UUID.randomUUID(),
                 søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-                journalpostId = JournalpostId(value = ""),
-                oppgaveId = OppgaveId(value = ""),
+                journalpostId = JournalpostId(value = "journalpostId"),
+                oppgaveId = OppgaveId(value = "oppgaveId"),
 
             ),
-            oppgaveId = OppgaveId(value = ""),
+            oppgaveId = OppgaveId(value = "oppgaveId"),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
             fnr = FnrGenerator.random(),
             beregning = BeregningFactory.ny(
@@ -195,8 +195,8 @@ internal class GjeldendeVedtaksdataTest {
             periode = periode,
             opprettet = Tidspunkt.now(),
             tilRevurdering = førstegangsvedtak,
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
-            oppgaveId = OppgaveId(value = ""),
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
+            oppgaveId = OppgaveId(value = "oppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = Revurderingsårsak(
                 årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
@@ -229,7 +229,7 @@ internal class GjeldendeVedtaksdataTest {
             attesteringer = Attesteringshistorikk.empty()
                 .leggTilNyAttestering(
                     Attestering.Iverksatt(
-                        attestant = NavIdentBruker.Attestant(navIdent = ""),
+                        attestant = NavIdentBruker.Attestant(navIdent = "attestant"),
                         Tidspunkt.now(fixedClock),
                     ),
                 ),

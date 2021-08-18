@@ -220,8 +220,8 @@ internal class FerdigstillVedtakServiceImpl(
                 }
         }
 
-        lukkOppgaverKnyttetTilVedtak(
-            vedtakBruktVedFiks.toList().distinctBy { it.id }
+        lukkOppgaverKnyttetTilVedtakMedSystembruker(
+            vedtakBruktVedFiks.toList().distinctBy { it.id },
         )
 
         return FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -308,8 +308,8 @@ internal class FerdigstillVedtakServiceImpl(
         }
     }
 
-    private fun lukkOppgaverKnyttetTilVedtak(vedtak: List<Vedtak>) =
-        vedtak.forEach { lukkOppgaveMedBruker(it) }
+    private fun lukkOppgaverKnyttetTilVedtakMedSystembruker(vedtak: List<Vedtak>) =
+        vedtak.forEach { lukkOppgaveMedSystembruker(it) }
 
     private fun lagBrevRequest(visitable: Visitable<LagBrevRequestVisitor>): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev, LagBrevRequest> {
         return lagBrevVisitor().let { visitor ->
@@ -356,18 +356,18 @@ internal class FerdigstillVedtakServiceImpl(
     }
 
     private fun lukkOppgaveMedSystembruker(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> {
-        return lukkOppgaveMedBruker(vedtak) {
+        return lukkOppgaveIntern(vedtak) {
             oppgaveService.lukkOppgaveMedSystembruker(it)
         }
     }
 
     override fun lukkOppgaveMedBruker(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> {
-        return lukkOppgaveMedBruker(vedtak) {
+        return lukkOppgaveIntern(vedtak) {
             oppgaveService.lukkOppgave(it)
         }
     }
 
-    private fun lukkOppgaveMedBruker(
+    private fun lukkOppgaveIntern(
         vedtak: Vedtak,
         lukkOppgave: (oppgaveId: OppgaveId) -> Either<KunneIkkeLukkeOppgave, Unit>,
     ): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> {

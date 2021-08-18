@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.grunnlag
 
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 // TODO: Del inn i tom og utleda grunnlagsdata. F.eks. ved å bruke NonEmptyList
 /**
@@ -16,7 +17,18 @@ data class Grunnlagsdata private constructor(
      * */
     val bosituasjon: List<Grunnlag.Bosituasjon>,
 ) {
+    val periode: Periode? by lazy {
+        fradragsgrunnlag.map { it.fradrag.periode }.plus(bosituasjon.map { it.periode }).ifNotEmpty {
+            Periode.create(
+                fraOgMed = this.minOf { it.fraOgMed },
+                tilOgMed = this.maxOf { it.tilOgMed },
+            )
+        }
+    }
+
+    // TODO jah: Valider at de vurderte uføre-periodene er de samme som de vurderte formue-periodene
     companion object {
+        val IkkeVurdert = tryCreate()
         val EMPTY = tryCreate()
 
         fun tryCreate(

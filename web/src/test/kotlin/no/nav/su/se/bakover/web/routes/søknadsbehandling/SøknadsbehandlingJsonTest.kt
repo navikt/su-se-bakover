@@ -108,7 +108,7 @@ internal class SøknadsbehandlingJsonTest {
                     "fødselsdato": "1975-08-17",
                     "adressebeskyttelse": null,
                     "skjermet": null,
-                    "alder": 45
+                    "alder": 46
                 },
                 "utledetSats": "HØY"
           },
@@ -177,9 +177,9 @@ internal class SøknadsbehandlingJsonTest {
             fnr = FnrGenerator.random(),
             fritekstTilBrev = "",
             stønadsperiode = null,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
         val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(behandlingWithNulls.opprettet)
 

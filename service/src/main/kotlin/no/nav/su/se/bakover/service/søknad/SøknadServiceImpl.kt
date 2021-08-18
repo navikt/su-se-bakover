@@ -70,7 +70,7 @@ internal class SøknadServiceImpl(
         val (sak: Sak, søknad: Søknad.Ny) = sakService.hentSak(fnr).fold(
             {
                 log.info("Ny søknad: Fant ikke sak for fødselsnummmer. Oppretter ny søknad og ny sak.")
-                val nySak = sakFactory.nySak(fnr, søknadsinnholdMedNyesteFødselsnummer).also {
+                val nySak = sakFactory.nySakMedNySøknad(fnr, søknadsinnholdMedNyesteFødselsnummer).also {
                     sakService.opprettSak(it)
                 }
                 val opprettetSak = sakService.hentSak(fnr).getOrElse { throw RuntimeException("Feil ved henting av sak") }

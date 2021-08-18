@@ -1,10 +1,11 @@
 package no.nav.su.se.bakover.domain.revurdering
 
+import arrow.core.left
 import arrow.core.nonEmptyListOf
+import arrow.core.right
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
-import io.kotest.assertions.arrow.either.shouldBeLeft
-import io.kotest.assertions.arrow.either.shouldBeRight
+import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
@@ -21,7 +22,7 @@ import no.nav.su.se.bakover.test.periodeNovember2021
 import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt0
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttAlle
-import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføre
+import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgInnvilgetFormue
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 
@@ -31,12 +32,12 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
     fun `identifiserer at opphør ikke skjer fra samme dato som den første i beregningen`() {
         val beregning = beregning(periode = Periode.create(1.mai(2021), 31.desember(2021)))
         IdentifiserSaksbehandlingsutfallSomIkkeStøttes(
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføre(periode = periodeJuni2021),
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(periode = periodeJuni2021),
             tidligereBeregning = beregning,
             nyBeregning = beregning,
-        ).resultat shouldBeLeft setOf(
+        ).resultat shouldBe setOf(
             RevurderingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned,
-        )
+        ).left()
     }
 
     @Test
@@ -46,15 +47,15 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
             vilkårsvurderinger = vilkårsvurderingerAvslåttAlle(periode = periodeDesember2021),
             tidligereBeregning = beregning,
             nyBeregning = beregning,
-        ).resultat shouldBeLeft setOf(
+        ).resultat shouldBe setOf(
             RevurderingsutfallSomIkkeStøttes.OpphørAvFlereVilkår,
-        )
+        ).left()
     }
 
     @Test
     fun `identifiserer at opphør av uførevilkår skjer i kombinasjon med beløpsendringer`() {
         IdentifiserSaksbehandlingsutfallSomIkkeStøttes(
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføre(periode = periodeJuni2021),
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(periode = periodeJuni2021),
             tidligereBeregning = beregning(
                 periode = periodeDesember2021,
                 uføregrunnlag = nonEmptyListOf(
@@ -79,10 +80,10 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
                     ),
                 ),
             ),
-        ).resultat shouldBeLeft setOf(
+        ).resultat shouldBe setOf(
             RevurderingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned,
             RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
-        )
+        ).left()
     }
 
     @Test
@@ -124,10 +125,10 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
             vilkårsvurderinger = vilkårsvurderingerMock,
             tidligereBeregning = tidligereBeregningMock,
             nyBeregning = nyBeregningMock,
-        ).resultat shouldBeLeft setOf(
+        ).resultat shouldBe setOf(
             RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
             RevurderingsutfallSomIkkeStøttes.DelvisOpphør,
-        )
+        ).left()
     }
 
     @Test
@@ -169,10 +170,10 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
             vilkårsvurderinger = vilkårsvurderingerMock,
             tidligereBeregning = tidligereBeregningMock,
             nyBeregning = nyBeregningMock,
-        ).resultat shouldBeLeft setOf(
+        ).resultat shouldBe setOf(
             RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
             RevurderingsutfallSomIkkeStøttes.DelvisOpphør,
-        )
+        ).left()
     }
 
     @Test
@@ -216,7 +217,7 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
             vilkårsvurderinger = vilkårsvurderingerMock,
             tidligereBeregning = tidligereBeregningMock,
             nyBeregning = nyBeregningMock,
-        ).resultat shouldBeRight Unit
+        ).resultat shouldBe Unit.right()
     }
 
     @Test
@@ -258,9 +259,9 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
             vilkårsvurderinger = vilkårsvurderingerMock,
             tidligereBeregning = tidligereBeregningMock,
             nyBeregning = nyBeregningMock,
-        ).resultat shouldBeLeft setOf(
+        ).resultat shouldBe setOf(
             RevurderingsutfallSomIkkeStøttes.DelvisOpphør,
-        )
+        ).left()
     }
 
     @Test
@@ -302,9 +303,9 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
             vilkårsvurderinger = vilkårsvurderingerMock,
             tidligereBeregning = tidligereBeregningMock,
             nyBeregning = nyBeregningMock,
-        ).resultat shouldBeLeft setOf(
+        ).resultat shouldBe setOf(
             RevurderingsutfallSomIkkeStøttes.DelvisOpphør,
-        )
+        ).left()
     }
 
     @Test
@@ -315,13 +316,13 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
             vilkårsvurderinger = vilkårsvurderingerInnvilget(periodeDesember2021),
             tidligereBeregning = beregning,
             nyBeregning = beregning,
-        ).resultat shouldBeRight Unit
+        ).resultat shouldBe Unit.right()
     }
 
     @Test
     fun `identifiserer ingen problemer ved opphør av uførevilkår med endring i forventet inntekt`() {
         IdentifiserSaksbehandlingsutfallSomIkkeStøttes(
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføre(periode = periodeJuni2021),
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(periode = periodeJuni2021),
             tidligereBeregning = beregning(
                 periode = periodeDesember2021,
                 uføregrunnlag = nonEmptyListOf(
@@ -351,15 +352,15 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
                     ),
                 ),
             ),
-        ).resultat shouldBeLeft setOf(
+        ).resultat shouldBe setOf(
             RevurderingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned,
-        )
+        ).left()
     }
 
     @Test
     fun `skal ikke kunne opphøre og legge til fradrag i kombinasjon`() {
         IdentifiserSaksbehandlingsutfallSomIkkeStøttes(
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføre(periode = periodeDesember2021),
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(periode = periodeDesember2021),
             tidligereBeregning = beregning(periode = periodeDesember2021),
             nyBeregning = beregning(
                 periode = periodeDesember2021,
@@ -370,15 +371,15 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
                     ),
                 ),
             ),
-        ).resultat shouldBeLeft setOf(
+        ).resultat shouldBe setOf(
             RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
-        )
+        ).left()
     }
 
     @Test
     fun `skal ikke kunne opphøre og fjerne fradrag i kombinasjon`() {
         IdentifiserSaksbehandlingsutfallSomIkkeStøttes(
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføre(periode = periodeDesember2021),
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(periode = periodeDesember2021),
             tidligereBeregning = beregning(
                 periode = periodeDesember2021,
                 fradragsgrunnlag = nonEmptyListOf(
@@ -392,8 +393,8 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
                 periode = periodeDesember2021,
 
             ),
-        ).resultat shouldBeLeft setOf(
+        ).resultat shouldBe setOf(
             RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
-        )
+        ).left()
     }
 }

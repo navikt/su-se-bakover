@@ -57,7 +57,7 @@ internal class StatusovergangTest {
 
     private val opprettet = søknadsbehandlingVilkårsvurdertUavklart(
         stønadsperiode = stønadsperiode,
-    )
+    ).second
 
     private val simulering = no.nav.su.se.bakover.test.simuleringNy()
 

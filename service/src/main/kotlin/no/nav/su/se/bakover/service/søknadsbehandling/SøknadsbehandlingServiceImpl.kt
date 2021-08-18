@@ -167,14 +167,6 @@ internal class SøknadsbehandlingServiceImpl(
 
         // Dette er allerede validert når de ble lagt inn, men vi validerer det en gang til her for å være sikker på at det ikke har endret seg
         val fradrag = søknadsbehandling.grunnlagsdata.fradragsgrunnlag
-            // .valider(søknadsbehandling.periode, søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle())
-            // .getOrHandle { valideringsfeil ->
-            //     return when (valideringsfeil) {
-            //         Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> KunneIkkeBeregne.UgyldigFradragstype.left()
-            //         Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UtenforBehandlingsperiode -> KunneIkkeBeregne.IkkeLovMedFradragUtenforPerioden.left()
-            //         Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.HarIkkeEktelle -> KunneIkkeBeregne.HarIkkeEktefelle.left()
-            //     }
-            // }
             .map { fradragsgrunnlag ->
                 fradragsgrunnlag.fradrag
             }
@@ -579,6 +571,7 @@ internal class SøknadsbehandlingServiceImpl(
         ).mapLeft {
             KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling
         }.map {
+            // TODO jah: Legg til Søknadsbehandling.leggTilUføre(...) som for Revurdering og persister Søknadsbehandlingen som returnerers. Da slipper man og det ekstra hent(...) kallet.
             vilkårsvurderingService.lagre(
                 it.id,
                 Vilkårsvurderinger(uføre = vilkår),
@@ -613,6 +606,7 @@ internal class SøknadsbehandlingServiceImpl(
         ).mapLeft {
             return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
         }.map {
+            // TODO jah: Legg til Søknadsbehandling.leggTilBosituasjonEpsgrunnlag(...) som for Revurdering og persister Søknadsbehandlingen som returnerers. Da slipper man og det ekstra hent(...) kallet.
             grunnlagService.lagreBosituasjongrunnlag(behandlingId = request.behandlingId, listOf(bosituasjon))
             return when (it) {
                 is Søknadsbehandling.Vilkårsvurdert.Avslag -> it.copy(
@@ -666,6 +660,7 @@ internal class SøknadsbehandlingServiceImpl(
         ).mapLeft {
             return KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
         }.map {
+            // TODO jah: Legg til Søknadsbehandling.fullførBosituasjongrunnlag(...) som for Revurdering og persister Søknadsbehandlingen som returnerers. Da slipper man og det ekstra hent(...) kallet.
             grunnlagService.lagreBosituasjongrunnlag(behandlingId = request.behandlingId, listOf(bosituasjon))
             return when (it) {
                 is Søknadsbehandling.Vilkårsvurdert.Avslag -> it.copy(
@@ -694,7 +689,13 @@ internal class SøknadsbehandlingServiceImpl(
         val behandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
 
-        behandling.leggTilFradragsgrunnlag(request.fradragsrunnlag)
+        val b = behandling.leggTilFradragsgrunnlag(request.fradragsrunnlag).getOrHandle {
+            when (it) {
+                Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInneforBehandlingen -> TODO()
+                Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen -> TODO()
+                Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMåFyllesUt -> TODO()
+            }
+        }
 
         // val fradragsgrunnlag = request.fradragsrunnlag.map {
         //     Grunnlag.Fradragsgrunnlag.tryCreate(
@@ -721,7 +722,7 @@ internal class SøknadsbehandlingServiceImpl(
         // }
 
         // TODO er dette greit (bortsett fra at det burde skrives om til en return...), eller må man lage en behandling og lagre den?
-        grunnlagService.lagreFradragsgrunnlag(behandling.id, behandling.grunnlagsdata.fradragsgrunnlag)
+        grunnlagService.lagreFradragsgrunnlag(behandling.id, b.grunnlagsdata.fradragsgrunnlag)
         val behandlingMedGrunnlag = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
 

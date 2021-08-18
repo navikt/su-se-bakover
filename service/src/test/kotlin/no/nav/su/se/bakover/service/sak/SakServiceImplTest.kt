@@ -15,14 +15,14 @@ import no.nav.su.se.bakover.domain.sak.SakRestans
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
-import no.nav.su.se.bakover.test.UnderkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak
-import no.nav.su.se.bakover.test.journalførtSøknadMedOppgave
+import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.UUID
@@ -70,14 +70,15 @@ internal class SakServiceImplTest {
 
     @Test
     fun `henter bare åpen søknad på en sak`() {
+        val nySakMedjournalførtSøknadOgOppgave = nySakMedjournalførtSøknadOgOppgave().second
         val sakRepo: SakRepo = mock {
             on { hentSakRestanser() } doReturn listOf(
                 SakRestans(
                     saksnummer = Saksnummer(nummer = 2021),
-                    behandlingsId = journalførtSøknadMedOppgave.id,
+                    behandlingsId = nySakMedjournalførtSøknadOgOppgave.id,
                     restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
                     status = SakRestans.RestansStatus.NY_SØKNAD,
-                    opprettet = journalførtSøknadMedOppgave.opprettet,
+                    behandlingStartet = nySakMedjournalførtSøknadOgOppgave.opprettet,
                 ),
             )
         }
@@ -88,10 +89,10 @@ internal class SakServiceImplTest {
         sakMedÅpenSøknad shouldBe listOf(
             SakRestans(
                 saksnummer = Saksnummer(nummer = 2021),
-                behandlingsId = journalførtSøknadMedOppgave.id,
+                behandlingsId = nySakMedjournalførtSøknadOgOppgave.id,
                 restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
                 status = SakRestans.RestansStatus.NY_SØKNAD,
-                opprettet = journalførtSøknadMedOppgave.opprettet,
+                behandlingStartet = nySakMedjournalførtSøknadOgOppgave.opprettet,
             ),
         )
     }
@@ -101,9 +102,9 @@ internal class SakServiceImplTest {
         val saksnr1 = Saksnummer(2021)
         val saksnr2 = Saksnummer(2022)
 
-        val uavklartSøkandsbehandling = søknadsbehandlingVilkårsvurdertUavklart(saksnr1)
-        val underkjentSøknadsbehandling = søknadsbehandlingUnderkjentInnvilget(saksnr1)
-        val tilAttesteringSøknadsbehandling = søknadsbehandlingTilAttesteringInnvilget(saksnr2)
+        val uavklartSøkandsbehandling = søknadsbehandlingVilkårsvurdertUavklart(saksnr1).second
+        val underkjentSøknadsbehandling = søknadsbehandlingUnderkjentInnvilget(saksnr1).second
+        val tilAttesteringSøknadsbehandling = søknadsbehandlingTilAttesteringInnvilget(saksnr2).second
 
         val sakRepo: SakRepo = mock {
             on { hentSakRestanser() } doReturn listOf(
@@ -112,21 +113,21 @@ internal class SakServiceImplTest {
                     behandlingsId = uavklartSøkandsbehandling.id,
                     restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
                     status = SakRestans.RestansStatus.UNDER_BEHANDLING,
-                    opprettet = uavklartSøkandsbehandling.opprettet,
+                    behandlingStartet = uavklartSøkandsbehandling.opprettet,
                 ),
                 SakRestans(
                     saksnummer = saksnr1,
                     behandlingsId = underkjentSøknadsbehandling.id,
                     restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
                     status = SakRestans.RestansStatus.UNDERKJENT,
-                    opprettet = underkjentSøknadsbehandling.opprettet,
+                    behandlingStartet = underkjentSøknadsbehandling.opprettet,
                 ),
                 SakRestans(
                     saksnummer = saksnr2,
                     behandlingsId = tilAttesteringSøknadsbehandling.id,
                     restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
                     status = SakRestans.RestansStatus.TIL_ATTESTERING,
-                    opprettet = tilAttesteringSøknadsbehandling.opprettet,
+                    behandlingStartet = tilAttesteringSøknadsbehandling.opprettet,
                 ),
             )
         }
@@ -140,21 +141,21 @@ internal class SakServiceImplTest {
                 behandlingsId = uavklartSøkandsbehandling.id,
                 restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
                 status = SakRestans.RestansStatus.UNDER_BEHANDLING,
-                opprettet = uavklartSøkandsbehandling.opprettet,
+                behandlingStartet = uavklartSøkandsbehandling.opprettet,
             ),
             SakRestans(
                 saksnummer = saksnr1,
                 behandlingsId = underkjentSøknadsbehandling.id,
                 restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
                 status = SakRestans.RestansStatus.UNDERKJENT,
-                opprettet = underkjentSøknadsbehandling.opprettet,
+                behandlingStartet = underkjentSøknadsbehandling.opprettet,
             ),
             SakRestans(
                 saksnummer = saksnr2,
                 behandlingsId = tilAttesteringSøknadsbehandling.id,
                 restansType = SakRestans.RestansType.SØKNADSBEHANDLING,
                 status = SakRestans.RestansStatus.TIL_ATTESTERING,
-                opprettet = tilAttesteringSøknadsbehandling.opprettet,
+                behandlingStartet = tilAttesteringSøknadsbehandling.opprettet,
             ),
         )
     }
@@ -164,11 +165,13 @@ internal class SakServiceImplTest {
         val saknr1 = Saksnummer(2021)
         val saknr2 = Saksnummer(2022)
 
-        val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(saknr1)
-        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(saknr1)
+        val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(saknr1).second
+        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(saknr1).second
 
-        val underkjentInnvilgetRevurdering = UnderkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak(saknr2)
-        val tilAttesteringRevurdering = tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(saknr2)
+        val underkjentInnvilgetRevurdering =
+            underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak(saknr2).second
+        val tilAttesteringRevurdering =
+            tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(saknr2).second
 
         val sakRepo: SakRepo = mock {
             on { hentSakRestanser() } doReturn listOf(
@@ -177,28 +180,28 @@ internal class SakServiceImplTest {
                     behandlingsId = opprettetRevurdering.id,
                     restansType = SakRestans.RestansType.REVURDERING,
                     status = SakRestans.RestansStatus.UNDER_BEHANDLING,
-                    opprettet = opprettetRevurdering.opprettet,
+                    behandlingStartet = opprettetRevurdering.opprettet,
                 ),
                 SakRestans(
                     saksnummer = saknr1,
                     behandlingsId = simulertRevurdering.id,
                     restansType = SakRestans.RestansType.REVURDERING,
                     status = SakRestans.RestansStatus.UNDER_BEHANDLING,
-                    opprettet = simulertRevurdering.opprettet,
+                    behandlingStartet = simulertRevurdering.opprettet,
                 ),
                 SakRestans(
                     saksnummer = saknr2,
                     behandlingsId = underkjentInnvilgetRevurdering.id,
                     restansType = SakRestans.RestansType.REVURDERING,
                     status = SakRestans.RestansStatus.UNDERKJENT,
-                    opprettet = underkjentInnvilgetRevurdering.opprettet,
+                    behandlingStartet = underkjentInnvilgetRevurdering.opprettet,
                 ),
                 SakRestans(
                     saksnummer = saknr2,
                     behandlingsId = tilAttesteringRevurdering.id,
                     restansType = SakRestans.RestansType.REVURDERING,
                     status = SakRestans.RestansStatus.TIL_ATTESTERING,
-                    opprettet = tilAttesteringRevurdering.opprettet,
+                    behandlingStartet = tilAttesteringRevurdering.opprettet,
                 ),
             )
         }
@@ -212,28 +215,28 @@ internal class SakServiceImplTest {
                 behandlingsId = opprettetRevurdering.id,
                 restansType = SakRestans.RestansType.REVURDERING,
                 status = SakRestans.RestansStatus.UNDER_BEHANDLING,
-                opprettet = opprettetRevurdering.opprettet,
+                behandlingStartet = opprettetRevurdering.opprettet,
             ),
             SakRestans(
                 saksnummer = saknr1,
                 behandlingsId = simulertRevurdering.id,
                 restansType = SakRestans.RestansType.REVURDERING,
                 status = SakRestans.RestansStatus.UNDER_BEHANDLING,
-                opprettet = simulertRevurdering.opprettet,
+                behandlingStartet = simulertRevurdering.opprettet,
             ),
             SakRestans(
                 saksnummer = saknr2,
                 behandlingsId = underkjentInnvilgetRevurdering.id,
                 restansType = SakRestans.RestansType.REVURDERING,
                 status = SakRestans.RestansStatus.UNDERKJENT,
-                opprettet = underkjentInnvilgetRevurdering.opprettet,
+                behandlingStartet = underkjentInnvilgetRevurdering.opprettet,
             ),
             SakRestans(
                 saksnummer = saknr2,
                 behandlingsId = tilAttesteringRevurdering.id,
                 restansType = SakRestans.RestansType.REVURDERING,
                 status = SakRestans.RestansStatus.TIL_ATTESTERING,
-                opprettet = tilAttesteringRevurdering.opprettet,
+                behandlingStartet = tilAttesteringRevurdering.opprettet,
             ),
         )
     }

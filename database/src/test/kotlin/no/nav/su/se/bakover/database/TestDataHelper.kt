@@ -273,7 +273,7 @@ internal class TestDataHelper(
     internal val dokumentRepo = DokumentPostgresRepo(datasource)
 
     fun nySakMedNySøknad(fnr: Fnr = FnrGenerator.random()): NySak {
-        return SakFactory(clock = clock).nySak(fnr, SøknadInnholdTestdataBuilder.build()).also {
+        return SakFactory(clock = clock).nySakMedNySøknad(fnr, SøknadInnholdTestdataBuilder.build()).also {
             sakRepo.opprettSak(it)
         }
     }

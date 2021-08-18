@@ -160,9 +160,9 @@ class OppdaterStønadsperiodeTest {
             fnr = FnrGenerator.random(),
             fritekstTilBrev = "",
             stønadsperiode = BehandlingTestUtils.stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val serviceMock = mock<SøknadsbehandlingService> {

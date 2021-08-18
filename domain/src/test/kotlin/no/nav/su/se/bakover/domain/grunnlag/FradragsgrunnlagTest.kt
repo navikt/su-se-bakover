@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
-import io.kotest.assertions.arrow.either.shouldBeLeft
+import arrow.core.left
+import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.periode.Periode
@@ -14,23 +15,6 @@ internal class FradragsgrunnlagTest {
 
     private val behandlingsperiode = Periode.create(1.januar(2021), 31.juli(2021))
 
-    // @Test
-    // fun `ugyldig hvis utenfor aktuell behandlingsperiode`() {
-    //     Grunnlag.Fradragsgrunnlag(
-    //         fradrag = FradragFactory.ny(
-    //             type = Fradragstype.Arbeidsinntekt,
-    //             månedsbeløp = 0.0,
-    //             periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),
-    //             utenlandskInntekt = null,
-    //             tilhører = FradragTilhører.BRUKER,
-    //         ),
-    //         opprettet = fixedTidspunkt,
-    //     ).valider(
-    //         behandlingsperiode,
-    //         false,
-    //     ) shouldBeLeft Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UtenforBehandlingsperiode
-    // }
-
     @Test
     fun `ugyldig for enkelte fradragstyper`() {
         Grunnlag.Fradragsgrunnlag.tryCreate(
@@ -42,7 +26,7 @@ internal class FradragsgrunnlagTest {
                 tilhører = FradragTilhører.BRUKER,
             ),
             opprettet = fixedTidspunkt,
-        ) shouldBeLeft Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag
+        ) shouldBe Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
 
         Grunnlag.Fradragsgrunnlag.tryCreate(
             fradrag = FradragFactory.ny(
@@ -53,7 +37,7 @@ internal class FradragsgrunnlagTest {
                 tilhører = FradragTilhører.BRUKER,
             ),
             opprettet = fixedTidspunkt,
-        ) shouldBeLeft Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag
+        ) shouldBe Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
 
         Grunnlag.Fradragsgrunnlag.tryCreate(
             fradrag = FradragFactory.ny(
@@ -64,6 +48,28 @@ internal class FradragsgrunnlagTest {
                 tilhører = FradragTilhører.BRUKER,
             ),
             opprettet = fixedTidspunkt,
-        ) shouldBeLeft Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag
+        ) shouldBe Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
+    }
+
+    @Test
+    fun `kan lage gyldige fradragsgrunnlag`() {
+        Fradragstype.values().filterNot {
+            listOf(
+                Fradragstype.BeregnetFradragEPS,
+                Fradragstype.ForventetInntekt,
+                Fradragstype.UnderMinstenivå,
+            ).contains(it)
+        }.forEach {
+            Grunnlag.Fradragsgrunnlag.tryCreate(
+                fradrag = FradragFactory.ny(
+                    type = it,
+                    månedsbeløp = 150.0,
+                    periode = behandlingsperiode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                opprettet = fixedTidspunkt,
+            ).isRight() shouldBe true
+        }
     }
 }

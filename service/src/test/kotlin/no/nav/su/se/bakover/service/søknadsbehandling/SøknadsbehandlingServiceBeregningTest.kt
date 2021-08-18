@@ -179,45 +179,8 @@ class SøknadsbehandlingServiceBeregningTest {
             )
             verify(søknadsbehandlingRepoMock).lagre(expected)
         }
-        // verifyNoMoreInteractions(søknadsbehandlingRepoMock)
+        verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }
-
-    // @Test
-    // fun `fradragsperiode kan ikke være utenfor stønadsperioden`() {
-    //     val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-    //         on { hent(any()) } doReturn vilkårsvurdertBehandling
-    //     }
-    //     val beregningServiceMock = mock<BeregningService>()
-    //     val request = SøknadsbehandlingService.BeregnRequest(
-    //         behandlingId = behandlingId,
-    //         fradrag = listOf(
-    //             SøknadsbehandlingService.BeregnRequest.FradragRequest(
-    //                 periode = stønadsperiode.periode.copy(
-    //                     fraOgMed = stønadsperiode.periode.fraOgMed.minus(
-    //                         1,
-    //                         ChronoUnit.MONTHS,
-    //                     ),
-    //                 ),
-    //                 type = Fradragstype.Arbeidsinntekt,
-    //                 månedsbeløp = 12000.0,
-    //                 utenlandskInntekt = null,
-    //                 tilhører = FradragTilhører.BRUKER,
-    //             ),
-    //         ),
-    //         begrunnelse = "her er en begrunnelse",
-    //     )
-    //
-    //     val actual = createSøknadsbehandlingService(
-    //         søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-    //         beregningService = beregningServiceMock,
-    //     ).beregn(request) //shouldBe SøknadsbehandlingService.KunneIkkeBeregne.IkkeLovMedFradragUtenforPerioden.left()
-    //
-    //     println(actual)
-    //     inOrder(søknadsbehandlingRepoMock, beregningServiceMock) {
-    //         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
-    //     }
-    //     verifyNoMoreInteractions(søknadsbehandlingRepoMock, beregningServiceMock)
-    // }
 
     @Test
     fun `kan ikke hente behandling`() {

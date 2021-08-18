@@ -52,7 +52,6 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.kanIkkeHaEpsFradragUtenEps
 import no.nav.su.se.bakover.web.routes.sak.sakPath
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
@@ -228,32 +227,11 @@ internal fun Route.søknadsbehandlingRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$behandlingPath/{behandlingId}/beregn") {
             data class Body(
-                val fradrag: List<FradragJson>,
                 val begrunnelse: String?,
             ) {
                 fun toDomain(behandlingId: UUID): Either<Resultat, BeregnRequest> {
                     return BeregnRequest(
                         behandlingId = behandlingId,
-                        // fradrag = fradrag.map { fradrag ->
-                        //     BeregnRequest.FradragRequest(
-                        //         periode = fradrag.periode?.toPeriode()?.getOrHandle { feilResultat ->
-                        //             return feilResultat.left()
-                        //         },
-                        //         type = fradrag.type.let {
-                        //             Fradragstype.tryParse(it).getOrHandle {
-                        //                 return BadRequest.errorJson("Ugyldig fradragstype", "ugyldig_fradragstype")
-                        //                     .left()
-                        //             }
-                        //         },
-                        //         månedsbeløp = fradrag.beløp,
-                        //         utenlandskInntekt = fradrag.utenlandskInntekt?.toUtenlandskInntekt()
-                        //             ?.getOrHandle { feilResultat ->
-                        //                 return feilResultat.left()
-                        //             },
-                        //         tilhører = fradrag.tilhører.let { FradragTilhører.valueOf(it) },
-                        //
-                        //     )
-                        // },
                         begrunnelse = begrunnelse,
                     ).right()
                 }

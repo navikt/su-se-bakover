@@ -1,19 +1,23 @@
 package no.nav.su.se.bakover.domain
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -50,7 +54,7 @@ data class Sak(
     val opprettet: Tidspunkt = Tidspunkt.now(),
     val fnr: Fnr,
     val søknader: List<Søknad> = emptyList(),
-    val behandlinger: List<Søknadsbehandling> = emptyList(),
+    val søknadsbehandlinger: List<Søknadsbehandling> = emptyList(),
     val utbetalinger: List<Utbetaling>,
     val revurderinger: List<Revurdering> = emptyList(),
     val vedtakListe: List<Vedtak> = emptyList(),
@@ -62,7 +66,7 @@ data class Sak(
     }
 
     fun hentÅpneSøknadsbehandlinger(): List<Søknadsbehandling> {
-        return behandlinger.filterNot {
+        return søknadsbehandlinger.filterNot {
             it is Søknadsbehandling.Iverksatt
         }
     }
@@ -71,7 +75,7 @@ data class Sak(
         val ikkeLukkedeSøknader = søknader.filterNot {
             it is Søknad.Lukket
         }
-        val søknaderMedSøknadsbehandling = behandlinger.map {
+        val søknaderMedSøknadsbehandling = søknadsbehandlinger.map {
             it.søknad
         }
         return ikkeLukkedeSøknader.minus(søknaderMedSøknadsbehandling)
@@ -91,6 +95,20 @@ data class Sak(
             utbetalingslinjer = utbetalingslinjer,
         )
     }
+
+    fun hentGjeldendeVilkårOgGrunnlag(periode: Periode, clock: Clock): GrunnlagsdataOgVilkårsvurderinger {
+        return GjeldendeVedtaksdata(
+            periode = periode,
+            vedtakListe = NonEmptyList.fromListUnsafe(
+                vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().ifEmpty {
+                    return GrunnlagsdataOgVilkårsvurderinger.IkkeVurdert
+                },
+            ),
+            clock = clock,
+        ).let {
+            GrunnlagsdataOgVilkårsvurderinger(it.grunnlagsdata, it.vilkårsvurderinger)
+        }
+    }
 }
 
 data class NySak(
@@ -98,13 +116,27 @@ data class NySak(
     val opprettet: Tidspunkt = Tidspunkt.now(),
     val fnr: Fnr,
     val søknad: Søknad.Ny,
-)
+) {
+    fun toSak(saksnummer: Saksnummer): Sak {
+        return Sak(
+            id = id,
+            saksnummer = saksnummer,
+            opprettet = opprettet,
+            fnr = fnr,
+            søknader = listOf(søknad),
+            søknadsbehandlinger = emptyList(),
+            utbetalinger = emptyList(),
+            revurderinger = emptyList(),
+            vedtakListe = emptyList(),
+        )
+    }
+}
 
 class SakFactory(
     private val uuidFactory: UUIDFactory = UUIDFactory(),
     private val clock: Clock,
 ) {
-    fun nySak(fnr: Fnr, søknadInnhold: SøknadInnhold): NySak {
+    fun nySakMedNySøknad(fnr: Fnr, søknadInnhold: SøknadInnhold): NySak {
         val opprettet = Tidspunkt.now(clock)
         val sakId = uuidFactory.newUUID()
         return NySak(

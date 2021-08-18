@@ -53,7 +53,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         opprettet = Tidspunkt.EPOCH,
         fnr = fnr,
         søknader = emptyList(),
-        behandlinger = emptyList(),
+        søknadsbehandlinger = emptyList(),
         utbetalinger = emptyList()
     )
     private val person = Person(

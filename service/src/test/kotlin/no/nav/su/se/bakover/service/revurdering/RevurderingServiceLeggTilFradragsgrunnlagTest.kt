@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.getOrHandle
+import arrow.core.left
 import arrow.core.nonEmptyListOf
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
@@ -8,7 +9,6 @@ import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
-import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
@@ -33,6 +34,7 @@ import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import java.util.UUID
@@ -40,7 +42,7 @@ import java.util.UUID
 class RevurderingServiceLeggTilFradragsgrunnlagTest {
     @Test
     fun `lagreFradrag happy case`() {
-        val revurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak()
+        val revurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn revurdering
@@ -128,7 +130,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
 
         revurderingService.leggTilFradragsgrunnlag(
             request,
-        ).shouldBeLeft(KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling)
+        ) shouldBe KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
 
         inOrder(
             revurderingRepoMock,
@@ -143,7 +145,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
     @Test
     fun `lagreFradrag har en status som gjør at man ikke kan legge til fradrag`() {
 
-        val tidligereRevurdering = tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak()
+        val tidligereRevurdering = tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn tidligereRevurdering
@@ -174,12 +176,10 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
 
         revurderingService.leggTilFradragsgrunnlag(
             request,
-        ).shouldBeLeft(
-            KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
-                fra = tidligereRevurdering::class,
-                til = OpprettetRevurdering::class,
-            ),
-        )
+        ) shouldBe KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
+            fra = tidligereRevurdering::class,
+            til = OpprettetRevurdering::class,
+        ).left()
 
         verify(revurderingRepoMock).hent(argThat { it shouldBe tidligereRevurdering.id })
 
@@ -191,20 +191,23 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
         val revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021))
         val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
             revurderingsperiode = revurderingsperiode,
-            grunnlagsdata = Grunnlagsdata.tryCreate(
-                bosituasjon = listOf(
-                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = revurderingsperiode,
-                        begrunnelse = null,
+            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
+                vilkårsvurderinger = vilkårsvurderingerInnvilget(periode = revurderingsperiode),
+                grunnlagsdata = Grunnlagsdata.tryCreate(
+                    bosituasjon = listOf(
+                        Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            periode = revurderingsperiode,
+                            begrunnelse = null,
+                        ),
                     ),
                 ),
             ),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn opprettetRevurdering
+            on { hent(any()) } doReturn opprettetRevurdering.second
         }
 
         val revurderingService = RevurderingTestUtils.createRevurderingService(
@@ -218,7 +221,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 0.0,
-                        periode = opprettetRevurdering.periode,
+                        periode = opprettetRevurdering.second.periode,
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
@@ -229,8 +232,8 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
                         type = Fradragstype.Kontantstøtte,
                         månedsbeløp = 0.0,
                         periode = Periode.create(
-                            fraOgMed = opprettetRevurdering.periode.fraOgMed.minusMonths(3),
-                            tilOgMed = opprettetRevurdering.periode.tilOgMed,
+                            fraOgMed = opprettetRevurdering.second.periode.fraOgMed.minusMonths(3),
+                            tilOgMed = opprettetRevurdering.second.periode.tilOgMed,
                         ),
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,

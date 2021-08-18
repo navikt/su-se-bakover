@@ -9,7 +9,6 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
-import io.kotest.assertions.arrow.either.shouldBeRight
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -94,7 +93,7 @@ internal class OpprettRevurderingServiceTest {
         vilkårsvurderinger = vilkårsvurderingerInnvilget().copy(
             uføre = vilkårsvurderingUføre,
         ),
-    )
+    ).second
 
     private fun createSøknadsbehandlingVedtak() =
         Vedtak.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID(), fixedClock)
@@ -541,9 +540,7 @@ internal class OpprettRevurderingServiceTest {
             ),
         )
 
-        revurderingForFebruar shouldBeRight {
-            it.tilRevurdering shouldBe vedtakForFørsteJanuarLagetNå
-        }
+        revurderingForFebruar.orNull()!!.tilRevurdering shouldBe vedtakForFørsteJanuarLagetNå
 
         val revurderingForApril = mocks.revurderingService.opprettRevurdering(
             OpprettRevurderingRequest(
@@ -556,9 +553,7 @@ internal class OpprettRevurderingServiceTest {
             ),
         )
 
-        revurderingForApril shouldBeRight {
-            it.tilRevurdering shouldBe vedtakForFørsteMarsLagetNå
-        }
+        revurderingForApril.orNull()!!.tilRevurdering shouldBe vedtakForFørsteMarsLagetNå
     }
 
     @Test
@@ -641,7 +636,7 @@ internal class OpprettRevurderingServiceTest {
             ),
         )
 
-        actual shouldBeRight {
+        actual.orNull()!!.also {
             it.saksnummer shouldBe saksnummer
             it.tilRevurdering.id shouldBe revurdering.id
         }
@@ -950,110 +945,4 @@ internal class OpprettRevurderingServiceTest {
         verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(sakId, periodeNesteMånedOgTreMånederFram.fraOgMed)
         mocks.verifyNoMoreInteractions()
     }
-
-    // @Test
-    // fun `revurdering med EPS inntekt og flere bosituasjoner må vurderes`() {
-    //     fun lagBeregning(periode: Periode) = mock<Beregning> {
-    //         on { getFradrag() } doReturn listOf(
-    //             FradragFactory.ny(
-    //                 type = Fradragstype.Arbeidsinntekt,
-    //                 månedsbeløp = 5000.0,
-    //                 periode = periode,
-    //                 utenlandskInntekt = null,
-    //                 tilhører = FradragTilhører.EPS,
-    //             ),
-    //         )
-    //     }
-    //
-    //     val revurderingsperiode = Periode.create(
-    //         fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed.plus(1, ChronoUnit.MONTHS),
-    //         tilOgMed = periodeNesteMånedOgTreMånederFram.tilOgMed,
-    //     )
-    //     val revurderingBeregning = lagBeregning(revurderingsperiode)
-    //
-    //     val revurdering = mock<IverksattRevurdering.Innvilget> {
-    //         on { attestering } doReturn Attestering.Iverksatt(
-    //             NavIdentBruker.Attestant("attestantSomIverksatte"),
-    //             fixedTidspunkt,
-    //         )
-    //
-    //         on { periode } doReturn revurderingsperiode
-    //         on { beregning } doReturn revurderingBeregning
-    //         on { simulering } doReturn mock()
-    //         on { saksbehandler } doReturn mock()
-    //         on { grunnlagsdata } doReturn Grunnlagsdata.tryCreate(
-    //             bosituasjon = listOf(
-    //                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
-    //                     id = UUID.randomUUID(),
-    //                     opprettet = fixedTidspunkt,
-    //                     periode = periodeNesteMånedOgTreMånederFram,
-    //                     begrunnelse = null,
-    //                 ),
-    //                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
-    //                     id = UUID.randomUUID(),
-    //                     opprettet = fixedTidspunkt,
-    //                     periode = periodeNesteMånedOgTreMånederFram,
-    //                     begrunnelse = null,
-    //                 ),
-    //             ),
-    //             fradragsgrunnlag = listOf(
-    //                 Grunnlag.Fradragsgrunnlag.tryCreate(
-    //                     fradrag = FradragFactory.ny(
-    //                         type = Fradragstype.Arbeidsinntekt,
-    //                         månedsbeløp = 5000.0,
-    //                         periode = revurderingsperiode,
-    //                         utenlandskInntekt = null,
-    //                         tilhører = FradragTilhører.EPS,
-    //                     ),
-    //                 ).orNull()!!,
-    //             ),
-    //         )
-    //         on { vilkårsvurderinger } doReturn Vilkårsvurderinger(
-    //             uføre = vilkårsvurderingUføre,
-    //         )
-    //     }
-    //
-    //     val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-    //         periode = periodeNesteMånedOgTreMånederFram,
-    //         vedtakListe = nonEmptyListOf(
-    //             createSøknadsbehandlingVedtak().copy(
-    //                 beregning = lagBeregning(periodeNesteMånedOgTreMånederFram),
-    //             ),
-    //             Vedtak.from(revurdering, UUID30.randomUUID(), fixedClock),
-    //         ),
-    //         clock = fixedClock,
-    //     )
-    //
-    //     val vedtakServiceMock = mock<VedtakService> {
-    //         on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn gjeldendeVedtaksdata.right()
-    //     }
-    //
-    //     val personServiceMock = mock<PersonService> {
-    //         on { hentAktørId(any()) } doReturn aktørId.right()
-    //     }
-    //
-    //     val oppgaveServiceMock = mock<OppgaveService> {
-    //         on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
-    //     }
-    //
-    //     val mocks = RevurderingServiceMocks(
-    //         vedtakService = vedtakServiceMock,
-    //         personService = personServiceMock,
-    //         oppgaveService = oppgaveServiceMock,
-    //     )
-    //     val actual = mocks.revurderingService.opprettRevurdering(
-    //         OpprettRevurderingRequest(
-    //             sakId = sakId,
-    //             fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
-    //             årsak = "MELDING_FRA_BRUKER",
-    //             begrunnelse = "Ny informasjon",
-    //             saksbehandler = saksbehandler,
-    //             informasjonSomRevurderes = listOf(Revurderingsteg.Bosituasjon),
-    //         ),
-    //     )
-    //
-    //     actual shouldBe KunneIkkeOppretteRevurdering.EpsInntektMedFlereBosituasjonsperioderMåRevurderes.left()
-    //     verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(sakId, periodeNesteMånedOgTreMånederFram.fraOgMed)
-    //     mocks.verifyNoMoreInteractions()
-    // }
 }
