@@ -21,9 +21,9 @@ class PersonhendelseService(
     fun prosesserNyHendelse(personhendelse: Personhendelse.Ny) {
         val eksisterendeSakId =
             sakRepo.hentSakIdForIdenter(personhendelse.personidenter) ?: return Unit.also {
-                log.debug("Personhendelse ikke knyttet til sak: Ignorerer ${personhendelse.hendelse} med id ${personhendelse.hendelseId} og endringstype ${personhendelse.endringstype}")
+                log.debug("Personhendelse ikke knyttet til sak: Ignorerer ${personhendelse.hendelse} med hendelsesid ${personhendelse.metadata.hendelseId} og endringstype ${personhendelse.endringstype}")
             }
-        log.info("Personhendelse for sak id $eksisterendeSakId: Persisterer ${personhendelse.hendelse} med hendelsesid ${personhendelse.hendelseId} og endringstype ${personhendelse.endringstype}")
+        log.info("Personhendelse for sak id $eksisterendeSakId: Persisterer ${personhendelse.hendelse} med hendelsesid ${personhendelse.metadata.hendelseId} og endringstype ${personhendelse.endringstype}")
         personhendelseRepo.lagre(
             personhendelse = personhendelse,
             id = UUID.randomUUID(),

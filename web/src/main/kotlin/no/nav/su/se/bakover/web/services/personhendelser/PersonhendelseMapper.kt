@@ -23,7 +23,6 @@ internal object HendelseMapper {
         message: ConsumerRecord<String, EksternPersonhendelse>,
     ): Either<HendelseMapperException, Personhendelse.Ny> {
         val key: String = message.key()
-        val offset: Long = message.offset()
         val personhendelse: EksternPersonhendelse = message.value()
 
         val aktørId = hentAktørId(personhendelse, key).getOrHandle {
@@ -35,34 +34,32 @@ internal object HendelseMapper {
                 val dødsdato = personhendelse.getDoedsfall().get().let {
                     if (it.getDoedsdato().isPresent) it.getDoedsdato().get() else null
                 }
-
-                Personhendelse.Ny(
-                    hendelseId = personhendelse.getHendelseId(),
-                    offset = offset,
-                    gjeldendeAktørId = aktørId,
-                    endringstype = hentEndringstype(personhendelse.getEndringstype()),
-                    personidenter = personhendelse.getPersonidenter(),
-                    hendelse = Personhendelse.Hendelse.Dødsfall(dødsdato = dødsdato),
-                ).right()
+                Personhendelse.Hendelse.Dødsfall(dødsdato = dødsdato).right()
             }
-
             Opplysningstype.UTFLYTTING_FRA_NORGE.value -> {
                 val utflyttetDato = personhendelse.getUtflyttingFraNorge().get().let {
                     if (it.getUtflyttingsdato().isPresent) it.getUtflyttingsdato().get() else null
                 }
-
-                Personhendelse.Ny(
-                    hendelseId = personhendelse.getHendelseId(),
-                    offset = offset,
-                    gjeldendeAktørId = aktørId,
-                    endringstype = hentEndringstype(personhendelse.getEndringstype()),
-                    personidenter = personhendelse.getPersonidenter(),
-                    hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(utflyttingsdato = utflyttetDato),
-                ).right()
+                Personhendelse.Hendelse.UtflyttingFraNorge(utflyttingsdato = utflyttetDato).right()
             }
             else -> {
                 IkkeAktuellOpplysningstype.left()
             }
+        }.map { hendelse ->
+            Personhendelse.Ny(
+                gjeldendeAktørId = aktørId,
+                endringstype = hentEndringstype(personhendelse.getEndringstype()),
+                personidenter = personhendelse.getPersonidenter(),
+                hendelse = hendelse,
+                metadata = Personhendelse.Metadata(
+                    hendelseId = personhendelse.getHendelseId(),
+                    tidligereHendelseId = personhendelse.getTidligereHendelseId()
+                        .let { if (it.isPresent) it.get() else null },
+                    offset = message.offset(),
+                    partisjon = message.partition(),
+                    master = personhendelse.getMaster(),
+                ),
+            )
         }
     }
 
@@ -85,7 +82,7 @@ internal object HendelseMapper {
             Endringstype.OPPRETTET -> Personhendelse.Endringstype.OPPRETTET
             Endringstype.KORRIGERT -> Personhendelse.Endringstype.KORRIGERT
             Endringstype.ANNULLERT -> Personhendelse.Endringstype.ANNULLERT
-            Endringstype.OPPHOERT -> Personhendelse.Endringstype.OPPHOERT
+            Endringstype.OPPHOERT -> Personhendelse.Endringstype.OPPHØRT
         }
 }
 

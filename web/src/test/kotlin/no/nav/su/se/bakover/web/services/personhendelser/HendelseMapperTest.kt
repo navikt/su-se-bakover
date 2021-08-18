@@ -38,7 +38,7 @@ internal class HendelseMapperTest {
         val personhendelse = EksternPersonhendelse(
             "hendelseId",
             listOf(fnr, aktørId),
-            "master",
+            "FREG",
             opprettet,
             "DOEDSFALL_V1",
             Endringstype.OPPRETTET,
@@ -51,12 +51,17 @@ internal class HendelseMapperTest {
         val actual = HendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
 
         actual shouldBe Personhendelse.Ny(
-            hendelseId = "hendelseId",
             gjeldendeAktørId = AktørId(aktørId),
             endringstype = Personhendelse.Endringstype.OPPRETTET,
             hendelse = Personhendelse.Hendelse.Dødsfall(tidspunkt),
-            offset = OFFSET,
             personidenter = personhendelse.getPersonidenter(),
+            metadata = Personhendelse.Metadata(
+                hendelseId = "hendelseId",
+                tidligereHendelseId = null,
+                offset = OFFSET,
+                partisjon = PARTITION,
+                master = "FREG",
+            ),
         )
     }
 
@@ -65,7 +70,7 @@ internal class HendelseMapperTest {
         val personhendelse = EksternPersonhendelse(
             "hendelseId",
             listOf(fnr, aktørId),
-            "master",
+            "FREG",
             opprettet,
             "UTFLYTTING_FRA_NORGE",
             Endringstype.OPPRETTET,
@@ -78,12 +83,17 @@ internal class HendelseMapperTest {
         val actual = HendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
 
         actual shouldBe Personhendelse.Ny(
-            hendelseId = "hendelseId",
             gjeldendeAktørId = AktørId(aktørId),
-            endringstype = no.nav.su.se.bakover.domain.hendelse.Personhendelse.Endringstype.OPPRETTET,
+            endringstype = Personhendelse.Endringstype.OPPRETTET,
             hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(tidspunkt),
-            offset = OFFSET,
             personidenter = personhendelse.getPersonidenter(),
+            metadata = Personhendelse.Metadata(
+                hendelseId = "hendelseId",
+                tidligereHendelseId = null,
+                offset = OFFSET,
+                partisjon = PARTITION,
+                master = "FREG",
+            ),
         )
     }
 

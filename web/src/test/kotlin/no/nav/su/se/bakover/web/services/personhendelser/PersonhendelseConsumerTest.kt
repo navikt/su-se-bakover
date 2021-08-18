@@ -70,12 +70,17 @@ internal class PersonhendelseConsumerTest {
         verify(personhendelseService, timeout(10000).times(6)).prosesserNyHendelse(hendelser.capture())
         hendelser.allValues shouldBe (0..5L).map {
             Personhendelse.Ny(
-                hendelseId = it.toString(),
                 gjeldendeAktørId = AktørId(ident),
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
                 hendelse = Personhendelse.Hendelse.Dødsfall(LocalDate.now()),
-                offset = it,
                 personidenter = listOf(ident, fnr.toString()),
+                metadata = Personhendelse.Metadata(
+                    hendelseId = it.toString(),
+                    tidligereHendelseId = null,
+                    offset = it,
+                    partisjon = PARTITION,
+                    master = "FREG",
+                ),
             )
         }
         verifyNoMoreInteractions(personhendelseService)

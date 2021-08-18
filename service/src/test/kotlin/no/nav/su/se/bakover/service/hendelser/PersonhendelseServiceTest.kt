@@ -60,11 +60,16 @@ internal class PersonhendelseServiceTest {
     }
 
     private fun lagNyPersonhendelse() = Personhendelse.Ny(
-        hendelseId = UUID.randomUUID().toString(),
         gjeldendeAktørId = AktørId("123456b7890000"),
-        offset = 0,
         endringstype = Personhendelse.Endringstype.OPPRETTET,
         personidenter = listOf(FnrGenerator.random().toString(), "123456789010"),
         hendelse = Personhendelse.Hendelse.Dødsfall(dødsdato = LocalDate.now()),
+        metadata = Personhendelse.Metadata(
+            hendelseId = UUID.randomUUID().toString(),
+            tidligereHendelseId = null,
+            offset = 0,
+            partisjon = 0,
+            master = "FREG",
+        ),
     )
 }

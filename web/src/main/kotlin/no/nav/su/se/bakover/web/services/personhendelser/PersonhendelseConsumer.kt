@@ -76,7 +76,7 @@ class PersonhendelseConsumer(
                         ifRight = {
                             personhendelseService.prosesserNyHendelse(it)
                             processedMessages[TopicPartition(message.topic(), message.partition())] =
-                                OffsetAndMetadata(it.offset + 1)
+                                OffsetAndMetadata(message.offset() + 1)
                         },
                     )
                 }

@@ -7,6 +7,8 @@ val orgJsonVersion = "20210307"
 val micrometerRegistryPrometheusVersion = "1.7.3"
 
 plugins {
+    /** Det ser ut som disse genererte filene ikke blir ekskludert av ktlint-tasken.
+     * Gradle gir oss noen warnings om at vi ikke kan oppdatere til Gradle 8. */
     id("com.github.davidmc24.gradle.plugin.avro") version "1.2.1"
 }
 

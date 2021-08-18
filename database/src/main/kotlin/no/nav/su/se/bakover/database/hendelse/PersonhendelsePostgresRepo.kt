@@ -5,6 +5,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo.HendelseJson.Companion.toJson
+import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo.MetadataJson.Companion.toJson
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.uuid
@@ -23,34 +24,32 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
         val tidspunkt = Tidspunkt.now()
         datasource.withSession { session ->
             """
-                insert into personhendelse (id, sakId, hendelseId, meldingoffset, opprettet, endret, aktørId, endringstype, hendelse, oppgaveId, type)
+                insert into personhendelse (id, sakId, opprettet, endret, aktørId, endringstype, hendelse, oppgaveId, type, metadata)
                 values(
                     :id,
                     :sakId,
-                    :hendelseId,
-                    :offset,
                     :opprettet,
                     :endret,
                     :aktoerId,
                     :endringstype,
                     to_jsonb(:hendelse::jsonb),
                     :oppgaveId,
-                    :type
+                    :type,
+                    to_jsonb(:metadata::jsonb)
                 )
                 on conflict do nothing
             """.trimIndent().insert(
                 mapOf(
                     "id" to id,
                     "sakId" to sakId,
-                    "hendelseId" to personhendelse.hendelseId,
-                    "offset" to personhendelse.offset,
                     "opprettet" to tidspunkt,
                     "endret" to tidspunkt,
                     "aktoerId" to personhendelse.gjeldendeAktørId.toString(),
-                    "endringstype" to personhendelse.endringstype.value,
+                    "endringstype" to personhendelse.endringstype.toDatabasetype(),
                     "hendelse" to objectMapper.writeValueAsString(personhendelse.hendelse.toJson()),
                     "oppgaveId" to null,
-                    "type" to personhendelse.hendelse.type(),
+                    "type" to personhendelse.hendelse.toDatabasetype(),
+                    "metadata" to objectMapper.writeValueAsString(personhendelse.metadata.toJson()),
                 ),
                 session,
             )
@@ -73,7 +72,7 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
                     id = id,
                     sakId = it.uuid("sakId"),
                     gjeldendeAktørId = AktørId(it.string("aktørId")),
-                    endringstype = Personhendelse.Endringstype.valueOf(it.string("endringstype")),
+                    endringstype = PersonhendelseEndringstype.tryParse(it.string("endringstype")).toDomain(),
                     hendelse = it.hentHendelse(),
                     saksnummer = Saksnummer(it.long("saksnummer")),
                     oppgaveId = it.stringOrNull("oppgaveId")?.let { id -> OppgaveId(id) },
@@ -107,7 +106,7 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
     //     }
     // }
 
-    private fun Personhendelse.Hendelse.type(): String = when (this) {
+    private fun Personhendelse.Hendelse.toDatabasetype(): String = when (this) {
         is Personhendelse.Hendelse.Dødsfall -> PersonhendelseType.DØDSFALL.value
         is Personhendelse.Hendelse.UtflyttingFraNorge -> PersonhendelseType.UTFLYTTING_FRA_NORGE.value
     }
@@ -115,6 +114,35 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
     private enum class PersonhendelseType(val value: String) {
         DØDSFALL("dødsfall"),
         UTFLYTTING_FRA_NORGE("utflytting_fra_norge");
+    }
+
+    private fun Personhendelse.Endringstype.toDatabasetype(): String = when (this) {
+        Personhendelse.Endringstype.OPPRETTET -> PersonhendelseEndringstype.OPPRETTET.value
+        Personhendelse.Endringstype.KORRIGERT -> PersonhendelseEndringstype.KORRIGERT.value
+        Personhendelse.Endringstype.ANNULLERT -> PersonhendelseEndringstype.ANNULLERT.value
+        Personhendelse.Endringstype.OPPHØRT -> PersonhendelseEndringstype.OPPHØRT.value
+    }
+
+    private enum class PersonhendelseEndringstype(val value: String) {
+        OPPRETTET("opprettet"),
+        KORRIGERT("korrigert"),
+        ANNULLERT("annullert"),
+        OPPHØRT("opphørt");
+
+        fun toDomain(): Personhendelse.Endringstype = when (this) {
+            OPPRETTET -> Personhendelse.Endringstype.OPPRETTET
+            KORRIGERT -> Personhendelse.Endringstype.KORRIGERT
+            ANNULLERT -> Personhendelse.Endringstype.ANNULLERT
+            OPPHØRT -> Personhendelse.Endringstype.OPPHØRT
+        }
+
+        companion object {
+            fun tryParse(value: String): PersonhendelseEndringstype {
+                return values()
+                    .firstOrNull { it.value == value }
+                    ?: throw IllegalStateException("Ukjent PersonhendelseEndringstype: $value")
+            }
+        }
     }
 
     /**
@@ -134,6 +162,24 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
                 is Personhendelse.Hendelse.Dødsfall -> DødsfallJson(dødsdato)
                 is Personhendelse.Hendelse.UtflyttingFraNorge -> UtflyttingFraNorgeJson(utflyttingsdato)
             }
+        }
+    }
+
+    internal data class MetadataJson(
+        val hendelseId: String,
+        val tidligereHendelseId: String?,
+        val offset: Long,
+        val partisjon: Int,
+        val master: String,
+    ) {
+        companion object {
+            fun Personhendelse.Metadata.toJson() = MetadataJson(
+                hendelseId = hendelseId,
+                tidligereHendelseId = tidligereHendelseId,
+                offset = offset,
+                partisjon = partisjon,
+                master = master,
+            )
         }
     }
 }
