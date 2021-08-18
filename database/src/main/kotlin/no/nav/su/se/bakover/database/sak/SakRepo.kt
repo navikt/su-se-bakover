@@ -11,6 +11,7 @@ interface SakRepo {
     fun hentSak(sakId: UUID): Sak?
     fun hentSak(fnr: Fnr): Sak?
     fun hentSak(saksnummer: Saksnummer): Sak?
+    fun hentSakIdForIdenter(personidenter: List<String>): UUID?
     fun opprettSak(sak: NySak)
     fun hentSakRestanser(): List<SakRestans>
 }

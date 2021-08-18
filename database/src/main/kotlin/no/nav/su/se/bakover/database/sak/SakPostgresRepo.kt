@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo
+import no.nav.su.se.bakover.database.uuidOrNull
 import no.nav.su.se.bakover.database.vedtak.VedtakPosgresRepo
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
@@ -50,6 +51,23 @@ internal class SakPostgresRepo(
             dataSource.withSession { hentSakInternal(saksnummer, it) }
         }
     }
+
+    override fun hentSakIdForIdenter(personidenter: List<String>): UUID? {
+        return dataSource.withSession { session ->
+            """
+                SELECT
+                    id
+                FROM sak
+                WHERE fnr IN ( :fnrs )
+            """.trimIndent().hent(
+                mapOf("fnrs" to mapIdenterToSqlList(personidenter)),
+                session,
+            ) { row -> row.uuidOrNull("id") }
+        }
+    }
+
+    private fun mapIdenterToSqlList(personidenter: List<String>) =
+        personidenter.joinToString { "\'$it\'" }
 
     override fun opprettSak(sak: NySak) {
         return dbMetrics.timeQuery("opprettSak") {

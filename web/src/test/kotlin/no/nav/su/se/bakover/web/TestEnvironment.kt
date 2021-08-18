@@ -92,7 +92,11 @@ val applicationConfig = ApplicationConfig(
         skjermingUrl = "skjermingUrl",
         dkifUrl = "dkifUrl",
     ),
-    kafkaConfig = ApplicationConfig.KafkaConfig(emptyMap(), ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap())),
+    kafkaConfig = ApplicationConfig.KafkaConfig(
+        common = emptyMap(),
+        producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),
+        consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(emptyMap()),
+    ),
     unleash = ApplicationConfig.UnleashConfig("https://localhost", "su-se-bakover"),
 )
 

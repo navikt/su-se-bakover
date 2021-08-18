@@ -42,7 +42,8 @@ enum class Behandlingstema(val value: String) {
 enum class Oppgavetype(val value: String) {
     BEHANDLE_SAK("BEH_SAK"),
     ATTESTERING("ATT"),
-    FREMLEGGING("FREM");
+    FREMLEGGING("FREM"),
+    VURDER_KONSEKVENS_FOR_YTELSE("VUR_KONS_YTE");
 
     override fun toString() = this.value
 }

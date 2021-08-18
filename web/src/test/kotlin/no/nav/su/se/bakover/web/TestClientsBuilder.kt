@@ -35,7 +35,7 @@ object TestClientsBuilder : ClientsBuilder {
         microsoftGraphApiClient = MicrosoftGraphApiClientStub,
         digitalKontaktinformasjon = DkifClientStub,
         leaderPodLookup = LeaderPodLookupStub,
-        kafkaPublisher = KafkaPublisherStub
+        kafkaPublisher = KafkaPublisherStub,
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients
