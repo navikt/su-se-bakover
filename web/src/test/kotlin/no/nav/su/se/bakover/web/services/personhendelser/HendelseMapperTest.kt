@@ -117,7 +117,7 @@ internal class HendelseMapperTest {
         val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, key, personhendelse)
         val actual = HendelseMapper.map(message)
 
-        actual shouldBe HendelseMapperException.KunneIkkeHenteAktørId.left()
+        actual shouldBe KunneIkkeMappePersonhendelse.KunneIkkeHenteAktørId("hendelseId", "UTFLYTTING_FRA_NORGE").left()
     }
 
     @Test
@@ -137,6 +137,6 @@ internal class HendelseMapperTest {
         val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, key, personhendelse)
         val actual = HendelseMapper.map(message)
 
-        actual shouldBe HendelseMapperException.IkkeAktuellOpplysningstype.left()
+        actual shouldBe KunneIkkeMappePersonhendelse.IkkeAktuellOpplysningstype("hendelseId", "FOEDSEL_V1").left()
     }
 }

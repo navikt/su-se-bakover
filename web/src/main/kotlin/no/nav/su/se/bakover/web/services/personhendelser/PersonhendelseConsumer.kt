@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.services.personhendelser
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.service.hendelser.PersonhendelseService
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
@@ -50,19 +51,22 @@ class PersonhendelseConsumer(
                     HendelseMapper.map(message).fold(
                         ifLeft = {
                             when (it) {
-                                HendelseMapperException.IkkeAktuellOpplysningstype -> {
+                                is KunneIkkeMappePersonhendelse.IkkeAktuellOpplysningstype -> {
                                     // TODO jah: Flytt denne logikken til service/domenelaget
-                                    // Vi ønsker ikke få disse melding sendt på nytt.
+                                    // Vi ønsker ikke få disse hendelsene sendt på nytt.
                                     processedMessages[TopicPartition(message.topic(), message.partition())] =
                                         OffsetAndMetadata(message.offset() + 1)
+                                    log.debug("Personhendelse: Uaktuell personhendelse: Ignorerer hendelse ${it.opplysningstype} med hendelsesid ${it.hendelseId}, offset ${message.offset()}, partisjon ${message.partition()}")
                                 }
-                                HendelseMapperException.KunneIkkeHenteAktørId -> {
+                                is KunneIkkeMappePersonhendelse.KunneIkkeHenteAktørId -> {
                                     if (ApplicationConfig.isNotProd()) {
-                                        log.warn("Feil skjedde ved henting av aktørId for melding med offset: ${message.offset()}. Vi ignorerer disse meldingene i preprod.")
+                                        log.warn("Personhendelse: Feil skjedde ved henting av aktørId for hendelse ${it.opplysningstype} med hendelsesid ${it.hendelseId}, offset ${message.offset()}, partisjon ${message.partition()}. Vi ignorerer disse hendelsene i preprod.")
+                                        sikkerLogg.warn("Personhendelse: Feil skjedde ved henting av aktørId for key=${message.key()}, value=${message.value()}, offset ${message.offset()}, partisjon ${message.partition()}. Vi ignorerer disse hendelsene i preprod.")
                                         processedMessages[TopicPartition(message.topic(), message.partition())] =
                                             OffsetAndMetadata(message.offset() + 1)
                                     } else {
-                                        log.error("Feil skjedde ved henting av aktørId for melding med offset: ${message.offset()}")
+                                        log.error("Personhendelse: Feil skjedde ved henting av aktørId for hendelse ${it.opplysningstype} med hendelsesid ${it.hendelseId}, offset ${message.offset()}, partisjon ${message.partition()}.")
+                                        sikkerLogg.error("Personhendelse: Feil skjedde ved henting av aktørId for key=${message.key()}, value=${message.value()}, offset ${message.offset()}, partisjon ${message.partition()}.")
                                         consumer.commitSync(processedMessages)
                                         // Kafka tar ikke hensyn til offsetten vi comitter før det skjer en Rebalance.
                                         // Vi kan tvinge en rebalance eller gjøre en seek, dersom vi ikke ønsker neste event (som kan føre til at vi comitter lengre frem enn vi faktisk er)
