@@ -92,9 +92,10 @@ internal class AccessCheckProxyTest {
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
-                        override fun sjekkTilgangTilPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-                    }
-                )
+                        override fun sjekkTilgangTilPerson(fnr: Fnr) =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                    },
+                ),
             ).proxy()
 
             shouldThrow<Tilgangssjekkfeil> { proxied.sak.hentSak(UUID.randomUUID()) }
@@ -113,9 +114,10 @@ internal class AccessCheckProxyTest {
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
-                        override fun sjekkTilgangTilPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun sjekkTilgangTilPerson(fnr: Fnr) =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                     },
-                )
+                ),
             ).proxy()
 
             shouldThrow<Tilgangssjekkfeil> { proxied.søknad.hentSøknad(UUID.randomUUID()) }
@@ -134,14 +136,15 @@ internal class AccessCheckProxyTest {
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
-                        override fun sjekkTilgangTilPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-                    }
-                )
+                        override fun sjekkTilgangTilPerson(fnr: Fnr) =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                    },
+                ),
             ).proxy()
 
             shouldThrow<Tilgangssjekkfeil> {
                 proxied.søknadsbehandling.hent(
-                    SøknadsbehandlingService.HentRequest(UUID.randomUUID())
+                    SøknadsbehandlingService.HentRequest(UUID.randomUUID()),
                 )
             }
         }
@@ -159,9 +162,10 @@ internal class AccessCheckProxyTest {
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
-                        override fun sjekkTilgangTilPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-                    }
-                )
+                        override fun sjekkTilgangTilPerson(fnr: Fnr) =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                    },
+                ),
             ).proxy()
 
             shouldThrow<Tilgangssjekkfeil> { proxied.utbetaling.hentUtbetaling(UUID30.randomUUID()) }
@@ -211,8 +215,8 @@ internal class AccessCheckProxyTest {
             services = servicesReturningSak.copy(
                 person = mock {
                     on { sjekkTilgangTilPerson(any()) } doReturn Unit.right()
-                }
-            )
+                },
+            ),
         ).proxy()
 
         @Test
