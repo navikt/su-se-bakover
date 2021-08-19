@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
@@ -69,16 +70,7 @@ internal class DokumentPostgresRepo(
 
     override fun hentDokument(id: UUID): Dokument.MedMetadata? {
         return dataSource.withSession { session ->
-            """
-                select * from dokument where id = :id
-            """.trimIndent().hent(
-                mapOf(
-                    "id" to id,
-                ),
-                session,
-            ) {
-                it.toDokument()
-            }
+            hentDokument(id, session)
         }
     }
 
@@ -137,7 +129,7 @@ internal class DokumentPostgresRepo(
                     ),
                     session,
                 ) {
-                    it.toDokumentdistribusjon()
+                    it.toDokumentdistribusjon(session)
                 }
         }
     }
@@ -151,7 +143,7 @@ internal class DokumentPostgresRepo(
                 limit 10
             """.trimIndent()
                 .hentListe(emptyMap(), session) {
-                    it.toDokumentdistribusjon()
+                    it.toDokumentdistribusjon(session)
                 }
         }
     }
@@ -196,6 +188,14 @@ internal class DokumentPostgresRepo(
                 tx,
             )
     }
+
+    private fun hentDokument(id: UUID, session: Session) =
+        """
+            select * from dokument where id = :id
+        """.trimIndent()
+            .hent(mapOf("id" to id), session) {
+                it.toDokument()
+            }
 
     private fun Row.toDokument(): Dokument.MedMetadata {
         val type = DokumentKategori.valueOf(string("type"))
@@ -246,12 +246,12 @@ internal class DokumentPostgresRepo(
         VEDTAK,
     }
 
-    private fun Row.toDokumentdistribusjon(): Dokumentdistribusjon {
+    private fun Row.toDokumentdistribusjon(session: Session): Dokumentdistribusjon {
         return Dokumentdistribusjon(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
             endret = tidspunkt("endret"),
-            dokument = hentDokument(uuid("dokumentId"))!!,
+            dokument = hentDokument(uuid("dokumentId"), session)!!,
             journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
                 iverksattJournalpostId = stringOrNull("journalpostid")?.let { JournalpostId(it) },
                 iverksattBrevbestillingId = stringOrNull("brevbestillingid")?.let { BrevbestillingId(it) },
