@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.services.personhendelser
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -49,7 +50,7 @@ internal object HendelseMapper {
             Personhendelse.Ny(
                 gjeldendeAktørId = aktørId,
                 endringstype = hentEndringstype(personhendelse.getEndringstype()),
-                personidenter = personhendelse.getPersonidenter(),
+                personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
                 hendelse = hendelse,
                 metadata = Personhendelse.Metadata(
                     hendelseId = personhendelse.getHendelseId(),

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.hendelse
 
+import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -21,7 +22,7 @@ sealed class Personhendelse {
         override val gjeldendeAktørId: AktørId,
         override val endringstype: Endringstype,
         override val hendelse: Hendelse,
-        val personidenter: List<String>,
+        val personidenter: NonEmptyList<String>,
         val metadata: Metadata,
     ) : Personhendelse()
 

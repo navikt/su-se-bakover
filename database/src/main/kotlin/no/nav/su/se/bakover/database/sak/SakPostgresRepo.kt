@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.sak
 
+import arrow.core.NonEmptyList
 import kotliquery.Row
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DbMetrics
@@ -52,22 +53,19 @@ internal class SakPostgresRepo(
         }
     }
 
-    override fun hentSakIdForIdenter(personidenter: List<String>): UUID? {
+    override fun hentSakIdForIdenter(personidenter: NonEmptyList<String>): UUID? {
         return dataSource.withSession { session ->
             """
                 SELECT
                     id
                 FROM sak
-                WHERE fnr IN ( :fnrs )
+                WHERE fnr = ANY (:fnrs)
             """.trimIndent().hent(
-                mapOf("fnrs" to mapIdenterToSqlList(personidenter)),
+                mapOf("fnrs" to personidenter),
                 session,
             ) { row -> row.uuidOrNull("id") }
         }
     }
-
-    private fun mapIdenterToSqlList(personidenter: List<String>) =
-        personidenter.joinToString { "\'$it\'" }
 
     override fun opprettSak(sak: NySak) {
         return dbMetrics.timeQuery("opprettSak") {
