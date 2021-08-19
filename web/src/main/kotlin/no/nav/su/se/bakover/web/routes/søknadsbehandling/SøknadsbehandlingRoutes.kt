@@ -457,8 +457,8 @@ internal fun Route.søknadsbehandlingRoutes(
                         "kontrollsimulering_ulik_saksbehandlers_simulering"
                     )
                 }
-                is KunneIkkeIverksette.KunneIkkeJournalføreBrev -> {
-                    InternalServerError.errorJson("Feil ved journalføring av vedtaksbrev", "kunne_ikke_journalføre_brev")
+                is KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev -> {
+                    InternalServerError.errorJson("Feil ved generering av vedtaksbrev", "kunne_ikke_generere_brev")
                 }
                 is KunneIkkeIverksette.FantIkkeBehandling -> fantIkkeBehandling
                 is KunneIkkeIverksette.FantIkkePerson -> fantIkkePerson

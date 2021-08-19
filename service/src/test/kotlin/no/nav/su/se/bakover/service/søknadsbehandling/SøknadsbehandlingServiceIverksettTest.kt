@@ -557,7 +557,6 @@ internal class SøknadsbehandlingServiceIverksettTest {
     inner class IverksettStatusovergangFeilMapperTest {
         @Test
         fun `mapper feil fra statusovergang til fornuftige typer for servicelaget`() {
-            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeJournalføre) shouldBe SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeJournalføreBrev
             SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulere) shouldBe SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeKontrollsimulere
             SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte) shouldBe SøknadsbehandlingService.KunneIkkeIverksette.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
             SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.TekniskFeil) shouldBe SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeUtbetale

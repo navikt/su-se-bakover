@@ -178,7 +178,6 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
     sealed class KunneIkkeIverksetteSøknadsbehandling {
         object SaksbehandlerOgAttestantKanIkkeVæreSammePerson : KunneIkkeIverksetteSøknadsbehandling()
-        object KunneIkkeJournalføre : KunneIkkeIverksetteSøknadsbehandling()
 
         sealed class KunneIkkeUtbetale : KunneIkkeIverksetteSøknadsbehandling() {
             object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte :

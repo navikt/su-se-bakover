@@ -161,7 +161,7 @@ interface SøknadsbehandlingService {
         object KunneIkkeKontrollsimulereOppdragStengtEllerNede : KunneIkkeIverksette()
         object KunneIkkeKontrollsimulereFinnerIkkeKjøreplansperiodeForFom : KunneIkkeIverksette()
         object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeIverksette()
-        object KunneIkkeJournalføreBrev : KunneIkkeIverksette()
+        object KunneIkkeGenerereVedtaksbrev : KunneIkkeIverksette()
         object FantIkkeBehandling : KunneIkkeIverksette()
         object FantIkkePerson : KunneIkkeIverksette()
         object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeIverksette()

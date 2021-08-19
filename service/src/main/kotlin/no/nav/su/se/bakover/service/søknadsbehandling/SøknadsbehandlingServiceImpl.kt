@@ -16,6 +16,8 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
@@ -395,11 +397,11 @@ internal class SøknadsbehandlingServiceImpl(
                 }
                 is Søknadsbehandling.Iverksatt.Avslag -> {
                     val vedtak = opprettAvslagsvedtak(iverksattBehandling)
-                    return ferdigstillVedtakService.journalførOgLagre(vedtak)
-                        .mapLeft {
-                            log.error("Journalføring av vedtak for behandling: ${vedtak.behandling.id} feilet.")
-                            SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeJournalføreBrev
-                        }.map { journalførtVedtak ->
+
+                    return lagOgDistribuerDokumentForVedtak(vedtak)
+                        .map { dokument ->
+                            brevService.lagreDokument(dokument)
+
                             søknadsbehandlingRepo.lagre(iverksattBehandling)
 
                             log.info("Iverksatt avslag for behandling: ${iverksattBehandling.id}, vedtak: ${vedtak.id}")
@@ -410,17 +412,13 @@ internal class SøknadsbehandlingServiceImpl(
                                     vedtak.journalføringOgBrevdistribusjon,
                                 ),
                             )
-
                             behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
 
-                            ferdigstillVedtakService.distribuerOgLagre(journalførtVedtak)
+                            ferdigstillVedtakService.lukkOppgaveMedBruker(vedtak)
                                 .mapLeft {
-                                    log.error("Distribusjon av brev for vedtakId: ${journalførtVedtak.id} feilet. Må ryddes opp manuelt.")
+                                    log.error("Lukking av oppgave for behandlingId: ${vedtak.behandling.oppgaveId} feilet. Må ryddes opp manuelt.")
                                 }
-                            ferdigstillVedtakService.lukkOppgaveMedBruker(journalførtVedtak)
-                                .mapLeft {
-                                    log.error("Lukking av oppgave for behandlingId: ${journalførtVedtak.behandling.oppgaveId} feilet. Må ryddes opp manuelt.")
-                                }
+
                             iverksattBehandling.also {
                                 observers.forEach { observer ->
                                     observer.handle(
@@ -448,7 +446,6 @@ internal class SøknadsbehandlingServiceImpl(
 
     internal object IverksettStatusovergangFeilMapper {
         fun map(feil: Statusovergang.KunneIkkeIverksetteSøknadsbehandling) = when (feil) {
-            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeJournalføre -> SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeJournalføreBrev
             Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulere -> SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeKontrollsimulere
             Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulereFantIkkePerson -> SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeKontrollsimulereFantIkkePerson
             Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulereFinnerIkkeKjøreplansperiodeForFom -> SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeKontrollsimulereFinnerIkkeKjøreplansperiodeForFom
@@ -460,8 +457,8 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun brev(request: SøknadsbehandlingService.BrevRequest): Either<SøknadsbehandlingService.KunneIkkeLageBrev, ByteArray> {
-        val visitor = LagBrevRequestVisitor(
+    private fun lagBrevRequestVisitor() =
+        LagBrevRequestVisitor(
             hentPerson = { fnr ->
                 personService.hentPerson(fnr)
                     .mapLeft { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson }
@@ -478,7 +475,10 @@ internal class SøknadsbehandlingServiceImpl(
                     )
             },
             clock = clock,
-        ).apply {
+        )
+
+    override fun brev(request: SøknadsbehandlingService.BrevRequest): Either<SøknadsbehandlingService.KunneIkkeLageBrev, ByteArray> {
+        val visitor = lagBrevRequestVisitor().apply {
             val behandling = when (request) {
                 is SøknadsbehandlingService.BrevRequest.MedFritekst ->
                     request.behandling.medFritekstTilBrev(request.fritekst)
@@ -684,4 +684,29 @@ internal class SøknadsbehandlingServiceImpl(
             }.right()
         }
     }
+
+    private fun lagOgDistribuerDokumentForVedtak(vedtak: Vedtak) =
+        lagBrevRequestVisitor()
+            .let { visitor ->
+                vedtak.accept(visitor)
+                visitor.brevRequest
+            }
+            .mapLeft { SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev }
+            .flatMap { req ->
+                req.tilDokument {
+                    brevService.lagBrev(req)
+                        .mapLeft { LagBrevRequest.KunneIkkeGenererePdf }
+                }.mapLeft { SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev }
+            }
+            .map {
+                it.leggTilMetadata(
+                    Dokument.Metadata(
+                        sakId = vedtak.behandling.sakId,
+                        søknadId = null,
+                        vedtakId = vedtak.id,
+                        revurderingId = null,
+                        bestillBrev = true,
+                    ),
+                )
+            }
 }
