@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.services.personhendelser
 
+import arrow.core.nonEmptyListOf
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.argumentCaptor
 import com.nhaarman.mockitokotlin2.mock
@@ -74,7 +75,7 @@ internal class PersonhendelseConsumerTest {
                 gjeldendeAktørId = AktørId(ident),
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
                 hendelse = Personhendelse.Hendelse.Dødsfall(LocalDate.now()),
-                personidenter = listOf(ident, fnr.toString()),
+                personidenter = nonEmptyListOf(ident, fnr.toString()),
                 metadata = Personhendelse.Metadata(
                     hendelseId = it.toString(),
                     tidligereHendelseId = null,

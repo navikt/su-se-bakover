@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.services.personhendelser
 
+import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
 import io.kotest.matchers.shouldBe
@@ -54,7 +55,7 @@ internal class HendelseMapperTest {
             gjeldendeAktørId = AktørId(aktørId),
             endringstype = Personhendelse.Endringstype.OPPRETTET,
             hendelse = Personhendelse.Hendelse.Dødsfall(tidspunkt),
-            personidenter = personhendelse.getPersonidenter(),
+            personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
             metadata = Personhendelse.Metadata(
                 hendelseId = "hendelseId",
                 tidligereHendelseId = null,
@@ -87,7 +88,7 @@ internal class HendelseMapperTest {
             gjeldendeAktørId = AktørId(aktørId),
             endringstype = Personhendelse.Endringstype.OPPRETTET,
             hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(tidspunkt),
-            personidenter = personhendelse.getPersonidenter(),
+            personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
             metadata = Personhendelse.Metadata(
                 hendelseId = "hendelseId",
                 tidligereHendelseId = null,

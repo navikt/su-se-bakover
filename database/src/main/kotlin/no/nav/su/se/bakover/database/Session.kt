@@ -133,6 +133,10 @@ open class Session(
                 is RevurderingsType -> this.setString(idx, v.toString())
                 is Fradragstype -> this.setString(idx, v.toString())
                 is FradragTilhører -> this.setString(idx, v.toString())
+                is List<*> -> this.setArray(
+                    idx,
+                    connection.createArrayOf("text", v.toTypedArray()),
+                )
                 else -> this.setObject(idx, v)
             }
         }

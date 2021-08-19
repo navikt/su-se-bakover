@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.hendelser
 
+import arrow.core.nonEmptyListOf
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
@@ -62,7 +63,7 @@ internal class PersonhendelseServiceTest {
     private fun lagNyPersonhendelse() = Personhendelse.Ny(
         gjeldendeAktørId = AktørId("123456b7890000"),
         endringstype = Personhendelse.Endringstype.OPPRETTET,
-        personidenter = listOf(FnrGenerator.random().toString(), "123456789010"),
+        personidenter = nonEmptyListOf(FnrGenerator.random().toString(), "123456789010"),
         hendelse = Personhendelse.Hendelse.Dødsfall(dødsdato = LocalDate.now()),
         metadata = Personhendelse.Metadata(
             hendelseId = UUID.randomUUID().toString(),

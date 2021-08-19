@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.sak
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
@@ -31,6 +32,37 @@ internal class SakPostgresRepoTest {
             opprettet.id shouldBe nySak.id
             opprettet.opprettet shouldBe nySak.opprettet
             opprettet.søknadNy() shouldBe nySak.søknad
+        }
+    }
+
+    @Test
+    fun `hent sakId fra fnr liste med 1 element`() {
+        withMigratedDb {
+            val nySak = testDataHelper.nySakMedNySøknad()
+            repo.hentSakIdForIdenter(nonEmptyListOf(nySak.fnr.toString())) shouldBe nySak.id
+        }
+    }
+
+    @Test
+    fun `hent sakId fra fnr liste med 2 elementer`() {
+        withMigratedDb {
+            val nySak = testDataHelper.nySakMedNySøknad()
+            repo.hentSakIdForIdenter(nonEmptyListOf("1234567890123", nySak.fnr.toString())) shouldBe nySak.id
+            repo.hentSakIdForIdenter(nonEmptyListOf(nySak.fnr.toString(), "1234567890123")) shouldBe nySak.id
+        }
+    }
+
+    @Test
+    fun `hent sakId fra fnr liste med 3 elementer`() {
+        withMigratedDb {
+            val nySak = testDataHelper.nySakMedNySøknad()
+            repo.hentSakIdForIdenter(
+                nonEmptyListOf(
+                    "1234567890123",
+                    nySak.fnr.toString(),
+                    "1234567890123",
+                ),
+            ) shouldBe nySak.id
         }
     }
 

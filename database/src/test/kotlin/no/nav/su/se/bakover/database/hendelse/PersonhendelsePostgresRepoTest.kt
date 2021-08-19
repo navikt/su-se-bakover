@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.hendelse
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.database.FnrGenerator
@@ -29,7 +30,7 @@ internal class PersonhendelsePostgresRepoTest {
             val hendelse = Personhendelse.Ny(
                 gjeldendeAktørId = AktørId(aktørId),
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
-                personidenter = listOf(aktørId, fnr.toString()),
+                personidenter = nonEmptyListOf(aktørId, fnr.toString()),
                 hendelse = Personhendelse.Hendelse.Dødsfall(LocalDate.now()),
                 metadata = Personhendelse.Metadata(
                     hendelseId = hendelseId,
@@ -66,7 +67,7 @@ internal class PersonhendelsePostgresRepoTest {
             val hendelse = Personhendelse.Ny(
                 gjeldendeAktørId = AktørId(aktørId),
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
-                personidenter = listOf(aktørId, fnr.toString()),
+                personidenter = nonEmptyListOf(aktørId, fnr.toString()),
                 hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(LocalDate.now()),
                 metadata = Personhendelse.Metadata(
                     hendelseId = hendelseId,
@@ -104,7 +105,7 @@ internal class PersonhendelsePostgresRepoTest {
             val hendelse = Personhendelse.Ny(
                 gjeldendeAktørId = AktørId(aktørId),
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
-                personidenter = listOf(aktørId, fnr.toString()),
+                personidenter = nonEmptyListOf(aktørId, fnr.toString()),
                 hendelse = Personhendelse.Hendelse.Dødsfall(LocalDate.now()),
                 metadata = Personhendelse.Metadata(
                     hendelseId = hendelseId,
