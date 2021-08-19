@@ -9,6 +9,7 @@ internal fun List<Dokument>.toJson(): List<DokumentJson> {
 
 internal fun Dokument.toJson(): DokumentJson {
     return DokumentJson(
+        id = id.toString(),
         tittel = tittel,
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
         dokument = generertDokument,
@@ -16,6 +17,7 @@ internal fun Dokument.toJson(): DokumentJson {
 }
 
 internal data class DokumentJson(
+    val id: String,
     val tittel: String,
     val opprettet: String,
     val dokument: ByteArray,
