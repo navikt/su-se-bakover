@@ -82,15 +82,11 @@ internal object HendelseMapper {
         personhendelse: EksternPersonhendelse,
         key: String,
     ): Either<KunneIkkeMappePersonhendelse.KunneIkkeHenteAktørId, AktørId> {
-        val id = key.substring(6) // Nyckeln på Kafka-meldinger fra Pdl er aktør-id prepend:et med 6 rare tegn.
-        val idFinnesSomPersonident = personhendelse.getPersonidenter().any { it == id }
-
-        if (!idFinnesSomPersonident) {
-            return KunneIkkeMappePersonhendelse.KunneIkkeHenteAktørId(
+        val id = personhendelse.getPersonidenter().firstOrNull { key.contains(it) }
+            ?: return KunneIkkeMappePersonhendelse.KunneIkkeHenteAktørId(
                 personhendelse.getHendelseId(),
                 personhendelse.getOpplysningstype(),
             ).left()
-        }
 
         return AktørId(id).right()
     }
