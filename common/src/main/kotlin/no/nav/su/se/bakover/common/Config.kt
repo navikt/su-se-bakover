@@ -11,7 +11,6 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
-import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.LoggerFactory
 
@@ -375,17 +374,23 @@ data class ApplicationConfig(
                 consumerCfg = ConsumerCfg(
                     Onprem().configure() + mapOf(
                         KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to true,
-                        KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG to getEnvironmentVariableOrDefault("KAFKA_ONPREM_SCHEMA_REGISTRY", "schema_onprem_registry"),
+                        KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG to getEnvironmentVariableOrDefault(
+                            "KAFKA_ONPREM_SCHEMA_REGISTRY",
+                            "schema_onprem_registry",
+                        ),
                         KafkaAvroDeserializerConfig.BASIC_AUTH_CREDENTIALS_SOURCE to "USER_INFO",
                         KafkaAvroDeserializerConfig.USER_INFO_CONFIG to ConsumerCfg.getUserInfoConfig(),
-                        ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
+                        ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to KafkaAvroDeserializer::class.java,
                         ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to KafkaAvroDeserializer::class.java,
-                        ConsumerConfig.CLIENT_ID_CONFIG to getEnvironmentVariableOrDefault("HOSTNAME", "su-se-bakover-hostname"),
+                        ConsumerConfig.CLIENT_ID_CONFIG to getEnvironmentVariableOrDefault(
+                            "HOSTNAME",
+                            "su-se-bakover-hostname",
+                        ),
                         ConsumerConfig.GROUP_ID_CONFIG to "su-se-bakover",
                         ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to "false",
-                        ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 100
-                    )
-                )
+                        ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 100,
+                    ),
+                ),
             )
 
             fun createLocalConfig() = KafkaConfig(

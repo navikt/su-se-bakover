@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.common
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.shouldBe
-import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Test
 
@@ -112,7 +111,7 @@ internal class ApplicationConfigTest {
                     "ssl.key.password" to "credstorePwd",
                     "specific.avro.reader" to true,
                     "schema.registry.url" to "schema_onprem_registry",
-                    "key.deserializer" to StringDeserializer::class.java,
+                    "key.deserializer" to KafkaAvroDeserializer::class.java,
                     "value.deserializer" to KafkaAvroDeserializer::class.java,
                     "basic.auth.credentials.source" to "USER_INFO",
                     "basic.auth.user.info" to "usr:pwd",
