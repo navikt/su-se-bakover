@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.services.personhendelser
 import arrow.core.Either
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.sikkerLogg
+import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.service.hendelser.PersonhendelseService
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
@@ -78,6 +79,12 @@ class PersonhendelseConsumer(
                             }
                         },
                         ifRight = {
+                            val hendelse = it.hendelse
+                            if (hendelse is Personhendelse.Hendelse.UtflyttingFraNorge && hendelse.utflyttingsdato == null) {
+                                // TODO jah: Finn ut hvorfor disse ikke kommer med når vi legger inn datoen i Dolly.
+                                log.info("Personhendelse: Mottok en utflytting fra norge hendelse ${it.metadata.hendelseId} uten utflyttingsdato. Se sikkerlogg for mer informasjon.")
+                                sikkerLogg.info("Personhendelse: Mottok en utflytting fra norge hendelse key=${message.key()}, value=${message.value()}, offset ${message.offset()}, partisjon ${message.partition()}.")
+                            }
                             personhendelseService.prosesserNyHendelse(it)
                             processedMessages[TopicPartition(message.topic(), message.partition())] =
                                 OffsetAndMetadata(message.offset() + 1)
