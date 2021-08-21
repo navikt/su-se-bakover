@@ -117,7 +117,7 @@ internal class PersonhendelseConsumerTest {
             personIdenter, // personIdenter (liste med mix av fnr(11 siffer), ident(13 siffer), ++?)
             "FREG", // master (f.eks. FREG)
             Tidspunkt.now().instant, // opprettet(f.eks. 2021-08-02T09:03:34.900Z)
-            HendelseMapper.Opplysningstype.DØDSFALL.value, // opplysningstype (DOEDSFALL_V1,UTFLYTTING_FRA_NORGE,SIVILSTAND_V1)
+            "DOEDSFALL_V1", // opplysningstype (DOEDSFALL_V1,UTFLYTTING_FRA_NORGE,SIVILSTAND_V1)
             Endringstype.OPPRETTET, // endringstype (OPPRETTET,KORRIGERT,ANNULLERT,OPPHOERT)
             null, // tidligereHendelseId (Peker til tidligere hendelse ved korrigering og annullering.)
             Doedsfall(LocalDate.now()), // doedsfall (https://navikt.github.io/pdl/#_d%C3%B8dsfall)

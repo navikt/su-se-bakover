@@ -9,9 +9,12 @@ import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.SivilstandTyper
+import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -69,6 +72,49 @@ internal class PersonhendelsePostgresRepoTest {
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
                 personidenter = nonEmptyListOf(aktørId, fnr.toString()),
                 hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(LocalDate.now()),
+                metadata = Personhendelse.Metadata(
+                    hendelseId = hendelseId,
+                    tidligereHendelseId = null,
+                    offset = 0,
+                    partisjon = 0,
+                    master = "FREG",
+                    key = "someKey",
+                ),
+            )
+            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            val id = UUID.randomUUID()
+
+            hendelsePostgresRepo.lagre(hendelse, id, sak.id)
+
+            hendelsePostgresRepo.hent(id) shouldBe hendelse.tilknyttSak(
+                id = id,
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+            )
+            hentMetadata(id) shouldBe PersonhendelsePostgresRepo.MetadataJson(
+                hendelseId = hendelseId,
+                tidligereHendelseId = null,
+                offset = 0,
+                partisjon = 0,
+                master = "FREG",
+                key = "someKey",
+            )
+        }
+    }
+
+    @Test
+    fun `Kan lagre og hente sivilstand`() {
+        withMigratedDb {
+            val hendelse = Personhendelse.Ny(
+                gjeldendeAktørId = AktørId(aktørId),
+                endringstype = Personhendelse.Endringstype.OPPRETTET,
+                personidenter = nonEmptyListOf(aktørId, fnr.toString()),
+                hendelse = Personhendelse.Hendelse.Sivilstand(
+                    type = SivilstandTyper.GIFT,
+                    gyldigFraOgMed = LocalDate.now().minusDays(1),
+                    relatertVedSivilstand = Fnr.generer(),
+                    bekreftelsesdato = LocalDate.now().plusDays(1),
+                ),
                 metadata = Personhendelse.Metadata(
                     hendelseId = hendelseId,
                     tidligereHendelseId = null,
