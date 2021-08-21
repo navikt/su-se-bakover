@@ -26,6 +26,7 @@ class PersonhendelseService(
                 sikkerLogg.debug("Personhendelse ikke knyttet til sak: $personhendelse")
             }
         log.info("Personhendelse for sak id $eksisterendeSakId: Persisterer ${personhendelse.hendelse} med hendelsesid ${personhendelse.metadata.hendelseId}, offset ${personhendelse.metadata.offset}, partisjon ${personhendelse.metadata.partisjon} og endringstype ${personhendelse.endringstype}")
+        sikkerLogg.debug("Personhendelse for sak: $personhendelse")
         personhendelseRepo.lagre(
             personhendelse = personhendelse,
             id = UUID.randomUUID(),
