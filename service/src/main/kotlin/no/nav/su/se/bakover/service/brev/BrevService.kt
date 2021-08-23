@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import java.util.UUID
 
 interface BrevService {
     fun lagBrev(request: LagBrevRequest): Either<KunneIkkeLageBrev, ByteArray>
@@ -17,6 +18,20 @@ interface BrevService {
     fun journalførDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeJournalføreDokument, Dokumentdistribusjon>
     fun distribuerDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeBestilleBrevForDokument, Dokumentdistribusjon>
     fun hentDokumenterForDistribusjon(): List<Dokumentdistribusjon>
+    fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): List<Dokument>
+}
+
+/**
+ * Informasjon om id og hvilken type instans denne id'en stammer fra.
+ * Avgjør hvilke [Dokument.Metadata] som benyttes for oppslag.
+ */
+sealed class HentDokumenterForIdType {
+    abstract val id: UUID
+
+    data class Sak(override val id: UUID) : HentDokumenterForIdType()
+    data class Søknad(override val id: UUID) : HentDokumenterForIdType()
+    data class Revurdering(override val id: UUID) : HentDokumenterForIdType()
+    data class Vedtak(override val id: UUID) : HentDokumenterForIdType()
 }
 
 sealed class KunneIkkeLageBrev {

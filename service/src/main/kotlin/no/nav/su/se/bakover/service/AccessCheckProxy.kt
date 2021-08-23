@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.service.brev.KunneIkkeBestilleBrevForDokument
 import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreDokument
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
@@ -289,6 +290,17 @@ open class AccessCheckProxy(
 
                 override fun journalførDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeJournalføreDokument, Dokumentdistribusjon> {
                     kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): List<Dokument> {
+                    when (hentDokumenterForIdType) {
+                        is HentDokumenterForIdType.Revurdering -> assertHarTilgangTilRevurdering(hentDokumenterForIdType.id)
+                        is HentDokumenterForIdType.Sak -> assertHarTilgangTilSak(hentDokumenterForIdType.id)
+                        is HentDokumenterForIdType.Søknad -> assertHarTilgangTilSøknad(hentDokumenterForIdType.id)
+                        is HentDokumenterForIdType.Vedtak -> TODO("rart at vi ikke henter ut noe med vedtak id fra før?")
+                    }.let {
+                        return services.brev.hentDokumenterFor(hentDokumenterForIdType)
+                    }
                 }
             },
             lukkSøknad = object : LukkSøknadService {
