@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import org.junit.jupiter.api.Test
 
 internal class PersonPostgresRepoTest {
@@ -133,6 +134,26 @@ internal class PersonPostgresRepoTest {
         }
     }
 
+    @Test
+    fun `hent fnr for vedtak søknadsbehandling`() {
+        val epsFnrSøknadsbehandling = FnrGenerator.random()
+        val epsFnrRevurdering = FnrGenerator.random()
+        withDbWithDataAndSøknadsbehandlingVedtakAndRevurderingVedtak(
+            epsFnrBehandling = epsFnrSøknadsbehandling,
+            epsFnrRevurdering = epsFnrRevurdering,
+        ) {
+            repo.hentFnrForVedtak(vedtakId = this.søknadsbehandlingVedtak.id) shouldContainExactlyInAnyOrder listOf(
+                søknadsbehandlingVedtak.behandling.fnr,
+                epsFnrSøknadsbehandling,
+            )
+
+            repo.hentFnrForVedtak(vedtakId = this.revurderingVedtak.id) shouldContainExactlyInAnyOrder listOf(
+                revurderingVedtak.behandling.fnr,
+                epsFnrRevurdering,
+            )
+        }
+    }
+
     private fun withDbWithData(test: Ctx.() -> Unit) {
         withDbWithDataAndBehandlingEps(null, test)
     }
@@ -163,6 +184,43 @@ internal class PersonPostgresRepoTest {
             val revurdering = testDataHelper.nyRevurdering(vedtak, vedtak.periode, epsFnrRevurdering)
 
             Ctx(innvilget, utbetaling, revurdering).test()
+        }
+    }
+
+    private fun withDbWithDataAndSøknadsbehandlingVedtakAndRevurderingVedtak(
+        epsFnrBehandling: Fnr?,
+        epsFnrRevurdering: Fnr?,
+        test: VedtakCtx.() -> Unit,
+    ) {
+        val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
+        withMigratedDb {
+            val (innvilget, utbetaling) = testDataHelper.nyIverksattInnvilget(epsFnr = epsFnrBehandling)
+            val vedtak = testDataHelper.vedtakForSøknadsbehandlingOgUtbetalingId(innvilget, utbetaling.id)
+            val revurdering = testDataHelper.nyRevurdering(vedtak, vedtak.periode, epsFnrRevurdering)
+            val revurderingVedtak = testDataHelper.vedtakForRevurdering(
+                RevurderingTilAttestering.Innvilget(
+                    id = revurdering.id,
+                    periode = revurdering.periode,
+                    opprettet = revurdering.opprettet,
+                    tilRevurdering = revurdering.tilRevurdering,
+                    saksbehandler = revurdering.saksbehandler,
+                    oppgaveId = revurdering.oppgaveId,
+                    fritekstTilBrev = revurdering.fritekstTilBrev,
+                    revurderingsårsak = revurdering.revurderingsårsak,
+                    beregning = beregning(revurdering.periode),
+                    simulering = simulering(revurdering.fnr),
+                    forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+                    grunnlagsdata = revurdering.grunnlagsdata,
+                    vilkårsvurderinger = revurdering.vilkårsvurderinger,
+                    informasjonSomRevurderes = revurdering.informasjonSomRevurderes,
+                    attesteringer = Attesteringshistorikk.empty(),
+                ),
+            ).first
+
+            VedtakCtx(
+                søknadsbehandlingVedtak = vedtak,
+                revurderingVedtak = revurderingVedtak,
+            ).test()
         }
     }
 
@@ -209,5 +267,10 @@ internal class PersonPostgresRepoTest {
         val innvilgetSøknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
         val utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering,
         val revurdering: Revurdering,
+    )
+
+    private data class VedtakCtx(
+        val søknadsbehandlingVedtak: Vedtak,
+        val revurderingVedtak: Vedtak,
     )
 }

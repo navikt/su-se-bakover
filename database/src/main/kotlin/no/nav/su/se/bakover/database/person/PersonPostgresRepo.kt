@@ -138,4 +138,30 @@ internal class PersonPostgresRepo(
                 .map { Fnr(it) }
         }
     }
+
+    override fun hentFnrForVedtak(vedtakId: UUID): List<Fnr> {
+        return dataSource.withSession { session ->
+            """
+               SELECT 
+                    s.fnr søkersFnr,
+                    eps_fnr epsFnr
+                FROM behandling_vedtak bv
+                LEFT JOIN sak s ON s.id = bv.sakId
+                LEFT JOIN behandling b ON b.id = bv.søknadsbehandlingId
+                LEFT JOIN revurdering r ON r.id = bv.revurderingId
+                LEFT JOIN grunnlag_bosituasjon gb ON gb.behandlingId IN (b.id, r.id)
+            WHERE bv.vedtakId = :vedtakId;
+            """
+                .trimMargin()
+                .hentListe(mapOf("vedtakId" to vedtakId), session) {
+                    listOfNotNull(
+                        it.stringOrNull("epsFnr"),
+                        it.string("søkersFnr"),
+                    )
+                }
+                .flatten()
+                .distinct()
+                .map { Fnr(it) }
+        }
+    }
 }

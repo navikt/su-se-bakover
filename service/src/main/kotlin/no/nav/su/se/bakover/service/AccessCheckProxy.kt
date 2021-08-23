@@ -297,7 +297,7 @@ open class AccessCheckProxy(
                         is HentDokumenterForIdType.Revurdering -> assertHarTilgangTilRevurdering(hentDokumenterForIdType.id)
                         is HentDokumenterForIdType.Sak -> assertHarTilgangTilSak(hentDokumenterForIdType.id)
                         is HentDokumenterForIdType.Søknad -> assertHarTilgangTilSøknad(hentDokumenterForIdType.id)
-                        is HentDokumenterForIdType.Vedtak -> TODO("rart at vi ikke henter ut noe med vedtak id fra før?")
+                        is HentDokumenterForIdType.Vedtak -> assertHarTilgangTilVedtak(hentDokumenterForIdType.id)
                     }.let {
                         return services.brev.hentDokumenterFor(hentDokumenterForIdType)
                     }
@@ -644,6 +644,11 @@ open class AccessCheckProxy(
 
     private fun assertHarTilgangTilRevurdering(revurderingId: UUID) {
         personRepo.hentFnrForRevurdering(revurderingId)
+            .forEach { assertHarTilgangTilPerson(it) }
+    }
+
+    private fun assertHarTilgangTilVedtak(vedtakId: UUID) {
+        personRepo.hentFnrForVedtak(vedtakId)
             .forEach { assertHarTilgangTilPerson(it) }
     }
 }
