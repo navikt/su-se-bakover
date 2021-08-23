@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.service.statistikk
 
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
@@ -29,6 +28,7 @@ import no.nav.su.se.bakover.service.beregning.TestBeregning
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mockito.kotlin.mock
 import java.time.Clock
 import java.util.UUID
 

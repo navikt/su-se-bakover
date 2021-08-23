@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -34,6 +33,7 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.shouldBeEqualToExceptId
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.mock
 import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset

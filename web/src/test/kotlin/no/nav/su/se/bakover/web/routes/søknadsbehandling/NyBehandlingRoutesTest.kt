@@ -2,11 +2,6 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -34,6 +29,11 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.st
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.søknadId
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
 
 class NyBehandlingRoutesTest {

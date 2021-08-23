@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -48,6 +47,7 @@ import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.mock
 import java.time.LocalDate
 import java.time.Month
 import java.util.UUID

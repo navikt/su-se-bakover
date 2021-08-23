@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web
 
-import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ClientsBuilder
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
@@ -18,6 +17,7 @@ import no.nav.su.se.bakover.client.stubs.person.MicrosoftGraphApiClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.ApplicationConfig
+import org.mockito.kotlin.mock
 
 object TestClientsBuilder : ClientsBuilder {
     val testClients = Clients(

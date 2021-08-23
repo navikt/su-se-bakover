@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.domain.behandling
 
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -11,6 +9,8 @@ import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning.vurde
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 
 internal class VurderAvslagGrunnetBeregningKtTest {
 

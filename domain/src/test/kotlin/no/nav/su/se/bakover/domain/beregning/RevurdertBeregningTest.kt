@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning
 
 import arrow.core.left
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.februar
@@ -18,6 +16,8 @@ import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 
 internal class RevurdertBeregningTest {
     private val forventetMånedsbeløp: Double = Sats.HØY.månedsbeløp(1.januar(2021))
