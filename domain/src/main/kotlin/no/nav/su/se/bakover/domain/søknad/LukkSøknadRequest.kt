@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.brev.BrevConfig
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -33,8 +34,8 @@ sealed class LukkSøknadRequest {
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             val trukketDato: LocalDate
         ) : MedBrev() {
-            fun erDatoGyldig(dato: LocalDate): Boolean {
-                return !trukketDato.isBefore(dato) && !trukketDato.isAfter(LocalDate.now())
+            fun erDatoGyldig(ikkeFør: LocalDate, clock: Clock): Boolean {
+                return !trukketDato.isBefore(ikkeFør) && !trukketDato.isAfter(LocalDate.now(clock))
             }
         }
 

@@ -1,7 +1,10 @@
 package no.nav.su.se.bakover.database.søknad
 
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.database.DbMetrics
+import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
+import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
@@ -15,6 +18,7 @@ import javax.sql.DataSource
 internal class SøknadPostgresRepo(
     private val dataSource: DataSource,
     private val dbMetrics: DbMetrics,
+    private val postgresSessionFactory: PostgresSessionFactory,
 ) : SøknadRepo {
     override fun hentSøknad(søknadId: UUID): Søknad? {
         return dbMetrics.timeQuery("hentSøknad") {
@@ -37,7 +41,13 @@ internal class SøknadPostgresRepo(
     }
 
     override fun oppdaterSøknad(søknad: Søknad.Lukket) {
-        dataSource.withSession { session ->
+        postgresSessionFactory.withSessionContext { context ->
+            oppdaterSøknad(søknad, context)
+        }
+    }
+
+    override fun oppdaterSøknad(søknad: Søknad.Lukket, sessionContext: SessionContext) {
+        sessionContext.withSession { session ->
             "update søknad set lukket=to_json(:lukket::json) where id=:id".oppdatering(
                 mapOf(
                     "id" to søknad.id,
@@ -98,5 +108,9 @@ internal class SøknadPostgresRepo(
                 it.toSøknad()
             }.filterIsInstance(Søknad.Journalført.UtenOppgave::class.java)
         }
+    }
+
+    override fun defaultSessionContext(): SessionContext {
+        return postgresSessionFactory.newSessionContext()
     }
 }

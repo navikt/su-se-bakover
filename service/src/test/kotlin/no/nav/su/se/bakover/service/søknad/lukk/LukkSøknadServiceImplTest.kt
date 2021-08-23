@@ -8,8 +8,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.stubs.person.MicrosoftGraphApiClientStub
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
@@ -40,22 +41,22 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.whenever
 import java.time.Clock
-import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZoneOffset
 import java.util.UUID
-
-private val fixedEpochClock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)
 
 internal class LukkSøknadServiceImplTest {
     private val sakId = UUID.randomUUID()
@@ -76,7 +77,7 @@ internal class LukkSøknadServiceImplTest {
     private val sak = Sak(
         id = sakId,
         saksnummer = saksnummer,
-        opprettet = Tidspunkt.EPOCH,
+        opprettet = fixedTidspunkt,
         fnr = fnr,
         søknader = emptyList(),
         søknadsbehandlinger = emptyList(),
@@ -85,7 +86,7 @@ internal class LukkSøknadServiceImplTest {
     private val journalførtSøknadMedOppgave = Søknad.Journalført.MedOppgave(
         sakId = sakId,
         id = UUID.randomUUID(),
-        opprettet = Tidspunkt.EPOCH,
+        opprettet = fixedTidspunkt,
         søknadInnhold = søknadInnhold,
         journalpostId = journalførtSøknadMedOppgaveJournalpostId,
         oppgaveId = oppgaveId,
@@ -97,7 +98,7 @@ internal class LukkSøknadServiceImplTest {
         søknadInnhold = søknadInnhold,
         journalpostId = journalførtSøknadMedOppgave.journalpostId,
         oppgaveId = journalførtSøknadMedOppgave.oppgaveId,
-        lukketTidspunkt = Tidspunkt.EPOCH,
+        lukketTidspunkt = fixedTidspunkt,
         lukketAv = saksbehandler,
         lukketType = Søknad.Lukket.LukketType.TRUKKET,
     )
@@ -105,7 +106,7 @@ internal class LukkSøknadServiceImplTest {
     private val trekkSøknadRequest = LukkSøknadRequest.MedBrev.TrekkSøknad(
         søknadId = journalførtSøknadMedOppgave.id,
         saksbehandler = saksbehandler,
-        trukketDato = 1.januar(2020),
+        trukketDato = 1.januar(2021),
     )
 
     @Test
@@ -172,6 +173,15 @@ internal class LukkSøknadServiceImplTest {
 
         val observerMock: EventObserver = mock()
 
+        val transactionContext = mock<TransactionContext>()
+
+        val sessionFactoryMock = mock<SessionFactory> {
+            doAnswer { ss ->
+                @Suppress("UNCHECKED_CAST")
+                (ss.arguments[0] as ((TransactionContext) -> Unit))(transactionContext)
+            }.whenever(mock).withTransactionContext(any())
+        }
+
         ServiceOgMocks(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
@@ -179,6 +189,7 @@ internal class LukkSøknadServiceImplTest {
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             microsoftGraphApiClient = MicrosoftGraphApiClientStub,
+            sessionFactory = sessionFactoryMock,
         ).let {
             val actual = it.lukkSøknadService.apply { addObserver(observerMock) }.lukkSøknad(trekkSøknadRequest)
                 .getOrHandle { fail { "Skulle gått bra" } }
@@ -193,6 +204,7 @@ internal class LukkSøknadServiceImplTest {
                 personServiceMock,
                 it.brevService,
                 observerMock,
+                sessionFactoryMock,
             ) {
                 verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
                 verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
@@ -200,11 +212,16 @@ internal class LukkSøknadServiceImplTest {
                 val expectedRequest = TrukketSøknadBrevRequest(
                     person = person,
                     søknad = journalførtSøknadMedOppgave,
-                    trukketDato = 1.januar(2020),
+                    trukketDato = 1.januar(2021),
                     saksbehandlerNavn = "Testbruker, Lokal",
                 )
                 verify(brevServiceMock).lagBrev(expectedRequest)
-                verify(søknadRepoMock).oppdaterSøknad(lukketSøknad)
+                // Under: sjekker at oppdaterSøknad(...) lagreDokument(...) blir kalt
+                verify(sessionFactoryMock).withTransactionContext<Unit>(any())
+                verify(søknadRepoMock).oppdaterSøknad(
+                    søknad = argThat { it shouldBe lukketSøknad },
+                    sessionContext = argThat { it shouldBe transactionContext },
+                )
                 verify(it.brevService).lagreDokument(
                     argThat { dokument ->
                         dokument should beOfType<Dokument.MedMetadata.Informasjon>()
@@ -218,6 +235,7 @@ internal class LukkSøknadServiceImplTest {
                             bestillBrev = true,
                         )
                     },
+                    argThat { it shouldBe transactionContext },
                 )
                 verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
                 verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
@@ -314,6 +332,15 @@ internal class LukkSøknadServiceImplTest {
             on { hentPerson(any()) } doReturn person.right()
         }
 
+        val transactionContext = mock<TransactionContext>()
+
+        val sessionFactoryMock = mock<SessionFactory> {
+            doAnswer { ss ->
+                @Suppress("UNCHECKED_CAST")
+                (ss.arguments[0] as ((TransactionContext) -> Unit))(transactionContext)
+            }.whenever(mock).withTransactionContext(any())
+        }
+
         ServiceOgMocks(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
@@ -321,6 +348,7 @@ internal class LukkSøknadServiceImplTest {
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             microsoftGraphApiClient = MicrosoftGraphApiClientStub,
+            sessionFactory = sessionFactoryMock,
         ).let {
             val actual = it.lukkSøknadService.lukkSøknad(
                 LukkSøknadRequest.MedBrev.AvvistSøknad(
@@ -359,6 +387,7 @@ internal class LukkSøknadServiceImplTest {
                             lukketType = AVVIST,
                         )
                     },
+                    argThat { it shouldBe transactionContext },
                 )
                 verify(it.brevService).lagreDokument(
                     argThat { dokument ->
@@ -373,6 +402,7 @@ internal class LukkSøknadServiceImplTest {
                             bestillBrev = true,
                         )
                     },
+                    argThat { it shouldBe transactionContext },
                 )
                 verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
                 verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
@@ -494,7 +524,7 @@ internal class LukkSøknadServiceImplTest {
                         it shouldBe TrukketSøknadBrevRequest(
                             person,
                             journalførtSøknadMedOppgave,
-                            1.januar(2020),
+                            1.januar(2021),
                             "Testbruker, Lokal",
                         )
                     },
@@ -575,7 +605,7 @@ internal class LukkSøknadServiceImplTest {
                         it shouldBe TrukketSøknadBrevRequest(
                             person,
                             journalførtSøknadMedOppgave,
-                            1.januar(2020),
+                            1.januar(2021),
                             "Testbruker, Lokal",
                         )
                     },
@@ -645,7 +675,7 @@ internal class LukkSøknadServiceImplTest {
     fun `skal ikke kunne lukke søknad som mangler journalpost og oppgave`() {
         val nySøknad = Søknad.Ny(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.EPOCH,
+            opprettet = fixedTidspunkt,
             sakId = sakId,
             søknadInnhold = søknadInnhold,
         )
@@ -687,6 +717,15 @@ internal class LukkSøknadServiceImplTest {
             on { hentPerson(any()) } doReturn person.right()
         }
 
+        val transactionContext = mock<TransactionContext>()
+
+        val sessionFactoryMock = mock<SessionFactory> {
+            doAnswer { ss ->
+                @Suppress("UNCHECKED_CAST")
+                (ss.arguments[0] as ((TransactionContext) -> Unit))(transactionContext)
+            }.whenever(mock).withTransactionContext(any())
+        }
+
         ServiceOgMocks(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
@@ -694,7 +733,7 @@ internal class LukkSøknadServiceImplTest {
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             microsoftGraphApiClient = MicrosoftGraphApiClientStub,
-            clock = fixedEpochClock,
+            sessionFactory = sessionFactoryMock,
         ).let {
             val actual = it.lukkSøknadService.lukkSøknad(trekkSøknadRequest)
                 .getOrHandle { fail { "Skulle gått bra" } }
@@ -708,6 +747,7 @@ internal class LukkSøknadServiceImplTest {
                 oppgaveServiceMock,
                 personServiceMock,
                 it.brevService,
+                sessionFactoryMock,
             ) {
                 verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
                 verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
@@ -715,10 +755,12 @@ internal class LukkSøknadServiceImplTest {
                 val expectedRequest = TrukketSøknadBrevRequest(
                     person = person,
                     søknad = journalførtSøknadMedOppgave,
-                    trukketDato = 1.januar(2020),
+                    trukketDato = 1.januar(2021),
                     saksbehandlerNavn = "Testbruker, Lokal",
                 )
                 verify(brevServiceMock).lagBrev(expectedRequest)
+                // Under: sjekker at oppdaterSøknad(...) lagreDokument(...) blir kalt
+                verify(sessionFactoryMock).withTransactionContext<Unit>(any())
                 verify(søknadRepoMock).oppdaterSøknad(
                     argThat {
                         it shouldBe lukketSøknad.copy(
@@ -726,6 +768,7 @@ internal class LukkSøknadServiceImplTest {
                             journalpostId = journalførtSøknadMedOppgaveJournalpostId,
                         )
                     },
+                    argThat { it shouldBe transactionContext },
                 )
                 verify(it.brevService).lagreDokument(
                     argThat { dokument ->
@@ -740,6 +783,7 @@ internal class LukkSøknadServiceImplTest {
                             bestillBrev = true,
                         )
                     },
+                    argThat { it shouldBe transactionContext },
                 )
                 verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
                 verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
@@ -766,7 +810,6 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             personService = personServiceMock,
             microsoftGraphApiClient = MicrosoftGraphApiClientStub,
-            clock = fixedEpochClock,
         ).let {
             it.lukkSøknadService.lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.KunneIkkeGenerereDokument.left()
 
@@ -782,7 +825,7 @@ internal class LukkSøknadServiceImplTest {
                     TrukketSøknadBrevRequest(
                         person = person,
                         søknad = journalførtSøknadMedOppgave,
-                        trukketDato = 1.januar(2020),
+                        trukketDato = 1.januar(2021),
                         saksbehandlerNavn = "Testbruker, Lokal",
                     ),
                 )
@@ -798,7 +841,8 @@ internal class LukkSøknadServiceImplTest {
         val oppgaveService: OppgaveService = mock(),
         val personService: PersonService = mock(),
         val microsoftGraphApiClient: MicrosoftGraphApiOppslag = MicrosoftGraphApiClientStub,
-        val clock: Clock = fixedEpochClock,
+        clock: Clock = fixedClock,
+        val sessionFactory: SessionFactory = mock(),
     ) {
         val lukkSøknadService = LukkSøknadServiceImpl(
             søknadRepo = søknadRepo,
@@ -808,6 +852,7 @@ internal class LukkSøknadServiceImplTest {
             personService = personService,
             microsoftGraphApiClient = microsoftGraphApiClient,
             clock = clock,
+            sessionFactory = sessionFactory,
         )
 
         fun verifyNoMoreInteractions() {
@@ -817,6 +862,7 @@ internal class LukkSøknadServiceImplTest {
                 brevService,
                 oppgaveService,
                 personService,
+                sessionFactory,
             )
         }
     }

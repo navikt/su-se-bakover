@@ -42,7 +42,7 @@ internal class DokumentPostgresRepoTest {
                     bestillBrev = false,
                 ),
             )
-            dokumentRepo.lagre(original)
+            dokumentRepo.lagre(original, testDataHelper.sessionFactory.newTransactionContext())
 
             val hentet = dokumentRepo.hentDokument(original.id)!!
 
@@ -76,7 +76,7 @@ internal class DokumentPostgresRepoTest {
                     bestillBrev = true,
                 ),
             )
-            dokumentRepo.lagre(original)
+            dokumentRepo.lagre(original, testDataHelper.sessionFactory.newTransactionContext())
 
             val dokumentdistribusjon = dokumentRepo.hentDokumenterForDistribusjon().first()
 

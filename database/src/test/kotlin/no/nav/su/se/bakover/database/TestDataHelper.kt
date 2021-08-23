@@ -204,6 +204,7 @@ internal class TestDataHelper(
     dbMetrics: DbMetrics = dbMetricsStub,
     private val clock: Clock = fixedClock,
 ) {
+    internal val sessionFactory = PostgresSessionFactory(datasource)
     internal val utbetalingRepo = UtbetalingPostgresRepo(
         dataSource = datasource,
         dbMetrics = dbMetrics,
@@ -212,6 +213,7 @@ internal class TestDataHelper(
     internal val søknadRepo = SøknadPostgresRepo(
         dataSource = datasource,
         dbMetrics = dbMetrics,
+        postgresSessionFactory = sessionFactory,
     )
     internal val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
     internal val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(
