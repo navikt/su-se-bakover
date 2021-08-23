@@ -45,8 +45,36 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
         object PeriodeMåFyllesUt : KunneIkkeLeggeTilFradragsgrunnlag()
     }
 
-    open fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> =
-        KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
+    open fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
+        if (fradragsgrunnlag.isNotEmpty()) {
+            if (fradragsgrunnlag.periode() != null) {
+                if (!(periode inneholder fradragsgrunnlag.periode()!!)) {
+                    return KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInneforBehandlingen.left()
+                }
+            } else {
+                return KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMåFyllesUt.left()
+            }
+        }
+
+        return Vilkårsvurdert.Innvilget(
+            id,
+            opprettet,
+            sakId,
+            saksnummer,
+            søknad,
+            oppgaveId,
+            this.behandlingsinformasjon.patch(behandlingsinformasjon),
+            fnr,
+            fritekstTilBrev,
+            stønadsperiode!!,
+            grunnlagsdata = Grunnlagsdata.tryCreate(
+                fradragsgrunnlag = fradragsgrunnlag,
+                bosituasjon = this.grunnlagsdata.bosituasjon,
+            ),
+            vilkårsvurderinger,
+            attesteringer,
+        ).right()
+    }
 
     sealed class Vilkårsvurdert : Søknadsbehandling() {
         fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
@@ -180,24 +208,6 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
             }
-
-            override fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Innvilget> {
-                if (fradragsgrunnlag.isNotEmpty()) {
-                    if (fradragsgrunnlag.periode() != null) {
-                        if (!(periode inneholder fradragsgrunnlag.periode()!!)) {
-                            return KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInneforBehandlingen.left()
-                        }
-                    } else {
-                        return KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMåFyllesUt.left()
-                    }
-                }
-                return this.copy(
-                    grunnlagsdata = Grunnlagsdata.tryCreate(
-                        fradragsgrunnlag = fradragsgrunnlag,
-                        bosituasjon = this.grunnlagsdata.bosituasjon,
-                    ),
-                ).right()
-            }
         }
 
         data class Avslag(
@@ -222,6 +232,9 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
             }
+
+            override fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Innvilget> =
+                KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
 
             fun tilAttestering(
                 saksbehandler: NavIdentBruker.Saksbehandler,
@@ -270,6 +283,9 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
             }
+
+            override fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Innvilget> =
+                KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
         }
 
         data class StønadsperiodeIkkeDefinertException(
@@ -577,6 +593,9 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
         abstract fun tilUnderkjent(attestering: Attestering): Underkjent
         abstract override val stønadsperiode: Stønadsperiode
         abstract override val attesteringer: Attesteringshistorikk
+
+        override fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> =
+            KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
 
         data class Innvilget(
             override val id: UUID,
@@ -1022,6 +1041,9 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     return this.copy(oppgaveId = nyOppgaveId)
                 }
 
+                override fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> =
+                    KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
+
                 override fun accept(visitor: SøknadsbehandlingVisitor) {
                     visitor.visit(this)
                 }
@@ -1061,6 +1083,9 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
         abstract val saksbehandler: NavIdentBruker.Saksbehandler
         abstract override val attesteringer: Attesteringshistorikk
         abstract override val stønadsperiode: Stønadsperiode
+
+        override fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> =
+            KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
 
         data class Innvilget(
             override val id: UUID,
