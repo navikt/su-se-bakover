@@ -84,7 +84,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
     val microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = mock(),
     val brevService: BrevService = mock(),
     val opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
-    val clock: Clock = Clock.systemUTC(),
+    val clock: Clock = no.nav.su.se.bakover.test.fixedClock,
     val vedtakRepo: VedtakRepo = mock(),
     val ferdigstillVedtakService: FerdigstillVedtakService = mock(),
     val vilkårsvurderingService: VilkårsvurderingService = mock(),
