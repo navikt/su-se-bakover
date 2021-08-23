@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.services.personhendelser
 
+import arrow.core.nonEmptyListOf
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.argumentCaptor
 import com.nhaarman.mockitokotlin2.mock
@@ -31,8 +32,6 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.config.SaslConfigs
-import org.apache.kafka.common.serialization.StringDeserializer
-import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -74,7 +73,7 @@ internal class PersonhendelseConsumerTest {
                 gjeldendeAktørId = AktørId(ident),
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
                 hendelse = Personhendelse.Hendelse.Dødsfall(LocalDate.now()),
-                personidenter = listOf(ident, fnr.toString()),
+                personidenter = nonEmptyListOf(ident, fnr.toString()),
                 metadata = Personhendelse.Metadata(
                     hendelseId = it.toString(),
                     tidligereHendelseId = null,
@@ -172,7 +171,7 @@ internal class PersonhendelseConsumerTest {
                     KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to true,
                     ConsumerConfig.CLIENT_ID_CONFIG to groupId,
                     ConsumerConfig.GROUP_ID_CONFIG to "funKafkaConsumeGrpID",
-                    ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
+                    ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to KafkaAvroDeserializer::class.java,
                     ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to KafkaAvroDeserializer::class.java,
                     AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG to kafkaServer.schemaRegistry?.url,
                     ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to "false",
@@ -189,7 +188,7 @@ internal class PersonhendelseConsumerTest {
             mapOf(
                 ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to kafkaServer.brokersURL,
                 ProducerConfig.CLIENT_ID_CONFIG to "funKafkaProduce",
-                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to KafkaAvroSerializer::class.java,
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to KafkaAvroSerializer::class.java,
                 AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG to kafkaServer.schemaRegistry?.url,
                 ProducerConfig.ACKS_CONFIG to "all",

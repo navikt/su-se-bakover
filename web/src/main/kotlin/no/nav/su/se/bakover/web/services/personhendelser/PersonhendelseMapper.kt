@@ -1,14 +1,16 @@
 package no.nav.su.se.bakover.web.services.personhendelser
 
 import arrow.core.Either
+import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.person.pdl.leesah.Endringstype
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
-import no.nav.su.se.bakover.web.services.personhendelser.HendelseMapperException.IkkeAktuellOpplysningstype
+import no.nav.su.se.bakover.web.services.personhendelser.KunneIkkeMappePersonhendelse.IkkeAktuellOpplysningstype
 import org.apache.kafka.clients.consumer.ConsumerRecord
+import java.time.LocalDate
 import no.nav.person.pdl.leesah.Personhendelse as EksternPersonhendelse
 
 internal object HendelseMapper {
@@ -21,9 +23,16 @@ internal object HendelseMapper {
 
     internal fun map(
         message: ConsumerRecord<String, EksternPersonhendelse>,
-    ): Either<HendelseMapperException, Personhendelse.Ny> {
-        val key: String = message.key()
+    ): Either<KunneIkkeMappePersonhendelse, Personhendelse.Ny> {
+        val key: String? = message.key()
         val personhendelse: EksternPersonhendelse = message.value()
+        if (key == null) {
+            // Vi har sett tilfeller av dette i preprod
+            return KunneIkkeMappePersonhendelse.KunneIkkeHenteAktørId(
+                personhendelse.getHendelseId(),
+                personhendelse.getOpplysningstype(),
+            ).left()
+        }
 
         val aktørId = hentAktørId(personhendelse, key).getOrHandle {
             return it.left()
@@ -31,25 +40,30 @@ internal object HendelseMapper {
 
         return when (personhendelse.getOpplysningstype()) {
             Opplysningstype.DØDSFALL.value -> {
-                val dødsdato = personhendelse.getDoedsfall().get().let {
-                    if (it.getDoedsdato().isPresent) it.getDoedsdato().get() else null
-                }
+                val dødsdato: LocalDate? =
+                    (if (personhendelse.getDoedsfall().isPresent) personhendelse.getDoedsfall().get() else null)?.let {
+                        if (it.getDoedsdato().isPresent) it.getDoedsdato().get() else null
+                    }
                 Personhendelse.Hendelse.Dødsfall(dødsdato = dødsdato).right()
             }
             Opplysningstype.UTFLYTTING_FRA_NORGE.value -> {
-                val utflyttetDato = personhendelse.getUtflyttingFraNorge().get().let {
-                    if (it.getUtflyttingsdato().isPresent) it.getUtflyttingsdato().get() else null
-                }
+                val utflyttetDato: LocalDate? =
+                    (
+                        if (personhendelse.getUtflyttingFraNorge().isPresent) personhendelse.getUtflyttingFraNorge()
+                            .get() else null
+                        )?.let {
+                        if (it.getUtflyttingsdato().isPresent) it.getUtflyttingsdato().get() else null
+                    }
                 Personhendelse.Hendelse.UtflyttingFraNorge(utflyttingsdato = utflyttetDato).right()
             }
             else -> {
-                IkkeAktuellOpplysningstype.left()
+                IkkeAktuellOpplysningstype(personhendelse.getHendelseId(), personhendelse.getOpplysningstype()).left()
             }
         }.map { hendelse ->
             Personhendelse.Ny(
                 gjeldendeAktørId = aktørId,
                 endringstype = hentEndringstype(personhendelse.getEndringstype()),
-                personidenter = personhendelse.getPersonidenter(),
+                personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
                 hendelse = hendelse,
                 metadata = Personhendelse.Metadata(
                     hendelseId = personhendelse.getHendelseId(),
@@ -67,13 +81,12 @@ internal object HendelseMapper {
     private fun hentAktørId(
         personhendelse: EksternPersonhendelse,
         key: String,
-    ): Either<HendelseMapperException.KunneIkkeHenteAktørId, AktørId> {
-        val id = key.substring(6) // Nyckeln på Kafka-meldinger fra Pdl er aktør-id prepend:et med 6 rare tegn.
-        val idFinnesSomPersonident = personhendelse.getPersonidenter().any { it == id }
-
-        if (!idFinnesSomPersonident) {
-            return HendelseMapperException.KunneIkkeHenteAktørId.left()
-        }
+    ): Either<KunneIkkeMappePersonhendelse.KunneIkkeHenteAktørId, AktørId> {
+        val id = personhendelse.getPersonidenter().firstOrNull { key.contains(it) }
+            ?: return KunneIkkeMappePersonhendelse.KunneIkkeHenteAktørId(
+                personhendelse.getHendelseId(),
+                personhendelse.getOpplysningstype(),
+            ).left()
 
         return AktørId(id).right()
     }
@@ -87,7 +100,14 @@ internal object HendelseMapper {
         }
 }
 
-internal sealed class HendelseMapperException {
-    object IkkeAktuellOpplysningstype : HendelseMapperException()
-    object KunneIkkeHenteAktørId : HendelseMapperException()
+internal sealed class KunneIkkeMappePersonhendelse {
+    data class IkkeAktuellOpplysningstype(
+        val hendelseId: String,
+        val opplysningstype: String,
+    ) : KunneIkkeMappePersonhendelse()
+
+    data class KunneIkkeHenteAktørId(
+        val hendelseId: String,
+        val opplysningstype: String,
+    ) : KunneIkkeMappePersonhendelse()
 }

@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.web.services.personhendelser
 
+import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.left
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.person.pdl.leesah.Endringstype
 import no.nav.person.pdl.leesah.doedsfall.Doedsfall
@@ -19,19 +21,16 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 import no.nav.person.pdl.leesah.Personhendelse as EksternPersonhendelse
 
-internal class HendelseMapperTest {
+internal class PersonhendelseMapperTest {
     private val TOPIC = "topic"
     private val PARTITION = 0
     private val OFFSET = 0L
     private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
 
-    private val preprendedText = "123456"
     private val aktørId = "1234567890000"
     private val fnr = FnrGenerator.random().toString()
     private val opprettet = Instant.now(fixedClock)
     private val tidspunkt = LocalDate.now(fixedClock)
-
-    private val key = "${preprendedText}$aktørId"
 
     @Test
     fun `mapper fra ekstern dødsfalltype til intern`() {
@@ -47,21 +46,21 @@ internal class HendelseMapperTest {
             null,
             null,
         )
-        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, key, personhendelse)
+        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
         val actual = HendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
 
         actual shouldBe Personhendelse.Ny(
             gjeldendeAktørId = AktørId(aktørId),
             endringstype = Personhendelse.Endringstype.OPPRETTET,
             hendelse = Personhendelse.Hendelse.Dødsfall(tidspunkt),
-            personidenter = personhendelse.getPersonidenter(),
+            personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
             metadata = Personhendelse.Metadata(
                 hendelseId = "hendelseId",
                 tidligereHendelseId = null,
                 offset = OFFSET,
                 partisjon = PARTITION,
                 master = "FREG",
-                key = key,
+                key = aktørId,
             ),
         )
     }
@@ -80,31 +79,31 @@ internal class HendelseMapperTest {
             null,
             UtflyttingFraNorge("Sverige", "Stockholm", tidspunkt),
         )
-        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, key, personhendelse)
+        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
         val actual = HendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
 
         actual shouldBe Personhendelse.Ny(
             gjeldendeAktørId = AktørId(aktørId),
             endringstype = Personhendelse.Endringstype.OPPRETTET,
             hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(tidspunkt),
-            personidenter = personhendelse.getPersonidenter(),
+            personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
             metadata = Personhendelse.Metadata(
                 hendelseId = "hendelseId",
                 tidligereHendelseId = null,
                 offset = OFFSET,
                 partisjon = PARTITION,
                 master = "FREG",
-                key = key,
+                key = aktørId,
             ),
         )
     }
 
     @Test
-    fun `aktørId som ikke finnes i personidenter gir feil`() {
+    fun `støtter prepend i key`() {
         val personhendelse = EksternPersonhendelse(
             "hendelseId",
-            listOf(fnr),
-            "master",
+            listOf(fnr, aktørId),
+            "FREG",
             opprettet,
             "UTFLYTTING_FRA_NORGE",
             Endringstype.OPPRETTET,
@@ -113,10 +112,43 @@ internal class HendelseMapperTest {
             null,
             UtflyttingFraNorge("Sverige", "Stockholm", tidspunkt),
         )
-        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, key, personhendelse)
+        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, "\u0000$aktørId", personhendelse)
         val actual = HendelseMapper.map(message)
 
-        actual shouldBe HendelseMapperException.KunneIkkeHenteAktørId.left()
+        actual shouldBe Personhendelse.Ny(
+            gjeldendeAktørId = AktørId(aktørId),
+            endringstype = Personhendelse.Endringstype.OPPRETTET,
+            hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(tidspunkt),
+            personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
+            metadata = Personhendelse.Metadata(
+                hendelseId = "hendelseId",
+                tidligereHendelseId = null,
+                offset = OFFSET,
+                partisjon = PARTITION,
+                master = "FREG",
+                key = "\u0000$aktørId",
+            ),
+        ).right()
+    }
+
+    @Test
+    fun `aktørId som ikke finnes i personidenter gir feil`() {
+        val personhendelse = EksternPersonhendelse(
+            "hendelseId",
+            listOf(fnr),
+            "FREG",
+            opprettet,
+            "UTFLYTTING_FRA_NORGE",
+            Endringstype.OPPRETTET,
+            null,
+            null,
+            null,
+            UtflyttingFraNorge("Sverige", "Stockholm", tidspunkt),
+        )
+        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
+        val actual = HendelseMapper.map(message)
+
+        actual shouldBe KunneIkkeMappePersonhendelse.KunneIkkeHenteAktørId("hendelseId", "UTFLYTTING_FRA_NORGE").left()
     }
 
     @Test
@@ -124,7 +156,7 @@ internal class HendelseMapperTest {
         val personhendelse = EksternPersonhendelse(
             "hendelseId",
             listOf(fnr, aktørId),
-            "master",
+            "FREG",
             opprettet,
             "FOEDSEL_V1",
             Endringstype.OPPRETTET,
@@ -133,9 +165,9 @@ internal class HendelseMapperTest {
             null,
             UtflyttingFraNorge("Sverige", "Stockholm", tidspunkt),
         )
-        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, key, personhendelse)
+        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
         val actual = HendelseMapper.map(message)
 
-        actual shouldBe HendelseMapperException.IkkeAktuellOpplysningstype.left()
+        actual shouldBe KunneIkkeMappePersonhendelse.IkkeAktuellOpplysningstype("hendelseId", "FOEDSEL_V1").left()
     }
 }

@@ -118,7 +118,7 @@ allprojects {
     }
 
     tasks.withType<Wrapper> {
-        gradleVersion = "7.0.2"
+        gradleVersion = "7.2"
     }
     // https://github.com/ben-manes/gradle-versions-plugin
     tasks.withType<com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask> {
