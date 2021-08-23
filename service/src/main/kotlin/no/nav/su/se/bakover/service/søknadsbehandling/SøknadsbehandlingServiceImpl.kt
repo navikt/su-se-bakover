@@ -398,37 +398,38 @@ internal class SøknadsbehandlingServiceImpl(
                 is Søknadsbehandling.Iverksatt.Avslag -> {
                     val vedtak = opprettAvslagsvedtak(iverksattBehandling)
 
-                    return lagOgDistribuerDokumentForVedtak(vedtak)
-                        .map { dokument ->
-                            brevService.lagreDokument(dokument)
+                    val dokument = lagDokumentForDistribusjon(vedtak)
+                        .getOrHandle { return it.left() }
 
-                            søknadsbehandlingRepo.lagre(iverksattBehandling)
+                    // TODO jm: skriker etter en transaksjon
+                    søknadsbehandlingRepo.lagre(iverksattBehandling)
+                    vedtakRepo.lagre(vedtak)
+                    brevService.lagreDokument(dokument)
 
-                            log.info("Iverksatt avslag for behandling: ${iverksattBehandling.id}, vedtak: ${vedtak.id}")
-                            opprettVedtakssnapshotService.opprettVedtak(
-                                vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(
+                    log.info("Iverksatt avslag for behandling: ${iverksattBehandling.id}, vedtak: ${vedtak.id}")
+                    opprettVedtakssnapshotService.opprettVedtak(
+                        vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(
+                            søknadsbehandling = iverksattBehandling,
+                            avslagsgrunner = iverksattBehandling.avslagsgrunner,
+                            journalføringOgBrevdistribusjon = vedtak.journalføringOgBrevdistribusjon,
+                        ),
+                    )
+                    behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
+
+                    ferdigstillVedtakService.lukkOppgaveMedBruker(vedtak)
+                        .mapLeft {
+                            log.error("Lukking av oppgave for behandlingId: ${vedtak.behandling.oppgaveId} feilet. Må ryddes opp manuelt.")
+                        }
+
+                    iverksattBehandling.also {
+                        observers.forEach { observer ->
+                            observer.handle(
+                                Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(
                                     iverksattBehandling,
-                                    iverksattBehandling.avslagsgrunner,
-                                    vedtak.journalføringOgBrevdistribusjon,
                                 ),
                             )
-                            behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
-
-                            ferdigstillVedtakService.lukkOppgaveMedBruker(vedtak)
-                                .mapLeft {
-                                    log.error("Lukking av oppgave for behandlingId: ${vedtak.behandling.oppgaveId} feilet. Må ryddes opp manuelt.")
-                                }
-
-                            iverksattBehandling.also {
-                                observers.forEach { observer ->
-                                    observer.handle(
-                                        Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(
-                                            iverksattBehandling,
-                                        ),
-                                    )
-                                }
-                            }
                         }
+                    }
                 }
             }
         }
@@ -685,7 +686,7 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    private fun lagOgDistribuerDokumentForVedtak(vedtak: Vedtak) =
+    private fun lagDokumentForDistribusjon(vedtak: Vedtak) =
         lagBrevRequestVisitor()
             .let { visitor ->
                 vedtak.accept(visitor)

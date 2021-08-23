@@ -70,3 +70,84 @@ internal fun createSøknadsbehandlingService(
     vilkårsvurderingService,
     grunnlagService,
 ).apply { addObserver(observer) }
+
+internal data class SøknadsbehandlingServiceAndMocks(
+    val søknadsbehandlingRepo: SøknadsbehandlingRepo = mock(),
+    val utbetalingService: UtbetalingService = mock(),
+    val oppgaveService: OppgaveService = mock(),
+    val søknadService: SøknadService = mock(),
+    val søknadRepo: SøknadRepo = mock(),
+    val personService: PersonService = mock(),
+    val behandlingMetrics: BehandlingMetrics = mock(),
+    val observer: EventObserver = mock(),
+    val beregningService: BeregningService = mock(),
+    val microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = mock(),
+    val brevService: BrevService = mock(),
+    val opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
+    val clock: Clock = Clock.systemUTC(),
+    val vedtakRepo: VedtakRepo = mock(),
+    val ferdigstillVedtakService: FerdigstillVedtakService = mock(),
+    val vilkårsvurderingService: VilkårsvurderingService = mock(),
+    val grunnlagService: GrunnlagService = mock(),
+) {
+    val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
+        søknadService = søknadService,
+        søknadRepo = søknadRepo,
+        søknadsbehandlingRepo = søknadsbehandlingRepo,
+        utbetalingService = utbetalingService,
+        personService = personService,
+        oppgaveService = oppgaveService,
+        behandlingMetrics = behandlingMetrics,
+        beregningService = beregningService,
+        microsoftGraphApiClient = microsoftGraphApiOppslag,
+        brevService = brevService,
+        opprettVedtakssnapshotService = opprettVedtakssnapshotService,
+        clock = clock,
+        vedtakRepo = vedtakRepo,
+        ferdigstillVedtakService = ferdigstillVedtakService,
+        vilkårsvurderingService = vilkårsvurderingService,
+        grunnlagService = grunnlagService,
+    ).apply { addObserver(observer) }
+
+    fun all(): List<Any> {
+        return listOf(
+            søknadsbehandlingRepo,
+            utbetalingService,
+            oppgaveService,
+            søknadService,
+            søknadRepo,
+            personService,
+            behandlingMetrics,
+            observer,
+            beregningService,
+            microsoftGraphApiOppslag,
+            brevService,
+            opprettVedtakssnapshotService,
+            vedtakRepo,
+            ferdigstillVedtakService,
+            vilkårsvurderingService,
+            grunnlagService,
+        )
+    }
+
+    fun verifyNoMoreInteractions() {
+        com.nhaarman.mockitokotlin2.verifyNoMoreInteractions(
+            søknadsbehandlingRepo,
+            utbetalingService,
+            oppgaveService,
+            søknadService,
+            søknadRepo,
+            personService,
+            behandlingMetrics,
+            observer,
+            beregningService,
+            microsoftGraphApiOppslag,
+            brevService,
+            opprettVedtakssnapshotService,
+            vedtakRepo,
+            ferdigstillVedtakService,
+            vilkårsvurderingService,
+            grunnlagService,
+        )
+    }
+}
