@@ -2,8 +2,10 @@ package no.nav.su.se.bakover.domain.hendelse
 
 import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import java.time.LocalDate
 import java.util.UUID
 
@@ -14,6 +16,7 @@ sealed class Personhendelse {
         ANNULLERT,
         OPPHØRT,
     }
+
     abstract val gjeldendeAktørId: AktørId
     abstract val endringstype: Endringstype
     abstract val hendelse: Hendelse
@@ -37,10 +40,26 @@ sealed class Personhendelse {
     ) : Personhendelse()
 
     sealed class Hendelse {
+        /**
+         * @see <a href="https://navikt.github.io/pdl/#_d%C3%B8dsfall">Dokumentasjonen</a>
+         * */
         data class Dødsfall(val dødsdato: LocalDate?) : Hendelse()
 
-        // TODO jah: Her finnes det 2 felter vi ignorerer: [tilflyttingsland, tilflyttingsstedIUtlandet], finn ut om det er tiltenkt eller ikke.
+        /**
+         * @see <a href="https://navikt.github.io/pdl/#_utflytting">Dokumentasjonen</a>
+         * */
         data class UtflyttingFraNorge(val utflyttingsdato: LocalDate?) : Hendelse()
+
+        /**
+         * @see <a href="https://navikt.github.io/pdl/#_sivilstand">Dokumentasjonen</a>
+         * @see [no.nav.su.se.bakover.domain.Person.Sivilstand]
+         * */
+        data class Sivilstand(
+            val type: SivilstandTyper,
+            val gyldigFraOgMed: LocalDate?,
+            val relatertVedSivilstand: Fnr?,
+            val bekreftelsesdato: LocalDate?,
+        ) : Hendelse()
     }
 
     /** Metadata rundt hendelsen

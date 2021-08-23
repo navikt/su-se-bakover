@@ -7,11 +7,13 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.person.pdl.leesah.Endringstype
 import no.nav.person.pdl.leesah.doedsfall.Doedsfall
+import no.nav.person.pdl.leesah.sivilstand.Sivilstand
 import no.nav.person.pdl.leesah.utflytting.UtflyttingFraNorge
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
+import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import no.nav.su.se.bakover.service.FnrGenerator
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.junit.jupiter.api.Test
@@ -86,6 +88,39 @@ internal class PersonhendelseMapperTest {
             gjeldendeAktørId = AktørId(aktørId),
             endringstype = Personhendelse.Endringstype.OPPRETTET,
             hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(tidspunkt),
+            personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
+            metadata = Personhendelse.Metadata(
+                hendelseId = "hendelseId",
+                tidligereHendelseId = null,
+                offset = OFFSET,
+                partisjon = PARTITION,
+                master = "FREG",
+                key = aktørId,
+            ),
+        )
+    }
+
+    @Test
+    fun `mapper fra ekstern sivilstand til intern`() {
+        val personhendelse = EksternPersonhendelse(
+            "hendelseId",
+            listOf(fnr, aktørId),
+            "FREG",
+            opprettet,
+            "SIVILSTAND_V1",
+            Endringstype.OPPRETTET,
+            null,
+            null,
+            Sivilstand("UGIFT", null, null, null),
+            null,
+        )
+        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
+        val actual = HendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
+
+        actual shouldBe Personhendelse.Ny(
+            gjeldendeAktørId = AktørId(aktørId),
+            endringstype = Personhendelse.Endringstype.OPPRETTET,
+            hendelse = Personhendelse.Hendelse.Sivilstand(SivilstandTyper.UGIFT, null, null, null),
             personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
             metadata = Personhendelse.Metadata(
                 hendelseId = "hendelseId",

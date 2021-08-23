@@ -11,9 +11,11 @@ import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
@@ -87,6 +89,9 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
         PersonhendelseType.UTFLYTTING_FRA_NORGE.value -> {
             objectMapper.readValue<HendelseJson.UtflyttingFraNorgeJson>(string("hendelse")).toDomain()
         }
+        PersonhendelseType.SIVILSTAND.value -> {
+            objectMapper.readValue<HendelseJson.SivilstandJson>(string("hendelse")).toDomain()
+        }
         else -> throw RuntimeException("Kunne ikke deserialisere [Personhendelse]. Ukjent type: $type")
     }
 
@@ -109,11 +114,13 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
     private fun Personhendelse.Hendelse.toDatabasetype(): String = when (this) {
         is Personhendelse.Hendelse.Dødsfall -> PersonhendelseType.DØDSFALL.value
         is Personhendelse.Hendelse.UtflyttingFraNorge -> PersonhendelseType.UTFLYTTING_FRA_NORGE.value
+        is Personhendelse.Hendelse.Sivilstand -> PersonhendelseType.SIVILSTAND.value
     }
 
     private enum class PersonhendelseType(val value: String) {
         DØDSFALL("dødsfall"),
-        UTFLYTTING_FRA_NORGE("utflytting_fra_norge");
+        UTFLYTTING_FRA_NORGE("utflytting_fra_norge"),
+        SIVILSTAND("sivilstand");
     }
 
     private fun Personhendelse.Endringstype.toDatabasetype(): String = when (this) {
@@ -151,16 +158,77 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
     private sealed class HendelseJson {
         data class DødsfallJson(val dødsdato: LocalDate?) : HendelseJson()
         data class UtflyttingFraNorgeJson(val utflyttingsdato: LocalDate?) : HendelseJson()
+        data class SivilstandJson(
+            val type: String,
+            val gyldigFraOgMed: LocalDate?,
+            val relatertVedSivilstand: String?,
+            val bekreftelsesdato: LocalDate?,
+        ) : HendelseJson() {
+            enum class Typer(val value: String) {
+                UOPPGITT("uoppgitt"),
+                UGIFT("ugift"),
+                GIFT("gift"),
+                ENKE_ELLER_ENKEMANN("enke_eller_enkemann"),
+                SKILT("skilt"),
+                SEPARERT("separert"),
+                REGISTRERT_PARTNER("registrert_partner"),
+                SEPARERT_PARTNER("separert_partner"),
+                SKILT_PARTNER("skilt_partner"),
+                GJENLEVENDE_PARTNER("gjenlevende_partner");
+
+                companion object {
+                    fun tryParse(value: String): Typer {
+                        return values()
+                            .firstOrNull { it.value == value }
+                            ?: throw IllegalStateException("Ukjent sivilstandtype: $value")
+                    }
+                }
+            }
+        }
 
         fun toDomain(): Personhendelse.Hendelse = when (this) {
             is DødsfallJson -> Personhendelse.Hendelse.Dødsfall(dødsdato)
             is UtflyttingFraNorgeJson -> Personhendelse.Hendelse.UtflyttingFraNorge(utflyttingsdato)
+            is SivilstandJson -> Personhendelse.Hendelse.Sivilstand(
+                type = when (SivilstandJson.Typer.tryParse(type)) {
+                    SivilstandJson.Typer.UOPPGITT -> SivilstandTyper.UOPPGITT
+                    SivilstandJson.Typer.UGIFT -> SivilstandTyper.UGIFT
+                    SivilstandJson.Typer.GIFT -> SivilstandTyper.GIFT
+                    SivilstandJson.Typer.ENKE_ELLER_ENKEMANN -> SivilstandTyper.ENKE_ELLER_ENKEMANN
+                    SivilstandJson.Typer.SKILT -> SivilstandTyper.SKILT
+                    SivilstandJson.Typer.SEPARERT -> SivilstandTyper.SEPARERT
+                    SivilstandJson.Typer.REGISTRERT_PARTNER -> SivilstandTyper.REGISTRERT_PARTNER
+                    SivilstandJson.Typer.SEPARERT_PARTNER -> SivilstandTyper.SEPARERT_PARTNER
+                    SivilstandJson.Typer.SKILT_PARTNER -> SivilstandTyper.SKILT_PARTNER
+                    SivilstandJson.Typer.GJENLEVENDE_PARTNER -> SivilstandTyper.GJENLEVENDE_PARTNER
+                },
+                gyldigFraOgMed = gyldigFraOgMed,
+                relatertVedSivilstand = relatertVedSivilstand?.let { Fnr(it) },
+                bekreftelsesdato = bekreftelsesdato,
+            )
         }
 
         companion object {
             fun Personhendelse.Hendelse.toJson(): HendelseJson = when (this) {
                 is Personhendelse.Hendelse.Dødsfall -> DødsfallJson(dødsdato)
                 is Personhendelse.Hendelse.UtflyttingFraNorge -> UtflyttingFraNorgeJson(utflyttingsdato)
+                is Personhendelse.Hendelse.Sivilstand -> SivilstandJson(
+                    type = when (type) {
+                        SivilstandTyper.UOPPGITT -> SivilstandJson.Typer.UOPPGITT
+                        SivilstandTyper.UGIFT -> SivilstandJson.Typer.UGIFT
+                        SivilstandTyper.GIFT -> SivilstandJson.Typer.GIFT
+                        SivilstandTyper.ENKE_ELLER_ENKEMANN -> SivilstandJson.Typer.ENKE_ELLER_ENKEMANN
+                        SivilstandTyper.SKILT -> SivilstandJson.Typer.SKILT
+                        SivilstandTyper.SEPARERT -> SivilstandJson.Typer.SEPARERT
+                        SivilstandTyper.REGISTRERT_PARTNER -> SivilstandJson.Typer.REGISTRERT_PARTNER
+                        SivilstandTyper.SEPARERT_PARTNER -> SivilstandJson.Typer.SEPARERT_PARTNER
+                        SivilstandTyper.SKILT_PARTNER -> SivilstandJson.Typer.SKILT_PARTNER
+                        SivilstandTyper.GJENLEVENDE_PARTNER -> SivilstandJson.Typer.GJENLEVENDE_PARTNER
+                    }.value,
+                    gyldigFraOgMed = gyldigFraOgMed,
+                    relatertVedSivilstand = relatertVedSivilstand?.toString(),
+                    bekreftelsesdato = bekreftelsesdato,
+                )
             }
         }
     }
