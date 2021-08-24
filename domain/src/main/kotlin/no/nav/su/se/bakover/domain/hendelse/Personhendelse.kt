@@ -71,6 +71,10 @@ sealed class Personhendelse {
             companion object {
                 val EMPTY = Sivilstand(null, null, null, null)
             }
+
+            override fun toString(): String {
+                return "Sivilstand(type=$type, gyldigFraOgMed=$gyldigFraOgMed, relatertVedSivilstand=${relatertVedSivilstand.let { "****" }}, bekreftelsesdato=$bekreftelsesdato)"
+            }
         }
     }
 
