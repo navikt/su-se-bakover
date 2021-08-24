@@ -150,7 +150,6 @@ internal class VedtakTest {
                     periode = vedtak.periode,
                     grunnlagsdata = vedtak.behandling.grunnlagsdata,
                     vilkårsvurderinger = vedtak.behandling.vilkårsvurderinger,
-                    // fradrag = vedtak.beregning.getFradrag(),
                     originaltVedtak = vedtak,
                 ),
             )
@@ -220,7 +219,6 @@ internal class VedtakTest {
                             lagFullstendigBostiuasjon(Periode.create(1.januar(2021), 30.april(2021))),
                         ),
                     ),
-                    // fradrag = a.behandling.grunnlagsdata.fradragsgrunnlag.map { it.fradrag },
                     originaltVedtak = a,
                 ),
             )
@@ -231,7 +229,6 @@ internal class VedtakTest {
                     periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     grunnlagsdata = b.behandling.grunnlagsdata,
                     vilkårsvurderinger = b.behandling.vilkårsvurderinger,
-                    // fradrag = b.behandling.grunnlagsdata.fradragsgrunnlag.map { it.fradrag },
                     originaltVedtak = b,
                 ),
             )
@@ -295,7 +292,6 @@ internal class VedtakTest {
                         uføre = lagVurdertUføreVilkår(firstPeriode),
                         formue = lagVurdertFormueVilkår(firstPeriode, firstBosituasjon),
                     ),
-                    // fradrag = emptyList(),
                     originaltVedtak = a,
                 ),
             )
@@ -314,7 +310,6 @@ internal class VedtakTest {
                         uføre = lagVurdertUføreVilkår(lastPeriode),
                         formue = lagVurdertFormueVilkår(lastPeriode, lastBostiuasjon),
                     ),
-                    // fradrag = emptyList(),
                     originaltVedtak = b,
                 ),
             )
@@ -393,7 +388,6 @@ internal class VedtakTest {
                     ),
                     formue = lagVurdertFormueVilkår(p2, b2),
                 ),
-                // fradrag = b.beregning.getFradrag(),
                 originaltVedtak = b,
             ),
         )

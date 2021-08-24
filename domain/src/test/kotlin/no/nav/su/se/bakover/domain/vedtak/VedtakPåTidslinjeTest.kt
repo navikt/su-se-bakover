@@ -79,16 +79,6 @@ internal class VedtakPåTidslinjeTest {
             ),
         ).orNull()!!
 
-        // val f3 = Grunnlag.Fradragsgrunnlag.tryCreate(
-        //     fradrag = FradragFactory.ny(
-        //         type = Fradragstype.Kontantstøtte,
-        //         månedsbeløp = 1000.0,
-        //         periode = periode,
-        //         utenlandskInntekt = null,
-        //         tilhører = FradragTilhører.BRUKER,
-        //     ),
-        // ).orNull()!!
-
         val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
             fnr = FnrGenerator.random(),
             id = UUID.randomUUID(),
@@ -228,16 +218,6 @@ internal class VedtakPåTidslinjeTest {
                 tilhører = FradragTilhører.BRUKER,
             ),
         ).orNull()!!
-
-        // val f3 = Grunnlag.Fradragsgrunnlag.tryCreate(
-        //     fradrag = FradragFactory.ny(
-        //         type = Fradragstype.ForventetInntekt,
-        //         månedsbeløp = 1000.0,
-        //         periode = periode,
-        //         utenlandskInntekt = null,
-        //         tilhører = FradragTilhører.BRUKER,
-        //     ),
-        // ).orNull()!!
 
         val formuevilkår = innvilgetFormueVilkår(periode)
         val original = Vedtak.VedtakPåTidslinje(

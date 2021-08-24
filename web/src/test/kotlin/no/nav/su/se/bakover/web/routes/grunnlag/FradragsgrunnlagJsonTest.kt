@@ -17,9 +17,6 @@ class FradragsgrunnlagJsonTest {
     }
 
     companion object {
-        // internal val fradragsgrunnlagId = UUID.randomUUID()
-        // internal val fradragsgrunnlagOpprettet = Tidspunkt.now(fixedClock)
-
         //language=JSON
         internal val expectedFradragsgrunnlagJson = """
             {
@@ -35,10 +32,5 @@ class FradragsgrunnlagJsonTest {
         """.trimIndent()
 
         internal val fradragsgrunnlag = grunnlagsdataEnsligMedFradrag().fradragsgrunnlag.first()
-        // internal val fradragsgrunnlagx = Grunnlag.Fradragsgrunnlag.tryCreate(
-        //     id = fradragsgrunnlagId,
-        //     opprettet = fradragsgrunnlagOpprettet,
-        //     fradrag = TestFradrag,
-        // ).orNull()!!
     }
 }
