@@ -190,9 +190,10 @@ interface SøknadsbehandlingService {
         object FantIkkeBehandling : KunneIkkeLeggeTilFradragsgrunnlag()
         object FradragsgrunnlagUtenforPeriode : KunneIkkeLeggeTilFradragsgrunnlag()
         object UgyldigFradragstypeForGrunnlag : KunneIkkeLeggeTilFradragsgrunnlag()
+        object PeriodeMangler : KunneIkkeLeggeTilFradragsgrunnlag()
         object HarIkkeEktelle : KunneIkkeLeggeTilFradragsgrunnlag()
         object KlarteIkkeLagreFradrag : KunneIkkeLeggeTilFradragsgrunnlag()
-        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Søknadsbehandling>) :
+        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>) :
             KunneIkkeLeggeTilFradragsgrunnlag()
     }
 }

@@ -91,8 +91,8 @@ internal fun Route.leggTilGrunnlagFradrag(
                                             SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> Behandlingsfeilresponser.ugyldigFradragstype
                                             is SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand -> Behandlingsfeilresponser.ugyldigTilstand(
                                                 fra = it.fra,
-                                                til = it.til,
                                             )
+                                            SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler -> Behandlingsfeilresponser.periodeMangler
                                         }
                                     }
                                     .map {
@@ -118,41 +118,6 @@ private data class FradragsgrunnlagJson(
     val utenlandskInntekt: UtenlandskInntektJson?,
     val tilhører: String,
 )
-
-// sealed class UgyldigFradrag {
-//     object IkkeLovMedFradragUtenforPerioden : UgyldigFradrag()
-//     object UgyldigFradragstype : UgyldigFradrag()
-//     object HarIkkeEktelle : UgyldigFradrag()
-// }
-
-// fun toFradrag(
-//     stønadsperiode: Stønadsperiode,
-//     harEktefelle: Boolean,
-//     clock: Clock,
-// ): Either<UgyldigFradrag, List<Fradrag>> =
-//     fradrag.map {
-//         // map til grunnlag for å låne valideringer
-//         Grunnlag.Fradragsgrunnlag(
-//             fradrag = FradragFactory.ny(
-//                 type = it.type,
-//                 månedsbeløp = it.månedsbeløp,
-//                 periode = it.periode ?: stønadsperiode.periode,
-//                 utenlandskInntekt = it.utenlandskInntekt,
-//                 tilhører = it.tilhører,
-//             ),
-//             opprettet = Tidspunkt.now(clock),
-//         )
-//     }.valider(stønadsperiode.periode, harEktefelle)
-//         .mapLeft { valideringsfeil ->
-//             when (valideringsfeil) {
-//                 Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> UgyldigFradrag.UgyldigFradragstype
-//                 Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UtenforBehandlingsperiode -> UgyldigFradrag.IkkeLovMedFradragUtenforPerioden
-//                 Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.HarIkkeEktelle -> UgyldigFradrag.HarIkkeEktelle
-//             }
-//         }
-//         .map { fradragsgrunnlag ->
-//             fradragsgrunnlag.map { it.fradrag }
-//         }
 
 internal object Behandlingsfeilresponser {
     val fantIkkeBehandling = HttpStatusCode.NotFound.errorJson(
@@ -180,9 +145,14 @@ internal object Behandlingsfeilresponser {
         "fradrag_ugyldig_fradragstype",
     )
 
-    fun ugyldigTilstand(fra: KClass<*>, til: KClass<*>): Resultat {
+    val periodeMangler = HttpStatusCode.BadRequest.errorJson(
+        "periode mangler",
+        "periode_mangler",
+    )
+
+    fun ugyldigTilstand(fra: KClass<*>): Resultat {
         return HttpStatusCode.BadRequest.errorJson(
-            "Kan ikke gå fra tilstanden ${fra.simpleName} til tilstanden ${til.simpleName}",
+            "Kan ikke legge til fradrag i tilstanden ${fra.simpleName}",
             "ugyldig_tilstand",
         )
     }

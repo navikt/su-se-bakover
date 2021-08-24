@@ -45,16 +45,6 @@ sealed class Grunnlag {
         }
     }
 
-    // data class FradragWrapper(
-    //     val fradragliste: List<Fradragsgrunnlag>
-    // ) {
-    //     companion object {
-    //         fun tryCreate(kanskjeEnListe: List<Fradragsgrunnlag>) {
-    //             return this
-    //         }
-    //     }
-    // }
-
     data class Fradragsgrunnlag private constructor(
         override val id: UUID = UUID.randomUUID(),
         val opprettet: Tidspunkt,
@@ -83,38 +73,6 @@ sealed class Grunnlag {
 
                 return Fradragsgrunnlag(id = id, opprettet = opprettet, fradrag = fradrag).right()
             }
-
-            // object Validator {
-            //     fun List<Fradragsgrunnlag>.valider(
-            //         behandlingsperiode: Periode,
-            //         harEktefelle: Boolean
-            //     ): Either<UgyldigFradragsgrunnlag, List<Fradragsgrunnlag>> {
-            //         return map {
-            //             it.valider(behandlingsperiode, harEktefelle)
-            //         }.sequenceEither()
-            //     }
-            //
-            //     fun Fradragsgrunnlag.valider(
-            //         behandlingsperiode: Periode,
-            //         harEktefelle: Boolean
-            //     ): Either<UgyldigFradragsgrunnlag, Fradragsgrunnlag> {
-            //         if (!(behandlingsperiode inneholder fradrag.periode))
-            //             return UgyldigFradragsgrunnlag.UtenforBehandlingsperiode.left()
-            //         if (setOf(
-            //                 Fradragstype.ForventetInntekt,
-            //                 Fradragstype.BeregnetFradragEPS,
-            //                 Fradragstype.UnderMinstenivå,
-            //             ).contains(fradrag.fradragstype)
-            //         ) {
-            //             return UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
-            //         }
-            //         if (this.fradrag.tilhører == FradragTilhører.EPS && !harEktefelle) {
-            //             return UgyldigFradragsgrunnlag.HarIkkeEktelle.left()
-            //         }
-            //         return this.right()
-            //     }
-
-            // }
         }
 
         sealed class UgyldigFradragsgrunnlag {
@@ -201,7 +159,7 @@ sealed class Grunnlag {
 
         sealed class Ufullstendig : Bosituasjon() {
             /** Dette er en midlertid tilstand hvor det er valgt Ikke Eps, men ikke tatt stilling til bosituasjon Enslig eller med voksne
-             Data klassen kan godt få et bedre navn... */
+            Data klassen kan godt få et bedre navn... */
             data class HarIkkeEps(
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
@@ -209,7 +167,7 @@ sealed class Grunnlag {
             ) : Ufullstendig()
 
             /** Dette er en midlertid tilstand hvor det er valgt Eps, men ikke tatt stilling til om eps er ufør flyktning eller ikke
-             Data klassen kan godt få et bedre navn... */
+            Data klassen kan godt få et bedre navn... */
             data class HarEps(
                 override val id: UUID,
                 override val opprettet: Tidspunkt,

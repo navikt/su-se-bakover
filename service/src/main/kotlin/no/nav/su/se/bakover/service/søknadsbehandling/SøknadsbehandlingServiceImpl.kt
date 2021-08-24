@@ -689,40 +689,17 @@ internal class SøknadsbehandlingServiceImpl(
         val behandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
 
-        val b = behandling.leggTilFradragsgrunnlag(request.fradragsrunnlag).getOrHandle {
-            when (it) {
-                Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInneforBehandlingen -> TODO()
-                Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen -> TODO()
-                Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMåFyllesUt -> TODO()
+        behandling.validerFradragsgrunnlag(request.fradragsrunnlag).getOrHandle {
+            return when (it) {
+                Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInneforBehandlingen -> KunneIkkeLeggeTilFradragsgrunnlag.FradragsgrunnlagUtenforPeriode.left()
+                Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen -> KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
+                    fra = behandling::class,
+                ).left()
+                Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMåFyllesUt -> KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler.left()
             }
         }
 
-        // val fradragsgrunnlag = request.fradragsrunnlag.map {
-        //     Grunnlag.Fradragsgrunnlag.tryCreate(
-        //         fradrag = FradragFactory.ny(
-        //             type = it.type,
-        //             månedsbeløp = it.månedsbeløp,
-        //             periode = it.periode,
-        //             utenlandskInntekt = it.utenlandskInntekt,
-        //             tilhører = it.tilhører,
-        //         ),
-        //     ).getOrHandle {
-        //         KunneIkkeLeggeTilFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
-        //     }
-
-        //     .map {
-        //         it
-        // }.mapLeft {
-        //     return when (it) {
-        //         Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.HarIkkeEktelle -> TODO()
-        //         Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> KunneIkkeLeggeTilFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
-        //         Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.UtenforBehandlingsperiode -> TODO()
-        //     }
-        // }
-        // }
-
-        // TODO er dette greit (bortsett fra at det burde skrives om til en return...), eller må man lage en behandling og lagre den?
-        grunnlagService.lagreFradragsgrunnlag(behandling.id, b.grunnlagsdata.fradragsgrunnlag)
+        grunnlagService.lagreFradragsgrunnlag(behandling.id, request.fradragsrunnlag)
         val behandlingMedGrunnlag = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
 
