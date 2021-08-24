@@ -402,6 +402,7 @@ internal class SøknadsbehandlingServiceImpl(
                         .getOrHandle { return it.left() }
 
                     // TODO jm: skriker etter en transaksjon
+                    // TODO jm: sjekk om vi allerede har distribuert?
                     søknadsbehandlingRepo.lagre(iverksattBehandling)
                     vedtakRepo.lagre(vedtak)
                     brevService.lagreDokument(dokument)

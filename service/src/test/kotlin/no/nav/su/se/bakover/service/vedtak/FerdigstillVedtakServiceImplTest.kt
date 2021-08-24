@@ -9,6 +9,7 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.types.instanceOf
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -19,13 +20,11 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
-import no.nav.su.se.bakover.domain.behandling.satsgrunn
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest.AvslagBrevRequest
+import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
-import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
@@ -40,6 +39,7 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
+import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -55,7 +55,6 @@ import no.nav.su.se.bakover.test.oversendtUtbetalingMedKvittering
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksbehandlerNavn
-import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -142,10 +141,8 @@ internal class FerdigstillVedtakServiceImplTest {
     }
 
     @Test
-    fun `ferdigstillelse etter utbetaling kaster feil hvis journalføring feiler`() {
-
+    fun `ferdigstillelse etter utbetaling kaster feil generering av brev feiler`() {
         val (sak, vedtak) = innvilgetSøknadsbehandlingVedtak()
-
         FerdigstillVedtakServiceMocks(
             vedtakRepo = mock {
                 on { hentForUtbetaling(any()) } doReturn vedtak
@@ -158,12 +155,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentNavnForNavIdent(attestant) } doReturn attestantNavn.right()
             },
             brevService = mock {
-                on {
-                    journalførBrev(
-                        any(),
-                        any(),
-                    )
-                } doReturn KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost.left()
+                on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
             },
         ) {
             assertThrows<FerdigstillVedtakServiceImpl.KunneIkkeFerdigstilleVedtakException> {
@@ -172,182 +164,23 @@ internal class FerdigstillVedtakServiceImplTest {
                 )
             }.message shouldContain vedtak.id.toString()
 
-            verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
-            verify(personService).hentPersonMedSystembruker(vedtak.behandling.fnr)
-            inOrder(microsoftGraphApiClient) {
-                verify(microsoftGraphApiClient).hentNavnForNavIdent(saksbehandler)
-                verify(microsoftGraphApiClient).hentNavnForNavIdent(attestant)
+            inOrder(
+                *all(),
+            ) {
+                verify(vedtakRepo).hentForUtbetaling(argThat { it shouldBe vedtak.utbetalingId })
+                verify(personService).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
+                inOrder(microsoftGraphApiClient) {
+                    verify(microsoftGraphApiClient).hentNavnForNavIdent(saksbehandler)
+                    verify(microsoftGraphApiClient).hentNavnForNavIdent(attestant)
+                }
+                verify(brevService).lagBrev(argThat { it shouldBe instanceOf<LagBrevRequest.InnvilgetVedtak>() })
             }
-            verify(brevService).journalførBrev(
-                request = argThat {
-                    it shouldBe LagBrevRequest.InnvilgetVedtak(
-                        person = person(),
-                        beregning = vedtak.beregning,
-                        satsgrunn = vedtak.behandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow()
-                            .satsgrunn(),
-                        harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
-                        saksbehandlerNavn = saksbehandlerNavn,
-                        attestantNavn = attestantNavn,
-                        fritekst = "",
-                        forventetInntektStørreEnn0 = false,
-                    )
-                },
-                saksnummer = argThat { it shouldBe saksnummer },
-            )
-        }
-    }
-
-    @Test
-    fun `ferdigstillelse etter utbetaling kaster feil hvis distribusjon feiler`() {
-
-        val (sak, vedtak) = innvilgetSøknadsbehandlingVedtak()
-
-        FerdigstillVedtakServiceMocks(
-            vedtakRepo = mock {
-                on { hentForUtbetaling(any()) } doReturn vedtak
-            },
-            personService = mock {
-                on { hentPersonMedSystembruker(any()) } doReturn person().right()
-            },
-            microsoftGraphApiClient = mock {
-                on { hentNavnForNavIdent(saksbehandler) } doReturn saksbehandlerNavn.right()
-                on { hentNavnForNavIdent(attestant) } doReturn attestantNavn.right()
-            },
-            brevService = mock {
-                on { journalførBrev(any(), any()) } doReturn journalpostIdVedtak.right()
-                on { distribuerBrev(any()) } doReturn KunneIkkeDistribuereBrev.left()
-            },
-        ) {
-            assertThrows<FerdigstillVedtakServiceImpl.KunneIkkeFerdigstilleVedtakException> {
-                service.ferdigstillVedtakEtterUtbetaling(
-                    sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering,
-                )
-            }.message shouldContain vedtak.id.toString()
-
-            verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
-            verify(personService).hentPersonMedSystembruker(vedtak.behandling.fnr)
-            inOrder(microsoftGraphApiClient) {
-                verify(microsoftGraphApiClient).hentNavnForNavIdent(saksbehandler)
-                verify(microsoftGraphApiClient).hentNavnForNavIdent(attestant)
-            }
-            verify(brevService).journalførBrev(
-                request = argThat {
-                    it shouldBe LagBrevRequest.InnvilgetVedtak(
-                        person = person(),
-                        beregning = vedtak.beregning,
-                        satsgrunn = vedtak.behandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow()
-                            .satsgrunn(),
-                        harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
-                        saksbehandlerNavn = saksbehandlerNavn,
-                        attestantNavn = attestantNavn,
-                        fritekst = "",
-                        forventetInntektStørreEnn0 = false,
-                    )
-                },
-                saksnummer = argThat { it shouldBe vedtak.behandling.saksnummer },
-            )
-            verify(brevService).distribuerBrev(journalpostIdVedtak)
-            verify(vedtakRepo).lagre(
-                argThat {
-                    it shouldBe vedtak.copy(
-                        journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(
-                            journalpostId = journalpostIdVedtak,
-                        ),
-                    )
-                },
-            )
-            verify(behandlingMetrics).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.JOURNALFØRT)
-        }
-    }
-
-    @Test
-    fun `ferdigstill NY etter utbetaling hopper over journalføring dersom det allerede er utført`() {
-
-        val (sak, vedtak) = journalførtInnvilgetVedtak()
-
-        FerdigstillVedtakServiceMocks(
-            vedtakRepo = mock {
-                on { hentForUtbetaling(any()) } doReturn vedtak
-            },
-            personService = mock {
-                on { hentPersonMedSystembruker(any()) } doReturn person().right()
-            },
-            microsoftGraphApiClient = mock {
-                on { hentNavnForNavIdent(saksbehandler) } doReturn saksbehandlerNavn.right()
-                on { hentNavnForNavIdent(attestant) } doReturn attestantNavn.right()
-            },
-            brevService = mock {
-                on { distribuerBrev(any()) } doReturn brevbestillingIdVedtak.right()
-            },
-            oppgaveService = mock {
-                on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
-            },
-        ) {
-            service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
-
-            verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
-            verify(personService).hentPersonMedSystembruker(vedtak.behandling.fnr)
-            inOrder(microsoftGraphApiClient) {
-                verify(microsoftGraphApiClient).hentNavnForNavIdent(saksbehandler)
-                verify(microsoftGraphApiClient).hentNavnForNavIdent(attestant)
-            }
-            verify(brevService).distribuerBrev(journalpostIdVedtak)
-            verify(vedtakRepo).lagre(
-                argThat {
-                    it shouldBe vedtak.copy(
-                        journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
-                            journalpostId = journalpostIdVedtak,
-                            brevbestillingId = brevbestillingIdVedtak,
-                        ),
-                    )
-                },
-            )
-            verify(behandlingMetrics).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
-            verify(oppgaveService).lukkOppgaveMedSystembruker(vedtak.behandling.oppgaveId)
-            verify(behandlingMetrics).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
-        }
-    }
-
-    @Test
-    fun `ferdigstill OPPHØR etter utbetaling hopper over journalføring og distribusjon dersom det allerede er utført`() {
-
-        val (sak, vedtak) = journalførtOgDistribuertInnvilgetVedtak()
-
-        FerdigstillVedtakServiceMocks(
-            vedtakRepo = mock {
-                on { hentForUtbetaling(any()) } doReturn vedtak
-            },
-            personService = mock {
-                on { hentPersonMedSystembruker(any()) } doReturn person().right()
-            },
-            microsoftGraphApiClient = mock {
-                on { hentNavnForNavIdent(saksbehandler) } doReturn saksbehandlerNavn.right()
-                on { hentNavnForNavIdent(attestant) } doReturn attestantNavn.right()
-            },
-            oppgaveService = mock {
-                on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
-            },
-        ) {
-            service.ferdigstillVedtakEtterUtbetaling(
-                sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering,
-            )
-
-            verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
-            verify(personService).hentPersonMedSystembruker(vedtak.behandling.fnr)
-            inOrder(microsoftGraphApiClient) {
-                verify(microsoftGraphApiClient).hentNavnForNavIdent(saksbehandler)
-                verify(microsoftGraphApiClient).hentNavnForNavIdent(attestant)
-            }
-            verify(oppgaveService).lukkOppgaveMedSystembruker(vedtak.behandling.oppgaveId)
-            verify(behandlingMetrics).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
         }
     }
 
     @Test
     fun `ferdigstill NY etter utbetaling går fint`() {
-
         val (sak, vedtak) = innvilgetSøknadsbehandlingVedtak()
-
         FerdigstillVedtakServiceMocks(
             vedtakRepo = mock {
                 on { hentForUtbetaling(any()) } doReturn vedtak
@@ -360,8 +193,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentNavnForNavIdent(attestant) } doReturn attestantNavn.right()
             },
             brevService = mock {
-                on { journalførBrev(any(), any()) } doReturn journalpostIdVedtak.right()
-                on { distribuerBrev(any()) } doReturn brevbestillingIdVedtak.right()
+                on { lagBrev(any()) } doReturn "brev".toByteArray().right()
             },
             oppgaveService = mock {
                 on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
@@ -370,12 +202,7 @@ internal class FerdigstillVedtakServiceImplTest {
             service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
 
             inOrder(
-                vedtakRepo,
-                personService,
-                microsoftGraphApiClient,
-                brevService,
-                oppgaveService,
-                behandlingMetrics,
+                *all(),
             ) {
                 verify(vedtakRepo).hentForUtbetaling(argThat { it shouldBe vedtak.utbetalingId })
                 verify(personService).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
@@ -383,41 +210,17 @@ internal class FerdigstillVedtakServiceImplTest {
                     verify(microsoftGraphApiClient).hentNavnForNavIdent(saksbehandler)
                     verify(microsoftGraphApiClient).hentNavnForNavIdent(attestant)
                 }
-                verify(brevService).journalførBrev(
+                verify(brevService).lagBrev(argThat { it shouldBe instanceOf<LagBrevRequest.InnvilgetVedtak>() })
+                verify(brevService).lagreDokument(
                     argThat {
-                        it shouldBe
-                            LagBrevRequest.InnvilgetVedtak(
-                                person = person(),
-                                beregning = vedtak.beregning,
-                                satsgrunn = vedtak.behandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow()
-                                    .satsgrunn(),
-                                harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
-                                saksbehandlerNavn = saksbehandlerNavn,
-                                attestantNavn = attestantNavn,
-                                fritekst = "",
-                                forventetInntektStørreEnn0 = false,
-                            )
+                        it.generertDokument contentEquals "brev".toByteArray()
+                        it.metadata shouldBe Dokument.Metadata(
+                            sakId = sak.id,
+                            vedtakId = vedtak.id,
+                            bestillBrev = true,
+                        )
                     },
-                    argThat { it shouldBe vedtak.behandling.saksnummer },
                 )
-                verify(vedtakRepo).lagre(
-                    vedtak.copy(
-                        journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(
-                            journalpostIdVedtak,
-                        ),
-                    ),
-                )
-                verify(behandlingMetrics).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.JOURNALFØRT)
-                verify(brevService).distribuerBrev(argThat { it shouldBe journalpostIdVedtak })
-                verify(vedtakRepo).lagre(
-                    vedtak.copy(
-                        journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
-                            journalpostId = journalpostIdVedtak,
-                            brevbestillingId = brevbestillingIdVedtak,
-                        ),
-                    ),
-                )
-                verify(behandlingMetrics).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
                 verify(oppgaveService).lukkOppgaveMedSystembruker(argThat { it shouldBe vedtak.behandling.oppgaveId })
                 verify(behandlingMetrics).incrementInnvilgetCounter(argThat { it shouldBe BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE })
             }
@@ -446,12 +249,7 @@ internal class FerdigstillVedtakServiceImplTest {
             service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger[1] as Utbetaling.OversendtUtbetaling.MedKvittering)
 
             inOrder(
-                vedtakRepo,
-                personService,
-                microsoftGraphApiClient,
-                brevService,
-                oppgaveService,
-                behandlingMetrics,
+                *all(),
             ) {
                 verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
                 verify(oppgaveService).lukkOppgaveMedSystembruker(vedtak.behandling.oppgaveId)
@@ -476,8 +274,7 @@ internal class FerdigstillVedtakServiceImplTest {
             service.journalførOgLagre(vedtak) shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.FantIkkeNavnPåSaksbehandlerEllerAttestant.left()
 
             inOrder(
-                personService,
-                microsoftGraphApiClient,
+                *all(),
             ) {
                 verify(personService).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
                 verify(microsoftGraphApiClient).hentNavnForNavIdent(argThat { it shouldBe vedtak.saksbehandler })
@@ -520,8 +317,7 @@ internal class FerdigstillVedtakServiceImplTest {
             service.journalførOgLagre(vedtak) shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.FantIkkeNavnPåSaksbehandlerEllerAttestant.left()
 
             inOrder(
-                personService,
-                microsoftGraphApiClient,
+                *all(),
             ) {
                 verify(personService).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
                 inOrder(microsoftGraphApiClient) {
@@ -589,9 +385,7 @@ internal class FerdigstillVedtakServiceImplTest {
             service.journalførOgLagre(vedtak) shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.FeilVedJournalføring.left()
 
             inOrder(
-                personService,
-                microsoftGraphApiClient,
-                brevService,
+                *all(),
             ) {
                 verify(personService).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
                 inOrder(microsoftGraphApiClient) {
@@ -639,9 +433,7 @@ internal class FerdigstillVedtakServiceImplTest {
             ).left()
 
             inOrder(
-                personService,
-                microsoftGraphApiClient,
-                vedtakRepo,
+                *all(),
             ) {
                 verify(personService).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
                 inOrder(microsoftGraphApiClient) {
@@ -676,11 +468,7 @@ internal class FerdigstillVedtakServiceImplTest {
             ).right()
 
             inOrder(
-                personService,
-                microsoftGraphApiClient,
-                brevService,
-                vedtakRepo,
-                behandlingMetrics,
+                *all(),
             ) {
                 verify(personService).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
                 inOrder(microsoftGraphApiClient) {
@@ -731,7 +519,9 @@ internal class FerdigstillVedtakServiceImplTest {
                 journalpostIdVedtak,
             ).left()
 
-            inOrder(brevService) {
+            inOrder(
+                *all(),
+            ) {
                 verify(brevService).distribuerBrev(journalpostIdVedtak)
             }
         }
@@ -777,9 +567,7 @@ internal class FerdigstillVedtakServiceImplTest {
             ).right()
 
             inOrder(
-                brevService,
-                vedtakRepo,
-                behandlingMetrics,
+                *all(),
             ) {
                 verify(brevService).distribuerBrev(journalpostIdVedtak)
                 verify(vedtakRepo).lagre(
@@ -808,8 +596,7 @@ internal class FerdigstillVedtakServiceImplTest {
             service.lukkOppgaveMedBruker(vedtak) shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave.left()
 
             inOrder(
-                oppgaveService,
-                behandlingMetrics,
+                *all(),
             ) {
                 verify(oppgaveService).lukkOppgave(vedtak.behandling.oppgaveId)
             }
@@ -831,8 +618,7 @@ internal class FerdigstillVedtakServiceImplTest {
             )
 
             inOrder(
-                vedtakRepo,
-                oppgaveService,
+                *all(),
             ) {
                 verify(vedtakRepo).hentUtenJournalpost()
                 verify(vedtakRepo).hentUtenBrevbestilling()
@@ -880,12 +666,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 brevbestillingsresultat = emptyList(),
             )
             inOrder(
-                vedtakRepo,
-                brevService,
-                oppgaveService,
-                personService,
-                microsoftGraphApiClient,
-                behandlingMetrics,
+                *all(),
             ) {
                 verify(vedtakRepo).hentUtenJournalpost()
                 verify(personService).hentPersonMedSystembruker(vedtak.behandling.fnr)
@@ -954,12 +735,7 @@ internal class FerdigstillVedtakServiceImplTest {
             )
 
             inOrder(
-                vedtakRepo,
-                brevService,
-                behandlingMetrics,
-                oppgaveService,
-                personService,
-                microsoftGraphApiClient,
+                *all(),
             ) {
                 verify(vedtakRepo).hentUtenJournalpost()
                 verify(personService).hentPersonMedSystembruker(argThat { it shouldBe avslagsVedtak.behandling.fnr })
@@ -1032,11 +808,7 @@ internal class FerdigstillVedtakServiceImplTest {
             )
 
             inOrder(
-                vedtakRepo,
-                brevService,
-                utbetalingRepo,
-                behandlingMetrics,
-                oppgaveService,
+                *all(),
             ) {
                 verify(vedtakRepo).hentUtenJournalpost()
                 verify(vedtakRepo).hentUtenBrevbestilling()
@@ -1086,10 +858,7 @@ internal class FerdigstillVedtakServiceImplTest {
             )
 
             inOrder(
-                vedtakRepo,
-                utbetalingRepo,
-                oppgaveService,
-                behandlingMetrics,
+                *all(),
             ) {
                 verify(vedtakRepo).hentUtenJournalpost()
                 verify(vedtakRepo).hentUtenBrevbestilling()
@@ -1163,16 +932,20 @@ internal class FerdigstillVedtakServiceImplTest {
             verifyNoMoreInteractions()
         }
 
+        fun all() = listOf(
+            oppgaveService,
+            personService,
+            microsoftGraphApiClient,
+            brevService,
+            utbetalingService,
+            vedtakRepo,
+            utbetalingRepo,
+            behandlingMetrics,
+        ).toTypedArray()
+
         private fun verifyNoMoreInteractions() {
             com.nhaarman.mockitokotlin2.verifyNoMoreInteractions(
-                oppgaveService,
-                personService,
-                microsoftGraphApiClient,
-                brevService,
-                utbetalingService,
-                vedtakRepo,
-                utbetalingRepo,
-                behandlingMetrics,
+                *all(),
             )
         }
     }
