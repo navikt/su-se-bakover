@@ -125,7 +125,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             SøknadsbehandlingService.SimulerRequest(beregnetBehandling.id, saksbehandler)
         )
 
-        response shouldBe SøknadsbehandlingService.KunneIkkeSimulereBehandling.KunneIkkeSimulere.left()
+        response shouldBe SøknadsbehandlingService.KunneIkkeSimulereBehandling.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL).left()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe beregnetBehandling.id })
 

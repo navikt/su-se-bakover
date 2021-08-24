@@ -14,7 +14,9 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
@@ -170,12 +172,12 @@ internal class IverksettRevurderingRouteKtTest {
     @Test
     fun `kunne ikke kontrollsimulere`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulere,
+            error = KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL)),
             expectedStatusCode = HttpStatusCode.InternalServerError,
             expectedJsonResponse = """
                 {
-                    "message":"Kunne ikke utføre kontrollsimulering",
-                    "code":"kunne_ikke_kontrollsimulere"
+                    "message":"Simulering feilet",
+                    "code":"simulering_feilet"
                 }
             """.trimIndent(),
         )
@@ -184,7 +186,7 @@ internal class IverksettRevurderingRouteKtTest {
     @Test
     fun `kunne ikke utbetale`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale,
+            error = KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil),
             expectedStatusCode = HttpStatusCode.InternalServerError,
             expectedJsonResponse = """
                 {

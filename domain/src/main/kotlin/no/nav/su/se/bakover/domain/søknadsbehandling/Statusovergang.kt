@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 
 abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
@@ -85,16 +86,9 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
         }
     }
 
-    sealed class KunneIkkeSimulereBehandling {
-        object OppdragErStengtEllerNede : KunneIkkeSimulereBehandling()
-        object FinnerIkkePerson : KunneIkkeSimulereBehandling()
-        object FinnerIkkeKjøreplanForFom : KunneIkkeSimulereBehandling()
-        object KunneIkkeSimulere : KunneIkkeSimulereBehandling()
-    }
-
     class TilSimulert(
-        private val simulering: (beregning: Beregning) -> Either<KunneIkkeSimulereBehandling, Simulering>
-    ) : Statusovergang<KunneIkkeSimulereBehandling, Søknadsbehandling.Simulert>() {
+        private val simulering: (beregning: Beregning) -> Either<SimuleringFeilet, Simulering>
+    ) : Statusovergang<SimuleringFeilet, Søknadsbehandling.Simulert>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
             simulering(søknadsbehandling.beregning)
@@ -176,34 +170,16 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
     object SaksbehandlerOgAttestantKanIkkeVæreSammePerson
 
-    sealed class KunneIkkeIverksetteSøknadsbehandling {
-        object SaksbehandlerOgAttestantKanIkkeVæreSammePerson : KunneIkkeIverksetteSøknadsbehandling()
-        object KunneIkkeJournalføre : KunneIkkeIverksetteSøknadsbehandling()
-
-        sealed class KunneIkkeUtbetale : KunneIkkeIverksetteSøknadsbehandling() {
-            object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte :
-                KunneIkkeUtbetale()
-
-            object TekniskFeil : KunneIkkeUtbetale()
-            object KunneIkkeKontrollsimulere : KunneIkkeUtbetale()
-            object KunneIkkeKontrollsimulereFantIkkePerson : KunneIkkeUtbetale()
-            object KunneIkkeKontrollsimulereOppdragStengtEllerNede : KunneIkkeUtbetale()
-            object KunneIkkeKontrollsimulereFinnerIkkeKjøreplansperiodeForFom : KunneIkkeUtbetale()
-        }
-
-        object FantIkkePerson : KunneIkkeIverksetteSøknadsbehandling()
-    }
-
     class TilIverksatt(
         private val attestering: Attestering,
-        private val innvilget: (søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) -> Either<KunneIkkeIverksetteSøknadsbehandling, UUID30>
-    ) : Statusovergang<KunneIkkeIverksetteSøknadsbehandling, Søknadsbehandling.Iverksatt>() {
+        private val innvilget: (søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) -> Either<KunneIkkeIverksette, UUID30>
+    ) : Statusovergang<KunneIkkeIverksette, Søknadsbehandling.Iverksatt>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning) {
             result = if (saksbehandlerOgAttestantErForskjellig(søknadsbehandling, attestering)) {
                 søknadsbehandling.tilIverksatt(attestering).right()
             } else {
-                KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
+                KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
         }
 
@@ -211,7 +187,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
             result = if (saksbehandlerOgAttestantErForskjellig(søknadsbehandling, attestering)) {
                 søknadsbehandling.tilIverksatt(attestering).right()
             } else {
-                KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
+                KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
         }
 
@@ -221,7 +197,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
                     .mapLeft { it }
                     .map { søknadsbehandling.tilIverksatt(attestering) }
             } else {
-                KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
+                KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
         }
 

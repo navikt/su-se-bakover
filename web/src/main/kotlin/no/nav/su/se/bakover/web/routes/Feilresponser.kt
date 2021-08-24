@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.web.routes
 
 import io.ktor.http.HttpStatusCode
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 
 internal object Feilresponser {
@@ -61,4 +63,26 @@ internal object Feilresponser {
         "Ugyldig input",
         "ugyldig_input"
     )
+
+    internal fun SimuleringFeilet.tilResultat(): Resultat {
+        return when (this) {
+            SimuleringFeilet.OPPDRAG_UR_ER_STENGT -> HttpStatusCode.InternalServerError.errorJson(
+                "Simuleringsfeil: Oppdrag/UR er stengt eller nede", "simulering_feilet_oppdrag_stengt_eller_nede",
+            )
+            SimuleringFeilet.PERSONEN_FINNES_IKKE_I_TPS -> HttpStatusCode.InternalServerError.errorJson(
+                "Simuleringsfeil: Finner ikke person i TPS", "simulering_feilet_finner_ikke_person_i_tps",
+            )
+            SimuleringFeilet.FINNER_IKKE_KJØREPLANSPERIODE_FOR_FOM -> HttpStatusCode.InternalServerError.errorJson(
+                "Simuleringsfeil: Finner ikke kjøreplansperiode for fom-dato",
+                "simulering_feilet_finner_ikke_kjøreplansperiode_for_fom",
+            )
+            SimuleringFeilet.OPPDRAGET_FINNES_IKKE -> HttpStatusCode.InternalServerError.errorJson(
+                "Simuleringsfeil: Oppdraget finnes ikke fra før", "simulering_feilet_oppdraget_finnes_ikke",
+            )
+            SimuleringFeilet.FUNKSJONELL_FEIL, SimuleringFeilet.TEKNISK_FEIL -> HttpStatusCode.InternalServerError.errorJson(
+                "Simulering feilet",
+                "simulering_feilet",
+            )
+        }
+    }
 }
