@@ -65,12 +65,13 @@ internal object PersonhendelseMapper {
                                 "GIFT" -> SivilstandTyper.GIFT
                                 "ENKE_ELLER_ENKEMANN" -> SivilstandTyper.ENKE_ELLER_ENKEMANN
                                 "SKILT" -> SivilstandTyper.SKILT
+                                "SEPARERT" -> SivilstandTyper.SEPARERT
                                 "REGISTRERT_PARTNER" -> SivilstandTyper.REGISTRERT_PARTNER
                                 "SEPARERT_PARTNER" -> SivilstandTyper.SEPARERT_PARTNER
                                 "SKILT_PARTNER" -> SivilstandTyper.SKILT_PARTNER
                                 "GJENLEVENDE_PARTNER" -> SivilstandTyper.GJENLEVENDE_PARTNER
                                 null -> null
-                                else -> throw IllegalArgumentException("Ukjent sivilstandstype i personhendelse: ${it.getType()}")
+                                else -> throw IllegalArgumentException("Personhendelse: Ukjent sivilstandstype: ${it.getType()} for hendelsesid ${personhendelse.getHendelseId()}, partisjon ${message.partition()} og offset ${message.offset()}")
                             },
                             gyldigFraOgMed = it.getGyldigFraOgMed().orNull(),
                             relatertVedSivilstand = it.getRelatertVedSivilstand().map { fnr ->
