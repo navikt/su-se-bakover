@@ -159,7 +159,7 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
         data class DødsfallJson(val dødsdato: LocalDate?) : HendelseJson()
         data class UtflyttingFraNorgeJson(val utflyttingsdato: LocalDate?) : HendelseJson()
         data class SivilstandJson(
-            val type: String,
+            val type: String?,
             val gyldigFraOgMed: LocalDate?,
             val relatertVedSivilstand: String?,
             val bekreftelsesdato: LocalDate?,
@@ -190,17 +190,19 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
             is DødsfallJson -> Personhendelse.Hendelse.Dødsfall(dødsdato)
             is UtflyttingFraNorgeJson -> Personhendelse.Hendelse.UtflyttingFraNorge(utflyttingsdato)
             is SivilstandJson -> Personhendelse.Hendelse.Sivilstand(
-                type = when (SivilstandJson.Typer.tryParse(type)) {
-                    SivilstandJson.Typer.UOPPGITT -> SivilstandTyper.UOPPGITT
-                    SivilstandJson.Typer.UGIFT -> SivilstandTyper.UGIFT
-                    SivilstandJson.Typer.GIFT -> SivilstandTyper.GIFT
-                    SivilstandJson.Typer.ENKE_ELLER_ENKEMANN -> SivilstandTyper.ENKE_ELLER_ENKEMANN
-                    SivilstandJson.Typer.SKILT -> SivilstandTyper.SKILT
-                    SivilstandJson.Typer.SEPARERT -> SivilstandTyper.SEPARERT
-                    SivilstandJson.Typer.REGISTRERT_PARTNER -> SivilstandTyper.REGISTRERT_PARTNER
-                    SivilstandJson.Typer.SEPARERT_PARTNER -> SivilstandTyper.SEPARERT_PARTNER
-                    SivilstandJson.Typer.SKILT_PARTNER -> SivilstandTyper.SKILT_PARTNER
-                    SivilstandJson.Typer.GJENLEVENDE_PARTNER -> SivilstandTyper.GJENLEVENDE_PARTNER
+                type = type?.let {
+                    when (SivilstandJson.Typer.tryParse(it)) {
+                        SivilstandJson.Typer.UOPPGITT -> SivilstandTyper.UOPPGITT
+                        SivilstandJson.Typer.UGIFT -> SivilstandTyper.UGIFT
+                        SivilstandJson.Typer.GIFT -> SivilstandTyper.GIFT
+                        SivilstandJson.Typer.ENKE_ELLER_ENKEMANN -> SivilstandTyper.ENKE_ELLER_ENKEMANN
+                        SivilstandJson.Typer.SKILT -> SivilstandTyper.SKILT
+                        SivilstandJson.Typer.SEPARERT -> SivilstandTyper.SEPARERT
+                        SivilstandJson.Typer.REGISTRERT_PARTNER -> SivilstandTyper.REGISTRERT_PARTNER
+                        SivilstandJson.Typer.SEPARERT_PARTNER -> SivilstandTyper.SEPARERT_PARTNER
+                        SivilstandJson.Typer.SKILT_PARTNER -> SivilstandTyper.SKILT_PARTNER
+                        SivilstandJson.Typer.GJENLEVENDE_PARTNER -> SivilstandTyper.GJENLEVENDE_PARTNER
+                    }
                 },
                 gyldigFraOgMed = gyldigFraOgMed,
                 relatertVedSivilstand = relatertVedSivilstand?.let { Fnr(it) },
@@ -213,18 +215,20 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
                 is Personhendelse.Hendelse.Dødsfall -> DødsfallJson(dødsdato)
                 is Personhendelse.Hendelse.UtflyttingFraNorge -> UtflyttingFraNorgeJson(utflyttingsdato)
                 is Personhendelse.Hendelse.Sivilstand -> SivilstandJson(
-                    type = when (type) {
-                        SivilstandTyper.UOPPGITT -> SivilstandJson.Typer.UOPPGITT
-                        SivilstandTyper.UGIFT -> SivilstandJson.Typer.UGIFT
-                        SivilstandTyper.GIFT -> SivilstandJson.Typer.GIFT
-                        SivilstandTyper.ENKE_ELLER_ENKEMANN -> SivilstandJson.Typer.ENKE_ELLER_ENKEMANN
-                        SivilstandTyper.SKILT -> SivilstandJson.Typer.SKILT
-                        SivilstandTyper.SEPARERT -> SivilstandJson.Typer.SEPARERT
-                        SivilstandTyper.REGISTRERT_PARTNER -> SivilstandJson.Typer.REGISTRERT_PARTNER
-                        SivilstandTyper.SEPARERT_PARTNER -> SivilstandJson.Typer.SEPARERT_PARTNER
-                        SivilstandTyper.SKILT_PARTNER -> SivilstandJson.Typer.SKILT_PARTNER
-                        SivilstandTyper.GJENLEVENDE_PARTNER -> SivilstandJson.Typer.GJENLEVENDE_PARTNER
-                    }.value,
+                    type = type?.let {
+                        when (it) {
+                            SivilstandTyper.UOPPGITT -> SivilstandJson.Typer.UOPPGITT
+                            SivilstandTyper.UGIFT -> SivilstandJson.Typer.UGIFT
+                            SivilstandTyper.GIFT -> SivilstandJson.Typer.GIFT
+                            SivilstandTyper.ENKE_ELLER_ENKEMANN -> SivilstandJson.Typer.ENKE_ELLER_ENKEMANN
+                            SivilstandTyper.SKILT -> SivilstandJson.Typer.SKILT
+                            SivilstandTyper.SEPARERT -> SivilstandJson.Typer.SEPARERT
+                            SivilstandTyper.REGISTRERT_PARTNER -> SivilstandJson.Typer.REGISTRERT_PARTNER
+                            SivilstandTyper.SEPARERT_PARTNER -> SivilstandJson.Typer.SEPARERT_PARTNER
+                            SivilstandTyper.SKILT_PARTNER -> SivilstandJson.Typer.SKILT_PARTNER
+                            SivilstandTyper.GJENLEVENDE_PARTNER -> SivilstandJson.Typer.GJENLEVENDE_PARTNER
+                        }.value
+                    },
                     gyldigFraOgMed = gyldigFraOgMed,
                     relatertVedSivilstand = relatertVedSivilstand?.toString(),
                     bekreftelsesdato = bekreftelsesdato,

@@ -49,12 +49,45 @@ internal class PersonhendelseMapperTest {
             null,
         )
         val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
-        val actual = HendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
+        val actual = PersonhendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
 
         actual shouldBe Personhendelse.Ny(
             gjeldendeAktørId = AktørId(aktørId),
             endringstype = Personhendelse.Endringstype.OPPRETTET,
             hendelse = Personhendelse.Hendelse.Dødsfall(tidspunkt),
+            personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
+            metadata = Personhendelse.Metadata(
+                hendelseId = "hendelseId",
+                tidligereHendelseId = null,
+                offset = OFFSET,
+                partisjon = PARTITION,
+                master = "FREG",
+                key = aktørId,
+            ),
+        )
+    }
+
+    @Test
+    fun `mapper fra tom ekstern dødsfalltype til intern`() {
+        val personhendelse = EksternPersonhendelse(
+            "hendelseId",
+            listOf(fnr, aktørId),
+            "FREG",
+            opprettet,
+            "DOEDSFALL_V1",
+            Endringstype.OPPRETTET,
+            null,
+            null,
+            null,
+            null,
+        )
+        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
+        val actual = PersonhendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
+
+        actual shouldBe Personhendelse.Ny(
+            gjeldendeAktørId = AktørId(aktørId),
+            endringstype = Personhendelse.Endringstype.OPPRETTET,
+            hendelse = Personhendelse.Hendelse.Dødsfall.EMPTY,
             personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
             metadata = Personhendelse.Metadata(
                 hendelseId = "hendelseId",
@@ -82,12 +115,45 @@ internal class PersonhendelseMapperTest {
             UtflyttingFraNorge("Sverige", "Stockholm", tidspunkt),
         )
         val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
-        val actual = HendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
+        val actual = PersonhendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
 
         actual shouldBe Personhendelse.Ny(
             gjeldendeAktørId = AktørId(aktørId),
             endringstype = Personhendelse.Endringstype.OPPRETTET,
             hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(tidspunkt),
+            personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
+            metadata = Personhendelse.Metadata(
+                hendelseId = "hendelseId",
+                tidligereHendelseId = null,
+                offset = OFFSET,
+                partisjon = PARTITION,
+                master = "FREG",
+                key = aktørId,
+            ),
+        )
+    }
+
+    @Test
+    fun `mapper fra tom ekstern utflyttingstype til intern`() {
+        val personhendelse = EksternPersonhendelse(
+            "hendelseId",
+            listOf(fnr, aktørId),
+            "FREG",
+            opprettet,
+            "UTFLYTTING_FRA_NORGE",
+            Endringstype.OPPRETTET,
+            null,
+            null,
+            null,
+            null,
+        )
+        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
+        val actual = PersonhendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
+
+        actual shouldBe Personhendelse.Ny(
+            gjeldendeAktørId = AktørId(aktørId),
+            endringstype = Personhendelse.Endringstype.OPPRETTET,
+            hendelse = Personhendelse.Hendelse.UtflyttingFraNorge.EMPTY,
             personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
             metadata = Personhendelse.Metadata(
                 hendelseId = "hendelseId",
@@ -115,12 +181,45 @@ internal class PersonhendelseMapperTest {
             null,
         )
         val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
-        val actual = HendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
+        val actual = PersonhendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
 
         actual shouldBe Personhendelse.Ny(
             gjeldendeAktørId = AktørId(aktørId),
             endringstype = Personhendelse.Endringstype.OPPRETTET,
             hendelse = Personhendelse.Hendelse.Sivilstand(SivilstandTyper.UGIFT, null, null, null),
+            personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
+            metadata = Personhendelse.Metadata(
+                hendelseId = "hendelseId",
+                tidligereHendelseId = null,
+                offset = OFFSET,
+                partisjon = PARTITION,
+                master = "FREG",
+                key = aktørId,
+            ),
+        )
+    }
+
+    @Test
+    fun `mapper fra tom ekstern sivilstand til intern`() {
+        val personhendelse = EksternPersonhendelse(
+            "hendelseId",
+            listOf(fnr, aktørId),
+            "FREG",
+            opprettet,
+            "SIVILSTAND_V1",
+            Endringstype.OPPRETTET,
+            null,
+            null,
+            null,
+            null,
+        )
+        val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
+        val actual = PersonhendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
+
+        actual shouldBe Personhendelse.Ny(
+            gjeldendeAktørId = AktørId(aktørId),
+            endringstype = Personhendelse.Endringstype.OPPRETTET,
+            hendelse = Personhendelse.Hendelse.Sivilstand.EMPTY,
             personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
             metadata = Personhendelse.Metadata(
                 hendelseId = "hendelseId",
@@ -148,7 +247,7 @@ internal class PersonhendelseMapperTest {
             UtflyttingFraNorge("Sverige", "Stockholm", tidspunkt),
         )
         val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, "\u0000$aktørId", personhendelse)
-        val actual = HendelseMapper.map(message)
+        val actual = PersonhendelseMapper.map(message)
 
         actual shouldBe Personhendelse.Ny(
             gjeldendeAktørId = AktørId(aktørId),
@@ -181,7 +280,7 @@ internal class PersonhendelseMapperTest {
             UtflyttingFraNorge("Sverige", "Stockholm", tidspunkt),
         )
         val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
-        val actual = HendelseMapper.map(message)
+        val actual = PersonhendelseMapper.map(message)
 
         actual shouldBe KunneIkkeMappePersonhendelse.KunneIkkeHenteAktørId("hendelseId", "UTFLYTTING_FRA_NORGE").left()
     }
@@ -201,7 +300,7 @@ internal class PersonhendelseMapperTest {
             UtflyttingFraNorge("Sverige", "Stockholm", tidspunkt),
         )
         val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
-        val actual = HendelseMapper.map(message)
+        val actual = PersonhendelseMapper.map(message)
 
         actual shouldBe KunneIkkeMappePersonhendelse.IkkeAktuellOpplysningstype("hendelseId", "FOEDSEL_V1").left()
     }

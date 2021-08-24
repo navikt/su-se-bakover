@@ -43,23 +43,35 @@ sealed class Personhendelse {
         /**
          * @see <a href="https://navikt.github.io/pdl/#_d%C3%B8dsfall">Dokumentasjonen</a>
          * */
-        data class Dødsfall(val dødsdato: LocalDate?) : Hendelse()
+        data class Dødsfall(val dødsdato: LocalDate?) : Hendelse() {
+            companion object {
+                val EMPTY = Dødsfall(null)
+            }
+        }
 
         /**
          * @see <a href="https://navikt.github.io/pdl/#_utflytting">Dokumentasjonen</a>
          * */
-        data class UtflyttingFraNorge(val utflyttingsdato: LocalDate?) : Hendelse()
+        data class UtflyttingFraNorge(val utflyttingsdato: LocalDate?) : Hendelse() {
+            companion object {
+                val EMPTY = UtflyttingFraNorge(null)
+            }
+        }
 
         /**
          * @see <a href="https://navikt.github.io/pdl/#_sivilstand">Dokumentasjonen</a>
          * @see [no.nav.su.se.bakover.domain.Person.Sivilstand]
          * */
         data class Sivilstand(
-            val type: SivilstandTyper,
+            val type: SivilstandTyper?,
             val gyldigFraOgMed: LocalDate?,
             val relatertVedSivilstand: Fnr?,
             val bekreftelsesdato: LocalDate?,
-        ) : Hendelse()
+        ) : Hendelse() {
+            companion object {
+                val EMPTY = Sivilstand(null, null, null, null)
+            }
+        }
     }
 
     /** Metadata rundt hendelsen

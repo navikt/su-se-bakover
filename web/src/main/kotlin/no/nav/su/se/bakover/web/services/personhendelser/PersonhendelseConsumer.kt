@@ -49,7 +49,7 @@ class PersonhendelseConsumer(
         if (!messages.isEmpty) {
             run processMessages@{
                 messages.forEach { message ->
-                    HendelseMapper.map(message).fold(
+                    PersonhendelseMapper.map(message).fold(
                         ifLeft = {
                             when (it) {
                                 is KunneIkkeMappePersonhendelse.IkkeAktuellOpplysningstype -> {

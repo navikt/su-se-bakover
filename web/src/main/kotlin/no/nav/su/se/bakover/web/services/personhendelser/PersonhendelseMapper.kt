@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.web.services.personhendelser.KunneIkkeMappePersonhen
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import no.nav.person.pdl.leesah.Personhendelse as EksternPersonhendelse
 
-internal object HendelseMapper {
+internal object PersonhendelseMapper {
     private enum class Opplysningstype(val value: String) {
         DØDSFALL("DOEDSFALL_V1"),
         UTFLYTTING_FRA_NORGE("UTFLYTTING_FRA_NORGE"),
@@ -56,27 +56,30 @@ internal object HendelseMapper {
                 ).right()
             }
             Opplysningstype.SIVILSTAND.value -> {
-                personhendelse.getSivilstand().map {
-                    Personhendelse.Hendelse.Sivilstand(
-                        type = when (it.getType()) {
-                            "UOPPGITT" -> SivilstandTyper.UOPPGITT
-                            "UGIFT" -> SivilstandTyper.UGIFT
-                            "GIFT" -> SivilstandTyper.GIFT
-                            "ENKE_ELLER_ENKEMANN" -> SivilstandTyper.ENKE_ELLER_ENKEMANN
-                            "SKILT" -> SivilstandTyper.SKILT
-                            "REGISTRERT_PARTNER" -> SivilstandTyper.REGISTRERT_PARTNER
-                            "SEPARERT_PARTNER" -> SivilstandTyper.SEPARERT_PARTNER
-                            "SKILT_PARTNER" -> SivilstandTyper.SKILT_PARTNER
-                            "GJENLEVENDE_PARTNER" -> SivilstandTyper.GJENLEVENDE_PARTNER
-                            else -> throw IllegalArgumentException("Ukjent sivilstandstype i personhendelse: ${it.getType()}")
-                        },
-                        gyldigFraOgMed = it.getGyldigFraOgMed().orNull(),
-                        relatertVedSivilstand = it.getRelatertVedSivilstand().map { fnr ->
-                            Fnr(fnr)
-                        }.orNull(),
-                        bekreftelsesdato = it.getBekreftelsesdato().orNull(),
-                    )
-                }.get().right()
+                (
+                    personhendelse.getSivilstand().map {
+                        Personhendelse.Hendelse.Sivilstand(
+                            type = when (it.getType()) {
+                                "UOPPGITT" -> SivilstandTyper.UOPPGITT
+                                "UGIFT" -> SivilstandTyper.UGIFT
+                                "GIFT" -> SivilstandTyper.GIFT
+                                "ENKE_ELLER_ENKEMANN" -> SivilstandTyper.ENKE_ELLER_ENKEMANN
+                                "SKILT" -> SivilstandTyper.SKILT
+                                "REGISTRERT_PARTNER" -> SivilstandTyper.REGISTRERT_PARTNER
+                                "SEPARERT_PARTNER" -> SivilstandTyper.SEPARERT_PARTNER
+                                "SKILT_PARTNER" -> SivilstandTyper.SKILT_PARTNER
+                                "GJENLEVENDE_PARTNER" -> SivilstandTyper.GJENLEVENDE_PARTNER
+                                null -> null
+                                else -> throw IllegalArgumentException("Ukjent sivilstandstype i personhendelse: ${it.getType()}")
+                            },
+                            gyldigFraOgMed = it.getGyldigFraOgMed().orNull(),
+                            relatertVedSivilstand = it.getRelatertVedSivilstand().map { fnr ->
+                                Fnr(fnr)
+                            }.orNull(),
+                            bekreftelsesdato = it.getBekreftelsesdato().orNull(),
+                        )
+                    }.orNull() ?: Personhendelse.Hendelse.Sivilstand.EMPTY
+                    ).right()
             }
             else -> {
                 IkkeAktuellOpplysningstype(personhendelse.getHendelseId(), personhendelse.getOpplysningstype()).left()
