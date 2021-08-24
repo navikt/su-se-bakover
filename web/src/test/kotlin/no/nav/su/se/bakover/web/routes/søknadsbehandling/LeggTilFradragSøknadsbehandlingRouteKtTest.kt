@@ -46,7 +46,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
                     }
                 ]
         }
-        """.trimIndent()
+            """.trimIndent()
 
         val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
 
@@ -94,7 +94,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
                     }
                 ]
         }
-        """.trimIndent()
+            """.trimIndent()
 
         val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
 
@@ -144,7 +144,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
                     }
                 ]
         }
-        """.trimIndent()
+            """.trimIndent()
 
         val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
 
@@ -194,7 +194,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
                     }
                 ]
         }
-        """.trimIndent()
+            """.trimIndent()
 
         val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
 
