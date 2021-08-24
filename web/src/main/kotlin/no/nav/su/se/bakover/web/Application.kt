@@ -43,6 +43,7 @@ import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
+import no.nav.su.se.bakover.service.hendelser.PersonhendelseService
 import no.nav.su.se.bakover.web.external.frikortVedtakRoutes
 import no.nav.su.se.bakover.web.features.Authorization
 import no.nav.su.se.bakover.web.features.AuthorizationException
@@ -58,6 +59,7 @@ import no.nav.su.se.bakover.web.metrics.DbMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.metrics.SøknadMicrometerMetrics
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
+import no.nav.su.se.bakover.web.routes.dokument.dokumentRoutes
 import no.nav.su.se.bakover.web.routes.drift.driftRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.me.meRoutes
@@ -74,9 +76,11 @@ import no.nav.su.se.bakover.web.routes.utbetaling.gjenoppta.gjenopptaUtbetalingR
 import no.nav.su.se.bakover.web.routes.utbetaling.stans.stansutbetalingRoutes
 import no.nav.su.se.bakover.web.services.avstemming.AvstemmingJob
 import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
+import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringIbmMqConsumer
+import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.slf4j.event.Level
 import java.time.Clock
 import java.time.format.DateTimeParseException
@@ -245,6 +249,7 @@ internal fun Application.susebakover(
                     gjenopptaUtbetalingRoutes(accessProtectedServices.utbetaling)
                     driftRoutes(accessProtectedServices.søknad, accessProtectedServices.ferdigstillVedtak)
                     revurderingRoutes(accessProtectedServices.revurdering, accessProtectedServices.vedtakService, clock)
+                    dokumentRoutes(accessProtectedServices.brev)
                 }
             }
         }
@@ -264,6 +269,10 @@ internal fun Application.susebakover(
             avstemmingService = services.avstemming,
             leaderPodLookup = clients.leaderPodLookup,
         ).schedule()
+        PersonhendelseConsumer(
+            consumer = KafkaConsumer(applicationConfig.kafkaConfig.consumerCfg.kafkaConfig),
+            personhendelseService = PersonhendelseService(databaseRepos.sak, databaseRepos.personhendelseRepo),
+        )
 
         DistribuerDokumentJob(
             brevService = services.brev,

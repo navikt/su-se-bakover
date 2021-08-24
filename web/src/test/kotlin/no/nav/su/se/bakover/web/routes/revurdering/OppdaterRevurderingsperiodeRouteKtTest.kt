@@ -3,9 +3,6 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -34,6 +31,9 @@ import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.tes
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.vedtak
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 

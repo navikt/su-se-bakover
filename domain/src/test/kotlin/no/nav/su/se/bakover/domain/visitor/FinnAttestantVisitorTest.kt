@@ -2,8 +2,6 @@ package no.nav.su.se.bakover.domain.visitor
 
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -44,6 +42,8 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import java.util.UUID
 
 internal class FinnAttestantVisitorTest {

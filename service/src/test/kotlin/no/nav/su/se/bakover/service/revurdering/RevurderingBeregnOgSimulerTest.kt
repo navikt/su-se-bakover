@@ -3,9 +3,6 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -34,6 +31,9 @@ import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import java.util.UUID
 
 class RevurderingBeregnOgSimulerTest {

@@ -2,10 +2,6 @@ package no.nav.su.se.bakover.service
 
 import arrow.core.Either
 import arrow.core.right
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verify
 import io.kotest.assertions.throwables.shouldThrow
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.person.PersonRepo
@@ -17,6 +13,10 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import java.util.UUID
 
 internal class AccessCheckProxyTest {
@@ -92,9 +92,10 @@ internal class AccessCheckProxyTest {
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
-                        override fun sjekkTilgangTilPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-                    }
-                )
+                        override fun sjekkTilgangTilPerson(fnr: Fnr) =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                    },
+                ),
             ).proxy()
 
             shouldThrow<Tilgangssjekkfeil> { proxied.sak.hentSak(UUID.randomUUID()) }
@@ -113,9 +114,10 @@ internal class AccessCheckProxyTest {
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
-                        override fun sjekkTilgangTilPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun sjekkTilgangTilPerson(fnr: Fnr) =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                     },
-                )
+                ),
             ).proxy()
 
             shouldThrow<Tilgangssjekkfeil> { proxied.søknad.hentSøknad(UUID.randomUUID()) }
@@ -134,14 +136,15 @@ internal class AccessCheckProxyTest {
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
-                        override fun sjekkTilgangTilPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-                    }
-                )
+                        override fun sjekkTilgangTilPerson(fnr: Fnr) =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                    },
+                ),
             ).proxy()
 
             shouldThrow<Tilgangssjekkfeil> {
                 proxied.søknadsbehandling.hent(
-                    SøknadsbehandlingService.HentRequest(UUID.randomUUID())
+                    SøknadsbehandlingService.HentRequest(UUID.randomUUID()),
                 )
             }
         }
@@ -159,9 +162,10 @@ internal class AccessCheckProxyTest {
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
-                        override fun sjekkTilgangTilPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-                    }
-                )
+                        override fun sjekkTilgangTilPerson(fnr: Fnr) =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                    },
+                ),
             ).proxy()
 
             shouldThrow<Tilgangssjekkfeil> { proxied.utbetaling.hentUtbetaling(UUID30.randomUUID()) }
@@ -211,8 +215,8 @@ internal class AccessCheckProxyTest {
             services = servicesReturningSak.copy(
                 person = mock {
                     on { sjekkTilgangTilPerson(any()) } doReturn Unit.right()
-                }
-            )
+                },
+            ),
         ).proxy()
 
         @Test

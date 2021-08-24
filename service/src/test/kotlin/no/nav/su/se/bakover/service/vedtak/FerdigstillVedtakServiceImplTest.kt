@@ -2,11 +2,6 @@ package no.nav.su.se.bakover.service.vedtak
 
 import arrow.core.left
 import arrow.core.right
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.inOrder
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verify
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
@@ -61,6 +56,11 @@ import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattAvslagMedBereg
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import java.time.Clock
 import java.util.UUID
 
@@ -1164,7 +1164,7 @@ internal class FerdigstillVedtakServiceImplTest {
         }
 
         private fun verifyNoMoreInteractions() {
-            com.nhaarman.mockitokotlin2.verifyNoMoreInteractions(
+            org.mockito.kotlin.verifyNoMoreInteractions(
                 oppgaveService,
                 personService,
                 microsoftGraphApiClient,

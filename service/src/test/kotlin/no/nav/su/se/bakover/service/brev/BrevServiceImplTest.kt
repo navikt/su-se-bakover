@@ -3,11 +3,6 @@ package no.nav.su.se.bakover.service.brev
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
@@ -38,6 +33,11 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
 
 internal class BrevServiceImplTest {
@@ -317,6 +317,63 @@ internal class BrevServiceImplTest {
             verify(dokumentRepoMock).oppdaterDokumentdistribusjon(expected)
             it.verifyNoMoreInteraction()
         }
+    }
+
+    @Test
+    fun `henter dokumenter for ulike typer id-er`() {
+        val sakId = UUID.randomUUID()
+        val vedtakId = UUID.randomUUID()
+        val søknadId = UUID.randomUUID()
+        val revurderingId = UUID.randomUUID()
+        val randomId = UUID.randomUUID()
+
+        val sakDokument =
+            lagDokument(Dokument.Metadata(sakId = sakId, bestillBrev = false))
+        val vedtakDokument =
+            lagDokument(Dokument.Metadata(sakId = sakId, vedtakId = vedtakId, bestillBrev = false))
+        val søknadDokument =
+            lagDokument(Dokument.Metadata(sakId = sakId, søknadId = søknadId, bestillBrev = false))
+        val revurderingDokument =
+            lagDokument(
+                Dokument.Metadata(sakId = sakId, revurderingId = revurderingId, bestillBrev = false),
+            )
+
+        val dokumentRepoMock = mock<DokumentRepo> {
+            on { hentForSak(sakId) } doReturn listOf(sakDokument)
+            on { hentForSak(randomId) } doReturn emptyList()
+            on { hentForVedtak(vedtakId) } doReturn listOf(vedtakDokument)
+            on { hentForVedtak(randomId) } doReturn emptyList()
+            on { hentForSøknad(søknadId) } doReturn listOf(søknadDokument)
+            on { hentForSøknad(randomId) } doReturn emptyList()
+            on { hentForRevurdering(revurderingId) } doReturn listOf(revurderingDokument)
+            on { hentForRevurdering(randomId) } doReturn emptyList()
+        }
+
+        val service = ServiceOgMocks(
+            dokumentRepo = dokumentRepoMock,
+        ).brevService
+
+        service.hentDokumenterFor(HentDokumenterForIdType.Sak(sakId)) shouldBe listOf(sakDokument)
+        service.hentDokumenterFor(HentDokumenterForIdType.Sak(randomId)) shouldBe emptyList()
+        service.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtakId)) shouldBe listOf(vedtakDokument)
+        service.hentDokumenterFor(HentDokumenterForIdType.Vedtak(randomId)) shouldBe emptyList()
+        service.hentDokumenterFor(HentDokumenterForIdType.Søknad(søknadId)) shouldBe listOf(søknadDokument)
+        service.hentDokumenterFor(HentDokumenterForIdType.Søknad(randomId)) shouldBe emptyList()
+        service.hentDokumenterFor(HentDokumenterForIdType.Revurdering(revurderingId)) shouldBe listOf(
+            revurderingDokument,
+        )
+        service.hentDokumenterFor(HentDokumenterForIdType.Revurdering(randomId)) shouldBe emptyList()
+    }
+
+    private fun lagDokument(metadata: Dokument.Metadata): Dokument.MedMetadata.Vedtak {
+        val utenMetadata = Dokument.UtenMetadata.Vedtak(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.EPOCH,
+            tittel = "tittel",
+            generertDokument = "".toByteArray(),
+            generertDokumentJson = "{}",
+        )
+        return utenMetadata.leggTilMetadata(metadata)
     }
 
     object DummyRequest : LagBrevRequest {

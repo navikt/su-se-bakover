@@ -3,11 +3,6 @@ package no.nav.su.se.bakover.web.services.utbetaling.kvittering
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.eq
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verify
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -36,6 +31,11 @@ import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitter
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.internal.verification.Times
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import java.time.Clock
 import java.time.ZoneOffset
 

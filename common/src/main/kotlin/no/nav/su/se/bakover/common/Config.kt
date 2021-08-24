@@ -1,10 +1,14 @@
 package no.nav.su.se.bakover.common
 
+import io.confluent.kafka.serializers.KafkaAvroDeserializer
+import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import io.github.cdimascio.dotenv.dotenv
 import no.nav.su.se.bakover.common.EnvironmentConfig.getEnvironmentVariableOrDefault
 import no.nav.su.se.bakover.common.EnvironmentConfig.getEnvironmentVariableOrThrow
 import org.apache.kafka.clients.CommonClientConfigs
+import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.kafka.common.serialization.StringSerializer
@@ -355,6 +359,7 @@ data class ApplicationConfig(
     data class KafkaConfig(
         private val common: Map<String, String>,
         val producerCfg: ProducerCfg,
+        val consumerCfg: ConsumerCfg,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = KafkaConfig(
@@ -366,11 +371,32 @@ data class ApplicationConfig(
                         ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
                     ),
                 ),
+                consumerCfg = ConsumerCfg(
+                    Onprem().configure() + mapOf(
+                        KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to true,
+                        KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG to getEnvironmentVariableOrDefault(
+                            "KAFKA_ONPREM_SCHEMA_REGISTRY",
+                            "schema_onprem_registry",
+                        ),
+                        KafkaAvroDeserializerConfig.BASIC_AUTH_CREDENTIALS_SOURCE to "USER_INFO",
+                        KafkaAvroDeserializerConfig.USER_INFO_CONFIG to ConsumerCfg.getUserInfoConfig(),
+                        ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to KafkaAvroDeserializer::class.java,
+                        ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to KafkaAvroDeserializer::class.java,
+                        ConsumerConfig.CLIENT_ID_CONFIG to getEnvironmentVariableOrDefault(
+                            "HOSTNAME",
+                            "su-se-bakover-hostname",
+                        ),
+                        ConsumerConfig.GROUP_ID_CONFIG to "su-se-bakover",
+                        ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to "false",
+                        ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 100,
+                    ),
+                ),
             )
 
             fun createLocalConfig() = KafkaConfig(
                 common = emptyMap(),
                 producerCfg = ProducerCfg(emptyMap()),
+                consumerCfg = ConsumerCfg(emptyMap()),
             )
         }
 
@@ -378,6 +404,14 @@ data class ApplicationConfig(
             val kafkaConfig: Map<String, Any>,
             val retryTaskInterval: Long = 15_000L,
         )
+
+        data class ConsumerCfg(
+            val kafkaConfig: Map<String, Any>
+        ) {
+            companion object {
+                fun getUserInfoConfig() = "${getEnvironmentVariableOrDefault("KAFKA_SCHEMA_REGISTRY_USER", "usr")}:${getEnvironmentVariableOrDefault("KAFKA_SCHEMA_REGISTRY_PASSWORD", "pwd")}"
+            }
+        }
 
         private data class Common(
             val brokers: String = getEnvironmentVariableOrDefault("KAFKA_BROKERS", "brokers"),
@@ -402,6 +436,29 @@ data class ApplicationConfig(
                 SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG to keystorePath,
                 SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to credstorePwd,
                 SslConfigs.SSL_KEY_PASSWORD_CONFIG to credstorePwd,
+            )
+        }
+
+        private data class Onprem(
+            val brokers: String = getEnvironmentVariableOrDefault("KAFKA_ONPREM_BROKERS", "kafka_onprem_brokers"),
+            val saslConfigs: Map<String, String> = SaslConfig().configure()
+        ) {
+            fun configure(): Map<String, String> =
+                mapOf(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to brokers) + saslConfigs
+        }
+        private data class SaslConfig(
+            val truststorePath: String = getEnvironmentVariableOrDefault("NAV_TRUSTSTORE_PATH", "truststorePath"),
+            val credstorePwd: String = getEnvironmentVariableOrDefault("NAV_TRUSTSTORE_PASSWORD", "credstorePwd"),
+            val username: String = getEnvironmentVariableOrDefault("username", "not-a-real-srvuser"),
+            val password: String = getEnvironmentVariableOrDefault("password", "not-a-real-srvpassword"),
+        ) {
+            fun configure(): Map<String, String> = mapOf(
+                CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to SecurityProtocol.SASL_SSL.name,
+                SaslConfigs.SASL_MECHANISM to "PLAIN",
+                SaslConfigs.SASL_JAAS_CONFIG to "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"$username\" password=\"$password\";",
+                SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG to truststorePath,
+                SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG to credstorePwd,
+                SslConfigs.SSL_KEY_PASSWORD_CONFIG to credstorePwd
             )
         }
     }

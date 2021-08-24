@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.nonEmptyListOf
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -30,6 +29,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.mock
 import java.time.Clock
 import java.time.ZoneOffset
 import java.util.UUID

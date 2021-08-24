@@ -135,6 +135,15 @@ internal class BrevServiceImpl(
         return dokumentRepo.hentDokumenterForDistribusjon()
     }
 
+    override fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): List<Dokument> {
+        return when (hentDokumenterForIdType) {
+            is HentDokumenterForIdType.Sak -> dokumentRepo.hentForSak(hentDokumenterForIdType.id)
+            is HentDokumenterForIdType.Søknad -> dokumentRepo.hentForSøknad(hentDokumenterForIdType.id)
+            is HentDokumenterForIdType.Revurdering -> dokumentRepo.hentForRevurdering(hentDokumenterForIdType.id)
+            is HentDokumenterForIdType.Vedtak -> dokumentRepo.hentForVedtak(hentDokumenterForIdType.id)
+        }
+    }
+
     private fun lagPdf(brevInnhold: BrevInnhold): Either<KunneIkkeLageBrev, ByteArray> {
         return pdfGenerator.genererPdf(brevInnhold)
             .mapLeft { KunneIkkeLageBrev.KunneIkkeGenererePDF }

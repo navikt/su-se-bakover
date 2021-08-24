@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.web.routes.sak
 
 import arrow.core.nonEmptyListOf
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -22,6 +20,8 @@ import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.UtbetalingJson
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.Clock
 import java.util.UUID

@@ -6,6 +6,17 @@ val ktorVersion = "1.6.2"
 val orgJsonVersion = "20210307"
 val micrometerRegistryPrometheusVersion = "1.7.3"
 
+plugins {
+    /** Det ser ut som disse genererte filene ikke blir ekskludert av ktlint-tasken.
+     * Gradle gir oss noen warnings om at vi ikke kan oppdatere til Gradle 8. */
+    id("com.github.davidmc24.gradle.plugin.avro") version "1.2.1"
+}
+
+avro {
+    isGettersReturnOptional.set(true)
+    isOptionalGettersForNullableFieldsOnly.set(true)
+}
+
 dependencies {
     implementation(project(":common"))
     implementation(project(":domain"))
@@ -26,7 +37,6 @@ dependencies {
     implementation("io.ktor:ktor-jackson:$ktorVersion")
     implementation("com.papertrailapp", "logback-syslog4j", "1.0.0")
 
-
     testImplementation(project(":database", "testArchives"))
     testImplementation(project(":test-common"))
     testImplementation("org.xmlunit:xmlunit-matchers:2.8.2")
@@ -39,6 +49,7 @@ dependencies {
     testImplementation("com.opentable.components:otj-pg-embedded:0.13.4") {
         exclude(group = "com.github.spotbugs")
     }
+    testImplementation("no.nav:kafka-embedded-env:2.7.0")
 }
 
 tasks.named<Jar>("jar") {

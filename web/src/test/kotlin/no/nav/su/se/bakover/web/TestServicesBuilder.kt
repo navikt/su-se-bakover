@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web
 
-import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.service.Services
+import org.mockito.kotlin.mock
 
 object TestServicesBuilder {
     fun services(): Services = Services(

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service
 
-import com.nhaarman.mockitokotlin2.argThat
 import io.kotest.matchers.shouldBe
+import org.mockito.kotlin.argThat
 
 /**
  * Using kotest matchers because of better error messages

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.sak
 
+import arrow.core.NonEmptyList
 import kotliquery.Row
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DbMetrics
@@ -11,6 +12,7 @@ import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo
+import no.nav.su.se.bakover.database.uuidOrNull
 import no.nav.su.se.bakover.database.vedtak.VedtakPosgresRepo
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
@@ -48,6 +50,20 @@ internal class SakPostgresRepo(
     override fun hentSak(saksnummer: Saksnummer): Sak? {
         return dbMetrics.timeQuery("hentSakNr") {
             dataSource.withSession { hentSakInternal(saksnummer, it) }
+        }
+    }
+
+    override fun hentSakIdForIdenter(personidenter: NonEmptyList<String>): UUID? {
+        return dataSource.withSession { session ->
+            """
+                SELECT
+                    id
+                FROM sak
+                WHERE fnr = ANY (:fnrs)
+            """.trimIndent().hent(
+                mapOf("fnrs" to personidenter),
+                session,
+            ) { row -> row.uuidOrNull("id") }
         }
     }
 

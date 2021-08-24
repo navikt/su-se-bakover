@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
@@ -271,6 +272,7 @@ internal class TestDataHelper(
         dbMetrics = dbMetrics,
     )
     internal val dokumentRepo = DokumentPostgresRepo(datasource)
+    internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(datasource)
 
     fun nySakMedNySøknad(fnr: Fnr = FnrGenerator.random()): NySak {
         return SakFactory(clock = clock).nySakMedNySøknad(fnr, SøknadInnholdTestdataBuilder.build()).also {

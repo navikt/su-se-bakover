@@ -1,5 +1,5 @@
-import com.nhaarman.mockitokotlin2.argThat
 import io.kotest.matchers.shouldBe
+import org.mockito.kotlin.argThat
 import org.mockito.stubbing.OngoingStubbing
 
 /**

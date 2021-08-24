@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.database
 
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
+import org.mockito.kotlin.mock
 import org.postgresql.util.PSQLException
 
 internal class DatabaseExKtTest {

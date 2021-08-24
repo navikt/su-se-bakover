@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.avstemming
 
 import arrow.core.Either
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -22,6 +21,7 @@ import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.mock
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 

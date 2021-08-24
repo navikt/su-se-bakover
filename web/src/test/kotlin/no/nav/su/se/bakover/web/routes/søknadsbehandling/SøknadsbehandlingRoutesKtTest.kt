@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
@@ -78,6 +77,7 @@ import no.nav.su.se.bakover.web.stubs.asBearerToken
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.mock
 import java.util.UUID
 
 internal class SøknadsbehandlingRoutesKtTest {

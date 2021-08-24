@@ -23,6 +23,7 @@ allprojects {
         mavenCentral()
         maven("https://jitpack.io")
         maven("https://oss.sonatype.org/content/repositories/releases/")
+        maven("https://packages.confluent.io/maven/")
     }
     val junitJupiterVersion = "5.7.2"
     val arrowVersion = "0.13.2"
@@ -50,6 +51,8 @@ allprojects {
         implementation("no.finn.unleash:unleash-client-java:4.4.0")
 
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.3.0")
+        implementation("io.confluent:kafka-avro-serializer:6.0.1")
+        implementation("org.apache.avro:avro:1.10.2")
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 
@@ -60,11 +63,10 @@ allprojects {
         testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.0.3")
         testImplementation("io.kotest:kotest-extensions:$kotestVersion")
         testImplementation("org.skyscreamer:jsonassert:1.5.0")
-        testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
-        testImplementation("org.mockito:mockito-core:3.11.2")
+        testImplementation("org.mockito.kotlin:mockito-kotlin:3.2.0")
 
         constraints {
-            implementation("io.netty:netty-codec-http2:4.1.66.Final") {
+            implementation("io.netty:netty-codec-http2:4.1.67.Final") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-IONETTY-1020439")
             }
             implementation("commons-collections:commons-collections:3.2.2") {
@@ -115,7 +117,7 @@ allprojects {
     }
 
     tasks.withType<Wrapper> {
-        gradleVersion = "7.0.2"
+        gradleVersion = "7.2"
     }
     // https://github.com/ben-manes/gradle-versions-plugin
     tasks.withType<com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask> {

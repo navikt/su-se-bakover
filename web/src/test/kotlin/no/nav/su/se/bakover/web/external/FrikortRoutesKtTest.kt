@@ -1,8 +1,5 @@
 package no.nav.su.se.bakover.web.external
 
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.http.HttpHeaders
@@ -21,6 +18,9 @@ import no.nav.su.se.bakover.web.jwtStub
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.Clock
 import java.time.ZoneOffset
