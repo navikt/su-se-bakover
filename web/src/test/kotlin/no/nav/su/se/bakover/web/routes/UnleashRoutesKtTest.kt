@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.web.routes
 
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
@@ -11,6 +9,8 @@ import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
 
 internal class UnleashRoutesKtTest {

@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.service.revurdering
 
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -28,6 +27,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import org.mockito.kotlin.mock
 import java.time.Clock
 import java.time.LocalDate
 

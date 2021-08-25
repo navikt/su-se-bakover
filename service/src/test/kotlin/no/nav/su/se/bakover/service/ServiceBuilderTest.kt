@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.service
 
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.collections.shouldContain
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.database.DatabaseRepos
@@ -8,6 +7,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.mock
 import java.time.Clock
 
 internal class ServiceBuilderTest {

@@ -2,9 +2,6 @@ package no.nav.su.se.bakover.service.vilkår
 
 import arrow.core.left
 import arrow.core.nonEmptyListOf
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.februar
@@ -22,6 +19,9 @@ import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.web.fixedClock
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import java.util.UUID
 
 internal class LeggTilUførevurderingerRequestTest {

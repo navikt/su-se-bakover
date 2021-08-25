@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -34,6 +33,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.mock
 import java.util.UUID
 
 internal class RevurderingTest {

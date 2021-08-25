@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.client.oppdrag
 import arrow.core.left
 import arrow.core.right
 import com.ibm.mq.jms.MQQueue
-import com.nhaarman.mockitokotlin2.verify
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -11,6 +10,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.any
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
+import org.mockito.kotlin.verify
 import javax.jms.Destination
 import javax.jms.JMSContext
 import javax.jms.JMSProducer

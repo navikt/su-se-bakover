@@ -24,7 +24,7 @@ class PersonhendelseConsumer(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     init {
-        log.info("Setter opp Kafka-Consumer som lytter på $topicName fra PDL")
+        log.info("Personhendelse: Setter opp Kafka-Consumer som lytter på $topicName fra PDL")
         consumer.subscribe(listOf(topicName))
 
         timer(
@@ -37,7 +37,7 @@ class PersonhendelseConsumer(
                 consume()
             }.mapLeft {
                 // Dette vil føre til en timeout, siden vi ikke gjør noen commit. Da vil vi ikke få noen meldinger i mellomtiden.
-                log.error("Ukjent feil ved konsumering av personhendelser.", it)
+                log.error("Personhendelse: Ukjent feil ved konsumering av personhendelser.", it)
             }
         }
     }
@@ -49,7 +49,7 @@ class PersonhendelseConsumer(
         if (!messages.isEmpty) {
             run processMessages@{
                 messages.forEach { message ->
-                    HendelseMapper.map(message).fold(
+                    PersonhendelseMapper.map(message).fold(
                         ifLeft = {
                             when (it) {
                                 is KunneIkkeMappePersonhendelse.IkkeAktuellOpplysningstype -> {

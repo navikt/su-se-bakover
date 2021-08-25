@@ -2,8 +2,10 @@ package no.nav.su.se.bakover.domain.hendelse
 
 import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import java.time.LocalDate
 import java.util.UUID
 
@@ -14,6 +16,7 @@ sealed class Personhendelse {
         ANNULLERT,
         OPPHØRT,
     }
+
     abstract val gjeldendeAktørId: AktørId
     abstract val endringstype: Endringstype
     abstract val hendelse: Hendelse
@@ -37,10 +40,42 @@ sealed class Personhendelse {
     ) : Personhendelse()
 
     sealed class Hendelse {
-        data class Dødsfall(val dødsdato: LocalDate?) : Hendelse()
+        /**
+         * @see <a href="https://navikt.github.io/pdl/#_d%C3%B8dsfall">Dokumentasjonen</a>
+         * */
+        data class Dødsfall(val dødsdato: LocalDate?) : Hendelse() {
+            companion object {
+                val EMPTY = Dødsfall(null)
+            }
+        }
 
-        // TODO jah: Her finnes det 2 felter vi ignorerer: [tilflyttingsland, tilflyttingsstedIUtlandet], finn ut om det er tiltenkt eller ikke.
-        data class UtflyttingFraNorge(val utflyttingsdato: LocalDate?) : Hendelse()
+        /**
+         * @see <a href="https://navikt.github.io/pdl/#_utflytting">Dokumentasjonen</a>
+         * */
+        data class UtflyttingFraNorge(val utflyttingsdato: LocalDate?) : Hendelse() {
+            companion object {
+                val EMPTY = UtflyttingFraNorge(null)
+            }
+        }
+
+        /**
+         * @see <a href="https://navikt.github.io/pdl/#_sivilstand">Dokumentasjonen</a>
+         * @see [no.nav.su.se.bakover.domain.Person.Sivilstand]
+         * */
+        data class Sivilstand(
+            val type: SivilstandTyper?,
+            val gyldigFraOgMed: LocalDate?,
+            val relatertVedSivilstand: Fnr?,
+            val bekreftelsesdato: LocalDate?,
+        ) : Hendelse() {
+            companion object {
+                val EMPTY = Sivilstand(null, null, null, null)
+            }
+
+            override fun toString(): String {
+                return "Sivilstand(type=$type, gyldigFraOgMed=$gyldigFraOgMed, relatertVedSivilstand=${relatertVedSivilstand.let { "****" }}, bekreftelsesdato=$bekreftelsesdato)"
+            }
+        }
     }
 
     /** Metadata rundt hendelsen

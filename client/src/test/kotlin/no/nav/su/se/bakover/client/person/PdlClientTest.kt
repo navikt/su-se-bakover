@@ -3,9 +3,6 @@ package no.nav.su.se.bakover.client.person
 import arrow.core.left
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
@@ -18,6 +15,9 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import org.slf4j.MDC
 
 internal class PdlClientTest : WiremockBase {

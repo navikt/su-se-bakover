@@ -3,9 +3,6 @@ package no.nav.su.se.bakover.domain.eksterneiverksettingssteg
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
-import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
@@ -17,6 +14,9 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalfø
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.verifyZeroInteractions
 
 internal class JournalføringOgBrevdistribusjonTest {
     @Nested

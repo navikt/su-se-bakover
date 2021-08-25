@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web
 
-import com.nhaarman.mockitokotlin2.mock
 import io.ktor.application.Application
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -25,6 +24,7 @@ import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.web.stubs.JwtStub
 import no.nav.su.se.bakover.web.stubs.asBearerToken
+import org.mockito.kotlin.mock
 import java.time.Clock
 import java.time.ZoneOffset
 

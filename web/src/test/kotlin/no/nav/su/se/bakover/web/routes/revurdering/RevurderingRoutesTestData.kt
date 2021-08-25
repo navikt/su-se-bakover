@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.nonEmptyListOf
-import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
@@ -36,6 +35,7 @@ import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.stønadsperiode
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
+import org.mockito.kotlin.mock
 import java.util.UUID
 
 object RevurderingRoutesTestData {

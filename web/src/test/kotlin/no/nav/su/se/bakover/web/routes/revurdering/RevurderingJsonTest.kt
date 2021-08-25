@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.nonEmptyListOf
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
@@ -39,6 +38,7 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import no.nav.su.se.bakover.web.routes.vedtak.toJson
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 

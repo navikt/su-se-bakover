@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.service.revurdering
 
-import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
@@ -13,6 +12,7 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.fixedClock
+import org.mockito.kotlin.mock
 
 internal data class RevurderingServiceMocks(
     val vedtakService: VedtakService = mock(),
@@ -57,7 +57,7 @@ internal data class RevurderingServiceMocks(
     ).toTypedArray()
 
     fun verifyNoMoreInteractions() {
-        com.nhaarman.mockitokotlin2.verifyNoMoreInteractions(
+        org.mockito.kotlin.verifyNoMoreInteractions(
             *all(),
         )
     }

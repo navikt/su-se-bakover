@@ -6,15 +6,17 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.person.pdl.leesah.Endringstype
+import no.nav.su.se.bakover.common.orNull
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
+import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import no.nav.su.se.bakover.web.services.personhendelser.KunneIkkeMappePersonhendelse.IkkeAktuellOpplysningstype
 import org.apache.kafka.clients.consumer.ConsumerRecord
-import java.time.LocalDate
 import no.nav.person.pdl.leesah.Personhendelse as EksternPersonhendelse
 
-internal object HendelseMapper {
-    internal enum class Opplysningstype(val value: String) {
+internal object PersonhendelseMapper {
+    private enum class Opplysningstype(val value: String) {
         DØDSFALL("DOEDSFALL_V1"),
         UTFLYTTING_FRA_NORGE("UTFLYTTING_FRA_NORGE"),
         SIVILSTAND("SIVILSTAND_V1");
@@ -40,26 +42,50 @@ internal object HendelseMapper {
 
         return when (personhendelse.getOpplysningstype()) {
             Opplysningstype.DØDSFALL.value -> {
-                val dødsdato: LocalDate? =
-                    (if (personhendelse.getDoedsfall().isPresent) personhendelse.getDoedsfall().get() else null)?.let {
-                        if (it.getDoedsdato().isPresent) it.getDoedsdato().get() else null
-                    }
-                Personhendelse.Hendelse.Dødsfall(dødsdato = dødsdato).right()
+                Personhendelse.Hendelse.Dødsfall(
+                    dødsdato = personhendelse.getDoedsfall().flatMap {
+                        it.getDoedsdato()
+                    }.orNull(),
+                ).right()
             }
             Opplysningstype.UTFLYTTING_FRA_NORGE.value -> {
-                val utflyttetDato: LocalDate? =
-                    (
-                        if (personhendelse.getUtflyttingFraNorge().isPresent) personhendelse.getUtflyttingFraNorge()
-                            .get() else null
-                        )?.let {
-                        if (it.getUtflyttingsdato().isPresent) it.getUtflyttingsdato().get() else null
-                    }
-                Personhendelse.Hendelse.UtflyttingFraNorge(utflyttingsdato = utflyttetDato).right()
+                Personhendelse.Hendelse.UtflyttingFraNorge(
+                    utflyttingsdato = personhendelse.getUtflyttingFraNorge().flatMap {
+                        it.getUtflyttingsdato()
+                    }.orNull(),
+                ).right()
+            }
+            Opplysningstype.SIVILSTAND.value -> {
+                (
+                    personhendelse.getSivilstand().map {
+                        Personhendelse.Hendelse.Sivilstand(
+                            type = when (it.getType()) {
+                                "UOPPGITT" -> SivilstandTyper.UOPPGITT
+                                "UGIFT" -> SivilstandTyper.UGIFT
+                                "GIFT" -> SivilstandTyper.GIFT
+                                "ENKE_ELLER_ENKEMANN" -> SivilstandTyper.ENKE_ELLER_ENKEMANN
+                                "SKILT" -> SivilstandTyper.SKILT
+                                "SEPARERT" -> SivilstandTyper.SEPARERT
+                                "REGISTRERT_PARTNER" -> SivilstandTyper.REGISTRERT_PARTNER
+                                "SEPARERT_PARTNER" -> SivilstandTyper.SEPARERT_PARTNER
+                                "SKILT_PARTNER" -> SivilstandTyper.SKILT_PARTNER
+                                "GJENLEVENDE_PARTNER" -> SivilstandTyper.GJENLEVENDE_PARTNER
+                                null -> null
+                                else -> throw IllegalArgumentException("Personhendelse: Ukjent sivilstandstype: ${it.getType()} for hendelsesid ${personhendelse.getHendelseId()}, partisjon ${message.partition()} og offset ${message.offset()}")
+                            },
+                            gyldigFraOgMed = it.getGyldigFraOgMed().orNull(),
+                            relatertVedSivilstand = it.getRelatertVedSivilstand().map { fnr ->
+                                Fnr(fnr)
+                            }.orNull(),
+                            bekreftelsesdato = it.getBekreftelsesdato().orNull(),
+                        )
+                    }.orNull() ?: Personhendelse.Hendelse.Sivilstand.EMPTY
+                    ).right()
             }
             else -> {
                 IkkeAktuellOpplysningstype(personhendelse.getHendelseId(), personhendelse.getOpplysningstype()).left()
             }
-        }.map { hendelse ->
+        }.map { hendelse: Personhendelse.Hendelse ->
             Personhendelse.Ny(
                 gjeldendeAktørId = aktørId,
                 endringstype = hentEndringstype(personhendelse.getEndringstype()),
