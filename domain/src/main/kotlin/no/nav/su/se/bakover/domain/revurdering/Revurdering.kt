@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -844,14 +845,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
     sealed class KunneIkkeIverksetteRevurdering {
         object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering()
-        sealed class KunneIkkeUtbetale : KunneIkkeIverksetteRevurdering() {
-            object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeUtbetale()
-            object Protokollfeil : KunneIkkeUtbetale()
-            object KunneIkkeSimulere : KunneIkkeUtbetale()
-            object KunneIkkeSimulereFinnerIkkeKjøreplansperiodeForFom : KunneIkkeUtbetale()
-            object KunneIkkeSimulereFinnerIkkePerson : KunneIkkeUtbetale()
-            object KunneIkkeSimulereOppdragErStengtEllerNede : KunneIkkeUtbetale()
-        }
+        data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksetteRevurdering()
     }
 
     fun underkjenn(

@@ -345,7 +345,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
         )
 
-        actual shouldBe KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet.left()
+        actual shouldBe KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL).left()
 
         inOrder(revurderingRepoMock) {
             verify(revurderingRepoMock).hent(revurderingId)

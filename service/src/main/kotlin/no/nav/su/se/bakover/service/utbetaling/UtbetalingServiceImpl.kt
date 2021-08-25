@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -90,24 +91,19 @@ internal class UtbetalingServiceImpl(
         attestant: NavIdentBruker,
         beregning: Beregning,
         simulering: Simulering,
-    ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering> {
+    ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering> {
         return simulerUtbetaling(
             sakId = sakId,
             saksbehandler = attestant,
             beregning = beregning,
         ).mapLeft {
-            when (it) {
-                SimuleringFeilet.OPPDRAG_UR_ER_STENGT -> KunneIkkeUtbetale.KunneIkkeSimulereOppdragStengtEllerNede
-                SimuleringFeilet.PERSONEN_FINNES_IKKE_I_TPS -> KunneIkkeUtbetale.KunneIkkeSimulereFinnerIkkePerson
-                SimuleringFeilet.FINNER_IKKE_KJØREPLANSPERIODE_FOR_FOM -> KunneIkkeUtbetale.KunneIkkeSimulereFinnerIkkeKjøreplansperiodeForFom
-                else -> KunneIkkeUtbetale.KunneIkkeSimulere
-            }
+            UtbetalingFeilet.KunneIkkeSimulere(it)
         }.flatMap { simulertUtbetaling ->
             if (harEndringerIUtbetalingSidenSaksbehandlersSimulering(
                     simulering,
                     simulertUtbetaling,
                 )
-            ) return KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+            ) return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
             utbetal(simulertUtbetaling)
         }
     }
@@ -117,19 +113,19 @@ internal class UtbetalingServiceImpl(
         attestant: NavIdentBruker,
         simulering: Simulering,
         opphørsdato: LocalDate,
-    ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering> {
+    ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering> {
         return simulerOpphør(
             sakId = sakId,
             saksbehandler = attestant,
             opphørsdato = opphørsdato,
         ).mapLeft {
-            KunneIkkeUtbetale.KunneIkkeSimulere
+            UtbetalingFeilet.KunneIkkeSimulere(it)
         }.flatMap { simulertOpphør ->
             if (harEndringerIUtbetalingSidenSaksbehandlersSimulering(
                     simulering,
                     simulertOpphør,
                 )
-            ) return KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+            ) return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
             utbetal(simulertOpphør)
         }
     }
@@ -198,10 +194,10 @@ internal class UtbetalingServiceImpl(
             .map { utbetaling.toSimulertUtbetaling(it) }
     }
 
-    private fun utbetal(utbetaling: Utbetaling.SimulertUtbetaling): Either<KunneIkkeUtbetale.Protokollfeil, Utbetaling.OversendtUtbetaling.UtenKvittering> {
+    private fun utbetal(utbetaling: Utbetaling.SimulertUtbetaling): Either<UtbetalingFeilet.Protokollfeil, Utbetaling.OversendtUtbetaling.UtenKvittering> {
         return utbetalingPublisher.publish(utbetaling = utbetaling)
             .mapLeft {
-                KunneIkkeUtbetale.Protokollfeil
+                UtbetalingFeilet.Protokollfeil
             }.map { oppdragsmelding ->
                 val oversendtUtbetaling = utbetaling.toOversendtUtbetaling(oppdragsmelding)
                 utbetalingRepo.opprettUtbetaling(oversendtUtbetaling)
