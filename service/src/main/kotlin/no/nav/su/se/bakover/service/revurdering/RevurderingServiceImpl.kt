@@ -50,6 +50,7 @@ import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
+import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
@@ -794,6 +795,26 @@ internal class RevurderingServiceImpl(
         val revurdering = revurderingRepo.hent(revurderingId)
             ?: return KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering.left()
 
+        val revurderingMedPotensiellFritekst = if (fritekst != null) {
+            revurdering.medFritekst(fritekst)
+        } else {
+            revurdering
+        }
+
+        return lagBrevRequest(revurderingMedPotensiellFritekst)
+            .mapLeft {
+                when (it) {
+                    LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
+                    LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson
+                    LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeFinneGjeldendeUtbetaling
+                }
+            }.flatMap {
+                brevService.lagBrev(it)
+                    .mapLeft { KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast }
+            }
+    }
+
+    private fun lagBrevRequest(visitable: Visitable<LagBrevRequestVisitor>): Either<LagBrevRequestVisitor.KunneIkkeLageBrevRequest, LagBrevRequest> {
         return LagBrevRequestVisitor(
             hentPerson = { fnr ->
                 personService.hentPerson(fnr)
@@ -811,22 +832,9 @@ internal class RevurderingServiceImpl(
                     )
             },
             clock = clock,
-        ).let {
-            val r = if (fritekst != null) {
-                revurdering.medFritekst(fritekst)
-            } else {
-                revurdering
-            }
-            r.accept(it)
-            it.brevRequest
-        }.mapLeft {
-            when (it) {
-                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
-                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson
-                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeFinneGjeldendeUtbetaling
-            }
-        }.flatMap {
-            brevService.lagBrev(it).mapLeft { KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast }
+        ).let { visitor ->
+            visitable.accept(visitor)
+            visitor.brevRequest
         }
     }
 
@@ -846,17 +854,33 @@ internal class RevurderingServiceImpl(
 
                         revurdering.tilIverksatt(attestant, clock)
                             .map { iverksattRevurdering ->
-                                if (revurdering.skalFøreTilBrevutsending) {
-                                    ferdigstillVedtakService.journalførOgLagre(Vedtak.from(iverksattRevurdering, clock))
-                                        .map { journalførtVedtak ->
-                                            ferdigstillVedtakService.distribuerOgLagre(journalførtVedtak).mapLeft {
-                                                KunneIkkeIverksetteRevurdering.KunneIkkeDistribuereBrev
-                                            }
-                                        }.mapLeft {
-                                            KunneIkkeIverksetteRevurdering.KunneIkkeJournaleføreBrev
+                                val vedtakIngenEndring = Vedtak.from(iverksattRevurdering, clock)
+                                if (vedtakIngenEndring.skalSendeBrev()) {
+                                    val brevRequest = lagBrevRequest(vedtakIngenEndring)
+                                        .getOrHandle {
+                                            return when (it) {
+                                                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeIverksetteRevurdering.KunneIkkeFinneGjeldendeUtbetaling
+                                                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeIverksetteRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
+                                                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> KunneIkkeIverksetteRevurdering.FantIkkePerson
+                                            }.left()
                                         }
+
+                                    val dokument = brevRequest.tilDokument {
+                                        brevService.lagBrev(it)
+                                            .mapLeft { LagBrevRequest.KunneIkkeGenererePdf }
+                                    }.getOrHandle {
+                                        return KunneIkkeIverksetteRevurdering.KunneIkkeGenerereBrev.left()
+                                    }.leggTilMetadata(
+                                        Dokument.Metadata(
+                                            sakId = vedtakIngenEndring.behandling.sakId,
+                                            vedtakId = vedtakIngenEndring.id,
+                                            bestillBrev = true,
+                                        ),
+                                    )
+                                    vedtakRepo.lagre(vedtakIngenEndring)
+                                    brevService.lagreDokument(dokument)
                                 } else {
-                                    vedtakRepo.lagre(Vedtak.from(iverksattRevurdering, clock))
+                                    vedtakRepo.lagre(vedtakIngenEndring)
                                 }
                                 iverksattRevurdering
                             }

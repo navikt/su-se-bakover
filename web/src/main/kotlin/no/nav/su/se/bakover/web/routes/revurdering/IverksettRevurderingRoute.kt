@@ -29,13 +29,13 @@ import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withRevurderingId
 
 internal fun Route.iverksettRevurderingRoute(
-    revurderingService: RevurderingService
+    revurderingService: RevurderingService,
 ) {
     authorize(Brukerrolle.Attestant) {
         post("$revurderingPath/{revurderingId}/iverksett") {
             call.withRevurderingId { revurderingId ->
                 revurderingService.iverksett(
-                    revurderingId = revurderingId, attestant = NavIdentBruker.Attestant(call.suUserContext.navIdent)
+                    revurderingId = revurderingId, attestant = NavIdentBruker.Attestant(call.suUserContext.navIdent),
                 ).fold(
                     ifLeft = {
                         val message = it.tilResultat()
@@ -79,12 +79,11 @@ private fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
         "Kunne ikke utføre utbetaling",
         "kunne_ikke_utbetale",
     )
-    is KunneIkkeIverksetteRevurdering.KunneIkkeDistribuereBrev -> InternalServerError.errorJson(
-        "Kunne ikke distribuere brev",
-        "kunne_ikke_distribuere_brev",
+    KunneIkkeIverksetteRevurdering.FantIkkePerson -> Revurderingsfeilresponser.brevFantIkkePerson
+    KunneIkkeIverksetteRevurdering.KunneIkkeFinneGjeldendeUtbetaling -> Revurderingsfeilresponser.brevFantIkkeGjeldendeUtbetaling
+    KunneIkkeIverksetteRevurdering.KunneIkkeGenerereBrev -> InternalServerError.errorJson(
+        "Kunne ikke generere brev",
+        "kunne_ikke_generere_brev",
     )
-    is KunneIkkeIverksetteRevurdering.KunneIkkeJournaleføreBrev -> InternalServerError.errorJson(
-        "Kunne ikke journalføre brev",
-        "kunne_ikke_journalføre_brev",
-    )
+    KunneIkkeIverksetteRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> Revurderingsfeilresponser.brevNavneoppslagSaksbehandlerAttesttantFeilet
 }

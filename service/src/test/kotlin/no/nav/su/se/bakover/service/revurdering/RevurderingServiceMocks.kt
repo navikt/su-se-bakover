@@ -42,19 +42,23 @@ internal data class RevurderingServiceMocks(
         clock = fixedClock,
     )
 
+    fun all() = listOf(
+        vedtakService,
+        utbetalingService,
+        revurderingRepo,
+        oppgaveService,
+        personService,
+        microsoftGraphApiClient,
+        brevService,
+        vedtakRepo,
+        ferdigstillVedtakService,
+        grunnlagService,
+        vilkårsvurderingService,
+    ).toTypedArray()
+
     fun verifyNoMoreInteractions() {
         com.nhaarman.mockitokotlin2.verifyNoMoreInteractions(
-            vedtakService,
-            utbetalingService,
-            revurderingRepo,
-            oppgaveService,
-            personService,
-            microsoftGraphApiClient,
-            brevService,
-            vedtakRepo,
-            ferdigstillVedtakService,
-            grunnlagService,
-            vilkårsvurderingService,
+            *all(),
         )
     }
 }
