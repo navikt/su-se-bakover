@@ -9,7 +9,6 @@ import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering.FantIkkeRevurdering
@@ -59,17 +58,7 @@ private fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
         "Attestant og saksbehandler kan ikke være samme person",
         "attestant_og_saksbehandler_kan_ikke_være_samme_person",
     )
-    is KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> when (val kunneIkkeUtbetale = this.utbetalingFeilet) {
-        is UtbetalingFeilet.KunneIkkeSimulere -> kunneIkkeUtbetale.simuleringFeilet.tilResultat()
-        UtbetalingFeilet.Protokollfeil -> InternalServerError.errorJson(
-            "Kunne ikke utføre utbetaling",
-            "kunne_ikke_utbetale",
-        )
-        UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> InternalServerError.errorJson(
-            "Kunne ikke simulere, simulering har blitt endret siden saksbehandler simulerte",
-            "kunne_ikke_simulere_endret_siden_saksbehandler_simulerte",
-        )
-    }
+    is KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> this.utbetalingFeilet.tilResultat()
     is KunneIkkeIverksetteRevurdering.KunneIkkeDistribuereBrev -> InternalServerError.errorJson(
         "Kunne ikke distribuere brev",
         "kunne_ikke_distribuere_brev",

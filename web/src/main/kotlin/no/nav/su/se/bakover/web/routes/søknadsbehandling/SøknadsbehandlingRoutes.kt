@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
@@ -424,14 +423,7 @@ internal fun Route.søknadsbehandlingRoutes(
                 is KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> {
                     Forbidden.errorJson("Attestant og saksbehandler kan ikke være samme person", "attestant_samme_som_saksbehandler")
                 }
-                is KunneIkkeIverksette.KunneIkkeUtbetale -> when (val utbetalingFeilet = value.utbetalingFeilet) {
-                    is UtbetalingFeilet.KunneIkkeSimulere -> utbetalingFeilet.simuleringFeilet.tilResultat()
-                    UtbetalingFeilet.Protokollfeil -> InternalServerError.errorJson("Kunne ikke utføre utbetaling", "kunne_ikke_utbetale")
-                    UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> InternalServerError.errorJson(
-                        "Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres",
-                        "kontrollsimulering_ulik_saksbehandlers_simulering"
-                    )
-                }
+                is KunneIkkeIverksette.KunneIkkeUtbetale -> value.utbetalingFeilet.tilResultat()
                 is KunneIkkeIverksette.KunneIkkeJournalføreBrev -> {
                     InternalServerError.errorJson("Feil ved journalføring av vedtaksbrev", "kunne_ikke_journalføre_brev")
                 }
