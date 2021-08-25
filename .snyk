@@ -4,12 +4,25 @@ version: v1.19.0
 ignore:
   'snyk:lic:maven:org.jetbrains.intellij.deps:trove4j:LGPL-2.1':
     - '*':
-        reason: We only use this as an dependency, so this should not be in conflict with the MIT license
+        reason: We only use this as an dependency, so this should not be in conflict with our MIT license
         expires: 2022-01-01T00:00:00Z
-        created: 2021-07-01T08:28:18.701Z
-  'https://snyk.io/vuln/snyk:lic:maven:org.syslog4j:syslog4j:LGPL-3.0':
+  'snyk:lic:maven:org.syslog4j:syslog4j:LGPL-3.0':
     - '*':
-        reason: We only use this as an dependency, so this should not be in conflict with the MIT license
+        reason: We only use this as an dependency, so this should not be in conflict with our MIT license
         expires: 2022-01-01T00:00:00Z
-        created: 2021-07-01T08:31:54.495Z
-patch: {}
+  'snyk:lic:maven:ch.qos.logback:logback-core:EPL-1.0_OR_LGPL-2.1':
+    - '*':
+        reason: We only use this as an dependency, so this should not be in conflict with our MIT license
+        expires: 2022-01-01T00:00:00Z
+  'snyk:lic:maven:ch.qos.logback:logback-classic:EPL-1.0_OR_LGPL-2.1':
+    - '*':
+        reason: We only use this as an dependency, so this should not be in conflict with our MIT license
+        expires: 2022-01-01T00:00:00Z
+  'SNYK-JAVA-ORGGLASSFISH-1297098':
+    - no.nav:kafka-embedded-env:
+        reason: testImplementation without fix
+        expires: 2022-01-01T00:00:00Z
+  'SNYK-JAVA-IONETTY-1042268':
+    - io.ktor:ktor-server-netty:
+        reason: https://github.com/netty/netty/issues/11213 and https://github.com/netty/netty/issues/8537#issuecomment-829878258 denne angår egentlig ikke oss da vi nås via en reverse proxy over http.
+        expires: 2022-01-01T00:00:00Z
