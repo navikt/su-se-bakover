@@ -11,6 +11,8 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
@@ -20,7 +22,6 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
-import org.mockito.internal.verification.Times
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
@@ -44,28 +45,54 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             grunnlagService = grunnlagServiceMock,
         )
 
-        val request = LeggTilFradragsgrunnlagRequest(
-            behandlingId = behandling.id,
-            fradragsrunnlag = listOf(
-                Grunnlag.Fradragsgrunnlag.tryCreate(
-                    fradrag = FradragFactory.ny(
-                        type = Fradragstype.Arbeidsinntekt,
-                        månedsbeløp = 5000.0,
-                        periode = behandling.periode,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                    opprettet = fixedTidspunkt,
-                ).orNull()!!,
-            ),
+        val fradragsgrunnlag = listOf(
+            Grunnlag.Fradragsgrunnlag.tryCreate(
+                fradrag = FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 5000.0,
+                    periode = behandling.periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                opprettet = fixedTidspunkt,
+            ).orNull()!!,
         )
 
-        søknadsbehandlingService.leggTilFradragGrunnlag(request).getOrHandle { fail { "uventet respons" } }
+        val request = LeggTilFradragsgrunnlagRequest(
+            behandlingId = behandling.id,
+            fradragsrunnlag = fradragsgrunnlag,
+        )
 
-        verify(søknadsbehandlingRepoMock, Times(2)).hent(argThat { it shouldBe behandling.id })
+        val actual = søknadsbehandlingService.leggTilFradragGrunnlag(request).getOrHandle { fail { "uventet respons" } }
+
+        actual shouldBe Søknadsbehandling.Vilkårsvurdert.Innvilget(
+            behandling.id,
+            behandling.opprettet,
+            behandling.sakId,
+            behandling.saksnummer,
+            behandling.søknad,
+            behandling.oppgaveId,
+            behandling.behandlingsinformasjon,
+            behandling.fnr,
+            behandling.fritekstTilBrev,
+            behandling.stønadsperiode,
+            grunnlagsdata = Grunnlagsdata.tryCreate(
+                fradragsgrunnlag = fradragsgrunnlag,
+                bosituasjon = behandling.grunnlagsdata.bosituasjon,
+            ),
+            behandling.vilkårsvurderinger,
+            behandling.attesteringer,
+        )
+
+        verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandling.id })
         verify(grunnlagServiceMock).lagreFradragsgrunnlag(
             argThat { it shouldBe behandling.id },
             argThat { it shouldBe request.fradragsrunnlag },
+        )
+        verify(søknadsbehandlingRepoMock).lagre(
+            argThat {
+                it shouldBe behandling.copy(grunnlagsdata = behandling.grunnlagsdata.copy(fradragsgrunnlag = fradragsgrunnlag))
+            },
         )
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, grunnlagServiceMock)
     }

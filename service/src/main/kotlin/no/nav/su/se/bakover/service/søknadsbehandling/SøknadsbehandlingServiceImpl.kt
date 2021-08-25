@@ -689,7 +689,7 @@ internal class SøknadsbehandlingServiceImpl(
         val behandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
 
-        behandling.validerFradragsgrunnlag(request.fradragsrunnlag).getOrHandle {
+        val oppdatertBehandling = behandling.leggTilFradragsgrunnlag(request.fradragsrunnlag).getOrHandle {
             return when (it) {
                 Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInneforBehandlingen -> KunneIkkeLeggeTilFradragsgrunnlag.FradragsgrunnlagUtenforPeriode.left()
                 Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen -> KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
@@ -700,9 +700,8 @@ internal class SøknadsbehandlingServiceImpl(
         }
 
         grunnlagService.lagreFradragsgrunnlag(behandling.id, request.fradragsrunnlag)
-        val behandlingMedGrunnlag = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
+        søknadsbehandlingRepo.lagre(oppdatertBehandling)
 
-        return behandlingMedGrunnlag.right()
+        return oppdatertBehandling.right()
     }
 }

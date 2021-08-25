@@ -45,7 +45,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
         object PeriodeMåFyllesUt : KunneIkkeLeggeTilFradragsgrunnlag()
     }
 
-    open fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Unit> {
+    open fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
         if (fradragsgrunnlag.isNotEmpty()) {
             if (fradragsgrunnlag.periode() != null) {
                 if (!(periode inneholder fradragsgrunnlag.periode()!!)) {
@@ -56,7 +56,24 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             }
         }
 
-        return Unit.right()
+        return Vilkårsvurdert.Innvilget(
+            id,
+            opprettet,
+            sakId,
+            saksnummer,
+            søknad,
+            oppgaveId,
+            this.behandlingsinformasjon.patch(behandlingsinformasjon),
+            fnr,
+            fritekstTilBrev,
+            stønadsperiode!!,
+            grunnlagsdata = Grunnlagsdata.tryCreate(
+                fradragsgrunnlag = fradragsgrunnlag,
+                bosituasjon = this.grunnlagsdata.bosituasjon,
+            ),
+            vilkårsvurderinger,
+            attesteringer,
+        ).right()
     }
 
     sealed class Vilkårsvurdert : Søknadsbehandling() {
@@ -216,7 +233,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 visitor.visit(this)
             }
 
-            override fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Unit> =
+            override fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Innvilget> =
                 KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
 
             fun tilAttestering(
@@ -267,7 +284,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 visitor.visit(this)
             }
 
-            override fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Unit> =
+            override fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Innvilget> =
                 KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
         }
 
@@ -577,7 +594,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
         abstract override val stønadsperiode: Stønadsperiode
         abstract override val attesteringer: Attesteringshistorikk
 
-        override fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Unit> =
+        override fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> =
             KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
 
         data class Innvilget(
@@ -1024,7 +1041,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     return this.copy(oppgaveId = nyOppgaveId)
                 }
 
-                override fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Unit> =
+                override fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> =
                     KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
 
                 override fun accept(visitor: SøknadsbehandlingVisitor) {
@@ -1067,7 +1084,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
         abstract override val attesteringer: Attesteringshistorikk
         abstract override val stønadsperiode: Stønadsperiode
 
-        override fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Unit> =
+        override fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> =
             KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
 
         data class Innvilget(
