@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -412,9 +413,9 @@ internal class StatusovergangTest {
             forsøkStatusovergang(
                 beregnetInnvilget,
                 Statusovergang.TilSimulert {
-                    Statusovergang.KunneIkkeSimulereBehandling.KunneIkkeSimulere.left()
+                    SimuleringFeilet.TEKNISK_FEIL.left()
                 },
-            ) shouldBe Statusovergang.KunneIkkeSimulereBehandling.KunneIkkeSimulere.left()
+            ) shouldBe SimuleringFeilet.TEKNISK_FEIL.left()
         }
 
         @Test
@@ -432,9 +433,9 @@ internal class StatusovergangTest {
             forsøkStatusovergang(
                 simulert,
                 Statusovergang.TilSimulert {
-                    Statusovergang.KunneIkkeSimulereBehandling.KunneIkkeSimulere.left()
+                    SimuleringFeilet.TEKNISK_FEIL.left()
                 },
-            ) shouldBe Statusovergang.KunneIkkeSimulereBehandling.KunneIkkeSimulere.left()
+            ) shouldBe SimuleringFeilet.TEKNISK_FEIL.left()
         }
 
         @Test
@@ -452,9 +453,9 @@ internal class StatusovergangTest {
             forsøkStatusovergang(
                 underkjentInnvilget,
                 Statusovergang.TilSimulert {
-                    Statusovergang.KunneIkkeSimulereBehandling.KunneIkkeSimulere.left()
+                    SimuleringFeilet.TEKNISK_FEIL.left()
                 },
-            ) shouldBe Statusovergang.KunneIkkeSimulereBehandling.KunneIkkeSimulere.left()
+            ) shouldBe SimuleringFeilet.TEKNISK_FEIL.left()
         }
 
         @Test
@@ -696,33 +697,33 @@ internal class StatusovergangTest {
         }
 
         @Test
-        fun `attestert avslag vilkår kan ikke attestere sitt eget verk`() {
+        fun `attestert avslag vilkår, saksbehandler kan ikke attestere sitt eget verk`() {
             forsøkStatusovergang(
                 tilAttesteringAvslagVilkår.copy(saksbehandler = NavIdentBruker.Saksbehandler(attestering.attestant.navIdent)),
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
                 ) { throw IllegalStateException() },
-            ) shouldBe Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
+            ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
         }
 
         @Test
-        fun `attestert avslag beregning kan ikke attestere sitt eget verk`() {
+        fun `attestert avslag beregning, saksbehandler kan ikke attestere sitt eget verk`() {
             forsøkStatusovergang(
                 tilAttesteringAvslagBeregning.copy(saksbehandler = NavIdentBruker.Saksbehandler(attestering.attestant.navIdent)),
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
                 ) { throw IllegalStateException() },
-            ) shouldBe Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
+            ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
         }
 
         @Test
-        fun `attestert innvilget kan ikke attestere sitt eget verk`() {
+        fun `attestert innvilget, saksbehandler kan ikke attestere sitt eget verk`() {
             forsøkStatusovergang(
                 tilAttesteringInnvilget.copy(saksbehandler = NavIdentBruker.Saksbehandler(attestering.attestant.navIdent)),
                 Statusovergang.TilIverksatt(
                     attestering = attestering,
                 ) { UUID30.randomUUID().right() },
-            ) shouldBe Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
+            ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
         }
 
         @Test

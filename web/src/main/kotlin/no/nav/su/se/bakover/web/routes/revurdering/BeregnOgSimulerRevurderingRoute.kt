@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.service.revurdering.BeregnOgSimulerResponse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.AuditLogEvent
@@ -25,6 +24,7 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.Feilresponser.kanIkkeHaEpsFradragUtenEps
+import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.sikkerlogg
@@ -97,20 +97,6 @@ private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
             "Kan ikke velge siste måned av stønadsperioden ved nedgang i stønaden",
             "siste_måned_ved_nedgang_i_stønaden",
         )
-        is SimuleringFeilet -> InternalServerError.errorJson(
-            "Simulering feilet",
-            "simulering_feilet",
-        )
-        is KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeiletFinnerIkkeKjøreplansperiodeForFom -> InternalServerError.errorJson(
-            "Simuleringsfeil: Finner ikke kjøreplansperiode for fom-dato",
-            "simulering_finner_ikke_kjøreplansperiode_for_fom",
-        )
-        is KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeiletFinnerIkkePerson -> InternalServerError.errorJson(
-            "Simuleringsfeil: Finner ikke person i TPS", "simulering_finner_ikke_person_i_tps",
-        )
-        is KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeiletOppdragStengtEllerNede -> InternalServerError.errorJson(
-            "Simuleringsfeil: Oppdrag/UR er stengt eller nede", "simulering_oppdrag_stengt_eller_nede",
-        )
         is KunneIkkeBeregneOgSimulereRevurdering.MåSendeGrunnbeløpReguleringSomÅrsakSammenMedForventetInntekt -> BadRequest.errorJson(
             "Forventet inntekt kan kun sendes sammen med regulering av grunnbeløp",
             "grunnbelop_forventetinntekt",
@@ -124,5 +110,6 @@ private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
             "ufullstendig_vilkårsvurdering",
         )
         is KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> kanIkkeHaEpsFradragUtenEps
+        is KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere -> this.simuleringFeilet.tilResultat()
     }
 }

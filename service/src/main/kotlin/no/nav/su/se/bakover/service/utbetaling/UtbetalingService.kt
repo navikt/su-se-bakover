@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -39,7 +40,7 @@ interface UtbetalingService {
         attestant: NavIdentBruker,
         beregning: Beregning,
         simulering: Simulering,
-    ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering>
+    ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun stansUtbetalinger(
         sakId: UUID,
@@ -57,7 +58,7 @@ interface UtbetalingService {
         attestant: NavIdentBruker,
         simulering: Simulering,
         opphørsdato: LocalDate,
-    ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering>
+    ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun hentGjeldendeUtbetaling(
         sakId: UUID,
@@ -67,15 +68,6 @@ interface UtbetalingService {
 
 object FantIkkeUtbetaling
 object FantIkkeGjeldendeUtbetaling
-
-sealed class KunneIkkeUtbetale {
-    object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeUtbetale()
-    object Protokollfeil : KunneIkkeUtbetale()
-    object KunneIkkeSimulere : KunneIkkeUtbetale()
-    object KunneIkkeSimulereOppdragStengtEllerNede : KunneIkkeUtbetale()
-    object KunneIkkeSimulereFinnerIkkePerson : KunneIkkeUtbetale()
-    object KunneIkkeSimulereFinnerIkkeKjøreplansperiodeForFom : KunneIkkeUtbetale()
-}
 
 sealed class KunneIkkeStanseUtbetalinger {
     object FantIkkeSak : KunneIkkeStanseUtbetalinger()

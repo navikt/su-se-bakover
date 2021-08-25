@@ -4,7 +4,9 @@ import arrow.core.Either
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
@@ -69,11 +71,8 @@ interface SøknadsbehandlingService {
     )
 
     sealed class KunneIkkeSimulereBehandling {
-        object KunneIkkeSimulere : KunneIkkeSimulereBehandling()
+        data class KunneIkkeSimulere(val simuleringFeilet: SimuleringFeilet) : KunneIkkeSimulereBehandling()
         object FantIkkeBehandling : KunneIkkeSimulereBehandling()
-        object OppdragStengtEllerNede : KunneIkkeSimulereBehandling()
-        object FinnerIkkePerson : KunneIkkeSimulereBehandling()
-        object FinnerIkkeKjøreplanForFom : KunneIkkeSimulereBehandling()
     }
 
     data class SendTilAttesteringRequest(
@@ -104,20 +103,6 @@ interface SøknadsbehandlingService {
         val behandlingId: UUID,
         val attestering: Attestering,
     )
-
-    sealed class KunneIkkeIverksette {
-        object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksette()
-        object KunneIkkeUtbetale : KunneIkkeIverksette()
-        object KunneIkkeKontrollsimulere : KunneIkkeIverksette()
-        object KunneIkkeKontrollsimulereFantIkkePerson : KunneIkkeIverksette()
-        object KunneIkkeKontrollsimulereOppdragStengtEllerNede : KunneIkkeIverksette()
-        object KunneIkkeKontrollsimulereFinnerIkkeKjøreplansperiodeForFom : KunneIkkeIverksette()
-        object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeIverksette()
-        object KunneIkkeJournalføreBrev : KunneIkkeIverksette()
-        object FantIkkeBehandling : KunneIkkeIverksette()
-        object FantIkkePerson : KunneIkkeIverksette()
-        object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeIverksette()
-    }
 
     sealed class BrevRequest {
         abstract val behandling: Søknadsbehandling

@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.util.UUID
 
 sealed class Utbetaling {
@@ -154,4 +155,10 @@ sealed class Utbetaling {
             this.filter { it is Utbetaling.OversendtUtbetaling.UtenKvittering || it is OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk() }
                 .sortedBy { it.opprettet.instant } // TODO potentially fix sorting
     }
+}
+
+sealed class UtbetalingFeilet {
+    object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : UtbetalingFeilet()
+    object Protokollfeil : UtbetalingFeilet()
+    data class KunneIkkeSimulere(val simuleringFeilet: SimuleringFeilet) : UtbetalingFeilet()
 }

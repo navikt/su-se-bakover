@@ -12,6 +12,8 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -186,10 +188,6 @@ sealed class KunneIkkeOppdatereRevurdering {
 sealed class KunneIkkeBeregneOgSimulereRevurdering {
     object MåSendeGrunnbeløpReguleringSomÅrsakSammenMedForventetInntekt : KunneIkkeBeregneOgSimulereRevurdering()
     object FantIkkeRevurdering : KunneIkkeBeregneOgSimulereRevurdering()
-    object SimuleringFeilet : KunneIkkeBeregneOgSimulereRevurdering()
-    object SimuleringFeiletOppdragStengtEllerNede : KunneIkkeBeregneOgSimulereRevurdering()
-    object SimuleringFeiletFinnerIkkePerson : KunneIkkeBeregneOgSimulereRevurdering()
-    object SimuleringFeiletFinnerIkkeKjøreplansperiodeForFom : KunneIkkeBeregneOgSimulereRevurdering()
     object KanIkkeVelgeSisteMånedVedNedgangIStønaden : KunneIkkeBeregneOgSimulereRevurdering()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
         KunneIkkeBeregneOgSimulereRevurdering()
@@ -200,6 +198,8 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
 
     object UfullstendigVilkårsvurdering : KunneIkkeBeregneOgSimulereRevurdering()
     object KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps : KunneIkkeBeregneOgSimulereRevurdering()
+
+    data class KunneIkkeSimulere(val simuleringFeilet: SimuleringFeilet) : KunneIkkeBeregneOgSimulereRevurdering()
 }
 
 sealed class KunneIkkeForhåndsvarsle {
@@ -234,11 +234,7 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
 
 sealed class KunneIkkeIverksetteRevurdering {
     object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering()
-    object KunneIkkeUtbetale : KunneIkkeIverksetteRevurdering()
-    object KunneIkkeKontrollsimulere : KunneIkkeIverksetteRevurdering()
-    object KunneIkkeKontrollsimulereFinnerIkkePerson : KunneIkkeIverksetteRevurdering()
-    object KunneIkkeKontrollsimulereFinnerIkkeKjøreplansperiodeForFom : KunneIkkeIverksetteRevurdering()
-    object KunneIkkeKontrollsimulereOppdragErStengtEllerNede : KunneIkkeIverksetteRevurdering()
+    data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksetteRevurdering()
     object KunneIkkeJournaleføreBrev : KunneIkkeIverksetteRevurdering()
     object KunneIkkeDistribuereBrev : KunneIkkeIverksetteRevurdering()
     object FantIkkeRevurdering : KunneIkkeIverksetteRevurdering()

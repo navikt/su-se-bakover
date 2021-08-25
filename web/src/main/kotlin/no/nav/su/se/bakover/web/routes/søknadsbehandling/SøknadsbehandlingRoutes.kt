@@ -22,13 +22,13 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BrevRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.HentRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.IverksettRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeBeregne
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeIverksette
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeOpprette
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeSendeTilAttestering
@@ -51,6 +51,7 @@ import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.kanIkkeHaEpsFradragUtenEps
+import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson
 import no.nav.su.se.bakover.web.sikkerlogg
@@ -339,31 +340,8 @@ internal fun Route.søknadsbehandlingRoutes(
                 ).fold(
                     {
                         val resultat = when (it) {
-                            KunneIkkeSimulereBehandling.KunneIkkeSimulere -> {
-                                InternalServerError.errorJson(
-                                    "Kunne ikke gjennomføre simulering",
-                                    "kunne_ikke_simulere",
-                                )
-                            }
                             KunneIkkeSimulereBehandling.FantIkkeBehandling -> fantIkkeBehandling
-                            KunneIkkeSimulereBehandling.OppdragStengtEllerNede -> {
-                                InternalServerError.errorJson(
-                                    "Simuleringsfeil: Oppdrag/UR er stengt eller nede",
-                                    "simulering_oppdrag_stengt_eller_nede",
-                                )
-                            }
-                            KunneIkkeSimulereBehandling.FinnerIkkePerson -> {
-                                InternalServerError.errorJson(
-                                    "Simuleringsfeil: Finner ikke person i TPS",
-                                    "simulering_finner_ikke_person_i_tps",
-                                )
-                            }
-                            KunneIkkeSimulereBehandling.FinnerIkkeKjøreplanForFom -> {
-                                InternalServerError.errorJson(
-                                    "Simuleringsfeil: Finner ikke kjøreplansperiode for fom-dato",
-                                    "simulering_finner_ikke_kjøreplansperiode_for_fom",
-                                )
-                            }
+                            is KunneIkkeSimulereBehandling.KunneIkkeSimulere -> it.simuleringFeilet.tilResultat()
                         }
                         call.svar(resultat)
                     },
@@ -430,30 +408,7 @@ internal fun Route.søknadsbehandlingRoutes(
                         "attestant_samme_som_saksbehandler",
                     )
                 }
-                is KunneIkkeIverksette.KunneIkkeUtbetale -> {
-                    InternalServerError.errorJson("Kunne ikke utføre utbetaling", "kunne_ikke_utbetale")
-                }
-                is KunneIkkeIverksette.KunneIkkeKontrollsimulere -> {
-                    InternalServerError.errorJson("Kunne ikke utføre kontrollsimulering", "kunne_ikke_kontrollsimulere")
-                }
-                KunneIkkeIverksette.KunneIkkeKontrollsimulereFantIkkePerson -> InternalServerError.errorJson(
-                    "Kontrollsimulering feilet: Finner ikke person i TPS",
-                    "kontrollsimulering_finner_ikke_person_i_tps",
-                )
-                KunneIkkeIverksette.KunneIkkeKontrollsimulereFinnerIkkeKjøreplansperiodeForFom -> InternalServerError.errorJson(
-                    "Kontrollsimulering feilet: Finner ikke kjøreplansperiode for fom-dato",
-                    "kontrollsimulering_finner_ikke_kjøreplansperiode_for_fom",
-                )
-                KunneIkkeIverksette.KunneIkkeKontrollsimulereOppdragStengtEllerNede -> InternalServerError.errorJson(
-                    "Kontrollsimulering feilet: Oppdrag er stengt eller nede",
-                    "kontrollsimulering_oppdrag_er_stengt_eller_nede",
-                )
-                is KunneIkkeIverksette.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> {
-                    InternalServerError.errorJson(
-                        "Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres",
-                        "kontrollsimulering_ulik_saksbehandlers_simulering",
-                    )
-                }
+                is KunneIkkeIverksette.KunneIkkeUtbetale -> value.utbetalingFeilet.tilResultat()
                 is KunneIkkeIverksette.KunneIkkeJournalføreBrev -> {
                     InternalServerError.errorJson(
                         "Feil ved journalføring av vedtaksbrev",

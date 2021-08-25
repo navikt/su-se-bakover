@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
@@ -259,7 +260,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
     @Test
     fun `simulering feilet`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet,
+            error = KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL),
             expectedStatusCode = HttpStatusCode.InternalServerError,
             expectedJsonResponse = """
                 {

@@ -1192,6 +1192,15 @@ enum class BehandlingsStatus {
     IVERKSATT_AVSLAG,
 }
 
+sealed class KunneIkkeIverksette {
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksette()
+    data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksette()
+    object KunneIkkeJournalføreBrev : KunneIkkeIverksette()
+    object FantIkkeBehandling : KunneIkkeIverksette()
+    object FantIkkePerson : KunneIkkeIverksette()
+    object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeIverksette()
+}
+
 // Her trikses det litt for å få til at funksjonen returnerer den samme konkrete typen som den kalles på.
 // Teoretisk sett skal ikke UNCHECKED_CAST være noe problem i dette tilfellet siden T er begrenset til subklasser av Søknadsbehandling.
 // ... i hvert fall så lenge alle subklassene av Søknadsbehandling er data classes
