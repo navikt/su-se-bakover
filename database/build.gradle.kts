@@ -1,13 +1,13 @@
 val flywayVersion = "7.14.0"
 val hikariVersion = "5.0.0"
-val vaultJdbcVersion = "1.3.7"
+val vaultJdbcVersion = "vault-jdbc-1.3.8-SNAPSHOT"
 val kotliqueryVersion = "1.3.1"
 dependencies {
     implementation(project(":common"))
     implementation(project(":domain"))
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("com.zaxxer:HikariCP:$hikariVersion")
-    implementation("no.nav:vault-jdbc:$vaultJdbcVersion")
+    implementation("com.github.navikt:vault-jdbc:$vaultJdbcVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
 
     testImplementation(project(":test-common"))
