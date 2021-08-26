@@ -58,6 +58,10 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
         }
     }
 
+    override fun hentPersonhendelserUtenOppgave(): List<Personhendelse.TilknyttetSak> {
+        TODO("Not yet implemented")
+    }
+
     internal fun hent(id: UUID): Personhendelse.TilknyttetSak? = datasource.withSession { session ->
         """
         select p.*, s.saksnummer as saksnummer from personhendelse p
@@ -95,7 +99,7 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
         else -> throw RuntimeException("Kunne ikke deserialisere [Personhendelse]. Ukjent type: $type")
     }
 
-    // TODO jah: Denne er litt premature. Trengs ikke før neste PR.
+    // TODO jah: Merge sammen med lagre
     // override fun oppdaterOppgave(hendelseId: String, oppgaveId: OppgaveId) {
     //     datasource.withSession { session ->
     //         """
@@ -104,9 +108,9 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
     //             mapOf(
     //                 "hendelseId" to hendelseId,
     //                 "endret" to LocalDate.now(),
-    //                 "oppgaveId" to oppgaveId.toString()
+    //                 "oppgaveId" to oppgaveId.toString(),
     //             ),
-    //             session
+    //             session,
     //         )
     //     }
     // }

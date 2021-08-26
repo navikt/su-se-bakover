@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.hendelser
+package no.nav.su.se.bakover.service.personhendelser
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe

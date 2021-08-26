@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.hendelser
+package no.nav.su.se.bakover.service.personhendelser
 
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.database.hendelse.PersonhendelseRepo
@@ -32,5 +32,9 @@ class PersonhendelseService(
             id = UUID.randomUUID(),
             sakId = eksisterendeSakId,
         )
+    }
+
+    fun opprettOppgaverForPersonhendelser() {
+        personhendelseRepo.hentPersonhendelserUtenOppgave()
     }
 }

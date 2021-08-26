@@ -5,7 +5,8 @@ import java.util.UUID
 
 interface PersonhendelseRepo {
     fun lagre(personhendelse: Personhendelse.Ny, id: UUID, sakId: UUID)
-    // TODO jah: Disse er litt premature. Kommer i neste PR
-    // fun hent(hendelseId: String): Personhendelse.Persistert?
+    fun hentPersonhendelserUtenOppgave(): List<Personhendelse.TilknyttetSak>
+
+    // TODO jah: Knytt inn i lagre
     // fun oppdaterOppgave(hendelseId: String, oppgaveId: OppgaveId)
 }
