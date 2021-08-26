@@ -29,7 +29,6 @@ allprojects {
     val arrowVersion = "0.13.2"
     val kotestVersion = "4.6.1"
     val jacksonVersion = "2.12.4"
-    val bouncycastleVersion = "1.69"
     val kotlinVersion = "1.5.21"
     dependencies {
         api(kotlin("stdlib-jdk8"))
@@ -51,7 +50,7 @@ allprojects {
         implementation("no.finn.unleash:unleash-client-java:4.4.0")
 
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.3.0")
-        implementation("io.confluent:kafka-avro-serializer:6.0.1")
+        implementation("io.confluent:kafka-avro-serializer:6.2.0")
         implementation("org.apache.avro:avro:1.10.2")
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
@@ -66,35 +65,29 @@ allprojects {
         testImplementation("org.mockito.kotlin:mockito-kotlin:3.2.0")
 
         constraints {
-            implementation("io.netty:netty-codec-http2:4.1.67.Final") {
-                because("https://app.snyk.io/vuln/SNYK-JAVA-IONETTY-1020439")
+            implementation("org.apache.commons:commons-compress") {
+                because("org.apache.avro:avro:1.10.2 -> https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECOMMONS-1316641")
+                version {
+                    require("1.21")
+                }
             }
-            implementation("commons-collections:commons-collections:3.2.2") {
-                because("https://app.snyk.io/vuln/SNYK-JAVA-COMMONSCOLLECTIONS-30078")
+            implementation("org.postgresql:postgresql") {
+                because("no.nav:vault-jdbc@1.3.7 -> https://app.snyk.io/vuln/SNYK-JAVA-ORGPOSTGRESQL-571481")
+                version {
+                    require("42.2.23")
+                }
             }
-            implementation("commons-codec:commons-codec:1.15") {
-                because("https://app.snyk.io/vuln/SNYK-JAVA-COMMONSCODEC-561518")
+            implementation("commons-collections:commons-collections") {
+                because("org.apache.cxf:cxf-rt-ws-security@3.4.4 -> https://app.snyk.io/vuln/SNYK-JAVA-COMMONSCOLLECTIONS-30078 and https://snyk.io/vuln/SNYK-JAVA-COMMONSCOLLECTIONS-472711")
+                version {
+                    require("3.2.2")
+                }
             }
-            implementation("com.google.guava:guava:30.1.1-jre") {
-                because("https://app.snyk.io/vuln/SNYK-JAVA-COMGOOGLEGUAVA-1015415")
-            }
-            implementation("org.apache.httpcomponents:httpclient:4.5.13") {
-                because("https://app.snyk.io/vuln/SNYK-JAVA-ORGAPACHEHTTPCOMPONENTS-1016906")
-            }
-            implementation("org.postgresql:postgresql:42.2.23") {
-                because("https://app.snyk.io/vuln/SNYK-JAVA-ORGPOSTGRESQL-571481")
-            }
-            implementation("org.apache.cxf:cxf-rt-transports-http:3.4.4") {
-                because("https://app.snyk.io/vuln/SNYK-JAVA-ORGAPACHECXF-1039798")
-            }
-            implementation("junit:junit:4.13.2") {
-                because("https://app.snyk.io/vuln/SNYK-JAVA-JUNIT-1017047")
-            }
-            implementation("org.bouncycastle:bcprov-jdk15on:$bouncycastleVersion") {
-                because("https://app.snyk.io/vuln/SNYK-JAVA-ORGBOUNCYCASTLE-1052448")
-            }
-            implementation("org.bouncycastle:bcpkix-jdk15on:$bouncycastleVersion") {
-                because("https://app.snyk.io/vuln/SNYK-JAVA-ORGBOUNCYCASTLE-1052448")
+            implementation("org.eclipse.jetty:jetty-server") {
+                because("no.nav:kafka-embedded-env@2.8.0 -> https://snyk.io/vuln/SNYK-JAVA-ORGECLIPSEJETTY-1313686")
+                version {
+                    require("9.4.43.v20210629")
+                }
             }
         }
     }
@@ -137,6 +130,9 @@ allprojects {
         reportfileName = "report"
         revision = "release" // Not waterproof
     }
+
+    // Run `./gradlew allDeps` to get a dependency graph
+    task("allDeps", DependencyReportTask::class) {}
 }
 
 tasks.check {

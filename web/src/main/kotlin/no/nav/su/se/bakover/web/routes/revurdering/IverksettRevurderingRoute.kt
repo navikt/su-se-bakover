@@ -12,8 +12,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering.FantIkkeRevurdering
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulere
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering.UgyldigTilstand
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.AuditLogEvent
@@ -22,6 +20,7 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
+import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.sikkerlogg
@@ -59,26 +58,7 @@ private fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
         "Attestant og saksbehandler kan ikke være samme person",
         "attestant_og_saksbehandler_kan_ikke_være_samme_person",
     )
-    is KunneIkkeKontrollsimulere -> InternalServerError.errorJson(
-        "Kunne ikke utføre kontrollsimulering",
-        "kunne_ikke_kontrollsimulere",
-    )
-    KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulereFinnerIkkeKjøreplansperiodeForFom -> InternalServerError.errorJson(
-        "Kontrollsimulering feilet: Finner ikke kjøreplansperiode for fom-dato",
-        "kontrollsimulering_finner_ikke_kjøreplansperiode_for_fom",
-    )
-    KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulereFinnerIkkePerson -> InternalServerError.errorJson(
-        "Kontrollsimulering feilet: Finner ikke person i TPS",
-        "kontrollsimulering_finner_ikke_person_i_tps",
-    )
-    KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulereOppdragErStengtEllerNede -> InternalServerError.errorJson(
-        "Kontrollsimulering feilet: Oppdrag er stengt eller nede",
-        "kontrollsimulering_oppdrag_er_stengt_eller_nede",
-    )
-    is KunneIkkeUtbetale -> InternalServerError.errorJson(
-        "Kunne ikke utføre utbetaling",
-        "kunne_ikke_utbetale",
-    )
+    is KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> this.utbetalingFeilet.tilResultat()
     KunneIkkeIverksetteRevurdering.FantIkkePerson -> Revurderingsfeilresponser.brevFantIkkePerson
     KunneIkkeIverksetteRevurdering.KunneIkkeFinneGjeldendeUtbetaling -> Revurderingsfeilresponser.brevFantIkkeGjeldendeUtbetaling
     KunneIkkeIverksetteRevurdering.KunneIkkeGenerereBrev -> InternalServerError.errorJson(

@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.toAvslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -1124,6 +1125,15 @@ enum class BehandlingsStatus {
     UNDERKJENT_AVSLAG,
     IVERKSATT_INNVILGET,
     IVERKSATT_AVSLAG,
+}
+
+sealed class KunneIkkeIverksette {
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksette()
+    data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksette()
+    object FantIkkeBehandling : KunneIkkeIverksette()
+    object FantIkkePerson : KunneIkkeIverksette()
+    object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeIverksette()
+    object KunneIkkeGenerereVedtaksbrev : KunneIkkeIverksette()
 }
 
 // Her trikses det litt for å få til at funksjonen returnerer den samme konkrete typen som den kalles på.

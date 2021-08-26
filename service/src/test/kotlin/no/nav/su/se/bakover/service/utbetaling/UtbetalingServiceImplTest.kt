@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -452,7 +453,7 @@ internal class UtbetalingServiceImplTest {
             simulering = simulering,
         )
 
-        response shouldBe KunneIkkeUtbetale.Protokollfeil.left()
+        response shouldBe UtbetalingFeilet.Protokollfeil.left()
 
         inOrder(sakServiceMock, simuleringClientMock, utbetalingPublisherMock) {
             verify(sakServiceMock).hentSak(sakId)
@@ -530,7 +531,7 @@ internal class UtbetalingServiceImplTest {
             simulering = simulering,
         )
 
-        actual shouldBe KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+        actual shouldBe UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
         inOrder(
             sakServiceMock,
             simuleringClientMock,

@@ -28,13 +28,15 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -52,12 +54,10 @@ import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
-import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import no.nav.su.se.bakover.test.person
-import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -133,7 +133,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             ),
         )
 
-        response shouldBe SøknadsbehandlingService.KunneIkkeIverksette.FantIkkeBehandling.left()
+        response shouldBe KunneIkkeIverksette.FantIkkeBehandling.left()
 
         inOrder(søknadsbehandlingRepoMock, ferdigstillVedtakServiceMock) {
             verify(søknadsbehandlingRepoMock).hent(behandling.id)
@@ -150,7 +150,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { utbetal(any(), any(), any(), any()) } doReturn KunneIkkeUtbetale.KunneIkkeSimulere.left()
+            on { utbetal(any(), any(), any(), any()) } doReturn UtbetalingFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL).left()
         }
 
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
@@ -165,7 +165,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             ),
         )
 
-        response shouldBe SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeKontrollsimulere.left()
+        response shouldBe KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL)).left()
 
         inOrder(
             *serviceAndMocks.all().toTypedArray(),
@@ -197,7 +197,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     any(),
                     any(),
                 )
-            } doReturn KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+            } doReturn UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
         }
 
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
@@ -212,7 +212,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             ),
         )
 
-        response shouldBe SøknadsbehandlingService.KunneIkkeIverksette.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+        response shouldBe KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte).left()
 
         inOrder(
             *serviceAndMocks.all().toTypedArray(),
@@ -237,7 +237,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { utbetal(any(), any(), any(), any()) } doReturn KunneIkkeUtbetale.Protokollfeil.left()
+            on { utbetal(any(), any(), any(), any()) } doReturn UtbetalingFeilet.Protokollfeil.left()
         }
 
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
@@ -252,7 +252,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             ),
         )
 
-        response shouldBe SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeUtbetale.left()
+        response shouldBe KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
 
         inOrder(
             *serviceAndMocks.all().toTypedArray(),
@@ -475,7 +475,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             ),
         )
 
-        response shouldBe SøknadsbehandlingService.KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        response shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
 
         inOrder(
             *serviceAndMocks.all().toTypedArray(),
@@ -509,7 +509,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             ),
         )
 
-        response shouldBe SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev.left()
+        response shouldBe KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev.left()
 
         inOrder(
             *serviceAndMocks.all().toTypedArray(),
@@ -627,16 +627,4 @@ internal class SøknadsbehandlingServiceIverksettTest {
         nettoBeløp = 191500,
         periodeList = listOf(),
     )
-
-    @Nested
-    inner class IverksettStatusovergangFeilMapperTest {
-        @Test
-        fun `mapper feil fra statusovergang til fornuftige typer for servicelaget`() {
-            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulere) shouldBe SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeKontrollsimulere
-            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte) shouldBe SøknadsbehandlingService.KunneIkkeIverksette.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
-            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.TekniskFeil) shouldBe SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeUtbetale
-            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson) shouldBe SøknadsbehandlingService.KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
-            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.FantIkkePerson) shouldBe SøknadsbehandlingService.KunneIkkeIverksette.FantIkkePerson
-        }
-    }
 }

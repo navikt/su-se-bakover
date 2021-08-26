@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
 import no.nav.su.se.bakover.domain.grunnlag.harFlerEnnEnBosituasjonsperiode
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
@@ -58,7 +57,6 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
-import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
@@ -501,12 +499,7 @@ internal class RevurderingServiceImpl(
                             saksbehandler = saksbehandler,
                             beregning = beregnetRevurdering.beregning,
                         ).mapLeft {
-                            when (it) {
-                                SimuleringFeilet.OPPDRAG_UR_ER_STENGT -> KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeiletOppdragStengtEllerNede
-                                SimuleringFeilet.PERSONEN_FINNES_IKKE_I_TPS -> KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeiletFinnerIkkePerson
-                                SimuleringFeilet.FINNER_IKKE_KJØREPLANSPERIODE_FOR_FOM -> KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeiletFinnerIkkeKjøreplansperiodeForFom
-                                else -> KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet
-                            }
+                            KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it)
                         }.map {
                             val simulert = beregnetRevurdering.toSimulert(it.simulering)
                             revurderingRepo.lagre(simulert)
@@ -520,7 +513,7 @@ internal class RevurderingServiceImpl(
                             saksbehandler = saksbehandler,
                             opphørsdato = beregnetRevurdering.periode.fraOgMed,
                         ).mapLeft {
-                            KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet
+                            KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it)
                         }.map {
                             val simulert = beregnetRevurdering.toSimulert(it.simulering)
                             revurderingRepo.lagre(simulert)
@@ -893,14 +886,7 @@ internal class RevurderingServiceImpl(
                                 simulering = revurdering.simulering,
                                 attestant = attestant,
                             ).mapLeft {
-                                when (it) {
-                                    KunneIkkeUtbetale.KunneIkkeSimulere -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.KunneIkkeSimulere
-                                    KunneIkkeUtbetale.KunneIkkeSimulereFinnerIkkeKjøreplansperiodeForFom -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.KunneIkkeSimulereFinnerIkkeKjøreplansperiodeForFom
-                                    KunneIkkeUtbetale.KunneIkkeSimulereFinnerIkkePerson -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.KunneIkkeSimulereFinnerIkkePerson
-                                    KunneIkkeUtbetale.KunneIkkeSimulereOppdragStengtEllerNede -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.KunneIkkeSimulereOppdragErStengtEllerNede
-                                    KunneIkkeUtbetale.Protokollfeil -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.Protokollfeil
-                                    KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
-                                }
+                                RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
                             }.map {
                                 // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
                                 utbetaling = it
@@ -919,14 +905,7 @@ internal class RevurderingServiceImpl(
                                 opphørsdato = revurdering.periode.fraOgMed,
                                 simulering = revurdering.simulering,
                             ).mapLeft {
-                                when (it) {
-                                    KunneIkkeUtbetale.KunneIkkeSimulere -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.KunneIkkeSimulere
-                                    KunneIkkeUtbetale.KunneIkkeSimulereFinnerIkkeKjøreplansperiodeForFom -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.KunneIkkeSimulereFinnerIkkeKjøreplansperiodeForFom
-                                    KunneIkkeUtbetale.KunneIkkeSimulereFinnerIkkePerson -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.KunneIkkeSimulereFinnerIkkePerson
-                                    KunneIkkeUtbetale.KunneIkkeSimulereOppdragStengtEllerNede -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.KunneIkkeSimulereOppdragErStengtEllerNede
-                                    KunneIkkeUtbetale.Protokollfeil -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.Protokollfeil
-                                    KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
-                                }
+                                RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
                             }.map {
                                 // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
                                 utbetaling = it
@@ -940,12 +919,7 @@ internal class RevurderingServiceImpl(
                 }.getOrHandle {
                     return when (it) {
                         RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
-                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.KunneIkkeSimulere -> KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulere
-                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.KunneIkkeSimulereFinnerIkkeKjøreplansperiodeForFom -> KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulereFinnerIkkeKjøreplansperiodeForFom
-                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.KunneIkkeSimulereFinnerIkkePerson -> KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulereFinnerIkkePerson
-                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.KunneIkkeSimulereOppdragErStengtEllerNede -> KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulereOppdragErStengtEllerNede
-                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.Protokollfeil -> KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulere
-                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale
+                        is RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it.utbetalingFeilet)
                     }.left()
                 }
 

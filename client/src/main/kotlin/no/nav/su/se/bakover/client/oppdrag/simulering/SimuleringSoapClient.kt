@@ -43,6 +43,7 @@ internal class SimuleringSoapClient(
                 when {
                     startsWith("Personen finnes ikke i TPS") -> SimuleringFeilet.PERSONEN_FINNES_IKKE_I_TPS.left()
                     startsWith("Finner ikke kjøreplansperiode for fom-dato") -> SimuleringFeilet.FINNER_IKKE_KJØREPLANSPERIODE_FOR_FOM.left()
+                    startsWith("OPPDRAGET/FAGSYSTEM-ID finnes ikke") -> SimuleringFeilet.OPPDRAGET_FINNES_IKKE.left()
                     else -> SimuleringFeilet.FUNKSJONELL_FEIL.left()
                 }
             }
