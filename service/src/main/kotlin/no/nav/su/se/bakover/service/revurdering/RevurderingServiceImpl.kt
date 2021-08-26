@@ -928,7 +928,13 @@ internal class RevurderingServiceImpl(
                     observer.handle(
                         Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering),
                     )
+                    /* TODO: observer.handle(
+                                Event.Statistikk.Vedtaksstatistikk(
+                                    vedtak,
+                                ),
+                            )*/
                 }
+
                 return iverksattRevurdering.right()
             }
             else -> KunneIkkeIverksetteRevurdering.UgyldigTilstand(revurdering::class, IverksattRevurdering::class)

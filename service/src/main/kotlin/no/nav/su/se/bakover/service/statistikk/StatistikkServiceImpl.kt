@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.service.statistikk
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.person.PersonService
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -15,11 +17,13 @@ internal class StatistikkServiceImpl(
     private val log = LoggerFactory.getLogger(this::class.java)
     private val schemaValidator = StatistikkSchemaValidator
 
+    // TODO: Kalles bare fra handle, burde være private?
     override fun publiser(statistikk: Statistikk) {
         val json = objectMapper.writeValueAsString(statistikk)
         val isValid = when (statistikk) {
             is Statistikk.Sak -> schemaValidator.validerSak(json)
             is Statistikk.Behandling -> schemaValidator.validerBehandling(json)
+            is Statistikk.Stønad -> schemaValidator.validerStønad(json)
         }
         if (isValid) {
             when (statistikk) {
@@ -29,6 +33,10 @@ internal class StatistikkServiceImpl(
                 )
                 is Statistikk.Behandling -> publisher.publiser(
                     topic = "supstonad.aapen-su-behandling-statistikk-v1",
+                    melding = json
+                )
+                is Statistikk.Stønad -> publisher.publiser(
+                    topic = "supstonad.aapen-su-stonad-statistikk-v1",
                     melding = json
                 )
             }
@@ -64,11 +72,25 @@ internal class StatistikkServiceImpl(
                 publiser(SøknadStatistikkMapper(clock).map(event.søknad, event.saksnummer, Statistikk.Behandling.SøknadStatus.SØKNAD_MOTTATT))
             is Event.Statistikk.SøknadStatistikk.SøknadLukket ->
                 publiser(SøknadStatistikkMapper(clock).map(event.søknad, event.saksnummer, Statistikk.Behandling.SøknadStatus.SØKNAD_LUKKET))
-            is Event.Statistikk.SøknadsbehandlingStatistikk ->
+            is Event.Statistikk.SøknadsbehandlingStatistikk -> {
                 publiser(SøknadsbehandlingStatistikkMapper(clock).map(event.søknadsbehandling))
+
+                // Her må vi også publisere en stønadsstatistikk-event
+                if (event.søknadsbehandling is Søknadsbehandling.Iverksatt.Innvilget) {
+                    publiser(StønadsstatistikkMapper(clock).map(event.søknadsbehandling))
+                }
+            }
             is Event.Statistikk.RevurderingStatistikk -> {
                 publiser(RevurderingStatistikkMapper(clock).map(event.revurdering))
+
+                // Her må vi også publisere en stønadsstatistikk-event
+                if (event.revurdering is IverksattRevurdering.Innvilget || event.revurdering is IverksattRevurdering.Opphørt) {
+                    publiser(StønadsstatistikkMapper(clock).map(event.revurdering))
+                }
             }
+            /* TODO: is Event.Statistikk.Vedtaksstatistikk -> {
+
+            }*/
         }
     }
 }
