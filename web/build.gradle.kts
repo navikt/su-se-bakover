@@ -45,7 +45,16 @@ dependencies {
     testImplementation("com.opentable.components:otj-pg-embedded:0.13.4") {
         exclude(group = "com.github.spotbugs")
     }
-    testImplementation("no.nav:kafka-embedded-env:2.8.0")
+    testImplementation("no.nav:kafka-embedded-env:2.8.0") {
+        // Breaks build: exclude(group = "org.glassfish.jersey.ext", module = "jersey-bean-validation")
+        // Breaks build: exclude(group = "org.glassfish", module = "jakarta.el")
+        // Breaks build: exclude(group = "org.eclipse.jetty", module = "jetty-server")
+        exclude(group = "org.eclipse.jetty", module = "jetty-webapp")
+        exclude(group = "org.eclipse.jetty", module = "jetty-servlets")
+        exclude(group = "log4j") // module = "log4j"
+        exclude(group = "io.netty") // module = "netty-handler"
+        exclude(group = "io.grpc") // module = "grpc-core"
+    }
 }
 
 tasks.named<Jar>("jar") {
