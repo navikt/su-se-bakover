@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain.beregning.fradrag
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 
-internal data class IkkePeriodisertFradrag(
+data class IkkePeriodisertFradrag(
     private val type: Fradragstype,
     override val månedsbeløp: Double,
     override val periode: Periode,

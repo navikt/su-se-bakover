@@ -25,6 +25,7 @@ fun fradragsgrunnlagArbeidsinntekt1000(
 fun fradragsgrunnlagArbeidsinntekt(
     periode: Periode = periode2021,
     arbeidsinntekt: Double,
+    tilhører: FradragTilhører = FradragTilhører.BRUKER
 ): Grunnlag.Fradragsgrunnlag {
     return Grunnlag.Fradragsgrunnlag.tryCreate(
         id = fradragsgrunnlagId,
@@ -34,7 +35,7 @@ fun fradragsgrunnlagArbeidsinntekt(
             månedsbeløp = arbeidsinntekt,
             periode = periode,
             utenlandskInntekt = null,
-            tilhører = FradragTilhører.BRUKER,
+            tilhører = tilhører,
         ),
     ).orNull()!!
 }

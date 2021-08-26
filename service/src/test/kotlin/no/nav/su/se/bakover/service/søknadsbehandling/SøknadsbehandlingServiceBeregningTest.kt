@@ -14,9 +14,13 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
+import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
+import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.IkkePeriodisertFradrag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -27,9 +31,8 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.tidspunkt
-import no.nav.su.se.bakover.service.beregning.BeregningService
-import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.fixedTidspunkt
+import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -115,10 +118,6 @@ class SøknadsbehandlingServiceBeregningTest {
             on { hent(any()) } doReturn behandling
         }
 
-        val beregningServiceMock = mock<BeregningService> {
-            on { beregn(any(), any(), any()) } doReturn TestBeregning
-        }
-
         val request = SøknadsbehandlingService.BeregnRequest(
             behandlingId = behandlingId,
             begrunnelse = "her er en begrunnelse",
@@ -126,7 +125,6 @@ class SøknadsbehandlingServiceBeregningTest {
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            beregningService = beregningServiceMock,
         ).beregn(
             request,
         )
@@ -140,7 +138,30 @@ class SøknadsbehandlingServiceBeregningTest {
             saksnummer = vilkårsvurdertBehandling.saksnummer,
             fnr = vilkårsvurdertBehandling.fnr,
             oppgaveId = vilkårsvurdertBehandling.oppgaveId,
-            beregning = TestBeregning,
+            beregning = BeregningMedFradragBeregnetMånedsvis(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = stønadsperiode2021.periode,
+                sats = Sats.HØY,
+                fradrag = listOf(
+                    IkkePeriodisertFradrag(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 12000.0,
+                        periode = stønadsperiode2021.periode,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                    IkkePeriodisertFradrag(
+                        type = Fradragstype.ForventetInntekt,
+                        månedsbeløp = 0.0,
+                        periode = stønadsperiode2021.periode,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+                fradragStrategy = FradragStrategy.Enslig,
+                begrunnelse = "her er en begrunnelse",
+            ),
             fritekstTilBrev = "",
             stønadsperiode = vilkårsvurdertBehandling.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.tryCreate(
@@ -166,17 +187,8 @@ class SøknadsbehandlingServiceBeregningTest {
 
         response shouldBe expected.right()
 
-        inOrder(søknadsbehandlingRepoMock, beregningServiceMock) {
+        inOrder(søknadsbehandlingRepoMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
-            verify(beregningServiceMock).beregn(
-                søknadsbehandling = argThat { it shouldBe behandling },
-                fradrag = argThat {
-                    it shouldBe listOf(
-                        fradrag,
-                    )
-                },
-                begrunnelse = argThat { it shouldBe "her er en begrunnelse" },
-            )
             verify(søknadsbehandlingRepoMock).lagre(expected)
         }
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)

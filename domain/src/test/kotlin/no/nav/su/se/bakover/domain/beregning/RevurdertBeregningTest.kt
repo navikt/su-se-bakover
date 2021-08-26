@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import java.util.UUID
 
 internal class RevurdertBeregningTest {
     private val forventetMånedsbeløp: Double = Sats.HØY.månedsbeløp(1.januar(2021))
@@ -258,9 +259,27 @@ internal class RevurdertBeregningTest {
                     ),
                 ),
                 fradragFraSaksbehandler = listOf(
-                    fradrag(januar, 10.0, Fradragstype.Arbeidsinntekt),
-                    fradrag(februar, 20.0, Fradragstype.Kapitalinntekt)
-                )
+                    Grunnlag.Fradragsgrunnlag.tryCreate(
+                        UUID.randomUUID(), fixedTidspunkt,
+                        FradragFactory.ny(
+                            type = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 10.0,
+                            periode = januar,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ).orNull()!!,
+                    Grunnlag.Fradragsgrunnlag.tryCreate(
+                        UUID.randomUUID(), fixedTidspunkt,
+                        FradragFactory.ny(
+                            type = Fradragstype.Kapitalinntekt,
+                            månedsbeløp = 20.0,
+                            periode = februar,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ).orNull()!!,
+                ),
             ),
             beregningsstrategi = BeregningStrategy.BorAlene,
             beregnMedVirkningNesteMånedDersomStønadenGårNed = true,

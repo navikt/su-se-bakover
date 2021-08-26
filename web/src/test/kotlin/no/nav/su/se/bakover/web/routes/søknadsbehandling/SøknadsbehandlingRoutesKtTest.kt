@@ -786,10 +786,10 @@ internal class SøknadsbehandlingRoutesKtTest {
             ),
         )
         if (epsFnr == null) {
-            services.søknadsbehandling.leggTilFradragGrunnlag(
+            services.søknadsbehandling.leggTilFradragsgrunnlag(
                 LeggTilFradragsgrunnlagRequest(
                     behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
-                    fradragsrunnlag = listOf(
+                    fradragsgrunnlag = listOf(
                         Grunnlag.Fradragsgrunnlag.tryCreate(
                             fradrag = FradragFactory.ny(
                                 periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),
@@ -812,10 +812,10 @@ internal class SøknadsbehandlingRoutesKtTest {
                 ),
             )
         } else {
-            services.søknadsbehandling.leggTilFradragGrunnlag(
+            services.søknadsbehandling.leggTilFradragsgrunnlag(
                 LeggTilFradragsgrunnlagRequest(
                     behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
-                    fradragsrunnlag = listOf(
+                    fradragsgrunnlag = listOf(
                         Grunnlag.Fradragsgrunnlag.tryCreate(
                             fradrag = FradragFactory.ny(
                                 periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),

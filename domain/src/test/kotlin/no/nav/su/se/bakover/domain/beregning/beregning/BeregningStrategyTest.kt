@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 internal class BeregningStrategyTest {
     @Test
@@ -35,14 +36,18 @@ internal class BeregningStrategyTest {
                 ),
             ),
             fradragFraSaksbehandler = listOf(
-                FradragFactory.ny(
-                    type = Fradragstype.Kontantstøtte,
-                    månedsbeløp = 1500.0,
-                    periode = periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                )
-            )
+                Grunnlag.Fradragsgrunnlag.tryCreate(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.Kontantstøtte,
+                        månedsbeløp = 1500.0,
+                        periode = periode,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ).orNull()!!,
+            ),
         )
         BeregningStrategy.BorAlene.beregn(beregningsgrunnlag, "en begrunnelse").let {
             it.periode.fraOgMed shouldBe periode.fraOgMed

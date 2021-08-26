@@ -30,7 +30,7 @@ interface SøknadsbehandlingService {
     fun leggTilUføregrunnlag(request: LeggTilUførevurderingRequest): Either<KunneIkkeLeggeTilGrunnlag, Søknadsbehandling>
     fun leggTilBosituasjonEpsgrunnlag(request: LeggTilBosituasjonEpsRequest): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling>
     fun fullførBosituasjongrunnlag(request: FullførBosituasjonRequest): Either<KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling>
-    fun leggTilFradragGrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling>
+    fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling>
 
     data class OpprettRequest(
         val søknadId: UUID,
@@ -145,8 +145,10 @@ interface SøknadsbehandlingService {
 
     sealed class KunneIkkeLeggeTilGrunnlag {
         object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
-        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Søknadsbehandling>) :
-            KunneIkkeLeggeTilGrunnlag()
+        data class UgyldigTilstand(
+            val fra: KClass<out Søknadsbehandling>,
+            val til: KClass<out Søknadsbehandling>,
+        ) : KunneIkkeLeggeTilGrunnlag()
 
         object UføregradOgForventetInntektMangler : KunneIkkeLeggeTilGrunnlag()
         object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilGrunnlag()
@@ -156,16 +158,20 @@ interface SøknadsbehandlingService {
 
     sealed class KunneIkkeLeggeTilBosituasjonEpsGrunnlag {
         object FantIkkeBehandling : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
-        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Søknadsbehandling>) :
-            KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
+        data class UgyldigTilstand(
+            val fra: KClass<out Søknadsbehandling>,
+            val til: KClass<out Søknadsbehandling>,
+        ) : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
 
         object KlarteIkkeHentePersonIPdl : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
     }
 
     sealed class KunneIkkeFullføreBosituasjonGrunnlag {
         object FantIkkeBehandling : KunneIkkeFullføreBosituasjonGrunnlag()
-        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Søknadsbehandling>) :
-            KunneIkkeFullføreBosituasjonGrunnlag()
+        data class UgyldigTilstand(
+            val fra: KClass<out Søknadsbehandling>,
+            val til: KClass<out Søknadsbehandling>,
+        ) : KunneIkkeFullføreBosituasjonGrunnlag()
 
         object KlarteIkkeLagreBosituasjon : KunneIkkeFullføreBosituasjonGrunnlag()
         object KlarteIkkeHentePersonIPdl : KunneIkkeFullføreBosituasjonGrunnlag()
@@ -173,12 +179,13 @@ interface SøknadsbehandlingService {
 
     sealed class KunneIkkeLeggeTilFradragsgrunnlag {
         object FantIkkeBehandling : KunneIkkeLeggeTilFradragsgrunnlag()
-        object FradragsgrunnlagUtenforPeriode : KunneIkkeLeggeTilFradragsgrunnlag()
+        object GrunnlagetMåVæreInnenforBehandlingsperioden : KunneIkkeLeggeTilFradragsgrunnlag()
         object UgyldigFradragstypeForGrunnlag : KunneIkkeLeggeTilFradragsgrunnlag()
         object PeriodeMangler : KunneIkkeLeggeTilFradragsgrunnlag()
         object HarIkkeEktelle : KunneIkkeLeggeTilFradragsgrunnlag()
-        object KlarteIkkeLagreFradrag : KunneIkkeLeggeTilFradragsgrunnlag()
-        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>) :
-            KunneIkkeLeggeTilFradragsgrunnlag()
+        data class UgyldigTilstand(
+            val fra: KClass<out Søknadsbehandling>,
+            val til: KClass<out Søknadsbehandling>,
+        ) : KunneIkkeLeggeTilFradragsgrunnlag()
     }
 }

@@ -26,10 +26,8 @@ data class Grunnlagsdata private constructor(
         }
     }
 
-    // TODO jah: Valider at de vurderte uføre-periodene er de samme som de vurderte formue-periodene
     companion object {
         val IkkeVurdert = tryCreate()
-        val EMPTY = tryCreate()
 
         fun tryCreate(
             fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = emptyList(),
@@ -40,7 +38,7 @@ data class Grunnlagsdata private constructor(
             val bosituasjonperiode = bosituasjon.periode()
 
             if (fradragsperiode != null) {
-                if (bosituasjonperiode == null) throw IllegalArgumentException("bosituasjon kan ikke være null dersom det finnes fradrag")
+                if (bosituasjonperiode == null) throw IllegalArgumentException("Må legge til bosituasjon før fradrag.")
                 if (!(bosituasjonperiode inneholder fradragsperiode))
                     throw IllegalArgumentException("fradragslisten inneholder fradrag som ikke har noen bosituasjon")
 

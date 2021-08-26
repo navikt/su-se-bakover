@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
-import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagServiceImpl
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingServiceImpl
@@ -150,7 +149,6 @@ object ServiceBuilder {
                 personService = personService,
                 oppgaveService = oppgaveService,
                 behandlingMetrics = behandlingMetrics,
-                beregningService = BeregningService(),
                 microsoftGraphApiClient = clients.microsoftGraphApiClient,
                 brevService = brevService,
                 opprettVedtakssnapshotService = opprettVedtakssnapshotService,

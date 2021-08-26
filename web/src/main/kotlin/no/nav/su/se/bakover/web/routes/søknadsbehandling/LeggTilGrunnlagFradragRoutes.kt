@@ -17,9 +17,12 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
+import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
+import no.nav.su.se.bakover.web.routes.Feilresponser.utenforBehandlingsperioden
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.UtenlandskInntektJson
 import no.nav.su.se.bakover.web.sikkerlogg
@@ -40,7 +43,7 @@ internal fun Route.leggTilGrunnlagFradrag(
         fun toCommand(behandlingId: UUID): Either<Resultat, LeggTilFradragsgrunnlagRequest> =
             LeggTilFradragsgrunnlagRequest(
                 behandlingId = behandlingId,
-                fradragsrunnlag = fradrag.map { fradrag ->
+                fradragsgrunnlag = fradrag.map { fradrag ->
                     Grunnlag.Fradragsgrunnlag.tryCreate(
                         fradrag = FradragFactory.ny(
                             periode = fradrag.periode.toPeriode().getOrHandle { feilResultat ->
@@ -81,18 +84,17 @@ internal fun Route.leggTilGrunnlagFradrag(
                     call.withBody<Body> { body ->
                         call.svar(
                             body.toCommand(behandlingId).flatMap { command ->
-                                behandlingService.leggTilFradragGrunnlag(command)
+                                behandlingService.leggTilFradragsgrunnlag(command)
                                     .mapLeft {
                                         when (it) {
-                                            SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling -> Behandlingsfeilresponser.fantIkkeBehandling
-                                            SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag.FradragsgrunnlagUtenforPeriode -> Behandlingsfeilresponser.fradragsperiodeErUtenforBehandlingsperioden
-                                            SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag.HarIkkeEktelle -> Behandlingsfeilresponser.måHaEpsHvisManHarfradragForEps
-                                            SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag.KlarteIkkeLagreFradrag -> Behandlingsfeilresponser.kunneIkkeLagreFradrag
-                                            SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> Behandlingsfeilresponser.ugyldigFradragstype
-                                            is SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand -> Behandlingsfeilresponser.ugyldigTilstand(
+                                            KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling -> fantIkkeBehandling
+                                            KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden -> utenforBehandlingsperioden
+                                            KunneIkkeLeggeTilFradragsgrunnlag.HarIkkeEktelle -> Behandlingsfeilresponser.måHaEpsHvisManHarfradragForEps
+                                            KunneIkkeLeggeTilFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> Behandlingsfeilresponser.ugyldigFradragstype
+                                            is KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand -> Behandlingsfeilresponser.ugyldigTilstand(
                                                 fra = it.fra,
                                             )
-                                            SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler -> Behandlingsfeilresponser.periodeMangler
+                                            KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler -> Behandlingsfeilresponser.periodeMangler
                                         }
                                     }
                                     .map {
@@ -120,24 +122,9 @@ private data class FradragsgrunnlagJson(
 )
 
 internal object Behandlingsfeilresponser {
-    val fantIkkeBehandling = HttpStatusCode.NotFound.errorJson(
-        "Fant ikke behandling",
-        "fant_ikke_behandling",
-    )
-
-    val fradragsperiodeErUtenforBehandlingsperioden = HttpStatusCode.BadRequest.errorJson(
-        "Ikke lov med fradrag utenfor perioden",
-        "ikke_lov_med_fradrag_utenfor_perioden",
-    )
-
     val måHaEpsHvisManHarfradragForEps = HttpStatusCode.BadRequest.errorJson(
         "Ikke lov med fradrag for eps hvis man ikke har eps",
         "ikke_lov_med_fradrag_for_eps_hvis_man_ikke_har_eps",
-    )
-
-    val kunneIkkeLagreFradrag = HttpStatusCode.InternalServerError.errorJson(
-        "Kunne ikke lagre fradrag",
-        "kunne_ikke_lagre_fradrag",
     )
 
     val ugyldigFradragstype = HttpStatusCode.BadRequest.errorJson(

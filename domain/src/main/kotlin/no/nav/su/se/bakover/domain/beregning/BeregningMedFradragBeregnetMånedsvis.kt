@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import java.util.UUID
 
-internal data class BeregningMedFradragBeregnetMånedsvis(
+data class BeregningMedFradragBeregnetMånedsvis(
     private val id: UUID = UUID.randomUUID(),
     private val opprettet: Tidspunkt = Tidspunkt.now(),
     override val periode: Periode,

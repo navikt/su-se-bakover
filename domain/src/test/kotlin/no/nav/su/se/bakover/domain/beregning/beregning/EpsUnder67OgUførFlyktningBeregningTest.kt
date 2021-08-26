@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 internal class EpsUnder67OgUførFlyktningBeregningTest {
 
@@ -56,41 +57,46 @@ internal class EpsUnder67OgUførFlyktningBeregningTest {
                 ),
             ),
             fradragFraSaksbehandler = listOf(
-                FradragFactory.ny(
-                    type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = arbeidsinntektPrMnd,
-                    periode = periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                ),
-                FradragFactory.ny(
-                    type = Fradragstype.OffentligPensjon,
-                    månedsbeløp = folketrygdPrMnd,
-                    periode = periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                ),
-                FradragFactory.ny(
-                    type = Fradragstype.ForventetInntekt,
-                    månedsbeløp = 0.0,
-                    periode = periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS
-                ),
-                FradragFactory.ny(
-                    type = Fradragstype.OffentligPensjon,
-                    månedsbeløp = epsFolketrygdPrMnd,
-                    periode = periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS
-                ),
-                FradragFactory.ny(
-                    type = Fradragstype.PrivatPensjon,
-                    månedsbeløp = epsAnnenNorskPrMnd,
-                    periode = periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS
-                )
+                Grunnlag.Fradragsgrunnlag.tryCreate(
+                    id = UUID.randomUUID(), opprettet = fixedTidspunkt,
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = arbeidsinntektPrMnd,
+                        periode = periode,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER
+                    ),
+                ).orNull()!!,
+                Grunnlag.Fradragsgrunnlag.tryCreate(
+                    id = UUID.randomUUID(), opprettet = fixedTidspunkt,
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.OffentligPensjon,
+                        månedsbeløp = folketrygdPrMnd,
+                        periode = periode,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER
+                    ),
+                ).orNull()!!,
+                Grunnlag.Fradragsgrunnlag.tryCreate(
+                    id = UUID.randomUUID(), opprettet = fixedTidspunkt,
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.OffentligPensjon,
+                        månedsbeløp = epsFolketrygdPrMnd,
+                        periode = periode,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.EPS
+                    ),
+                ).orNull()!!,
+                Grunnlag.Fradragsgrunnlag.tryCreate(
+                    id = UUID.randomUUID(), opprettet = fixedTidspunkt,
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.PrivatPensjon,
+                        månedsbeløp = epsAnnenNorskPrMnd,
+                        periode = periode,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.EPS
+                    ),
+                ).orNull()!!,
             )
         )
 

@@ -5,5 +5,5 @@ import java.util.UUID
 
 data class LeggTilFradragsgrunnlagRequest(
     val behandlingId: UUID,
-    val fradragsrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+    val fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
 )

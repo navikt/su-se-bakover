@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 internal class BeregningsgrunnlagTest {
     @Test
@@ -34,13 +35,16 @@ internal class BeregningsgrunnlagTest {
                 ),
             ),
             fradragFraSaksbehandler = listOf(
-                FradragFactory.ny(
-                    type = Fradragstype.Kapitalinntekt,
-                    månedsbeløp = 2000.0,
-                    periode = beregningsperiode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
+                Grunnlag.Fradragsgrunnlag.tryCreate(
+                    id = UUID.randomUUID(), opprettet = fixedTidspunkt,
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.Kapitalinntekt,
+                        månedsbeløp = 2000.0,
+                        periode = beregningsperiode,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ).orNull()!!,
             ),
         ).fradrag shouldBe listOf(
             FradragFactory.ny(
@@ -74,13 +78,17 @@ internal class BeregningsgrunnlagTest {
                 ),
             ),
             fradragFraSaksbehandler = listOf(
-                FradragFactory.ny(
-                    type = Fradragstype.Kapitalinntekt,
-                    månedsbeløp = 2000.0,
-                    periode = beregningsperiode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
+                Grunnlag.Fradragsgrunnlag.tryCreate(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.Kapitalinntekt,
+                        månedsbeløp = 2000.0,
+                        periode = beregningsperiode,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ).orNull()!!,
             ),
         ).fradrag shouldBe listOf(
             FradragFactory.ny(
@@ -145,21 +153,13 @@ internal class BeregningsgrunnlagTest {
             beregningsperiode = beregningsperiode,
             uføregrunnlag = listOf(
                 Grunnlag.Uføregrunnlag(
-                    periode = beregningsperiode,
+                    periode = Periode.create(1.januar(2019), 31.desember(2019)),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 0,
                     opprettet = fixedTidspunkt,
                 ),
             ),
-            fradragFraSaksbehandler = listOf(
-                FradragFactory.ny(
-                    type = Fradragstype.ForventetInntekt,
-                    månedsbeløp = 0.0,
-                    periode = Periode.create(1.januar(2019), 31.desember(2019)),
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-            ),
+            fradragFraSaksbehandler = emptyList(),
         ) shouldBe UgyldigBeregningsgrunnlag.IkkeLovMedFradragUtenforPerioden.left()
     }
 

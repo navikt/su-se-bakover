@@ -352,10 +352,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                                     CopyArgs.Snitt(periode),
                                 )
                             },
-
-                            fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.filterNot {
-                                it.fradragstype == Fradragstype.ForventetInntekt
-                            }.mapNotNull {
+                            fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.mapNotNull {
                                 it.copy(args = CopyArgs.Snitt(periode))
                             },
                         ),

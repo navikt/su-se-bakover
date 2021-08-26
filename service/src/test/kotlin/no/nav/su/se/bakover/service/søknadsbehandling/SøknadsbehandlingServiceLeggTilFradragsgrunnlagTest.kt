@@ -60,10 +60,10 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
 
         val request = LeggTilFradragsgrunnlagRequest(
             behandlingId = behandling.id,
-            fradragsrunnlag = fradragsgrunnlag,
+            fradragsgrunnlag = fradragsgrunnlag,
         )
 
-        val actual = søknadsbehandlingService.leggTilFradragGrunnlag(request).getOrHandle { fail { "uventet respons" } }
+        val actual = søknadsbehandlingService.leggTilFradragsgrunnlag(request).getOrHandle { fail { "uventet respons" } }
 
         actual shouldBe Søknadsbehandling.Vilkårsvurdert.Innvilget(
             behandling.id,
@@ -87,7 +87,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandling.id })
         verify(grunnlagServiceMock).lagreFradragsgrunnlag(
             argThat { it shouldBe behandling.id },
-            argThat { it shouldBe request.fradragsrunnlag },
+            argThat { it shouldBe request.fradragsgrunnlag },
         )
         verify(søknadsbehandlingRepoMock).lagre(
             argThat {
@@ -112,7 +112,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
 
         val request = LeggTilFradragsgrunnlagRequest(
             behandlingId = søknadsbehandlingId,
-            fradragsrunnlag = listOf(
+            fradragsgrunnlag = listOf(
                 Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
@@ -126,7 +126,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             ),
         )
 
-        søknadsbehandlingService.leggTilFradragGrunnlag(
+        søknadsbehandlingService.leggTilFradragsgrunnlag(
             request,
         ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
 
@@ -141,7 +141,6 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
 
     @Test
     fun `lagreFradrag har en status som gjør at man ikke kan legge til fradrag`() {
-
         val uavklart = søknadsbehandlingVilkårsvurdertUavklart().second
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -157,7 +156,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
 
         val request = LeggTilFradragsgrunnlagRequest(
             behandlingId = uavklart.id,
-            fradragsrunnlag = listOf(
+            fradragsgrunnlag = listOf(
                 Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
@@ -171,10 +170,11 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             ),
         )
 
-        søknadsbehandlingService.leggTilFradragGrunnlag(
+        søknadsbehandlingService.leggTilFradragsgrunnlag(
             request,
         ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
             fra = uavklart::class,
+            til = Søknadsbehandling.Vilkårsvurdert.Innvilget::class
         ).left()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe uavklart.id })
@@ -200,7 +200,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
 
         val request = LeggTilFradragsgrunnlagRequest(
             behandlingId = behandling.id,
-            fradragsrunnlag = listOf(
+            fradragsgrunnlag = listOf(
                 Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
@@ -217,9 +217,9 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             ),
         )
 
-        søknadsbehandlingService.leggTilFradragGrunnlag(
+        søknadsbehandlingService.leggTilFradragsgrunnlag(
             request,
-        ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag.FradragsgrunnlagUtenforPeriode.left()
+        ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden.left()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandling.id })
 

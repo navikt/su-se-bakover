@@ -34,7 +34,7 @@ internal class FradragsgrunnlagPostgresRepo(
         }
     }
 
-    fun hentFradragsgrunnlag(behandlingId: UUID): List<Grunnlag.Fradragsgrunnlag> {
+    internal fun hentFradragsgrunnlag(behandlingId: UUID): List<Grunnlag.Fradragsgrunnlag> {
         return dataSource.withSession { session ->
             hentFradragsgrunnlag(behandlingId, session)
         }

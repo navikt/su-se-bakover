@@ -210,7 +210,6 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             søknadRepo = søknadRepo,
             personService = mock(),
             behandlingMetrics = mock(),
-            beregningService = mock(),
         )
         val eventObserver: EventObserver = mock()
         behandlingService.addObserver(eventObserver)

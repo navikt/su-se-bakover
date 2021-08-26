@@ -83,12 +83,7 @@ internal class BeregnRoutesKtTest {
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody(
-                    //language=JSON
-                    """
-                    {}
-                    """.trimIndent(),
-                )
+                setBody("{}")
             }.apply {
                 response.status() shouldBe HttpStatusCode.Created
                 val behandlingJson = deserialize<BehandlingJson>(response.content!!)
@@ -123,11 +118,7 @@ internal class BeregnRoutesKtTest {
                 "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody(
-                    //language=JSON
-                    """{}
-                    """.trimIndent(),
-                )
+                setBody("{}")
             }.apply {
                 assertSoftly {
                     response.status() shouldBe HttpStatusCode.NotFound

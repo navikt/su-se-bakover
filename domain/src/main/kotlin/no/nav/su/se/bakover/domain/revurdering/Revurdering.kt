@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.Either
-import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -17,13 +16,10 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.beregning.fradrag.harFradragSomTilhørerEps
-import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -172,13 +168,18 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
         ).right()
     }
 
-    open fun beregn(eksisterendeUtbetalinger: List<Utbetaling>): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
-        val revurdertBeregning: Beregning = beregnInternt(
-            fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag },
-            bosituasjon = grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
-            uføregrunnlag = vilkårsvurderinger.uføre.grunnlag,
-            periode = periode,
-        ).getOrHandle { return it.left() }
+    open fun beregn(
+        eksisterendeUtbetalinger: List<Utbetaling>,
+    ): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
+        val revurdertBeregning: Beregning = BeregningStrategyFactory().beregn(
+            GrunnlagsdataOgVilkårsvurderinger(
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+            ),
+            periode,
+            // kan ikke legge til begrunnelse for inntekt/fradrag
+            null,
+        )
 
         fun opphør(revurdertBeregning: Beregning): BeregnetRevurdering.Opphørt = BeregnetRevurdering.Opphørt(
             tilRevurdering = tilRevurdering,
@@ -289,29 +290,6 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                 }
             }
         }.right()
-    }
-
-    companion object {
-        private fun beregnInternt(
-            fradrag: List<Fradrag>,
-            bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
-            uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
-            periode: Periode,
-        ): Either<KunneIkkeBeregneRevurdering, Beregning> {
-            if (!bosituasjon.harEktefelle() && (fradrag.harFradragSomTilhørerEps())) {
-                return KunneIkkeBeregneRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps.left()
-            }
-            val beregningsgrunnlag = Beregningsgrunnlag.tryCreate(
-                beregningsperiode = periode,
-                uføregrunnlag = uføregrunnlag,
-                fradragFraSaksbehandler = fradrag,
-            ).getOrHandle {
-                return KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag(it).left()
-            }
-
-            val beregningsstrategi = bosituasjon.utledBeregningsstrategi()
-            return beregningsstrategi.beregn(beregningsgrunnlag).right()
-        }
     }
 
     sealed class KunneIkkeBeregneRevurdering {
@@ -856,7 +834,9 @@ sealed class RevurderingTilAttestering : Revurdering() {
         }
     }
 
-    override fun beregn(eksisterendeUtbetalinger: List<Utbetaling>): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
+    override fun beregn(
+        eksisterendeUtbetalinger: List<Utbetaling>,
+    ): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
     }
 
@@ -1024,7 +1004,9 @@ sealed class IverksattRevurdering : Revurdering() {
         }
     }
 
-    override fun beregn(eksisterendeUtbetalinger: List<Utbetaling>) =
+    override fun beregn(
+        eksisterendeUtbetalinger: List<Utbetaling>,
+    ) =
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er iverksatt")
 }
 

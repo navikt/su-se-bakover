@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.periode
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -41,18 +42,18 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
 
     sealed class KunneIkkeLeggeTilFradragsgrunnlag {
         object IkkeLovÅLeggeTilFradragIDenneStatusen : KunneIkkeLeggeTilFradragsgrunnlag()
-        object GrunnlagetMåVæreInneforBehandlingen : KunneIkkeLeggeTilFradragsgrunnlag()
-        object PeriodeMåFyllesUt : KunneIkkeLeggeTilFradragsgrunnlag()
+        object GrunnlagetMåVæreInneforBehandlingsperioden : KunneIkkeLeggeTilFradragsgrunnlag()
+        object PeriodeMangler : KunneIkkeLeggeTilFradragsgrunnlag()
     }
 
     open fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
         if (fradragsgrunnlag.isNotEmpty()) {
             if (fradragsgrunnlag.periode() != null) {
                 if (!(periode inneholder fradragsgrunnlag.periode()!!)) {
-                    return KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInneforBehandlingen.left()
+                    return KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInneforBehandlingsperioden.left()
                 }
             } else {
-                return KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMåFyllesUt.left()
+                return KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler.left()
             }
         }
 

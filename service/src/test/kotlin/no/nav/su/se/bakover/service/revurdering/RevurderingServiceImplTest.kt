@@ -1715,7 +1715,7 @@ internal class RevurderingServiceImplTest {
 
         val request = LeggTilFradragsgrunnlagRequest(
             behandlingId = eksisterendeRevurdering.id,
-            fradragsrunnlag = listOf(
+            fradragsgrunnlag = listOf(
                 Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
@@ -1741,7 +1741,7 @@ internal class RevurderingServiceImplTest {
 
             verify(grunnlagServiceMock).lagreFradragsgrunnlag(
                 argThat { it shouldBe eksisterendeRevurdering.id },
-                argThat { it shouldBe request.fradragsrunnlag },
+                argThat { it shouldBe request.fradragsgrunnlag },
             )
             verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
         }
@@ -1764,7 +1764,7 @@ internal class RevurderingServiceImplTest {
 
         val request = LeggTilFradragsgrunnlagRequest(
             behandlingId = revurderingId,
-            fradragsrunnlag = listOf(
+            fradragsgrunnlag = listOf(
                 Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
@@ -1809,7 +1809,7 @@ internal class RevurderingServiceImplTest {
 
         val request = LeggTilFradragsgrunnlagRequest(
             behandlingId = eksisterendeRevurdering.id,
-            fradragsrunnlag = listOf(
+            fradragsgrunnlag = listOf(
                 Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
@@ -1871,7 +1871,7 @@ internal class RevurderingServiceImplTest {
 
         val request = LeggTilFradragsgrunnlagRequest(
             behandlingId = revurderingId,
-            fradragsrunnlag = listOf(
+            fradragsgrunnlag = listOf(
                 Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,

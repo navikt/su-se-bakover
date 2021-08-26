@@ -51,7 +51,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
         val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
 
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { leggTilFradragGrunnlag(any()) } doReturn behandling.right()
+            on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
         }
 
         withTestApplication(
@@ -99,7 +99,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
         val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
 
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { leggTilFradragGrunnlag(any()) } doReturn behandling.right()
+            on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
         }
 
         withTestApplication(
@@ -149,7 +149,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
         val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
 
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { leggTilFradragGrunnlag(any()) } doReturn behandling.right()
+            on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
         }
 
         withTestApplication(
@@ -171,7 +171,7 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
     }
 
     @Test
-    fun `Fradragstype som ikke er gyldig feks Forventet Inntekt er ikke lov som fradragstype`() {
+    fun `Fradragstype Forventet Inntekt er ikke lov`() {
         //language=json
         val bodyMedUgyldigFradrag =
             """
@@ -199,7 +199,107 @@ internal class LeggTilFradragSøknadsbehandlingRouteKtTest {
         val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
 
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { leggTilFradragGrunnlag(any()) } doReturn behandling.right()
+            on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
+        }
+
+        withTestApplication(
+            {
+                testSusebakover(services = testServices.copy(søknadsbehandling = søknadsbehandlingServiceMock))
+            },
+        ) {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${UUID.randomUUID()}/behandlinger/${behandling.id}/grunnlag/fradrag",
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody(bodyMedUgyldigFradrag)
+            }.apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+                response.content shouldContain ("ugyldig_fradragstype")
+            }
+        }
+    }
+
+    @Test
+    fun `Fradragstype beregnetFradragEPS er ikke lov`() {
+        //language=json
+        val bodyMedUgyldigFradrag =
+            """
+        {
+            "fradrag":
+                [
+                    {
+                        "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
+                        "beløp":9879,
+                        "type":"BeregnetFradragEPS",
+                        "utenlandskInntekt":null,
+                        "tilhører":"EPS"
+                    },
+                    {
+                        "periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-12-31"},
+                        "beløp":10000,
+                        "type":"Kontantstøtte",
+                        "utenlandskInntekt":null,
+                        "tilhører":"BRUKER"
+                    }
+                ]
+        }
+            """.trimIndent()
+
+        val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
+
+        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
+            on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
+        }
+
+        withTestApplication(
+            {
+                testSusebakover(services = testServices.copy(søknadsbehandling = søknadsbehandlingServiceMock))
+            },
+        ) {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${UUID.randomUUID()}/behandlinger/${behandling.id}/grunnlag/fradrag",
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody(bodyMedUgyldigFradrag)
+            }.apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+                response.content shouldContain ("ugyldig_fradragstype")
+            }
+        }
+    }
+
+    @Test
+    fun `Fradragstype under minsteNivå er ikke lov`() {
+        //language=json
+        val bodyMedUgyldigFradrag =
+            """
+        {
+            "fradrag":
+                [
+                    {
+                        "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
+                        "beløp":9879,
+                        "type":"UnderMinstenivå",
+                        "utenlandskInntekt":null,
+                        "tilhører":"EPS"
+                    },
+                    {
+                        "periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-12-31"},
+                        "beløp":10000,
+                        "type":"Kontantstøtte",
+                        "utenlandskInntekt":null,
+                        "tilhører":"BRUKER"
+                    }
+                ]
+        }
+            """.trimIndent()
+
+        val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
+
+        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
+            on { leggTilFradragsgrunnlag(any()) } doReturn behandling.right()
         }
 
         withTestApplication(

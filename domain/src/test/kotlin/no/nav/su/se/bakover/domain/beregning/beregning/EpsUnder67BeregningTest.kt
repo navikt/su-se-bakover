@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 internal class EpsUnder67BeregningTest {
     /**
@@ -50,20 +51,26 @@ internal class EpsUnder67BeregningTest {
                 ),
             ),
             fradragFraSaksbehandler = listOf(
-                FradragFactory.ny(
-                    type = Fradragstype.OffentligPensjon,
-                    månedsbeløp = folketrygdPrMnd,
-                    periode = periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                ),
-                FradragFactory.ny(
-                    type = Fradragstype.OffentligPensjon,
-                    månedsbeløp = folketrygdEpsPrMnd,
-                    periode = periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS
-                )
+                Grunnlag.Fradragsgrunnlag.tryCreate(
+                    id = UUID.randomUUID(), opprettet = fixedTidspunkt,
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.OffentligPensjon,
+                        månedsbeløp = folketrygdPrMnd,
+                        periode = periode,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER
+                    ),
+                ).orNull()!!,
+                Grunnlag.Fradragsgrunnlag.tryCreate(
+                    id = UUID.randomUUID(), opprettet = fixedTidspunkt,
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.OffentligPensjon,
+                        månedsbeløp = folketrygdEpsPrMnd,
+                        periode = periode,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.EPS
+                    ),
+                ).orNull()!!,
             )
         )
 

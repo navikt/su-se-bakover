@@ -16,8 +16,10 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -27,6 +29,9 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInneforBehandlingsperioden
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler
 import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.medFritekstTilBrev
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
@@ -36,7 +41,6 @@ import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
-import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
@@ -69,7 +73,6 @@ internal class SøknadsbehandlingServiceImpl(
     private val personService: PersonService,
     private val oppgaveService: OppgaveService,
     private val behandlingMetrics: BehandlingMetrics,
-    private val beregningService: BeregningService,
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     private val brevService: BrevService,
     private val opprettVedtakssnapshotService: OpprettVedtakssnapshotService,
@@ -164,19 +167,15 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeBeregne.FantIkkeBehandling.left()
 
-        // Dette er allerede validert når de ble lagt inn, men vi validerer det en gang til her for å være sikker på at det ikke har endret seg
-        val fradrag = søknadsbehandling.grunnlagsdata.fradragsgrunnlag
-            .map { fradragsgrunnlag ->
-                fradragsgrunnlag.fradrag
-            }
-
         return statusovergang(
             søknadsbehandling = søknadsbehandling,
             statusovergang = Statusovergang.TilBeregnet {
-                beregningService.beregn(
-                    søknadsbehandling = søknadsbehandling,
-                    fradrag = fradrag,
-                    request.begrunnelse,
+                BeregningStrategyFactory().beregn(
+                    grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
+                        grunnlagsdata = søknadsbehandling.grunnlagsdata,
+                        vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger,
+                    ),
+                    beregningsPeriode = søknadsbehandling.periode, begrunnelse = request.begrunnelse,
                 )
             },
         ).let {
@@ -649,21 +648,22 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun leggTilFradragGrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling> {
+    override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling> {
         val behandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
 
-        val oppdatertBehandling = behandling.leggTilFradragsgrunnlag(request.fradragsrunnlag).getOrHandle {
+        val oppdatertBehandling = behandling.leggTilFradragsgrunnlag(request.fradragsgrunnlag).getOrHandle {
             return when (it) {
-                Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInneforBehandlingen -> KunneIkkeLeggeTilFradragsgrunnlag.FradragsgrunnlagUtenforPeriode.left()
-                Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen -> KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
+                GrunnlagetMåVæreInneforBehandlingsperioden -> KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden.left()
+                IkkeLovÅLeggeTilFradragIDenneStatusen -> KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
                     fra = behandling::class,
+                    til = Søknadsbehandling.Vilkårsvurdert.Innvilget::class,
                 ).left()
-                Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMåFyllesUt -> KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler.left()
+                PeriodeMangler -> KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler.left()
             }
         }
 
-        grunnlagService.lagreFradragsgrunnlag(behandling.id, request.fradragsrunnlag)
+        grunnlagService.lagreFradragsgrunnlag(behandling.id, request.fradragsgrunnlag)
         søknadsbehandlingRepo.lagre(oppdatertBehandling)
 
         return oppdatertBehandling.right()

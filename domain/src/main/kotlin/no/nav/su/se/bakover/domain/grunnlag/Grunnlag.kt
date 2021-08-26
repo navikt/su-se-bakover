@@ -62,16 +62,26 @@ sealed class Grunnlag {
                 opprettet: Tidspunkt = Tidspunkt.now(),
                 fradrag: Fradrag,
             ): Either<UgyldigFradragsgrunnlag, Fradragsgrunnlag> {
+                if (harUgyldigFradragsType(fradrag)) {
+                    return UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
+                }
+
+                return Fradragsgrunnlag(id = id, opprettet = opprettet, fradrag = fradrag).right()
+            }
+
+            /**
+             * inntil fradragsgrunnlag har sine egne fradragstyper så må vi sjekke at disse ikke er med
+             */
+            fun harUgyldigFradragsType(fradrag: Fradrag): Boolean {
                 if (setOf(
                         Fradragstype.ForventetInntekt,
                         Fradragstype.BeregnetFradragEPS,
                         Fradragstype.UnderMinstenivå,
                     ).contains(fradrag.fradragstype)
                 ) {
-                    return UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
+                    return true
                 }
-
-                return Fradragsgrunnlag(id = id, opprettet = opprettet, fradrag = fradrag).right()
+                return false
             }
         }
 

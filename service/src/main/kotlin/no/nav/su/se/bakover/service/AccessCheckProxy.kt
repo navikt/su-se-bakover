@@ -423,9 +423,9 @@ open class AccessCheckProxy(
                     return services.søknadsbehandling.fullførBosituasjongrunnlag(request)
                 }
 
-                override fun leggTilFradragGrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling> {
+                override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.leggTilFradragGrunnlag(request)
+                    return services.søknadsbehandling.leggTilFradragsgrunnlag(request)
                 }
             },
             ferdigstillVedtak = object : FerdigstillVedtakService {

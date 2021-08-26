@@ -57,7 +57,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
 
         val request = LeggTilFradragsgrunnlagRequest(
             behandlingId = revurdering.id,
-            fradragsrunnlag = listOf(
+            fradragsgrunnlag = listOf(
                 Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
@@ -76,7 +76,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
         verify(revurderingRepoMock).hent(argThat { it shouldBe revurdering.id })
         verify(grunnlagServiceMock).lagreFradragsgrunnlag(
             argThat { it shouldBe revurdering.id },
-            argThat { it shouldBe request.fradragsrunnlag },
+            argThat { it shouldBe request.fradragsgrunnlag },
         )
         verify(revurderingRepoMock).lagre(
             argThat {
@@ -114,7 +114,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
 
         val request = LeggTilFradragsgrunnlagRequest(
             behandlingId = revurderingId,
-            fradragsrunnlag = listOf(
+            fradragsgrunnlag = listOf(
                 Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
@@ -160,7 +160,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
 
         val request = LeggTilFradragsgrunnlagRequest(
             behandlingId = tidligereRevurdering.id,
-            fradragsrunnlag = listOf(
+            fradragsgrunnlag = listOf(
                 Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
@@ -216,7 +216,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
 
         val request = LeggTilFradragsgrunnlagRequest(
             behandlingId = revurderingId,
-            fradragsrunnlag = listOf(
+            fradragsgrunnlag = listOf(
                 Grunnlag.Fradragsgrunnlag.tryCreate(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
