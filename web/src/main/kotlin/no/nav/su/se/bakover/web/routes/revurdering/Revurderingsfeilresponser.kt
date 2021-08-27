@@ -108,6 +108,21 @@ internal object Revurderingsfeilresponser {
         "formue_som_fører_til_opphør_må_revurderes",
     )
 
+    val brevFantIkkePerson = InternalServerError.errorJson(
+        "Fant ikke person",
+        "fant_ikke_person",
+    )
+
+    val brevNavneoppslagSaksbehandlerAttesttantFeilet = InternalServerError.errorJson(
+        "Kunne ikke hente navn for saksbehandler eller attestant",
+        "navneoppslag_feilet",
+    )
+
+    val brevFantIkkeGjeldendeUtbetaling = InternalServerError.errorJson(
+        "Kunne ikke hente gjeldende utbetaling",
+        "kunne_ikke_hente_gjeldende_utbetaling",
+    )
+
     fun ugyldigPeriode(ugyldigPeriode: UgyldigPeriode): Resultat {
         return BadRequest.errorJson(
             ugyldigPeriode.toString(),
@@ -158,18 +173,9 @@ internal object Revurderingsfeilresponser {
                 "Kunne ikke lage brevutkast",
                 "kunne_ikke_lage_brevutkast",
             )
-            KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson -> InternalServerError.errorJson(
-                "Fant ikke person",
-                "fant_ikke_person",
-            )
-            KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> InternalServerError.errorJson(
-                "Kunne ikke hente navn for saksbehandler eller attestant",
-                "navneoppslag_feilet",
-            )
-            KunneIkkeLageBrevutkastForRevurdering.KunneIkkeFinneGjeldendeUtbetaling -> InternalServerError.errorJson(
-                "Kunne ikke hente gjeldende utbetaling",
-                "kunne_ikke_hente_gjeldende_utbetaling",
-            )
+            KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson -> brevFantIkkePerson
+            KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> brevNavneoppslagSaksbehandlerAttesttantFeilet
+            KunneIkkeLageBrevutkastForRevurdering.KunneIkkeFinneGjeldendeUtbetaling -> brevFantIkkeGjeldendeUtbetaling
         }
     }
 }

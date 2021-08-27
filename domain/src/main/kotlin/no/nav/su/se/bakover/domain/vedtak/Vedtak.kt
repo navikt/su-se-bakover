@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
@@ -33,6 +32,7 @@ import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.domain.visitor.SkalSendeBrevVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 import java.util.UUID
@@ -64,11 +64,19 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
 
     abstract fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, Vedtak>
     abstract fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, Vedtak>
-    fun skalSendeBrev() =
-        (this.behandling as? IverksattRevurdering.Innvilget)?.revurderingsårsak?.årsak != Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
+    fun skalSendeBrev(): Boolean {
+        return SkalSendeBrevVisitor().let {
+            this.accept(it)
+            it.sendBrev
+        }
+    }
 
     companion object {
-        fun fromSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget, utbetalingId: UUID30, clock: Clock) =
+        fun fromSøknadsbehandling(
+            søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
+            utbetalingId: UUID30,
+            clock: Clock,
+        ) =
             EndringIYtelse(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(clock),
@@ -199,7 +207,10 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         override val vedtakType = VedtakType.AVSLAG
 
         companion object {
-            fun fromSøknadsbehandlingMedBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.MedBeregning, clock: Clock) =
+            fun fromSøknadsbehandlingMedBeregning(
+                avslag: Søknadsbehandling.Iverksatt.Avslag.MedBeregning,
+                clock: Clock,
+            ) =
                 AvslagBeregning(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(clock),
@@ -211,7 +222,10 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     periode = avslag.periode,
                 )
 
-            fun fromSøknadsbehandlingUtenBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning, clock: Clock) =
+            fun fromSøknadsbehandlingUtenBeregning(
+                avslag: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning,
+                clock: Clock,
+            ) =
                 AvslagVilkår(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(clock),
@@ -419,7 +433,7 @@ fun List<VedtakSomKanRevurderes>.lagTidslinje(periode: Periode, clock: Clock): T
                     if (behandling is Søknadsbehandling) behandling.behandlingsinformasjon.formue!!.tilVilkår(
                         stønadsperiode = behandling.stønadsperiode!!,
                         bosituasjon = behandling.grunnlagsdata.bosituasjon,
-                        clock = clock
+                        clock = clock,
                     ) else behandling.vilkårsvurderinger.formue
                 },
             ),

@@ -36,6 +36,7 @@ val fixedTidspunkt: Tidspunkt = Tidspunkt.now(fixedClock)
 val fixedLocalDate: LocalDate = LocalDate.of(2021, 1, 1)
 
 val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
+
 const val saksbehandlerNavn = "Sak S. Behandler"
 
 val saksnummer = Saksnummer(nummer = 12345676)

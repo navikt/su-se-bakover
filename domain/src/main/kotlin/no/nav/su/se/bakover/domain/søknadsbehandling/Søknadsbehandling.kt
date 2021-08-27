@@ -1130,10 +1130,10 @@ enum class BehandlingsStatus {
 sealed class KunneIkkeIverksette {
     object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksette()
     data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksette()
-    object KunneIkkeJournalføreBrev : KunneIkkeIverksette()
     object FantIkkeBehandling : KunneIkkeIverksette()
     object FantIkkePerson : KunneIkkeIverksette()
     object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeIverksette()
+    object KunneIkkeGenerereVedtaksbrev : KunneIkkeIverksette()
 }
 
 // Her trikses det litt for å få til at funksjonen returnerer den samme konkrete typen som den kalles på.

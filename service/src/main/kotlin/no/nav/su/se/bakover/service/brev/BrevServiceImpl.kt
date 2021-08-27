@@ -135,12 +135,14 @@ internal class BrevServiceImpl(
         return dokumentRepo.hentDokumenterForDistribusjon()
     }
 
-    override fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): List<Dokument> {
+    override fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): Either<FantIngenDokumenter, List<Dokument>> {
         return when (hentDokumenterForIdType) {
             is HentDokumenterForIdType.Sak -> dokumentRepo.hentForSak(hentDokumenterForIdType.id)
             is HentDokumenterForIdType.Søknad -> dokumentRepo.hentForSøknad(hentDokumenterForIdType.id)
             is HentDokumenterForIdType.Revurdering -> dokumentRepo.hentForRevurdering(hentDokumenterForIdType.id)
             is HentDokumenterForIdType.Vedtak -> dokumentRepo.hentForVedtak(hentDokumenterForIdType.id)
+        }.let {
+            if (it.isEmpty()) FantIngenDokumenter(hentDokumenterForIdType).left() else it.right()
         }
     }
 

@@ -424,8 +424,8 @@ internal fun Route.søknadsbehandlingRoutes(
                     Forbidden.errorJson("Attestant og saksbehandler kan ikke være samme person", "attestant_samme_som_saksbehandler")
                 }
                 is KunneIkkeIverksette.KunneIkkeUtbetale -> value.utbetalingFeilet.tilResultat()
-                is KunneIkkeIverksette.KunneIkkeJournalføreBrev -> {
-                    InternalServerError.errorJson("Feil ved journalføring av vedtaksbrev", "kunne_ikke_journalføre_brev")
+                is KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev -> {
+                    InternalServerError.errorJson("Feil ved generering av vedtaksbrev", "kunne_ikke_generere_brev")
                 }
                 is KunneIkkeIverksette.FantIkkeBehandling -> fantIkkeBehandling
                 is KunneIkkeIverksette.FantIkkePerson -> fantIkkePerson

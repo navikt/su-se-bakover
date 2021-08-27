@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalføreOgDistribuereBrev
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -58,6 +59,7 @@ interface FerdigstillVedtakService {
             data class AlleredeDistribuert(val journalpostId: JournalpostId) : KunneIkkeDistribuereBrev()
         }
 
+        object KunneIkkeGenerereBrev : KunneIkkeFerdigstilleVedtak()
         object KunneIkkeLukkeOppgave : KunneIkkeFerdigstilleVedtak()
     }
 
@@ -231,27 +233,38 @@ internal class FerdigstillVedtakServiceImpl(
     }
 
     private fun ferdigstillVedtak(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak, Vedtak> {
-        if (vedtak.skalSendeBrev()) {
-            val journalførtVedtak = journalførOgLagre(vedtak).getOrHandle { feilVedJournalføring ->
-                when (feilVedJournalføring) {
-                    is KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.AlleredeJournalført -> vedtak
-                    else -> return feilVedJournalføring.left()
-                }
-            }
-
-            val distribuertVedtak = distribuerOgLagre(journalførtVedtak).getOrHandle { feilVedDistribusjon ->
-                when (feilVedDistribusjon) {
-                    is KunneIkkeFerdigstilleVedtak.KunneIkkeDistribuereBrev.AlleredeDistribuert -> journalførtVedtak
-                    else -> return feilVedDistribusjon.left()
-                }
-            }
-
-            lukkOppgaveMedSystembruker(distribuertVedtak)
-            return distribuertVedtak.right()
+        // TODO jm: sjekk om vi allerede har distribuert?
+        return if (vedtak.skalSendeBrev()) {
+            lagreDokumentJournalførOgDistribuer(vedtak).getOrHandle { return it.left() }
+            lukkOppgaveMedSystembruker(vedtak)
+            vedtak.right()
         } else {
             lukkOppgaveMedSystembruker(vedtak)
-            return vedtak.right()
+            vedtak.right()
         }
+    }
+
+    fun lagreDokumentJournalførOgDistribuer(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak, Vedtak> {
+        val brevRequest = lagBrevRequest(vedtak)
+            .getOrHandle { return it.left() }
+        val dokument = brevRequest.tilDokument {
+            brevService.lagBrev(it)
+                .mapLeft { LagBrevRequest.KunneIkkeGenererePdf }
+        }.map {
+            it.leggTilMetadata(
+                metadata = Dokument.Metadata(
+                    sakId = vedtak.behandling.sakId,
+                    søknadId = null,
+                    vedtakId = vedtak.id,
+                    revurderingId = null,
+                    bestillBrev = true,
+                ),
+            )
+        }.getOrHandle { return KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev.left() }
+
+        brevService.lagreDokument(dokument)
+
+        return vedtak.right()
     }
 
     override fun journalførOgLagre(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev, Vedtak> {
