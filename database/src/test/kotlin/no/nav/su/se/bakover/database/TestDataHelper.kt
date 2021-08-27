@@ -44,7 +44,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -133,8 +132,6 @@ internal val underkjentAttestering =
         opprettet = fixedTidspunkt,
     )
 internal val iverksattAttestering = Attestering.Iverksatt(attestant, fixedTidspunkt)
-internal val iverksattJournalpostId = JournalpostId("iverksattJournalpostId")
-internal val iverksattBrevbestillingId = BrevbestillingId("iverksattBrevbestillingId")
 internal val avstemmingsnøkkel = Avstemmingsnøkkel()
 internal fun utbetalingslinje() = Utbetalingslinje.Ny(
     fraOgMed = 1.januar(2020),

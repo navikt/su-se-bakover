@@ -6,7 +6,6 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
-import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.dokdistfordeling.KunneIkkeBestilleDistribusjon
 import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
@@ -28,7 +27,6 @@ import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
@@ -82,30 +80,6 @@ internal class BrevServiceImplTest {
         ).brevService.lagBrev(DummyRequest) shouldBe KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
         verify(pdfGeneratorMock).genererPdf(DummyBrevInnhold)
         verifyNoMoreInteractions(pdfGeneratorMock)
-    }
-
-    @Test
-    fun `journalfører brev`() {
-        val pdf = "".toByteArray()
-        val saksnummer = Saksnummer(2021)
-
-        val pdfGeneratorMock = mock<PdfGenerator> {
-            on { genererPdf(any<BrevInnhold>()) } doReturn pdf.right()
-        }
-        val dokArkivMock = mock<DokArkiv> {
-            on { opprettJournalpost(any()) } doReturn JournalpostId("journalpostId").right()
-        }
-
-        ServiceOgMocks(
-            pdfGenerator = pdfGeneratorMock,
-            dokArkiv = dokArkivMock,
-        ).brevService.journalførBrev(DummyRequest, saksnummer) shouldBe JournalpostId("journalpostId").right()
-
-        verify(pdfGeneratorMock).genererPdf(DummyBrevInnhold)
-        verify(dokArkivMock).opprettJournalpost(
-            argThat { it shouldBe Journalpost.Vedtakspost.from(person, saksnummer, DummyBrevInnhold, pdf) },
-        )
-        verifyNoMoreInteractions(pdfGeneratorMock, dokArkivMock)
     }
 
     @Test

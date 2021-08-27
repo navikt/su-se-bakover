@@ -1,9 +1,7 @@
 package no.nav.su.se.bakover.domain.vedtak
 
-import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.NonEmptyList
-import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
@@ -17,12 +15,8 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.toAv
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalføreOgDistribuereBrev
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.ErAvslag
@@ -51,7 +45,6 @@ interface VedtakFelles {
     val behandling: Behandling
     val saksbehandler: NavIdentBruker.Saksbehandler
     val attestant: NavIdentBruker.Attestant
-    val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon
     val vedtakType: VedtakType
     val periode: Periode
 }
@@ -62,8 +55,6 @@ sealed interface VedtakSomKanRevurderes : VedtakFelles {
 
 sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
 
-    abstract fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, Vedtak>
-    abstract fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, Vedtak>
     fun skalSendeBrev(): Boolean {
         return SkalSendeBrevVisitor().let {
             this.accept(it)
@@ -87,7 +78,6 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                 saksbehandler = søknadsbehandling.saksbehandler,
                 attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant,
                 utbetalingId = utbetalingId,
-                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
                 vedtakType = VedtakType.SØKNAD,
             )
 
@@ -99,7 +89,6 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             beregning = revurdering.beregning,
             saksbehandler = revurdering.saksbehandler,
             attestant = revurdering.attestering.attestant,
-            journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
         )
 
         fun from(revurdering: IverksattRevurdering.Innvilget, utbetalingId: UUID30, clock: Clock) = EndringIYtelse(
@@ -112,7 +101,6 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             saksbehandler = revurdering.saksbehandler,
             attestant = revurdering.attestering.attestant,
             utbetalingId = utbetalingId,
-            journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
             vedtakType = VedtakType.ENDRING,
         )
 
@@ -126,7 +114,6 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             saksbehandler = revurdering.saksbehandler,
             attestant = revurdering.attestering.attestant,
             utbetalingId = utbetalingId,
-            journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
             vedtakType = VedtakType.OPPHØR,
         )
     }
@@ -137,31 +124,12 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         override val behandling: Behandling,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val attestant: NavIdentBruker.Attestant,
-        override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
         override val periode: Periode,
         override val beregning: Beregning,
         val simulering: Simulering,
         val utbetalingId: UUID30,
         override val vedtakType: VedtakType,
     ) : Vedtak(), VedtakSomKanRevurderes {
-
-        override fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, EndringIYtelse> {
-            return if (vedtakType == VedtakType.SØKNAD || vedtakType == VedtakType.ENDRING || vedtakType == VedtakType.OPPHØR) {
-                journalføringOgBrevdistribusjon.journalfør(journalfør)
-                    .map { copy(journalføringOgBrevdistribusjon = it) }
-            } else {
-                this.right()
-            }
-        }
-
-        override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, EndringIYtelse> {
-            return if (vedtakType == VedtakType.SØKNAD || vedtakType == VedtakType.ENDRING || vedtakType == VedtakType.OPPHØR) {
-                journalføringOgBrevdistribusjon.distribuerBrev(distribuerBrev)
-                    .map { copy(journalføringOgBrevdistribusjon = it) }
-            } else {
-                this.right()
-            }
-        }
 
         override fun accept(visitor: VedtakVisitor) {
             visitor.visit(this)
@@ -174,29 +142,10 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         override val behandling: Behandling,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val attestant: NavIdentBruker.Attestant,
-        override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
         override val periode: Periode,
         override val beregning: Beregning,
     ) : Vedtak(), VedtakSomKanRevurderes {
         override val vedtakType: VedtakType = VedtakType.INGEN_ENDRING
-
-        override fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, IngenEndringIYtelse> {
-            return if (behandling is IverksattRevurdering.IngenEndring && !behandling.skalFøreTilBrevutsending) {
-                this.right()
-            } else {
-                journalføringOgBrevdistribusjon.journalfør(journalfør)
-                    .map { copy(journalføringOgBrevdistribusjon = it) }
-            }
-        }
-
-        override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, IngenEndringIYtelse> {
-            return if (behandling is IverksattRevurdering.IngenEndring && !behandling.skalFøreTilBrevutsending) {
-                this.right()
-            } else {
-                journalføringOgBrevdistribusjon.distribuerBrev(distribuerBrev)
-                    .map { copy(journalføringOgBrevdistribusjon = it) }
-            }
-        }
 
         override fun accept(visitor: VedtakVisitor) {
             visitor.visit(this)
@@ -218,7 +167,6 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     beregning = avslag.beregning,
                     saksbehandler = avslag.saksbehandler,
                     attestant = avslag.attesteringer.hentSisteAttestering().attestant,
-                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
                     periode = avslag.periode,
                 )
 
@@ -232,7 +180,6 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     behandling = avslag,
                     saksbehandler = avslag.saksbehandler,
                     attestant = avslag.attesteringer.hentSisteAttestering().attestant,
-                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
                     periode = avslag.periode,
                 )
         }
@@ -243,21 +190,10 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             override val behandling: Søknadsbehandling,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestant: NavIdentBruker.Attestant,
-            override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
             override val periode: Periode,
         ) : Avslag() {
             // TODO jah: I en overgangsfase vil vilkårsvurderingene finnes både i Behandlingsinformasjon og Vilkårsvurderinger, ideelt sett hadde Vilkårsvurderinger eid avslagsgrunnene.
             override val avslagsgrunner: List<Avslagsgrunn> = behandling.behandlingsinformasjon.utledAvslagsgrunner()
-
-            override fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, Avslag> {
-                return journalføringOgBrevdistribusjon.journalfør(journalfør)
-                    .map { copy(journalføringOgBrevdistribusjon = it) }
-            }
-
-            override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, Avslag> {
-                return journalføringOgBrevdistribusjon.distribuerBrev(distribuerBrev)
-                    .map { copy(journalføringOgBrevdistribusjon = it) }
-            }
 
             override fun accept(visitor: VedtakVisitor) {
                 visitor.visit(this)
@@ -270,7 +206,6 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             override val behandling: Søknadsbehandling,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestant: NavIdentBruker.Attestant,
-            override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
             override val periode: Periode,
             val beregning: Beregning,
         ) : Avslag() {
@@ -284,16 +219,6 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             // TODO jah: I en overgangsfase vil vilkårsvurderingene finnes både i Behandlingsinformasjon og Vilkårsvurderinger, ideelt sett hadde Vilkårsvurderinger eid avslagsgrunnene.
             override val avslagsgrunner: List<Avslagsgrunn> =
                 behandling.behandlingsinformasjon.utledAvslagsgrunner() + avslagsgrunnForBeregning
-
-            override fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, Avslag> {
-                return journalføringOgBrevdistribusjon.journalfør(journalfør)
-                    .map { copy(journalføringOgBrevdistribusjon = it) }
-            }
-
-            override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, Avslag> {
-                return journalføringOgBrevdistribusjon.distribuerBrev(distribuerBrev)
-                    .map { copy(journalføringOgBrevdistribusjon = it) }
-            }
 
             override fun accept(visitor: VedtakVisitor) {
                 visitor.visit(this)
