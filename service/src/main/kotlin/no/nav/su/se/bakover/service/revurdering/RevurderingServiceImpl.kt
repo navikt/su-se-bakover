@@ -9,6 +9,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -18,8 +19,11 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
+import no.nav.su.se.bakover.domain.grunnlag.harFlerEnnEnBosituasjonsperiode
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -131,7 +135,12 @@ internal class RevurderingServiceImpl(
             }
         }
 
-        when (val r = VurderOmVilkårGirOpphørVedRevurdering(gjeldendeVedtaksdata.vilkårsvurderinger).resultat) {
+        val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonHvisIkkeEntydig(
+            gjeldendeVedtaksdata,
+
+        )
+
+        when (val r = VurderOmVilkårGirOpphørVedRevurdering(vilkårsvurderinger).resultat) {
             is OpphørVedRevurdering.Ja -> {
                 if (!informasjonSomRevurderes.harValgtFormue() && r.opphørsgrunner.contains(Opphørsgrunn.FORMUE)) {
                     return KunneIkkeOppretteRevurdering.FormueSomFørerTilOpphørMåRevurderes.left()
@@ -168,8 +177,8 @@ internal class RevurderingServiceImpl(
                 revurderingsårsak = revurderingsårsak,
                 opprettet = Tidspunkt.now(clock),
                 forhåndsvarsel = if (revurderingsårsak.årsak == REGULER_GRUNNBELØP) Forhåndsvarsel.IngenForhåndsvarsel else null,
-                grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
-                vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
             ).also {
@@ -196,6 +205,58 @@ internal class RevurderingServiceImpl(
                 }
             }
         }
+    }
+
+    private fun fjernBosituasjonHvisIkkeEntydig(gjeldendeVedtaksdata: GjeldendeVedtaksdata): Pair<Grunnlagsdata, Vilkårsvurderinger> {
+        val gjeldendeBosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon
+
+        // Dette kan oppstå når vi revurderer en revurdering. Da må vi vise eksisterende, men skal ikke preutfylle.
+        val harFlerEnnEnBosituasjon = gjeldendeBosituasjon.harFlerEnnEnBosituasjonsperiode()
+
+        val bosituasjon = when (val b = gjeldendeBosituasjon.first()) {
+            is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
+                id = b.id,
+                opprettet = b.opprettet,
+                periode = Periode.create(fraOgMed = b.periode.fraOgMed, tilOgMed = gjeldendeVedtaksdata.periode.tilOgMed),
+                begrunnelse = b.begrunnelse,
+            )
+            is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
+                id = b.id,
+                opprettet = b.opprettet,
+                periode = Periode.create(fraOgMed = b.periode.fraOgMed, tilOgMed = gjeldendeVedtaksdata.periode.tilOgMed),
+                begrunnelse = b.begrunnelse,
+                fnr = b.fnr,
+            )
+            is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
+                id = b.id,
+                opprettet = b.opprettet,
+                periode = Periode.create(fraOgMed = b.periode.fraOgMed, tilOgMed = gjeldendeVedtaksdata.periode.tilOgMed),
+                begrunnelse = b.begrunnelse,
+                fnr = b.fnr,
+            )
+            is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
+                id = b.id,
+                opprettet = b.opprettet,
+                periode = Periode.create(fraOgMed = b.periode.fraOgMed, tilOgMed = gjeldendeVedtaksdata.periode.tilOgMed),
+                begrunnelse = b.begrunnelse,
+                fnr = b.fnr,
+            )
+            is Grunnlag.Bosituasjon.Fullstendig.Enslig -> Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                id = b.id,
+                opprettet = b.opprettet,
+                periode = Periode.create(fraOgMed = b.periode.fraOgMed, tilOgMed = gjeldendeVedtaksdata.periode.tilOgMed),
+                begrunnelse = b.begrunnelse,
+            )
+            is Grunnlag.Bosituasjon.Ufullstendig.HarEps -> throw IllegalStateException("Det skal ikke være mulig med Ufullstendige Bositusjoner her")
+            is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps -> throw IllegalStateException("Det skal ikke være mulig med Ufullstendige Bositusjoner her")
+        }
+
+        return gjeldendeVedtaksdata.grunnlagsdata.copy(
+            // Foreløpig støtter vi kun en aktiv bosituasjon, dersom det er fler, preutfyller vi ikke.
+            bosituasjon = if (harFlerEnnEnBosituasjon) listOf(bosituasjon) else listOf(
+                gjeldendeBosituasjon.singleFullstendigOrThrow(),
+            ),
+        ) to gjeldendeVedtaksdata.vilkårsvurderinger
     }
 
     override fun leggTilUføregrunnlag(
@@ -366,6 +427,10 @@ internal class RevurderingServiceImpl(
             }
         }
 
+        val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonHvisIkkeEntydig(
+            gjeldendeVedtaksdata,
+        )
+
         when (val r = VurderOmVilkårGirOpphørVedRevurdering(gjeldendeVedtaksdata.vilkårsvurderinger).resultat) {
             is OpphørVedRevurdering.Ja -> {
                 if (!informasjonSomRevurderes.harValgtFormue() && r.opphørsgrunner.contains(Opphørsgrunn.FORMUE)) {
@@ -383,32 +448,32 @@ internal class RevurderingServiceImpl(
             is OpprettetRevurdering -> revurdering.oppdater(
                 gjeldendeVedtaksdata.periode,
                 revurderingsårsak,
-                gjeldendeVedtaksdata.grunnlagsdata,
-                gjeldendeVedtaksdata.vilkårsvurderinger,
+                grunnlagsdata,
+                vilkårsvurderinger,
                 informasjonSomRevurderes,
                 gjeldendeVedtakPåFraOgMedDato,
             ).right()
             is BeregnetRevurdering -> revurdering.oppdater(
                 gjeldendeVedtaksdata.periode,
                 revurderingsårsak,
-                gjeldendeVedtaksdata.grunnlagsdata,
-                gjeldendeVedtaksdata.vilkårsvurderinger,
+                grunnlagsdata,
+                vilkårsvurderinger,
                 informasjonSomRevurderes,
                 gjeldendeVedtakPåFraOgMedDato,
             ).right()
             is SimulertRevurdering -> revurdering.oppdater(
                 gjeldendeVedtaksdata.periode,
                 revurderingsårsak,
-                gjeldendeVedtaksdata.grunnlagsdata,
-                gjeldendeVedtaksdata.vilkårsvurderinger,
+                grunnlagsdata,
+                vilkårsvurderinger,
                 informasjonSomRevurderes,
                 gjeldendeVedtakPåFraOgMedDato,
             ).right()
             is UnderkjentRevurdering -> revurdering.oppdater(
                 gjeldendeVedtaksdata.periode,
                 revurderingsårsak,
-                gjeldendeVedtaksdata.grunnlagsdata,
-                gjeldendeVedtaksdata.vilkårsvurderinger,
+                grunnlagsdata,
+                vilkårsvurderinger,
                 informasjonSomRevurderes,
                 gjeldendeVedtakPåFraOgMedDato,
             ).right()
