@@ -273,7 +273,7 @@ internal class TestDataHelper(
         dataSource = datasource,
         dbMetrics = dbMetrics,
     )
-    internal val dokumentRepo = DokumentPostgresRepo(datasource)
+    internal val dokumentRepo = DokumentPostgresRepo(datasource, sessionFactory)
     internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(datasource)
 
     fun nySakMedNySøknad(fnr: Fnr = FnrGenerator.random()): NySak {

@@ -5,6 +5,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
@@ -27,6 +28,7 @@ import javax.sql.DataSource
 
 internal class DokumentPostgresRepo(
     private val dataSource: DataSource,
+    private val postgresSessionFactory: PostgresSessionFactory,
 ) : DokumentRepo {
 
     override fun lagre(dokument: Dokument.MedMetadata, transactionContext: TransactionContext) {
@@ -172,6 +174,10 @@ internal class DokumentPostgresRepo(
                     session,
                 )
         }
+    }
+
+    override fun defaultTransactionContext(): TransactionContext {
+        return postgresSessionFactory.newTransactionContext()
     }
 
     private fun lagreDokumentdistribusjon(dokumentdistribusjon: Dokumentdistribusjon, tx: TransactionalSession) {

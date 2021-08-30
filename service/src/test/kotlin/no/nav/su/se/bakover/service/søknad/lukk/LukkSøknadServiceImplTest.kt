@@ -46,6 +46,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
@@ -295,12 +296,14 @@ internal class LukkSøknadServiceImplTest {
                 verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
                 verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
                 verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+                verify(søknadRepoMock).defaultSessionContext()
                 verify(søknadRepoMock).oppdaterSøknad(
                     argThat {
                         it shouldBe lukketSøknad.copy(
                             lukketType = AVVIST,
                         )
                     },
+                    anyOrNull(),
                 )
                 verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
                 verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })

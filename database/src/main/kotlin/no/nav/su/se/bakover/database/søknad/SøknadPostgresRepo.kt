@@ -40,12 +40,6 @@ internal class SøknadPostgresRepo(
         }
     }
 
-    override fun oppdaterSøknad(søknad: Søknad.Lukket) {
-        postgresSessionFactory.withSessionContext { context ->
-            oppdaterSøknad(søknad, context)
-        }
-    }
-
     override fun oppdaterSøknad(søknad: Søknad.Lukket, sessionContext: SessionContext) {
         sessionContext.withSession { session ->
             "update søknad set lukket=to_json(:lukket::json) where id=:id".oppdatering(

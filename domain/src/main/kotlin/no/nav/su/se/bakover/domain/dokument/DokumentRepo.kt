@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import java.util.UUID
 
 interface DokumentRepo {
-    fun lagre(dokument: Dokument.MedMetadata, transactionContext: TransactionContext)
+    fun lagre(dokument: Dokument.MedMetadata, transactionContext: TransactionContext = defaultTransactionContext())
     fun hentDokument(id: UUID): Dokument.MedMetadata?
     fun hentForSak(id: UUID): List<Dokument.MedMetadata>
     fun hentForSøknad(id: UUID): List<Dokument.MedMetadata>
@@ -14,4 +14,6 @@ interface DokumentRepo {
     fun hentDokumentdistribusjon(id: UUID): Dokumentdistribusjon?
     fun hentDokumenterForDistribusjon(): List<Dokumentdistribusjon>
     fun oppdaterDokumentdistribusjon(dokumentdistribusjon: Dokumentdistribusjon)
+
+    fun defaultTransactionContext(): TransactionContext
 }

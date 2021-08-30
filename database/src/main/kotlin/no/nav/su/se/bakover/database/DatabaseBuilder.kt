@@ -163,7 +163,7 @@ object DatabaseBuilder {
             grunnlagRepo = grunnlagRepo,
             uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
             formueVilkårsvurderingRepo = formueVilkårsvurderingRepo,
-            dokumentRepo = DokumentPostgresRepo(dataSource),
+            dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory),
             personhendelseRepo = hendelseRepo,
             sessionFactory = sessionFactory,
         )
