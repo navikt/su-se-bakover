@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.EmbeddedDatabase
-import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.beregning.PersistertFradrag
 import no.nav.su.se.bakover.database.fixedTidspunkt
@@ -18,6 +17,7 @@ import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo.Forhån
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.database.withTransaction
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.saksbehandler
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -65,7 +66,7 @@ internal class RevurderingPostgresRepoTest {
     private val oppgaveId = OppgaveId("oppgaveid")
     private val attestant = NavIdentBruker.Attestant("attestant")
     private val simulering = Simulering(
-        gjelderId = FnrGenerator.random(),
+        gjelderId = Fnr.generer(),
         gjelderNavn = "et navn for simulering",
         datoBeregnet = 1.januar(2021),
         nettoBeløp = 200,
@@ -383,7 +384,7 @@ internal class RevurderingPostgresRepoTest {
                 saksbehandler = saksbehandler,
                 beregning = vedtak.beregning,
                 simulering = Simulering(
-                    gjelderId = FnrGenerator.random(),
+                    gjelderId = Fnr.generer(),
                     gjelderNavn = "Navn Navnesson",
                     datoBeregnet = LocalDate.now(),
                     nettoBeløp = 5,

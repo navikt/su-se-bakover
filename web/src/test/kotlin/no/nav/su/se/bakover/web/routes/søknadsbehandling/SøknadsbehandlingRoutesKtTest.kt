@@ -51,7 +51,7 @@ import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
-import no.nav.su.se.bakover.web.FnrGenerator
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.applicationConfig
@@ -722,7 +722,7 @@ internal class SøknadsbehandlingRoutesKtTest {
 
     private fun setup(): UavklartVilkårsvurdertSøknadsbehandling {
         val søknadInnhold = SøknadInnholdTestdataBuilder.build()
-        val fnr: Fnr = FnrGenerator.random()
+        val fnr: Fnr = Fnr.generer()
         SakFactory(clock = fixedClock).nySakMedNySøknad(fnr, søknadInnhold).also {
             repos.sak.opprettSak(it)
         }

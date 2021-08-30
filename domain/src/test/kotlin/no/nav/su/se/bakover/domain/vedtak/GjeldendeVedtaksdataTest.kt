@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.FnrGenerator
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
@@ -46,6 +46,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import java.util.UUID
@@ -120,7 +121,7 @@ internal class GjeldendeVedtaksdataTest {
             ),
             oppgaveId = OppgaveId(value = "oppgaveId"),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-            fnr = FnrGenerator.random(),
+            fnr = Fnr.generer(),
             beregning = BeregningFactory.ny(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
@@ -236,7 +237,7 @@ internal class GjeldendeVedtaksdataTest {
                 ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             simulering = Simulering(
-                gjelderId = FnrGenerator.random(),
+                gjelderId = Fnr.generer(),
                 gjelderNavn = "",
                 datoBeregnet = 1.mai(2021),
                 nettoBeløp = 0,

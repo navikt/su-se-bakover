@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
@@ -20,7 +21,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
 import no.nav.su.se.bakover.service.fixedClock
@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
+import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.mockito.internal.verification.Times
 import org.mockito.kotlin.any
@@ -86,7 +87,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             ),
             oppgaveId = oppgaveId,
             behandlingsinformasjon = behandlingsinformasjon,
-            fnr = FnrGenerator.random(),
+            fnr = Fnr.generer(),
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
@@ -125,7 +126,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             ),
             oppgaveId = oppgaveId,
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-            fnr = FnrGenerator.random(),
+            fnr = Fnr.generer(),
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
@@ -232,7 +233,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             ),
             oppgaveId = oppgaveId,
             behandlingsinformasjon = behandlingsinformasjon,
-            fnr = FnrGenerator.random(),
+            fnr = Fnr.generer(),
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
@@ -275,7 +276,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             ),
             oppgaveId = oppgaveId,
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-            fnr = FnrGenerator.random(),
+            fnr = Fnr.generer(),
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata(
@@ -288,7 +289,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                 ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(

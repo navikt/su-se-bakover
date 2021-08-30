@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -19,7 +20,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
-import no.nav.su.se.bakover.web.FnrGenerator
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.argThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -37,7 +38,7 @@ internal class LokalKvitteringJobTest {
 
     private val fixedClock: Clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
     val tidspunkt = Tidspunkt.now(fixedClock)
-    val fnr = FnrGenerator.random()
+    val fnr = Fnr.generer()
 
     private val utbetaling = Utbetaling.OversendtUtbetaling.UtenKvittering(
         id = UUID30.randomUUID(),
