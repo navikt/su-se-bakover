@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.RotatingCredentials
 import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.StaticCredentials
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.database.dokument.DokumentPostgresRepo
@@ -130,6 +131,8 @@ object DatabaseBuilder {
         )
         val hendelseRepo = PersonhendelsePostgresRepo(dataSource)
 
+        val sessionFactory = PostgresSessionFactory(dataSource)
+
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(dataSource),
             utbetaling = UtbetalingPostgresRepo(
@@ -139,6 +142,7 @@ object DatabaseBuilder {
             søknad = SøknadPostgresRepo(
                 dataSource = dataSource,
                 dbMetrics = dbMetrics,
+                postgresSessionFactory = sessionFactory,
             ),
             hendelseslogg = HendelsesloggPostgresRepo(dataSource),
             sak = SakPostgresRepo(
@@ -159,8 +163,9 @@ object DatabaseBuilder {
             grunnlagRepo = grunnlagRepo,
             uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
             formueVilkårsvurderingRepo = formueVilkårsvurderingRepo,
-            dokumentRepo = DokumentPostgresRepo(dataSource),
+            dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory),
             personhendelseRepo = hendelseRepo,
+            sessionFactory = sessionFactory,
         )
     }
 }
@@ -181,4 +186,5 @@ data class DatabaseRepos(
     val formueVilkårsvurderingRepo: FormueVilkårsvurderingRepo,
     val personhendelseRepo: PersonhendelseRepo,
     val dokumentRepo: DokumentRepo,
+    val sessionFactory: SessionFactory,
 )

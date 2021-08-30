@@ -28,6 +28,7 @@ import java.time.Clock
 
 object ServiceBuilder {
     fun build(
+        // TODO jah: TDD-messig bør denne service-laget ha sin egen versjon av denne dataclassen som kun refererer til interfacene (som bør ligge i domain/service)
         databaseRepos: DatabaseRepos,
         clients: Clients,
         behandlingMetrics: BehandlingMetrics,
@@ -54,6 +55,7 @@ object ServiceBuilder {
             dokumentRepo = databaseRepos.dokumentRepo,
             sakService = sakService,
             personService = personService,
+            sessionFactory = databaseRepos.sessionFactory,
         )
         val oppgaveService = OppgaveServiceImpl(
             oppgaveClient = clients.oppgaveClient,
@@ -135,6 +137,7 @@ object ServiceBuilder {
                 personService = personService,
                 microsoftGraphApiClient = clients.microsoftGraphApiClient,
                 clock = clock,
+                sessionFactory = databaseRepos.sessionFactory,
             ).apply {
                 addObserver(statistikkService)
             },
