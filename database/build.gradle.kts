@@ -1,6 +1,6 @@
 val flywayVersion = "7.14.0"
 val hikariVersion = "5.0.0"
-val vaultJdbcVersion = "vault-jdbc-1.3.8-SNAPSHOT"
+val vaultJdbcVersion = "vault-jdbc-1.3.8"
 val kotliqueryVersion = "1.3.1"
 dependencies {
     implementation(project(":common"))
