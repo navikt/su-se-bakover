@@ -9,7 +9,6 @@ import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -19,7 +18,6 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
@@ -136,9 +134,8 @@ internal class RevurderingServiceImpl(
             }
         }
 
-        val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonHvisIkkeEntydig(
+        val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonOgFradragHvisIkkeEntydig(
             gjeldendeVedtaksdata,
-
         )
 
         when (val r = VurderOmVilkårGirOpphørVedRevurdering(vilkårsvurderinger).resultat) {
@@ -208,55 +205,18 @@ internal class RevurderingServiceImpl(
         }
     }
 
-    private fun fjernBosituasjonHvisIkkeEntydig(gjeldendeVedtaksdata: GjeldendeVedtaksdata): Pair<Grunnlagsdata, Vilkårsvurderinger> {
+    private fun fjernBosituasjonOgFradragHvisIkkeEntydig(gjeldendeVedtaksdata: GjeldendeVedtaksdata): Pair<Grunnlagsdata, Vilkårsvurderinger> {
         val gjeldendeBosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon
 
         // Dette kan oppstå når vi revurderer en revurdering. Da må vi vise eksisterende, men skal ikke preutfylle.
         val harFlerEnnEnBosituasjon = gjeldendeBosituasjon.harFlerEnnEnBosituasjonsperiode()
 
-        val bosituasjon = when (val b = gjeldendeBosituasjon.first()) {
-            is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
-                id = b.id,
-                opprettet = b.opprettet,
-                periode = Periode.create(fraOgMed = b.periode.fraOgMed, tilOgMed = gjeldendeVedtaksdata.periode.tilOgMed),
-                begrunnelse = b.begrunnelse,
-            )
-            is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
-                id = b.id,
-                opprettet = b.opprettet,
-                periode = Periode.create(fraOgMed = b.periode.fraOgMed, tilOgMed = gjeldendeVedtaksdata.periode.tilOgMed),
-                begrunnelse = b.begrunnelse,
-                fnr = b.fnr,
-            )
-            is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
-                id = b.id,
-                opprettet = b.opprettet,
-                periode = Periode.create(fraOgMed = b.periode.fraOgMed, tilOgMed = gjeldendeVedtaksdata.periode.tilOgMed),
-                begrunnelse = b.begrunnelse,
-                fnr = b.fnr,
-            )
-            is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
-                id = b.id,
-                opprettet = b.opprettet,
-                periode = Periode.create(fraOgMed = b.periode.fraOgMed, tilOgMed = gjeldendeVedtaksdata.periode.tilOgMed),
-                begrunnelse = b.begrunnelse,
-                fnr = b.fnr,
-            )
-            is Grunnlag.Bosituasjon.Fullstendig.Enslig -> Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                id = b.id,
-                opprettet = b.opprettet,
-                periode = Periode.create(fraOgMed = b.periode.fraOgMed, tilOgMed = gjeldendeVedtaksdata.periode.tilOgMed),
-                begrunnelse = b.begrunnelse,
-            )
-            is Grunnlag.Bosituasjon.Ufullstendig.HarEps -> throw IllegalStateException("Det skal ikke være mulig med Ufullstendige Bositusjoner her")
-            is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps -> throw IllegalStateException("Det skal ikke være mulig med Ufullstendige Bositusjoner her")
-        }
-
         return gjeldendeVedtaksdata.grunnlagsdata.copy(
             // Foreløpig støtter vi kun en aktiv bosituasjon, dersom det er fler, preutfyller vi ikke.
-            bosituasjon = if (harFlerEnnEnBosituasjon) listOf(bosituasjon) else listOf(
+            bosituasjon = if (harFlerEnnEnBosituasjon) emptyList() else listOf(
                 gjeldendeBosituasjon.singleFullstendigOrThrow(),
             ),
+            fradragsgrunnlag = if (harFlerEnnEnBosituasjon) emptyList() else gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
         ) to gjeldendeVedtaksdata.vilkårsvurderinger
     }
 
@@ -428,7 +388,7 @@ internal class RevurderingServiceImpl(
             }
         }
 
-        val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonHvisIkkeEntydig(
+        val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonOgFradragHvisIkkeEntydig(
             gjeldendeVedtaksdata,
         )
 
