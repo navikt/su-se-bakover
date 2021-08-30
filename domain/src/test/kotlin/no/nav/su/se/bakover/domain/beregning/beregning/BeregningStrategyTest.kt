@@ -8,15 +8,14 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 internal class BeregningStrategyTest {
     @Test
@@ -36,17 +35,13 @@ internal class BeregningStrategyTest {
                 ),
             ),
             fradragFraSaksbehandler = listOf(
-                Grunnlag.Fradragsgrunnlag.tryCreate(
-                    id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    fradrag = FradragFactory.ny(
-                        type = Fradragstype.Kontantstøtte,
-                        månedsbeløp = 1500.0,
-                        periode = periode,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                ).orNull()!!,
+                lagFradragsgrunnlag(
+                    type = Fradragstype.Kontantstøtte,
+                    månedsbeløp = 1500.0,
+                    periode = periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
             ),
         )
         BeregningStrategy.BorAlene.beregn(beregningsgrunnlag, "en begrunnelse").let {

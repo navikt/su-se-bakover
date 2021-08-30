@@ -17,8 +17,8 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 internal class BeregningsgrunnlagTest {
     @Test
@@ -35,16 +35,13 @@ internal class BeregningsgrunnlagTest {
                 ),
             ),
             fradragFraSaksbehandler = listOf(
-                Grunnlag.Fradragsgrunnlag.tryCreate(
-                    id = UUID.randomUUID(), opprettet = fixedTidspunkt,
-                    fradrag = FradragFactory.ny(
-                        type = Fradragstype.Kapitalinntekt,
-                        månedsbeløp = 2000.0,
-                        periode = beregningsperiode,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                ).orNull()!!,
+                lagFradragsgrunnlag(
+                    type = Fradragstype.Kapitalinntekt,
+                    månedsbeløp = 2000.0,
+                    periode = beregningsperiode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                )
             ),
         ).fradrag shouldBe listOf(
             FradragFactory.ny(
@@ -78,17 +75,13 @@ internal class BeregningsgrunnlagTest {
                 ),
             ),
             fradragFraSaksbehandler = listOf(
-                Grunnlag.Fradragsgrunnlag.tryCreate(
-                    id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    fradrag = FradragFactory.ny(
-                        type = Fradragstype.Kapitalinntekt,
-                        månedsbeløp = 2000.0,
-                        periode = beregningsperiode,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                ).orNull()!!,
+                lagFradragsgrunnlag(
+                    type = Fradragstype.Kapitalinntekt,
+                    månedsbeløp = 2000.0,
+                    periode = beregningsperiode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
             ),
         ).fradrag shouldBe listOf(
             FradragFactory.ny(

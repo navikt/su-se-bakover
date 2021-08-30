@@ -33,10 +33,8 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -60,6 +58,7 @@ import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
+import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
@@ -790,24 +789,20 @@ internal class SøknadsbehandlingRoutesKtTest {
                 LeggTilFradragsgrunnlagRequest(
                     behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
                     fradragsgrunnlag = listOf(
-                        Grunnlag.Fradragsgrunnlag.tryCreate(
-                            fradrag = FradragFactory.ny(
-                                periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),
-                                type = Fradragstype.Arbeidsinntekt,
-                                månedsbeløp = 9879.00,
-                                utenlandskInntekt = null,
-                                tilhører = FradragTilhører.BRUKER,
-                            ),
-                        ).orNull()!!,
-                        Grunnlag.Fradragsgrunnlag.tryCreate(
-                            fradrag = FradragFactory.ny(
-                                periode = Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021)),
-                                type = Fradragstype.Kontantstøtte,
-                                månedsbeløp = 10000.00,
-                                utenlandskInntekt = null,
-                                tilhører = FradragTilhører.BRUKER,
-                            ),
-                        ).orNull()!!,
+                        lagFradragsgrunnlag(
+                            periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),
+                            type = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 9879.00,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                        lagFradragsgrunnlag(
+                            periode = Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021)),
+                            type = Fradragstype.Kontantstøtte,
+                            månedsbeløp = 10000.00,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
                     ),
                 ),
             )
@@ -816,24 +811,20 @@ internal class SøknadsbehandlingRoutesKtTest {
                 LeggTilFradragsgrunnlagRequest(
                     behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
                     fradragsgrunnlag = listOf(
-                        Grunnlag.Fradragsgrunnlag.tryCreate(
-                            fradrag = FradragFactory.ny(
-                                periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),
-                                type = Fradragstype.Arbeidsinntekt,
-                                månedsbeløp = 9879.00,
-                                utenlandskInntekt = null,
-                                tilhører = FradragTilhører.EPS,
-                            ),
-                        ).orNull()!!,
-                        Grunnlag.Fradragsgrunnlag.tryCreate(
-                            fradrag = FradragFactory.ny(
-                                periode = Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021)),
-                                type = Fradragstype.Kontantstøtte,
-                                månedsbeløp = 10000.00,
-                                utenlandskInntekt = null,
-                                tilhører = FradragTilhører.BRUKER,
-                            ),
-                        ).orNull()!!,
+                        lagFradragsgrunnlag(
+                            periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),
+                            type = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 9879.00,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.EPS,
+                        ),
+                        lagFradragsgrunnlag(
+                            periode = Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021)),
+                            type = Fradragstype.Kontantstøtte,
+                            månedsbeløp = 10000.00,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
                     ),
                 ),
             )

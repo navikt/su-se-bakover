@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.tidspunkt
 import no.nav.su.se.bakover.service.fixedTidspunkt
+import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -74,17 +75,13 @@ class SøknadsbehandlingServiceBeregningTest {
                 ),
             ),
             fradragsgrunnlag = listOf(
-                Grunnlag.Fradragsgrunnlag.tryCreate(
-                    id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    fradrag = FradragFactory.ny(
-                        type = Fradragstype.Arbeidsinntekt,
-                        månedsbeløp = 12000.0,
-                        periode = stønadsperiode.periode,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                ).orNull()!!,
+                lagFradragsgrunnlag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 12000.0,
+                    periode = stønadsperiode.periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
             ),
         ),
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
@@ -105,11 +102,13 @@ class SøknadsbehandlingServiceBeregningTest {
             grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = vilkårsvurdertBehandling.grunnlagsdata.bosituasjon,
                 fradragsgrunnlag = listOf(
-                    Grunnlag.Fradragsgrunnlag.tryCreate(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        fradrag = fradrag,
-                    ).orNull()!!,
+                    lagFradragsgrunnlag(
+                        type = fradrag.fradragstype,
+                        månedsbeløp = fradrag.månedsbeløp,
+                        periode = fradrag.periode,
+                        utenlandskInntekt = fradrag.utenlandskInntekt,
+                        tilhører = fradrag.tilhører,
+                    ),
                 ),
             ),
         )
@@ -174,11 +173,14 @@ class SøknadsbehandlingServiceBeregningTest {
                     ),
                 ),
                 fradragsgrunnlag = listOf(
-                    Grunnlag.Fradragsgrunnlag.tryCreate(
+                    lagFradragsgrunnlag(
                         id = response.orNull()!!.grunnlagsdata.fradragsgrunnlag[0].id,
-                        opprettet = fixedTidspunkt,
-                        fradrag = fradrag,
-                    ).orNull()!!,
+                        type = fradrag.fradragstype,
+                        månedsbeløp = fradrag.månedsbeløp,
+                        periode = fradrag.periode,
+                        utenlandskInntekt = fradrag.utenlandskInntekt,
+                        tilhører = fradrag.tilhører,
+                    ),
                 ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,

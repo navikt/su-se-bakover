@@ -150,7 +150,7 @@ fun lagFradragsgrunnlag(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     type: Fradragstype,
-    månedbeløp: Double,
+    månedsbeløp: Double,
     periode: Periode,
     utenlandskInntekt: UtenlandskInntekt? = null,
     tilhører: FradragTilhører,
@@ -159,7 +159,7 @@ fun lagFradragsgrunnlag(
     opprettet = opprettet,
     fradrag = FradragFactory.ny(
         type = type,
-        månedsbeløp = månedbeløp,
+        månedsbeløp = månedsbeløp,
         periode = periode,
         utenlandskInntekt = utenlandskInntekt,
         tilhører = tilhører,
@@ -184,7 +184,7 @@ fun beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
                 fradragsgrunnlag = listOf(
                     lagFradragsgrunnlag(
                         type = Fradragstype.Arbeidsinntekt,
-                        månedbeløp = 6000.0,
+                        månedsbeløp = 6000.0,
                         periode = stønadsperiode.periode,
                         tilhører = FradragTilhører.BRUKER,
                     ),

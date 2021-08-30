@@ -15,10 +15,10 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import java.util.UUID
 
 internal class RevurdertBeregningTest {
     private val forventetMånedsbeløp: Double = Sats.HØY.månedsbeløp(1.januar(2021))
@@ -259,26 +259,20 @@ internal class RevurdertBeregningTest {
                     ),
                 ),
                 fradragFraSaksbehandler = listOf(
-                    Grunnlag.Fradragsgrunnlag.tryCreate(
-                        UUID.randomUUID(), fixedTidspunkt,
-                        FradragFactory.ny(
-                            type = Fradragstype.Arbeidsinntekt,
-                            månedsbeløp = 10.0,
-                            periode = januar,
-                            utenlandskInntekt = null,
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
-                    ).orNull()!!,
-                    Grunnlag.Fradragsgrunnlag.tryCreate(
-                        UUID.randomUUID(), fixedTidspunkt,
-                        FradragFactory.ny(
-                            type = Fradragstype.Kapitalinntekt,
-                            månedsbeløp = 20.0,
-                            periode = februar,
-                            utenlandskInntekt = null,
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
-                    ).orNull()!!,
+                    lagFradragsgrunnlag(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 10.0,
+                        periode = januar,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                    lagFradragsgrunnlag(
+                        type = Fradragstype.Kapitalinntekt,
+                        månedsbeløp = 20.0,
+                        periode = februar,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
                 ),
             ),
             beregningsstrategi = BeregningStrategy.BorAlene,

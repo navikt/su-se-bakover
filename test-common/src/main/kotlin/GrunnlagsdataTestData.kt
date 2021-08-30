@@ -4,7 +4,6 @@ import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -27,17 +26,14 @@ fun fradragsgrunnlagArbeidsinntekt(
     arbeidsinntekt: Double,
     tilhører: FradragTilhører = FradragTilhører.BRUKER
 ): Grunnlag.Fradragsgrunnlag {
-    return Grunnlag.Fradragsgrunnlag.tryCreate(
+    return lagFradragsgrunnlag(
         id = fradragsgrunnlagId,
-        opprettet = fixedTidspunkt,
-        fradrag = FradragFactory.ny(
-            type = Fradragstype.Arbeidsinntekt,
-            månedsbeløp = arbeidsinntekt,
-            periode = periode,
-            utenlandskInntekt = null,
-            tilhører = tilhører,
-        ),
-    ).orNull()!!
+        type = Fradragstype.Arbeidsinntekt,
+        månedsbeløp = arbeidsinntekt,
+        periode = periode,
+        utenlandskInntekt = null,
+        tilhører = tilhører,
+    )
 }
 
 val bosituasjonId: UUID = UUID.randomUUID()

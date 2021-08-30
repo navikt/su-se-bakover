@@ -8,11 +8,11 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.FnrGenerator
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
+import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -84,16 +84,13 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 periode = periode,
                 begrunnelse = "",
             )
-            val arbEps = Grunnlag.Fradragsgrunnlag.tryCreate(
-                fradrag = FradragFactory.ny(
-                    type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 5000.0,
-                    periode = periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS,
-                ),
-                opprettet = fixedTidspunkt,
-            ).orNull()!!
+            val arbEps = lagFradragsgrunnlag(
+                type = Fradragstype.Arbeidsinntekt,
+                månedsbeløp = 5000.0,
+                periode = periode,
+                utenlandskInntekt = null,
+                tilhører = FradragTilhører.EPS,
+            )
             SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
                 listOf(bosituasjon1, bosituasjon2),
                 listOf(arbEps),
@@ -110,16 +107,13 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 periode = periode,
                 begrunnelse = "",
             )
-            val arbEps = Grunnlag.Fradragsgrunnlag.tryCreate(
-                fradrag = FradragFactory.ny(
-                    type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 5000.0,
-                    periode = periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS,
-                ),
-                opprettet = fixedTidspunkt,
-            ).orNull()!!
+            val arbEps = lagFradragsgrunnlag(
+                type = Fradragstype.Arbeidsinntekt,
+                månedsbeløp = 5000.0,
+                periode = periode,
+                utenlandskInntekt = null,
+                tilhører = FradragTilhører.EPS,
+            )
             SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
                 listOf(bosituasjon),
                 listOf(arbEps),
@@ -146,16 +140,13 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 periode = periode,
                 begrunnelse = "",
             )
-            val arbEps = Grunnlag.Fradragsgrunnlag.tryCreate(
-                fradrag = FradragFactory.ny(
-                    type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 5000.0,
-                    periode = periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS,
-                ),
-                opprettet = fixedTidspunkt,
-            ).orNull()!!
+            val arbEps = lagFradragsgrunnlag(
+                type = Fradragstype.Arbeidsinntekt,
+                månedsbeløp = 5000.0,
+                periode = periode,
+                utenlandskInntekt = null,
+                tilhører = FradragTilhører.EPS,
+            )
             SjekkOmGrunnlagErKonsistent(
                 formuegrunnlag = emptyList(),
                 uføregrunnlag = emptyList(),
@@ -186,16 +177,13 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 fnr = FnrGenerator.random(),
                 begrunnelse = "",
             )
-            val arbEps = Grunnlag.Fradragsgrunnlag.tryCreate(
-                fradrag = FradragFactory.ny(
-                    type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 5000.0,
-                    periode = periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS,
-                ),
-                opprettet = fixedTidspunkt,
-            ).orNull()!!
+            val arbEps = lagFradragsgrunnlag(
+                type = Fradragstype.Arbeidsinntekt,
+                månedsbeløp = 5000.0,
+                periode = periode,
+                utenlandskInntekt = null,
+                tilhører = FradragTilhører.EPS,
+            )
             SjekkOmGrunnlagErKonsistent(
                 formuegrunnlag = innvilgetFormueVilkår(periode).grunnlag,
                 uføregrunnlag = listOf(uføregrunnlag),
