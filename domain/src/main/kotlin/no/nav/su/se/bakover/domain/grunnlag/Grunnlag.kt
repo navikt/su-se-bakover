@@ -72,17 +72,12 @@ sealed class Grunnlag {
             /**
              * inntil fradragsgrunnlag har sine egne fradragstyper så må vi sjekke at disse ikke er med
              */
-            fun harUgyldigFradragsType(fradrag: Fradrag): Boolean {
-                if (setOf(
-                        Fradragstype.ForventetInntekt,
-                        Fradragstype.BeregnetFradragEPS,
-                        Fradragstype.UnderMinstenivå,
-                    ).contains(fradrag.fradragstype)
-                ) {
-                    return true
-                }
-                return false
-            }
+            private fun harUgyldigFradragsType(fradrag: Fradrag): Boolean =
+                setOf(
+                    Fradragstype.ForventetInntekt,
+                    Fradragstype.BeregnetFradragEPS,
+                    Fradragstype.UnderMinstenivå,
+                ).contains(fradrag.fradragstype)
         }
 
         sealed class UgyldigFradragsgrunnlag {
