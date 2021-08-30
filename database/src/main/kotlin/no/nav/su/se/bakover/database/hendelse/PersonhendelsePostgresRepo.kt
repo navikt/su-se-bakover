@@ -7,7 +7,9 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo.HendelseJson.Companion.toJson
 import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo.MetadataJson.Companion.toJson
 import no.nav.su.se.bakover.database.hent
+import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
+import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.AktørId
@@ -58,8 +60,26 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
         }
     }
 
-    override fun hentPersonhendelserUtenOppgave(): List<Personhendelse.TilknyttetSak> {
-        TODO("Not yet implemented")
+    override fun hentPersonhendelserUtenOppgave(): List<Personhendelse.TilknyttetSak> =
+        datasource.withSession { session ->
+            """ 
+                select p.*, s.saksnummer as saksnummer from personhendelse p left join sak s on s.id = p.sakId where oppgaveId is null
+            """.trimIndent().hentListe(mapOf(), session) { it.toPersonhendelse() }
+        }
+
+    override fun oppdaterOppgave(id: UUID, oppgaveId: OppgaveId) {
+        datasource.withSession { session ->
+            """
+                update personhendelse set oppgaveId = :oppgaveId, endret = :endret where id = :id
+            """.trimIndent().oppdatering(
+                mapOf(
+                    "oppgaveId" to oppgaveId.toString(),
+                    "endret" to LocalDate.now(),
+                    "id" to id,
+                ),
+                session,
+            )
+        }
     }
 
     internal fun hent(id: UUID): Personhendelse.TilknyttetSak? = datasource.withSession { session ->
@@ -73,18 +93,18 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
                     "id" to id,
                 ),
                 session,
-            ) {
-                Personhendelse.TilknyttetSak(
-                    id = id,
-                    sakId = it.uuid("sakId"),
-                    gjeldendeAktørId = AktørId(it.string("aktørId")),
-                    endringstype = PersonhendelseEndringstype.tryParse(it.string("endringstype")).toDomain(),
-                    hendelse = it.hentHendelse(),
-                    saksnummer = Saksnummer(it.long("saksnummer")),
-                    oppgaveId = it.stringOrNull("oppgaveId")?.let { id -> OppgaveId(id) },
-                )
-            }
+            ) { it.toPersonhendelse() }
     }
+
+    private fun Row.toPersonhendelse() = Personhendelse.TilknyttetSak(
+        id = UUID.fromString(string("id")),
+        sakId = uuid("sakId"),
+        gjeldendeAktørId = AktørId(string("aktørId")),
+        endringstype = PersonhendelseEndringstype.tryParse(string("endringstype")).toDomain(),
+        hendelse = hentHendelse(),
+        saksnummer = Saksnummer(long("saksnummer")),
+        oppgaveId = stringOrNull("oppgaveId")?.let { id -> OppgaveId(id) },
+    )
 
     private fun Row.hentHendelse(): Personhendelse.Hendelse = when (val type = string("type")) {
         PersonhendelseType.DØDSFALL.value -> {
@@ -98,22 +118,6 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
         }
         else -> throw RuntimeException("Kunne ikke deserialisere [Personhendelse]. Ukjent type: $type")
     }
-
-    // TODO jah: Merge sammen med lagre
-    // override fun oppdaterOppgave(hendelseId: String, oppgaveId: OppgaveId) {
-    //     datasource.withSession { session ->
-    //         """
-    //             update personhendelse set oppgaveId=:oppgaveId, endret=:endret where id=:hendelseId
-    //         """.trimIndent().oppdatering(
-    //             mapOf(
-    //                 "hendelseId" to hendelseId,
-    //                 "endret" to LocalDate.now(),
-    //                 "oppgaveId" to oppgaveId.toString(),
-    //             ),
-    //             session,
-    //         )
-    //     }
-    // }
 
     private fun Personhendelse.Hendelse.toDatabasetype(): String = when (this) {
         is Personhendelse.Hendelse.Dødsfall -> PersonhendelseType.DØDSFALL.value

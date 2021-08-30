@@ -4,6 +4,8 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.database.hendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -16,6 +18,7 @@ import java.util.UUID
 class PersonhendelseService(
     private val sakRepo: SakRepo,
     private val personhendelseRepo: PersonhendelseRepo,
+    private val oppgaveServiceImpl: OppgaveService
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -34,7 +37,32 @@ class PersonhendelseService(
         )
     }
 
-    fun opprettOppgaverForPersonhendelser() {
-        personhendelseRepo.hentPersonhendelserUtenOppgave()
+    fun opprettOppgaverForPersonhendelser() = personhendelseRepo.hentPersonhendelserUtenOppgave().forEach { personhendelse ->
+            oppgaveServiceImpl.opprettOppgave(
+                OppgaveConfig.Personhendelse(
+                    saksnummer = personhendelse.saksnummer,
+                    beskrivelse = hentBeskrivelseForHendelsetype(personhendelse.hendelse),
+                    aktørId = personhendelse.gjeldendeAktørId,
+                )
+            ).map {
+                personhendelseRepo.oppdaterOppgave(personhendelse.id, it)
+            }
+        }
+
+    private fun hentBeskrivelseForHendelsetype(hendelse: Personhendelse.Hendelse) = when(hendelse) {
+        is Personhendelse.Hendelse.Dødsfall -> {
+            "Dødsfall\n" +
+                "\tDødsdato: ${hendelse.dødsdato ?: "Ikke oppgitt"}"
+        }
+        is Personhendelse.Hendelse.Sivilstand -> {
+            "Endring i sivilstand\n" +
+                "\ttype: ${hendelse.type?.readableName ?: "Ikke oppgitt"}\n" +
+                "\tGyldig fra og med: ${hendelse.gyldigFraOgMed ?: "Ikke oppgitt"}\n" +
+                "\tBekreftelsesdato: ${hendelse.bekreftelsesdato ?: "Ikke oppgitt"}"
+        }
+        is Personhendelse.Hendelse.UtflyttingFraNorge -> {
+            "Utflytting fra Norge\n" +
+                "\tUtflyttingsdato: ${hendelse.utflyttingsdato ?: "Ikke oppgitt"}"
+        }
     }
 }
