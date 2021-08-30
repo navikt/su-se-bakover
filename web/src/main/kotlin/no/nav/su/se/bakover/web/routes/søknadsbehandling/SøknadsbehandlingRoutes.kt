@@ -409,10 +409,10 @@ internal fun Route.søknadsbehandlingRoutes(
                     )
                 }
                 is KunneIkkeIverksette.KunneIkkeUtbetale -> value.utbetalingFeilet.tilResultat()
-                is KunneIkkeIverksette.KunneIkkeJournalføreBrev -> {
+                is KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev -> {
                     InternalServerError.errorJson(
-                        "Feil ved journalføring av vedtaksbrev",
-                        "kunne_ikke_journalføre_brev",
+                        "Feil ved generering av vedtaksbrev",
+                        "kunne_ikke_generere_brev",
                     )
                 }
                 is KunneIkkeIverksette.FantIkkeBehandling -> fantIkkeBehandling

@@ -125,7 +125,9 @@ internal sealed class VedtakssnapshotJson {
                     saksbehandler = saksbehandler.toString(),
                     attestering = attesteringer.hentSisteAttestering(),
                     oppgaveId = oppgaveId.toString(),
+                    // TODO ia/jm: Denne vil alltid være null når journalføring/distribusjon blir flyttet til asynkron jobb. Fjern?
                     iverksattJournalpostId = journalføringOgBrevdistribusjon.journalpostId()?.toString(),
+                    // TODO ia/jm: Denne vil alltid være null når journalføring/distribusjon blir flyttet til asynkron jobb. Fjern?
                     iverksattBrevbestillingId = (journalføringOgBrevdistribusjon as? JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev)?.brevbestillingId?.toString(),
                     beregning = if (this is Søknadsbehandling.Iverksatt.Avslag.MedBeregning) beregning.toSnapshot() else null,
                     behandlingsinformasjon = behandlingsinformasjon,

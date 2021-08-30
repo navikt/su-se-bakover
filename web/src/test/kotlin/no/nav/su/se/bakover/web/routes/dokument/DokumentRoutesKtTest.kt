@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web.routes.dokument
 
+import arrow.core.left
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.http.HttpMethod.Companion.Get
@@ -9,6 +11,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.service.brev.FantIngenDokumenter
 import no.nav.su.se.bakover.service.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
@@ -24,15 +27,8 @@ internal class DokumentRoutesKtTest {
 
     @Test
     fun `sjekker tilganger`() {
-        val mockServices = TestServicesBuilder.services()
         withTestApplication(
-            (
-                {
-                    testSusebakover(
-                        services = mockServices,
-                    )
-                }
-                ),
+            ({ testSusebakover(services = TestServicesBuilder.services()) }),
         ) {
             Brukerrolle.values()
                 .filterNot { it == Brukerrolle.Saksbehandler }
@@ -50,15 +46,8 @@ internal class DokumentRoutesKtTest {
 
     @Test
     fun `validerer request`() {
-        val mockServices = TestServicesBuilder.services()
         withTestApplication(
-            (
-                {
-                    testSusebakover(
-                        services = mockServices,
-                    )
-                }
-                ),
+            ({ testSusebakover(services = TestServicesBuilder.services()) }),
         ) {
             defaultRequest(
                 Get,
@@ -99,10 +88,9 @@ internal class DokumentRoutesKtTest {
     }
 
     @Test
-    fun `happy cases`() {
+    fun `happy case`() {
         val services = TestServicesBuilder.services().copy(
             brev = mock {
-                on { hentDokumenterFor(argThat { it is HentDokumenterForIdType.Sak }) } doReturn emptyList()
                 on { hentDokumenterFor(argThat { it is HentDokumenterForIdType.Søknad }) } doReturn listOf(
                     Dokument.UtenMetadata.Informasjon(
                         id = UUID.randomUUID(),
@@ -111,32 +99,13 @@ internal class DokumentRoutesKtTest {
                         generertDokument = "".toByteArray(),
                         generertDokumentJson = "",
                     ),
-                )
+                ).right()
             },
         )
 
         withTestApplication(
-            (
-                {
-                    testSusebakover(
-                        services = services,
-                    )
-                }
-                ),
+            ({ testSusebakover(services = services) }),
         ) {
-            defaultRequest(
-                method = Get,
-                uri = "/dokumenter?id=39f05293-39e0-47be-ba35-a7e0b233b630&idType=sak",
-                roller = listOf(Brukerrolle.Saksbehandler),
-            ).response.let {
-                it.status() shouldBe HttpStatusCode.OK
-                verify(services.brev).hentDokumenterFor(
-                    HentDokumenterForIdType.Sak(
-                        UUID.fromString("39f05293-39e0-47be-ba35-a7e0b233b630"),
-                    ),
-                )
-            }
-
             defaultRequest(
                 method = Get,
                 uri = "/dokumenter?id=39f05293-39e0-47be-ba35-a7e0b233b630&idType=søknad",
@@ -153,6 +122,37 @@ internal class DokumentRoutesKtTest {
                     dokumentJson.opprettet shouldBe "1970-01-01T00:00:00Z"
                     dokumentJson.dokument contentEquals "".toByteArray()
                 }
+            }
+        }
+    }
+
+    @Test
+    fun `svarer med 404 hvis ingen dokumenter ble funnet`() {
+        val sakId = "39f05293-39e0-47be-ba35-a7e0b233b630"
+        val services = TestServicesBuilder.services().copy(
+            brev = mock {
+                on { hentDokumenterFor(argThat { it is HentDokumenterForIdType.Sak }) } doReturn FantIngenDokumenter(
+                    HentDokumenterForIdType.Sak(UUID.fromString(sakId)),
+                ).left()
+            },
+        )
+
+        withTestApplication(
+            ({ testSusebakover(services = services) }),
+        ) {
+            defaultRequest(
+                method = Get,
+                uri = "/dokumenter?id=$sakId&idType=sak",
+                roller = listOf(Brukerrolle.Saksbehandler),
+            ).response.let {
+                it.status() shouldBe HttpStatusCode.NotFound
+                it.content shouldContain "Fant ingen dokumenter for sak med id: $sakId"
+                it.content shouldContain """"code":"fant_ingen_dokumenter""""
+                verify(services.brev).hentDokumenterFor(
+                    HentDokumenterForIdType.Sak(
+                        UUID.fromString(sakId),
+                    ),
+                )
             }
         }
     }

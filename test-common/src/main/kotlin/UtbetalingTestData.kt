@@ -23,7 +23,7 @@ fun utbetalingslinje(
     fraOgMed = periode.fraOgMed,
     tilOgMed = periode.tilOgMed,
     forrigeUtbetalingslinjeId = null,
-    beløp = 25000,
+    beløp = 15000,
 )
 
 @Suppress("unused")

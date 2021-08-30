@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
+import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -22,6 +23,10 @@ val behandlingsinformasjonAlleVilkårUavklart = Behandlingsinformasjon
 val behandlingsinformasjonAlleVilkårInnvilget = Behandlingsinformasjon
     .lagTomBehandlingsinformasjon()
     .withAlleVilkårOppfylt()
+
+val behandlingsinformasjonAlleVilkårAvslått = Behandlingsinformasjon
+    .lagTomBehandlingsinformasjon()
+    .withVilkårAvslått()
 
 /**
  * Skal tilsvare en ny søknadsbehandling.
@@ -81,6 +86,34 @@ fun søknadsbehandlingVilkårsvurdertInnvilget(
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
         )
+        Pair(
+            sak.copy(
+                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
+            ),
+            oppdatertSøknadsbehandling,
+        )
+    }
+}
+
+fun søknadsbehandlingVilkårsvurdertAvslag(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårAvslått,
+    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
+): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Avslag> {
+    return søknadsbehandlingVilkårsvurdertUavklart(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+    ).let { (sak, søknadsbehandling) ->
+        val oppdatertSøknadsbehandling = (
+            // TODO jah: Bytt til å bruke en mer spesifikk funksjon på søknadsbehandling når/hvis det kommer.
+            søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon) as Søknadsbehandling.Vilkårsvurdert.Avslag
+            )
+            .copy(
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+            )
         Pair(
             sak.copy(
                 søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
@@ -239,6 +272,33 @@ fun søknadsbehandlingTilAttesteringAvslagMedBeregning(
     }
 }
 
+fun søknadsbehandlingTilAttesteringAvslagUtenBeregning(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårAvslått,
+    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
+): Pair<Sak, Søknadsbehandling.TilAttestering.Avslag.UtenBeregning> {
+    return søknadsbehandlingVilkårsvurdertAvslag(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+        behandlingsinformasjon = behandlingsinformasjon,
+        grunnlagsdata = grunnlagsdata,
+        vilkårsvurderinger = vilkårsvurderinger,
+    ).let { (sak, søknadsbehandling) ->
+        val oppdatertSøknadsbehandling = søknadsbehandling.tilAttestering(
+            saksbehandler = saksbehandler,
+            fritekstTilBrev = "",
+        )
+        Pair(
+            sak.copy(
+                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
+            ),
+            oppdatertSøknadsbehandling,
+        )
+    }
+}
+
 fun søknadsbehandlingUnderkjentInnvilget(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
@@ -302,7 +362,7 @@ fun søknadsbehandlingIverksattAvslagMedBeregning(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    beregning: Beregning = beregning(),
+    beregning: Beregning = beregningAvslag(stønadsperiode.periode),
 ): Pair<Sak, Søknadsbehandling.Iverksatt.Avslag.MedBeregning> {
     return søknadsbehandlingTilAttesteringAvslagMedBeregning(
         saksnummer = saksnummer,
@@ -311,6 +371,32 @@ fun søknadsbehandlingIverksattAvslagMedBeregning(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         beregning = beregning,
+    ).let { (sak, søknadsbehandling) ->
+        val oppdatertSøknadsbehandling = søknadsbehandling.tilIverksatt(
+            attestering = attesteringIverksatt,
+        )
+        Pair(
+            sak.copy(
+                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
+            ),
+            oppdatertSøknadsbehandling,
+        )
+    }
+}
+
+fun søknadsbehandlingIverksattAvslagUtenBeregning(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårAvslått,
+    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
+): Pair<Sak, Søknadsbehandling.Iverksatt.Avslag.UtenBeregning> {
+    return søknadsbehandlingTilAttesteringAvslagUtenBeregning(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+        behandlingsinformasjon = behandlingsinformasjon,
+        grunnlagsdata = grunnlagsdata,
+        vilkårsvurderinger = vilkårsvurderinger,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.tilIverksatt(
             attestering = attesteringIverksatt,

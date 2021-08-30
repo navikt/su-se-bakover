@@ -46,6 +46,7 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.brev.FantIngenDokumenter
 import no.nav.su.se.bakover.service.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.service.brev.KunneIkkeBestilleBrevForDokument
 import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreDokument
@@ -293,12 +294,12 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): List<Dokument> {
+                override fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): Either<FantIngenDokumenter, List<Dokument>> {
                     when (hentDokumenterForIdType) {
                         is HentDokumenterForIdType.Revurdering -> assertHarTilgangTilRevurdering(hentDokumenterForIdType.id)
                         is HentDokumenterForIdType.Sak -> assertHarTilgangTilSak(hentDokumenterForIdType.id)
                         is HentDokumenterForIdType.Søknad -> assertHarTilgangTilSøknad(hentDokumenterForIdType.id)
-                        is HentDokumenterForIdType.Vedtak -> TODO("rart at vi ikke henter ut noe med vedtak id fra før?")
+                        is HentDokumenterForIdType.Vedtak -> assertHarTilgangTilVedtak(hentDokumenterForIdType.id)
                     }.let {
                         return services.brev.hentDokumenterFor(hentDokumenterForIdType)
                     }
@@ -642,6 +643,11 @@ open class AccessCheckProxy(
 
     private fun assertHarTilgangTilRevurdering(revurderingId: UUID) {
         personRepo.hentFnrForRevurdering(revurderingId)
+            .forEach { assertHarTilgangTilPerson(it) }
+    }
+
+    private fun assertHarTilgangTilVedtak(vedtakId: UUID) {
+        personRepo.hentFnrForVedtak(vedtakId)
             .forEach { assertHarTilgangTilPerson(it) }
     }
 }

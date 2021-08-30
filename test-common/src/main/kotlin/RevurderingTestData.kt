@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.test
 import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.right
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -10,8 +11,14 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -134,6 +141,80 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             sak.copy(
                 // Erstatter den gamle versjonen av samme revurderinger.
                 revurderinger = sak.revurderinger.filterNot { it.id == innvilgetBeregnetRevurdering.id } + innvilgetBeregnetRevurdering,
+            ),
+            innvilgetBeregnetRevurdering,
+        )
+    }
+}
+fun lagFradragsgrunnlag(
+    id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = fixedTidspunkt,
+    type: Fradragstype,
+    månedbeløp: Double,
+    periode: Periode,
+    utenlandskInntekt: UtenlandskInntekt? = null,
+    tilhører: FradragTilhører,
+) = Grunnlag.Fradragsgrunnlag.tryCreate(
+    id = id,
+    opprettet = opprettet,
+    fradrag = FradragFactory.ny(
+        type = type,
+        månedsbeløp = månedbeløp,
+        periode = periode,
+        utenlandskInntekt = utenlandskInntekt,
+        tilhører = tilhører,
+    )
+).orNull()!!
+
+fun beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    revurderingsperiode: Periode = periode2021,
+    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+    ),
+    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
+        revurderingsperiode,
+        fixedClock,
+    ).let {
+        it.copy(
+            grunnlagsdata = it.grunnlagsdata.copy(
+                fradragsgrunnlag = listOf(
+                    lagFradragsgrunnlag(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedbeløp = 6000.0,
+                        periode = stønadsperiode.periode,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+            ),
+        )
+    },
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
+    eksisterendeUtbetalinger: List<Utbetaling> = listOf(
+        oversendtUtbetalingMedKvittering(
+            eksisterendeUtbetalinger = emptyList(),
+        ),
+    ),
+): Pair<Sak, BeregnetRevurdering.IngenEndring> {
+    return opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+        revurderingsperiode = revurderingsperiode,
+        informasjonSomRevurderes = informasjonSomRevurderes,
+        sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
+        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+        revurderingsårsak = revurderingsårsak,
+    ).let { (sak, revurdering) ->
+        val innvilgetBeregnetRevurdering = revurdering.beregn(eksisterendeUtbetalinger)
+            .orNull() as BeregnetRevurdering.IngenEndring
+        Pair(
+            sak.copy(
+                // Erstatter den gamle versjonen av samme revurderinger.
+                revurderinger = sak.revurderinger.filterNot { it.id == innvilgetBeregnetRevurdering.id } + innvilgetBeregnetRevurdering,
+                utbetalinger = eksisterendeUtbetalinger,
             ),
             innvilgetBeregnetRevurdering,
         )
@@ -331,6 +412,40 @@ fun tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     }
 }
 
+fun tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    revurderingsperiode: Periode = periode2021,
+    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    fritekstTilBrev: String = "",
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
+    skalFøreTilBrevutsending: Boolean = true,
+): Pair<Sak, RevurderingTilAttestering.IngenEndring> {
+    return beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+        revurderingsperiode = revurderingsperiode,
+        informasjonSomRevurderes = informasjonSomRevurderes,
+        revurderingsårsak = revurderingsårsak,
+    ).let { (sak, revurdering) ->
+        val innvilgetRevurderingTilAttestering = revurdering.tilAttestering(
+            attesteringsoppgaveId = attesteringsoppgaveId,
+            saksbehandler = saksbehandler,
+            fritekstTilBrev = fritekstTilBrev,
+            skalFøreTilBrevutsending = skalFøreTilBrevutsending,
+        )
+        Pair(
+            sak.copy(
+                // Erstatter den gamle versjonen av samme revurderinger.
+                revurderinger = sak.revurderinger.filterNot { it.id == innvilgetRevurderingTilAttestering.id } + innvilgetRevurderingTilAttestering,
+            ),
+            innvilgetRevurderingTilAttestering,
+        )
+    }
+}
+
 fun underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
@@ -422,6 +537,43 @@ fun iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         val innvilgetIverksattRevurdering = revurdering.tilIverksatt(
             attestant = attestant,
             utbetal = utbetal,
+        ).getOrHandle { throw RuntimeException("Feilet med generering av test data for Iverksatt-revurdering") }
+        Pair(
+            sak.copy(
+                // Erstatter den gamle versjonen av samme revurderinger.
+                revurderinger = sak.revurderinger.filterNot { it.id == innvilgetIverksattRevurdering.id } + innvilgetIverksattRevurdering,
+            ),
+            innvilgetIverksattRevurdering,
+        )
+    }
+}
+
+fun iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    revurderingsperiode: Periode = periode2021,
+    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
+    saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler("Saksbehandler"),
+    fritekstTilBrev: String = "",
+    attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant("Attestant"),
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
+    skalFøreTilBrevutsending: Boolean = true,
+): Pair<Sak, IverksattRevurdering.IngenEndring> {
+    return tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+        revurderingsperiode = revurderingsperiode,
+        informasjonSomRevurderes = informasjonSomRevurderes,
+        attesteringsoppgaveId = attesteringsoppgaveId,
+        saksbehandler = saksbehandler,
+        fritekstTilBrev = fritekstTilBrev,
+        revurderingsårsak = revurderingsårsak,
+        skalFøreTilBrevutsending = skalFøreTilBrevutsending,
+    ).let { (sak, revurdering) ->
+        val innvilgetIverksattRevurdering = revurdering.tilIverksatt(
+            attestant = attestant,
+            clock = fixedClock,
         ).getOrHandle { throw RuntimeException("Feilet med generering av test data for Iverksatt-revurdering") }
         Pair(
             sak.copy(
