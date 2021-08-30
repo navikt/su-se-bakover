@@ -14,12 +14,11 @@ import java.util.UUID
 
 internal class BosituasjongrunnlagPostgresRepoTest {
 
-    private val testDataHelper = TestDataHelper()
-    private val grunnlagRepo = testDataHelper.grunnlagRepo
-
     @Test
     fun `lagrer og henter bor alene`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val grunnlagRepo = testDataHelper.grunnlagRepo
             val id = UUID.randomUUID()
             val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -35,7 +34,9 @@ internal class BosituasjongrunnlagPostgresRepoTest {
 
     @Test
     fun `lagrer og henter bor med voksne`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val grunnlagRepo = testDataHelper.grunnlagRepo
             val id = UUID.randomUUID()
             val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
@@ -51,7 +52,9 @@ internal class BosituasjongrunnlagPostgresRepoTest {
 
     @Test
     fun `lagrer og henter har ikke eps`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val grunnlagRepo = testDataHelper.grunnlagRepo
             val id = UUID.randomUUID()
             val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
             val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
@@ -66,7 +69,9 @@ internal class BosituasjongrunnlagPostgresRepoTest {
 
     @Test
     fun `lagrer og henter har eps ikke valgt uføre flykting`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val grunnlagRepo = testDataHelper.grunnlagRepo
             val id = UUID.randomUUID()
             val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
             val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
@@ -82,7 +87,9 @@ internal class BosituasjongrunnlagPostgresRepoTest {
 
     @Test
     fun `lagrer og henter eps 67+`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val grunnlagRepo = testDataHelper.grunnlagRepo
             val id = UUID.randomUUID()
             val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
@@ -99,7 +106,9 @@ internal class BosituasjongrunnlagPostgresRepoTest {
 
     @Test
     fun `lagrer og henter eps under 67 ufør flyktning`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val grunnlagRepo = testDataHelper.grunnlagRepo
             val id = UUID.randomUUID()
             val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
@@ -116,7 +125,9 @@ internal class BosituasjongrunnlagPostgresRepoTest {
 
     @Test
     fun `lagrer og henter eps under 67 ikke ufør flyktning`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val grunnlagRepo = testDataHelper.grunnlagRepo
             val id = UUID.randomUUID()
             val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(

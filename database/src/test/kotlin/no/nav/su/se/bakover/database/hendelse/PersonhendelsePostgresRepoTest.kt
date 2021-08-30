@@ -17,10 +17,9 @@ import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
+import javax.sql.DataSource
 
 internal class PersonhendelsePostgresRepoTest {
-    private val testDataHelper = TestDataHelper()
-    private val hendelsePostgresRepo = testDataHelper.hendelsePostgresRepo
 
     private val hendelseId = UUID.randomUUID().toString()
     private val aktørId = "abcdefghjiklm"
@@ -28,7 +27,9 @@ internal class PersonhendelsePostgresRepoTest {
 
     @Test
     fun `Kan lagre og hente dødsfallshendelser`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val hendelsePostgresRepo = testDataHelper.hendelsePostgresRepo
             val hendelse = Personhendelse.Ny(
                 gjeldendeAktørId = AktørId(aktørId),
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
@@ -52,7 +53,7 @@ internal class PersonhendelsePostgresRepoTest {
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
             )
-            hentMetadata(id) shouldBe PersonhendelsePostgresRepo.MetadataJson(
+            hentMetadata(id, dataSource) shouldBe PersonhendelsePostgresRepo.MetadataJson(
                 hendelseId = hendelseId,
                 tidligereHendelseId = null,
                 offset = 0,
@@ -65,7 +66,9 @@ internal class PersonhendelsePostgresRepoTest {
 
     @Test
     fun `Kan lagre og hente utflytting fra norge`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val hendelsePostgresRepo = testDataHelper.hendelsePostgresRepo
             val hendelse = Personhendelse.Ny(
                 gjeldendeAktørId = AktørId(aktørId),
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
@@ -90,7 +93,7 @@ internal class PersonhendelsePostgresRepoTest {
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
             )
-            hentMetadata(id) shouldBe PersonhendelsePostgresRepo.MetadataJson(
+            hentMetadata(id, dataSource) shouldBe PersonhendelsePostgresRepo.MetadataJson(
                 hendelseId = hendelseId,
                 tidligereHendelseId = null,
                 offset = 0,
@@ -103,7 +106,9 @@ internal class PersonhendelsePostgresRepoTest {
 
     @Test
     fun `Kan lagre og hente sivilstand`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val hendelsePostgresRepo = testDataHelper.hendelsePostgresRepo
             val hendelse = Personhendelse.Ny(
                 gjeldendeAktørId = AktørId(aktørId),
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
@@ -133,7 +138,7 @@ internal class PersonhendelsePostgresRepoTest {
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
             )
-            hentMetadata(id) shouldBe PersonhendelsePostgresRepo.MetadataJson(
+            hentMetadata(id, dataSource) shouldBe PersonhendelsePostgresRepo.MetadataJson(
                 hendelseId = hendelseId,
                 tidligereHendelseId = null,
                 offset = 0,
@@ -146,7 +151,9 @@ internal class PersonhendelsePostgresRepoTest {
 
     @Test
     fun `lagring av duplikate hendelser ignoreres`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val hendelsePostgresRepo = testDataHelper.hendelsePostgresRepo
             val hendelse = Personhendelse.Ny(
                 gjeldendeAktørId = AktørId(aktørId),
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
@@ -179,7 +186,7 @@ internal class PersonhendelsePostgresRepoTest {
                 sakId = sak1.id,
                 saksnummer = sak1.saksnummer,
             )
-            hentMetadata(id1) shouldBe PersonhendelsePostgresRepo.MetadataJson(
+            hentMetadata(id1, dataSource) shouldBe PersonhendelsePostgresRepo.MetadataJson(
                 hendelseId = hendelseId,
                 tidligereHendelseId = null,
                 offset = 0,
@@ -193,7 +200,7 @@ internal class PersonhendelsePostgresRepoTest {
     // TODO jah: Denne testen er litt prematur. Blir implementert i neste PR
     // @Test
     // fun `Oppdatering av oppgaveId skal lagre ny verdi`() {
-    //     withMigratedDb {
+    //     withMigratedDb { dataSource ->
     //         val hendelse = Personhendelse.Ny(
     //             hendelseId = hendelseId,
     //             gjeldendeAktørId = AktørId(aktørId),
@@ -227,8 +234,9 @@ internal class PersonhendelsePostgresRepoTest {
             oppgaveId = oppgaveId,
         )
 
-    private fun hentMetadata(id: UUID): PersonhendelsePostgresRepo.MetadataJson? {
-        return testDataHelper.datasource.withSession { session ->
+    private fun hentMetadata(id: UUID, dataSource: DataSource): PersonhendelsePostgresRepo.MetadataJson? {
+        return dataSource.withSession { session ->
+
             """
                 select metadata from personhendelse
                 where id = :id

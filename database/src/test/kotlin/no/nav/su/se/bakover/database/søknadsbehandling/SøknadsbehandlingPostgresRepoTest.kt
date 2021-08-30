@@ -40,13 +40,11 @@ import java.util.UUID
 
 internal class SøknadsbehandlingPostgresRepoTest {
 
-    private val testDataHelper = TestDataHelper()
-    private val dataSource = testDataHelper.datasource
-    private val repo = testDataHelper.søknadsbehandlingRepo
-
     @Test
     fun `hent tidligere attestering ved underkjenning`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.søknadsbehandlingRepo
             testDataHelper.nyInnvilgetUnderkjenning().also {
                 repo.hentEventuellTidligereAttestering(it.id).also {
                     it shouldBe underkjentAttestering
@@ -57,7 +55,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
     @Test
     fun `hent for sak`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.søknadsbehandlingRepo
             testDataHelper.nyAvslåttBeregning().also {
                 dataSource.withSession { session ->
                     repo.hentForSak(it.sakId, session)
@@ -68,7 +68,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
     @Test
     fun `kan sette inn tom saksbehandling`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.søknadsbehandlingRepo
             val vilkårsvurdert = testDataHelper.nySøknadsbehandling()
             repo.hent(vilkårsvurdert.id).also {
                 it shouldBe vilkårsvurdert
@@ -79,7 +81,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
     @Test
     fun `lagring av vilkårsvurdert behandling påvirker ikke andre behandlinger`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
             testDataHelper.nyIverksattAvslagMedBeregning()
             testDataHelper.nyInnvilgetVilkårsvurdering()
 
@@ -97,7 +100,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
     @Test
     fun `kan oppdatere med alle vilkår oppfylt`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.søknadsbehandlingRepo
             val vilkårsvurdert = testDataHelper.nyInnvilgetVilkårsvurdering()
             repo.hent(vilkårsvurdert.id).also {
                 it shouldBe vilkårsvurdert
@@ -108,7 +113,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
     @Test
     fun `kan oppdatere med vilkår som fører til avslag`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.søknadsbehandlingRepo
             val vilkårsvurdert = testDataHelper.nyAvslåttVilkårsvurdering()
             repo.hent(vilkårsvurdert.id).also {
                 it shouldBe vilkårsvurdert
@@ -119,7 +126,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
     @Test
     fun `kan oppdatere stønadsperiode`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.søknadsbehandlingRepo
             val vilkårsvurdert = testDataHelper.nySøknadsbehandling(
                 stønadsperiode = null,
             )
@@ -138,14 +147,16 @@ internal class SøknadsbehandlingPostgresRepoTest {
     @Test
     fun `oppdaterer status og behandlingsinformasjon og sletter beregning og simulering hvis de eksisterer`() {
 
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.søknadsbehandlingRepo
             val uavklartVilkårsvurdering = testDataHelper.nySøknadsbehandling().also {
                 val behandlingId = it.id
                 repo.hent(behandlingId) shouldBe it
-                dataSource.withSession {
-                    "select * from behandling where id = :id".hent(mapOf("id" to behandlingId), it) {
-                        it.stringOrNull("beregning") shouldBe null
-                        it.stringOrNull("simulering") shouldBe null
+                dataSource.withSession { session ->
+                    "select * from behandling where id = :id".hent(mapOf("id" to behandlingId), session) { row ->
+                        row.stringOrNull("beregning") shouldBe null
+                        row.stringOrNull("simulering") shouldBe null
                     }
                 }
             }
@@ -154,10 +165,13 @@ internal class SøknadsbehandlingPostgresRepoTest {
             ).also {
                 repo.lagre(it)
                 repo.hent(it.id) shouldBe it
-                dataSource.withSession {
-                    "select * from behandling where id = :id".hent(mapOf("id" to uavklartVilkårsvurdering.id), it) {
-                        it.stringOrNull("beregning") shouldNotBe null
-                        it.stringOrNull("simulering") shouldBe null
+                dataSource.withSession { session ->
+                    "select * from behandling where id = :id".hent(
+                        mapOf("id" to uavklartVilkårsvurdering.id),
+                        session,
+                    ) { row ->
+                        row.stringOrNull("beregning") shouldNotBe null
+                        row.stringOrNull("simulering") shouldBe null
                     }
                 }
             }
@@ -193,7 +207,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
     inner class TilAttestering {
         @Test
         fun `til attestering innvilget`() {
-            withMigratedDb {
+            withMigratedDb { dataSource ->
+                val testDataHelper = TestDataHelper(dataSource)
+                val repo = testDataHelper.søknadsbehandlingRepo
                 val nyOppgaveId = OppgaveId("tilAttesteringOppgaveId")
                 val tilAttestering = testDataHelper.nyTilInnvilgetAttestering()
                 tilAttestering.nyOppgaveId(nyOppgaveId).also {
@@ -224,7 +240,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
         @Test
         fun `til attestering avslag uten beregning`() {
-            withMigratedDb {
+            withMigratedDb { dataSource ->
+                val testDataHelper = TestDataHelper(dataSource)
+                val repo = testDataHelper.søknadsbehandlingRepo
                 val nyOppgaveId = OppgaveId("tilAttesteringOppgaveId")
                 val tilAttestering = testDataHelper.nyTilAvslåttAttesteringUtenBeregning()
                 tilAttestering.nyOppgaveId(nyOppgaveId).also {
@@ -253,7 +271,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
         @Test
         fun `til attestering avslag med beregning`() {
-            withMigratedDb {
+            withMigratedDb { dataSource ->
+                val testDataHelper = TestDataHelper(dataSource)
+                val repo = testDataHelper.søknadsbehandlingRepo
                 val nyOppgaveId = OppgaveId("tilAttesteringOppgaveId")
                 val tilAttestering = testDataHelper.tilAvslåttAttesteringMedBeregning()
                 tilAttestering.nyOppgaveId(nyOppgaveId).also {
@@ -286,7 +306,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
     inner class Underkjent {
         @Test
         fun `underkjent innvilget`() {
-            withMigratedDb {
+            withMigratedDb { dataSource ->
+                val testDataHelper = TestDataHelper(dataSource)
+                val repo = testDataHelper.søknadsbehandlingRepo
                 val nyOppgaveId = OppgaveId("tilAttesteringOppgaveId")
                 val tilAttestering = testDataHelper.nyInnvilgetUnderkjenning()
                 tilAttestering.nyOppgaveId(nyOppgaveId).also {
@@ -317,7 +339,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
         @Test
         fun `underkjent avslag uten beregning`() {
-            withMigratedDb {
+            withMigratedDb { dataSource ->
+                val testDataHelper = TestDataHelper(dataSource)
+                val repo = testDataHelper.søknadsbehandlingRepo
                 val nyOppgaveId = OppgaveId("tilAttesteringOppgaveId")
                 val tilAttestering = testDataHelper.nyUnderkjenningUtenBeregning()
                 tilAttestering.nyOppgaveId(nyOppgaveId).also {
@@ -346,7 +370,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
         @Test
         fun `underkjent avslag med beregning`() {
-            withMigratedDb {
+            withMigratedDb { dataSource ->
+                val testDataHelper = TestDataHelper(dataSource)
+                val repo = testDataHelper.søknadsbehandlingRepo
                 val nyOppgaveId = OppgaveId("tilAttesteringOppgaveId")
                 val tilAttestering = testDataHelper.nyUnderkjenningMedBeregning()
                 tilAttestering.nyOppgaveId(nyOppgaveId).also {
@@ -380,7 +406,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
         @Test
         fun `iverksatt avslag innvilget`() {
 
-            withMigratedDb {
+            withMigratedDb { dataSource ->
+                val testDataHelper = TestDataHelper(dataSource)
+                val repo = testDataHelper.søknadsbehandlingRepo
                 val iverksatt = testDataHelper.nyIverksattInnvilget().first
                 repo.hent(iverksatt.id).also {
                     it shouldBe iverksatt
@@ -392,7 +420,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
     @Test
     fun `iverksatt avslag uten beregning`() {
 
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.søknadsbehandlingRepo
             val iverksatt = testDataHelper.nyIverksattAvslagUtenBeregning(fritekstTilBrev = "Dette er fritekst")
             val expected = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
                 id = iverksatt.id,
@@ -418,7 +448,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
     @Test
     fun `iverksatt avslag med beregning`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.søknadsbehandlingRepo
             val iverksatt = testDataHelper.nyIverksattAvslagMedBeregning()
             repo.hent(iverksatt.id).also {
                 it shouldBe Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
@@ -444,7 +476,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
     @Test
     fun `iverksatt avslag med beregning med grunnlag og vilkårsvurderinger`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.søknadsbehandlingRepo
             val iverksatt = testDataHelper.nyIverksattAvslagMedBeregning()
 
             val uføregrunnlag = Grunnlag.Uføregrunnlag(

@@ -9,7 +9,6 @@ import org.mockito.kotlin.mock
 import org.postgresql.util.PSQLException
 
 internal class DatabaseExKtTest {
-    private val datasource = EmbeddedDatabase.instance()
 
     @Test
     fun `kaster exception med hjelpende feilmelding hvis man forsøker å bruke særnorske tegn i parameter mapping`() {
@@ -55,8 +54,8 @@ internal class DatabaseExKtTest {
 
     @Test
     fun `transaksjonelle spørringer committer og lagrer i databasen hvis alt er ok`() {
-        withMigratedDb {
-            datasource.withTransaction {
+        withMigratedDb { dataSource ->
+            dataSource.withTransaction {
                 """
                     CREATE TABLE IF NOT EXISTS test (id int not null)
                 """.trimIndent()
@@ -66,7 +65,7 @@ internal class DatabaseExKtTest {
                 """.trimIndent()
                     .insert(emptyMap(), it)
             }
-            datasource.withSession {
+            dataSource.withSession {
                 """
                     SELECT COUNT (*) FROM test
                 """.trimIndent().antall(emptyMap(), it) shouldBe 1
@@ -76,9 +75,9 @@ internal class DatabaseExKtTest {
 
     @Test
     fun `transaksjonelle spørringer ruller tilbake dersom noe går galt`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
             try {
-                datasource.withTransaction {
+                dataSource.withTransaction {
                     """
                         CREATE TABLE IF NOT EXISTS test (id int not null)
                     """.trimIndent()
@@ -91,7 +90,7 @@ internal class DatabaseExKtTest {
             } catch (ex: Exception) {
             }
             assertThrows<PSQLException> {
-                datasource.withSession {
+                dataSource.withSession {
                     """
                     SELECT COUNT (*) FROM test
                     """.trimIndent().antall(emptyMap(), it)

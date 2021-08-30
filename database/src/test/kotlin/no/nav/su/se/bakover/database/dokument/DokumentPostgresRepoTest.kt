@@ -18,12 +18,12 @@ import java.util.UUID
 
 internal class DokumentPostgresRepoTest {
 
-    private val testDataHelper = TestDataHelper()
-    private val dokumentRepo = testDataHelper.dokumentRepo
-
     @Test
     fun `lagrer og henter dokumenter`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val dokumentRepo = testDataHelper.dokumentRepo
+
             val sak = testDataHelper.nySakMedNySøknad()
             val etVedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
             val enRevurdering = testDataHelper.tilIverksattRevurdering()
@@ -62,7 +62,9 @@ internal class DokumentPostgresRepoTest {
 
     @Test
     fun `lagrer bestilling av brev for dokumenter og oppdaterer`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val dokumentRepo = testDataHelper.dokumentRepo
             val sak = testDataHelper.nySakMedNySøknad()
             val original = Dokument.MedMetadata.Informasjon(
                 id = UUID.randomUUID(),

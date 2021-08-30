@@ -201,28 +201,28 @@ internal val dbMetricsStub: DbMetrics = object : DbMetrics {
 }
 
 internal class TestDataHelper(
-    internal val datasource: DataSource = EmbeddedDatabase.instance(),
+    internal val dataSource: DataSource,
     dbMetrics: DbMetrics = dbMetricsStub,
     private val clock: Clock = fixedClock,
 ) {
-    internal val sessionFactory = PostgresSessionFactory(datasource)
+    internal val sessionFactory = PostgresSessionFactory(dataSource)
     internal val utbetalingRepo = UtbetalingPostgresRepo(
-        dataSource = datasource,
+        dataSource = dataSource,
         dbMetrics = dbMetrics,
     )
-    internal val hendelsesloggRepo = HendelsesloggPostgresRepo(datasource)
+    internal val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
     internal val søknadRepo = SøknadPostgresRepo(
-        dataSource = datasource,
+        dataSource = dataSource,
         dbMetrics = dbMetrics,
         postgresSessionFactory = sessionFactory,
     )
     internal val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
     internal val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(
-        dataSource = datasource,
+        dataSource = dataSource,
         dbMetrics = dbMetrics,
     )
     internal val bosituasjongrunnlagPostgresRepo = BosituasjongrunnlagPostgresRepo(
-        dataSource = datasource,
+        dataSource = dataSource,
         dbMetrics = dbMetrics,
     )
     internal val grunnlagRepo = GrunnlagPostgresRepo(
@@ -230,18 +230,18 @@ internal class TestDataHelper(
         bosituasjongrunnlagRepo = bosituasjongrunnlagPostgresRepo,
     )
     internal val uføreVilkårsvurderingRepo = UføreVilkårsvurderingPostgresRepo(
-        dataSource = datasource,
+        dataSource = dataSource,
         uføregrunnlagRepo = uføregrunnlagPostgresRepo,
         dbMetrics = dbMetrics,
     )
     internal val formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo()
     internal val formueVilkårsvurderingPostgresRepo = FormueVilkårsvurderingPostgresRepo(
-        dataSource = datasource,
+        dataSource = dataSource,
         formuegrunnlagPostgresRepo = formuegrunnlagPostgresRepo,
         dbMetrics = dbMetrics,
     )
     internal val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(
-        dataSource = datasource,
+        dataSource = dataSource,
         uføregrunnlagRepo = uføregrunnlagPostgresRepo,
         fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
         bosituasjongrunnlagRepo = bosituasjongrunnlagPostgresRepo,
@@ -249,7 +249,7 @@ internal class TestDataHelper(
         dbMetrics = dbMetrics,
     )
     internal val revurderingRepo = RevurderingPostgresRepo(
-        dataSource = datasource,
+        dataSource = dataSource,
         fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
         bosituasjonsgrunnlagPostgresRepo = bosituasjongrunnlagPostgresRepo,
         uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
@@ -258,24 +258,24 @@ internal class TestDataHelper(
         dbMetrics = dbMetrics,
     )
     internal val vedtakRepo = VedtakPosgresRepo(
-        dataSource = datasource,
+        dataSource = dataSource,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         revurderingRepo = revurderingRepo,
         dbMetrics = dbMetrics,
     )
     internal val sakRepo = SakPostgresRepo(
-        dataSource = datasource,
+        dataSource = dataSource,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         revurderingRepo = revurderingRepo,
         vedtakPosgresRepo = vedtakRepo,
         dbMetrics = dbMetrics,
     )
     internal val personRepo = PersonPostgresRepo(
-        dataSource = datasource,
+        dataSource = dataSource,
         dbMetrics = dbMetrics,
     )
-    internal val dokumentRepo = DokumentPostgresRepo(datasource, sessionFactory)
-    internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(datasource)
+    internal val dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory)
+    internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(dataSource)
 
     fun nySakMedNySøknad(fnr: Fnr = Fnr.generer()): NySak {
         return SakFactory(clock = clock).nySakMedNySøknad(fnr, SøknadInnholdTestdataBuilder.build()).also {

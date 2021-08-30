@@ -38,6 +38,7 @@ import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotRepo
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
+import org.jetbrains.annotations.TestOnly
 import javax.sql.DataSource
 
 object DatabaseBuilder {
@@ -64,12 +65,12 @@ object DatabaseBuilder {
         return buildInternal(userDatastore, dbMetrics)
     }
 
+    @TestOnly
     fun build(
         embeddedDatasource: DataSource,
         dbMetrics: DbMetrics,
     ): DatabaseRepos {
-        // I testene ønsker vi ikke noe herjing med rolle; embedded-oppsettet sørger for at vi har riktige tilganger her.
-        Flyway(embeddedDatasource).migrate()
+        // I testene ønsker vi ikke noe herjing med rolle; embedded-oppsettet sørger for at vi har riktige tilganger og er ferdigmigrert her.
         return buildInternal(embeddedDatasource, dbMetrics)
     }
 

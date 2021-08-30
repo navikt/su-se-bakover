@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.antall
 import no.nav.su.se.bakover.database.fixedTidspunkt
@@ -22,12 +21,11 @@ import org.junit.jupiter.api.Test
 
 internal class AvstemmingPostgresRepoTest {
 
-    private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
-    private val repo = AvstemmingPostgresRepo(EmbeddedDatabase.instance())
-
     @Test
     fun `henter siste avstemming`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = AvstemmingPostgresRepo(dataSource)
             val utbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering()
 
             val zero = repo.hentSisteAvstemming()
@@ -37,8 +35,8 @@ internal class AvstemmingPostgresRepoTest {
                 Avstemming(
                     fraOgMed = 1.januar(2020).startOfDay(),
                     tilOgMed = 2.januar(2020).startOfDay(),
-                    utbetalinger = listOf(utbetalingMedKvittering.second)
-                )
+                    utbetalinger = listOf(utbetalingMedKvittering.second),
+                ),
             )
 
             val second = repo.opprettAvstemming(
@@ -57,16 +55,18 @@ internal class AvstemmingPostgresRepoTest {
 
     @Test
     fun `hent utbetalinger for avstemming`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = AvstemmingPostgresRepo(dataSource)
             val (innvilget, utbetaling) = testDataHelper.nyIverksattInnvilget(
                 avstemmingsnøkkel = Avstemmingsnøkkel(
                     11.oktober(
-                        2020
-                    ).startOfDay()
-                )
+                        2020,
+                    ).startOfDay(),
+                ),
             )
 
-            EmbeddedDatabase.instance().withSession { session ->
+            dataSource.withSession { session ->
                 """
                     insert into utbetaling (id, opprettet, sakId, fnr, type, behandler, avstemmingsnøkkel, simulering, utbetalingsrequest)
                     values (:id, :opprettet, :sakId, :fnr, :type, :behandler, to_json(:avstemmingsnokkel::json), to_json(:simulering::json), to_json(:utbetalingsrequest::json))
@@ -80,13 +80,13 @@ internal class AvstemmingPostgresRepoTest {
                         "behandler" to "Z123",
                         "avstemmingsnokkel" to objectMapper.writeValueAsString(
                             Avstemmingsnøkkel(
-                                9.oktober(2020).startOfDay()
-                            )
+                                9.oktober(2020).startOfDay(),
+                            ),
                         ),
                         "simulering" to "{}",
-                        "utbetalingsrequest" to "{}"
+                        "utbetalingsrequest" to "{}",
                     ),
-                    session
+                    session,
                 )
             }
 
@@ -109,17 +109,19 @@ internal class AvstemmingPostgresRepoTest {
 
     @Test
     fun `hent utbetalinger for avstemming tidspunkt test`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = AvstemmingPostgresRepo(dataSource)
             val utbetaling1 = testDataHelper.nyOversendtUtbetalingMedKvittering(
                 avstemmingsnøkkel = Avstemmingsnøkkel(
-                    11.oktober(2020).startOfDay()
-                )
+                    11.oktober(2020).startOfDay(),
+                ),
             )
 
             val utbetaling2 = testDataHelper.nyOversendtUtbetalingMedKvittering(
                 avstemmingsnøkkel = Avstemmingsnøkkel(
-                    11.oktober(2020).endOfDay()
-                )
+                    11.oktober(2020).endOfDay(),
+                ),
             )
 
             val utbetalinger = repo.hentUtbetalingerForAvstemming(
@@ -134,7 +136,9 @@ internal class AvstemmingPostgresRepoTest {
 
     @Test
     fun `oppretter avstemming og oppdaterer aktuelle utbetalinger`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = AvstemmingPostgresRepo(dataSource)
             val oversendtUtbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering()
 
             val avstemming = Avstemming(
@@ -143,13 +147,13 @@ internal class AvstemmingPostgresRepoTest {
                 fraOgMed = fixedTidspunkt,
                 tilOgMed = fixedTidspunkt,
                 utbetalinger = listOf(oversendtUtbetalingMedKvittering.second),
-                avstemmingXmlRequest = "some xml"
+                avstemmingXmlRequest = "some xml",
             )
 
             repo.opprettAvstemming(avstemming)
             repo.oppdaterAvstemteUtbetalinger(avstemming)
 
-            EmbeddedDatabase.instance().withSession { session ->
+            dataSource.withSession { session ->
                 "select count(*) from Utbetaling where avstemmingId is not null".antall(session = session)
             } shouldBe 1
         }

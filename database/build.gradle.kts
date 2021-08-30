@@ -7,10 +7,6 @@ dependencies {
     implementation("com.github.seratch:kotliquery:1.3.1")
 
     testImplementation(project(":test-common"))
-    testImplementation("com.opentable.components:otj-pg-embedded") {
-        // versjon definert i root build.gradle.kts
-        exclude(group = "com.github.spotbugs")
-    }
 }
 
 plugins {

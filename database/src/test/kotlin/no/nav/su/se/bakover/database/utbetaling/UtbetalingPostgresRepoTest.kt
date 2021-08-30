@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.fixedClock
 import no.nav.su.se.bakover.database.utbetalingslinje
@@ -20,12 +19,12 @@ import org.junit.jupiter.api.Test
 
 internal class UtbetalingPostgresRepoTest {
 
-    private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
-    private val repo = testDataHelper.utbetalingRepo
-
     @Test
     fun `opprett og hent utbetaling uten kvittering`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.utbetalingRepo
+
             val utenKvittering = testDataHelper.nyIverksattInnvilget().second
             repo.hentUtbetaling(utenKvittering.id) shouldBe utenKvittering
         }
@@ -33,7 +32,9 @@ internal class UtbetalingPostgresRepoTest {
 
     @Test
     fun `hent utbetaling fra avstemmingsnøkkel`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.utbetalingRepo
             val utbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering().second
             val hentet =
                 repo.hentUtbetaling(utbetalingMedKvittering.avstemmingsnøkkel) as Utbetaling.OversendtUtbetaling.MedKvittering
@@ -43,7 +44,9 @@ internal class UtbetalingPostgresRepoTest {
 
     @Test
     fun `hent utbetalinger uten kvittering`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.utbetalingRepo
             val utbetalingUtenKvittering = testDataHelper.nyIverksattInnvilget().second
             testDataHelper.nyOversendtUtbetalingMedKvittering()
             repo.hentUkvitterteUtbetalinger() shouldBe listOf(utbetalingUtenKvittering)
@@ -52,9 +55,12 @@ internal class UtbetalingPostgresRepoTest {
 
     @Test
     fun `oppdater med kvittering`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.utbetalingRepo
             val utbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering().second
-            repo.hentUtbetaling(utbetalingMedKvittering.id).shouldBeInstanceOf<Utbetaling.OversendtUtbetaling.MedKvittering>()
+            repo.hentUtbetaling(utbetalingMedKvittering.id)
+                .shouldBeInstanceOf<Utbetaling.OversendtUtbetaling.MedKvittering>()
         }
     }
 
@@ -69,9 +75,10 @@ internal class UtbetalingPostgresRepoTest {
                 forrigeUtbetalingslinjeId = utbetalingslinjeId1,
             ),
         )
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
             val utbetaling = testDataHelper.nyIverksattInnvilget(utbetalingslinjer = utbetalingslinjer)
-            EmbeddedDatabase.instance().withSession {
+            dataSource.withSession {
                 val hentet = UtbetalingInternalRepo.hentUtbetalingslinjer(utbetaling.second.id, it)
                 hentet shouldBe utbetalingslinjer
             }
@@ -80,7 +87,9 @@ internal class UtbetalingPostgresRepoTest {
 
     @Test
     fun `endring av eksisterende utbetalingslinje oppretter ny linje med status`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.utbetalingRepo
             val originalUtbetalingslinje = Utbetalingslinje.Ny(
                 fraOgMed = 1.januar(2020),
                 tilOgMed = 31.desember(2020),
@@ -117,7 +126,6 @@ internal class UtbetalingPostgresRepoTest {
                     virkningstidspunkt = endretUtbetalingslinje.virkningstidspunkt,
                 ),
             )
-
             repo.hentUtbetaling(utbetaling.id) shouldNotBe repo.hentUtbetaling(opphør.id)
         }
     }

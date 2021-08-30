@@ -13,7 +13,8 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.DatabaseBuilder
-import no.nav.su.se.bakover.database.EmbeddedDatabase
+import no.nav.su.se.bakover.database.DatabaseRepos
+import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
@@ -31,6 +32,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.ServiceBuilder
+import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.VilkårsvurderRequest
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
@@ -49,6 +51,7 @@ import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import java.util.UUID
+import javax.sql.DataSource
 
 internal class BeregnRoutesKtTest {
 
@@ -56,118 +59,142 @@ internal class BeregnRoutesKtTest {
         periode = Periode.create(1.januar(2021), 31.desember(2021)),
         begrunnelse = "begrunnelse",
     )
-    private val repos = DatabaseBuilder.build(
-        embeddedDatasource = EmbeddedDatabase.instance(),
+
+    private fun repos(dataSource: DataSource) = DatabaseBuilder.build(
+        embeddedDatasource = dataSource,
         dbMetrics = dbMetricsStub,
     )
-    private val services = ServiceBuilder.build(
-        databaseRepos = repos,
-        clients = TestClientsBuilder.build(applicationConfig),
-        behandlingMetrics = mock(),
-        søknadMetrics = mock(),
-        clock = fixedClock,
-        unleash = mock(),
-    )
+
+    private fun services(dataSource: DataSource, databaseRepos: DatabaseRepos = repos(dataSource)) =
+        ServiceBuilder.build(
+            databaseRepos = databaseRepos,
+            clients = TestClientsBuilder.build(applicationConfig),
+            behandlingMetrics = mock(),
+            søknadMetrics = mock(),
+            clock = fixedClock,
+            unleash = mock(),
+        )
 
     @Test
     fun `opprette beregning for behandling`() {
-        withTestApplication(
-            {
-                testSusebakover()
-            },
-        ) {
-            val objects = setupMedAlleVilkårOppfylt()
+        withMigratedDb { dataSource ->
+            val repos = repos(dataSource)
+            val services = services(dataSource, repos)
+            val objects = setupMedAlleVilkårOppfylt(services, repos)
 
-            defaultRequest(
-                HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
-                listOf(Brukerrolle.Saksbehandler),
+            withTestApplication(
+                {
+                    testSusebakover(
+                        services = services,
+                        databaseRepos = repos,
+                    )
+                },
             ) {
-                setBody("{}")
-            }.apply {
-                response.status() shouldBe HttpStatusCode.Created
-                val behandlingJson = deserialize<BehandlingJson>(response.content!!)
-                behandlingJson.beregning!!.fraOgMed shouldBe stønadsperiode.periode.fraOgMed.toString()
-                behandlingJson.beregning.tilOgMed shouldBe stønadsperiode.periode.tilOgMed.toString()
-                behandlingJson.beregning.sats shouldBe Sats.HØY.name
-                behandlingJson.beregning.månedsberegninger shouldHaveSize 12
+
+                defaultRequest(
+                    HttpMethod.Post,
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
+                    listOf(Brukerrolle.Saksbehandler),
+                ) {
+                    setBody("{}")
+                }.apply {
+                    response.status() shouldBe HttpStatusCode.Created
+                    val behandlingJson = deserialize<BehandlingJson>(response.content!!)
+                    behandlingJson.beregning!!.fraOgMed shouldBe stønadsperiode.periode.fraOgMed.toString()
+                    behandlingJson.beregning.tilOgMed shouldBe stønadsperiode.periode.tilOgMed.toString()
+                    behandlingJson.beregning.sats shouldBe Sats.HØY.name
+                    behandlingJson.beregning.månedsberegninger shouldHaveSize 12
+                }
             }
         }
     }
 
     @Test
     fun `beregn error handling`() {
-        withTestApplication(
-            {
-                testSusebakover()
-            },
-        ) {
-            val objects = setup()
-            defaultRequest(
-                HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/blabla/beregn",
-                listOf(Brukerrolle.Saksbehandler),
-            ) {}.apply {
-                assertSoftly {
-                    response.status() shouldBe HttpStatusCode.BadRequest
-                    response.content shouldContain "ikke en gyldig UUID"
-                }
-            }
-            defaultRequest(
-                HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/beregn",
-                listOf(Brukerrolle.Saksbehandler),
-            ) {
-                setBody("{}")
-            }.apply {
-                assertSoftly {
-                    response.status() shouldBe HttpStatusCode.NotFound
-                    response.content shouldContain "Fant ikke behandling"
-                }
-            }
-            defaultRequest(
-                HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
-                listOf(Brukerrolle.Saksbehandler),
-            ).apply {
-                assertSoftly {
-                    response.status() shouldBe HttpStatusCode.BadRequest
-                    response.content shouldContain "Ugyldig body"
-                }
-            }
+        withMigratedDb { dataSource ->
+            val repos = repos(dataSource)
+            val services = services(dataSource, repos)
+            val objects = setup(services, repos)
             services.søknadsbehandling.vilkårsvurder(
                 VilkårsvurderRequest(
                     objects.søknadsbehandling.id,
                     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
                 ),
             )
+            withTestApplication(
+                {
+                    testSusebakover(
+                        databaseRepos = repos,
+                        services = services,
+                    )
+                },
+            ) {
+                defaultRequest(
+                    HttpMethod.Post,
+                    "$sakPath/${objects.sak.id}/behandlinger/blabla/beregn",
+                    listOf(Brukerrolle.Saksbehandler),
+                ) {}.apply {
+                    assertSoftly {
+                        response.status() shouldBe HttpStatusCode.BadRequest
+                        response.content shouldContain "ikke en gyldig UUID"
+                    }
+                }
+                defaultRequest(
+                    HttpMethod.Post,
+                    "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/beregn",
+                    listOf(Brukerrolle.Saksbehandler),
+                ) {
+                    setBody("{}")
+                }.apply {
+                    assertSoftly {
+                        response.status() shouldBe HttpStatusCode.NotFound
+                        response.content shouldContain "Fant ikke behandling"
+                    }
+                }
+                defaultRequest(
+                    HttpMethod.Post,
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
+                    listOf(Brukerrolle.Saksbehandler),
+                ).apply {
+                    assertSoftly {
+                        response.status() shouldBe HttpStatusCode.BadRequest
+                        response.content shouldContain "Ugyldig body"
+                    }
+                }
+            }
         }
     }
 
     @Test
     fun `client notified about illegal operations on current state of behandling`() {
-        withTestApplication(
-            {
-                testSusebakover()
-            },
-        ) {
-            val objects = setup()
-            services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
-                LeggTilBosituasjonEpsRequest(
-                    behandlingId = objects.søknadsbehandling.id,
-                    epsFnr = null,
-                ),
-            )
-            objects.søknadsbehandling.status shouldBe BehandlingsStatus.OPPRETTET
-
-            defaultRequest(
-                HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
-                listOf(Brukerrolle.Saksbehandler),
+        withMigratedDb { dataSource ->
+            val repos = repos(dataSource)
+            val services = services(dataSource, repos)
+            val objects = setup(services, repos)
+            withTestApplication(
+                {
+                    testSusebakover(
+                        services = services,
+                        databaseRepos = repos,
+                    )
+                },
             ) {
-                setBody(
-                    //language=JSON
-                    """
+                services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
+                    LeggTilBosituasjonEpsRequest(
+                        behandlingId = objects.søknadsbehandling.id,
+                        epsFnr = null,
+                    ),
+                )
+                objects.søknadsbehandling.status shouldBe BehandlingsStatus.OPPRETTET
+
+                defaultRequest(
+                    HttpMethod.Post,
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
+                    listOf(Brukerrolle.Saksbehandler),
+                ) {
+                    setBody(
+                        //language=JSON
+                        """
                     {
                         "stønadsperiode": {
                             "fraOgMed":"${1.januar(2021)}",
@@ -175,13 +202,14 @@ internal class BeregnRoutesKtTest {
                         },
                         "fradrag":[]
                     }
-                    """.trimIndent(),
-                )
-            }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "Ugyldig statusovergang"
-                response.content shouldContain "TilBeregnet"
-                response.content shouldContain "Vilkårsvurdert.Uavklart"
+                        """.trimIndent(),
+                    )
+                }.apply {
+                    response.status() shouldBe HttpStatusCode.BadRequest
+                    response.content shouldContain "Ugyldig statusovergang"
+                    response.content shouldContain "TilBeregnet"
+                    response.content shouldContain "Vilkårsvurdert.Uavklart"
+                }
             }
         }
     }
@@ -191,7 +219,7 @@ internal class BeregnRoutesKtTest {
         val søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart,
     )
 
-    private fun setup(): UavklartVilkårsvurdertSøknadsbehandling {
+    private fun setup(services: Services, repos: DatabaseRepos): UavklartVilkårsvurdertSøknadsbehandling {
         val søknadInnhold = SøknadInnholdTestdataBuilder.build()
         val fnr: Fnr = Fnr.generer()
         SakFactory(clock = fixedClock).nySakMedNySøknad(fnr, søknadInnhold).also {
@@ -235,8 +263,11 @@ internal class BeregnRoutesKtTest {
         val søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget,
     )
 
-    private fun setupMedAlleVilkårOppfylt(): InnvilgetVilkårsvurdertSøknadsbehandling {
-        val objects = setup()
+    private fun setupMedAlleVilkårOppfylt(
+        services: Services,
+        repos: DatabaseRepos,
+    ): InnvilgetVilkårsvurdertSøknadsbehandling {
+        val objects = setup(services, repos)
 
         val behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
         services.søknadsbehandling.leggTilUføregrunnlag(

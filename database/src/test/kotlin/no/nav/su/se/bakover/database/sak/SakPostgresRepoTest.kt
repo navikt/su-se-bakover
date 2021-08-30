@@ -14,12 +14,11 @@ import org.junit.jupiter.api.Test
 
 internal class SakPostgresRepoTest {
 
-    private val testDataHelper = TestDataHelper()
-    private val repo = testDataHelper.sakRepo
-
     @Test
     fun `opprett og hent sak`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.sakRepo
             val nySak = testDataHelper.nySakMedNySøknad()
             val opprettet: Sak = repo.hentSak(nySak.fnr)!!
             val hentetId = repo.hentSak(opprettet.id)!!
@@ -37,7 +36,9 @@ internal class SakPostgresRepoTest {
 
     @Test
     fun `hent sakId fra fnr liste med 1 element`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.sakRepo
             val nySak = testDataHelper.nySakMedNySøknad()
             repo.hentSakIdForIdenter(nonEmptyListOf(nySak.fnr.toString())) shouldBe nySak.id
         }
@@ -45,7 +46,9 @@ internal class SakPostgresRepoTest {
 
     @Test
     fun `hent sakId fra fnr liste med 2 elementer`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.sakRepo
             val nySak = testDataHelper.nySakMedNySøknad()
             repo.hentSakIdForIdenter(nonEmptyListOf("1234567890123", nySak.fnr.toString())) shouldBe nySak.id
             repo.hentSakIdForIdenter(nonEmptyListOf(nySak.fnr.toString(), "1234567890123")) shouldBe nySak.id
@@ -54,7 +57,9 @@ internal class SakPostgresRepoTest {
 
     @Test
     fun `hent sakId fra fnr liste med 3 elementer`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.sakRepo
             val nySak = testDataHelper.nySakMedNySøknad()
             repo.hentSakIdForIdenter(
                 nonEmptyListOf(
@@ -68,7 +73,9 @@ internal class SakPostgresRepoTest {
 
     @Test
     fun `Henter alle restanser for alle saker`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.sakRepo
             val sak = testDataHelper.nySakMedNySøknad()
             testDataHelper.nyLukketSøknadForEksisterendeSak(sak.id)
             val søknadsbehandling = testDataHelper.nySøknadsbehandling()
