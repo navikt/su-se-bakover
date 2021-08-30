@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Oppgavetype
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import java.time.LocalDate
 import java.util.UUID
 
 sealed class OppgaveConfig {
@@ -17,6 +18,7 @@ sealed class OppgaveConfig {
     abstract val oppgavetype: Oppgavetype
     abstract val behandlingstype: Behandlingstype
     abstract val tilordnetRessurs: NavIdentBruker?
+    abstract val fristFerdigstillelse: LocalDate?
 
     data class Saksbehandling(
         override val journalpostId: JournalpostId,
@@ -28,6 +30,7 @@ sealed class OppgaveConfig {
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
         override val behandlingstype = Behandlingstype.FØRSTEGANGSSØKNAD
         override val oppgavetype = Oppgavetype.BEHANDLE_SAK
+        override val fristFerdigstillelse: LocalDate? = null
     }
 
     data class Attestering(
@@ -40,6 +43,7 @@ sealed class OppgaveConfig {
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
         override val behandlingstype = Behandlingstype.FØRSTEGANGSSØKNAD
         override val oppgavetype = Oppgavetype.ATTESTERING
+        override val fristFerdigstillelse: LocalDate? = null
     }
 
     data class Revurderingsbehandling(
@@ -52,6 +56,7 @@ sealed class OppgaveConfig {
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
         override val behandlingstype = Behandlingstype.REVURDERING
         override val oppgavetype = Oppgavetype.BEHANDLE_SAK
+        override val fristFerdigstillelse: LocalDate? = null
     }
 
     data class AttesterRevurdering(
@@ -64,6 +69,7 @@ sealed class OppgaveConfig {
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
         override val behandlingstype = Behandlingstype.REVURDERING
         override val oppgavetype = Oppgavetype.ATTESTERING
+        override val fristFerdigstillelse: LocalDate? = null
     }
 
     data class Personhendelse(
@@ -77,5 +83,6 @@ sealed class OppgaveConfig {
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
         override val behandlingstype = Behandlingstype.REVURDERING
         override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
+        override val fristFerdigstillelse: LocalDate = LocalDate.now().plusDays(7)
     }
 }

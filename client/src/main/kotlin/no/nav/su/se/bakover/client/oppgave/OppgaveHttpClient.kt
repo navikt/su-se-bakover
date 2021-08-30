@@ -135,7 +135,7 @@ internal class OppgaveHttpClient(
                                 behandlingstema = config.behandlingstema?.toString(),
                                 behandlingstype = config.behandlingstype.toString(),
                                 aktivDato = aktivDato,
-                                fristFerdigstillelse = aktivDato.plusDays(30),
+                                fristFerdigstillelse = config.fristFerdigstillelse ?: aktivDato.plusDays(30),
                                 prioritet = "NORM",
                                 tilordnetRessurs = config.tilordnetRessurs?.toString(),
                             ),
