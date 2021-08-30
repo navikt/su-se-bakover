@@ -1,9 +1,6 @@
 val fuelVersion = "2.3.1"
-val wireMockVersion = "2.30.1"
-val orgJsonVersion = "20210307"
 val tjenestespesifikasjonVersion = "2569.1b83e50"
 val cxfVersion = "3.4.4"
-val jettyVersion = "9.4.42.v20210604"
 
 dependencies {
     implementation(project(":common"))
@@ -13,7 +10,7 @@ dependencies {
     implementation("com.github.kittinunf.fuel:fuel-gson:$fuelVersion")
     implementation("javax.xml.bind:jaxb-api:2.3.1")
 
-    implementation("org.json:json:$orgJsonVersion")
+    implementation("org.json:json:20210307")
 
     implementation("com.github.navikt.tjenestespesifikasjoner:nav-virksomhet-oppdragsbehandling-v1-meldingsdefinisjon:$tjenestespesifikasjonVersion")
     implementation("com.github.navikt.tjenestespesifikasjoner:nav-system-os-simuler-fp-service-tjenestespesifikasjon:$tjenestespesifikasjonVersion")
@@ -27,7 +24,7 @@ dependencies {
     implementation("com.sun.xml.messaging.saaj:saaj-impl:1.5.2")
 
     testImplementation(project(":test-common"))
-    testImplementation("com.github.tomakehurst:wiremock-jre8:$wireMockVersion") {
+    testImplementation("com.github.tomakehurst:wiremock-jre8:2.30.1") {
         exclude(group = "junit")
     }
     testImplementation("org.xmlunit:xmlunit-matchers:2.8.2")

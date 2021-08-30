@@ -1,17 +1,14 @@
-val flywayVersion = "7.14.0"
-val hikariVersion = "5.0.0"
-val vaultJdbcVersion = "vault-jdbc-1.3.8"
-val kotliqueryVersion = "1.3.1"
 dependencies {
     implementation(project(":common"))
     implementation(project(":domain"))
-    implementation("org.flywaydb:flyway-core:$flywayVersion")
-    implementation("com.zaxxer:HikariCP:$hikariVersion")
-    implementation("com.github.navikt:vault-jdbc:$vaultJdbcVersion")
-    implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
+    implementation("org.flywaydb:flyway-core:7.14.0")
+    implementation("com.zaxxer:HikariCP:5.0.0")
+    implementation("com.github.navikt:vault-jdbc:vault-jdbc-1.3.8")
+    implementation("com.github.seratch:kotliquery:1.3.1")
 
     testImplementation(project(":test-common"))
-    testImplementation("com.opentable.components:otj-pg-embedded:0.13.4") {
+    testImplementation("com.opentable.components:otj-pg-embedded") {
+        // versjon definert i root build.gradle.kts
         exclude(group = "com.github.spotbugs")
     }
 }
