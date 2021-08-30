@@ -27,7 +27,7 @@ allprojects {
     }
     val junitJupiterVersion = "5.7.2"
     val arrowVersion = "0.13.2"
-    val kotestVersion = "4.6.1"
+    val kotestVersion = "4.6.2"
     val jacksonVersion = "2.12.5"
     val kotlinVersion = "1.5.21"
     dependencies {
