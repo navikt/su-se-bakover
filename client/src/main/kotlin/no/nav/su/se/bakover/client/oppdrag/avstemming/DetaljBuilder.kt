@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.client.oppdrag.avstemming
 
-import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingDataRequest.Detaljdata
+import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingRequest.Detaljdata
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering.Utbetalingsstatus
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering.Utbetalingsstatus.FEIL

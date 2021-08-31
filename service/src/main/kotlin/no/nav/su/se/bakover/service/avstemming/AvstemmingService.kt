@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 
 interface AvstemmingService {
-    fun avstemming(): Either<AvstemmingFeilet, Avstemming>
-    fun avstemming(fraOgMed: Tidspunkt, tilOgMed: Tidspunkt): Either<AvstemmingFeilet, Avstemming>
+    fun grensesnittsavstemming(): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming>
+    fun grensesnittsavstemming(fraOgMed: Tidspunkt, tilOgMed: Tidspunkt): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming>
+    fun konsistensavstemming(fraOgMed: Tidspunkt, tilOgMed: Tidspunkt): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming>
 }

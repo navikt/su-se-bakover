@@ -34,7 +34,7 @@ internal class AvstemmingPostgresRepoTest {
             zero shouldBe null
 
             repo.opprettAvstemming(
-                Avstemming(
+                Avstemming.Grensesnittavstemming(
                     fraOgMed = 1.januar(2020).startOfDay(),
                     tilOgMed = 2.januar(2020).startOfDay(),
                     utbetalinger = listOf(utbetalingMedKvittering.second)
@@ -42,7 +42,7 @@ internal class AvstemmingPostgresRepoTest {
             )
 
             val second = repo.opprettAvstemming(
-                Avstemming(
+                Avstemming.Grensesnittavstemming(
                     fraOgMed = 3.januar(2020).startOfDay(),
                     tilOgMed = 4.januar(2020).startOfDay(),
                     utbetalinger = listOf(utbetalingMedKvittering.second),
@@ -137,7 +137,7 @@ internal class AvstemmingPostgresRepoTest {
         withMigratedDb {
             val oversendtUtbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering()
 
-            val avstemming = Avstemming(
+            val avstemming = Avstemming.Grensesnittavstemming(
                 id = UUID30.randomUUID(),
                 opprettet = fixedTidspunkt,
                 fraOgMed = fixedTidspunkt,

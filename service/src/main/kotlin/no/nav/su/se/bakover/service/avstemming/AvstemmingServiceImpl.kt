@@ -14,20 +14,30 @@ internal class AvstemmingServiceImpl(
     private val publisher: AvstemmingPublisher,
     private val clock: Clock,
 ) : AvstemmingService {
-    override fun avstemming(): Either<AvstemmingFeilet, Avstemming> {
+    override fun grensesnittsavstemming(): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming> {
         val periode = AvstemmingPeriodeBuilder(repo.hentSisteAvstemming(), clock).build()
-        return gjørAvstemming(periode)
+        return grensesnittsavstemming(periode)
     }
 
-    override fun avstemming(fraOgMed: Tidspunkt, tilOgMed: Tidspunkt): Either<AvstemmingFeilet, Avstemming> {
+    override fun grensesnittsavstemming(
+        fraOgMed: Tidspunkt,
+        tilOgMed: Tidspunkt,
+    ): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming> {
         val periode = AvstemmingsPeriode(fraOgMed, tilOgMed)
-        return gjørAvstemming(periode)
+        return grensesnittsavstemming(periode)
     }
 
-    private fun gjørAvstemming(periode: AvstemmingsPeriode): Either<AvstemmingFeilet, Avstemming> {
+    override fun konsistensavstemming(
+        fraOgMed: Tidspunkt,
+        tilOgMed: Tidspunkt,
+    ): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming> {
+        return konsistensavstemming(AvstemmingsPeriode(fraOgMed, tilOgMed))
+    }
+
+    private fun grensesnittsavstemming(periode: AvstemmingsPeriode): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming> {
         val utbetalinger = repo.hentUtbetalingerForAvstemming(periode.fraOgMed, periode.tilOgMed)
 
-        val avstemming = Avstemming(
+        val avstemming = Avstemming.Grensesnittavstemming(
             opprettet = Tidspunkt.now(clock),
             fraOgMed = periode.fraOgMed,
             tilOgMed = periode.tilOgMed,
@@ -40,7 +50,26 @@ internal class AvstemmingServiceImpl(
                 repo.opprettAvstemming(it)
                 repo.oppdaterAvstemteUtbetalinger(it)
                 it.right()
-            }
+            },
+        )
+    }
+
+    private fun konsistensavstemming(periode: AvstemmingsPeriode): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming> {
+        // TODO select utbetalinger for konsistensavstemming
+        val avstemming = Avstemming.Konsistensavstemming(
+            opprettet = Tidspunkt.now(clock),
+            fraOgMed = periode.fraOgMed,
+            tilOgMed = periode.tilOgMed,
+            utbetalinger = emptyList(),
+        )
+
+        return publisher.publish(avstemming).fold(
+            { AvstemmingFeilet.left() },
+            {
+                repo.opprettAvstemming(it)
+                repo.oppdaterAvstemteUtbetalinger(it)
+                it.right()
+            },
         )
     }
 }

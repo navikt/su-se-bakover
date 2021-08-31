@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import javax.sql.DataSource
 
 internal class AvstemmingPostgresRepo(
-    private val dataSource: DataSource
+    private val dataSource: DataSource,
 ) : AvstemmingRepo {
     override fun opprettAvstemming(avstemming: Avstemming): Avstemming {
         return dataSource.withSession { session ->
@@ -73,7 +73,7 @@ internal class AvstemmingPostgresRepo(
 
     override fun hentUtbetalingerForAvstemming(
         fraOgMed: Tidspunkt,
-        tilOgMed: Tidspunkt
+        tilOgMed: Tidspunkt,
     ): List<Utbetaling.OversendtUtbetaling> =
         dataSource.withSession { session ->
             val fraOgMedCondition = """(u.avstemmingsnøkkel ->> 'opprettet')::timestamptz >= :fom"""
@@ -82,16 +82,16 @@ internal class AvstemmingPostgresRepo(
                 .hentListe(
                     mapOf(
                         "fom" to fraOgMed,
-                        "tom" to tilOgMed
+                        "tom" to tilOgMed,
                     ),
-                    session
+                    session,
                 ) {
                     it.toUtbetaling(session)
                 }
         }
 }
 
-private fun Row.toAvstemming(session: Session) = Avstemming(
+private fun Row.toAvstemming(session: Session) = Avstemming.Grensesnittavstemming(
     id = uuid30("id"),
     opprettet = tidspunkt("opprettet"),
     fraOgMed = tidspunkt("fom"),
@@ -100,9 +100,9 @@ private fun Row.toAvstemming(session: Session) = Avstemming(
         objectMapper.readValue(utbetalingListAsString, List::class.java).map { utbetalingId ->
             UtbetalingInternalRepo.hentUtbetalingInternal(
                 UUID30(utbetalingId as String),
-                session
+                session,
             )!!
         }
     }!!,
-    avstemmingXmlRequest = stringOrNull("avstemmingXmlRequest")
+    avstemmingXmlRequest = stringOrNull("avstemmingXmlRequest"),
 )

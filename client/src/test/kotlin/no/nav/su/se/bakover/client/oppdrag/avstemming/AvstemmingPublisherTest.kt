@@ -6,6 +6,8 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
+import no.nav.su.se.bakover.client.oppdrag.XmlMapper
+import no.nav.su.se.bakover.client.oppdrag.toAvstemmingsdatoFormat
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
@@ -19,8 +21,10 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
+import java.math.BigDecimal
 
 class AvstemmingPublisherTest {
 
@@ -32,6 +36,61 @@ class AvstemmingPublisherTest {
 
         client.count shouldBe 1
         client.publishedMessages.size shouldBe 3
+        client.publishedMessages[0] shouldBe XmlMapper.writeValueAsString(
+            AvstemmingStartRequest(
+                aksjon = Aksjonsdata.Grensesnittsavstemming(
+                    aksjonType = Aksjonsdata.AksjonType.START,
+                    avleverendeAvstemmingId = avstemming.id.toString(),
+                    nokkelFom = Avstemmingsnøkkel(avstemming.fraOgMed).toString(),
+                    nokkelTom = Avstemmingsnøkkel(avstemming.tilOgMed).toString(),
+                ),
+            ),
+        )
+        client.publishedMessages[1] shouldBe XmlMapper.writeValueAsString(
+            GrensesnittsavstemmingRequest(
+                aksjon = Aksjonsdata.Grensesnittsavstemming(
+                    aksjonType = Aksjonsdata.AksjonType.DATA,
+                    avleverendeAvstemmingId = avstemming.id.toString(),
+                    nokkelFom = Avstemmingsnøkkel(avstemming.fraOgMed).toString(),
+                    nokkelTom = Avstemmingsnøkkel(avstemming.tilOgMed).toString(),
+                ),
+                total = Totaldata(
+                    totalAntall = 1,
+                    totalBelop = BigDecimal.valueOf(5000),
+                    fortegn = Fortegn.TILLEGG,
+                ),
+                periode = Periodedata(
+                    datoAvstemtFom = avstemming.fraOgMed.toAvstemmingsdatoFormat(),
+                    datoAvstemtTom = avstemming.tilOgMed.toAvstemmingsdatoFormat(),
+                ),
+                grunnlag = GrensesnittsavstemmingRequest.Grunnlagdata(
+                    godkjentAntall = 1,
+                    godkjentBelop = BigDecimal.valueOf(5000),
+                    godkjentFortegn = Fortegn.TILLEGG,
+                    varselAntall = 0,
+                    varselBelop = BigDecimal.ZERO,
+                    varselFortegn = Fortegn.TILLEGG,
+                    avvistAntall = 0,
+                    avvistBelop = BigDecimal.ZERO,
+                    avvistFortegn = Fortegn.TILLEGG,
+                    manglerAntall = 0,
+                    manglerBelop = BigDecimal.ZERO,
+                    manglerFortegn = Fortegn.TILLEGG,
+                ),
+                detalj = listOf(),
+            ),
+        )
+        client.publishedMessages[2] shouldBe XmlMapper.writeValueAsString(
+            AvstemmingStoppRequest(
+                aksjon = Aksjonsdata.Grensesnittsavstemming(
+                    aksjonType = Aksjonsdata.AksjonType.AVSLUTT,
+                    avleverendeAvstemmingId = avstemming.id.toString(),
+                    nokkelFom = Avstemmingsnøkkel(avstemming.fraOgMed).toString(),
+                    nokkelTom = Avstemmingsnøkkel(avstemming.tilOgMed).toString(),
+                ),
+            ),
+        )
+
         res.isRight() shouldBe true
     }
 
@@ -44,7 +103,7 @@ class AvstemmingPublisherTest {
         res shouldBe AvstemmingPublisher.KunneIkkeSendeAvstemming.left()
     }
 
-    private val avstemming = Avstemming(
+    private val avstemming = Avstemming.Grensesnittavstemming(
         fraOgMed = 1.januar(2020).startOfDay(),
         tilOgMed = 2.januar(2020).startOfDay(),
         utbetalinger = listOf(
@@ -58,7 +117,7 @@ class AvstemmingPublisherTest {
                         fraOgMed = 1.januar(2021),
                         tilOgMed = 31.januar(2021),
                         forrigeUtbetalingslinjeId = null,
-                        beløp = 0,
+                        beløp = 5000,
                     ),
                 ),
                 fnr = Fnr("12345678910"),
@@ -66,7 +125,7 @@ class AvstemmingPublisherTest {
                     gjelderId = Fnr("12345678910"),
                     gjelderNavn = "",
                     datoBeregnet = idag(),
-                    nettoBeløp = 0,
+                    nettoBeløp = 5000,
                     periodeList = listOf(),
                 ),
                 utbetalingsrequest = Utbetalingsrequest(

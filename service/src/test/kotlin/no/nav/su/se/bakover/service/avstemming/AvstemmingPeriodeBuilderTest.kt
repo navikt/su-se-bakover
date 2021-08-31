@@ -25,7 +25,7 @@ internal class AvstemmingPeriodeBuilderTest {
     @Test
     fun `periode for påfølgende avstemming`() {
         val periode = AvstemmingPeriodeBuilder(
-            Avstemming(
+            Avstemming.Grensesnittavstemming(
                 opprettet = Tidspunkt.now(fixedClock),
                 fraOgMed = 1.januar(2020).startOfDay(),
                 tilOgMed = 4.januar(2020).endOfDay(),

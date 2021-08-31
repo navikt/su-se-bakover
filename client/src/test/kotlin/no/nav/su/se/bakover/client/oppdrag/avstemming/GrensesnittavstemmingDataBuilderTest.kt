@@ -27,75 +27,70 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 
-internal class AvstemmingDataBuilderTest {
+internal class GrensesnittavstemmingDataBuilderTest {
 
     @Test
     fun `Sjekk at vi bygger AvstemmingDataReqest riktig`() {
         val avstemmingId = UUID30.randomUUID()
-        val expected = AvstemmingDataRequest(
-            aksjon = Aksjonsdata(
-                aksjonType = Aksjonsdata.AksjonType.DATA,
-                kildeType = Aksjonsdata.KildeType.AVLEVERT,
-                avstemmingType = Aksjonsdata.AvstemmingType.GRENSESNITTAVSTEMMING,
-                mottakendeKomponentKode = "OS",
-                brukerId = "SU",
+        val expected = GrensesnittsavstemmingRequest(
+            aksjon = Aksjonsdata.Grensesnittsavstemming(
                 nokkelFom = "1583017200000000000",
                 nokkelTom = "1583103600000000000",
-                avleverendeAvstemmingId = avstemmingId.toString()
+                avleverendeAvstemmingId = avstemmingId.toString(),
             ),
-            total = AvstemmingDataRequest.Totaldata(
+            total = Totaldata(
                 totalAntall = 5,
                 totalBelop = 18000.toBigDecimal(),
-                fortegn = AvstemmingDataRequest.Fortegn.TILLEGG
+                fortegn = Fortegn.TILLEGG,
             ),
-            periode = AvstemmingDataRequest.Periodedata(
+            periode = Periodedata(
                 datoAvstemtFom = "2020030100",
-                datoAvstemtTom = "2020030200"
+                datoAvstemtTom = "2020030200",
             ),
-            grunnlag = AvstemmingDataRequest.Grunnlagdata(
+            grunnlag = GrensesnittsavstemmingRequest.Grunnlagdata(
                 godkjentAntall = 2,
                 godkjentBelop = 1600.toBigDecimal(),
-                godkjentFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
+                godkjentFortegn = Fortegn.TILLEGG,
                 varselAntall = 1,
                 varselBelop = 1400.toBigDecimal(),
-                varselFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
+                varselFortegn = Fortegn.TILLEGG,
                 avvistAntall = 1,
                 avvistBelop = 10000.toBigDecimal(),
-                avvistFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
+                avvistFortegn = Fortegn.TILLEGG,
                 manglerAntall = 1,
                 manglerBelop = 5000.toBigDecimal(),
-                manglerFortegn = AvstemmingDataRequest.Fortegn.TILLEGG
+                manglerFortegn = Fortegn.TILLEGG,
             ),
             detalj = listOf(
-                AvstemmingDataRequest.Detaljdata(
-                    detaljType = AvstemmingDataRequest.Detaljdata.Detaljtype.GODKJENT_MED_VARSEL,
+                GrensesnittsavstemmingRequest.Detaljdata(
+                    detaljType = GrensesnittsavstemmingRequest.Detaljdata.Detaljtype.GODKJENT_MED_VARSEL,
                     offnr = "12345678910",
                     avleverendeTransaksjonNokkel = okMedVarselId.toString(),
-                    tidspunkt = "2020-03-02-00.00.00.000000"
+                    tidspunkt = "2020-03-02-00.00.00.000000",
                 ),
-                AvstemmingDataRequest.Detaljdata(
-                    detaljType = AvstemmingDataRequest.Detaljdata.Detaljtype.AVVIST,
+                GrensesnittsavstemmingRequest.Detaljdata(
+                    detaljType = GrensesnittsavstemmingRequest.Detaljdata.Detaljtype.AVVIST,
                     offnr = "12345678910",
                     avleverendeTransaksjonNokkel = feildId.toString(),
-                    tidspunkt = "2020-03-01-00.00.00.000000"
+                    tidspunkt = "2020-03-01-00.00.00.000000",
                 ),
-                AvstemmingDataRequest.Detaljdata(
-                    detaljType = AvstemmingDataRequest.Detaljdata.Detaljtype.MANGLENDE_KVITTERING,
+                GrensesnittsavstemmingRequest.Detaljdata(
+                    detaljType = GrensesnittsavstemmingRequest.Detaljdata.Detaljtype.MANGLENDE_KVITTERING,
                     offnr = "12345678910",
                     avleverendeTransaksjonNokkel = manglerKvitteringId.toString(),
-                    tidspunkt = "2020-03-02-00.00.00.000000"
-                )
-            )
+                    tidspunkt = "2020-03-02-00.00.00.000000",
+                ),
+            ),
         )
 
-        AvstemmingDataBuilder(
-            Avstemming(
+        GrensesnittavstemmingDataBuilder(
+            Avstemming.Grensesnittavstemming(
                 id = avstemmingId,
                 opprettet = Tidspunkt.now(),
                 fraOgMed = 1.mars(2020).atStartOfDay(zoneIdOslo).toTidspunkt(),
                 tilOgMed = 2.mars(2020).atStartOfDay(zoneIdOslo).toTidspunkt(),
                 utbetalinger = alleUtbetalinger(),
-                avstemmingXmlRequest = null
+                avstemmingXmlRequest = null,
             ),
         ).build() shouldBe expected
     }
@@ -110,7 +105,7 @@ internal fun lagUtbetalingLinje(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp
     fraOgMed = fraOgMed,
     tilOgMed = tilOgMed,
     forrigeUtbetalingslinjeId = null,
-    beløp = beløp
+    beløp = beløp,
 )
 
 internal fun lagUtbetaling(
@@ -119,8 +114,8 @@ internal fun lagUtbetaling(
     status: Kvittering.Utbetalingsstatus?,
     linjer: NonEmptyList<Utbetalingslinje>,
     oppdragsmelding: Utbetalingsrequest = Utbetalingsrequest(
-        value = "Melding"
-    )
+        value = "Melding",
+    ),
 ): Utbetaling.OversendtUtbetaling = when (status) {
     null -> Utbetaling.OversendtUtbetaling.UtenKvittering(
         id = id,
@@ -132,7 +127,7 @@ internal fun lagUtbetaling(
         utbetalingslinjer = linjer,
         fnr = fnr,
         type = Utbetaling.UtbetalingsType.NY,
-        behandler = NavIdentBruker.Saksbehandler("Z123")
+        behandler = NavIdentBruker.Saksbehandler("Z123"),
     )
     else -> Utbetaling.OversendtUtbetaling.MedKvittering(
         id = id,
@@ -143,13 +138,13 @@ internal fun lagUtbetaling(
         kvittering = Kvittering(
             utbetalingsstatus = status,
             originalKvittering = "hallo",
-            mottattTidspunkt = Tidspunkt.now()
+            mottattTidspunkt = Tidspunkt.now(),
         ),
         utbetalingsrequest = oppdragsmelding,
         utbetalingslinjer = linjer,
         fnr = fnr,
         type = Utbetaling.UtbetalingsType.NY,
-        behandler = NavIdentBruker.Saksbehandler("Z123")
+        behandler = NavIdentBruker.Saksbehandler("Z123"),
     )
 }
 
@@ -164,7 +159,7 @@ private val simulering = Simulering(
     gjelderNavn = "",
     datoBeregnet = idag(),
     nettoBeløp = 0,
-    periodeList = listOf()
+    periodeList = listOf(),
 )
 
 internal fun alleUtbetalinger() = listOf(
@@ -174,8 +169,8 @@ internal fun alleUtbetalinger() = listOf(
         status = Kvittering.Utbetalingsstatus.OK,
         linjer = nonEmptyListOf(
             lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 100),
-            lagUtbetalingLinje(1.april(2020), 30.april(2020), 200)
-        )
+            lagUtbetalingLinje(1.april(2020), 30.april(2020), 200),
+        ),
     ),
     lagUtbetaling(
         id = ok2Id,
@@ -183,8 +178,8 @@ internal fun alleUtbetalinger() = listOf(
         status = Kvittering.Utbetalingsstatus.OK,
         linjer = nonEmptyListOf(
             lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 600),
-            lagUtbetalingLinje(1.april(2020), 30.april(2020), 700)
-        )
+            lagUtbetalingLinje(1.april(2020), 30.april(2020), 700),
+        ),
     ),
     lagUtbetaling(
         id = okMedVarselId,
@@ -193,8 +188,8 @@ internal fun alleUtbetalinger() = listOf(
         linjer = nonEmptyListOf(
             lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 400),
             lagUtbetalingLinje(1.april(2020), 30.april(2020), 500),
-            lagUtbetalingLinje(1.mai(2020), 31.mai(2020), 500)
-        )
+            lagUtbetalingLinje(1.mai(2020), 31.mai(2020), 500),
+        ),
     ),
     lagUtbetaling(
         id = feildId,
@@ -204,15 +199,15 @@ internal fun alleUtbetalinger() = listOf(
             lagUtbetalingLinje(1.mars(2020), 31.mars(2020), 1000),
             lagUtbetalingLinje(1.april(2020), 30.april(2020), 2000),
             lagUtbetalingLinje(1.mai(2020), 31.mai(2020), 3000),
-            lagUtbetalingLinje(1.juni(2020), 30.juni(2020), 4000)
-        )
+            lagUtbetalingLinje(1.juni(2020), 30.juni(2020), 4000),
+        ),
     ),
     lagUtbetaling(
         id = manglerKvitteringId,
         opprettet = 2.mars(2020),
         status = null,
         linjer = nonEmptyListOf(
-            lagUtbetalingLinje(1.januar(2020), 31.desember(2020), 5000)
-        )
-    )
+            lagUtbetalingLinje(1.januar(2020), 31.desember(2020), 5000),
+        ),
+    ),
 )

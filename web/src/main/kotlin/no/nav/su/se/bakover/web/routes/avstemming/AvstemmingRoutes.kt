@@ -57,9 +57,9 @@ internal fun Route.avstemmingRoutes(
                 }
 
             periode.fold(
-                { service.avstemming() },
+                { service.grensesnittsavstemming() },
                 {
-                    service.avstemming(it.first.startOfDay(), it.second.endOfDay())
+                    service.grensesnittsavstemming(it.first.startOfDay(), it.second.endOfDay())
                 }
             )
                 .fold(
