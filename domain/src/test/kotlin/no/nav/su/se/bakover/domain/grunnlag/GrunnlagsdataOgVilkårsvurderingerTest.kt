@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt0
+import no.nav.su.se.bakover.test.lagGrunnlagsdata
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -21,7 +22,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
     fun `grunnlagsdata og vilkårsvurderinger med ulike perioder kaster exception`() {
         shouldThrow<IllegalArgumentException> {
             GrunnlagsdataOgVilkårsvurderinger(
-                grunnlagsdata = Grunnlagsdata.tryCreate(
+                grunnlagsdata = lagGrunnlagsdata(
                     fradragsgrunnlag = nonEmptyListOf(
                         fradragsgrunnlagArbeidsinntekt1000(
                             periode = Periode.create(
@@ -58,7 +59,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
     @Test
     fun `grunnlagsdata og vilkårsvurderinger med like perioder kaster ikke exception`() {
         GrunnlagsdataOgVilkårsvurderinger(
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = lagGrunnlagsdata(
                 fradragsgrunnlag = nonEmptyListOf(
                     fradragsgrunnlagArbeidsinntekt1000(
                         periode = Periode.create(
@@ -110,7 +111,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
     @Test
     fun `innvilget grunnlagsdata og ikke vurdert vilkårsvurderinger kaster ikke exception`() {
         GrunnlagsdataOgVilkårsvurderinger(
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = lagGrunnlagsdata(
                 fradragsgrunnlag = nonEmptyListOf(
                     fradragsgrunnlagArbeidsinntekt1000(
                         periode = Periode.create(

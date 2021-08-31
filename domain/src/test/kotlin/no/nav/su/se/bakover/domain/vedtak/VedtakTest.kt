@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.lagGrunnlagsdata
 import no.nav.su.se.bakover.test.shouldBeEqualToExceptId
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
@@ -132,7 +133,7 @@ internal class VedtakTest {
             rekkefølge = 1,
             fraDato = 1.januar(2021),
             tilDato = 31.desember(2021),
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = lagGrunnlagsdata(
                 bosituasjon = listOf(bosituasjon),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
@@ -170,7 +171,7 @@ internal class VedtakTest {
             rekkefølge = 1,
             fraDato = 1.januar(2021),
             tilDato = 31.desember(2021),
-            grunnlagsdata = Grunnlagsdata.tryCreate(bosituasjon = listOf(bosituasjonA)),
+            grunnlagsdata = lagGrunnlagsdata(bosituasjon = listOf(bosituasjonA)),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = lagVurdertUføreVilkår(
                     vurderingsperiode = periodeA,
@@ -188,7 +189,7 @@ internal class VedtakTest {
             rekkefølge = 2,
             fraDato = 1.mai(2021),
             tilDato = 31.desember(2021),
-            grunnlagsdata = Grunnlagsdata.tryCreate(bosituasjon = listOf(bosituasjonB)),
+            grunnlagsdata = lagGrunnlagsdata(bosituasjon = listOf(bosituasjonB)),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = lagVurdertUføreVilkår(periodeB),
                 formue = lagVurdertFormueVilkår(periodeB, bosituasjonB),
@@ -206,7 +207,7 @@ internal class VedtakTest {
                 expected = Vedtak.VedtakPåTidslinje(
                     opprettet = Tidspunkt.now(fixedClockWithRekkefølge(1)),
                     periode = Periode.create(1.januar(2021), 30.april(2021)),
-                    grunnlagsdata = Grunnlagsdata.tryCreate(
+                    grunnlagsdata = lagGrunnlagsdata(
                         bosituasjon = listOf(
                             lagFullstendigBostiuasjon(Periode.create(1.januar(2021), 30.april(2021))),
                         ),
@@ -251,7 +252,7 @@ internal class VedtakTest {
             rekkefølge = 1,
             fraDato = p1.fraOgMed,
             tilDato = p1.tilOgMed,
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = lagGrunnlagsdata(
                 bosituasjon = listOf(lagFullstendigBostiuasjon(p1)),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
@@ -265,7 +266,7 @@ internal class VedtakTest {
             rekkefølge = 2,
             fraDato = p2.fraOgMed,
             tilDato = p2.tilOgMed,
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = lagGrunnlagsdata(
                 bosituasjon = listOf(lagFullstendigBostiuasjon(p2)),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
@@ -285,7 +286,7 @@ internal class VedtakTest {
                 Vedtak.VedtakPåTidslinje(
                     periode = firstPeriode,
                     opprettet = a.opprettet,
-                    grunnlagsdata = Grunnlagsdata.tryCreate(
+                    grunnlagsdata = lagGrunnlagsdata(
                         fradragsgrunnlag = listOf(),
                         bosituasjon = listOf(firstBosituasjon),
                     ),
@@ -303,7 +304,7 @@ internal class VedtakTest {
                 Vedtak.VedtakPåTidslinje(
                     periode = lastPeriode,
                     opprettet = b.opprettet,
-                    grunnlagsdata = Grunnlagsdata.tryCreate(
+                    grunnlagsdata = lagGrunnlagsdata(
                         fradragsgrunnlag = listOf(),
                         bosituasjon = listOf(lastBostiuasjon),
                     ),
@@ -333,7 +334,7 @@ internal class VedtakTest {
             rekkefølge = 1,
             fraDato = 1.januar(2021),
             tilDato = 31.desember(2021),
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = lagGrunnlagsdata(
                 bosituasjon = listOf(b1),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
@@ -357,7 +358,7 @@ internal class VedtakTest {
             rekkefølge = 2,
             fraDato = 1.januar(2021),
             tilDato = 31.desember(2021),
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = lagGrunnlagsdata(
                 bosituasjon = listOf(b2),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
@@ -379,7 +380,7 @@ internal class VedtakTest {
             Vedtak.VedtakPåTidslinje(
                 opprettet = b.opprettet,
                 periode = b.periode,
-                grunnlagsdata = Grunnlagsdata.tryCreate(
+                grunnlagsdata = lagGrunnlagsdata(
                     fradragsgrunnlag = listOf(),
                     bosituasjon = listOf(b2),
                 ),

@@ -584,7 +584,7 @@ internal class TestDataHelper(
         ),
         // søknadsbehandling benytter enn så lenge fradrag rett fra beregning
         fradragsgrunnlag = emptyList(),
-    )
+    ).getOrHandle { throw IllegalStateException(it.toString()) }
 
     private fun innvilgetVilkårsvurderingerRevurdering() = innvilgetVilkårsvurderingerSøknadsbehandling().copy(
         formue = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(

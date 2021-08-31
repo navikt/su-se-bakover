@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedClock
 import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -47,6 +46,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.lagGrunnlagsdata
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import java.util.UUID
@@ -160,7 +160,7 @@ internal class GjeldendeVedtaksdataTest {
                 periode = periode,
                 begrunnelse = "",
             ),
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = lagGrunnlagsdata(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -242,7 +242,7 @@ internal class GjeldendeVedtaksdataTest {
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = lagGrunnlagsdata(
                 fradragsgrunnlag = listOf(),
                 bosituasjon = listOf(),
             ),

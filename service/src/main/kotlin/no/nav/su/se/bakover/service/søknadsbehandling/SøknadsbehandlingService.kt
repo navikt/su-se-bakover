@@ -164,6 +164,10 @@ interface SøknadsbehandlingService {
         ) : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
 
         object KlarteIkkeHentePersonIPdl : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
+
+        object FradragForEpsSomIkkeHarEPS : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
+        object FradragManglerBosituasjon : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
+        object MåLeggeTilBosituasjonFørFradrag : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
     }
 
     sealed class KunneIkkeFullføreBosituasjonGrunnlag {
@@ -175,6 +179,9 @@ interface SøknadsbehandlingService {
 
         object KlarteIkkeLagreBosituasjon : KunneIkkeFullføreBosituasjonGrunnlag()
         object KlarteIkkeHentePersonIPdl : KunneIkkeFullføreBosituasjonGrunnlag()
+        object FradragForEpsSomIkkeHarEPS : KunneIkkeFullføreBosituasjonGrunnlag()
+        object FradragManglerBosituasjon : KunneIkkeFullføreBosituasjonGrunnlag()
+        object MåLeggeTilBosituasjonFørFradrag : KunneIkkeFullføreBosituasjonGrunnlag()
     }
 
     sealed class KunneIkkeLeggeTilFradragsgrunnlag {
@@ -187,5 +194,9 @@ interface SøknadsbehandlingService {
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out Søknadsbehandling>,
         ) : KunneIkkeLeggeTilFradragsgrunnlag()
+
+        object FradragForEpsSomIkkeHarEPS : KunneIkkeLeggeTilFradragsgrunnlag()
+        object FradragManglerBosituasjon : KunneIkkeLeggeTilFradragsgrunnlag()
+        object MåLeggeTilBosituasjonFørFradrag : KunneIkkeLeggeTilFradragsgrunnlag()
     }
 }

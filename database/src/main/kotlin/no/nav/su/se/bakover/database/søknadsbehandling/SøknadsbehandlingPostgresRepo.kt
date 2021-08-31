@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.søknadsbehandling
 
+import arrow.core.getOrHandle
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.objectMapper
@@ -159,7 +160,8 @@ internal class SøknadsbehandlingPostgresRepo(
         val grunnlagsdata = Grunnlagsdata.tryCreate(
             fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingId, session),
             bosituasjon = bosituasjongrunnlagRepo.hentBosituasjongrunnlag(behandlingId, session),
-        )
+        ).getOrHandle { throw IllegalStateException(it.toString()) }
+
         val vilkårsvurderinger = Vilkårsvurderinger(
             uføre = uføreVilkårsvurderingRepo.hent(behandlingId, session),
         )

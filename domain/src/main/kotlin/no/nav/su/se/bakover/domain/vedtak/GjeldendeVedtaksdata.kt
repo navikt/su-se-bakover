@@ -47,7 +47,7 @@ data class GjeldendeVedtaksdata(
             bosituasjon = vedtakPåTidslinje.flatMap {
                 it.grunnlagsdata.bosituasjon
             },
-        )
+        ).getOrHandle { throw IllegalStateException(it.toString()) }
         vilkårsvurderinger = Vilkårsvurderinger(
             uføre = uføreGrunnlagOgVilkår,
             formue = formuevilkårOgGrunnlag,

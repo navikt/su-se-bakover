@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.lagGrunnlagsdata
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -57,7 +58,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.tryCreate(
+        grunnlagsdata = lagGrunnlagsdata(
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),

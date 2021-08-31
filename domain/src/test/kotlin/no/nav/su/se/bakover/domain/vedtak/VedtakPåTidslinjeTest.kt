@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
@@ -29,6 +28,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.lagGrunnlagsdata
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import java.time.Clock
@@ -88,7 +88,7 @@ internal class VedtakPåTidslinjeTest {
         val original = Vedtak.VedtakPåTidslinje(
             opprettet = Tidspunkt.now(fixedClock),
             periode = periode,
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = lagGrunnlagsdata(
                 fradragsgrunnlag = listOf(f1, f2),
                 bosituasjon = listOf(bosituasjon),
             ),
@@ -216,7 +216,7 @@ internal class VedtakPåTidslinjeTest {
         val original = Vedtak.VedtakPåTidslinje(
             opprettet = Tidspunkt.now(fixedClock),
             periode = periode,
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = lagGrunnlagsdata(
                 bosituasjon = listOf(b1, b2),
                 fradragsgrunnlag = listOf(f1, f2),
             ),

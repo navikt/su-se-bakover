@@ -67,6 +67,16 @@ internal object Feilresponser {
         "ugyldig_input"
     )
 
+    val fradragManglerBosituasjon = BadRequest.errorJson(
+        "Kan ikke legge til fradrag uten bosituasjon",
+        "kan_ikke_legge_til_fradrag_uten_bosituasjon"
+    )
+
+    val måHaBosituasjonFørFradrag = BadRequest.errorJson(
+        "Må legge til bosituasjon før fradrag",
+        "Må_legge_til_bosituasjon_før_fradrag"
+    )
+
     internal fun UtbetalingFeilet.tilResultat(): Resultat {
         return when (this) {
             is UtbetalingFeilet.KunneIkkeSimulere -> this.simuleringFeilet.tilResultat()

@@ -277,6 +277,9 @@ sealed class KunneIkkeLeggeTilGrunnlag {
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
     ) : KunneIkkeLeggeTilGrunnlag()
+    object MåLeggeTilBosituasjonFørFradrag : KunneIkkeLeggeTilGrunnlag()
+    object FradragManglerBosituasjon : KunneIkkeLeggeTilGrunnlag()
+    object FradragForEpsSomIkkeHarEPS : KunneIkkeLeggeTilGrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilFradragsgrunnlag {
@@ -288,6 +291,9 @@ sealed class KunneIkkeLeggeTilFradragsgrunnlag {
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
     ) : KunneIkkeLeggeTilFradragsgrunnlag()
+    object MåLeggeTilBosituasjonFørFradrag : KunneIkkeLeggeTilFradragsgrunnlag()
+    object FradragManglerBosituasjon : KunneIkkeLeggeTilFradragsgrunnlag()
+    object FradragForEpsSomIkkeHarEPS : KunneIkkeLeggeTilFradragsgrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
@@ -299,6 +305,9 @@ sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
     ) : KunneIkkeLeggeTilBosituasjongrunnlag()
+    object MåLeggeTilBosituasjonFørFradrag : KunneIkkeLeggeTilBosituasjongrunnlag()
+    object FradragManglerBosituasjon : KunneIkkeLeggeTilBosituasjongrunnlag()
+    object FradragForEpsSomIkkeHarEPS : KunneIkkeLeggeTilBosituasjongrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilFormuegrunnlag {
@@ -311,6 +320,9 @@ sealed class KunneIkkeLeggeTilFormuegrunnlag {
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
     ) : KunneIkkeLeggeTilFormuegrunnlag()
+    object MåLeggeTilBosituasjonFørFradrag : KunneIkkeLeggeTilFormuegrunnlag()
+    object FradragManglerBosituasjon : KunneIkkeLeggeTilFormuegrunnlag()
+    object FradragForEpsSomIkkeHarEPS : KunneIkkeLeggeTilFormuegrunnlag()
 }
 
 sealed class KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {

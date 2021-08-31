@@ -6,7 +6,6 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.assertions.fail
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
@@ -87,6 +86,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.lagGrunnlagsdata
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
@@ -133,7 +133,7 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = lagGrunnlagsdata(
                 fradragsgrunnlag = listOf(
                     lagFradragsgrunnlag(
                         type = Fradragstype.Arbeidsinntekt,
@@ -279,7 +279,7 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = lagGrunnlagsdata(
                 fradragsgrunnlag = listOf(
                     lagFradragsgrunnlag(
                         type = Fradragstype.Arbeidsinntekt,
@@ -632,7 +632,7 @@ internal class RevurderingServiceImplTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attestering),
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = lagGrunnlagsdata(
                 fradragsgrunnlag = listOf(
                     lagFradragsgrunnlag(
                         type = Fradragstype.Arbeidsinntekt,
@@ -744,7 +744,7 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = lagGrunnlagsdata(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -1830,7 +1830,7 @@ internal class RevurderingServiceImplTest {
             revurderingsperiode = revurderingsperiode,
             grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
                 vilkårsvurderinger = vilkårsvurderingerInnvilget(periode = revurderingsperiode),
-                grunnlagsdata = Grunnlagsdata.tryCreate(
+                grunnlagsdata = lagGrunnlagsdata(
                     bosituasjon = listOf(
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
                             id = UUID.randomUUID(),
@@ -1871,10 +1871,8 @@ internal class RevurderingServiceImplTest {
             ),
         )
 
-        shouldThrow<IllegalArgumentException> {
-            revurderingService.leggTilFradragsgrunnlag(
-                request,
-            )
-        }
+        revurderingService.leggTilFradragsgrunnlag(
+            request,
+        ) shouldBe KunneIkkeLeggeTilFradragsgrunnlag.FradragManglerBosituasjon.left()
     }
 }

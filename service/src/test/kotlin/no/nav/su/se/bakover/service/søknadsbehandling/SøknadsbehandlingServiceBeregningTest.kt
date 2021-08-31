@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.IkkePeriodisertFradrag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -34,6 +33,7 @@ import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.tidspunkt
 import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.lagGrunnlagsdata
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -66,7 +66,7 @@ class SøknadsbehandlingServiceBeregningTest {
         fnr = Fnr.generer(),
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.tryCreate(
+        grunnlagsdata = lagGrunnlagsdata(
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
@@ -100,7 +100,7 @@ class SøknadsbehandlingServiceBeregningTest {
         )
 
         val behandling = vilkårsvurdertBehandling.copy(
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = lagGrunnlagsdata(
                 bosituasjon = vilkårsvurdertBehandling.grunnlagsdata.bosituasjon,
                 fradragsgrunnlag = listOf(
                     lagFradragsgrunnlag(
@@ -164,7 +164,7 @@ class SøknadsbehandlingServiceBeregningTest {
             ),
             fritekstTilBrev = "",
             stønadsperiode = vilkårsvurdertBehandling.stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = lagGrunnlagsdata(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = response.orNull()!!.grunnlagsdata.bosituasjon[0].id,

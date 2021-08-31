@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -581,19 +582,19 @@ internal class SøknadsbehandlingServiceImpl(
                             bosituasjon,
                         ),
                         fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                    ),
+                    ).getOrHandle { return grunnlagsdataFeilTilBosituasjonGrunnlagEPSFeil(it).left() },
                 )
                 is Søknadsbehandling.Vilkårsvurdert.Innvilget -> it.copy(
                     grunnlagsdata = Grunnlagsdata.tryCreate(
                         bosituasjon = listOf(bosituasjon),
                         fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                    ),
+                    ).getOrHandle { return grunnlagsdataFeilTilBosituasjonGrunnlagEPSFeil(it).left() },
                 )
                 is Søknadsbehandling.Vilkårsvurdert.Uavklart -> it.copy(
                     grunnlagsdata = Grunnlagsdata.tryCreate(
                         bosituasjon = listOf(bosituasjon),
                         fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                    ),
+                    ).getOrHandle { return grunnlagsdataFeilTilBosituasjonGrunnlagEPSFeil(it).left() },
                 )
             }.right()
         }
@@ -633,19 +634,19 @@ internal class SøknadsbehandlingServiceImpl(
                     grunnlagsdata = Grunnlagsdata.tryCreate(
                         bosituasjon = listOf(bosituasjon),
                         fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                    ),
+                    ).getOrHandle { return grunnlagsdataFeilTilFullføreBosituasjonFeil(it).left() },
                 )
                 is Søknadsbehandling.Vilkårsvurdert.Innvilget -> it.copy(
                     grunnlagsdata = Grunnlagsdata.tryCreate(
                         bosituasjon = listOf(bosituasjon),
                         fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                    ),
+                    ).getOrHandle { return grunnlagsdataFeilTilFullføreBosituasjonFeil(it).left() },
                 )
                 is Søknadsbehandling.Vilkårsvurdert.Uavklart -> it.copy(
                     grunnlagsdata = Grunnlagsdata.tryCreate(
                         bosituasjon = listOf(bosituasjon),
                         fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                    ),
+                    ).getOrHandle { return grunnlagsdataFeilTilFullføreBosituasjonFeil(it).left() },
                 )
             }.right()
         }
@@ -688,6 +689,9 @@ internal class SøknadsbehandlingServiceImpl(
                     til = Søknadsbehandling.Vilkårsvurdert.Innvilget::class,
                 ).left()
                 PeriodeMangler -> KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler.left()
+                Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.FradragForEpsSomIkkeHarEPS -> KunneIkkeLeggeTilFradragsgrunnlag.FradragForEpsSomIkkeHarEPS.left()
+                Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.FradragManglerBosituasjon -> KunneIkkeLeggeTilFradragsgrunnlag.FradragManglerBosituasjon.left()
+                Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.MåLeggeTilBosituasjonFørFradrag -> KunneIkkeLeggeTilFradragsgrunnlag.MåLeggeTilBosituasjonFørFradrag.left()
             }
         }
 
@@ -695,5 +699,21 @@ internal class SøknadsbehandlingServiceImpl(
         søknadsbehandlingRepo.lagre(oppdatertBehandling)
 
         return oppdatertBehandling.right()
+    }
+
+    private fun grunnlagsdataFeilTilBosituasjonGrunnlagEPSFeil(feil: KunneIkkeLageGrunnlagsdata): KunneIkkeLeggeTilBosituasjonEpsGrunnlag {
+        return when (feil) {
+            KunneIkkeLageGrunnlagsdata.FradragForEpsSomIkkeHarEPS -> KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FradragForEpsSomIkkeHarEPS
+            KunneIkkeLageGrunnlagsdata.FradragManglerBosituasjon -> KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FradragManglerBosituasjon
+            KunneIkkeLageGrunnlagsdata.MåLeggeTilBosituasjonFørFradrag -> KunneIkkeLeggeTilBosituasjonEpsGrunnlag.MåLeggeTilBosituasjonFørFradrag
+        }
+    }
+
+    private fun grunnlagsdataFeilTilFullføreBosituasjonFeil(feil: KunneIkkeLageGrunnlagsdata): KunneIkkeFullføreBosituasjonGrunnlag {
+        return when (feil) {
+            KunneIkkeLageGrunnlagsdata.FradragForEpsSomIkkeHarEPS -> KunneIkkeFullføreBosituasjonGrunnlag.FradragForEpsSomIkkeHarEPS
+            KunneIkkeLageGrunnlagsdata.FradragManglerBosituasjon -> KunneIkkeFullføreBosituasjonGrunnlag.FradragManglerBosituasjon
+            KunneIkkeLageGrunnlagsdata.MåLeggeTilBosituasjonFørFradrag -> KunneIkkeFullføreBosituasjonGrunnlag.MåLeggeTilBosituasjonFørFradrag
+        }
     }
 }

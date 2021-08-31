@@ -68,6 +68,9 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                             it.til,
                                         )
                                         SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl -> Feilresponser.fantIkkePerson
+                                        SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FradragForEpsSomIkkeHarEPS -> Feilresponser.kanIkkeHaEpsFradragUtenEps
+                                        SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FradragManglerBosituasjon -> Feilresponser.fradragManglerBosituasjon
+                                        SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.MåLeggeTilBosituasjonFørFradrag -> Feilresponser.måHaBosituasjonFørFradrag
                                     }
                                 }.map {
                                     Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
@@ -99,6 +102,9 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                         )
                                         SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLagreBosituasjon -> Feilresponser.kunneIkkeLageBosituasjon
                                         SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeHentePersonIPdl -> Feilresponser.fantIkkePerson
+                                        SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.FradragForEpsSomIkkeHarEPS -> Feilresponser.kanIkkeHaEpsFradragUtenEps
+                                        SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.FradragManglerBosituasjon -> Feilresponser.fradragManglerBosituasjon
+                                        SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.MåLeggeTilBosituasjonFørFradrag -> Feilresponser.måHaBosituasjonFørFradrag
                                     }
                                 }.map {
                                     Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))

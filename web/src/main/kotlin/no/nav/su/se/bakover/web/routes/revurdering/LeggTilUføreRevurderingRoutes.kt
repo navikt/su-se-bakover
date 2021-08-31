@@ -107,6 +107,9 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
                                                 "Hele behandlingsperioden må ha vurderinger",
                                                 "hele_behandlingsperioden_må_ha_vurderinger",
                                             )
+                                            KunneIkkeLeggeTilGrunnlag.FradragForEpsSomIkkeHarEPS -> Feilresponser.kanIkkeHaEpsFradragUtenEps
+                                            KunneIkkeLeggeTilGrunnlag.FradragManglerBosituasjon -> Feilresponser.fradragManglerBosituasjon
+                                            KunneIkkeLeggeTilGrunnlag.MåLeggeTilBosituasjonFørFradrag -> Feilresponser.måHaBosituasjonFørFradrag
                                         }
                                     }.map {
                                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))

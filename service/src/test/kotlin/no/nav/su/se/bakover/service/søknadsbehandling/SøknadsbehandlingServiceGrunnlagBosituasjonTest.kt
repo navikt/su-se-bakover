@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.lagGrunnlagsdata
 import org.junit.jupiter.api.Test
 import org.mockito.internal.verification.Times
 import org.mockito.kotlin.any
@@ -141,7 +142,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         val expected = uavklart.copy(
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = lagGrunnlagsdata(
                 bosituasjon = listOf(
                     bosituasjon,
                 ),
@@ -176,7 +177,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         ).orNull()!!
 
         response shouldBe expected.copy(
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = lagGrunnlagsdata(
                 bosituasjon = listOf(
                     bosituasjon.copy(
                         id = (response as Søknadsbehandling.Vilkårsvurdert).grunnlagsdata.bosituasjon.first().id,
@@ -279,7 +280,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             fnr = Fnr.generer(),
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = lagGrunnlagsdata(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
                         id = UUID.randomUUID(),
@@ -300,7 +301,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         val expected = uavklart.copy(
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = lagGrunnlagsdata(
                 bosituasjon = listOf(
                     bosituasjon,
                 ),
@@ -339,7 +340,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         ).orNull()!!
 
         response shouldBe expected.copy(
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = lagGrunnlagsdata(
                 bosituasjon = listOf(
                     bosituasjon.copy(
                         id = (response as Søknadsbehandling.Vilkårsvurdert).grunnlagsdata.bosituasjon.first().id,

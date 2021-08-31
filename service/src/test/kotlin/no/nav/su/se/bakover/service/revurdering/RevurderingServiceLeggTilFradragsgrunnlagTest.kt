@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.nonEmptyListOf
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -13,7 +12,6 @@ import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -25,6 +23,7 @@ import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.lagGrunnlagsdata
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
@@ -81,7 +80,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
                     informasjonSomRevurderes = InformasjonSomRevurderes.create(
                         mapOf(Revurderingsteg.Inntekt to Vurderingstatus.Vurdert),
                     ),
-                    grunnlagsdata = Grunnlagsdata.tryCreate(
+                    grunnlagsdata = lagGrunnlagsdata(
                         bosituasjon = revurdering.grunnlagsdata.bosituasjon,
                         fradragsgrunnlag = nonEmptyListOf(
                             fradragsgrunnlagArbeidsinntekt(periode = revurdering.periode, arbeidsinntekt = 5000.0).copy(
@@ -184,7 +183,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
             revurderingsperiode = revurderingsperiode,
             grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
                 vilkårsvurderinger = vilkårsvurderingerInnvilget(periode = revurderingsperiode),
-                grunnlagsdata = Grunnlagsdata.tryCreate(
+                grunnlagsdata = lagGrunnlagsdata(
                     bosituasjon = listOf(
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
                             id = UUID.randomUUID(),
@@ -228,10 +227,8 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
             ),
         )
 
-        shouldThrow<IllegalArgumentException> {
-            revurderingService.leggTilFradragsgrunnlag(
-                request,
-            )
-        }
+        revurderingService.leggTilFradragsgrunnlag(
+            request,
+        ) shouldBe KunneIkkeLeggeTilFradragsgrunnlag.FradragManglerBosituasjon.left()
     }
 }
