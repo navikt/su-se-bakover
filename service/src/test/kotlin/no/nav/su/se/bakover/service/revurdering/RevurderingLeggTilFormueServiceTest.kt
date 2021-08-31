@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
@@ -40,6 +39,7 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -151,7 +151,8 @@ internal class RevurderingLeggTilFormueServiceTest {
     fun `skal ikke være lov å legge inn formue for eps, hvis man ikke har noen eps`() {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering.copy(
-                grunnlagsdata = opprettetRevurdering.grunnlagsdata.copy(
+                grunnlagsdata = Grunnlagsdata.tryCreate(
+                    fradragsgrunnlag = opprettetRevurdering.grunnlagsdata.fradragsgrunnlag,
                     bosituasjon = listOf(
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
                             id = UUID.randomUUID(),
@@ -433,17 +434,14 @@ internal class RevurderingLeggTilFormueServiceTest {
         fritekstTilBrev = "",
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = null,
-        grunnlagsdata = Grunnlagsdata(
+        grunnlagsdata = Grunnlagsdata.tryCreate(
             fradragsgrunnlag = listOf(
-                Grunnlag.Fradragsgrunnlag(
-                    fradrag = FradragFactory.ny(
-                        type = Fradragstype.Arbeidsinntekt,
-                        månedsbeløp = 10000.0,
-                        periode = vedtakSøknadsbehandlingIverksattInnvilget().second.periode,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                    opprettet = fixedTidspunkt,
+                lagFradragsgrunnlag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 10000.0,
+                    periode = vedtakSøknadsbehandlingIverksattInnvilget().second.periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
                 ),
             ),
             bosituasjon = listOf(
@@ -478,17 +476,14 @@ internal class RevurderingLeggTilFormueServiceTest {
             nettoBeløp = 100,
             periodeList = emptyList(),
         ),
-        grunnlagsdata = Grunnlagsdata(
+        grunnlagsdata = Grunnlagsdata.tryCreate(
             fradragsgrunnlag = listOf(
-                Grunnlag.Fradragsgrunnlag(
-                    fradrag = FradragFactory.ny(
-                        type = Fradragstype.Arbeidsinntekt,
-                        månedsbeløp = 10000.0,
-                        periode = vedtakSøknadsbehandlingIverksattInnvilget().second.periode,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                    opprettet = fixedTidspunkt,
+                lagFradragsgrunnlag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 10000.0,
+                    periode = vedtakSøknadsbehandlingIverksattInnvilget().second.periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
                 ),
             ),
             bosituasjon = listOf(

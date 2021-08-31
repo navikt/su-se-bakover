@@ -152,16 +152,15 @@ internal class GjeldendeVedtaksdataTest {
                 .leggTilNyAttestering(
                     Attestering.Iverksatt(
                         NavIdentBruker.Attestant("attestant"),
-                        Tidspunkt.now(fixedClock)
-                    )
+                        Tidspunkt.now(fixedClock),
+                    ),
                 ),
             fritekstTilBrev = "",
             stønadsperiode = Stønadsperiode.create(
                 periode = periode,
                 begrunnelse = "",
             ),
-            grunnlagsdata = Grunnlagsdata(
-                fradragsgrunnlag = listOf(),
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -243,7 +242,7 @@ internal class GjeldendeVedtaksdataTest {
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 fradragsgrunnlag = listOf(),
                 bosituasjon = listOf(),
             ),

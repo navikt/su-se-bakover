@@ -16,8 +16,12 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.juni
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -29,6 +33,8 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -42,6 +48,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.ServiceBuilder
+import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
@@ -52,6 +59,7 @@ import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.applicationConfig
@@ -165,7 +173,6 @@ internal class SøknadsbehandlingRoutesKtTest {
             services.søknadsbehandling.beregn(
                 BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
-                    fradrag = emptyList(),
                     begrunnelse = null,
                 ),
             )
@@ -220,7 +227,6 @@ internal class SøknadsbehandlingRoutesKtTest {
             services.søknadsbehandling.beregn(
                 BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
-                    fradrag = emptyList(),
                     begrunnelse = null,
                 ),
             )
@@ -284,7 +290,6 @@ internal class SøknadsbehandlingRoutesKtTest {
             services.søknadsbehandling.beregn(
                 BeregnRequest(
                     behandlingId = innvilgetVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
-                    fradrag = emptyList(),
                     begrunnelse = null,
                 ),
             )
@@ -310,7 +315,6 @@ internal class SøknadsbehandlingRoutesKtTest {
             services.søknadsbehandling.beregn(
                 BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
-                    fradrag = emptyList(),
                     begrunnelse = null,
                 ),
             )
@@ -322,24 +326,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 setBody(
                     """
                     {
-                        "begrunnelse": "Begrunnelse!",
-                        "fradrag":
-                            [
-                                {
-                                    "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
-                                    "beløp":9879,
-                                    "type":"Arbeidsinntekt",
-                                    "utenlandskInntekt":null,
-                                    "tilhører":"EPS"
-                                },
-                                {
-                                    "periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-12-31"},
-                                    "beløp":10000,
-                                    "type":"Kontantstøtte",
-                                    "utenlandskInntekt":null,
-                                    "tilhører":"BRUKER"
-                                }
-                            ]
+                        "begrunnelse": "Begrunnelse!"
                     }
                     """.trimIndent(),
                 )
@@ -375,7 +362,6 @@ internal class SøknadsbehandlingRoutesKtTest {
                     services.søknadsbehandling.beregn(
                         BeregnRequest(
                             behandlingId = søknadsbehandling.id,
-                            fradrag = emptyList(),
                             begrunnelse = null,
                         ),
                     )
@@ -504,7 +490,6 @@ internal class SøknadsbehandlingRoutesKtTest {
                     services.søknadsbehandling.beregn(
                         BeregnRequest(
                             behandlingId = søknadsbehandling.id,
-                            fradrag = emptyList(),
                             begrunnelse = null,
                         ),
                     )
@@ -685,7 +670,6 @@ internal class SøknadsbehandlingRoutesKtTest {
                 services.søknadsbehandling.beregn(
                     BeregnRequest(
                         behandlingId = objects.søknadsbehandling.id,
-                        fradrag = emptyList(),
                         begrunnelse = null,
                     ),
                 )
@@ -800,7 +784,51 @@ internal class SøknadsbehandlingRoutesKtTest {
                 behandlingsinformasjon,
             ),
         )
-
+        if (epsFnr == null) {
+            services.søknadsbehandling.leggTilFradragsgrunnlag(
+                LeggTilFradragsgrunnlagRequest(
+                    behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
+                    fradragsgrunnlag = listOf(
+                        lagFradragsgrunnlag(
+                            periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),
+                            type = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 9879.00,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                        lagFradragsgrunnlag(
+                            periode = Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021)),
+                            type = Fradragstype.Kontantstøtte,
+                            månedsbeløp = 10000.00,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                ),
+            )
+        } else {
+            services.søknadsbehandling.leggTilFradragsgrunnlag(
+                LeggTilFradragsgrunnlagRequest(
+                    behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
+                    fradragsgrunnlag = listOf(
+                        lagFradragsgrunnlag(
+                            periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),
+                            type = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 9879.00,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.EPS,
+                        ),
+                        lagFradragsgrunnlag(
+                            periode = Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021)),
+                            type = Fradragstype.Kontantstøtte,
+                            månedsbeløp = 10000.00,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                ),
+            )
+        }
         return InnvilgetVilkårsvurdertSøknadsbehandling(
             repos.sak.hentSak(uavklartVilkårsvurdertSøknadsbehandling.sak.id)!!,
             repos.søknadsbehandling.hent(uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id) as Søknadsbehandling.Vilkårsvurdert.Innvilget,

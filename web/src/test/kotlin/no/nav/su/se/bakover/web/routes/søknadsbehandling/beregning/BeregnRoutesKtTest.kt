@@ -48,8 +48,6 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
-import java.time.LocalDate
-import java.time.Month
 import java.util.UUID
 
 internal class BeregnRoutesKtTest {
@@ -85,14 +83,7 @@ internal class BeregnRoutesKtTest {
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody(
-                    //language=JSON
-                    """
-                    {
-                       "fradrag":[]
-                    }
-                    """.trimIndent(),
-                )
+                setBody("{}")
             }.apply {
                 response.status() shouldBe HttpStatusCode.Created
                 val behandlingJson = deserialize<BehandlingJson>(response.content!!)
@@ -100,150 +91,6 @@ internal class BeregnRoutesKtTest {
                 behandlingJson.beregning.tilOgMed shouldBe stønadsperiode.periode.tilOgMed.toString()
                 behandlingJson.beregning.sats shouldBe Sats.HØY.name
                 behandlingJson.beregning.månedsberegninger shouldHaveSize 12
-            }
-        }
-    }
-
-    @Test
-    fun `ikke lov å opprette fradrag utenfor perioden`() {
-        withTestApplication(
-            {
-                testSusebakover()
-            },
-        ) {
-            val objects = setupMedAlleVilkårOppfylt()
-            val fradragFraOgMed = LocalDate.of(2020, Month.JANUARY, 1)
-            val fradragTilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
-
-            defaultRequest(
-                HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
-                listOf(Brukerrolle.Saksbehandler),
-            ) {
-                setBody(
-                    //language=JSON
-                    """
-                    {
-                        "fradrag":[{
-                          "type":"Arbeidsinntekt",
-                            "beløp":200,
-                            "utenlandskInntekt":null,
-                            "periode" : {
-                              "fraOgMed":"$fradragFraOgMed",
-                              "tilOgMed":"$fradragTilOgMed"
-                            },
-                            "tilhører": "BRUKER"
-                         }]
-                    }
-                    """.trimIndent(),
-                )
-            }.apply {
-                assertSoftly {
-                    response.status() shouldBe HttpStatusCode.BadRequest
-                    response.content shouldContain "ikke_lov_med_fradrag_utenfor_perioden"
-                }
-            }
-        }
-    }
-
-    @Test
-    fun `Fradrag med utenlandskInntekt oppretter beregning`() {
-        withTestApplication(
-            {
-                testSusebakover()
-            },
-        ) {
-            val objects = setupMedAlleVilkårOppfylt()
-            val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
-            val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
-
-            defaultRequest(
-                HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
-                listOf(Brukerrolle.Saksbehandler),
-            ) {
-                setBody(
-                    //language=JSON
-                    """
-                    {
-                       "fradrag":[{
-                         "type":"Arbeidsinntekt",
-                         "beløp":200,
-                         "utenlandskInntekt":{
-                            "beløpIUtenlandskValuta":200,
-                            "valuta":"euro",
-                            "kurs":0.5
-                         },
-                         "periode" : {
-                            "fraOgMed":"$fraOgMed",
-                            "tilOgMed":"$tilOgMed"
-                         },
-                         "tilhører": "BRUKER"
-                      }]
-                    }
-                    """.trimIndent(),
-                )
-            }.apply {
-                response.status() shouldBe HttpStatusCode.Created
-                val behandlingJson = deserialize<BehandlingJson>(response.content!!)
-                behandlingJson.beregning!!.fraOgMed shouldBe fraOgMed.toString()
-                behandlingJson.beregning.tilOgMed shouldBe tilOgMed.toString()
-                behandlingJson.beregning.sats shouldBe Sats.HØY.name
-                behandlingJson.beregning.månedsberegninger shouldHaveSize 12
-                behandlingJson.beregning.fradrag shouldHaveSize 2 // input + 1 because of forventet inntekt
-                behandlingJson.beregning.fradrag.filter { it.type == "Arbeidsinntekt" }.all {
-                    it.utenlandskInntekt == UtenlandskInntektJson(
-                        beløpIUtenlandskValuta = 200,
-                        valuta = "euro",
-                        kurs = 0.5,
-                    )
-                }
-            }
-        }
-    }
-
-    @Test
-    fun `Fradrag med utenlandskInntekt er null oppretter beregning`() {
-        withTestApplication(
-            {
-                testSusebakover()
-            },
-        ) {
-            val objects = setupMedAlleVilkårOppfylt()
-            val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
-            val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
-
-            defaultRequest(
-                HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
-                listOf(Brukerrolle.Saksbehandler),
-            ) {
-                setBody(
-                    //language=JSON
-                    """
-                    {
-                        "fradrag": [{
-                            "type": "Arbeidsinntekt",
-                            "beløp": 200,
-                            "utenlandskInntekt": null,
-                            "periode" : {
-                                "fraOgMed":"$fraOgMed",
-                                "tilOgMed":"$tilOgMed"
-                            },
-                            "tilhører": "BRUKER"
-                        }]
-                    }
-                    """.trimIndent(),
-                )
-            }.apply {
-                response.status() shouldBe HttpStatusCode.Created
-                val behandlingJson = deserialize<BehandlingJson>(response.content!!)
-                behandlingJson.beregning!!.fraOgMed shouldBe fraOgMed.toString()
-                behandlingJson.beregning.tilOgMed shouldBe tilOgMed.toString()
-                behandlingJson.beregning.sats shouldBe Sats.HØY.name
-                behandlingJson.beregning.månedsberegninger shouldHaveSize 12
-                behandlingJson.beregning.fradrag shouldHaveSize 2 // input + 1 because of forventet inntekt
-                behandlingJson.beregning.fradrag.all { it.utenlandskInntekt == null }
             }
         }
     }
@@ -271,18 +118,7 @@ internal class BeregnRoutesKtTest {
                 "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody(
-                    //language=JSON
-                    """{
-                           "fradrag":[{
-                             "type":"Arbeidsinntekt",
-                             "beløp":200,
-                             "utenlandskInntekt": null,
-                             "tilhører": "BRUKER"
-                          }]
-                        }
-                    """.trimIndent(),
-                )
+                setBody("{}")
             }.apply {
                 assertSoftly {
                     response.status() shouldBe HttpStatusCode.NotFound
@@ -305,31 +141,6 @@ internal class BeregnRoutesKtTest {
                     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
                 ),
             )
-
-            defaultRequest(
-                HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
-                listOf(Brukerrolle.Saksbehandler),
-            ) {
-                setBody(
-                    //language=JSON
-                    """{
-                           "fradrag":[{
-                             "type":"Arbeidsinntekt",
-                             "beløp":200,
-                             "utenlandskInntekt":{
-                                "beløpIUtenlandskValuta":-200,
-                                "valuta":"euro",
-                                "kurs":0.5
-                             },
-                             "tilhører": "BRUKER"
-                          }]
-                        }
-                    """.trimIndent(),
-                )
-            }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-            }
         }
     }
 

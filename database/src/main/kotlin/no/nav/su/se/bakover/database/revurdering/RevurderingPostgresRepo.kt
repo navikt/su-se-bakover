@@ -190,7 +190,7 @@ internal class RevurderingPostgresRepo(
 
         val fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(id, session)
         val bosituasjonsgrunnlag = bosituasjonsgrunnlagPostgresRepo.hentBosituasjongrunnlag(id, session)
-        val grunnlagsdata = Grunnlagsdata(
+        val grunnlagsdata = Grunnlagsdata.tryCreate(
             fradragsgrunnlag = fradragsgrunnlag,
             bosituasjon = bosituasjonsgrunnlag,
         )

@@ -47,7 +47,7 @@ fun beregning(
     return Beregningsgrunnlag.tryCreate(
         beregningsperiode = periode,
         uføregrunnlag = uføregrunnlag,
-        fradragFraSaksbehandler = fradragsgrunnlag.map { it.fradrag },
+        fradragFraSaksbehandler = fradragsgrunnlag,
     ).let {
         bosituasjon.utledBeregningsstrategi().beregn(
             it.getOrHandle {

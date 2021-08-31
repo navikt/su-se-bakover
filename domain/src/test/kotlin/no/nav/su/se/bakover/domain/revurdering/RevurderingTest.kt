@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedTidspunkt
@@ -33,6 +32,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import java.util.UUID
@@ -137,25 +137,17 @@ internal class RevurderingTest {
                 ),
             ),
             fradrag = listOf(
-                Grunnlag.Fradragsgrunnlag(
-                    fradrag = FradragFactory.ny(
-                        type = Fradragstype.Arbeidsinntekt,
-                        månedsbeløp = 20535.0,
-                        periode = Periode.create(periode.fraOgMed, 30.april(2021)),
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                    opprettet = fixedTidspunkt,
+                lagFradragsgrunnlag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 20535.0,
+                    periode = Periode.create(periode.fraOgMed, 30.april(2021)),
+                    tilhører = FradragTilhører.BRUKER,
                 ),
-                Grunnlag.Fradragsgrunnlag(
-                    fradrag = FradragFactory.ny(
-                        type = Fradragstype.Arbeidsinntekt,
-                        månedsbeløp = 21735.0,
-                        periode = Periode.create(1.mai(2021), periode.tilOgMed),
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                    opprettet = fixedTidspunkt,
+                lagFradragsgrunnlag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 21735.0,
+                    periode = Periode.create(1.mai(2021), periode.tilOgMed),
+                    tilhører = FradragTilhører.BRUKER,
                 ),
             ),
         ).beregn(
@@ -332,15 +324,11 @@ internal class RevurderingTest {
                 formue = innvilgetFormueVilkår(periode),
             ),
             fradrag = listOf(
-                Grunnlag.Fradragsgrunnlag(
-                    fradrag = FradragFactory.ny(
-                        type = Fradragstype.Arbeidsinntekt,
-                        månedsbeløp = 350_000.0,
-                        periode = periode,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                    opprettet = fixedTidspunkt,
+                lagFradragsgrunnlag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 350_000.0,
+                    periode = periode,
+                    tilhører = FradragTilhører.BRUKER,
                 ),
             ),
             bosituasjon = listOf(
@@ -398,15 +386,11 @@ internal class RevurderingTest {
                 ),
             ),
             fradrag = listOf(
-                Grunnlag.Fradragsgrunnlag(
-                    fradrag = FradragFactory.ny(
-                        type = Fradragstype.Arbeidsinntekt,
-                        månedsbeløp = 350_000.0,
-                        periode = periode,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                    opprettet = fixedTidspunkt,
+                lagFradragsgrunnlag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 350_000.0,
+                    periode = periode,
+                    tilhører = FradragTilhører.BRUKER,
                 ),
             ),
         ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(14000, periode)))).orNull()!!.let {
@@ -450,25 +434,19 @@ internal class RevurderingTest {
                 ),
             ),
             fradrag = listOf(
-                Grunnlag.Fradragsgrunnlag(
-                    fradrag = FradragFactory.ny(
-                        type = Fradragstype.Arbeidsinntekt,
-                        månedsbeløp = 20800.0,
-                        periode = Periode.create(periode.fraOgMed, 30.april(2021)),
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                    opprettet = fixedTidspunkt,
+                lagFradragsgrunnlag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 20800.0,
+                    periode = Periode.create(periode.fraOgMed, 30.april(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
                 ),
-                Grunnlag.Fradragsgrunnlag(
-                    fradrag = FradragFactory.ny(
-                        type = Fradragstype.Arbeidsinntekt,
-                        månedsbeløp = 21800.0,
-                        periode = Periode.create(1.mai(2021), periode.tilOgMed),
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                    opprettet = fixedTidspunkt,
+                lagFradragsgrunnlag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 21800.0,
+                    periode = Periode.create(1.mai(2021), periode.tilOgMed),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
                 ),
             ),
         ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(14000, periode)))).orNull()!!.let {
@@ -498,7 +476,7 @@ internal class RevurderingTest {
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = null,
         vilkårsvurderinger = vilkårsvurderinger,
-        grunnlagsdata = Grunnlagsdata(
+        grunnlagsdata = Grunnlagsdata.tryCreate(
             bosituasjon = bosituasjon,
             fradragsgrunnlag = fradrag,
         ),

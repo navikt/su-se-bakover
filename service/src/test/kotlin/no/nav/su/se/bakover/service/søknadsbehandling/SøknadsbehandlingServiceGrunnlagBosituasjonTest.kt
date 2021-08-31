@@ -141,7 +141,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         val expected = uavklart.copy(
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     bosituasjon,
                 ),
@@ -176,7 +176,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         ).orNull()!!
 
         response shouldBe expected.copy(
-            grunnlagsdata = expected.grunnlagsdata.copy(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     bosituasjon.copy(
                         id = (response as Søknadsbehandling.Vilkårsvurdert).grunnlagsdata.bosituasjon.first().id,
@@ -279,7 +279,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             fnr = Fnr.generer(),
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
                         id = UUID.randomUUID(),
@@ -300,7 +300,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         val expected = uavklart.copy(
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     bosituasjon,
                 ),
@@ -339,7 +339,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         ).orNull()!!
 
         response shouldBe expected.copy(
-            grunnlagsdata = expected.grunnlagsdata.copy(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     bosituasjon.copy(
                         id = (response as Søknadsbehandling.Vilkårsvurdert).grunnlagsdata.bosituasjon.first().id,

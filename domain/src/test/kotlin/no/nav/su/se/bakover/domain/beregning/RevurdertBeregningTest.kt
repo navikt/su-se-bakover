@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -258,9 +259,21 @@ internal class RevurdertBeregningTest {
                     ),
                 ),
                 fradragFraSaksbehandler = listOf(
-                    fradrag(januar, 10.0, Fradragstype.Arbeidsinntekt),
-                    fradrag(februar, 20.0, Fradragstype.Kapitalinntekt)
-                )
+                    lagFradragsgrunnlag(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 10.0,
+                        periode = januar,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                    lagFradragsgrunnlag(
+                        type = Fradragstype.Kapitalinntekt,
+                        månedsbeløp = 20.0,
+                        periode = februar,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
             ),
             beregningsstrategi = BeregningStrategy.BorAlene,
             beregnMedVirkningNesteMånedDersomStønadenGårNed = true,

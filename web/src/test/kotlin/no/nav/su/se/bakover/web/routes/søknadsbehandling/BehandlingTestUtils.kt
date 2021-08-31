@@ -137,11 +137,12 @@ object BehandlingTestUtils {
             periodeList = listOf(),
         ),
         saksbehandler = NavIdentBruker.Saksbehandler("pro-saksbehandler"),
-        attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("kjella"), Tidspunkt.EPOCH)),
+        attesteringer = Attesteringshistorikk.empty()
+            .leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("kjella"), Tidspunkt.EPOCH)),
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata(
-            bosituasjon = listOf(bosituasjon)
+        grunnlagsdata = Grunnlagsdata.tryCreate(
+            bosituasjon = listOf(bosituasjon),
         ),
         vilkårsvurderinger = Vilkårsvurderinger(
             uføre = Vilkår.Uførhet.Vurdert.create(

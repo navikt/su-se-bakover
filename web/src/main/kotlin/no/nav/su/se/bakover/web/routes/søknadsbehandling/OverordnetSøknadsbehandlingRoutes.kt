@@ -11,4 +11,6 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
     leggTilGrunnlagSøknadsbehandlingRoutes(søknadsbehandlingService)
 
     leggTilGrunnlagBosituasjonRoutes(søknadsbehandlingService)
+
+    leggTilGrunnlagFradrag(søknadsbehandlingService)
 }

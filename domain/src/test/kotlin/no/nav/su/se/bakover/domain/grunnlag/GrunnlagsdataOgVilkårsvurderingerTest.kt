@@ -9,9 +9,11 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt0
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 internal class GrunnlagsdataOgVilkårsvurderingerTest {
 
@@ -19,7 +21,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
     fun `grunnlagsdata og vilkårsvurderinger med ulike perioder kaster exception`() {
         shouldThrow<IllegalArgumentException> {
             GrunnlagsdataOgVilkårsvurderinger(
-                grunnlagsdata = Grunnlagsdata(
+                grunnlagsdata = Grunnlagsdata.tryCreate(
                     fradragsgrunnlag = nonEmptyListOf(
                         fradragsgrunnlagArbeidsinntekt1000(
                             periode = Periode.create(
@@ -28,7 +30,17 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                             ),
                         ),
                     ),
-                    bosituasjon = emptyList(),
+                    bosituasjon = listOf(
+                        Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            periode = Periode.create(
+                                1.januar(2021),
+                                30.april(2021),
+                            ),
+                            begrunnelse = null,
+                        ),
+                    ),
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger(
                     uføre = innvilgetUførevilkårForventetInntekt0(
@@ -46,7 +58,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
     @Test
     fun `grunnlagsdata og vilkårsvurderinger med like perioder kaster ikke exception`() {
         GrunnlagsdataOgVilkårsvurderinger(
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 fradragsgrunnlag = nonEmptyListOf(
                     fradragsgrunnlagArbeidsinntekt1000(
                         periode = Periode.create(
@@ -55,7 +67,17 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                         ),
                     ),
                 ),
-                bosituasjon = emptyList(),
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = Periode.create(
+                            1.januar(2021),
+                            31.mai(2021),
+                        ),
+                        begrunnelse = null,
+                    ),
+                ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = innvilgetUførevilkårForventetInntekt0(
@@ -88,7 +110,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
     @Test
     fun `innvilget grunnlagsdata og ikke vurdert vilkårsvurderinger kaster ikke exception`() {
         GrunnlagsdataOgVilkårsvurderinger(
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.tryCreate(
                 fradragsgrunnlag = nonEmptyListOf(
                     fradragsgrunnlagArbeidsinntekt1000(
                         periode = Periode.create(
@@ -97,7 +119,17 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                         ),
                     ),
                 ),
-                bosituasjon = emptyList(),
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = Periode.create(
+                            1.januar(2021),
+                            31.mai(2021),
+                        ),
+                        begrunnelse = null,
+                    ),
+                ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
