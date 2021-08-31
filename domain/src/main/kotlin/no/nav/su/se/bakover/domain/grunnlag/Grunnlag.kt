@@ -3,14 +3,12 @@ package no.nav.su.se.bakover.domain.grunnlag
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import arrow.core.sequenceEither
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Copyable
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import java.util.UUID
@@ -47,41 +45,43 @@ sealed class Grunnlag {
         }
     }
 
-    data class Fradragsgrunnlag(
+    data class Fradragsgrunnlag private constructor(
         override val id: UUID = UUID.randomUUID(),
         val opprettet: Tidspunkt,
         val fradrag: Fradrag,
-    ) : Grunnlag() {
+    ) : Grunnlag(), Fradrag by fradrag {
 
-        companion object Validator {
-            fun List<Fradragsgrunnlag>.valider(behandlingsperiode: Periode, harEktefelle: Boolean): Either<UgyldigFradragsgrunnlag, List<Fradragsgrunnlag>> {
-                return map {
-                    it.valider(behandlingsperiode, harEktefelle)
-                }.sequenceEither()
-            }
+        override fun copy(args: CopyArgs.Snitt): Fradragsgrunnlag? {
+            return fradrag.copy(args)
+                ?.let { this.copy(id = UUID.randomUUID(), opprettet = this.opprettet, fradrag = it) }
+        }
 
-            fun Fradragsgrunnlag.valider(behandlingsperiode: Periode, harEktefelle: Boolean): Either<UgyldigFradragsgrunnlag, Fradragsgrunnlag> {
-                if (!(behandlingsperiode inneholder fradrag.periode))
-                    return UgyldigFradragsgrunnlag.UtenforBehandlingsperiode.left()
-                if (setOf(
-                        Fradragstype.ForventetInntekt,
-                        Fradragstype.BeregnetFradragEPS,
-                        Fradragstype.UnderMinstenivå,
-                    ).contains(fradrag.fradragstype)
-                ) {
+        companion object {
+            fun tryCreate(
+                id: UUID = UUID.randomUUID(),
+                opprettet: Tidspunkt = Tidspunkt.now(),
+                fradrag: Fradrag,
+            ): Either<UgyldigFradragsgrunnlag, Fradragsgrunnlag> {
+                if (harUgyldigFradragsType(fradrag)) {
                     return UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
                 }
-                if (this.fradrag.tilhører == FradragTilhører.EPS && !harEktefelle) {
-                    return UgyldigFradragsgrunnlag.HarIkkeEktelle.left()
-                }
-                return this.right()
+
+                return Fradragsgrunnlag(id = id, opprettet = opprettet, fradrag = fradrag).right()
             }
 
-            sealed class UgyldigFradragsgrunnlag {
-                object UtenforBehandlingsperiode : UgyldigFradragsgrunnlag()
-                object UgyldigFradragstypeForGrunnlag : UgyldigFradragsgrunnlag()
-                object HarIkkeEktelle : UgyldigFradragsgrunnlag()
-            }
+            /**
+             * inntil fradragsgrunnlag har sine egne fradragstyper så må vi sjekke at disse ikke er med
+             */
+            private fun harUgyldigFradragsType(fradrag: Fradrag): Boolean =
+                setOf(
+                    Fradragstype.ForventetInntekt,
+                    Fradragstype.BeregnetFradragEPS,
+                    Fradragstype.UnderMinstenivå,
+                ).contains(fradrag.fradragstype)
+        }
+
+        sealed class UgyldigFradragsgrunnlag {
+            object UgyldigFradragstypeForGrunnlag : UgyldigFradragsgrunnlag()
         }
     }
 

@@ -7,12 +7,12 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import org.junit.jupiter.api.Test
 
 internal class EnsligBeregningTest {
@@ -48,21 +48,21 @@ internal class EnsligBeregningTest {
                 ),
             ),
             fradragFraSaksbehandler = listOf(
-                FradragFactory.ny(
+                lagFradragsgrunnlag(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = arbeidsinntektPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
-                FradragFactory.ny(
+                lagFradragsgrunnlag(
                     type = Fradragstype.OffentligPensjon,
                     månedsbeløp = folketrygdPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
-                )
-            )
+                ),
+            ),
         )
 
         BeregningStrategy.BorAlene.beregn(beregningsgrunnlag).let {

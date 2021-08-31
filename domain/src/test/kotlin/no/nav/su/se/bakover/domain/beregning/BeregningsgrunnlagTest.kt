@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import org.junit.jupiter.api.Test
 
 internal class BeregningsgrunnlagTest {
@@ -34,13 +35,13 @@ internal class BeregningsgrunnlagTest {
                 ),
             ),
             fradragFraSaksbehandler = listOf(
-                FradragFactory.ny(
+                lagFradragsgrunnlag(
                     type = Fradragstype.Kapitalinntekt,
                     månedsbeløp = 2000.0,
                     periode = beregningsperiode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
-                ),
+                )
             ),
         ).fradrag shouldBe listOf(
             FradragFactory.ny(
@@ -74,7 +75,7 @@ internal class BeregningsgrunnlagTest {
                 ),
             ),
             fradragFraSaksbehandler = listOf(
-                FradragFactory.ny(
+                lagFradragsgrunnlag(
                     type = Fradragstype.Kapitalinntekt,
                     månedsbeløp = 2000.0,
                     periode = beregningsperiode,
@@ -145,21 +146,13 @@ internal class BeregningsgrunnlagTest {
             beregningsperiode = beregningsperiode,
             uføregrunnlag = listOf(
                 Grunnlag.Uføregrunnlag(
-                    periode = beregningsperiode,
+                    periode = Periode.create(1.januar(2019), 31.desember(2019)),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 0,
                     opprettet = fixedTidspunkt,
                 ),
             ),
-            fradragFraSaksbehandler = listOf(
-                FradragFactory.ny(
-                    type = Fradragstype.ForventetInntekt,
-                    månedsbeløp = 0.0,
-                    periode = Periode.create(1.januar(2019), 31.desember(2019)),
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-            ),
+            fradragFraSaksbehandler = emptyList(),
         ) shouldBe UgyldigBeregningsgrunnlag.IkkeLovMedFradragUtenforPerioden.left()
     }
 

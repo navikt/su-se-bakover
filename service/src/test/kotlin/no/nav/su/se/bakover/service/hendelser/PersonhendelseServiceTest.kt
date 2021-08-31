@@ -5,9 +5,10 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.hendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
-import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -63,7 +64,7 @@ internal class PersonhendelseServiceTest {
     private fun lagNyPersonhendelse() = Personhendelse.Ny(
         gjeldendeAktørId = AktørId("123456b7890000"),
         endringstype = Personhendelse.Endringstype.OPPRETTET,
-        personidenter = nonEmptyListOf(FnrGenerator.random().toString(), "123456789010"),
+        personidenter = nonEmptyListOf(Fnr.generer().toString(), "123456789010"),
         hendelse = Personhendelse.Hendelse.Dødsfall(dødsdato = LocalDate.now()),
         metadata = Personhendelse.Metadata(
             hendelseId = UUID.randomUUID().toString(),

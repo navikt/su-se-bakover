@@ -1,25 +1,25 @@
 package no.nav.su.se.bakover.domain.beregning
 
 import arrow.core.getOrHandle
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 
 class BeregningStrategyFactory {
     fun beregn(
-        søknadsbehandling: Søknadsbehandling,
-        fradrag: List<Fradrag>,
+        grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger,
+        beregningsPeriode: Periode,
         begrunnelse: String?,
     ): Beregning {
-        val bosituasjon = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow()
+        val bosituasjon = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.singleFullstendigOrThrow()
 
         val beregningsgrunnlag = Beregningsgrunnlag.tryCreate(
-            beregningsperiode = søknadsbehandling.periode,
-            uføregrunnlag = søknadsbehandling.vilkårsvurderinger.uføre.grunnlag,
-            fradragFraSaksbehandler = fradrag,
+            beregningsperiode = beregningsPeriode,
+            uføregrunnlag = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.uføre.grunnlag,
+            fradragFraSaksbehandler = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag,
         ).getOrHandle {
             // TODO jah: Kan vurdere å legge på en left her (KanIkkeBeregne.UgyldigBeregningsgrunnlag
             throw IllegalArgumentException(it.toString())

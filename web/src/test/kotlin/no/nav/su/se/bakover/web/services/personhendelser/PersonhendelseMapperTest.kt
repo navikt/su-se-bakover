@@ -12,9 +12,10 @@ import no.nav.person.pdl.leesah.utflytting.UtflyttingFraNorge
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
-import no.nav.su.se.bakover.service.FnrGenerator
+import no.nav.su.se.bakover.test.generer
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -30,7 +31,7 @@ internal class PersonhendelseMapperTest {
     private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
 
     private val aktørId = "1234567890000"
-    private val fnr = FnrGenerator.random().toString()
+    private val fnr = Fnr.generer().toString()
     private val opprettet = Instant.now(fixedClock)
     private val tidspunkt = LocalDate.now(fixedClock)
 

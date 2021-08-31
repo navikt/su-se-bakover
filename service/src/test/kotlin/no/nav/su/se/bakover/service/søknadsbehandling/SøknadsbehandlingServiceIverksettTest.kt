@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
@@ -44,7 +45,6 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.beregning.TestBeregning
@@ -57,6 +57,7 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.person
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -65,7 +66,6 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 import java.time.ZoneOffset
 import java.util.UUID
@@ -103,7 +103,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         behandler = attestant,
         avstemmingsnøkkel = Avstemmingsnøkkel(),
         simulering = Simulering(
-            gjelderId = FnrGenerator.random(),
+            gjelderId = Fnr.generer(),
             gjelderNavn = "gjelderNavn",
             datoBeregnet = opprettet.toLocalDate(ZoneOffset.UTC),
             nettoBeløp = 0,

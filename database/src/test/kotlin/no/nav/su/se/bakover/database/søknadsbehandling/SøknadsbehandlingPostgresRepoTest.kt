@@ -485,7 +485,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(iverksattAttestering),
                     fritekstTilBrev = "",
                     stønadsperiode = stønadsperiode,
-                    grunnlagsdata = Grunnlagsdata(
+                    grunnlagsdata = Grunnlagsdata.tryCreate(
                         bosituasjon = iverksatt.grunnlagsdata.bosituasjon,
                     ),
                     vilkårsvurderinger = Vilkårsvurderinger(

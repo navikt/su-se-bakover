@@ -31,13 +31,13 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -56,7 +56,7 @@ internal class VedtakServiceImplTest {
     @Test
     fun `kan hente ett fnr`() {
         val dato = 1.mars(2021)
-        val fnr = FnrGenerator.random()
+        val fnr = Fnr.generer()
         val vedtak = innvilgetVedtak(fnr)
 
         val vedtakRepoMock = mock<VedtakRepo> {
@@ -76,7 +76,7 @@ internal class VedtakServiceImplTest {
     @Test
     fun `test distinct`() {
         val dato = 1.mars(2021)
-        val fnr = FnrGenerator.random()
+        val fnr = Fnr.generer()
         val vedtak = innvilgetVedtak(fnr)
 
         val vedtakRepoMock = mock<VedtakRepo> {
@@ -135,7 +135,7 @@ internal class VedtakServiceImplTest {
                 id = UUID.randomUUID(),
                 saksnummer = Saksnummer(nummer = 9999),
                 opprettet = Tidspunkt.now(),
-                fnr = FnrGenerator.random(),
+                fnr = Fnr.generer(),
                 søknader = listOf(),
                 søknadsbehandlinger = listOf(),
                 utbetalinger = listOf(),
@@ -161,7 +161,7 @@ internal class VedtakServiceImplTest {
                 id = UUID.randomUUID(),
                 saksnummer = Saksnummer(nummer = 9999),
                 opprettet = Tidspunkt.now(),
-                fnr = FnrGenerator.random(),
+                fnr = Fnr.generer(),
                 søknader = listOf(),
                 søknadsbehandlinger = listOf(),
                 utbetalinger = listOf(),

@@ -27,10 +27,10 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
-import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -345,7 +345,7 @@ internal class StansUtbetalingServiceTest {
                         utbetaling = listOf(
                             SimulertUtbetaling(
                                 fagSystemId = "",
-                                utbetalesTilId = FnrGenerator.random(),
+                                utbetalesTilId = Fnr.generer(),
                                 utbetalesTilNavn = "",
                                 forfall = 1.januar(2020),
                                 feilkonto = false,

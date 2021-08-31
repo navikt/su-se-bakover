@@ -77,6 +77,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.generer
 import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -204,6 +205,7 @@ internal class TestDataHelper(
     dbMetrics: DbMetrics = dbMetricsStub,
     private val clock: Clock = fixedClock,
 ) {
+    internal val sessionFactory = PostgresSessionFactory(datasource)
     internal val utbetalingRepo = UtbetalingPostgresRepo(
         dataSource = datasource,
         dbMetrics = dbMetrics,
@@ -212,6 +214,7 @@ internal class TestDataHelper(
     internal val søknadRepo = SøknadPostgresRepo(
         dataSource = datasource,
         dbMetrics = dbMetrics,
+        postgresSessionFactory = sessionFactory,
     )
     internal val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
     internal val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(
@@ -271,10 +274,10 @@ internal class TestDataHelper(
         dataSource = datasource,
         dbMetrics = dbMetrics,
     )
-    internal val dokumentRepo = DokumentPostgresRepo(datasource)
+    internal val dokumentRepo = DokumentPostgresRepo(datasource, sessionFactory)
     internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(datasource)
 
-    fun nySakMedNySøknad(fnr: Fnr = FnrGenerator.random()): NySak {
+    fun nySakMedNySøknad(fnr: Fnr = Fnr.generer()): NySak {
         return SakFactory(clock = clock).nySakMedNySøknad(fnr, SøknadInnholdTestdataBuilder.build()).also {
             sakRepo.opprettSak(it)
         }
@@ -308,7 +311,7 @@ internal class TestDataHelper(
     }
 
     fun nySakMedJournalførtSøknad(
-        fnr: Fnr = FnrGenerator.random(),
+        fnr: Fnr = Fnr.generer(),
         journalpostId: JournalpostId = no.nav.su.se.bakover.database.journalpostId,
     ): Sak {
         val nySak: NySak = nySakMedNySøknad(fnr)
@@ -329,7 +332,7 @@ internal class TestDataHelper(
     }
 
     fun nySakMedJournalførtSøknadOgOppgave(
-        fnr: Fnr = FnrGenerator.random(),
+        fnr: Fnr = Fnr.generer(),
         oppgaveId: OppgaveId = no.nav.su.se.bakover.database.oppgaveId,
         journalpostId: JournalpostId = no.nav.su.se.bakover.database.journalpostId,
     ): Sak {
@@ -455,7 +458,7 @@ internal class TestDataHelper(
     }
 
     fun simulertOpphørtRevurdering(): SimulertRevurdering {
-        return beregnetOpphørtRevurdering().toSimulert(simulering(FnrGenerator.random())).also {
+        return beregnetOpphørtRevurdering().toSimulert(simulering(Fnr.generer())).also {
             revurderingRepo.lagre(it)
         }
     }
@@ -563,7 +566,7 @@ internal class TestDataHelper(
         formue = Vilkår.Formue.IkkeVurdert,
     )
 
-    private fun innvilgetGrunnlagsdataSøknadsbehandling(epsFnr: Fnr? = null) = Grunnlagsdata(
+    private fun innvilgetGrunnlagsdataSøknadsbehandling(epsFnr: Fnr? = null) = Grunnlagsdata.tryCreate(
         bosituasjon = listOf(
             if (epsFnr != null) Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                 id = UUID.randomUUID(),

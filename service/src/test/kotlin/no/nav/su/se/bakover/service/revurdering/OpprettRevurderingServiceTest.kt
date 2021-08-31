@@ -16,15 +16,12 @@ import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.CopyArgs
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -45,7 +42,6 @@ import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
-import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.formueVilkår
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
@@ -63,6 +59,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt12000
 import no.nav.su.se.bakover.test.revurderingsårsak
 import no.nav.su.se.bakover.test.sakId
@@ -399,7 +396,12 @@ internal class OpprettRevurderingServiceTest {
     @Test
     fun `fant ikke sak`() {
         val vedtakServiceMock = mock<VedtakService> {
-            on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak.left()
+            on {
+                kopierGjeldendeVedtaksdata(
+                    any(),
+                    any(),
+                )
+            } doReturn KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak.left()
         }
         val mocks = RevurderingServiceMocks(
             vedtakService = vedtakServiceMock,
@@ -422,7 +424,12 @@ internal class OpprettRevurderingServiceTest {
     @Test
     fun `kan ikke opprette revurdering hvis ingen vedtak eksisterer for angitt fra og med dato`() {
         val vedtakServiceMock = mock<VedtakService> {
-            on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak.left()
+            on {
+                kopierGjeldendeVedtaksdata(
+                    any(),
+                    any(),
+                )
+            } doReturn KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak.left()
         }
         val mocks = RevurderingServiceMocks(
             vedtakService = vedtakServiceMock,
@@ -448,9 +455,9 @@ internal class OpprettRevurderingServiceTest {
     fun `for en ny revurdering vil det tas utgangspunkt i nyeste vedtak hvor fraOgMed er inni perioden`() {
         val vedtaksperiode = Periode.create(1.januar(2021), 31.desember(2021))
         val behandlingMock = mock<Behandling> {
-            on { fnr } doReturn FnrGenerator.random()
+            on { fnr } doReturn Fnr.generer()
             on { saksnummer } doReturn Saksnummer(2021)
-            on { grunnlagsdata } doReturn Grunnlagsdata(
+            on { grunnlagsdata } doReturn Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -552,7 +559,8 @@ internal class OpprettRevurderingServiceTest {
 
     @Test
     fun `kan revurdere en periode med eksisterende revurdering`() {
-        val opprinneligVedtak = Vedtak.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID(), fixedClock)
+        val opprinneligVedtak =
+            Vedtak.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID(), fixedClock)
         val revurdering = Vedtak.from(
             revurdering = IverksattRevurdering.Innvilget(
                 id = UUID.randomUUID(),
@@ -563,11 +571,12 @@ internal class OpprettRevurderingServiceTest {
                 oppgaveId = OppgaveId("null"),
                 beregning = opprinneligVedtak.beregning,
                 simulering = opprinneligVedtak.simulering,
-                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(opprinneligVedtak.attestant, fixedTidspunkt)),
+                attesteringer = Attesteringshistorikk.empty()
+                    .leggTilNyAttestering(Attestering.Iverksatt(opprinneligVedtak.attestant, fixedTidspunkt)),
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                grunnlagsdata = Grunnlagsdata(
+                grunnlagsdata = Grunnlagsdata.tryCreate(
                     bosituasjon = listOf(
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
                             id = UUID.randomUUID(),
@@ -654,7 +663,13 @@ internal class OpprettRevurderingServiceTest {
     @Test
     fun `ugyldig periode`() {
         val vedtakServiceMock = mock<VedtakService> {
-            on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode(Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden).left()
+            on {
+                kopierGjeldendeVedtaksdata(
+                    any(),
+                    any(),
+                )
+            } doReturn KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode(Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden)
+                .left()
         }
 
         val mocks = RevurderingServiceMocks(
@@ -672,7 +687,8 @@ internal class OpprettRevurderingServiceTest {
             ),
         )
 
-        actual shouldBe KunneIkkeOppretteRevurdering.UgyldigPeriode(Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden).left()
+        actual shouldBe KunneIkkeOppretteRevurdering.UgyldigPeriode(Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden)
+            .left()
         verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(any(), any())
         mocks.verifyNoMoreInteractions()
     }
@@ -826,7 +842,7 @@ internal class OpprettRevurderingServiceTest {
         val andreVedtak = createSøknadsbehandlingVedtak().copy(
             periode = periodePlussEtÅr,
             behandling = createInnvilgetBehandling().copy(
-                grunnlagsdata = Grunnlagsdata(
+                grunnlagsdata = Grunnlagsdata.tryCreate(
                     bosituasjon = bosituasjon,
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger(
@@ -877,12 +893,15 @@ internal class OpprettRevurderingServiceTest {
             tilOgMed = periodeNesteMånedOgTreMånederFram.tilOgMed,
         )
         val revurdering = mock<IverksattRevurdering.Innvilget> {
-            on { attestering } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("attestantSomIverksatte"), fixedTidspunkt)
+            on { attestering } doReturn Attestering.Iverksatt(
+                NavIdentBruker.Attestant("attestantSomIverksatte"),
+                fixedTidspunkt,
+            )
             on { periode } doReturn revurderingsperiode
             on { beregning } doReturn mock()
             on { simulering } doReturn mock()
             on { saksbehandler } doReturn mock()
-            on { grunnlagsdata } doReturn Grunnlagsdata(
+            on { grunnlagsdata } doReturn Grunnlagsdata.tryCreate(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -924,82 +943,6 @@ internal class OpprettRevurderingServiceTest {
         )
 
         actual shouldBe KunneIkkeOppretteRevurdering.BosituasjonMedFlerePerioderMåRevurderes.left()
-        verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(sakId, periodeNesteMånedOgTreMånederFram.fraOgMed)
-        mocks.verifyNoMoreInteractions()
-    }
-
-    @Test
-    fun `revurdering med EPS inntekt og flere bosituasjoner må vurderes`() {
-        fun lagBeregning(periode: Periode) = mock<Beregning> {
-            on { getFradrag() } doReturn listOf(
-                FradragFactory.ny(
-                    type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 5000.0,
-                    periode = periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS,
-                ),
-            )
-        }
-
-        val revurderingsperiode = Periode.create(
-            fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed.plus(1, ChronoUnit.MONTHS),
-            tilOgMed = periodeNesteMånedOgTreMånederFram.tilOgMed,
-        )
-        val revurderingBeregning = lagBeregning(revurderingsperiode)
-
-        val revurdering = mock<IverksattRevurdering.Innvilget> {
-            on { attestering } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("attestantSomIverksatte"), fixedTidspunkt)
-
-            on { periode } doReturn revurderingsperiode
-            on { beregning } doReturn revurderingBeregning
-            on { simulering } doReturn mock()
-            on { saksbehandler } doReturn mock()
-            on { grunnlagsdata } doReturn Grunnlagsdata(
-                bosituasjon = listOf(
-                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = periodeNesteMånedOgTreMånederFram,
-                        begrunnelse = null,
-                    ),
-                ),
-            )
-            on { vilkårsvurderinger } doReturn Vilkårsvurderinger(
-                uføre = vilkårsvurderingUføre,
-            )
-        }
-
-        val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
-            periode = periodeNesteMånedOgTreMånederFram,
-            vedtakListe = nonEmptyListOf(
-                createSøknadsbehandlingVedtak().copy(
-                    beregning = lagBeregning(periodeNesteMånedOgTreMånederFram),
-                ),
-                Vedtak.from(revurdering, UUID30.randomUUID(), fixedClock),
-            ),
-            clock = fixedClock,
-        )
-
-        val vedtakServiceMock = mock<VedtakService> {
-            on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn gjeldendeVedtaksdata.right()
-        }
-
-        val mocks = RevurderingServiceMocks(
-            vedtakService = vedtakServiceMock,
-        )
-        val actual = mocks.revurderingService.opprettRevurdering(
-            OpprettRevurderingRequest(
-                sakId = sakId,
-                fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
-                årsak = "MELDING_FRA_BRUKER",
-                begrunnelse = "Ny informasjon",
-                saksbehandler = saksbehandler,
-                informasjonSomRevurderes = listOf(Revurderingsteg.Bosituasjon),
-            ),
-        )
-
-        actual shouldBe KunneIkkeOppretteRevurdering.EpsInntektMedFlereBosituasjonsperioderMåRevurderes.left()
         verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(sakId, periodeNesteMånedOgTreMånederFram.fraOgMed)
         mocks.verifyNoMoreInteractions()
     }

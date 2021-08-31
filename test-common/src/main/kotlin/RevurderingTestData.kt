@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.test
 import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.right
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -13,6 +14,7 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
@@ -144,6 +146,25 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         )
     }
 }
+fun lagFradragsgrunnlag(
+    id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = fixedTidspunkt,
+    type: Fradragstype,
+    månedsbeløp: Double,
+    periode: Periode,
+    utenlandskInntekt: UtenlandskInntekt? = null,
+    tilhører: FradragTilhører,
+) = Grunnlag.Fradragsgrunnlag.tryCreate(
+    id = id,
+    opprettet = opprettet,
+    fradrag = FradragFactory.ny(
+        type = type,
+        månedsbeløp = månedsbeløp,
+        periode = periode,
+        utenlandskInntekt = utenlandskInntekt,
+        tilhører = tilhører,
+    )
+).orNull()!!
 
 fun beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
@@ -161,16 +182,11 @@ fun beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
         it.copy(
             grunnlagsdata = it.grunnlagsdata.copy(
                 fradragsgrunnlag = listOf(
-                    Grunnlag.Fradragsgrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        fradrag = FradragFactory.ny(
-                            type = Fradragstype.Arbeidsinntekt,
-                            månedsbeløp = 6000.0,
-                            periode = stønadsperiode.periode,
-                            utenlandskInntekt = null,
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
+                    lagFradragsgrunnlag(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 6000.0,
+                        periode = stønadsperiode.periode,
+                        tilhører = FradragTilhører.BRUKER,
                     ),
                 ),
             ),

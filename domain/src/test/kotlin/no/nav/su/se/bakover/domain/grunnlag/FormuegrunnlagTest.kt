@@ -8,9 +8,10 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.FnrGenerator
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.empty
+import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -144,7 +145,7 @@ internal class FormuegrunnlagTest {
                 begrunnelse = null,
                 bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                     id = UUID.randomUUID(),
-                    fnr = FnrGenerator.random(),
+                    fnr = Fnr.generer(),
                     opprettet = Tidspunkt.EPOCH,
                     periode = Periode.create(1.januar(2021), 31.januar(2021)),
                     begrunnelse = null,

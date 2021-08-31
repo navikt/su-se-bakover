@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
@@ -51,6 +52,7 @@ import no.nav.su.se.bakover.service.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.service.brev.KunneIkkeBestilleBrevForDokument
 import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreDokument
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
+import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.BeregnOgSimulerResponse
@@ -72,7 +74,6 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAtte
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.service.revurdering.LeggTilBosituasjongrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.LeggTilFormuegrunnlagRequest
-import no.nav.su.se.bakover.service.revurdering.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.OpprettRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
@@ -290,6 +291,10 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
+                override fun lagreDokument(dokument: Dokument.MedMetadata, transactionContext: TransactionContext) {
+                    kastKanKunKallesFraAnnenService()
+                }
+
                 override fun journalførDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeJournalføreDokument, Dokumentdistribusjon> {
                     kastKanKunKallesFraAnnenService()
                 }
@@ -422,6 +427,11 @@ open class AccessCheckProxy(
                 override fun fullførBosituasjongrunnlag(request: FullførBosituasjonRequest): Either<SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.fullførBosituasjongrunnlag(request)
+                }
+
+                override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling> {
+                    assertHarTilgangTilBehandling(request.behandlingId)
+                    return services.søknadsbehandling.leggTilFradragsgrunnlag(request)
                 }
             },
             ferdigstillVedtak = object : FerdigstillVedtakService {
@@ -591,18 +601,10 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun hentFradragsgrunnlag(behandlingId: UUID): List<Grunnlag.Fradragsgrunnlag> {
-                    kastKanKunKallesFraAnnenService()
-                }
-
                 override fun lagreBosituasjongrunnlag(
                     behandlingId: UUID,
                     bosituasjongrunnlag: List<Grunnlag.Bosituasjon>,
                 ) {
-                    kastKanKunKallesFraAnnenService()
-                }
-
-                override fun hentBosituasjongrunnlang(behandlingId: UUID): List<Grunnlag.Bosituasjon> {
                     kastKanKunKallesFraAnnenService()
                 }
             },
