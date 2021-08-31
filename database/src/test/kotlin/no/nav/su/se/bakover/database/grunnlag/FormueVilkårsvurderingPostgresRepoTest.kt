@@ -7,11 +7,11 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.fixedTidspunkt
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.vilkår.Resultat
@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.createFromGrunnlag
+import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -70,7 +71,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(),
                     periode = periode,
-                    fnr = FnrGenerator.random(),
+                    fnr = Fnr.generer(),
                     begrunnelse = "i87i78i78i87i",
                 ),
                 behandlingsPeriode = periode,

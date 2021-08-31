@@ -5,8 +5,9 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.web.FnrGenerator
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.fixedClock
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -22,7 +23,7 @@ internal class BosituasjonJsonTest {
     companion object {
         private val bosituasjonId = UUID.randomUUID()
         private val bosituasjonOpprettet = Tidspunkt.now(fixedClock)
-        private val fnrBosituasjon = FnrGenerator.random()
+        private val fnrBosituasjon = Fnr.generer()
 
         //language=JSON
         internal val expectedBosituasjonJson = """[

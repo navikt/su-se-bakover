@@ -5,7 +5,8 @@ import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.domain.FnrGenerator
+import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 
 internal class SimulertUtbetalingTest {
@@ -14,9 +15,9 @@ internal class SimulertUtbetalingTest {
         fagSystemId = UUID30.randomUUID().toString(),
         feilkonto = false,
         forfall = idag(),
-        utbetalesTilId = FnrGenerator.random(),
+        utbetalesTilId = Fnr.generer(),
         utbetalesTilNavn = "MYGG LUR",
-        detaljer = emptyList()
+        detaljer = emptyList(),
     )
 
     @Test
@@ -26,7 +27,7 @@ internal class SimulertUtbetalingTest {
 
         simulertUtbetaling shouldNotBe simulertUtbetaling.copy(fagSystemId = "balony")
         simulertUtbetaling shouldNotBe simulertUtbetaling.copy(feilkonto = true)
-        simulertUtbetaling shouldNotBe simulertUtbetaling.copy(utbetalesTilId = FnrGenerator.random())
+        simulertUtbetaling shouldNotBe simulertUtbetaling.copy(utbetalesTilId = Fnr.generer())
         simulertUtbetaling shouldNotBe simulertUtbetaling.copy(utbetalesTilNavn = "et annet navn")
         simulertUtbetaling shouldNotBe simulertUtbetaling.copy(
             detaljer = listOf(

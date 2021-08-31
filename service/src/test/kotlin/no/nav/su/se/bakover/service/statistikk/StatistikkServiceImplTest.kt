@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -39,11 +40,11 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -100,7 +101,7 @@ internal class StatistikkServiceImplTest {
             id = UUID.randomUUID(),
             saksnummer = Saksnummer(nummer = 2021),
             opprettet = Tidspunkt.now(fixedClock),
-            fnr = FnrGenerator.random(),
+            fnr = Fnr.generer(),
             søknader = listOf(),
             søknadsbehandlinger = listOf(),
             utbetalinger = listOf(),
@@ -349,7 +350,7 @@ internal class StatistikkServiceImplTest {
             søknad = søknadMock,
             oppgaveId = OppgaveId(value = ""),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-            fnr = FnrGenerator.random(),
+            fnr = Fnr.generer(),
             beregning = beregning,
             simulering = mock(),
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
@@ -472,7 +473,7 @@ internal class StatistikkServiceImplTest {
             periode = behandlingsperiode,
             beregning = beregning,
             simulering = Simulering(
-                gjelderId = FnrGenerator.random(),
+                gjelderId = Fnr.generer(),
                 gjelderNavn = "Mr. Asd",
                 datoBeregnet = LocalDate.now(clock),
                 nettoBeløp = 100,
@@ -539,7 +540,7 @@ internal class StatistikkServiceImplTest {
             oppgaveId = OppgaveId("55"),
             beregning = beregning,
             simulering = Simulering(
-                gjelderId = FnrGenerator.random(),
+                gjelderId = Fnr.generer(),
                 gjelderNavn = "Mr. Asd",
                 datoBeregnet = LocalDate.now(clock),
                 nettoBeløp = 100,

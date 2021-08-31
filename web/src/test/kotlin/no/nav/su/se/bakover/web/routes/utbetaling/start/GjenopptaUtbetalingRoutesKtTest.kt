@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.web.FnrGenerator
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
@@ -224,7 +224,7 @@ internal class GjenopptaUtbetalingRoutesKtTest {
             behandler = NavIdentBruker.Attestant("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(),
             simulering = Simulering(
-                gjelderId = FnrGenerator.random(),
+                gjelderId = Fnr.generer(),
                 gjelderNavn = "",
                 datoBeregnet = LocalDate.now(),
                 nettoBeløp = 0,
@@ -233,7 +233,7 @@ internal class GjenopptaUtbetalingRoutesKtTest {
             utbetalingsrequest = Utbetalingsrequest(""),
         )
         val sak = Sak(
-            fnr = FnrGenerator.random(),
+            fnr = Fnr.generer(),
             saksnummer = Saksnummer(9999),
             utbetalinger = listOf(utbetaling),
         )

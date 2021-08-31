@@ -21,7 +21,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
-import no.nav.su.se.bakover.web.FnrGenerator
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.sakId
@@ -53,20 +53,20 @@ internal class UtbetalingKvitteringConsumerTest {
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.januar(2021),
                 forrigeUtbetalingslinjeId = null,
-                beløp = 0
-            )
+                beløp = 0,
+            ),
         ),
-        fnr = FnrGenerator.random(),
+        fnr = Fnr.generer(),
         utbetalingsrequest = Utbetalingsrequest(""),
         simulering = Simulering(
             gjelderId = Fnr("12345678910"),
             gjelderNavn = "navn",
             datoBeregnet = idag(),
             nettoBeløp = 0,
-            periodeList = listOf()
+            periodeList = listOf(),
         ),
         type = Utbetaling.UtbetalingsType.NY,
-        behandler = NavIdentBruker.Attestant("Z123")
+        behandler = NavIdentBruker.Attestant("Z123"),
     )
 
     @Test

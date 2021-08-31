@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
@@ -287,6 +288,10 @@ open class AccessCheckProxy(
                 }
 
                 override fun lagreDokument(dokument: Dokument.MedMetadata) {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun lagreDokument(dokument: Dokument.MedMetadata, transactionContext: TransactionContext) {
                     kastKanKunKallesFraAnnenService()
                 }
 

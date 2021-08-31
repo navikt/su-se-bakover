@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.FnrGenerator
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
@@ -488,7 +489,7 @@ internal class RevurderingTest {
     ) = Utbetaling.OversendtUtbetaling.MedKvittering(
         sakId = UUID.randomUUID(),
         saksnummer = Saksnummer(9999),
-        fnr = FnrGenerator.random(),
+        fnr = Fnr.generer(),
         utbetalingslinjer = NonEmptyList.fromListUnsafe(utbetalingslinjer.toList()),
         type = Utbetaling.UtbetalingsType.NY,
         behandler = mock(),

@@ -7,7 +7,7 @@ buildscript {
 plugins {
     kotlin("jvm") version "1.5.21"
     // Støtter unicode filer (i motsetning til https://github.com/JLLeitschuh/ktlint-gradle 10.0.0) og har nyere dependencies som gradle. Virker som den oppdateres hyppigere.
-    id("org.jmailen.kotlinter") version "3.5.0"
+    id("org.jmailen.kotlinter") version "3.5.1"
     id("com.github.ben-manes.versions") version "0.39.0" // Finds latest versions
     id("se.patrikerdes.use-latest-versions") version "0.2.17"
 }
@@ -27,7 +27,7 @@ allprojects {
     }
     val junitJupiterVersion = "5.7.2"
     val arrowVersion = "0.13.2"
-    val kotestVersion = "4.6.1"
+    val kotestVersion = "4.6.2"
     val jacksonVersion = "2.12.5"
     val kotlinVersion = "1.5.21"
     dependencies {

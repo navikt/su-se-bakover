@@ -7,11 +7,12 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.FnrGenerator
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -47,7 +48,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
                 periode = periode,
-                fnr = FnrGenerator.random(),
+                fnr = Fnr.generer(),
                 begrunnelse = "",
             )
             val bosituasjon2 = Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -75,7 +76,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
                 periode = periode,
-                fnr = FnrGenerator.random(),
+                fnr = Fnr.generer(),
                 begrunnelse = "",
             )
             val bosituasjon2 = Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -131,7 +132,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
                 periode = periode,
-                fnr = FnrGenerator.random(),
+                fnr = Fnr.generer(),
                 begrunnelse = "",
             )
             val bosituasjon2 = Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -174,7 +175,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
                 periode = periode,
-                fnr = FnrGenerator.random(),
+                fnr = Fnr.generer(),
                 begrunnelse = "",
             )
             val arbEps = lagFradragsgrunnlag(

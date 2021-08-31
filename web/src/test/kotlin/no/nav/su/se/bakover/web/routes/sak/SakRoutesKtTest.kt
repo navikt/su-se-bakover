@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.web.FnrGenerator
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.dbMetricsStub
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.fixedClock
@@ -94,7 +94,7 @@ internal class SakRoutesKtTest {
             }
 
             defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Veileder)) {
-                setBody("""{"fnr":"${FnrGenerator.random()}"}""")
+                setBody("""{"fnr":"${Fnr.generer()}"}""")
             }.apply {
                 response.status() shouldBe NotFound
             }

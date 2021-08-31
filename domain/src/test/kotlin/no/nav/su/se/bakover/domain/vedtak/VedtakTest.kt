@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.FnrGenerator
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.empty
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.shouldBeEqualToExceptId
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
@@ -414,17 +415,18 @@ internal class VedtakTest {
                 søknad = mock(),
                 oppgaveId = mock(),
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                fnr = FnrGenerator.random(),
+                fnr = Fnr.generer(),
                 beregning = mock(),
                 simulering = mock(),
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-                attesteringer = Attesteringshistorikk.empty()
-                    .leggTilNyAttestering(
+                attesteringer = Attesteringshistorikk(
+                    listOf(
                         Attestering.Iverksatt(
-                            NavIdentBruker.Attestant("Attes T. Ant"),
-                            Tidspunkt.now(clock),
+                            attestant = NavIdentBruker.Attestant("Attes T. Ant"),
+                            opprettet = Tidspunkt.now(clock),
                         ),
                     ),
+                ),
                 fritekstTilBrev = "",
                 stønadsperiode = Stønadsperiode.create(
                     periode = Periode.create(fraDato, tilDato),

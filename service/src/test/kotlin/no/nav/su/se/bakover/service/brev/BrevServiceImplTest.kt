@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.client.dokdistfordeling.KunneIkkeBestilleDistribusjo
 import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
@@ -415,6 +416,7 @@ internal class BrevServiceImplTest {
         val dokumentRepo: DokumentRepo = mock(),
         val sakService: SakService = mock(),
         val personService: PersonService = mock(),
+        val sessionFactory: SessionFactory = mock(),
     ) {
         val brevService = BrevServiceImpl(
             pdfGenerator = pdfGenerator,
@@ -423,6 +425,7 @@ internal class BrevServiceImplTest {
             dokumentRepo = dokumentRepo,
             sakService = sakService,
             personService = personService,
+            sessionFactory = sessionFactory,
         )
 
         fun verifyNoMoreInteraction() {
