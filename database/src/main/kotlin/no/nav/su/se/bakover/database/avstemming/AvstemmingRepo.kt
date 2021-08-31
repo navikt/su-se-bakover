@@ -6,7 +6,10 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 
 interface AvstemmingRepo {
     fun opprettAvstemming(avstemming: Avstemming): Avstemming
-    fun oppdaterAvstemteUtbetalinger(avstemming: Avstemming)
-    fun hentSisteAvstemming(): Avstemming?
-    fun hentUtbetalingerForAvstemming(fraOgMed: Tidspunkt, tilOgMed: Tidspunkt): List<Utbetaling.OversendtUtbetaling>
+    fun oppdaterUtbetalingerEtterGrensesnittsavstemming(avstemming: Avstemming.Grensesnittavstemming)
+    fun hentSisteGrensesnittsavstemming(): Avstemming.Grensesnittavstemming?
+    fun hentUtbetalingerForGrensesnittsavstemming(
+        fraOgMed: Tidspunkt,
+        tilOgMed: Tidspunkt,
+    ): List<Utbetaling.OversendtUtbetaling>
 }

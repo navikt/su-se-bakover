@@ -26,19 +26,19 @@ internal class AvstemmingPostgresRepoTest {
     private val repo = AvstemmingPostgresRepo(EmbeddedDatabase.instance())
 
     @Test
-    fun `henter siste avstemming`() {
+    fun `henter siste grensesnittsavstemming`() {
         withMigratedDb {
             val utbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering()
 
-            val zero = repo.hentSisteAvstemming()
+            val zero = repo.hentSisteGrensesnittsavstemming()
             zero shouldBe null
 
             repo.opprettAvstemming(
                 Avstemming.Grensesnittavstemming(
                     fraOgMed = 1.januar(2020).startOfDay(),
                     tilOgMed = 2.januar(2020).startOfDay(),
-                    utbetalinger = listOf(utbetalingMedKvittering.second)
-                )
+                    utbetalinger = listOf(utbetalingMedKvittering.second),
+                ),
             )
 
             val second = repo.opprettAvstemming(
@@ -46,24 +46,24 @@ internal class AvstemmingPostgresRepoTest {
                     fraOgMed = 3.januar(2020).startOfDay(),
                     tilOgMed = 4.januar(2020).startOfDay(),
                     utbetalinger = listOf(utbetalingMedKvittering.second),
-                    avstemmingXmlRequest = "<Root></Root>"
-                )
+                    avstemmingXmlRequest = "<Root></Root>",
+                ),
             )
 
-            val hentet = repo.hentSisteAvstemming()!!
+            val hentet = repo.hentSisteGrensesnittsavstemming()!!
             hentet shouldBe second
         }
     }
 
     @Test
-    fun `hent utbetalinger for avstemming`() {
+    fun `hent utbetalinger for grensesnittsavstemming`() {
         withMigratedDb {
             val (innvilget, utbetaling) = testDataHelper.nyIverksattInnvilget(
                 avstemmingsnøkkel = Avstemmingsnøkkel(
                     11.oktober(
-                        2020
-                    ).startOfDay()
-                )
+                        2020,
+                    ).startOfDay(),
+                ),
             )
 
             EmbeddedDatabase.instance().withSession { session ->
@@ -80,51 +80,51 @@ internal class AvstemmingPostgresRepoTest {
                         "behandler" to "Z123",
                         "avstemmingsnokkel" to objectMapper.writeValueAsString(
                             Avstemmingsnøkkel(
-                                9.oktober(2020).startOfDay()
-                            )
+                                9.oktober(2020).startOfDay(),
+                            ),
                         ),
                         "simulering" to "{}",
-                        "utbetalingsrequest" to "{}"
+                        "utbetalingsrequest" to "{}",
                     ),
-                    session
+                    session,
                 )
             }
 
-            repo.hentUtbetalingerForAvstemming(
+            repo.hentUtbetalingerForGrensesnittsavstemming(
                 fraOgMed = 10.oktober(2020).startOfDay(),
-                tilOgMed = 10.oktober(2020).endOfDay()
+                tilOgMed = 10.oktober(2020).endOfDay(),
             ) shouldBe emptyList()
 
-            repo.hentUtbetalingerForAvstemming(
+            repo.hentUtbetalingerForGrensesnittsavstemming(
                 fraOgMed = 11.oktober(2020).startOfDay(),
-                tilOgMed = 11.oktober(2020).endOfDay()
+                tilOgMed = 11.oktober(2020).endOfDay(),
             ) shouldBe listOf(utbetaling)
 
-            repo.hentUtbetalingerForAvstemming(
+            repo.hentUtbetalingerForGrensesnittsavstemming(
                 fraOgMed = 12.oktober(2020).startOfDay(),
-                tilOgMed = 12.oktober(2020).endOfDay()
+                tilOgMed = 12.oktober(2020).endOfDay(),
             ) shouldBe emptyList()
         }
     }
 
     @Test
-    fun `hent utbetalinger for avstemming tidspunkt test`() {
+    fun `hent utbetalinger for grensesnittsavstemming tidspunkt test`() {
         withMigratedDb {
             val utbetaling1 = testDataHelper.nyOversendtUtbetalingMedKvittering(
                 avstemmingsnøkkel = Avstemmingsnøkkel(
-                    11.oktober(2020).startOfDay()
-                )
+                    11.oktober(2020).startOfDay(),
+                ),
             )
 
             val utbetaling2 = testDataHelper.nyOversendtUtbetalingMedKvittering(
                 avstemmingsnøkkel = Avstemmingsnøkkel(
-                    11.oktober(2020).endOfDay()
-                )
+                    11.oktober(2020).endOfDay(),
+                ),
             )
 
-            val utbetalinger = repo.hentUtbetalingerForAvstemming(
+            val utbetalinger = repo.hentUtbetalingerForGrensesnittsavstemming(
                 11.oktober(2020).startOfDay(),
-                11.oktober(2020).endOfDay()
+                11.oktober(2020).endOfDay(),
             )
 
             utbetalinger shouldHaveSize 2
@@ -133,7 +133,7 @@ internal class AvstemmingPostgresRepoTest {
     }
 
     @Test
-    fun `oppretter avstemming og oppdaterer aktuelle utbetalinger`() {
+    fun `oppretter grensesnittsavstemming og oppdaterer aktuelle utbetalinger`() {
         withMigratedDb {
             val oversendtUtbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering()
 
@@ -143,15 +143,38 @@ internal class AvstemmingPostgresRepoTest {
                 fraOgMed = fixedTidspunkt,
                 tilOgMed = fixedTidspunkt,
                 utbetalinger = listOf(oversendtUtbetalingMedKvittering.second),
-                avstemmingXmlRequest = "some xml"
+                avstemmingXmlRequest = "some xml",
             )
 
             repo.opprettAvstemming(avstemming)
-            repo.oppdaterAvstemteUtbetalinger(avstemming)
+            repo.oppdaterUtbetalingerEtterGrensesnittsavstemming(avstemming)
 
             EmbeddedDatabase.instance().withSession { session ->
                 "select count(*) from Utbetaling where avstemmingId is not null".antall(session = session)
             } shouldBe 1
+        }
+    }
+
+    @Test
+    fun `oppretter konsistensavstemming`() {
+        withMigratedDb {
+            val oversendtUtbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering()
+
+            val avstemming = Avstemming.Konsistensavstemming(
+                id = UUID30.randomUUID(),
+                opprettet = fixedTidspunkt,
+                fraOgMed = fixedTidspunkt,
+                tilOgMed = fixedTidspunkt,
+                utbetalinger = listOf(oversendtUtbetalingMedKvittering.second),
+                avstemmingXmlRequest = "some xml",
+            )
+
+            repo.opprettAvstemming(avstemming)
+
+            EmbeddedDatabase.instance().withSession { session ->
+                "select count(*) from avstemming where type = '${AvstemmingType.GRENSESNITT}'".antall(session = session) shouldBe 0
+                "select count(*) from avstemming where type = '${AvstemmingType.KONSISTENS}'".antall(session = session) shouldBe 1
+            }
         }
     }
 }

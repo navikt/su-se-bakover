@@ -25,8 +25,8 @@ internal class AvstemmingPostgresRepo(
     override fun opprettAvstemming(avstemming: Avstemming): Avstemming {
         return dataSource.withSession { session ->
             """
-            insert into avstemming (id, opprettet, fom, tom, utbetalinger, avstemmingXmlRequest)
-            values (:id, :opprettet, :fom, :tom, to_json(:utbetalinger::json), :avstemmingXmlRequest)
+            insert into avstemming (id, opprettet, fom, tom, utbetalinger, avstemmingXmlRequest, type)
+            values (:id, :opprettet, :fom, :tom, to_json(:utbetalinger::json), :avstemmingXmlRequest, :type)
         """.insert(
                 mapOf(
                     "id" to avstemming.id,
@@ -35,6 +35,10 @@ internal class AvstemmingPostgresRepo(
                     "tom" to avstemming.tilOgMed,
                     "utbetalinger" to objectMapper.writeValueAsString(avstemming.utbetalinger.map { it.id.toString() }),
                     "avstemmingXmlRequest" to avstemming.avstemmingXmlRequest,
+                    "type" to when (avstemming) {
+                        is Avstemming.Grensesnittavstemming -> AvstemmingType.GRENSESNITT.name
+                        is Avstemming.Konsistensavstemming -> AvstemmingType.KONSISTENS.name
+                    },
                 ),
                 session,
             ).let {
@@ -48,7 +52,7 @@ internal class AvstemmingPostgresRepo(
             it.toAvstemming(session)
         }
 
-    override fun oppdaterAvstemteUtbetalinger(avstemming: Avstemming) {
+    override fun oppdaterUtbetalingerEtterGrensesnittsavstemming(avstemming: Avstemming.Grensesnittavstemming) {
         dataSource.withSession { session ->
             """
                 update utbetaling set avstemmingId=:avstemmingId where id = ANY(:in)
@@ -62,16 +66,16 @@ internal class AvstemmingPostgresRepo(
         }
     }
 
-    override fun hentSisteAvstemming() =
+    override fun hentSisteGrensesnittsavstemming(): Avstemming.Grensesnittavstemming? =
         dataSource.withSession { session ->
             """
-            select * from avstemming order by tom desc limit 1
+            select * from avstemming where type = '${AvstemmingType.GRENSESNITT}' order by tom desc limit 1
         """.hent(emptyMap(), session) {
-                it.toAvstemming(session)
+                it.toAvstemming(session) as? Avstemming.Grensesnittavstemming
             }
         }
 
-    override fun hentUtbetalingerForAvstemming(
+    override fun hentUtbetalingerForGrensesnittsavstemming(
         fraOgMed: Tidspunkt,
         tilOgMed: Tidspunkt,
     ): List<Utbetaling.OversendtUtbetaling> =
@@ -91,18 +95,46 @@ internal class AvstemmingPostgresRepo(
         }
 }
 
-private fun Row.toAvstemming(session: Session) = Avstemming.Grensesnittavstemming(
-    id = uuid30("id"),
-    opprettet = tidspunkt("opprettet"),
-    fraOgMed = tidspunkt("fom"),
-    tilOgMed = tidspunkt("tom"),
-    utbetalinger = stringOrNull("utbetalinger")?.let { utbetalingListAsString ->
+private fun Row.toAvstemming(session: Session): Avstemming {
+    val id = uuid30("id")
+    val opprettet = tidspunkt("opprettet")
+    val fraOgMed = tidspunkt("fom")
+    val tilOgMed = tidspunkt("tom")
+    val utbetalinger = stringOrNull("utbetalinger")?.let { utbetalingListAsString ->
         objectMapper.readValue(utbetalingListAsString, List::class.java).map { utbetalingId ->
             UtbetalingInternalRepo.hentUtbetalingInternal(
                 UUID30(utbetalingId as String),
                 session,
             )!!
         }
-    }!!,
-    avstemmingXmlRequest = stringOrNull("avstemmingXmlRequest"),
-)
+    }!!
+    val avstemmingXmlRequest = stringOrNull("avstemmingXmlRequest")
+
+    return when (AvstemmingType.valueOf(string("type"))) {
+        AvstemmingType.GRENSESNITT -> {
+            Avstemming.Grensesnittavstemming(
+                id = id,
+                opprettet = opprettet,
+                fraOgMed = fraOgMed,
+                tilOgMed = tilOgMed,
+                utbetalinger = utbetalinger,
+                avstemmingXmlRequest = avstemmingXmlRequest,
+            )
+        }
+        AvstemmingType.KONSISTENS -> {
+            Avstemming.Konsistensavstemming(
+                id = id,
+                opprettet = opprettet,
+                fraOgMed = fraOgMed,
+                tilOgMed = tilOgMed,
+                utbetalinger = utbetalinger,
+                avstemmingXmlRequest = avstemmingXmlRequest,
+            )
+        }
+    }
+}
+
+internal enum class AvstemmingType {
+    GRENSESNITT,
+    KONSISTENS
+}

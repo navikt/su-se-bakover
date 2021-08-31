@@ -15,7 +15,7 @@ internal class AvstemmingServiceImpl(
     private val clock: Clock,
 ) : AvstemmingService {
     override fun grensesnittsavstemming(): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming> {
-        val periode = AvstemmingPeriodeBuilder(repo.hentSisteAvstemming(), clock).build()
+        val periode = AvstemmingPeriodeBuilder(repo.hentSisteGrensesnittsavstemming(), clock).build()
         return grensesnittsavstemming(periode)
     }
 
@@ -35,7 +35,7 @@ internal class AvstemmingServiceImpl(
     }
 
     private fun grensesnittsavstemming(periode: AvstemmingsPeriode): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming> {
-        val utbetalinger = repo.hentUtbetalingerForAvstemming(periode.fraOgMed, periode.tilOgMed)
+        val utbetalinger = repo.hentUtbetalingerForGrensesnittsavstemming(periode.fraOgMed, periode.tilOgMed)
 
         val avstemming = Avstemming.Grensesnittavstemming(
             opprettet = Tidspunkt.now(clock),
@@ -48,7 +48,7 @@ internal class AvstemmingServiceImpl(
             { AvstemmingFeilet.left() },
             {
                 repo.opprettAvstemming(it)
-                repo.oppdaterAvstemteUtbetalinger(it)
+                repo.oppdaterUtbetalingerEtterGrensesnittsavstemming(it)
                 it.right()
             },
         )
@@ -67,7 +67,6 @@ internal class AvstemmingServiceImpl(
             { AvstemmingFeilet.left() },
             {
                 repo.opprettAvstemming(it)
-                repo.oppdaterAvstemteUtbetalinger(it)
                 it.right()
             },
         )
