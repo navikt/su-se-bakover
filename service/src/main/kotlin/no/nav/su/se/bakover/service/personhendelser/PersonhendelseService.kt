@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
+import no.nav.su.se.bakover.service.person.PersonService
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -18,34 +19,42 @@ import java.util.UUID
 class PersonhendelseService(
     private val sakRepo: SakRepo,
     private val personhendelseRepo: PersonhendelseRepo,
-    private val oppgaveServiceImpl: OppgaveService
+    private val oppgaveServiceImpl: OppgaveService,
+    private val personService: PersonService,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    fun prosesserNyHendelse(personhendelse: Personhendelse.Ny) {
-        val eksisterendeSakId =
-            sakRepo.hentSakIdForIdenter(personhendelse.personidenter) ?: return Unit.also {
+    fun prosesserNyHendelse(personhendelse: Personhendelse.IkkeTilknyttetSak) {
+        val eksisterendeSakIdOgNummer =
+            sakRepo.hentSakIdOgNummerForIdenter(personhendelse.metadata.personidenter) ?: return Unit.also {
                 log.debug("Personhendelse ikke knyttet til sak: Ignorerer ${personhendelse.hendelse} med hendelsesid ${personhendelse.metadata.hendelseId}, offset ${personhendelse.metadata.offset}, partisjon ${personhendelse.metadata.partisjon} og endringstype ${personhendelse.endringstype}")
                 sikkerLogg.debug("Personhendelse ikke knyttet til sak: $personhendelse")
             }
-        log.info("Personhendelse for sak id $eksisterendeSakId: Persisterer ${personhendelse.hendelse} med hendelsesid ${personhendelse.metadata.hendelseId}, offset ${personhendelse.metadata.offset}, partisjon ${personhendelse.metadata.partisjon} og endringstype ${personhendelse.endringstype}")
+        log.info("Personhendelse for sak id ${ eksisterendeSakIdOgNummer.sakId }: Persisterer ${personhendelse.hendelse} med hendelsesid ${personhendelse.metadata.hendelseId}, offset ${personhendelse.metadata.offset}, partisjon ${personhendelse.metadata.partisjon} og endringstype ${personhendelse.endringstype}")
         sikkerLogg.debug("Personhendelse for sak: $personhendelse")
         personhendelseRepo.lagre(
-            personhendelse = personhendelse,
-            id = UUID.randomUUID(),
-            sakId = eksisterendeSakId,
+            personhendelse = personhendelse.tilknyttSak(UUID.randomUUID(), eksisterendeSakIdOgNummer),
         )
     }
 
     fun opprettOppgaverForPersonhendelser() = personhendelseRepo.hentPersonhendelserUtenOppgave().forEach { personhendelse ->
-        oppgaveServiceImpl.opprettOppgave(
-            OppgaveConfig.Personhendelse(
-                saksnummer = personhendelse.saksnummer,
-                beskrivelse = OppgavebeskrivelseMapper.map(personhendelse.hendelse),
-                aktørId = personhendelse.gjeldendeAktørId,
-            )
-        ).map {
-            personhendelseRepo.oppdaterOppgave(personhendelse.id, it)
-        }
+        val sak = sakRepo.hentSak(personhendelse.sakId)!!
+
+        personService.hentAktørId(sak.fnr).fold(
+            ifLeft = { log.error("Fant ikke aktørId for personhendelse med id: ${personhendelse.id}") },
+            ifRight = { aktørId ->
+                oppgaveServiceImpl.opprettOppgave(
+                    OppgaveConfig.Personhendelse(
+                        saksnummer = personhendelse.saksnummer,
+                        beskrivelse = OppgavebeskrivelseMapper.map(personhendelse.hendelse),
+                        aktørId = aktørId,
+                    )
+                ).map { oppgaveId ->
+                    personhendelseRepo.lagre(
+                        personhendelse.tilSendtTilOppgave(oppgaveId)
+                    )
+                }
+            }
+        )
     }
 }

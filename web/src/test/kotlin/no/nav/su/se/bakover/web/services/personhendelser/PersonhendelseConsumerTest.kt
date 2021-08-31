@@ -14,7 +14,6 @@ import no.nav.person.pdl.leesah.doedsfall.Doedsfall
 import no.nav.person.pdl.leesah.sivilstand.Sivilstand
 import no.nav.person.pdl.leesah.utflytting.UtflyttingFraNorge
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
@@ -66,15 +65,14 @@ internal class PersonhendelseConsumerTest {
         for (index in 0..5L) {
             producer.send(generatePdlMelding(TOPIC1, index))
         }
-        val hendelser = argumentCaptor<Personhendelse.Ny>()
+        val hendelser = argumentCaptor<Personhendelse.IkkeTilknyttetSak>()
         verify(personhendelseService, timeout(10000).times(6)).prosesserNyHendelse(hendelser.capture())
         hendelser.allValues shouldBe (0..5L).map {
-            Personhendelse.Ny(
-                gjeldendeAktørId = AktørId(ident),
+            Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
                 hendelse = Personhendelse.Hendelse.Dødsfall(LocalDate.now()),
-                personidenter = nonEmptyListOf(ident, fnr.toString()),
                 metadata = Personhendelse.Metadata(
+                    personidenter = nonEmptyListOf(ident, fnr.toString()),
                     hendelseId = it.toString(),
                     tidligereHendelseId = null,
                     offset = it,

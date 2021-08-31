@@ -2,12 +2,10 @@ package no.nav.su.se.bakover.web.services.personhendelser
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.person.pdl.leesah.Endringstype
 import no.nav.su.se.bakover.common.orNull
-import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
@@ -25,7 +23,7 @@ internal object PersonhendelseMapper {
 
     internal fun map(
         message: ConsumerRecord<String, EksternPersonhendelse>,
-    ): Either<KunneIkkeMappePersonhendelse, Personhendelse.Ny> {
+    ): Either<KunneIkkeMappePersonhendelse, Personhendelse.IkkeTilknyttetSak> {
         val key: String? = message.key()
         val personhendelse: EksternPersonhendelse = message.value()
         if (key == null) {
@@ -34,10 +32,6 @@ internal object PersonhendelseMapper {
                 personhendelse.getHendelseId(),
                 personhendelse.getOpplysningstype(),
             ).left()
-        }
-
-        val aktørId = hentAktørId(personhendelse, key).getOrHandle {
-            return it.left()
         }
 
         return when (personhendelse.getOpplysningstype()) {
@@ -86,12 +80,11 @@ internal object PersonhendelseMapper {
                 IkkeAktuellOpplysningstype(personhendelse.getHendelseId(), personhendelse.getOpplysningstype()).left()
             }
         }.map { hendelse: Personhendelse.Hendelse ->
-            Personhendelse.Ny(
-                gjeldendeAktørId = aktørId,
+            Personhendelse.IkkeTilknyttetSak(
                 endringstype = hentEndringstype(personhendelse.getEndringstype()),
-                personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
                 hendelse = hendelse,
                 metadata = Personhendelse.Metadata(
+                    personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
                     hendelseId = personhendelse.getHendelseId(),
                     tidligereHendelseId = personhendelse.getTidligereHendelseId()
                         .let { if (it.isPresent) it.get() else null },
@@ -102,19 +95,6 @@ internal object PersonhendelseMapper {
                 ),
             )
         }
-    }
-
-    private fun hentAktørId(
-        personhendelse: EksternPersonhendelse,
-        key: String,
-    ): Either<KunneIkkeMappePersonhendelse.KunneIkkeHenteAktørId, AktørId> {
-        val id = personhendelse.getPersonidenter().firstOrNull { key.contains(it) }
-            ?: return KunneIkkeMappePersonhendelse.KunneIkkeHenteAktørId(
-                personhendelse.getHendelseId(),
-                personhendelse.getOpplysningstype(),
-            ).left()
-
-        return AktørId(id).right()
     }
 
     private fun hentEndringstype(endringstype: Endringstype) =

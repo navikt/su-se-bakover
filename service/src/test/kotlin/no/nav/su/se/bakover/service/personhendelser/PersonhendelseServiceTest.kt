@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.personhendelser
 
+import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
@@ -13,9 +14,12 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
+import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -34,7 +38,7 @@ internal class PersonhendelseServiceTest {
     internal fun `kan lagre personhendelser`() {
         val sakId = UUID.randomUUID()
         val sakRepoMock = mock<SakRepo> {
-            on { hentSakIdForIdenter(any()) } doReturn sakId
+            on { hentSakIdOgNummerForIdenter(any()) } doReturn SakIdOgNummer(sakId, Saksnummer(2021))
         }
         val personhendelseRepoMock = mock<PersonhendelseRepo>()
         val oppgaveServiceMock: OppgaveService = mock()
@@ -42,15 +46,14 @@ internal class PersonhendelseServiceTest {
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
             oppgaveServiceImpl = oppgaveServiceMock,
+            personService = mock(),
         )
         val nyPersonhendelse = lagNyPersonhendelse()
         personhendelseService.prosesserNyHendelse(nyPersonhendelse)
 
-        verify(sakRepoMock).hentSakIdForIdenter(argThat { it shouldBe nyPersonhendelse.personidenter })
+        verify(sakRepoMock).hentSakIdOgNummerForIdenter(argThat { it shouldBe nyPersonhendelse.metadata.personidenter })
         verify(personhendelseRepoMock).lagre(
-            personhendelse = argThat { it shouldBe nyPersonhendelse },
-            id = any(),
-            sakId = argThat { it shouldBe sakId },
+            personhendelse = argThat { it shouldBe nyPersonhendelse.tilknyttSak(it.id, SakIdOgNummer(sakId, Saksnummer(2021))) },
         )
         verifyNoMoreInteractions(personhendelseRepoMock, sakRepoMock, oppgaveServiceMock)
     }
@@ -58,7 +61,7 @@ internal class PersonhendelseServiceTest {
     @Test
     internal fun `ignorerer hendelser for personer som ikke har en sak`() {
         val sakRepoMock = mock<SakRepo> {
-            on { hentSakIdForIdenter(any()) } doReturn null
+            on { hentSakIdOgNummerForIdenter(any()) } doReturn null
         }
         val personhendelseRepoMock = mock<PersonhendelseRepo>()
         val oppgaveServiceMock: OppgaveService = mock()
@@ -67,58 +70,64 @@ internal class PersonhendelseServiceTest {
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
             oppgaveServiceImpl = oppgaveServiceMock,
+            personService = mock()
         )
         val nyPersonhendelse = lagNyPersonhendelse()
         personhendelseService.prosesserNyHendelse(nyPersonhendelse)
 
-        verify(sakRepoMock).hentSakIdForIdenter(argThat { it shouldBe nyPersonhendelse.personidenter })
+        verify(sakRepoMock).hentSakIdOgNummerForIdenter(argThat { it shouldBe nyPersonhendelse.metadata.personidenter })
         verifyNoMoreInteractions(personhendelseRepoMock, sakRepoMock)
     }
 
     @Test
     internal fun `kan opprette oppgaver for lagrede personhendelser`() {
-        val personhendelse = lagPersonhendelseTilknyttetSak()
+        val sak = nySakMedjournalførtSøknadOgOppgave().first
+        val personhendelse = lagPersonhendelseTilknyttetSak(sakId = sak.id)
 
-        val sakRepoMock = mock<SakRepo> { }
+        val sakRepoMock = mock<SakRepo> {
+            on { hentSak(any<UUID>()) } doReturn sak
+        }
         val personhendelseRepoMock = mock<PersonhendelseRepo> {
             on { hentPersonhendelserUtenOppgave() } doReturn listOf(personhendelse)
         }
-        val oppgaveServiceMock: OppgaveService = mock {
+        val oppgaveServiceMock = mock<OppgaveService> {
             on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+        }
+        val personServiceMock = mock<PersonService> {
+            on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
         }
 
         val personhendelseService = PersonhendelseService(
             sakRepo = sakRepoMock,
             personhendelseRepo = personhendelseRepoMock,
             oppgaveServiceImpl = oppgaveServiceMock,
+            personService = personServiceMock
         )
         personhendelseService.opprettOppgaverForPersonhendelser()
 
+        verify(sakRepoMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(personhendelseRepoMock).hentPersonhendelserUtenOppgave()
+        verify(personServiceMock).hentAktørId(argThat { it shouldBe sak.fnr })
         verify(oppgaveServiceMock).opprettOppgave(
             argThat {
                 it shouldBe OppgaveConfig.Personhendelse(
                     saksnummer = personhendelse.saksnummer,
                     beskrivelse = "Dødsfall\n\tDødsdato: 2020-12-31",
-                    aktørId = personhendelse.gjeldendeAktørId,
+                    aktørId = AktørId("aktørId"),
                 )
             },
         )
 
-        verify(personhendelseRepoMock).oppdaterOppgave(
-            argThat { it shouldBe personhendelse.id },
-            argThat { it shouldBe OppgaveId("oppgaveId") },
-        )
-        verifyNoMoreInteractions(oppgaveServiceMock, personhendelseRepoMock, sakRepoMock)
+        verify(personhendelseRepoMock).lagre(argThat { it shouldBe personhendelse.tilSendtTilOppgave(OppgaveId("oppgaveId")) })
+        verifyNoMoreInteractions(oppgaveServiceMock, personhendelseRepoMock, sakRepoMock, personServiceMock)
     }
 
-    private fun lagNyPersonhendelse() = Personhendelse.Ny(
-        gjeldendeAktørId = AktørId("123456b7890000"),
+    private fun lagNyPersonhendelse() = Personhendelse.IkkeTilknyttetSak(
         endringstype = Personhendelse.Endringstype.OPPRETTET,
-        personidenter = nonEmptyListOf(Fnr.generer().toString(), "123456789010"),
         hendelse = Personhendelse.Hendelse.Dødsfall(dødsdato = LocalDate.now(fixedClock)),
         metadata = Personhendelse.Metadata(
             hendelseId = UUID.randomUUID().toString(),
+            personidenter = nonEmptyListOf(Fnr.generer().toString(), "123456789010"),
             tidligereHendelseId = null,
             offset = 0,
             partisjon = 0,
@@ -127,13 +136,20 @@ internal class PersonhendelseServiceTest {
         ),
     )
 
-    private fun lagPersonhendelseTilknyttetSak() = Personhendelse.TilknyttetSak(
-        gjeldendeAktørId = AktørId("123456b7890000"),
+    private fun lagPersonhendelseTilknyttetSak(sakId: UUID = UUID.randomUUID()) = Personhendelse.TilknyttetSak.IkkeSendtTilOppgave(
         endringstype = Personhendelse.Endringstype.OPPRETTET,
         hendelse = Personhendelse.Hendelse.Dødsfall(dødsdato = LocalDate.now(fixedClock)),
         id = UUID.randomUUID(),
         saksnummer = Saksnummer(2021),
-        sakId = UUID.randomUUID(),
-        oppgaveId = null,
+        sakId = sakId,
+        metadata = Personhendelse.Metadata(
+            hendelseId = UUID.randomUUID().toString(),
+            tidligereHendelseId = null,
+            offset = 0,
+            partisjon = 0,
+            master = "FREG",
+            key = "key",
+            personidenter = NonEmptyList.fromListUnsafe(listOf(UUID.randomUUID().toString()))
+        )
     )
 }

@@ -7,12 +7,11 @@ import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
+import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -29,12 +28,11 @@ internal class PersonhendelsePostgresRepoTest {
     @Test
     fun `Kan lagre og hente dødsfallshendelser`() {
         withMigratedDb {
-            val hendelse = Personhendelse.Ny(
-                gjeldendeAktørId = AktørId(aktørId),
+            val hendelse = Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
-                personidenter = nonEmptyListOf(aktørId, fnr.toString()),
                 hendelse = Personhendelse.Hendelse.Dødsfall(LocalDate.now()),
                 metadata = Personhendelse.Metadata(
+                    personidenter = nonEmptyListOf(aktørId, fnr.toString()),
                     hendelseId = hendelseId,
                     tidligereHendelseId = null,
                     offset = 0,
@@ -45,12 +43,11 @@ internal class PersonhendelsePostgresRepoTest {
             )
             val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
             val id = UUID.randomUUID()
-            hendelsePostgresRepo.lagre(hendelse, id, sak.id)
+            hendelsePostgresRepo.lagre(hendelse.tilknyttSak(id, SakIdOgNummer(sak.id, sak.saksnummer)))
 
             hendelsePostgresRepo.hent(id) shouldBe hendelse.tilknyttSak(
                 id = id,
-                sakId = sak.id,
-                saksnummer = sak.saksnummer,
+                SakIdOgNummer(sak.id, sak.saksnummer)
             )
             hentMetadata(id) shouldBe PersonhendelsePostgresRepo.MetadataJson(
                 hendelseId = hendelseId,
@@ -59,6 +56,7 @@ internal class PersonhendelsePostgresRepoTest {
                 partisjon = 0,
                 master = "FREG",
                 key = "someKey",
+                personidenter = nonEmptyListOf(aktørId, fnr.toString()),
             )
         }
     }
@@ -66,13 +64,12 @@ internal class PersonhendelsePostgresRepoTest {
     @Test
     fun `Kan lagre og hente utflytting fra norge`() {
         withMigratedDb {
-            val hendelse = Personhendelse.Ny(
-                gjeldendeAktørId = AktørId(aktørId),
+            val hendelse = Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
-                personidenter = nonEmptyListOf(aktørId, fnr.toString()),
                 hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(LocalDate.now()),
                 metadata = Personhendelse.Metadata(
                     hendelseId = hendelseId,
+                    personidenter = nonEmptyListOf(aktørId, fnr.toString()),
                     tidligereHendelseId = null,
                     offset = 0,
                     partisjon = 0,
@@ -83,12 +80,11 @@ internal class PersonhendelsePostgresRepoTest {
             val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
             val id = UUID.randomUUID()
 
-            hendelsePostgresRepo.lagre(hendelse, id, sak.id)
+            hendelsePostgresRepo.lagre(hendelse.tilknyttSak(id, SakIdOgNummer(sak.id, sak.saksnummer)))
 
             hendelsePostgresRepo.hent(id) shouldBe hendelse.tilknyttSak(
                 id = id,
-                sakId = sak.id,
-                saksnummer = sak.saksnummer,
+                SakIdOgNummer(sak.id, sak.saksnummer)
             )
             hentMetadata(id) shouldBe PersonhendelsePostgresRepo.MetadataJson(
                 hendelseId = hendelseId,
@@ -97,6 +93,7 @@ internal class PersonhendelsePostgresRepoTest {
                 partisjon = 0,
                 master = "FREG",
                 key = "someKey",
+                personidenter = nonEmptyListOf(aktørId, fnr.toString()),
             )
         }
     }
@@ -104,10 +101,8 @@ internal class PersonhendelsePostgresRepoTest {
     @Test
     fun `Kan lagre og hente sivilstand`() {
         withMigratedDb {
-            val hendelse = Personhendelse.Ny(
-                gjeldendeAktørId = AktørId(aktørId),
+            val hendelse = Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
-                personidenter = nonEmptyListOf(aktørId, fnr.toString()),
                 hendelse = Personhendelse.Hendelse.Sivilstand(
                     type = SivilstandTyper.GIFT,
                     gyldigFraOgMed = LocalDate.now().minusDays(1),
@@ -115,6 +110,7 @@ internal class PersonhendelsePostgresRepoTest {
                     bekreftelsesdato = LocalDate.now().plusDays(1),
                 ),
                 metadata = Personhendelse.Metadata(
+                    personidenter = nonEmptyListOf(aktørId, fnr.toString()),
                     hendelseId = hendelseId,
                     tidligereHendelseId = null,
                     offset = 0,
@@ -126,12 +122,10 @@ internal class PersonhendelsePostgresRepoTest {
             val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
             val id = UUID.randomUUID()
 
-            hendelsePostgresRepo.lagre(hendelse, id, sak.id)
-
+            hendelsePostgresRepo.lagre(hendelse.tilknyttSak(id, SakIdOgNummer(sak.id, sak.saksnummer)))
             hendelsePostgresRepo.hent(id) shouldBe hendelse.tilknyttSak(
                 id = id,
-                sakId = sak.id,
-                saksnummer = sak.saksnummer,
+                SakIdOgNummer(sak.id, sak.saksnummer)
             )
             hentMetadata(id) shouldBe PersonhendelsePostgresRepo.MetadataJson(
                 hendelseId = hendelseId,
@@ -140,6 +134,7 @@ internal class PersonhendelsePostgresRepoTest {
                 partisjon = 0,
                 master = "FREG",
                 key = "someKey",
+                personidenter = nonEmptyListOf(aktørId, fnr.toString()),
             )
         }
     }
@@ -147,12 +142,11 @@ internal class PersonhendelsePostgresRepoTest {
     @Test
     fun `lagring av duplikate hendelser ignoreres`() {
         withMigratedDb {
-            val hendelse = Personhendelse.Ny(
-                gjeldendeAktørId = AktørId(aktørId),
+            val hendelse = Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
-                personidenter = nonEmptyListOf(aktørId, fnr.toString()),
                 hendelse = Personhendelse.Hendelse.Dødsfall(LocalDate.now()),
                 metadata = Personhendelse.Metadata(
+                    personidenter = nonEmptyListOf(aktørId, fnr.toString()),
                     hendelseId = hendelseId,
                     tidligereHendelseId = null,
                     offset = 0,
@@ -168,16 +162,12 @@ internal class PersonhendelsePostgresRepoTest {
             val sak2 = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
             val id2 = UUID.randomUUID()
 
-            hendelsePostgresRepo.lagre(hendelse, id1, sak1.id)
-            hendelsePostgresRepo.lagre(
-                personhendelse = hendelse,
-                id = id2,
-                sakId = sak2.id,
-            )
+            hendelsePostgresRepo.lagre(hendelse.tilknyttSak(id1, SakIdOgNummer(sak1.id, sak1.saksnummer)))
+            hendelsePostgresRepo.lagre(hendelse.tilknyttSak(id2, SakIdOgNummer(sak2.id, sak2.saksnummer)))
+
             hendelsePostgresRepo.hent(id1) shouldBe hendelse.tilknyttSak(
                 id = id1,
-                sakId = sak1.id,
-                saksnummer = sak1.saksnummer,
+                SakIdOgNummer(sak1.id, sak1.saksnummer)
             )
             hentMetadata(id1) shouldBe PersonhendelsePostgresRepo.MetadataJson(
                 hendelseId = hendelseId,
@@ -186,6 +176,7 @@ internal class PersonhendelsePostgresRepoTest {
                 partisjon = 0,
                 master = "FREG",
                 key = "someKey",
+                personidenter = nonEmptyListOf(aktørId, fnr.toString()),
             )
         }
     }
@@ -193,13 +184,12 @@ internal class PersonhendelsePostgresRepoTest {
     @Test
     fun `Oppdatering av oppgaveId skal lagre ny verdi`() {
         withMigratedDb {
-            val hendelse = Personhendelse.Ny(
-                gjeldendeAktørId = AktørId(aktørId),
+            val hendelse = Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
-                personidenter = nonEmptyListOf(aktørId, fnr.toString()),
                 hendelse = Personhendelse.Hendelse.Dødsfall(LocalDate.now()),
                 metadata = Personhendelse.Metadata(
                     hendelseId = hendelseId,
+                    personidenter = nonEmptyListOf(aktørId, fnr.toString()),
                     tidligereHendelseId = null,
                     offset = 0,
                     partisjon = 0,
@@ -210,11 +200,12 @@ internal class PersonhendelsePostgresRepoTest {
             val id = UUID.randomUUID()
             val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
 
-            hendelsePostgresRepo.lagre(hendelse, id, sak.id)
-            hendelsePostgresRepo.oppdaterOppgave(id, OppgaveId("oppgaveId"))
+            val hendelseKnyttetTilSak = hendelse.tilknyttSak(id, SakIdOgNummer(sak.id, sak.saksnummer))
+            hendelsePostgresRepo.lagre(hendelseKnyttetTilSak)
+            hendelsePostgresRepo.lagre(hendelseKnyttetTilSak.tilSendtTilOppgave(OppgaveId("oppgaveId")))
 
             val oppdatertHendelse = hendelsePostgresRepo.hent(id)
-            oppdatertHendelse shouldBe hendelse.tilknyttSak(id, sak.id, Saksnummer(2021), OppgaveId("oppgaveId"))
+            oppdatertHendelse shouldBe hendelse.tilknyttSak(id, SakIdOgNummer(sak.id, sak.saksnummer)).tilSendtTilOppgave(OppgaveId("oppgaveId"))
         }
     }
 
@@ -222,12 +213,11 @@ internal class PersonhendelsePostgresRepoTest {
     fun `Skal kun hente personhendelser uten oppgaveId`() {
         withMigratedDb {
             val id1 = UUID.randomUUID()
-            val hendelse1 = Personhendelse.Ny(
-                gjeldendeAktørId = AktørId(aktørId),
+            val hendelse1 = Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
-                personidenter = nonEmptyListOf(aktørId, fnr.toString()),
                 hendelse = Personhendelse.Hendelse.Dødsfall(LocalDate.now()),
                 metadata = Personhendelse.Metadata(
+                    personidenter = nonEmptyListOf(aktørId, fnr.toString()),
                     hendelseId = hendelseId,
                     tidligereHendelseId = null,
                     offset = 0,
@@ -237,13 +227,12 @@ internal class PersonhendelsePostgresRepoTest {
                 ),
             )
             val id2 = UUID.randomUUID()
-            val hendelse2 = Personhendelse.Ny(
-                gjeldendeAktørId = AktørId("aktørId"),
+            val hendelse2 = Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
-                personidenter = nonEmptyListOf("aktørId", fnr.toString()),
                 hendelse = Personhendelse.Hendelse.Dødsfall(LocalDate.now()),
                 metadata = Personhendelse.Metadata(
                     hendelseId = UUID.randomUUID().toString(),
+                    personidenter = nonEmptyListOf("aktørId", fnr.toString()),
                     tidligereHendelseId = null,
                     offset = 0,
                     partisjon = 0,
@@ -253,29 +242,15 @@ internal class PersonhendelsePostgresRepoTest {
             )
             val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
 
-            hendelsePostgresRepo.lagre(hendelse1, id1, sak.id)
-            hendelsePostgresRepo.lagre(hendelse2, id2, sak.id)
-            hendelsePostgresRepo.oppdaterOppgave(id1, OppgaveId("oppgaveId"))
+            val hendelse1KnyttetTilSak = hendelse1.tilknyttSak(id1, SakIdOgNummer(sak.id, sak.saksnummer))
+            hendelsePostgresRepo.lagre(hendelse1KnyttetTilSak)
+            hendelsePostgresRepo.lagre(hendelse2.tilknyttSak(id2, SakIdOgNummer(sak.id, sak.saksnummer)))
 
-            hendelsePostgresRepo.hentPersonhendelserUtenOppgave() shouldBe listOf(hendelse2.tilknyttSak(id2, sak.id, sak.saksnummer, null))
+            hendelsePostgresRepo.lagre(hendelse1KnyttetTilSak.tilSendtTilOppgave(OppgaveId("oppgaveId")))
+
+            hendelsePostgresRepo.hentPersonhendelserUtenOppgave() shouldBe listOf(hendelse2.tilknyttSak(id2, SakIdOgNummer(sak.id, sak.saksnummer)))
         }
     }
-
-    private fun Personhendelse.Ny.tilknyttSak(
-        id: UUID,
-        sakId: UUID,
-        saksnummer: Saksnummer,
-        oppgaveId: OppgaveId? = null,
-    ) =
-        Personhendelse.TilknyttetSak(
-            id = id,
-            gjeldendeAktørId = gjeldendeAktørId,
-            endringstype = endringstype,
-            hendelse = hendelse,
-            sakId = sakId,
-            saksnummer = saksnummer,
-            oppgaveId = oppgaveId,
-        )
 
     private fun hentMetadata(id: UUID): PersonhendelsePostgresRepo.MetadataJson? {
         return testDataHelper.datasource.withSession { session ->

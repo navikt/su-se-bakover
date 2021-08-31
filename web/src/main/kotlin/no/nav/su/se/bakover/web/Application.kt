@@ -260,7 +260,7 @@ internal fun Application.susebakover(
         ferdigstillVedtakService = services.ferdigstillVedtak,
         clock = clock,
     )
-    val personhendelseService = PersonhendelseService(databaseRepos.sak, databaseRepos.personhendelseRepo, services.oppgave)
+    val personhendelseService = PersonhendelseService(databaseRepos.sak, databaseRepos.personhendelseRepo, services.oppgave, services.person)
     if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
         UtbetalingKvitteringIbmMqConsumer(
             kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,
