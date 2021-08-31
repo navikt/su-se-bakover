@@ -5,7 +5,7 @@ buildscript {
 }
 
 plugins {
-    kotlin("jvm") version "1.5.21"
+    kotlin("jvm")
     // Støtter unicode filer (i motsetning til https://github.com/JLLeitschuh/ktlint-gradle 10.0.0) og har nyere dependencies som gradle. Virker som den oppdateres hyppigere.
     id("org.jmailen.kotlinter") version "3.5.1"
     id("com.github.ben-manes.versions") version "0.39.0" // Finds latest versions
@@ -26,18 +26,17 @@ allprojects {
         maven("https://packages.confluent.io/maven/")
     }
     val junitJupiterVersion = "5.7.2"
-    val arrowVersion = "0.13.2"
     val kotestVersion = "4.6.2"
     val jacksonVersion = "2.12.5"
-    val kotlinVersion = "1.5.21"
+    val kotlinVersion: String by this
     dependencies {
         api(kotlin("stdlib-jdk8"))
 
         implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
         implementation("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
         implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion")
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0")
-        implementation("io.arrow-kt:arrow-core:$arrowVersion")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
+        implementation("io.arrow-kt:arrow-core:0.13.2")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
@@ -65,6 +64,9 @@ allprojects {
         testImplementation("org.mockito.kotlin:mockito-kotlin:3.2.0")
 
         constraints {
+            testImplementation("com.opentable.components:otj-pg-embedded:0.13.4") {
+                because("Brukes i både web og database")
+            }
             implementation("org.apache.commons:commons-compress") {
                 because("org.apache.avro:avro:1.10.2 -> https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECOMMONS-1316641")
                 version {

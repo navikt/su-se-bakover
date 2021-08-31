@@ -12,6 +12,10 @@ pluginManagement {
         gradlePluginPortal()
         mavenCentral()
     }
+    plugins {
+        val kotlinVersion: String by settings
+        kotlin("jvm") version kotlinVersion
+    }
 }
 
 rootProject.name = "su-se-bakover"
