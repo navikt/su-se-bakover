@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.database.revurdering
 
-import arrow.core.getOrHandle
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -194,7 +193,7 @@ internal class RevurderingPostgresRepo(
         val grunnlagsdata = Grunnlagsdata.create(
             fradragsgrunnlag = fradragsgrunnlag,
             bosituasjon = bosituasjonsgrunnlag,
-        ),
+        )
         val vilkårsvurderinger = Vilkårsvurderinger(
             uføre = uføreVilkårsvurderingRepo.hent(id, session),
             formue = formueVilkårsvurderingRepo.hent(id, session),

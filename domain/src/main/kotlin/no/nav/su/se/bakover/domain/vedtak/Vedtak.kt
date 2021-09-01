@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.vedtak
 import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.NonEmptyList
-import arrow.core.getOrHandle
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -393,7 +392,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     }
                     copy(
                         periode = args.periode,
-                        grunnlagsdata = Grunnlagsdata.tryCreate(
+                        grunnlagsdata = Grunnlagsdata.create(
                             bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
                                 (it.fullstendigOrThrow()).copy(
                                     CopyArgs.Snitt(args.periode),
@@ -404,7 +403,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                             }.mapNotNull {
                                 it.copy(args = CopyArgs.Snitt(args.periode))
                             },
-                        ).getOrHandle { throw IllegalStateException(it.toString()) },
+                        ),
                         vilkårsvurderinger = Vilkårsvurderinger(
                             uføre = uførevilkår,
                             formue = formue,
