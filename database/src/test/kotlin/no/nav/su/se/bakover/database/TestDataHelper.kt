@@ -566,7 +566,7 @@ internal class TestDataHelper(
         formue = Vilkår.Formue.IkkeVurdert,
     )
 
-    private fun innvilgetGrunnlagsdataSøknadsbehandling(epsFnr: Fnr? = null) = Grunnlagsdata.tryCreate(
+    private fun innvilgetGrunnlagsdataSøknadsbehandling(epsFnr: Fnr? = null) = Grunnlagsdata.create(
         bosituasjon = listOf(
             if (epsFnr != null) Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                 id = UUID.randomUUID(),
@@ -584,7 +584,7 @@ internal class TestDataHelper(
         ),
         // søknadsbehandling benytter enn så lenge fradrag rett fra beregning
         fradragsgrunnlag = emptyList(),
-    ).getOrHandle { throw IllegalStateException(it.toString()) }
+    )
 
     private fun innvilgetVilkårsvurderingerRevurdering() = innvilgetVilkårsvurderingerSøknadsbehandling().copy(
         formue = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(

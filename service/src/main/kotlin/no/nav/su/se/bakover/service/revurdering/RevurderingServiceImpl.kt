@@ -255,7 +255,7 @@ internal class RevurderingServiceImpl(
 
         return revurdering.oppdaterFradragOgMarkerSomVurdert(request.fradragsgrunnlag).mapLeft {
             when (it) {
-                is Revurdering.KunneIkkeLeggeTilFradrag.KunneIkkeEndreFradragsgrunnlag -> KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(
+                is Revurdering.KunneIkkeLeggeTilFradrag.Valideringsfeil -> KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(
                     it.feil,
                 )
                 is Revurdering.KunneIkkeLeggeTilFradrag.UgyldigTilstand -> KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
@@ -287,7 +287,7 @@ internal class RevurderingServiceImpl(
 
         return revurdering.oppdaterBosituasjonOgMarkerSomVurdert(bosituasjongrunnlag).mapLeft {
             when (it) {
-                is Revurdering.KunneIkkeLeggeTilBosituasjon.KunneIkkeEndreBosituasjongrunnlag -> KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeEndreFradragsgrunnlag(
+                is Revurdering.KunneIkkeLeggeTilBosituasjon.Valideringsfeil -> KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeEndreBosituasjongrunnlag(
                     it.feil,
                 )
                 is Revurdering.KunneIkkeLeggeTilBosituasjon.UgyldigTilstand -> KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand(

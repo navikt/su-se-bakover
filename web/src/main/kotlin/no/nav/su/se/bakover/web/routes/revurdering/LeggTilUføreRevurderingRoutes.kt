@@ -107,7 +107,6 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
                                                 "Hele behandlingsperioden må ha vurderinger",
                                                 "hele_behandlingsperioden_må_ha_vurderinger",
                                             )
-                                            is KunneIkkeLeggeTilGrunnlag.KunneIkkeEndreFradragsgrunnlag -> Feilresponser.kunneIkkeLageFradragsgrunnlag
                                         }
                                     }.map {
                                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))

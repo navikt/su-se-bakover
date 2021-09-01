@@ -582,7 +582,7 @@ internal class SøknadsbehandlingServiceImpl(
                         ),
                         fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
                     ).getOrHandle {
-                        return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreFradragsgrunnlag(it).left()
+                        return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag(it).left()
                     },
                 )
                 is Søknadsbehandling.Vilkårsvurdert.Innvilget -> it.copy(
@@ -590,7 +590,7 @@ internal class SøknadsbehandlingServiceImpl(
                         bosituasjon = listOf(bosituasjon),
                         fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
                     ).getOrHandle {
-                        return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreFradragsgrunnlag(it).left()
+                        return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag(it).left()
                     },
                 )
                 is Søknadsbehandling.Vilkårsvurdert.Uavklart -> it.copy(
@@ -598,7 +598,7 @@ internal class SøknadsbehandlingServiceImpl(
                         bosituasjon = listOf(bosituasjon),
                         fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
                     ).getOrHandle {
-                        return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreFradragsgrunnlag(it).left()
+                        return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag(it).left()
                     },
                 )
             }.right()
@@ -640,7 +640,7 @@ internal class SøknadsbehandlingServiceImpl(
                         bosituasjon = listOf(bosituasjon),
                         fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
                     ).getOrHandle {
-                        return KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreFradragsgrunnlag(it).left()
+                        return KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(it).left()
                     },
                 )
                 is Søknadsbehandling.Vilkårsvurdert.Innvilget -> it.copy(
@@ -648,7 +648,7 @@ internal class SøknadsbehandlingServiceImpl(
                         bosituasjon = listOf(bosituasjon),
                         fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
                     ).getOrHandle {
-                        return KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreFradragsgrunnlag(it).left()
+                        return KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(it).left()
                     },
                 )
                 is Søknadsbehandling.Vilkårsvurdert.Uavklart -> it.copy(
@@ -656,7 +656,7 @@ internal class SøknadsbehandlingServiceImpl(
                         bosituasjon = listOf(bosituasjon),
                         fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
                     ).getOrHandle {
-                        return KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreFradragsgrunnlag(it).left()
+                        return KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(it).left()
                     },
                 )
             }.right()

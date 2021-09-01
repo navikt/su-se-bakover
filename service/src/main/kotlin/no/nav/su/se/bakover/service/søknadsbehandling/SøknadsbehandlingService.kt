@@ -165,7 +165,7 @@ interface SøknadsbehandlingService {
         ) : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
 
         object KlarteIkkeHentePersonIPdl : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
-        data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
+        data class KunneIkkeEndreBosituasjonEpsGrunnlag(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
     }
 
     sealed class KunneIkkeFullføreBosituasjonGrunnlag {
@@ -177,7 +177,7 @@ interface SøknadsbehandlingService {
 
         object KlarteIkkeLagreBosituasjon : KunneIkkeFullføreBosituasjonGrunnlag()
         object KlarteIkkeHentePersonIPdl : KunneIkkeFullføreBosituasjonGrunnlag()
-        data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeFullføreBosituasjonGrunnlag()
+        data class KunneIkkeEndreBosituasjongrunnlag(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeFullføreBosituasjonGrunnlag()
     }
 
     sealed class KunneIkkeLeggeTilFradragsgrunnlag {

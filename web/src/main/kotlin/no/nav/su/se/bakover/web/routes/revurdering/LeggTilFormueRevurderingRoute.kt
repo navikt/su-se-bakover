@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.grunnlag.FormuegrunnlagJson
 import no.nav.su.se.bakover.web.routes.revurdering.FormueBody.Companion.toServiceRequest
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
@@ -135,5 +134,4 @@ private fun KunneIkkeLeggeTilFormuegrunnlag.tilResultat() = when (this) {
     KunneIkkeLeggeTilFormuegrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode -> Revurderingsfeilresponser.epsFormueperiodeErUtenforBosituasjonPeriode
     KunneIkkeLeggeTilFormuegrunnlag.FormuePeriodeErUtenforBehandlingsperioden -> Revurderingsfeilresponser.formuePeriodeErUtenforBehandlingsperioden
     KunneIkkeLeggeTilFormuegrunnlag.MåHaEpsHvisManHarSattEpsFormue -> Revurderingsfeilresponser.måHaEpsHvisManHarSattEpsFormue
-    is KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeEndreFradragsgrunnlag -> Feilresponser.kunneIkkeLageFradragsgrunnlag
 }

@@ -43,14 +43,14 @@ internal object Feilresponser {
         "vurderingene_må_ha_samme_resultat",
     )
 
-    val kunneIkkeLageBosituasjon = NotFound.errorJson(
-        "Klarte ikke lagre bosituasjon",
-        "klarte_ikke_lagre_bosituasjon",
+    val kunneIkkeLeggeTilBosituasjonsgrunnlag = BadRequest.errorJson(
+        "Kunne ikke legge til bosituasjonsgrunnlag",
+        "kunne_ikke_legge_til_bosituasjonsgrunnlag",
     )
 
-    val kunneIkkeLageFradragsgrunnlag = BadRequest.errorJson(
-        "Klarte ikke lagre bosituasjon",
-        "klarte_ikke_lagre_bosituasjon",
+    val kunneIkkeLeggeTilFradragsgrunnlag = BadRequest.errorJson(
+        "Kunne ikke legge til fradragsgrunnlag",
+        "kunne_ikke_legge_til_fradragsgrunnlag",
     )
 
     val ikkeGyldigFødselsnummer = BadRequest.errorJson(

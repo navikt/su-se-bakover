@@ -278,9 +278,6 @@ sealed class KunneIkkeLeggeTilGrunnlag {
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
     ) : KunneIkkeLeggeTilGrunnlag()
-
-    data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
-        KunneIkkeLeggeTilGrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilFradragsgrunnlag {
@@ -307,7 +304,7 @@ sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
         val til: KClass<out Revurdering>,
     ) : KunneIkkeLeggeTilBosituasjongrunnlag()
 
-    data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
+    data class KunneIkkeEndreBosituasjongrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
         KunneIkkeLeggeTilBosituasjongrunnlag()
 }
 
@@ -321,8 +318,6 @@ sealed class KunneIkkeLeggeTilFormuegrunnlag {
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
     ) : KunneIkkeLeggeTilFormuegrunnlag()
-
-    data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilFormuegrunnlag()
 }
 
 sealed class KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {
