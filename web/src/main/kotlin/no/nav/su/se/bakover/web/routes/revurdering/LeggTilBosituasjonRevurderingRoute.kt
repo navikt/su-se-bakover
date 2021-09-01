@@ -78,7 +78,5 @@ private fun KunneIkkeLeggeTilBosituasjongrunnlag.tilResultat() = when (this) {
         this.fra,
         this.til,
     )
-    KunneIkkeLeggeTilBosituasjongrunnlag.FradragForEpsSomIkkeHarEPS -> Feilresponser.kanIkkeHaEpsFradragUtenEps
-    KunneIkkeLeggeTilBosituasjongrunnlag.FradragManglerBosituasjon -> Feilresponser.fradragManglerBosituasjon
-    KunneIkkeLeggeTilBosituasjongrunnlag.MåLeggeTilBosituasjonFørFradrag -> Feilresponser.måHaBosituasjonFørFradrag
+    is KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeEndreFradragsgrunnlag -> Feilresponser.kunneIkkeLageFradragsgrunnlag
 }

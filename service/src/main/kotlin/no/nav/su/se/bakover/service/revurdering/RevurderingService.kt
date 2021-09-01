@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -277,9 +278,9 @@ sealed class KunneIkkeLeggeTilGrunnlag {
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
     ) : KunneIkkeLeggeTilGrunnlag()
-    object MåLeggeTilBosituasjonFørFradrag : KunneIkkeLeggeTilGrunnlag()
-    object FradragManglerBosituasjon : KunneIkkeLeggeTilGrunnlag()
-    object FradragForEpsSomIkkeHarEPS : KunneIkkeLeggeTilGrunnlag()
+
+    data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
+        KunneIkkeLeggeTilGrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilFradragsgrunnlag {
@@ -291,9 +292,9 @@ sealed class KunneIkkeLeggeTilFradragsgrunnlag {
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
     ) : KunneIkkeLeggeTilFradragsgrunnlag()
-    object MåLeggeTilBosituasjonFørFradrag : KunneIkkeLeggeTilFradragsgrunnlag()
-    object FradragManglerBosituasjon : KunneIkkeLeggeTilFradragsgrunnlag()
-    object FradragForEpsSomIkkeHarEPS : KunneIkkeLeggeTilFradragsgrunnlag()
+
+    data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
+        KunneIkkeLeggeTilFradragsgrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
@@ -305,9 +306,9 @@ sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
     ) : KunneIkkeLeggeTilBosituasjongrunnlag()
-    object MåLeggeTilBosituasjonFørFradrag : KunneIkkeLeggeTilBosituasjongrunnlag()
-    object FradragManglerBosituasjon : KunneIkkeLeggeTilBosituasjongrunnlag()
-    object FradragForEpsSomIkkeHarEPS : KunneIkkeLeggeTilBosituasjongrunnlag()
+
+    data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
+        KunneIkkeLeggeTilBosituasjongrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilFormuegrunnlag {
@@ -320,9 +321,8 @@ sealed class KunneIkkeLeggeTilFormuegrunnlag {
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
     ) : KunneIkkeLeggeTilFormuegrunnlag()
-    object MåLeggeTilBosituasjonFørFradrag : KunneIkkeLeggeTilFormuegrunnlag()
-    object FradragManglerBosituasjon : KunneIkkeLeggeTilFormuegrunnlag()
-    object FradragForEpsSomIkkeHarEPS : KunneIkkeLeggeTilFormuegrunnlag()
+
+    data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilFormuegrunnlag()
 }
 
 sealed class KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {

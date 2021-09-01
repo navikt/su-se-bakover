@@ -9,12 +9,12 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
-import no.nav.su.se.bakover.test.lagGrunnlagsdata
 import no.nav.su.se.bakover.test.søknadsbehandlingId
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
@@ -70,7 +70,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             behandling.fnr,
             behandling.fritekstTilBrev,
             behandling.stønadsperiode,
-            grunnlagsdata = lagGrunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = fradragsgrunnlag,
                 bosituasjon = behandling.grunnlagsdata.bosituasjon,
             ),

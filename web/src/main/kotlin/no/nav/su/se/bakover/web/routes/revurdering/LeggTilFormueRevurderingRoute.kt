@@ -135,7 +135,5 @@ private fun KunneIkkeLeggeTilFormuegrunnlag.tilResultat() = when (this) {
     KunneIkkeLeggeTilFormuegrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode -> Revurderingsfeilresponser.epsFormueperiodeErUtenforBosituasjonPeriode
     KunneIkkeLeggeTilFormuegrunnlag.FormuePeriodeErUtenforBehandlingsperioden -> Revurderingsfeilresponser.formuePeriodeErUtenforBehandlingsperioden
     KunneIkkeLeggeTilFormuegrunnlag.MåHaEpsHvisManHarSattEpsFormue -> Revurderingsfeilresponser.måHaEpsHvisManHarSattEpsFormue
-    KunneIkkeLeggeTilFormuegrunnlag.FradragForEpsSomIkkeHarEPS -> Feilresponser.kanIkkeHaEpsFradragUtenEps
-    KunneIkkeLeggeTilFormuegrunnlag.FradragManglerBosituasjon -> Feilresponser.fradragManglerBosituasjon
-    KunneIkkeLeggeTilFormuegrunnlag.MåLeggeTilBosituasjonFørFradrag -> Feilresponser.måHaBosituasjonFørFradrag
+    is KunneIkkeLeggeTilFormuegrunnlag.KunneIkkeEndreFradragsgrunnlag -> Feilresponser.kunneIkkeLageFradragsgrunnlag
 }

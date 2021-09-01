@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -32,7 +33,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
-import no.nav.su.se.bakover.test.lagGrunnlagsdata
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import java.util.UUID
@@ -476,7 +476,7 @@ internal class RevurderingTest {
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = null,
         vilkårsvurderinger = vilkårsvurderinger,
-        grunnlagsdata = lagGrunnlagsdata(
+        grunnlagsdata = Grunnlagsdata.create(
             bosituasjon = bosituasjon,
             fradragsgrunnlag = fradrag,
         ),

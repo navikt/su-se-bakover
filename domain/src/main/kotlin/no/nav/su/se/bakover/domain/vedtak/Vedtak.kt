@@ -351,7 +351,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     }
                     copy(
                         periode = periode,
-                        grunnlagsdata = Grunnlagsdata.tryCreate(
+                        grunnlagsdata = Grunnlagsdata.create(
                             bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
                                 (it.fullstendigOrThrow()).copy(
                                     CopyArgs.Snitt(periode),
@@ -360,7 +360,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                             fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.mapNotNull {
                                 it.copy(args = CopyArgs.Snitt(periode))
                             },
-                        ).getOrHandle { throw IllegalStateException(it.toString()) },
+                        ),
                         vilkårsvurderinger = Vilkårsvurderinger(
                             uføre = uførevilkår,
                             formue = formue,

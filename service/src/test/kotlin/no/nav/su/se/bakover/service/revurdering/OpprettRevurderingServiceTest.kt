@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
@@ -60,7 +61,6 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt12000
-import no.nav.su.se.bakover.test.lagGrunnlagsdata
 import no.nav.su.se.bakover.test.revurderingsårsak
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
@@ -457,7 +457,7 @@ internal class OpprettRevurderingServiceTest {
         val behandlingMock = mock<Behandling> {
             on { fnr } doReturn Fnr.generer()
             on { saksnummer } doReturn Saksnummer(2021)
-            on { grunnlagsdata } doReturn lagGrunnlagsdata(
+            on { grunnlagsdata } doReturn Grunnlagsdata.create(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -576,7 +576,7 @@ internal class OpprettRevurderingServiceTest {
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                grunnlagsdata = lagGrunnlagsdata(
+                grunnlagsdata = Grunnlagsdata.create(
                     bosituasjon = listOf(
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
                             id = UUID.randomUUID(),
@@ -842,7 +842,7 @@ internal class OpprettRevurderingServiceTest {
         val andreVedtak = createSøknadsbehandlingVedtak().copy(
             periode = periodePlussEtÅr,
             behandling = createInnvilgetBehandling().copy(
-                grunnlagsdata = lagGrunnlagsdata(
+                grunnlagsdata = Grunnlagsdata.create(
                     bosituasjon = bosituasjon,
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger(
@@ -901,7 +901,7 @@ internal class OpprettRevurderingServiceTest {
             on { beregning } doReturn mock()
             on { simulering } doReturn mock()
             on { saksbehandler } doReturn mock()
-            on { grunnlagsdata } doReturn lagGrunnlagsdata(
+            on { grunnlagsdata } doReturn Grunnlagsdata.create(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),

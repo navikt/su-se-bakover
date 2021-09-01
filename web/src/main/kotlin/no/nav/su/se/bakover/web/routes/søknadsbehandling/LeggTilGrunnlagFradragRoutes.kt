@@ -96,9 +96,7 @@ internal fun Route.leggTilGrunnlagFradrag(
                                                 fra = it.fra,
                                             )
                                             KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler -> Behandlingsfeilresponser.periodeMangler
-                                            KunneIkkeLeggeTilFradragsgrunnlag.FradragForEpsSomIkkeHarEPS -> Feilresponser.kanIkkeHaEpsFradragUtenEps
-                                            KunneIkkeLeggeTilFradragsgrunnlag.FradragManglerBosituasjon -> Feilresponser.fradragManglerBosituasjon
-                                            KunneIkkeLeggeTilFradragsgrunnlag.MåLeggeTilBosituasjonFørFradrag -> Feilresponser.måHaBosituasjonFørFradrag
+                                            is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> Feilresponser.kunneIkkeLageBosituasjon
                                         }
                                     }
                                     .map {

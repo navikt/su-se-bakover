@@ -31,11 +31,17 @@ data class Grunnlagsdata private constructor(
     }
 
     companion object {
-        val IkkeVurdert = tryCreate().getOrHandle { throw IllegalStateException(it.toString()) }
+        val IkkeVurdert = Grunnlagsdata(fradragsgrunnlag = emptyList(), bosituasjon = emptyList())
 
-        fun tryCreate(
+        /** Denne skal ikke kalles på produksjon på sikt */
+        fun create(
             fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = emptyList(),
             bosituasjon: List<Grunnlag.Bosituasjon> = emptyList(),
+        ) = tryCreate(fradragsgrunnlag, bosituasjon).getOrHandle { throw IllegalStateException(it.toString()) }
+
+        fun tryCreate(
+            fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+            bosituasjon: List<Grunnlag.Bosituasjon>,
         ): Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata> {
 
             val fradragsperiode = fradragsgrunnlag.periode()

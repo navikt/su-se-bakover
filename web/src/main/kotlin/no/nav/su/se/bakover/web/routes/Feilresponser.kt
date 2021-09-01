@@ -48,6 +48,11 @@ internal object Feilresponser {
         "klarte_ikke_lagre_bosituasjon",
     )
 
+    val kunneIkkeLageFradragsgrunnlag = BadRequest.errorJson(
+        "Klarte ikke lagre bosituasjon",
+        "klarte_ikke_lagre_bosituasjon",
+    )
+
     val ikkeGyldigFødselsnummer = BadRequest.errorJson(
         "Inneholder ikke et gyldig fødselsnummer",
         "ikke_gyldig_fødselsnummer",
@@ -65,16 +70,6 @@ internal object Feilresponser {
     val ugyldigInput = BadRequest.errorJson(
         "Ugyldig input",
         "ugyldig_input"
-    )
-
-    val fradragManglerBosituasjon = BadRequest.errorJson(
-        "Kan ikke legge til fradrag uten bosituasjon",
-        "kan_ikke_legge_til_fradrag_uten_bosituasjon"
-    )
-
-    val måHaBosituasjonFørFradrag = BadRequest.errorJson(
-        "Må legge til bosituasjon før fradrag",
-        "Må_legge_til_bosituasjon_før_fradrag"
     )
 
     internal fun UtbetalingFeilet.tilResultat(): Resultat {

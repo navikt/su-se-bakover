@@ -34,7 +34,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
-import no.nav.su.se.bakover.test.lagGrunnlagsdata
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -486,7 +485,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(iverksattAttestering),
                     fritekstTilBrev = "",
                     stønadsperiode = stønadsperiode,
-                    grunnlagsdata = lagGrunnlagsdata(
+                    grunnlagsdata = Grunnlagsdata.create(
                         bosituasjon = iverksatt.grunnlagsdata.bosituasjon,
                     ),
                     vilkårsvurderinger = Vilkårsvurderinger(

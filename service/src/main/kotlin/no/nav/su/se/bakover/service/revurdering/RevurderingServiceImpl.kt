@@ -237,15 +237,10 @@ internal class RevurderingServiceImpl(
             }
         }
         return revurdering.oppdaterUføreOgMarkerSomVurdert(uførevilkår).mapLeft {
-            when (it) {
-                Revurdering.KunneIkkeUtføreHandling.FradragForEpsSomIkkeHarEPS -> KunneIkkeLeggeTilGrunnlag.FradragForEpsSomIkkeHarEPS
-                Revurdering.KunneIkkeUtføreHandling.FradragManglerBosituasjon -> KunneIkkeLeggeTilGrunnlag.FradragManglerBosituasjon
-                Revurdering.KunneIkkeUtføreHandling.MåLeggeTilBosituasjonFørFradrag -> KunneIkkeLeggeTilGrunnlag.MåLeggeTilBosituasjonFørFradrag
-                Revurdering.KunneIkkeUtføreHandling.UgyldigTilstand -> KunneIkkeLeggeTilGrunnlag.UgyldigTilstand(
-                    revurdering::class,
-                    OpprettetRevurdering::class,
-                )
-            }
+            KunneIkkeLeggeTilGrunnlag.UgyldigTilstand(
+                revurdering::class,
+                OpprettetRevurdering::class,
+            )
         }.map {
             // TODO jah: Flytt denne inn i revurderingRepo.lagre
             vilkårsvurderingService.lagre(it.id, it.vilkårsvurderinger)
@@ -260,10 +255,10 @@ internal class RevurderingServiceImpl(
 
         return revurdering.oppdaterFradragOgMarkerSomVurdert(request.fradragsgrunnlag).mapLeft {
             when (it) {
-                Revurdering.KunneIkkeUtføreHandling.FradragForEpsSomIkkeHarEPS -> KunneIkkeLeggeTilFradragsgrunnlag.FradragForEpsSomIkkeHarEPS
-                Revurdering.KunneIkkeUtføreHandling.FradragManglerBosituasjon -> KunneIkkeLeggeTilFradragsgrunnlag.FradragManglerBosituasjon
-                Revurdering.KunneIkkeUtføreHandling.MåLeggeTilBosituasjonFørFradrag -> KunneIkkeLeggeTilFradragsgrunnlag.MåLeggeTilBosituasjonFørFradrag
-                Revurdering.KunneIkkeUtføreHandling.UgyldigTilstand -> KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
+                is Revurdering.KunneIkkeLeggeTilFradrag.KunneIkkeEndreFradragsgrunnlag -> KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(
+                    it.feil,
+                )
+                is Revurdering.KunneIkkeLeggeTilFradrag.UgyldigTilstand -> KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
                     revurdering::class,
                     OpprettetRevurdering::class,
                 )
@@ -292,10 +287,10 @@ internal class RevurderingServiceImpl(
 
         return revurdering.oppdaterBosituasjonOgMarkerSomVurdert(bosituasjongrunnlag).mapLeft {
             when (it) {
-                Revurdering.KunneIkkeUtføreHandling.FradragForEpsSomIkkeHarEPS -> KunneIkkeLeggeTilBosituasjongrunnlag.FradragForEpsSomIkkeHarEPS
-                Revurdering.KunneIkkeUtføreHandling.FradragManglerBosituasjon -> KunneIkkeLeggeTilBosituasjongrunnlag.FradragManglerBosituasjon
-                Revurdering.KunneIkkeUtføreHandling.MåLeggeTilBosituasjonFørFradrag -> KunneIkkeLeggeTilBosituasjongrunnlag.MåLeggeTilBosituasjonFørFradrag
-                Revurdering.KunneIkkeUtføreHandling.UgyldigTilstand -> KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand(
+                is Revurdering.KunneIkkeLeggeTilBosituasjon.KunneIkkeEndreBosituasjongrunnlag -> KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeEndreFradragsgrunnlag(
+                    it.feil,
+                )
+                is Revurdering.KunneIkkeLeggeTilBosituasjon.UgyldigTilstand -> KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand(
                     revurdering::class,
                     OpprettetRevurdering::class,
                 )
@@ -318,15 +313,10 @@ internal class RevurderingServiceImpl(
             return it.left()
         }
         return revurdering.oppdaterFormueOgMarkerSomVurdert(vilkår).mapLeft {
-            when (it) {
-                Revurdering.KunneIkkeUtføreHandling.FradragForEpsSomIkkeHarEPS -> KunneIkkeLeggeTilFormuegrunnlag.FradragForEpsSomIkkeHarEPS
-                Revurdering.KunneIkkeUtføreHandling.FradragManglerBosituasjon -> KunneIkkeLeggeTilFormuegrunnlag.FradragManglerBosituasjon
-                Revurdering.KunneIkkeUtføreHandling.MåLeggeTilBosituasjonFørFradrag -> KunneIkkeLeggeTilFormuegrunnlag.MåLeggeTilBosituasjonFørFradrag
-                Revurdering.KunneIkkeUtføreHandling.UgyldigTilstand -> KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand(
-                    revurdering::class,
-                    OpprettetRevurdering::class,
-                )
-            }
+            KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand(
+                revurdering::class,
+                OpprettetRevurdering::class,
+            )
         }.map {
             // TODO jah: Flytt denne inn i revurderingRepo.lagre
             vilkårsvurderingService.lagre(it.id, it.vilkårsvurderinger)

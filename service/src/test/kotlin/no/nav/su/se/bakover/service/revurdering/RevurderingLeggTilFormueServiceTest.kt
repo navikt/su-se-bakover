@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -39,7 +40,6 @@ import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
-import no.nav.su.se.bakover.test.lagGrunnlagsdata
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -151,7 +151,7 @@ internal class RevurderingLeggTilFormueServiceTest {
     fun `skal ikke være lov å legge inn formue for eps, hvis man ikke har noen eps`() {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering.copy(
-                grunnlagsdata = lagGrunnlagsdata(
+                grunnlagsdata = Grunnlagsdata.create(
                     fradragsgrunnlag = opprettetRevurdering.grunnlagsdata.fradragsgrunnlag,
                     bosituasjon = listOf(
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -434,7 +434,7 @@ internal class RevurderingLeggTilFormueServiceTest {
         fritekstTilBrev = "",
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = null,
-        grunnlagsdata = lagGrunnlagsdata(
+        grunnlagsdata = Grunnlagsdata.create(
             fradragsgrunnlag = listOf(
                 lagFradragsgrunnlag(
                     type = Fradragstype.Arbeidsinntekt,
@@ -476,7 +476,7 @@ internal class RevurderingLeggTilFormueServiceTest {
             nettoBeløp = 100,
             periodeList = emptyList(),
         ),
-        grunnlagsdata = lagGrunnlagsdata(
+        grunnlagsdata = Grunnlagsdata.create(
             fradragsgrunnlag = listOf(
                 lagFradragsgrunnlag(
                     type = Fradragstype.Arbeidsinntekt,

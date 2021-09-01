@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.test
 
 import arrow.core.Nel
 import arrow.core.NonEmptyList
-import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -12,16 +11,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import java.util.UUID
 
 val fradragsgrunnlagId: UUID = UUID.randomUUID()
-
-fun lagGrunnlagsdata(
-    fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = emptyList(),
-    bosituasjon: List<Grunnlag.Bosituasjon> = emptyList(),
-): Grunnlagsdata {
-    return Grunnlagsdata.tryCreate(
-        fradragsgrunnlag = fradragsgrunnlag,
-        bosituasjon = bosituasjon,
-    ).getOrHandle { throw IllegalStateException(it.toString()) }
-}
 
 fun fradragsgrunnlagArbeidsinntekt1000(
     periode: Periode = periode2021,
@@ -72,7 +61,7 @@ fun grunnlagsdataEnsligUtenFradrag(
     fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = emptyList(),
     bosituasjon: Nel<Grunnlag.Bosituasjon> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode)),
 ): Grunnlagsdata {
-    return lagGrunnlagsdata(fradragsgrunnlag, bosituasjon)
+    return Grunnlagsdata.create(fradragsgrunnlag, bosituasjon)
 }
 
 /**
@@ -90,5 +79,5 @@ fun grunnlagsdataEnsligMedFradrag(
     ),
     bosituasjon: Nel<Grunnlag.Bosituasjon> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode)),
 ): Grunnlagsdata {
-    return lagGrunnlagsdata(fradragsgrunnlag, bosituasjon)
+    return Grunnlagsdata.create(fradragsgrunnlag, bosituasjon)
 }

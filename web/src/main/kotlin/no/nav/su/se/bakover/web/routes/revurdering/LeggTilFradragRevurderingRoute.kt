@@ -80,9 +80,7 @@ internal fun Route.leggTilFradragRevurdering(
                                             "fradrag_ugyldig_fradragstype",
                                         )
                                         KunneIkkeLeggeTilFradragsgrunnlag.HarIkkeEktelle -> kanIkkeHaEpsFradragUtenEps
-                                        KunneIkkeLeggeTilFradragsgrunnlag.FradragForEpsSomIkkeHarEPS -> kanIkkeHaEpsFradragUtenEps
-                                        KunneIkkeLeggeTilFradragsgrunnlag.FradragManglerBosituasjon -> Feilresponser.fradragManglerBosituasjon
-                                        KunneIkkeLeggeTilFradragsgrunnlag.MåLeggeTilBosituasjonFørFradrag -> Feilresponser.måHaBosituasjonFørFradrag
+                                        is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> Feilresponser.kunneIkkeLageFradragsgrunnlag
                                     }
                                 }.map {
                                     call.sikkerlogg("Lagret fradrag for revudering $revurderingId på $sakId")
