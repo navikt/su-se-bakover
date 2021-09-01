@@ -93,23 +93,23 @@ internal class LokalKvitteringJobTest {
         val utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
             utbetalingService = utbetalingServiceMock,
             ferdigstillVedtakService = ferdigstillVedtakServiceMock,
-            clock = fixedClock
+            clock = fixedClock,
         )
         LokalKvitteringJob(utbetalingRepoMock, utbetalingKvitteringConsumer).schedule()
-        verify(utbetalingRepoMock, timeout(3000)).hentUkvitterteUtbetalinger()
-        verify(utbetalingServiceMock, timeout(3000)).oppdaterMedKvittering(
+        verify(utbetalingRepoMock, timeout(5000)).hentUkvitterteUtbetalinger()
+        verify(utbetalingServiceMock, timeout(5000)).oppdaterMedKvittering(
             avstemmingsnøkkel = argThat { it shouldBe utbetaling.avstemmingsnøkkel },
-            kvittering = argThat { it shouldBe kvittering.copy(originalKvittering = it.originalKvittering) }
+            kvittering = argThat { it shouldBe kvittering.copy(originalKvittering = it.originalKvittering) },
         )
-        verify(ferdigstillVedtakServiceMock, timeout(1000)).ferdigstillVedtakEtterUtbetaling(
-            argThat { it shouldBe utbetalingMedKvittering }
+        verify(ferdigstillVedtakServiceMock, timeout(5000)).ferdigstillVedtakEtterUtbetaling(
+            argThat { it shouldBe utbetalingMedKvittering },
         )
 
         verifyNoMoreInteractions(
             utbetalingRepoMock,
             utbetalingServiceMock,
             ferdigstillVedtakServiceMock,
-            innvilgetSøknadsbehandling
+            innvilgetSøknadsbehandling,
         )
     }
 }
