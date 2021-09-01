@@ -68,6 +68,7 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                             it.til,
                                         )
                                         SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl -> Feilresponser.fantIkkePerson
+                                        is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag -> Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
                                     }
                                 }.map {
                                     Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
@@ -97,8 +98,9 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                             it.fra,
                                             it.til,
                                         )
-                                        SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLagreBosituasjon -> Feilresponser.kunneIkkeLageBosituasjon
+                                        SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLagreBosituasjon -> Feilresponser.kunneIkkeLeggeTilBosituasjonsgrunnlag
                                         SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeHentePersonIPdl -> Feilresponser.fantIkkePerson
+                                        is SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag -> Feilresponser.kunneIkkeLeggeTilBosituasjonsgrunnlag
                                     }
                                 }.map {
                                     Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))

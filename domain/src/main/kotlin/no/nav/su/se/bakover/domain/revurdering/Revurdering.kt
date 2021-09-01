@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.Either
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -31,6 +33,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 import java.util.UUID
+import kotlin.reflect.KClass
 
 enum class BeslutningEtterForhåndsvarsling(val beslutning: String) {
     FortsettSammeOpplysninger("FORTSETT_MED_SAMME_OPPLYSNINGER"),
@@ -77,86 +80,70 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
 
     abstract val forhåndsvarsel: Forhåndsvarsel?
 
-    object UgyldigTilstand
+    data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>)
 
-    open fun oppdaterUføreOgMarkerSomVurdert(uføre: Vilkår.Uførhet.Vurdert): Either<UgyldigTilstand, OpprettetRevurdering> {
-        return OpprettetRevurdering(
-            id = id,
-            periode = periode,
-            opprettet = opprettet,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            oppgaveId = oppgaveId,
-            fritekstTilBrev = fritekstTilBrev,
-            revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = forhåndsvarsel,
-            grunnlagsdata = grunnlagsdata,
+    sealed class KunneIkkeLeggeTilFradrag {
+        data class Valideringsfeil(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilFradrag()
+        data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
+            KunneIkkeLeggeTilFradrag()
+    }
+
+    sealed class KunneIkkeLeggeTilBosituasjon {
+        data class Valideringsfeil(val feil: KunneIkkeLageGrunnlagsdata) :
+            KunneIkkeLeggeTilBosituasjon()
+
+        data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
+            KunneIkkeLeggeTilBosituasjon()
+    }
+
+    open fun oppdaterUføreOgMarkerSomVurdert(uføre: Vilkår.Uførhet.Vurdert): Either<UgyldigTilstand, OpprettetRevurdering> =
+        UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
+
+    open fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert): Either<UgyldigTilstand, OpprettetRevurdering> =
+        UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
+
+    open fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> =
+        KunneIkkeLeggeTilFradrag.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
+
+    open fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: Grunnlag.Bosituasjon.Fullstendig): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> =
+        KunneIkkeLeggeTilBosituasjon.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
+
+    protected fun oppdaterUføreOgMarkerSomVurdertInternal(
+        uføre: Vilkår.Uførhet.Vurdert,
+    ): Either<UgyldigTilstand, OpprettetRevurdering> {
+        return oppdaterVilkårsvurderinger(
             vilkårsvurderinger = vilkårsvurderinger.copy(
                 uføre = uføre,
             ),
             informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Uførhet),
-            attesteringer = attesteringer,
         ).right()
     }
 
-    open fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert): Either<UgyldigTilstand, OpprettetRevurdering> {
-        return OpprettetRevurdering(
-            id = id,
-            periode = periode,
-            opprettet = opprettet,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            oppgaveId = oppgaveId,
-            fritekstTilBrev = fritekstTilBrev,
-            revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = forhåndsvarsel,
-            grunnlagsdata = grunnlagsdata,
+    protected fun oppdaterFormueOgMarkerSomVurdertInternal(formue: Vilkår.Formue.Vurdert) =
+        oppdaterVilkårsvurderinger(
             vilkårsvurderinger = vilkårsvurderinger.copy(
                 formue = formue,
             ),
             informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Formue),
-            attesteringer = attesteringer,
         ).right()
-    }
 
-    open fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<UgyldigTilstand, OpprettetRevurdering> {
-        return OpprettetRevurdering(
-            id = id,
-            periode = periode,
-            opprettet = opprettet,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            oppgaveId = oppgaveId,
-            fritekstTilBrev = fritekstTilBrev,
-            revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = forhåndsvarsel,
+    protected fun oppdaterFradragOgMarkerSomVurdertInternal(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> {
+        return oppdaterGrunnlag(
             grunnlagsdata = Grunnlagsdata.tryCreate(
                 bosituasjon = grunnlagsdata.bosituasjon,
                 fradragsgrunnlag = fradragsgrunnlag,
-            ),
-            vilkårsvurderinger = vilkårsvurderinger,
+            ).getOrHandle { return KunneIkkeLeggeTilFradrag.Valideringsfeil(it).left() },
             informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Inntekt),
-            attesteringer = attesteringer,
         ).right()
     }
 
-    open fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: Grunnlag.Bosituasjon.Fullstendig): Either<UgyldigTilstand, OpprettetRevurdering> {
+    protected fun oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon: Grunnlag.Bosituasjon.Fullstendig): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> {
         val gjeldendeBosituasjon = tilRevurdering.behandling.grunnlagsdata.bosituasjon.singleOrThrow()
-        return OpprettetRevurdering(
-            id = id,
-            periode = periode,
-            opprettet = opprettet,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            oppgaveId = oppgaveId,
-            fritekstTilBrev = fritekstTilBrev,
-            revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = forhåndsvarsel,
+        return oppdaterGrunnlag(
             grunnlagsdata = Grunnlagsdata.tryCreate(
                 fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag,
                 bosituasjon = nonEmptyListOf(bosituasjon),
-            ),
-            vilkårsvurderinger = vilkårsvurderinger,
+            ).getOrHandle { return KunneIkkeLeggeTilBosituasjon.Valideringsfeil(it).left() },
             informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Bosituasjon).let {
                 if (bosituasjon.harEndretEllerFjernetEktefelle(gjeldendeBosituasjon)) {
                     it.markerSomIkkeVurdert(Revurderingsteg.Inntekt).markerSomIkkeVurdert(Revurderingsteg.Formue)
@@ -164,8 +151,49 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                     it
                 }
             },
-            attesteringer = attesteringer,
         ).right()
+    }
+
+    protected fun oppdaterVilkårsvurderinger(
+        vilkårsvurderinger: Vilkårsvurderinger,
+        informasjonSomRevurderes: InformasjonSomRevurderes,
+    ): OpprettetRevurdering {
+        return OpprettetRevurdering(
+            id = id,
+            periode = periode,
+            opprettet = opprettet,
+            tilRevurdering = tilRevurdering,
+            saksbehandler = saksbehandler,
+            oppgaveId = oppgaveId,
+            fritekstTilBrev = fritekstTilBrev,
+            revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = forhåndsvarsel,
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
+            informasjonSomRevurderes = informasjonSomRevurderes,
+            attesteringer = attesteringer,
+        )
+    }
+
+    protected fun oppdaterGrunnlag(
+        grunnlagsdata: Grunnlagsdata,
+        informasjonSomRevurderes: InformasjonSomRevurderes,
+    ): OpprettetRevurdering {
+        return OpprettetRevurdering(
+            id = id,
+            periode = periode,
+            opprettet = opprettet,
+            tilRevurdering = tilRevurdering,
+            saksbehandler = saksbehandler,
+            oppgaveId = oppgaveId,
+            fritekstTilBrev = fritekstTilBrev,
+            revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = forhåndsvarsel,
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
+            informasjonSomRevurderes = informasjonSomRevurderes,
+            attesteringer = attesteringer,
+        )
     }
 
     open fun beregn(
@@ -323,6 +351,19 @@ data class OpprettetRevurdering(
         visitor.visit(this)
     }
 
+    override fun oppdaterUføreOgMarkerSomVurdert(
+        uføre: Vilkår.Uførhet.Vurdert,
+    ) = oppdaterUføreOgMarkerSomVurdertInternal(uføre)
+
+    override fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert) =
+        oppdaterFormueOgMarkerSomVurdertInternal(formue)
+
+    override fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>) =
+        oppdaterFradragOgMarkerSomVurdertInternal(fradragsgrunnlag)
+
+    override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: Grunnlag.Bosituasjon.Fullstendig) =
+        oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)
+
     fun oppdater(
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
@@ -345,6 +386,19 @@ sealed class BeregnetRevurdering : Revurdering() {
     abstract val beregning: Beregning
 
     abstract fun toSimulert(simulering: Simulering): SimulertRevurdering
+
+    override fun oppdaterUføreOgMarkerSomVurdert(
+        uføre: Vilkår.Uførhet.Vurdert,
+    ) = oppdaterUføreOgMarkerSomVurdertInternal(uføre)
+
+    override fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert) =
+        oppdaterFormueOgMarkerSomVurdertInternal(formue)
+
+    override fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>) =
+        oppdaterFradragOgMarkerSomVurdertInternal(fradragsgrunnlag)
+
+    override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: Grunnlag.Bosituasjon.Fullstendig) =
+        oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)
 
     fun oppdater(
         periode: Periode,
@@ -515,6 +569,19 @@ sealed class SimulertRevurdering : Revurdering() {
     abstract override fun accept(visitor: RevurderingVisitor)
     fun harSimuleringFeilutbetaling() = simulering.harFeilutbetalinger()
 
+    override fun oppdaterUføreOgMarkerSomVurdert(
+        uføre: Vilkår.Uførhet.Vurdert,
+    ) = oppdaterUføreOgMarkerSomVurdertInternal(uføre)
+
+    override fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert) =
+        oppdaterFormueOgMarkerSomVurdertInternal(formue)
+
+    override fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>) =
+        oppdaterFradragOgMarkerSomVurdertInternal(fradragsgrunnlag)
+
+    override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: Grunnlag.Bosituasjon.Fullstendig) =
+        oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)
+
     data class Innvilget(
         override val id: UUID,
         override val periode: Periode,
@@ -647,14 +714,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
     abstract override val grunnlagsdata: Grunnlagsdata
 
     abstract override fun accept(visitor: RevurderingVisitor)
-
-    override fun oppdaterUføreOgMarkerSomVurdert(uføre: Vilkår.Uførhet.Vurdert) = UgyldigTilstand.left()
-    override fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert) = UgyldigTilstand.left()
-    override fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>) =
-        UgyldigTilstand.left()
-
-    override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: Grunnlag.Bosituasjon.Fullstendig) =
-        UgyldigTilstand.left()
 
     data class Innvilget(
         override val id: UUID,
@@ -920,14 +979,6 @@ sealed class IverksattRevurdering : Revurdering() {
 
     abstract override fun accept(visitor: RevurderingVisitor)
 
-    override fun oppdaterUføreOgMarkerSomVurdert(uføre: Vilkår.Uførhet.Vurdert) = UgyldigTilstand.left()
-    override fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert) = UgyldigTilstand.left()
-    override fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>) =
-        UgyldigTilstand.left()
-
-    override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: Grunnlag.Bosituasjon.Fullstendig) =
-        UgyldigTilstand.left()
-
     data class Innvilget(
         override val id: UUID,
         override val periode: Periode,
@@ -1018,6 +1069,19 @@ sealed class UnderkjentRevurdering : Revurdering() {
         get() = attesteringer.hentSisteAttestering() as Attestering.Underkjent
 
     abstract override fun accept(visitor: RevurderingVisitor)
+
+    override fun oppdaterUføreOgMarkerSomVurdert(
+        uføre: Vilkår.Uførhet.Vurdert,
+    ) = oppdaterUføreOgMarkerSomVurdertInternal(uføre)
+
+    override fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert) =
+        oppdaterFormueOgMarkerSomVurdertInternal(formue)
+
+    override fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>) =
+        oppdaterFradragOgMarkerSomVurdertInternal(fradragsgrunnlag)
+
+    override fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: Grunnlag.Bosituasjon.Fullstendig) =
+        oppdaterBosituasjonOgMarkerSomVurdertInternal(bosituasjon)
 
     data class Innvilget(
         override val id: UUID,

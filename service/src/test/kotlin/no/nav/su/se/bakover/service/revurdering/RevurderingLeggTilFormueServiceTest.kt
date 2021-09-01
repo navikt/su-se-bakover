@@ -151,7 +151,7 @@ internal class RevurderingLeggTilFormueServiceTest {
     fun `skal ikke være lov å legge inn formue for eps, hvis man ikke har noen eps`() {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering.copy(
-                grunnlagsdata = Grunnlagsdata.tryCreate(
+                grunnlagsdata = Grunnlagsdata.create(
                     fradragsgrunnlag = opprettetRevurdering.grunnlagsdata.fradragsgrunnlag,
                     bosituasjon = listOf(
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -434,7 +434,7 @@ internal class RevurderingLeggTilFormueServiceTest {
         fritekstTilBrev = "",
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = null,
-        grunnlagsdata = Grunnlagsdata.tryCreate(
+        grunnlagsdata = Grunnlagsdata.create(
             fradragsgrunnlag = listOf(
                 lagFradragsgrunnlag(
                     type = Fradragstype.Arbeidsinntekt,
@@ -476,7 +476,7 @@ internal class RevurderingLeggTilFormueServiceTest {
             nettoBeløp = 100,
             periodeList = emptyList(),
         ),
-        grunnlagsdata = Grunnlagsdata.tryCreate(
+        grunnlagsdata = Grunnlagsdata.create(
             fradragsgrunnlag = listOf(
                 lagFradragsgrunnlag(
                     type = Fradragstype.Arbeidsinntekt,

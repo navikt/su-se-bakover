@@ -61,10 +61,7 @@ fun grunnlagsdataEnsligUtenFradrag(
     fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = emptyList(),
     bosituasjon: Nel<Grunnlag.Bosituasjon> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode)),
 ): Grunnlagsdata {
-    return Grunnlagsdata.tryCreate(
-        fradragsgrunnlag = fradragsgrunnlag,
-        bosituasjon = bosituasjon,
-    )
+    return Grunnlagsdata.create(fradragsgrunnlag, bosituasjon)
 }
 
 /**
@@ -82,8 +79,5 @@ fun grunnlagsdataEnsligMedFradrag(
     ),
     bosituasjon: Nel<Grunnlag.Bosituasjon> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode)),
 ): Grunnlagsdata {
-    return Grunnlagsdata.tryCreate(
-        fradragsgrunnlag = fradragsgrunnlag,
-        bosituasjon = bosituasjon,
-    )
+    return Grunnlagsdata.create(fradragsgrunnlag, bosituasjon)
 }

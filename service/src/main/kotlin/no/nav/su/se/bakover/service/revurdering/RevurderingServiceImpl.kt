@@ -254,10 +254,15 @@ internal class RevurderingServiceImpl(
             ?: return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
 
         return revurdering.oppdaterFradragOgMarkerSomVurdert(request.fradragsgrunnlag).mapLeft {
-            KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
-                revurdering::class,
-                OpprettetRevurdering::class,
-            )
+            when (it) {
+                is Revurdering.KunneIkkeLeggeTilFradrag.Valideringsfeil -> KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(
+                    it.feil,
+                )
+                is Revurdering.KunneIkkeLeggeTilFradrag.UgyldigTilstand -> KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
+                    revurdering::class,
+                    OpprettetRevurdering::class,
+                )
+            }
         }.map {
             // TODO jah: Flytt denne inn i revurderingRepo.lagre
             grunnlagService.lagreFradragsgrunnlag(it.id, it.grunnlagsdata.fradragsgrunnlag)
@@ -281,10 +286,15 @@ internal class RevurderingServiceImpl(
             }
 
         return revurdering.oppdaterBosituasjonOgMarkerSomVurdert(bosituasjongrunnlag).mapLeft {
-            KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand(
-                revurdering::class,
-                OpprettetRevurdering::class,
-            )
+            when (it) {
+                is Revurdering.KunneIkkeLeggeTilBosituasjon.Valideringsfeil -> KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeEndreBosituasjongrunnlag(
+                    it.feil,
+                )
+                is Revurdering.KunneIkkeLeggeTilBosituasjon.UgyldigTilstand -> KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand(
+                    revurdering::class,
+                    OpprettetRevurdering::class,
+                )
+            }
         }.map {
             // TODO jah: Flytt denne inn i revurderingRepo.lagre
             grunnlagService.lagreBosituasjongrunnlag(it.id, it.grunnlagsdata.bosituasjon)

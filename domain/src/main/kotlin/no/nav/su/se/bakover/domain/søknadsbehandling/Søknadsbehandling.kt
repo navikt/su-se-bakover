@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.Either
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.toAv
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.periode
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -44,6 +46,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
         object IkkeLovÅLeggeTilFradragIDenneStatusen : KunneIkkeLeggeTilFradragsgrunnlag()
         object GrunnlagetMåVæreInneforBehandlingsperioden : KunneIkkeLeggeTilFradragsgrunnlag()
         object PeriodeMangler : KunneIkkeLeggeTilFradragsgrunnlag()
+        data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
+            KunneIkkeLeggeTilFradragsgrunnlag()
     }
 
     internal fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Unit> {
@@ -214,7 +218,9 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     grunnlagsdata = Grunnlagsdata.tryCreate(
                         fradragsgrunnlag = fradragsgrunnlag,
                         bosituasjon = this.grunnlagsdata.bosituasjon,
-                    ),
+                    ).getOrHandle {
+                        return KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(it).left()
+                    },
                     vilkårsvurderinger,
                     attesteringer,
                 ).right()
@@ -452,7 +458,9 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     grunnlagsdata = Grunnlagsdata.tryCreate(
                         fradragsgrunnlag = fradragsgrunnlag,
                         bosituasjon = this.grunnlagsdata.bosituasjon,
-                    ),
+                    ).getOrHandle {
+                        return KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(it).left()
+                    },
                     vilkårsvurderinger,
                     attesteringer,
                 ).right()
@@ -503,7 +511,9 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     grunnlagsdata = Grunnlagsdata.tryCreate(
                         fradragsgrunnlag = fradragsgrunnlag,
                         bosituasjon = this.grunnlagsdata.bosituasjon,
-                    ),
+                    ).getOrHandle {
+                        return KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(it).left()
+                    },
                     vilkårsvurderinger,
                     attesteringer,
                 ).right()
@@ -583,7 +593,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 grunnlagsdata = Grunnlagsdata.tryCreate(
                     fradragsgrunnlag = fradragsgrunnlag,
                     bosituasjon = this.grunnlagsdata.bosituasjon,
-                ),
+                ).getOrHandle { return KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(it).left() },
                 vilkårsvurderinger,
                 attesteringer,
             ).right()
@@ -973,7 +983,9 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     grunnlagsdata = Grunnlagsdata.tryCreate(
                         fradragsgrunnlag = fradragsgrunnlag,
                         bosituasjon = this.grunnlagsdata.bosituasjon,
-                    ),
+                    ).getOrHandle {
+                        return KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(it).left()
+                    },
                     vilkårsvurderinger,
                     attesteringer,
                 ).right()
@@ -1090,7 +1102,9 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         grunnlagsdata = Grunnlagsdata.tryCreate(
                             fradragsgrunnlag = fradragsgrunnlag,
                             bosituasjon = this.grunnlagsdata.bosituasjon,
-                        ),
+                        ).getOrHandle {
+                            return KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(it).left()
+                        },
                         vilkårsvurderinger,
                         attesteringer,
                     ).right()

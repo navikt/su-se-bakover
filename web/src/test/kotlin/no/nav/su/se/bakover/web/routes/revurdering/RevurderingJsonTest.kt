@@ -64,7 +64,7 @@ internal class RevurderingJsonTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = listOf(fradragsgrunnlag),
                 bosituasjon = listOf(bosituasjon),
             ),

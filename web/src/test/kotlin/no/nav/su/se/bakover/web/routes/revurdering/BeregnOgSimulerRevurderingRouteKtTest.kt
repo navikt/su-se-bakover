@@ -135,7 +135,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),

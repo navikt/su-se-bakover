@@ -160,7 +160,7 @@ internal class GjeldendeVedtaksdataTest {
                 periode = periode,
                 begrunnelse = "",
             ),
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -242,7 +242,7 @@ internal class GjeldendeVedtaksdataTest {
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = listOf(),
                 bosituasjon = listOf(),
             ),

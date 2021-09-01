@@ -93,7 +93,7 @@ class RevurderingIngenEndringTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),

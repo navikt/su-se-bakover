@@ -93,7 +93,7 @@ internal class OppdaterRevurderingServiceTest {
         revurderingsperiode = periodeNesteMånedOgTreMånederFram,
         sakOgVedtakSomKanRevurderes = sakOgIverksattInnvilgetSøknadsbehandlingsvedtak,
     ).second.copy(
-        grunnlagsdata = Grunnlagsdata.tryCreate(
+        grunnlagsdata = Grunnlagsdata.create(
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
@@ -282,7 +282,7 @@ internal class OppdaterRevurderingServiceTest {
                     ),
                     simulering = mock(),
                     forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                    grunnlagsdata = Grunnlagsdata.tryCreate(
+                    grunnlagsdata = Grunnlagsdata.create(
                         bosituasjon = listOf(
                             Grunnlag.Bosituasjon.Fullstendig.Enslig(
                                 id = UUID.randomUUID(),
@@ -452,7 +452,7 @@ internal class OppdaterRevurderingServiceTest {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering.copy(
                 // simuler at det er gjort endringer før oppdatering
-                grunnlagsdata = Grunnlagsdata.tryCreate(),
+                grunnlagsdata = Grunnlagsdata.create(),
                 vilkårsvurderinger = Vilkårsvurderinger(
                     uføre = Vilkår.Uførhet.IkkeVurdert,
                 ),
@@ -535,7 +535,7 @@ internal class OppdaterRevurderingServiceTest {
             periode = periodePlussEtÅr,
             behandling = (vedtakSøknadsbehandlingIverksattInnvilget().second.behandling as Søknadsbehandling.Iverksatt.Innvilget).copy(
                 stønadsperiode = Stønadsperiode.create(periodePlussEtÅr),
-                grunnlagsdata = Grunnlagsdata.tryCreate(bosituasjon = listOf(bosituasjon)),
+                grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjon)),
                 vilkårsvurderinger = Vilkårsvurderinger(
                     uføre = uførevilkår,
                     formue = andreVedtakFormueVilkår,
@@ -616,7 +616,7 @@ internal class OppdaterRevurderingServiceTest {
             on { beregning } doReturn revurderingBeregning
             on { simulering } doReturn mock()
             on { saksbehandler } doReturn mock()
-            on { grunnlagsdata } doReturn Grunnlagsdata.tryCreate(
+            on { grunnlagsdata } doReturn Grunnlagsdata.create(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -670,7 +670,7 @@ internal class OppdaterRevurderingServiceTest {
     @Test
     fun `revurdering med EPS inntekt og flere bosituasjoner må vurderes`() {
         val vedtattSøknadsbehandling = vedtakSøknadsbehandlingIverksattInnvilget(
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -686,7 +686,7 @@ internal class OppdaterRevurderingServiceTest {
         val vedtattRevurdering = vedtakRevurderingIverksattInnvilget(
             revurderingsperiode = periodeMedEPS,
             grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
-                grunnlagsdata = Grunnlagsdata.tryCreate(
+                grunnlagsdata = Grunnlagsdata.create(
                     bosituasjon = listOf(
                         Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                             id = UUID.randomUUID(),

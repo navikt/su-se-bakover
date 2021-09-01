@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -288,6 +289,9 @@ sealed class KunneIkkeLeggeTilFradragsgrunnlag {
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
     ) : KunneIkkeLeggeTilFradragsgrunnlag()
+
+    data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
+        KunneIkkeLeggeTilFradragsgrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
@@ -299,6 +303,9 @@ sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
     ) : KunneIkkeLeggeTilBosituasjongrunnlag()
+
+    data class KunneIkkeEndreBosituasjongrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
+        KunneIkkeLeggeTilBosituasjongrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilFormuegrunnlag {

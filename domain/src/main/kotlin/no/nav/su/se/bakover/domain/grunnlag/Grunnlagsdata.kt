@@ -1,5 +1,9 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
+import arrow.core.Either
+import arrow.core.getOrHandle
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
@@ -27,20 +31,26 @@ data class Grunnlagsdata private constructor(
     }
 
     companion object {
-        val IkkeVurdert = tryCreate()
+        val IkkeVurdert = Grunnlagsdata(fradragsgrunnlag = emptyList(), bosituasjon = emptyList())
 
-        fun tryCreate(
+        /** Denne skal ikke kalles på produksjon på sikt */
+        fun create(
             fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = emptyList(),
             bosituasjon: List<Grunnlag.Bosituasjon> = emptyList(),
-        ): Grunnlagsdata {
+        ) = tryCreate(fradragsgrunnlag, bosituasjon).getOrHandle { throw IllegalStateException(it.toString()) }
+
+        fun tryCreate(
+            fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+            bosituasjon: List<Grunnlag.Bosituasjon>,
+        ): Either<KunneIkkeLageGrunnlagsdata, Grunnlagsdata> {
 
             val fradragsperiode = fradragsgrunnlag.periode()
             val bosituasjonperiode = bosituasjon.periode()
 
             if (fradragsperiode != null) {
-                if (bosituasjonperiode == null) throw IllegalArgumentException("Må legge til bosituasjon før fradrag.")
+                if (bosituasjonperiode == null) return KunneIkkeLageGrunnlagsdata.MåLeggeTilBosituasjonFørFradrag.left()
                 if (!(bosituasjonperiode inneholder fradragsperiode))
-                    throw IllegalArgumentException("fradragslisten inneholder fradrag som ikke har noen bosituasjon")
+                    return KunneIkkeLageGrunnlagsdata.FradragManglerBosituasjon.left()
 
                 fradragsgrunnlag.map { f ->
                     if (f.fradrag.tilhører == FradragTilhører.EPS) {
@@ -50,7 +60,7 @@ data class Grunnlagsdata private constructor(
                             }.none {
                                     it inneholder fradragMnd
                                 }
-                            ) throw IllegalArgumentException("fradragslisten inneholder fradrag for eps som ikke har eps på dette tidspunkt")
+                            ) return KunneIkkeLageGrunnlagsdata.FradragForEpsSomIkkeHarEPS.left()
                         }
                     }
                 }
@@ -59,9 +69,15 @@ data class Grunnlagsdata private constructor(
             return Grunnlagsdata(
                 fradragsgrunnlag = fradragsgrunnlag,
                 bosituasjon = bosituasjon,
-            )
+            ).right()
         }
     }
+}
+
+sealed class KunneIkkeLageGrunnlagsdata {
+    object MåLeggeTilBosituasjonFørFradrag : KunneIkkeLageGrunnlagsdata()
+    object FradragManglerBosituasjon : KunneIkkeLageGrunnlagsdata()
+    object FradragForEpsSomIkkeHarEPS : KunneIkkeLageGrunnlagsdata()
 }
 
 fun List<Grunnlag.Uføregrunnlag>.harForventetInntektStørreEnn0() = this.sumOf { it.forventetInntekt } > 0
@@ -70,7 +86,7 @@ fun List<Grunnlag.Fradragsgrunnlag>.periode(): Periode? = this.map { it.fradrag.
     if (perioder.isEmpty()) null else
         Periode.create(
             fraOgMed = perioder.minOf { it.fraOgMed },
-            tilOgMed = perioder.maxOf { it.tilOgMed }
+            tilOgMed = perioder.maxOf { it.tilOgMed },
         )
 }
 

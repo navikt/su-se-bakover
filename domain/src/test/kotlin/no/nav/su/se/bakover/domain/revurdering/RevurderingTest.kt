@@ -476,7 +476,7 @@ internal class RevurderingTest {
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = null,
         vilkårsvurderinger = vilkårsvurderinger,
-        grunnlagsdata = Grunnlagsdata.tryCreate(
+        grunnlagsdata = Grunnlagsdata.create(
             bosituasjon = bosituasjon,
             fradragsgrunnlag = fradrag,
         ),

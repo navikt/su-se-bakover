@@ -190,11 +190,10 @@ internal class RevurderingPostgresRepo(
 
         val fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(id, session)
         val bosituasjonsgrunnlag = bosituasjonsgrunnlagPostgresRepo.hentBosituasjongrunnlag(id, session)
-        val grunnlagsdata = Grunnlagsdata.tryCreate(
+        val grunnlagsdata = Grunnlagsdata.create(
             fradragsgrunnlag = fradragsgrunnlag,
             bosituasjon = bosituasjonsgrunnlag,
         )
-
         val vilkårsvurderinger = Vilkårsvurderinger(
             uføre = uføreVilkårsvurderingRepo.hent(id, session),
             formue = formueVilkårsvurderingRepo.hent(id, session),

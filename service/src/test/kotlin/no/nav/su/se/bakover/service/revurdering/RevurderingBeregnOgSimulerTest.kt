@@ -58,7 +58,7 @@ class RevurderingBeregnOgSimulerTest {
             fritekstTilBrev = "",
             revurderingsårsak = RevurderingTestUtils.revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = listOf(
                     lagFradragsgrunnlag(
                         type = Fradragstype.Arbeidsinntekt,

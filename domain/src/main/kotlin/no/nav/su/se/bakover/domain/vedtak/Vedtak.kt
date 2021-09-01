@@ -350,7 +350,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     }
                     copy(
                         periode = periode,
-                        grunnlagsdata = Grunnlagsdata.tryCreate(
+                        grunnlagsdata = Grunnlagsdata.create(
                             bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
                                 (it.fullstendigOrThrow()).copy(
                                     CopyArgs.Snitt(periode),
@@ -392,7 +392,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     }
                     copy(
                         periode = args.periode,
-                        grunnlagsdata = Grunnlagsdata.tryCreate(
+                        grunnlagsdata = Grunnlagsdata.create(
                             bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
                                 (it.fullstendigOrThrow()).copy(
                                     CopyArgs.Snitt(args.periode),

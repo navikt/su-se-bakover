@@ -57,7 +57,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.tryCreate(
+        grunnlagsdata = Grunnlagsdata.create(
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),

@@ -566,7 +566,7 @@ internal class TestDataHelper(
         formue = Vilkår.Formue.IkkeVurdert,
     )
 
-    private fun innvilgetGrunnlagsdataSøknadsbehandling(epsFnr: Fnr? = null) = Grunnlagsdata.tryCreate(
+    private fun innvilgetGrunnlagsdataSøknadsbehandling(epsFnr: Fnr? = null) = Grunnlagsdata.create(
         bosituasjon = listOf(
             if (epsFnr != null) Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                 id = UUID.randomUUID(),

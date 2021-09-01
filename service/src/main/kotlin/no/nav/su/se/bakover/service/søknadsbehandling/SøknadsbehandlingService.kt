@@ -4,6 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
@@ -164,6 +165,7 @@ interface SøknadsbehandlingService {
         ) : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
 
         object KlarteIkkeHentePersonIPdl : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
+        data class KunneIkkeEndreBosituasjonEpsGrunnlag(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
     }
 
     sealed class KunneIkkeFullføreBosituasjonGrunnlag {
@@ -175,6 +177,7 @@ interface SøknadsbehandlingService {
 
         object KlarteIkkeLagreBosituasjon : KunneIkkeFullføreBosituasjonGrunnlag()
         object KlarteIkkeHentePersonIPdl : KunneIkkeFullføreBosituasjonGrunnlag()
+        data class KunneIkkeEndreBosituasjongrunnlag(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeFullføreBosituasjonGrunnlag()
     }
 
     sealed class KunneIkkeLeggeTilFradragsgrunnlag {
@@ -187,5 +190,6 @@ interface SøknadsbehandlingService {
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out Søknadsbehandling>,
         ) : KunneIkkeLeggeTilFradragsgrunnlag()
+        data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilFradragsgrunnlag()
     }
 }

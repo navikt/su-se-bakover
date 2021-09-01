@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
+import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.utenforBehandlingsperioden
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
@@ -95,6 +96,7 @@ internal fun Route.leggTilGrunnlagFradrag(
                                                 fra = it.fra,
                                             )
                                             KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler -> Behandlingsfeilresponser.periodeMangler
+                                            is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
                                         }
                                     }
                                     .map {

@@ -39,8 +39,9 @@ data class GjeldendeVedtaksdata(
             is Vilkår.Formue.Vurdert -> formue
         }
 
+    // TODO istedenfor å bruke constructor + init, burde GjeldendeVedtaksdata ha en tryCreate
     init {
-        grunnlagsdata = Grunnlagsdata.tryCreate(
+        grunnlagsdata = Grunnlagsdata.create(
             fradragsgrunnlag = vedtakPåTidslinje.flatMap {
                 it.grunnlagsdata.fradragsgrunnlag
             },

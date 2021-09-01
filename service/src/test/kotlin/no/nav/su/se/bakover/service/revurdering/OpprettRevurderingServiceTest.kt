@@ -457,7 +457,7 @@ internal class OpprettRevurderingServiceTest {
         val behandlingMock = mock<Behandling> {
             on { fnr } doReturn Fnr.generer()
             on { saksnummer } doReturn Saksnummer(2021)
-            on { grunnlagsdata } doReturn Grunnlagsdata.tryCreate(
+            on { grunnlagsdata } doReturn Grunnlagsdata.create(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -576,7 +576,7 @@ internal class OpprettRevurderingServiceTest {
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                grunnlagsdata = Grunnlagsdata.tryCreate(
+                grunnlagsdata = Grunnlagsdata.create(
                     bosituasjon = listOf(
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
                             id = UUID.randomUUID(),
@@ -842,7 +842,7 @@ internal class OpprettRevurderingServiceTest {
         val andreVedtak = createSøknadsbehandlingVedtak().copy(
             periode = periodePlussEtÅr,
             behandling = createInnvilgetBehandling().copy(
-                grunnlagsdata = Grunnlagsdata.tryCreate(
+                grunnlagsdata = Grunnlagsdata.create(
                     bosituasjon = bosituasjon,
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger(
@@ -901,7 +901,7 @@ internal class OpprettRevurderingServiceTest {
             on { beregning } doReturn mock()
             on { simulering } doReturn mock()
             on { saksbehandler } doReturn mock()
-            on { grunnlagsdata } doReturn Grunnlagsdata.tryCreate(
+            on { grunnlagsdata } doReturn Grunnlagsdata.create(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),

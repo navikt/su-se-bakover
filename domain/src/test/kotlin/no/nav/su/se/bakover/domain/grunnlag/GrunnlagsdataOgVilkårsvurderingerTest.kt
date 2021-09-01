@@ -21,7 +21,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
     fun `grunnlagsdata og vilkårsvurderinger med ulike perioder kaster exception`() {
         shouldThrow<IllegalArgumentException> {
             GrunnlagsdataOgVilkårsvurderinger(
-                grunnlagsdata = Grunnlagsdata.tryCreate(
+                grunnlagsdata = Grunnlagsdata.create(
                     fradragsgrunnlag = nonEmptyListOf(
                         fradragsgrunnlagArbeidsinntekt1000(
                             periode = Periode.create(
@@ -58,7 +58,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
     @Test
     fun `grunnlagsdata og vilkårsvurderinger med like perioder kaster ikke exception`() {
         GrunnlagsdataOgVilkårsvurderinger(
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = nonEmptyListOf(
                     fradragsgrunnlagArbeidsinntekt1000(
                         periode = Periode.create(
@@ -110,7 +110,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
     @Test
     fun `innvilget grunnlagsdata og ikke vurdert vilkårsvurderinger kaster ikke exception`() {
         GrunnlagsdataOgVilkårsvurderinger(
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = nonEmptyListOf(
                     fradragsgrunnlagArbeidsinntekt1000(
                         periode = Periode.create(
