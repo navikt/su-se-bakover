@@ -44,7 +44,7 @@ class PersonhendelseService(
             personService.hentAktørIdMedSystembruker(sak.fnr).fold(
                 ifLeft = { log.error("Fant ikke person for personhendelse med id: ${personhendelse.id}") },
                 ifRight = { aktørId ->
-                    oppgaveServiceImpl.opprettOppgave(
+                    oppgaveServiceImpl.opprettOppgaveMedSystembruker(
                         OppgaveConfig.Personhendelse(
                             saksnummer = personhendelse.saksnummer,
                             beskrivelse = OppgavebeskrivelseMapper.map(personhendelse.hendelse),
