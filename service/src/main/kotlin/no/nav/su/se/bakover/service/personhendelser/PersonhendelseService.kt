@@ -30,31 +30,36 @@ class PersonhendelseService(
                 log.debug("Personhendelse ikke knyttet til sak: Ignorerer ${personhendelse.hendelse} med hendelsesid ${personhendelse.metadata.hendelseId}, offset ${personhendelse.metadata.offset}, partisjon ${personhendelse.metadata.partisjon} og endringstype ${personhendelse.endringstype}")
                 sikkerLogg.debug("Personhendelse ikke knyttet til sak: $personhendelse")
             }
-        log.info("Personhendelse for sak id ${ eksisterendeSakIdOgNummer.sakId }: Persisterer ${personhendelse.hendelse} med hendelsesid ${personhendelse.metadata.hendelseId}, offset ${personhendelse.metadata.offset}, partisjon ${personhendelse.metadata.partisjon} og endringstype ${personhendelse.endringstype}")
+        log.info("Personhendelse for sak id ${eksisterendeSakIdOgNummer.sakId}: Persisterer ${personhendelse.hendelse} med hendelsesid ${personhendelse.metadata.hendelseId}, offset ${personhendelse.metadata.offset}, partisjon ${personhendelse.metadata.partisjon} og endringstype ${personhendelse.endringstype}")
         sikkerLogg.debug("Personhendelse for sak: $personhendelse")
         personhendelseRepo.lagre(
             personhendelse = personhendelse.tilknyttSak(UUID.randomUUID(), eksisterendeSakIdOgNummer),
         )
     }
 
-    fun opprettOppgaverForPersonhendelser() = personhendelseRepo.hentPersonhendelserUtenOppgave().forEach { personhendelse ->
-        val sak = sakRepo.hentSak(personhendelse.sakId)!!
+    fun opprettOppgaverForPersonhendelser() =
+        personhendelseRepo.hentPersonhendelserUtenOppgave().forEach { personhendelse ->
+            val sak = sakRepo.hentSak(personhendelse.sakId)!!
 
-        personService.hentAktørIdMedSystembruker(sak.fnr).fold(
-            ifLeft = { log.error("Fant ikke person for personhendelse med id: ${personhendelse.id}") },
-            ifRight = { aktørId ->
-                oppgaveServiceImpl.opprettOppgave(
-                    OppgaveConfig.Personhendelse(
-                        saksnummer = personhendelse.saksnummer,
-                        beskrivelse = OppgavebeskrivelseMapper.map(personhendelse.hendelse),
-                        aktørId = aktørId,
-                    )
-                ).map { oppgaveId ->
-                    personhendelseRepo.lagre(
-                        personhendelse.tilSendtTilOppgave(oppgaveId)
-                    )
-                }
-            }
-        )
-    }
+            personService.hentAktørIdMedSystembruker(sak.fnr).fold(
+                ifLeft = { log.error("Fant ikke person for personhendelse med id: ${personhendelse.id}") },
+                ifRight = { aktørId ->
+                    oppgaveServiceImpl.opprettOppgave(
+                        OppgaveConfig.Personhendelse(
+                            saksnummer = personhendelse.saksnummer,
+                            beskrivelse = OppgavebeskrivelseMapper.map(personhendelse.hendelse),
+                            aktørId = aktørId,
+                        ),
+                    ).map { oppgaveId ->
+                        log.info("Opprettet oppgave for personhendelse med id: ${personhendelse.id}")
+                        personhendelseRepo.lagre(
+                            personhendelse.tilSendtTilOppgave(oppgaveId),
+                        )
+                    }
+                        .mapLeft {
+                            log.error("Kunne ikke opprette oppgave for personhendelse med id: ${personhendelse.id}")
+                        }
+                },
+            )
+        }
 }
