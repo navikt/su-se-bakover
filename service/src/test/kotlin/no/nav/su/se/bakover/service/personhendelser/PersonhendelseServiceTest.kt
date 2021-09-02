@@ -94,7 +94,7 @@ internal class PersonhendelseServiceTest {
             on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
         }
         val personServiceMock = mock<PersonService> {
-            on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
+            on { hentAktørIdMedSystembruker(any()) } doReturn AktørId("aktørId").right()
         }
 
         val personhendelseService = PersonhendelseService(
@@ -107,7 +107,7 @@ internal class PersonhendelseServiceTest {
 
         verify(sakRepoMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(personhendelseRepoMock).hentPersonhendelserUtenOppgave()
-        verify(personServiceMock).hentAktørId(argThat { it shouldBe sak.fnr })
+        verify(personServiceMock).hentAktørIdMedSystembruker(argThat { it shouldBe sak.fnr })
         verify(oppgaveServiceMock).opprettOppgave(
             argThat {
                 it shouldBe OppgaveConfig.Personhendelse(

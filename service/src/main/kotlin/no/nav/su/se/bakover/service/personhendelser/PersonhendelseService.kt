@@ -40,8 +40,8 @@ class PersonhendelseService(
     fun opprettOppgaverForPersonhendelser() = personhendelseRepo.hentPersonhendelserUtenOppgave().forEach { personhendelse ->
         val sak = sakRepo.hentSak(personhendelse.sakId)!!
 
-        personService.hentAktørId(sak.fnr).fold(
-            ifLeft = { log.error("Fant ikke aktørId for personhendelse med id: ${personhendelse.id}") },
+        personService.hentAktørIdMedSystembruker(sak.fnr).fold(
+            ifLeft = { log.error("Fant ikke person for personhendelse med id: ${personhendelse.id}") },
             ifRight = { aktørId ->
                 oppgaveServiceImpl.opprettOppgave(
                     OppgaveConfig.Personhendelse(

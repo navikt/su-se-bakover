@@ -353,6 +353,10 @@ open class AccessCheckProxy(
                     return services.person.hentAktørId(fnr)
                 }
 
+                override fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
+                    kastKanKunKallesFraAnnenService()
+                }
+
                 override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> {
                     return services.person.sjekkTilgangTilPerson(fnr)
                 }
