@@ -15,7 +15,7 @@ internal class PersonhendelseOppgaveJob(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val jobName = "Opprett personhendelse oppgaver"
-    private val periode = Duration.of(2, ChronoUnit.MINUTES).toMillis()
+    private val periode = Duration.of(1, ChronoUnit.DAYS).toMillis()
     fun schedule() {
         log.info("Starter skeduleringsjobb '$jobName' med intervall: $periode. Mitt hostnavn er $hostName. Jeg er ${if (isLeaderPod()) "" else "ikke "}leder.")
         fixedRateTimer(
