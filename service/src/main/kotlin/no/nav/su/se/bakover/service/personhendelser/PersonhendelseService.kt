@@ -10,12 +10,6 @@ import no.nav.su.se.bakover.service.person.PersonService
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
-/**
- * TODO jah/Aryan: Neste PR. Lag oppgave dersom det er en uførehendelse.
- * oppgavetype - vurder konsekvens om ytelse
- * 1 uke frist på oppgaven
- * se till att saksnummer kommer in i beskrivelsen. 4815
- */
 class PersonhendelseService(
     private val sakRepo: SakRepo,
     private val personhendelseRepo: PersonhendelseRepo,
@@ -37,6 +31,10 @@ class PersonhendelseService(
         )
     }
 
+    /*
+    TODO ai 02.09: Kan vurdere på sikt å lage kun en oppgave for flere personhendelser for samme bruker,
+        f.eks hvis endringstypen er ANNULERT eller KORRIGERT.
+    */
     fun opprettOppgaverForPersonhendelser() =
         personhendelseRepo.hentPersonhendelserUtenOppgave().forEach { personhendelse ->
             val sak = sakRepo.hentSak(personhendelse.sakId)!!
