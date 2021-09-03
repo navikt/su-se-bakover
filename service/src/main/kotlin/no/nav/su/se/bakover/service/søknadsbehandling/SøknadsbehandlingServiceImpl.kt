@@ -492,6 +492,8 @@ internal class SøknadsbehandlingServiceImpl(
                 it.id,
                 it.vilkårsvurderinger,
             )
+            grunnlagService.lagreBosituasjongrunnlag(it.id, it.grunnlagsdata.bosituasjon)
+            grunnlagService.lagreFradragsgrunnlag(it.id, it.grunnlagsdata.fradragsgrunnlag)
             it.right()
         }
     }

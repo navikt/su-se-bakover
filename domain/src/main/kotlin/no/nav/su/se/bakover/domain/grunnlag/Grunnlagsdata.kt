@@ -21,6 +21,15 @@ data class Grunnlagsdata private constructor(
      * */
     val bosituasjon: List<Grunnlag.Bosituasjon>,
 ) {
+    fun oppdaterGrunnlagsperioder(
+        oppdatertPeriode: Periode,
+    ): Grunnlagsdata {
+        return tryCreate(
+            fradragsgrunnlag = fradragsgrunnlag.oppdaterFradragsperiode(oppdatertPeriode),
+            bosituasjon = bosituasjon.oppdaterBosituasjonsperiode(oppdatertPeriode),
+        ).getOrHandle { throw IllegalStateException("Kunne ikke oppdatere stønadsperiode for grunnlagsdata") }
+    }
+
     val periode: Periode? by lazy {
         fradragsgrunnlag.map { it.fradrag.periode }.plus(bosituasjon.map { it.periode }).ifNotEmpty {
             Periode.create(
@@ -90,11 +99,21 @@ fun List<Grunnlag.Fradragsgrunnlag>.periode(): Periode? = this.map { it.fradrag.
         )
 }
 
+fun List<Grunnlag.Fradragsgrunnlag>.oppdaterFradragsperiode(
+    oppdatertPeriode: Periode,
+): List<Grunnlag.Fradragsgrunnlag> {
+    return this.map { it.oppdaterFradragsperiode(oppdatertPeriode) }
+}
+
+fun List<Grunnlag.Bosituasjon>.oppdaterBosituasjonsperiode(oppdatertPeriode: Periode): List<Grunnlag.Bosituasjon> {
+    return this.map { it.oppdaterBosituasjonsperiode(oppdatertPeriode) }
+}
+
 @JvmName("bosituasjonperiode")
 fun List<Grunnlag.Bosituasjon>.periode(): Periode? = this.map { it.periode }.let { perioder ->
     if (perioder.isEmpty()) null else
         Periode.create(
             fraOgMed = perioder.minOf { it.fraOgMed },
-            tilOgMed = perioder.maxOf { it.tilOgMed }
+            tilOgMed = perioder.maxOf { it.tilOgMed },
         )
 }
