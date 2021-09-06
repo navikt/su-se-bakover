@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.FnrGenerator
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -25,6 +24,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
@@ -180,7 +180,7 @@ internal class KonsistensavstemmingTest {
             ),
         )
 
-        val fnr2 = FnrGenerator.random()
+        val fnr2 = Fnr.generer()
         val saksnummer2 = Saksnummer(9999)
         val s2u1 = createUtbetaling(
             fnr = fnr2,
@@ -292,7 +292,7 @@ internal class KonsistensavstemmingTest {
             ),
         )
 
-        val fnr2 = FnrGenerator.random()
+        val fnr2 = Fnr.generer()
         val saksnummer2 = Saksnummer(9999)
         val s2u1 = createUtbetaling(
             fnr = fnr2,
