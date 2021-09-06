@@ -32,7 +32,7 @@ internal class GrensesnittavstemmingDataBuilderTest {
     @Test
     fun `Sjekk at vi bygger AvstemmingDataReqest riktig`() {
         val avstemmingId = UUID30.randomUUID()
-        val expected = GrensesnittsavstemmingRequest(
+        val expected = GrensesnittsavstemmingData(
             aksjon = Aksjonsdata.Grensesnittsavstemming(
                 nokkelFom = "1583017200000000000",
                 nokkelTom = "1583103600000000000",
@@ -47,7 +47,7 @@ internal class GrensesnittavstemmingDataBuilderTest {
                 datoAvstemtFom = "2020030100",
                 datoAvstemtTom = "2020030200",
             ),
-            grunnlag = GrensesnittsavstemmingRequest.Grunnlagdata(
+            grunnlag = GrensesnittsavstemmingData.Grunnlagdata(
                 godkjentAntall = 2,
                 godkjentBelop = 1600.toBigDecimal(),
                 godkjentFortegn = Fortegn.TILLEGG,
@@ -62,20 +62,20 @@ internal class GrensesnittavstemmingDataBuilderTest {
                 manglerFortegn = Fortegn.TILLEGG,
             ),
             detalj = listOf(
-                GrensesnittsavstemmingRequest.Detaljdata(
-                    detaljType = GrensesnittsavstemmingRequest.Detaljdata.Detaljtype.GODKJENT_MED_VARSEL,
+                GrensesnittsavstemmingData.Detaljdata(
+                    detaljType = GrensesnittsavstemmingData.Detaljdata.Detaljtype.GODKJENT_MED_VARSEL,
                     offnr = "12345678910",
                     avleverendeTransaksjonNokkel = okMedVarselId.toString(),
                     tidspunkt = "2020-03-02-00.00.00.000000",
                 ),
-                GrensesnittsavstemmingRequest.Detaljdata(
-                    detaljType = GrensesnittsavstemmingRequest.Detaljdata.Detaljtype.AVVIST,
+                GrensesnittsavstemmingData.Detaljdata(
+                    detaljType = GrensesnittsavstemmingData.Detaljdata.Detaljtype.AVVIST,
                     offnr = "12345678910",
                     avleverendeTransaksjonNokkel = feildId.toString(),
                     tidspunkt = "2020-03-01-00.00.00.000000",
                 ),
-                GrensesnittsavstemmingRequest.Detaljdata(
-                    detaljType = GrensesnittsavstemmingRequest.Detaljdata.Detaljtype.MANGLENDE_KVITTERING,
+                GrensesnittsavstemmingData.Detaljdata(
+                    detaljType = GrensesnittsavstemmingData.Detaljdata.Detaljtype.MANGLENDE_KVITTERING,
                     offnr = "12345678910",
                     avleverendeTransaksjonNokkel = manglerKvitteringId.toString(),
                     tidspunkt = "2020-03-02-00.00.00.000000",

@@ -11,18 +11,20 @@ import no.nav.su.se.bakover.common.mapBoth
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
+import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
+import no.nav.su.se.bakover.web.svar
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-private const val AVSTEMMING_PATH = "/avstem"
+private const val AVSTEMMING_PATH = "/avstemming"
 
 // TODO jah Jacob: Consider if this is still needed.
 internal fun Route.avstemmingRoutes(
-    service: AvstemmingService
+    service: AvstemmingService,
 ) {
     authorize(Brukerrolle.Drift) {
-        post(AVSTEMMING_PATH) {
+        post("$AVSTEMMING_PATH/grensesnitt") {
             val fraOgMed = call.parameters["fraOgMed"] // YYYY-MM-DD
             val tilOgMed = call.parameters["tilOgMed"] // YYYY-MM-DD
 
@@ -34,20 +36,20 @@ internal fun Route.avstemmingRoutes(
                         Either.catch {
                             Pair(
                                 fraOgMed,
-                                tilOgMed
+                                tilOgMed,
                             ).mapBoth { LocalDate.parse(it, DateTimeFormatter.ISO_DATE) }
                         }
                             .mapLeft {
                                 return@post call.respond(
                                     HttpStatusCode.BadRequest,
-                                    "Ugyldig(e) dato(er). Må være på ${DateTimeFormatter.ISO_DATE}"
+                                    "Ugyldig(e) dato(er). Må være på ${DateTimeFormatter.ISO_DATE}",
                                 )
                             }
                             .map {
                                 if (!isValidAvstemmingsperiode(it)) {
                                     return@post call.respond(
                                         HttpStatusCode.BadRequest,
-                                        "fraOgMed må være <= tilOgMed. Og tilOgMed må være tidligere enn dagens dato!"
+                                        "fraOgMed må være <= tilOgMed. Og tilOgMed må være tidligere enn dagens dato!",
                                     )
                                 }
                                 it
@@ -60,12 +62,38 @@ internal fun Route.avstemmingRoutes(
                 { service.grensesnittsavstemming() },
                 {
                     service.grensesnittsavstemming(it.first.startOfDay(), it.second.endOfDay())
-                }
+                },
             )
                 .fold(
                     { call.respond(HttpStatusCode.InternalServerError, "Kunne ikke avstemme") },
-                    { call.respond("Avstemt ok") }
+                    { call.respond("Avstemt ok") },
                 )
+        }
+    }
+
+    authorize(Brukerrolle.Drift) {
+        post("$AVSTEMMING_PATH/konsistens") {
+            val fraOgMed = call.parameters["fraOgMed"]
+
+            if (fraOgMed == null) call.svar(
+                HttpStatusCode.BadRequest.errorJson(
+                    "Parameter 'fraOgMed' mangler",
+                    "ugyldig_parameter",
+                ),
+            ) else {
+                service.konsistensavstemming(LocalDate.parse(fraOgMed, DateTimeFormatter.ISO_DATE))
+                    .bimap(
+                        {
+                            call.svar(
+                                HttpStatusCode.InternalServerError.errorJson(
+                                    "Avstemming feilet",
+                                    "avstemming_feilet",
+                                ),
+                            )
+                        },
+                        { call.respond("Avstemming utført") },
+                    )
+            }
         }
     }
 }

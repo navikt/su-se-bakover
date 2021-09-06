@@ -125,10 +125,9 @@ open class AccessCheckProxy(
                 }
 
                 override fun konsistensavstemming(
-                    fraOgMed: Tidspunkt,
-                    tilOgMed: Tidspunkt,
+                    løpendeFraOgMed: LocalDate,
                 ): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming> {
-                    return services.avstemming.konsistensavstemming(fraOgMed, tilOgMed)
+                    return services.avstemming.konsistensavstemming(løpendeFraOgMed)
                 }
             },
             utbetaling = object : UtbetalingService {

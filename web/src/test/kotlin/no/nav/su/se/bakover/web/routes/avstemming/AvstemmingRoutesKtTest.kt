@@ -8,6 +8,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.endOfDay
+import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -62,14 +64,13 @@ internal class AvstemmingRoutesKtTest {
         }
 
         override fun konsistensavstemming(
-            fraOgMed: Tidspunkt,
-            tilOgMed: Tidspunkt,
+            løpendeFraOgMed: LocalDate,
         ): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming> {
-            return Avstemming.Konsistensavstemming(
+            return Avstemming.Konsistensavstemming.Ny(
                 id = UUID30.randomUUID(),
                 opprettet = Tidspunkt.now(),
-                fraOgMed = Tidspunkt.now(),
-                tilOgMed = Tidspunkt.now(),
+                løpendeFraOgMed = løpendeFraOgMed.startOfDay(),
+                opprettetTilOgMed = løpendeFraOgMed.endOfDay(),
                 utbetalinger = listOf(),
                 avstemmingXmlRequest = null,
             ).right()
@@ -90,7 +91,7 @@ internal class AvstemmingRoutesKtTest {
         ) {
             defaultRequest(
                 HttpMethod.Post,
-                "/avstem",
+                "/avstemming/grensesnitt",
                 listOf(Brukerrolle.Drift),
             ).apply {
                 response.status() shouldBe HttpStatusCode.OK
@@ -111,7 +112,7 @@ internal class AvstemmingRoutesKtTest {
         ) {
             defaultRequest(
                 HttpMethod.Post,
-                "/avstem?fraOgMed=2020-11-01",
+                "/avstemming/grensesnitt?fraOgMed=2020-11-01",
                 listOf(Brukerrolle.Drift),
             ).apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
@@ -119,7 +120,7 @@ internal class AvstemmingRoutesKtTest {
 
             defaultRequest(
                 HttpMethod.Post,
-                "/avstem?tilOgMed=2020-11-01",
+                "/avstemming/grensesnitt?tilOgMed=2020-11-01",
                 listOf(Brukerrolle.Drift),
             ).apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
@@ -139,8 +140,8 @@ internal class AvstemmingRoutesKtTest {
             },
         ) {
             listOf(
-                "/avstem?fraOgMed=2020-11-17T11:02:19Z&tilOgMed=2020-11-17",
-                "/avstem?fraOgMed=2020-11-12T11:02:19Z&tilOgMed=2020-11-17T11:02:19Z",
+                "/avstemming/grensesnitt?fraOgMed=2020-11-17T11:02:19Z&tilOgMed=2020-11-17",
+                "/avstemming/grensesnitt?fraOgMed=2020-11-12T11:02:19Z&tilOgMed=2020-11-17T11:02:19Z",
             ).forEach {
                 defaultRequest(
                     HttpMethod.Post,
@@ -165,8 +166,8 @@ internal class AvstemmingRoutesKtTest {
             },
         ) {
             listOf(
-                "/avstem?fraOgMed=2020-11-18&tilOgMed=2020-11-17",
-                "/avstem?fraOgMed=2021-11-18&tilOgMed=2020-11-12",
+                "/avstemming/grensesnitt?fraOgMed=2020-11-18&tilOgMed=2020-11-17",
+                "/avstemming/grensesnitt?fraOgMed=2021-11-18&tilOgMed=2020-11-12",
             ).forEach {
                 defaultRequest(
                     HttpMethod.Post,
@@ -191,7 +192,7 @@ internal class AvstemmingRoutesKtTest {
             },
         ) {
             listOf(
-                "/avstem?fraOgMed=2020-11-11&tilOgMed=${
+                "/avstemming/grensesnitt?fraOgMed=2020-11-11&tilOgMed=${
                 LocalDate.now().plusDays(1).format(DateTimeFormatter.ISO_DATE)
                 }",
             ).forEach {

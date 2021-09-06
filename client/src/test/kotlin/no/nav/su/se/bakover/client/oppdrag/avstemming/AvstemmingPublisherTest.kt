@@ -1,20 +1,25 @@
 package no.nav.su.se.bakover.client.oppdrag.avstemming
 
 import arrow.core.Either
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
 import no.nav.su.se.bakover.client.oppdrag.XmlMapper
 import no.nav.su.se.bakover.client.oppdrag.toAvstemmingsdatoFormat
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -23,7 +28,10 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
 import java.math.BigDecimal
 
 class AvstemmingPublisherTest {
@@ -32,7 +40,7 @@ class AvstemmingPublisherTest {
     fun `publish avstemming faktisk sender melding på mq`() {
         val client = MqPublisherMock(Unit.right())
         val res = AvstemmingMqPublisher(mqPublisher = client)
-            .publish(avstemming)
+            .publish(grensesnittavstemming)
 
         client.count shouldBe 1
         client.publishedMessages.size shouldBe 3
@@ -40,19 +48,19 @@ class AvstemmingPublisherTest {
             AvstemmingStartRequest(
                 aksjon = Aksjonsdata.Grensesnittsavstemming(
                     aksjonType = Aksjonsdata.AksjonType.START,
-                    avleverendeAvstemmingId = avstemming.id.toString(),
-                    nokkelFom = Avstemmingsnøkkel(avstemming.fraOgMed).toString(),
-                    nokkelTom = Avstemmingsnøkkel(avstemming.tilOgMed).toString(),
+                    avleverendeAvstemmingId = grensesnittavstemming.id.toString(),
+                    nokkelFom = Avstemmingsnøkkel(grensesnittavstemming.fraOgMed).toString(),
+                    nokkelTom = Avstemmingsnøkkel(grensesnittavstemming.tilOgMed).toString(),
                 ),
             ),
         )
         client.publishedMessages[1] shouldBe XmlMapper.writeValueAsString(
-            GrensesnittsavstemmingRequest(
+            GrensesnittsavstemmingData(
                 aksjon = Aksjonsdata.Grensesnittsavstemming(
                     aksjonType = Aksjonsdata.AksjonType.DATA,
-                    avleverendeAvstemmingId = avstemming.id.toString(),
-                    nokkelFom = Avstemmingsnøkkel(avstemming.fraOgMed).toString(),
-                    nokkelTom = Avstemmingsnøkkel(avstemming.tilOgMed).toString(),
+                    avleverendeAvstemmingId = grensesnittavstemming.id.toString(),
+                    nokkelFom = Avstemmingsnøkkel(grensesnittavstemming.fraOgMed).toString(),
+                    nokkelTom = Avstemmingsnøkkel(grensesnittavstemming.tilOgMed).toString(),
                 ),
                 total = Totaldata(
                     totalAntall = 1,
@@ -60,10 +68,10 @@ class AvstemmingPublisherTest {
                     fortegn = Fortegn.TILLEGG,
                 ),
                 periode = Periodedata(
-                    datoAvstemtFom = avstemming.fraOgMed.toAvstemmingsdatoFormat(),
-                    datoAvstemtTom = avstemming.tilOgMed.toAvstemmingsdatoFormat(),
+                    datoAvstemtFom = grensesnittavstemming.fraOgMed.toAvstemmingsdatoFormat(),
+                    datoAvstemtTom = grensesnittavstemming.tilOgMed.toAvstemmingsdatoFormat(),
                 ),
-                grunnlag = GrensesnittsavstemmingRequest.Grunnlagdata(
+                grunnlag = GrensesnittsavstemmingData.Grunnlagdata(
                     godkjentAntall = 1,
                     godkjentBelop = BigDecimal.valueOf(5000),
                     godkjentFortegn = Fortegn.TILLEGG,
@@ -84,9 +92,9 @@ class AvstemmingPublisherTest {
             AvstemmingStoppRequest(
                 aksjon = Aksjonsdata.Grensesnittsavstemming(
                     aksjonType = Aksjonsdata.AksjonType.AVSLUTT,
-                    avleverendeAvstemmingId = avstemming.id.toString(),
-                    nokkelFom = Avstemmingsnøkkel(avstemming.fraOgMed).toString(),
-                    nokkelTom = Avstemmingsnøkkel(avstemming.tilOgMed).toString(),
+                    avleverendeAvstemmingId = grensesnittavstemming.id.toString(),
+                    nokkelFom = Avstemmingsnøkkel(grensesnittavstemming.fraOgMed).toString(),
+                    nokkelTom = Avstemmingsnøkkel(grensesnittavstemming.tilOgMed).toString(),
                 ),
             ),
         )
@@ -98,12 +106,33 @@ class AvstemmingPublisherTest {
     fun `publish avstemming feiler`() {
         val client = MqPublisherMock(MqPublisher.CouldNotPublish.left())
         val res = AvstemmingMqPublisher(mqPublisher = client)
-            .publish(avstemming)
+            .publish(grensesnittavstemming)
 
         res shouldBe AvstemmingPublisher.KunneIkkeSendeAvstemming.left()
     }
 
-    private val avstemming = Avstemming.Grensesnittavstemming(
+    @Test
+    fun `publisering av konsistensavstemming`() {
+        val client = MqPublisherMock(Unit.right())
+
+        val res = AvstemmingMqPublisher(mqPublisher = client)
+            .publish(konsistensavstemming)
+            .getOrHandle { fail { "Burde gått fint" } }
+
+        res.avstemmingXmlRequest shouldNotBe null
+
+        client.publishedMessages.count() shouldBe 5
+
+        KonsistensavstemmingRequestBuilder(konsistensavstemming).let {
+            client.publishedMessages[0] shouldBe it.startXml()
+            client.publishedMessages[1] shouldBe it.dataXml()[0]
+            client.publishedMessages[2] shouldBe it.dataXml()[1]
+            client.publishedMessages[3] shouldBe it.totaldataXml()
+            client.publishedMessages[4] shouldBe it.avsluttXml()
+        }
+    }
+
+    private val grensesnittavstemming = Avstemming.Grensesnittavstemming(
         fraOgMed = 1.januar(2020).startOfDay(),
         tilOgMed = 2.januar(2020).startOfDay(),
         utbetalinger = listOf(
@@ -140,6 +169,24 @@ class AvstemmingPublisherTest {
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
             ),
         ),
+    )
+
+    private val konsistensavstemming = Avstemming.Konsistensavstemming.Ny(
+        id = UUID30.randomUUID(),
+        opprettet = fixedTidspunkt,
+        løpendeFraOgMed = 1.januar(2021).startOfDay(),
+        opprettetTilOgMed = 31.desember(2021).endOfDay(),
+        utbetalinger = listOf(
+            oversendtUtbetalingUtenKvittering(
+                saksnummer = Saksnummer(8888),
+                fnr = Fnr("88888888888"),
+            ),
+            oversendtUtbetalingUtenKvittering(
+                saksnummer = Saksnummer(9999),
+                fnr = Fnr("99999999999"),
+            ),
+        ),
+        avstemmingXmlRequest = null,
     )
 
     class MqPublisherMock(val response: Either<MqPublisher.CouldNotPublish, Unit>) : MqPublisher {

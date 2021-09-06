@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.client.oppdrag.avstemming
 import no.nav.su.se.bakover.client.oppdrag.XmlMapper
 import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.AksjonType.AVSLUTT
 import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.AksjonType.DATA
-import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingRequest.Detaljdata
-import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingRequest.Detaljdata.Detaljtype.GODKJENT_MED_VARSEL
-import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingRequest.Grunnlagdata
+import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingData.Detaljdata
+import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingData.Detaljdata.Detaljtype.GODKJENT_MED_VARSEL
+import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingData.Grunnlagdata
 import org.hamcrest.MatcherAssert
 import org.junit.jupiter.api.Test
 import org.xmlunit.diff.DefaultNodeMatcher
@@ -13,7 +13,7 @@ import org.xmlunit.diff.ElementSelectors
 import org.xmlunit.matchers.CompareMatcher
 import java.math.BigDecimal
 
-internal class AvstemmingXmlMappingTest {
+internal class GrensesnittsavstemmingXmlMappingTest {
     private val nodeMatcher = DefaultNodeMatcher().apply { ElementSelectors.byName }
 
     @Test
@@ -26,6 +26,7 @@ internal class AvstemmingXmlMappingTest {
             ).start(),
         )
 
+        //language=xml
         val expected =
             """
             <?xml version='1.0' encoding='UTF-8'?>
@@ -53,7 +54,7 @@ internal class AvstemmingXmlMappingTest {
 
     @Test
     fun `Sjekk mapping av data melding`() {
-        val dataRequest = GrensesnittsavstemmingRequest(
+        val dataRequest = GrensesnittsavstemmingData(
             aksjon = Aksjonsdata.Grensesnittsavstemming(
                 aksjonType = DATA,
                 nokkelFom = "nokkelFom",

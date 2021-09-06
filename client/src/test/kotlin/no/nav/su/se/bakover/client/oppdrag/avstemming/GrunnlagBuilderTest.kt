@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 internal class GrunnlagBuilderTest {
     @Test
     fun `summerer grunnlag for alle typer`() {
-        val expected = GrensesnittsavstemmingRequest.Grunnlagdata(
+        val expected = GrensesnittsavstemmingData.Grunnlagdata(
             godkjentAntall = 2,
             godkjentBelop = 1600.toBigDecimal(),
             godkjentFortegn = Fortegn.TILLEGG,
@@ -79,7 +79,7 @@ internal class GrunnlagBuilderTest {
         ).build() shouldBe expected
     }
 
-    private fun expected() = GrensesnittsavstemmingRequest.Grunnlagdata(
+    private fun expected() = GrensesnittsavstemmingData.Grunnlagdata(
         godkjentAntall = 0,
         godkjentBelop = 0.toBigDecimal(),
         godkjentFortegn = Fortegn.TILLEGG,

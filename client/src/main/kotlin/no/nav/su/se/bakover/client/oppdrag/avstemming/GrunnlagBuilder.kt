@@ -4,10 +4,10 @@ import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import java.math.BigDecimal
 
-class GrunnlagBuilder(
+internal class GrunnlagBuilder(
     private val utbetalinger: List<Utbetaling.OversendtUtbetaling>
 ) {
-    fun build(): GrensesnittsavstemmingRequest.Grunnlagdata {
+    fun build(): GrensesnittsavstemmingData.Grunnlagdata {
         val gruppertMedKvittering = utbetalinger.filterIsInstance(Utbetaling.OversendtUtbetaling.MedKvittering::class.java)
             .groupBy { it.kvittering.utbetalingsstatus }
         val kvittertOk = gruppertMedKvittering.sumForStatus(Kvittering.Utbetalingsstatus.OK)
@@ -16,7 +16,7 @@ class GrunnlagBuilder(
         val oversendtOppdragUtenKvittering = utbetalinger.filterIsInstance(Utbetaling.OversendtUtbetaling.UtenKvittering::class.java)
         val kvitteringMangler = oversendtOppdragUtenKvittering.sum()
 
-        return GrensesnittsavstemmingRequest.Grunnlagdata(
+        return GrensesnittsavstemmingData.Grunnlagdata(
             godkjentAntall = kvittertOk.antall,
             godkjentBelop = kvittertOk.beløp,
             godkjentFortegn = kvittertOk.fortegn,

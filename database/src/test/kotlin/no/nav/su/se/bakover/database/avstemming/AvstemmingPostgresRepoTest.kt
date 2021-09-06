@@ -3,12 +3,14 @@ package no.nav.su.se.bakover.database.avstemming
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.startOfDay
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.antall
@@ -19,6 +21,7 @@ import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import org.junit.jupiter.api.Test
+import java.time.temporal.ChronoUnit
 
 internal class AvstemmingPostgresRepoTest {
 
@@ -28,12 +31,13 @@ internal class AvstemmingPostgresRepoTest {
     @Test
     fun `henter siste grensesnittsavstemming`() {
         withMigratedDb {
-            val utbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering()
+            val utbetalingMedKvittering =
+                testDataHelper.nyOversendtUtbetalingMedKvittering()
 
             val zero = repo.hentSisteGrensesnittsavstemming()
             zero shouldBe null
 
-            repo.opprettAvstemming(
+            repo.opprettGrensesnittsavstemming(
                 Avstemming.Grensesnittavstemming(
                     fraOgMed = 1.januar(2020).startOfDay(),
                     tilOgMed = 2.januar(2020).startOfDay(),
@@ -41,32 +45,32 @@ internal class AvstemmingPostgresRepoTest {
                 ),
             )
 
-            val second = repo.opprettAvstemming(
-                Avstemming.Grensesnittavstemming(
-                    fraOgMed = 3.januar(2020).startOfDay(),
-                    tilOgMed = 4.januar(2020).startOfDay(),
-                    utbetalinger = listOf(utbetalingMedKvittering.second),
-                    avstemmingXmlRequest = "<Root></Root>",
-                ),
+            val second = Avstemming.Grensesnittavstemming(
+                fraOgMed = 3.januar(2020).startOfDay(),
+                tilOgMed = 4.januar(2020).startOfDay(),
+                utbetalinger = listOf(utbetalingMedKvittering.second),
+                avstemmingXmlRequest = "<Root></Root>",
             )
 
-            val hentet = repo.hentSisteGrensesnittsavstemming()!!
-            hentet shouldBe second
+            repo.opprettGrensesnittsavstemming(second)
+
+            repo.hentSisteGrensesnittsavstemming()!! shouldBe second
         }
     }
 
     @Test
     fun `hent utbetalinger for grensesnittsavstemming`() {
         withMigratedDb {
-            val (innvilget, utbetaling) = testDataHelper.nyIverksattInnvilget(
-                avstemmingsnøkkel = Avstemmingsnøkkel(
-                    11.oktober(
-                        2020,
-                    ).startOfDay(),
-                ),
-            )
+            val (innvilget, utbetaling) =
+                testDataHelper.nyIverksattInnvilget(
+                    avstemmingsnøkkel = Avstemmingsnøkkel(
+                        11.oktober(
+                            2020,
+                        ).startOfDay(),
+                    ),
+                )
 
-            EmbeddedDatabase.instance().withSession { session ->
+            testDataHelper.datasource.withSession { session ->
                 """
                     insert into utbetaling (id, opprettet, sakId, fnr, type, behandler, avstemmingsnøkkel, simulering, utbetalingsrequest)
                     values (:id, :opprettet, :sakId, :fnr, :type, :behandler, to_json(:avstemmingsnokkel::json), to_json(:simulering::json), to_json(:utbetalingsrequest::json))
@@ -110,17 +114,19 @@ internal class AvstemmingPostgresRepoTest {
     @Test
     fun `hent utbetalinger for grensesnittsavstemming tidspunkt test`() {
         withMigratedDb {
-            val utbetaling1 = testDataHelper.nyOversendtUtbetalingMedKvittering(
-                avstemmingsnøkkel = Avstemmingsnøkkel(
-                    11.oktober(2020).startOfDay(),
-                ),
-            )
+            val utbetaling1 =
+                testDataHelper.nyOversendtUtbetalingMedKvittering(
+                    avstemmingsnøkkel = Avstemmingsnøkkel(
+                        11.oktober(2020).startOfDay(),
+                    ),
+                )
 
-            val utbetaling2 = testDataHelper.nyOversendtUtbetalingMedKvittering(
-                avstemmingsnøkkel = Avstemmingsnøkkel(
-                    11.oktober(2020).endOfDay(),
-                ),
-            )
+            val utbetaling2 =
+                testDataHelper.nyOversendtUtbetalingMedKvittering(
+                    avstemmingsnøkkel = Avstemmingsnøkkel(
+                        11.oktober(2020).endOfDay(),
+                    ),
+                )
 
             val utbetalinger = repo.hentUtbetalingerForGrensesnittsavstemming(
                 11.oktober(2020).startOfDay(),
@@ -135,7 +141,8 @@ internal class AvstemmingPostgresRepoTest {
     @Test
     fun `oppretter grensesnittsavstemming og oppdaterer aktuelle utbetalinger`() {
         withMigratedDb {
-            val oversendtUtbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering()
+            val oversendtUtbetalingMedKvittering =
+                testDataHelper.nyOversendtUtbetalingMedKvittering()
 
             val avstemming = Avstemming.Grensesnittavstemming(
                 id = UUID30.randomUUID(),
@@ -146,35 +153,119 @@ internal class AvstemmingPostgresRepoTest {
                 avstemmingXmlRequest = "some xml",
             )
 
-            repo.opprettAvstemming(avstemming)
+            repo.opprettGrensesnittsavstemming(avstemming)
             repo.oppdaterUtbetalingerEtterGrensesnittsavstemming(avstemming)
 
-            EmbeddedDatabase.instance().withSession { session ->
+            testDataHelper.datasource.withSession { session ->
                 "select count(*) from Utbetaling where avstemmingId is not null".antall(session = session)
             } shouldBe 1
         }
     }
 
     @Test
-    fun `oppretter konsistensavstemming`() {
+    fun `oppretter og henter konsistensavstemming`() {
         withMigratedDb {
-            val oversendtUtbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering()
+            val oversendtUtbetalingMedKvittering =
+                testDataHelper.nyOversendtUtbetalingMedKvittering()
 
-            val avstemming = Avstemming.Konsistensavstemming(
+            val avstemming = Avstemming.Konsistensavstemming.Ny(
                 id = UUID30.randomUUID(),
                 opprettet = fixedTidspunkt,
-                fraOgMed = fixedTidspunkt,
-                tilOgMed = fixedTidspunkt,
+                løpendeFraOgMed = 1.januar(2020).startOfDay(zoneIdOslo),
+                opprettetTilOgMed = 31.januar(2021).endOfDay(zoneIdOslo),
                 utbetalinger = listOf(oversendtUtbetalingMedKvittering.second),
                 avstemmingXmlRequest = "some xml",
             )
 
-            repo.opprettAvstemming(avstemming)
+            repo.opprettKonsistensavstemming(avstemming)
 
-            EmbeddedDatabase.instance().withSession { session ->
-                "select count(*) from avstemming where type = '${AvstemmingType.GRENSESNITT}'".antall(session = session) shouldBe 0
-                "select count(*) from avstemming where type = '${AvstemmingType.KONSISTENS}'".antall(session = session) shouldBe 1
-            }
+            repo.hentKonsistensavstemming(avstemming.id) shouldBe Avstemming.Konsistensavstemming.Fullført(
+                id = avstemming.id,
+                opprettet = avstemming.opprettet,
+                løpendeFraOgMed = avstemming.løpendeFraOgMed,
+                opprettetTilOgMed = avstemming.opprettetTilOgMed,
+                utbetalinger = mapOf(
+                    oversendtUtbetalingMedKvittering.first.saksnummer to oversendtUtbetalingMedKvittering.second.utbetalingslinjer,
+                ),
+                avstemmingXmlRequest = "some xml",
+            )
+        }
+    }
+
+    @Test
+    fun `konsistensavstemming henter kun utbetalinger hvor det eksisterer utbetalingslinjer med tom større enn eller lik løpendeFraOgMed`() {
+        withMigratedDb {
+            val oversendtUtbetalingMedKvittering =
+                testDataHelper.nyOversendtUtbetalingMedKvittering().second
+
+            repo.hentUtbetalingerForKonsistensavstemming(
+                løpendeFraOgMed = oversendtUtbetalingMedKvittering.tidligsteDato().startOfDay(),
+                opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet.plus(1, ChronoUnit.DAYS),
+            ) shouldBe listOf(oversendtUtbetalingMedKvittering)
+
+            repo.hentUtbetalingerForKonsistensavstemming(
+                løpendeFraOgMed = oversendtUtbetalingMedKvittering.tidligsteDato().startOfDay()
+                    .plus(1, ChronoUnit.DAYS),
+                opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet.plus(1, ChronoUnit.DAYS),
+            ) shouldBe listOf(oversendtUtbetalingMedKvittering)
+
+            repo.hentUtbetalingerForKonsistensavstemming(
+                løpendeFraOgMed = oversendtUtbetalingMedKvittering.tidligsteDato().startOfDay()
+                    .minus(1, ChronoUnit.DAYS),
+                opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet.plus(1, ChronoUnit.DAYS),
+            ) shouldBe listOf(oversendtUtbetalingMedKvittering)
+
+            repo.hentUtbetalingerForKonsistensavstemming(
+                løpendeFraOgMed = oversendtUtbetalingMedKvittering.senesteDato().startOfDay(),
+                opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet.plus(1, ChronoUnit.DAYS),
+            ) shouldBe listOf(oversendtUtbetalingMedKvittering)
+        }
+    }
+
+    @Test
+    fun `konsistensavstemming henter bare utbetalinger opprettet tidligere enn opprettetTilOgMed`() {
+        withMigratedDb {
+            val oversendtUtbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering().second
+
+            repo.hentUtbetalingerForKonsistensavstemming(
+                løpendeFraOgMed = oversendtUtbetalingMedKvittering.tidligsteDato().startOfDay(),
+                opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet.plus(1, ChronoUnit.DAYS),
+            ) shouldBe listOf(oversendtUtbetalingMedKvittering)
+
+            repo.hentUtbetalingerForKonsistensavstemming(
+                løpendeFraOgMed = oversendtUtbetalingMedKvittering.tidligsteDato().startOfDay(),
+                opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet.minus(1, ChronoUnit.DAYS),
+            ) shouldBe emptyList()
+
+            repo.hentUtbetalingerForKonsistensavstemming(
+                løpendeFraOgMed = oversendtUtbetalingMedKvittering.tidligsteDato().startOfDay(),
+                opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet,
+            ) shouldBe listOf(oversendtUtbetalingMedKvittering)
+        }
+    }
+
+    @Test
+    fun `konsistensavstemming uten løpende utbetalinger`() {
+        withMigratedDb {
+            val avstemming = Avstemming.Konsistensavstemming.Ny(
+                id = UUID30.randomUUID(),
+                opprettet = Tidspunkt.now(),
+                løpendeFraOgMed = 1.januar(2021).startOfDay(),
+                opprettetTilOgMed = 1.januar(2021).endOfDay(),
+                utbetalinger = emptyList(),
+                avstemmingXmlRequest = "xml",
+            )
+
+            repo.opprettKonsistensavstemming(avstemming)
+
+            repo.hentKonsistensavstemming(avstemming.id) shouldBe Avstemming.Konsistensavstemming.Fullført(
+                id = avstemming.id,
+                opprettet = avstemming.opprettet,
+                løpendeFraOgMed = 1.januar(2021).startOfDay(),
+                opprettetTilOgMed = 1.januar(2021).endOfDay(),
+                utbetalinger = emptyMap(),
+                avstemmingXmlRequest = "xml",
+            )
         }
     }
 }

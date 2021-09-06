@@ -11,40 +11,34 @@ import java.math.BigDecimal
  * https://github.com/navikt/tjenestespesifikasjoner/blob/master/avstemming-v1-tjenestespesifikasjon/src/main/wsdl/no/nav/virksomhet/tjenester/avstemming/meldinger/meldinger.xsd
  */
 @JacksonXmlRootElement(localName = "avstemmingsdata")
-data class AvstemmingStartRequest(
+internal data class AvstemmingStartRequest(
     val aksjon: Aksjonsdata,
 )
 
 @JacksonXmlRootElement(localName = "avstemmingsdata")
-data class AvstemmingStoppRequest(
+internal data class AvstemmingStoppRequest(
     val aksjon: Aksjonsdata,
 )
 
-sealed class AvstemmingDataRequest {
-    abstract val aksjon: Aksjonsdata
+@JacksonXmlRootElement(localName = "avstemmingsdata")
+internal data class GrensesnittsavstemmingData(
+    val aksjon: Aksjonsdata.Grensesnittsavstemming,
+    val total: Totaldata,
+    val periode: Periodedata,
+    val grunnlag: Grunnlagdata,
+    val detalj: List<Detaljdata>,
+) {
 
     fun startXml(): String {
         return XmlMapper.writeValueAsString(AvstemmingStartRequest(aksjon.start()))
     }
 
-    abstract fun dataXml(): String
+    fun dataXml(): String {
+        return XmlMapper.writeValueAsString(this)
+    }
 
     fun avsluttXml(): String {
         return XmlMapper.writeValueAsString(AvstemmingStoppRequest(aksjon.avslutt()))
-    }
-}
-
-@JacksonXmlRootElement(localName = "avstemmingsdata")
-data class GrensesnittsavstemmingRequest(
-    override val aksjon: Aksjonsdata.Grensesnittsavstemming,
-    val total: Totaldata,
-    val periode: Periodedata,
-    val grunnlag: Grunnlagdata,
-    val detalj: List<Detaljdata>,
-) : AvstemmingDataRequest() {
-
-    override fun dataXml(): String {
-        return XmlMapper.writeValueAsString(this)
     }
 
     /**
@@ -96,7 +90,7 @@ data class GrensesnittsavstemmingRequest(
 /**
  * ID 120
  */
-data class Totaldata(
+internal data class Totaldata(
     val totalAntall: Int,
     val totalBelop: BigDecimal,
     val fortegn: Fortegn?,
@@ -105,28 +99,66 @@ data class Totaldata(
 /**
  * ID 150
  */
-data class Periodedata(
+internal data class Periodedata(
     val datoAvstemtFom: String,
     val datoAvstemtTom: String,
 )
 
-enum class Fortegn(@JsonValue val value: String) {
+internal enum class Fortegn(@JsonValue val value: String) {
     TILLEGG("T"),
     FRADRAG("F");
 
     override fun toString() = value
 }
 
-@JacksonXmlRootElement(localName = "avstemmingsdata")
-data class KonsistensavstemmingDataRequest(
-    override val aksjon: Aksjonsdata.Konsistensavstemming,
-    // TODO OPPDRAGS+LINJER
-    val total: Totaldata,
-) : AvstemmingDataRequest() {
+@JacksonXmlRootElement(localName = "sendAsynkronKonsistensavstemmingsdata")
+internal data class SendAsynkronKonsistensavstemmingsdata(
+    val request: SendKonsistensavstemmingRequest,
+)
 
-    override fun dataXml(): String {
-        return XmlMapper.writeValueAsString(this)
-    }
+internal data class SendKonsistensavstemmingRequest(
+    val konsistensavstemmingsdata: KonsistensavstemmingData,
+)
+
+@JacksonXmlRootElement(localName = "konsistensavstemmingdata")
+internal data class KonsistensavstemmingData(
+    val aksjonsdata: Aksjonsdata.Konsistensavstemming,
+    val oppdragsdataListe: List<Oppdragsdata>? = null,
+    val totaldata: Totaldata? = null,
+) {
+
+    data class Oppdragsdata(
+        val fagomradeKode: String,
+        val fagsystemId: String,
+        val utbetalingsfrekvens: String,
+        val oppdragGjelderId: String,
+        val oppdragGjelderFom: String,
+        val saksbehandlerId: String,
+        val oppdragsenhetListe: List<Enhet>,
+        val oppdragslinjeListe: List<Oppdragslinje>,
+    )
+
+    data class Enhet(
+        val enhetType: String,
+        val enhet: String,
+        val enhetFom: String,
+    )
+
+    data class VedtakPeriode(
+        val fom: String,
+        val tom: String,
+    )
+
+    data class Oppdragslinje(
+        val delytelseId: String,
+        val klassifikasjonKode: String,
+        val vedtakPeriode: VedtakPeriode,
+        val sats: BigDecimal,
+        val satstypeKode: String,
+        val fradragTillegg: String,
+        val brukKjoreplan: String,
+        val utbetalesTilId: String,
+    )
 }
 
 sealed class Aksjonsdata {
@@ -177,17 +209,7 @@ sealed class Aksjonsdata {
         override fun toString() = value
     }
 
-    /**
-     * ID 110 START
-     */
-    abstract fun start(): Aksjonsdata
-
-    /**
-     * ID 110 AVSLUTT
-     */
-    abstract fun avslutt(): Aksjonsdata
-
-    data class Grensesnittsavstemming(
+    internal data class Grensesnittsavstemming(
         override val aksjonType: AksjonType = AksjonType.DATA,
         override val avleverendeAvstemmingId: String,
         val nokkelFom: String,
@@ -196,16 +218,16 @@ sealed class Aksjonsdata {
         @JacksonXmlProperty
         override val avstemmingType: AvstemmingType = AvstemmingType.GRENSESNITTAVSTEMMING
 
-        override fun start(): Grensesnittsavstemming {
+        fun start(): Grensesnittsavstemming {
             return copy(aksjonType = AksjonType.START)
         }
 
-        override fun avslutt(): Grensesnittsavstemming {
+        fun avslutt(): Grensesnittsavstemming {
             return copy(aksjonType = AksjonType.AVSLUTT)
         }
     }
 
-    data class Konsistensavstemming(
+    internal data class Konsistensavstemming(
         override val aksjonType: AksjonType = AksjonType.DATA,
         override val avleverendeAvstemmingId: String,
         val tidspunktAvstemmingTom: String,
@@ -213,12 +235,16 @@ sealed class Aksjonsdata {
         @JacksonXmlProperty
         override val avstemmingType: AvstemmingType = AvstemmingType.KONSISTENSAVSTEMMING
 
-        override fun start(): Konsistensavstemming {
-            return copy(aksjonType = AksjonType.START)
+        fun start(): KonsistensavstemmingData {
+            return KonsistensavstemmingData(
+                aksjonsdata = copy(aksjonType = AksjonType.START),
+            )
         }
 
-        override fun avslutt(): Konsistensavstemming {
-            return copy(aksjonType = AksjonType.AVSLUTT)
+        fun avslutt(): KonsistensavstemmingData {
+            return KonsistensavstemmingData(
+                aksjonsdata = copy(aksjonType = AksjonType.AVSLUTT),
+            )
         }
     }
 }

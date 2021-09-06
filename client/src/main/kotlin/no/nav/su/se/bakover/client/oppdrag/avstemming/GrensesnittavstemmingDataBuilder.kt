@@ -4,13 +4,13 @@ import no.nav.su.se.bakover.client.oppdrag.toAvstemmingsdatoFormat
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 
-class GrensesnittavstemmingDataBuilder(
+internal class GrensesnittavstemmingDataBuilder(
     private val avstemming: Avstemming.Grensesnittavstemming,
 ) {
     private val utbetalinger = avstemming.utbetalinger
 
-    fun build(): GrensesnittsavstemmingRequest {
-        return GrensesnittsavstemmingRequest(
+    fun build(): GrensesnittsavstemmingData {
+        return GrensesnittsavstemmingData(
             aksjon = Aksjonsdata.Grensesnittsavstemming(
                 nokkelFom = Avstemmingsnøkkel(avstemming.fraOgMed).toString(),
                 nokkelTom = Avstemmingsnøkkel(avstemming.tilOgMed).toString(),
@@ -32,7 +32,7 @@ class GrensesnittavstemmingDataBuilder(
         }
     }
 
-    private fun GrensesnittsavstemmingRequest.sanityCheck() {
+    private fun GrensesnittsavstemmingData.sanityCheck() {
         check(total.totalAntall == grunnlag.totaltAntall()) { "Totaldata og grunnlag er uenige om totalt antall utbetalinger!" }
         check(grunnlag.avvistAntall + grunnlag.manglerAntall + grunnlag.varselAntall == detalj.size) { "Det skal eksistere detaljer for alle utbetalinger med avvist/mangler/varsel" }
     }
