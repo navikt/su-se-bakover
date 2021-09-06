@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.domain.Behandlingstype
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Oppgavetype
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import java.time.LocalDate
 import java.util.UUID
@@ -74,7 +75,7 @@ sealed class OppgaveConfig {
 
     data class Personhendelse(
         val saksnummer: Saksnummer,
-        val beskrivelse: String,
+        val personhendelsestype: no.nav.su.se.bakover.domain.hendelse.Personhendelse.Hendelse,
         override val aktørId: AktørId,
         override val tilordnetRessurs: NavIdentBruker? = null,
     ) : OppgaveConfig() {

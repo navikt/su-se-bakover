@@ -106,7 +106,7 @@ internal class PersonhendelseServiceTest {
             argThat {
                 it shouldBe OppgaveConfig.Personhendelse(
                     saksnummer = personhendelse.saksnummer,
-                    beskrivelse = "Dødsfall\n\tDødsdato: 2021-01-01",
+                    personhendelsestype = personhendelse.hendelse,
                     aktørId = AktørId("aktørId"),
                 )
             },

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.personhendelser
+package no.nav.su.se.bakover.client.oppgave
 
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.domain.person.SivilstandTyper

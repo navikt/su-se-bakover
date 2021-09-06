@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.personhendelser
+package no.nav.su.se.bakover.client.oppgave
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse

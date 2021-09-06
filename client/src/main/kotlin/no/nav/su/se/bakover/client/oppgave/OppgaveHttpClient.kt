@@ -111,7 +111,7 @@ internal class OppgaveHttpClient(
             is OppgaveConfig.Personhendelse ->
                 "--- ${
                 Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\nPersonhendelse: ${config.beskrivelse}"
+                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\nPersonhendelse: ${OppgavebeskrivelseMapper.map(config.personhendelsestype)}"
         }
 
         return Either.catch {

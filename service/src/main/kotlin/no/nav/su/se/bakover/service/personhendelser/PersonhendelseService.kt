@@ -49,7 +49,7 @@ class PersonhendelseService(
                     oppgaveServiceImpl.opprettOppgaveMedSystembruker(
                         OppgaveConfig.Personhendelse(
                             saksnummer = personhendelse.saksnummer,
-                            beskrivelse = OppgavebeskrivelseMapper.map(personhendelse.hendelse),
+                            personhendelsestype = personhendelse.hendelse,
                             aktørId = aktørId,
                         ),
                     ).map { oppgaveId ->
