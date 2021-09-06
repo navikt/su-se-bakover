@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.avstemming
 import arrow.core.Either
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.withTestApplication
@@ -202,6 +203,57 @@ internal class AvstemmingRoutesKtTest {
                     listOf(Brukerrolle.Drift),
                 ).apply {
                     response.status() shouldBe HttpStatusCode.BadRequest
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `kall til konsistensavstemming uten fraOgMed går ikke`() {
+        withTestApplication(
+            {
+                testSusebakover(
+                    services = services.copy(
+                        avstemming = happyAvstemmingService,
+                    ),
+                )
+            },
+        ) {
+            listOf(
+                "/avstemming/konsistens",
+            ).forEach {
+                defaultRequest(
+                    HttpMethod.Post,
+                    it,
+                    listOf(Brukerrolle.Drift),
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.BadRequest
+                    response.content shouldContain "'fraOgMed' mangler"
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `kall til konsistensavstemming går fint`() {
+        withTestApplication(
+            {
+                testSusebakover(
+                    services = services.copy(
+                        avstemming = happyAvstemmingService,
+                    ),
+                )
+            },
+        ) {
+            listOf(
+                "/avstemming/konsistens?fraOgMed=2021-01-01",
+            ).forEach {
+                defaultRequest(
+                    HttpMethod.Post,
+                    it,
+                    listOf(Brukerrolle.Drift),
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.OK
                 }
             }
         }

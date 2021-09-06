@@ -91,7 +91,12 @@ internal fun Route.avstemmingRoutes(
                                 ),
                             )
                         },
-                        { call.respond("Avstemming utført") },
+                        {
+                            call.respond(
+                                status = HttpStatusCode.OK,
+                                message = """{"message":"Konsistensavstemming fullført for tidspunkt:${it.løpendeFraOgMed} for utbetalinger opprettet tilOgMed:${it.opprettetTilOgMed}"}""",
+                            )
+                        },
                     )
             }
         }

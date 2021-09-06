@@ -35,18 +35,18 @@ internal class AvstemmingServiceImpl(
     override fun konsistensavstemming(
         løpendeFraOgMed: LocalDate,
     ): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming> {
-        val løpFraOgMed = løpendeFraOgMed.startOfDay(zoneIdOslo)
-        val opprettetTilOgMed = igår().endOfDay(zoneIdOslo)
+        val fraOgMed = løpendeFraOgMed.startOfDay(zoneIdOslo)
+        val tilOgMed = igår().endOfDay(zoneIdOslo)
 
         val utbetalinger = repo.hentUtbetalingerForKonsistensavstemming(
-            løpendeFraOgMed = løpFraOgMed,
-            opprettetTilOgMed = opprettetTilOgMed,
+            løpendeFraOgMed = fraOgMed,
+            opprettetTilOgMed = tilOgMed,
         )
 
         val avstemming = Avstemming.Konsistensavstemming.Ny(
             opprettet = Tidspunkt.now(clock),
-            løpendeFraOgMed = løpFraOgMed,
-            opprettetTilOgMed = opprettetTilOgMed,
+            løpendeFraOgMed = fraOgMed,
+            opprettetTilOgMed = tilOgMed,
             utbetalinger = utbetalinger,
         )
 
