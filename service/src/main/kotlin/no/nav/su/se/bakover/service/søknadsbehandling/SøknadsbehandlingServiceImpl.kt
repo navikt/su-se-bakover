@@ -16,10 +16,12 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -29,6 +31,9 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInneforBehandlingsperioden
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler
 import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.medFritekstTilBrev
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
@@ -38,17 +43,19 @@ import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
-import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
+import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeBeregne
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
@@ -68,7 +75,6 @@ internal class SøknadsbehandlingServiceImpl(
     private val personService: PersonService,
     private val oppgaveService: OppgaveService,
     private val behandlingMetrics: BehandlingMetrics,
-    private val beregningService: BeregningService,
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     private val brevService: BrevService,
     private val opprettVedtakssnapshotService: OpprettVedtakssnapshotService,
@@ -137,9 +143,7 @@ internal class SøknadsbehandlingServiceImpl(
             ?: return SøknadsbehandlingService.KunneIkkeVilkårsvurdere.FantIkkeBehandling.left()
 
         request.behandlingsinformasjon.formue?.epsVerdier?.let {
-            val grunnlag = grunnlagService.hentBosituasjongrunnlang(søknadsbehandling.id).firstOrNull()
-
-            when (grunnlag) {
+            when (søknadsbehandling.grunnlagsdata.bosituasjon.firstOrNull()) {
                 is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen,
                 is Grunnlag.Bosituasjon.Fullstendig.Enslig,
                 is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps,
@@ -161,28 +165,19 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun beregn(request: SøknadsbehandlingService.BeregnRequest): Either<SøknadsbehandlingService.KunneIkkeBeregne, Søknadsbehandling.Beregnet> {
+    override fun beregn(request: SøknadsbehandlingService.BeregnRequest): Either<KunneIkkeBeregne, Søknadsbehandling.Beregnet> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return SøknadsbehandlingService.KunneIkkeBeregne.FantIkkeBehandling.left()
+            ?: return KunneIkkeBeregne.FantIkkeBehandling.left()
 
-        val fradrag = request.toFradrag(
-            søknadsbehandling.stønadsperiode!!,
-            søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
-            clock,
-        ).getOrHandle {
-            return when (it) {
-                SøknadsbehandlingService.BeregnRequest.UgyldigFradrag.IkkeLovMedFradragUtenforPerioden -> SøknadsbehandlingService.KunneIkkeBeregne.IkkeLovMedFradragUtenforPerioden.left()
-                SøknadsbehandlingService.BeregnRequest.UgyldigFradrag.UgyldigFradragstype -> SøknadsbehandlingService.KunneIkkeBeregne.UgyldigFradragstype.left()
-                SøknadsbehandlingService.BeregnRequest.UgyldigFradrag.HarIkkeEktelle -> SøknadsbehandlingService.KunneIkkeBeregne.HarIkkeEktefelle.left()
-            }
-        }
         return statusovergang(
             søknadsbehandling = søknadsbehandling,
             statusovergang = Statusovergang.TilBeregnet {
-                beregningService.beregn(
-                    søknadsbehandling = søknadsbehandling,
-                    fradrag = fradrag,
-                    request.begrunnelse,
+                BeregningStrategyFactory().beregn(
+                    grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
+                        grunnlagsdata = søknadsbehandling.grunnlagsdata,
+                        vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger,
+                    ),
+                    beregningsPeriode = søknadsbehandling.periode, begrunnelse = request.begrunnelse,
                 )
             },
         ).let {
@@ -581,21 +576,30 @@ internal class SøknadsbehandlingServiceImpl(
             grunnlagService.lagreBosituasjongrunnlag(behandlingId = request.behandlingId, listOf(bosituasjon))
             return when (it) {
                 is Søknadsbehandling.Vilkårsvurdert.Avslag -> it.copy(
-                    grunnlagsdata = it.grunnlagsdata.copy(
+                    grunnlagsdata = Grunnlagsdata.tryCreate(
                         bosituasjon = listOf(
                             bosituasjon,
                         ),
-                    ),
+                        fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
+                    ).getOrHandle {
+                        return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag(it).left()
+                    },
                 )
                 is Søknadsbehandling.Vilkårsvurdert.Innvilget -> it.copy(
-                    grunnlagsdata = it.grunnlagsdata.copy(
+                    grunnlagsdata = Grunnlagsdata.tryCreate(
                         bosituasjon = listOf(bosituasjon),
-                    ),
+                        fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
+                    ).getOrHandle {
+                        return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag(it).left()
+                    },
                 )
                 is Søknadsbehandling.Vilkårsvurdert.Uavklart -> it.copy(
-                    grunnlagsdata = it.grunnlagsdata.copy(
+                    grunnlagsdata = Grunnlagsdata.tryCreate(
                         bosituasjon = listOf(bosituasjon),
-                    ),
+                        fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
+                    ).getOrHandle {
+                        return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag(it).left()
+                    },
                 )
             }.right()
         }
@@ -632,21 +636,28 @@ internal class SøknadsbehandlingServiceImpl(
             grunnlagService.lagreBosituasjongrunnlag(behandlingId = request.behandlingId, listOf(bosituasjon))
             return when (it) {
                 is Søknadsbehandling.Vilkårsvurdert.Avslag -> it.copy(
-                    grunnlagsdata = it.grunnlagsdata.copy(
-                        bosituasjon = listOf(
-                            bosituasjon,
-                        ),
-                    ),
+                    grunnlagsdata = Grunnlagsdata.tryCreate(
+                        bosituasjon = listOf(bosituasjon),
+                        fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
+                    ).getOrHandle {
+                        return KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(it).left()
+                    },
                 )
                 is Søknadsbehandling.Vilkårsvurdert.Innvilget -> it.copy(
-                    grunnlagsdata = it.grunnlagsdata.copy(
+                    grunnlagsdata = Grunnlagsdata.tryCreate(
                         bosituasjon = listOf(bosituasjon),
-                    ),
+                        fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
+                    ).getOrHandle {
+                        return KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(it).left()
+                    },
                 )
                 is Søknadsbehandling.Vilkårsvurdert.Uavklart -> it.copy(
-                    grunnlagsdata = it.grunnlagsdata.copy(
+                    grunnlagsdata = Grunnlagsdata.tryCreate(
                         bosituasjon = listOf(bosituasjon),
-                    ),
+                        fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
+                    ).getOrHandle {
+                        return KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(it).left()
+                    },
                 )
             }.right()
         }
@@ -676,4 +687,28 @@ internal class SøknadsbehandlingServiceImpl(
                     ),
                 )
             }
+
+    override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling> {
+        val behandling = søknadsbehandlingRepo.hent(request.behandlingId)
+            ?: return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
+
+        val oppdatertBehandling = behandling.leggTilFradragsgrunnlag(request.fradragsgrunnlag).getOrHandle {
+            return when (it) {
+                GrunnlagetMåVæreInneforBehandlingsperioden -> KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden.left()
+                IkkeLovÅLeggeTilFradragIDenneStatusen -> KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
+                    fra = behandling::class,
+                    til = Søknadsbehandling.Vilkårsvurdert.Innvilget::class,
+                ).left()
+                PeriodeMangler -> KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler.left()
+                is Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(
+                    it.feil,
+                ).left()
+            }
+        }
+
+        grunnlagService.lagreFradragsgrunnlag(behandling.id, request.fradragsgrunnlag)
+        søknadsbehandlingRepo.lagre(oppdatertBehandling)
+
+        return oppdatertBehandling.right()
+    }
 }

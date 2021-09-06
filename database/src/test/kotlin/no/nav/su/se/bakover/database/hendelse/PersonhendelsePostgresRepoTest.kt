@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.database.hendelse
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.withMigratedDb
@@ -25,7 +24,7 @@ internal class PersonhendelsePostgresRepoTest {
 
     private val hendelseId = UUID.randomUUID().toString()
     private val aktørId = "abcdefghjiklm"
-    private val fnr = FnrGenerator.random()
+    private val fnr = Fnr.generer()
 
     @Test
     fun `Kan lagre og hente dødsfallshendelser`() {

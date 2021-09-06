@@ -99,7 +99,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
         val månedsberegninger = listOf<Månedsberegning>(
             mock {
                 on { getSumYtelse() } doReturn 1
-                on { periode } doReturn TestBeregning.periode
+                on { periode } doReturn periode
                 on { getSats() } doReturn TestBeregning.getSats()
             },
         )
@@ -113,18 +113,18 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             on { getOpprettet() } doReturn TestBeregning.getOpprettet()
             on { getSats() } doReturn TestBeregning.getSats()
             on { getSumFradrag() } doReturn TestBeregning.getSumFradrag()
-            on { periode } doReturn TestBeregning.periode
+            on { periode } doReturn periode
         }
 
         val uføregrunnlag = Grunnlag.Uføregrunnlag(
-            periode = TestBeregning.periode,
+            periode = periode,
             uføregrad = Uføregrad.parse(20),
             forventetInntekt = 12000,
             opprettet = fixedTidspunkt,
         )
         val beregnetRevurdering = OpprettetRevurdering(
             id = UUID.randomUUID(),
-            periode = TestBeregning.periode,
+            periode = periode,
             opprettet = Tidspunkt.now(),
             tilRevurdering = vedtak.copy(beregning = beregning),
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
@@ -135,12 +135,12 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(),
-                        periode = TestBeregning.periode,
+                        periode = periode,
                         begrunnelse = null,
                     ),
                 ),
@@ -151,9 +151,9 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                         Vurderingsperiode.Uføre.create(
                             resultat = Resultat.Innvilget,
                             grunnlag = uføregrunnlag,
-                            periode = TestBeregning.periode,
+                            periode = periode,
                             begrunnelse = null,
-                            opprettet = fixedTidspunkt
+                            opprettet = fixedTidspunkt,
                         ),
                     ),
                 ),
@@ -197,7 +197,8 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             }.apply {
                 response.status() shouldBe HttpStatusCode.Created
                 val actualResponse = objectMapper.readValue<Map<String, Any>>(response.content!!)
-                val revurdering = objectMapper.readValue<SimulertRevurderingJson>(objectMapper.writeValueAsString(actualResponse["revurdering"]))
+                val revurdering =
+                    objectMapper.readValue<SimulertRevurderingJson>(objectMapper.writeValueAsString(actualResponse["revurdering"]))
                 verify(revurderingServiceMock).beregnOgSimuler(
                     argThat { it shouldBe simulertRevurdering.id },
                     argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },

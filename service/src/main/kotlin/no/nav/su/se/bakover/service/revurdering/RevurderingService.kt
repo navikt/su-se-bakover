@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -287,6 +289,9 @@ sealed class KunneIkkeLeggeTilFradragsgrunnlag {
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
     ) : KunneIkkeLeggeTilFradragsgrunnlag()
+
+    data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
+        KunneIkkeLeggeTilFradragsgrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
@@ -298,6 +303,9 @@ sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
     ) : KunneIkkeLeggeTilBosituasjongrunnlag()
+
+    data class KunneIkkeEndreBosituasjongrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
+        KunneIkkeLeggeTilBosituasjongrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilFormuegrunnlag {
@@ -323,11 +331,6 @@ sealed class KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {
 data class HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse(
     val grunnlagsdata: Grunnlagsdata,
     val vilkårsvurderinger: Vilkårsvurderinger,
-)
-
-data class LeggTilFradragsgrunnlagRequest(
-    val behandlingId: UUID,
-    val fradragsrunnlag: List<Grunnlag.Fradragsgrunnlag>,
 )
 
 data class LeggTilBosituasjongrunnlagRequest(

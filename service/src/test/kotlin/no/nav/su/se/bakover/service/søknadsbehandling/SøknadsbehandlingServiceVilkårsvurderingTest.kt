@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
@@ -26,10 +27,10 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.attestant
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
+import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -62,7 +63,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         ),
         oppgaveId = oppgaveId,
         behandlingsinformasjon = behandlingsinformasjon,
-        fnr = FnrGenerator.random(),
+        fnr = Fnr.generer(),
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.IkkeVurdert,

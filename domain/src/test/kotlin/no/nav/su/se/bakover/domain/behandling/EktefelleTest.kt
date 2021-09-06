@@ -1,8 +1,9 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.FnrGenerator
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -11,7 +12,7 @@ internal class EktefelleTest {
     @Test
     fun `er aldri ikke-oppfylt`() {
         Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
-            FnrGenerator.random(),
+            Fnr.generer(),
             navn = Person.Navn(fornavn = "fornavn", mellomnavn = null, etternavn = "etternavn"),
             kjønn = null,
             fødselsdato = null,
@@ -26,7 +27,7 @@ internal class EktefelleTest {
     @Test
     fun `er oppfylt uansett hva man putter inn`() {
         Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
-            FnrGenerator.random(),
+            Fnr.generer(),
             navn = Person.Navn(fornavn = "fornavn", mellomnavn = null, etternavn = "etternavn"),
             kjønn = null,
             fødselsdato = null,
@@ -39,7 +40,7 @@ internal class EktefelleTest {
     @Test
     fun `har ingen avslagsgrunn`() {
         Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
-            FnrGenerator.random(),
+            Fnr.generer(),
             navn = Person.Navn(fornavn = "fornavn", mellomnavn = null, etternavn = "etternavn"),
             kjønn = null,
             fødselsdato = null,
@@ -52,7 +53,7 @@ internal class EktefelleTest {
     @Test
     fun `alder skal være 30 hvis fødselsdato er 30 år siden`() {
         val ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
-            FnrGenerator.random(),
+            Fnr.generer(),
             navn = Person.Navn(fornavn = "fornavn", mellomnavn = null, etternavn = "etternavn"),
             kjønn = null,
             fødselsdato = LocalDate.now().minusYears(30),
@@ -66,7 +67,7 @@ internal class EktefelleTest {
     @Test
     fun `alder skal være 29 hvis fødselsdato er 30 år siden i morgen`() {
         val ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
-            FnrGenerator.random(),
+            Fnr.generer(),
             navn = Person.Navn(fornavn = "fornavn", mellomnavn = null, etternavn = "etternavn"),
             kjønn = null,
             fødselsdato = LocalDate.now().minusYears(30).plusDays(1),

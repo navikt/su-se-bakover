@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.database.person
 
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
-import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.beregning
 import no.nav.su.se.bakover.database.simulering
@@ -15,11 +14,12 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 
 internal class PersonPostgresRepoTest {
     private val testDataHelper = TestDataHelper()
-    private val ektefellePartnerSamboerFnr = FnrGenerator.random()
+    private val ektefellePartnerSamboerFnr = Fnr.generer()
     private val repo = testDataHelper.personRepo
 
     @Test
@@ -40,7 +40,7 @@ internal class PersonPostgresRepoTest {
 
     @Test
     fun `hent fnr for sak gir behandling og revurderings EPSs fnr`() {
-        val revurderingEps = FnrGenerator.random()
+        val revurderingEps = Fnr.generer()
         withDbWithDataAndBehandlingEpsAndNyRevurderingEps(ektefellePartnerSamboerFnr, revurderingEps) {
             val fnrs = repo.hentFnrForSak(innvilgetSøknadsbehandling.sakId)
             fnrs shouldContainExactlyInAnyOrder listOf(
@@ -53,8 +53,8 @@ internal class PersonPostgresRepoTest {
 
     @Test
     fun `hent fnr for sak gir behandling og revurdering og revurdering av revurdering EPSs fnr`() {
-        val revurderingEps = FnrGenerator.random()
-        val revurderingAvRevurderingEps = FnrGenerator.random()
+        val revurderingEps = Fnr.generer()
+        val revurderingAvRevurderingEps = Fnr.generer()
         withDbWithDataAndBehandlingEpsAndNyRevurderingOgRevurderingAvRevurderingEps(
             ektefellePartnerSamboerFnr,
             revurderingEps,
@@ -136,8 +136,8 @@ internal class PersonPostgresRepoTest {
 
     @Test
     fun `hent fnr for vedtak søknadsbehandling`() {
-        val epsFnrSøknadsbehandling = FnrGenerator.random()
-        val epsFnrRevurdering = FnrGenerator.random()
+        val epsFnrSøknadsbehandling = Fnr.generer()
+        val epsFnrRevurdering = Fnr.generer()
         withDbWithDataAndSøknadsbehandlingVedtakAndRevurderingVedtak(
             epsFnrBehandling = epsFnrSøknadsbehandling,
             epsFnrRevurdering = epsFnrRevurdering,

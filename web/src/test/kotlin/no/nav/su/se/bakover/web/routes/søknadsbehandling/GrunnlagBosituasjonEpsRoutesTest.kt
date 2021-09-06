@@ -10,6 +10,7 @@ import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -19,7 +20,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
-import no.nav.su.se.bakover.web.FnrGenerator
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
@@ -38,22 +39,23 @@ import java.util.UUID
 class GrunnlagBosituasjonEpsRoutesTest {
 
     private val services = TestServicesBuilder.services()
-    private val fnr = FnrGenerator.random()
-    private val søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart = Søknadsbehandling.Vilkårsvurdert.Uavklart(
-        id = UUID.randomUUID(),
-        opprettet = Tidspunkt.EPOCH,
-        sakId = UUID.randomUUID(),
-        saksnummer = Saksnummer(2021),
-        søknad = journalførtSøknadMedOppgave,
-        oppgaveId = OppgaveId("oppgaveId"),
-        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-        fnr = FnrGenerator.random(),
-        fritekstTilBrev = "",
-        stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-        attesteringer = Attesteringshistorikk.empty(),
-    )
+    private val fnr = Fnr.generer()
+    private val søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart =
+        Søknadsbehandling.Vilkårsvurdert.Uavklart(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.EPOCH,
+            sakId = UUID.randomUUID(),
+            saksnummer = Saksnummer(2021),
+            søknad = journalførtSøknadMedOppgave,
+            oppgaveId = OppgaveId("oppgaveId"),
+            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
+            fnr = Fnr.generer(),
+            fritekstTilBrev = "",
+            stønadsperiode = stønadsperiode,
+            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            attesteringer = Attesteringshistorikk.empty(),
+        )
 
     @Test
     fun `andre roller enn saksbehandler skal ikke ha tilgang til bosituasjon`() {

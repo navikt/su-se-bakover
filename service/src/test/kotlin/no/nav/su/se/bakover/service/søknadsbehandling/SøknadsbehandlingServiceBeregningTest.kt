@@ -8,15 +8,20 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
+import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
+import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.IkkePeriodisertFradrag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -24,12 +29,12 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.tidspunkt
-import no.nav.su.se.bakover.service.beregning.BeregningService
-import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.fixedTidspunkt
+import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -37,7 +42,6 @@ import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class SøknadsbehandlingServiceBeregningTest {
@@ -59,10 +63,10 @@ class SøknadsbehandlingServiceBeregningTest {
         ),
         oppgaveId = OppgaveId("o"),
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-        fnr = FnrGenerator.random(),
+        fnr = Fnr.generer(),
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata(
+        grunnlagsdata = Grunnlagsdata.create(
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
@@ -71,38 +75,56 @@ class SøknadsbehandlingServiceBeregningTest {
                     begrunnelse = null,
                 ),
             ),
+            fradragsgrunnlag = listOf(
+                lagFradragsgrunnlag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 12000.0,
+                    periode = stønadsperiode.periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
         ),
         vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-        attesteringer = Attesteringshistorikk.empty()
+        attesteringer = Attesteringshistorikk.empty(),
     )
 
     @Test
     fun `oppretter beregning`() {
-        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn vilkårsvurdertBehandling
-        }
-        val beregningServiceMock = mock<BeregningService> {
-            on { beregn(any(), any(), any()) } doReturn TestBeregning
-        }
-
-        val fradragRequest = SøknadsbehandlingService.BeregnRequest.FradragRequest(
-            periode = stønadsperiode.periode,
+        val fradrag = FradragFactory.ny(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 12000.0,
+            periode = stønadsperiode.periode,
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER,
         )
+
+        val behandling = vilkårsvurdertBehandling.copy(
+            grunnlagsdata = Grunnlagsdata.create(
+                bosituasjon = vilkårsvurdertBehandling.grunnlagsdata.bosituasjon,
+                fradragsgrunnlag = listOf(
+                    lagFradragsgrunnlag(
+                        type = fradrag.fradragstype,
+                        månedsbeløp = fradrag.månedsbeløp,
+                        periode = fradrag.periode,
+                        utenlandskInntekt = fradrag.utenlandskInntekt,
+                        tilhører = fradrag.tilhører,
+                    ),
+                ),
+            ),
+        )
+
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
+            on { hent(any()) } doReturn behandling
+        }
+
         val request = SøknadsbehandlingService.BeregnRequest(
             behandlingId = behandlingId,
-            fradrag = listOf(
-                fradragRequest,
-            ),
             begrunnelse = "her er en begrunnelse",
         )
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            beregningService = beregningServiceMock,
         ).beregn(
             request,
         )
@@ -116,10 +138,33 @@ class SøknadsbehandlingServiceBeregningTest {
             saksnummer = vilkårsvurdertBehandling.saksnummer,
             fnr = vilkårsvurdertBehandling.fnr,
             oppgaveId = vilkårsvurdertBehandling.oppgaveId,
-            beregning = TestBeregning,
+            beregning = BeregningMedFradragBeregnetMånedsvis(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = stønadsperiode2021.periode,
+                sats = Sats.HØY,
+                fradrag = listOf(
+                    IkkePeriodisertFradrag(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 12000.0,
+                        periode = stønadsperiode2021.periode,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                    IkkePeriodisertFradrag(
+                        type = Fradragstype.ForventetInntekt,
+                        månedsbeløp = 0.0,
+                        periode = stønadsperiode2021.periode,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+                fradragStrategy = FradragStrategy.Enslig,
+                begrunnelse = "her er en begrunnelse",
+            ),
             fritekstTilBrev = "",
             stønadsperiode = vilkårsvurdertBehandling.stønadsperiode,
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = response.orNull()!!.grunnlagsdata.bosituasjon[0].id,
@@ -128,69 +173,28 @@ class SøknadsbehandlingServiceBeregningTest {
                         begrunnelse = null,
                     ),
                 ),
+                fradragsgrunnlag = listOf(
+                    lagFradragsgrunnlag(
+                        id = response.orNull()!!.grunnlagsdata.fradragsgrunnlag[0].id,
+                        type = fradrag.fradragstype,
+                        månedsbeløp = fradrag.månedsbeløp,
+                        periode = fradrag.periode,
+                        utenlandskInntekt = fradrag.utenlandskInntekt,
+                        tilhører = fradrag.tilhører,
+                    ),
+                ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         response shouldBe expected.right()
 
-        inOrder(søknadsbehandlingRepoMock, beregningServiceMock) {
+        inOrder(søknadsbehandlingRepoMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
-            verify(beregningServiceMock).beregn(
-                søknadsbehandling = argThat { it shouldBe vilkårsvurdertBehandling },
-                fradrag = argThat {
-                    it shouldBe listOf(
-                        FradragFactory.ny(
-                            type = fradragRequest.type,
-                            månedsbeløp = fradragRequest.månedsbeløp,
-                            periode = fradragRequest.periode!!,
-                            utenlandskInntekt = fradragRequest.utenlandskInntekt,
-                            tilhører = fradragRequest.tilhører,
-                        ),
-                    )
-                },
-                begrunnelse = argThat { it shouldBe "her er en begrunnelse" },
-            )
             verify(søknadsbehandlingRepoMock).lagre(expected)
         }
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)
-    }
-
-    @Test
-    fun `fradragsperiode kan ikke være utenfor stønadsperioden`() {
-        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn vilkårsvurdertBehandling
-        }
-        val beregningServiceMock = mock<BeregningService>()
-        val request = SøknadsbehandlingService.BeregnRequest(
-            behandlingId = behandlingId,
-            fradrag = listOf(
-                SøknadsbehandlingService.BeregnRequest.FradragRequest(
-                    periode = stønadsperiode.periode.copy(
-                        fraOgMed = stønadsperiode.periode.fraOgMed.minus(
-                            1,
-                            ChronoUnit.MONTHS,
-                        ),
-                    ),
-                    type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 12000.0,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-            ),
-            begrunnelse = "her er en begrunnelse",
-        )
-
-        createSøknadsbehandlingService(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            beregningService = beregningServiceMock,
-        ).beregn(request) shouldBe SøknadsbehandlingService.KunneIkkeBeregne.IkkeLovMedFradragUtenforPerioden.left()
-
-        inOrder(søknadsbehandlingRepoMock, beregningServiceMock) {
-            verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
-        }
-        verifyNoMoreInteractions(søknadsbehandlingRepoMock, beregningServiceMock)
     }
 
     @Test
@@ -202,7 +206,6 @@ class SøknadsbehandlingServiceBeregningTest {
         ).beregn(
             SøknadsbehandlingService.BeregnRequest(
                 behandlingId = behandlingId,
-                fradrag = emptyList(),
                 begrunnelse = null,
             ),
         )

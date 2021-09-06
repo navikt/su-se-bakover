@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.routes.person.personPath
 import no.nav.su.se.bakover.web.stubs.asBearerToken
@@ -110,7 +111,7 @@ class RoutesTest {
             )
         }) {
             defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
-                setBody("""{"fnr":"${FnrGenerator.random()}"}""")
+                setBody("""{"fnr":"${Fnr.generer()}"}""")
             }
         }.apply {
             response.status() shouldBe InternalServerError
@@ -124,7 +125,7 @@ class RoutesTest {
             testSusebakover()
         }) {
             defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
-                setBody("""{"fnr":"${FnrGenerator.random()}"}""")
+                setBody("""{"fnr":"${Fnr.generer()}"}""")
             }
         }.apply {
             response.contentType().toString() shouldBe "${ContentType.Application.Json}; charset=${Charsets.UTF_8}"

@@ -5,5 +5,4 @@ import java.util.UUID
 
 interface FradragsgrunnlagRepo {
     fun lagreFradragsgrunnlag(behandlingId: UUID, fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>)
-    fun hentFradragsgrunnlag(behandlingId: UUID): List<Grunnlag.Fradragsgrunnlag>
 }

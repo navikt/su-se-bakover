@@ -4,10 +4,11 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -72,7 +73,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
-                fnr = FnrGenerator.random(),
+                fnr = Fnr.generer(),
             )
             grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon))
             grunnlagRepo.hentBosituasjongrunnlag(id).shouldBe(listOf(bosituasjon))
@@ -88,7 +89,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
-                fnr = FnrGenerator.random(),
+                fnr = Fnr.generer(),
                 begrunnelse = null,
             )
             grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon))
@@ -105,7 +106,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
-                fnr = FnrGenerator.random(),
+                fnr = Fnr.generer(),
                 begrunnelse = null,
             )
             grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon))
@@ -122,7 +123,7 @@ internal class BosituasjongrunnlagPostgresRepoTest {
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
-                fnr = FnrGenerator.random(),
+                fnr = Fnr.generer(),
                 begrunnelse = null,
             )
             grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon))

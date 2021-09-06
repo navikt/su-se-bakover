@@ -45,7 +45,7 @@ import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
-import no.nav.su.se.bakover.web.FnrGenerator
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.applicationConfig
@@ -83,7 +83,7 @@ internal class SøknadRoutesKtTest {
         id = sakId,
         saksnummer = Saksnummer(saksnummer),
         opprettet = tidspunkt,
-        fnr = FnrGenerator.random(),
+        fnr = Fnr.generer(),
         utbetalinger = emptyList(),
     )
     private val søknadId = UUID.randomUUID()
@@ -103,7 +103,7 @@ internal class SøknadRoutesKtTest {
 
     @Test
     fun `lagrer og henter søknad`() {
-        val fnr = FnrGenerator.random()
+        val fnr = Fnr.generer()
         val søknadInnhold: SøknadInnhold = søknadInnhold(fnr)
         val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
         withTestApplication(
@@ -139,7 +139,7 @@ internal class SøknadRoutesKtTest {
                 testSusebakover()
             },
         ) {
-            val fnr = FnrGenerator.random()
+            val fnr = Fnr.generer()
             val søknadInnhold: SøknadInnhold = søknadInnhold(fnr)
             val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
             defaultRequest(Post, søknadPath, listOf(Brukerrolle.Veileder)) {
@@ -163,7 +163,7 @@ internal class SøknadRoutesKtTest {
 
     @Test
     fun `skal opprette journalpost og oppgave ved opprettelse av søknad`() {
-        val fnr = FnrGenerator.random()
+        val fnr = Fnr.generer()
         val søknadInnhold: SøknadInnhold = søknadInnhold(fnr)
         val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
 

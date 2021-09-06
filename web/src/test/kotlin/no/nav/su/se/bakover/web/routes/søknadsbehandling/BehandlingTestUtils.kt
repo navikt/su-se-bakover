@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.create
-import no.nav.su.se.bakover.web.FnrGenerator
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.bosituasjon
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.vurderingsperiodeUføre
 import java.time.LocalDate
@@ -47,7 +47,7 @@ object BehandlingTestUtils {
         oppgaveId = oppgaveId,
         journalpostId = journalpostId,
     )
-    internal val fnr = FnrGenerator.random()
+    internal val fnr = Fnr.generer()
     internal val ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
         fnr = Fnr("17087524256"),
         navn = Person.Navn("fornavn", null, "etternavn"),
@@ -137,11 +137,12 @@ object BehandlingTestUtils {
             periodeList = listOf(),
         ),
         saksbehandler = NavIdentBruker.Saksbehandler("pro-saksbehandler"),
-        attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("kjella"), Tidspunkt.EPOCH)),
+        attesteringer = Attesteringshistorikk.empty()
+            .leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("kjella"), Tidspunkt.EPOCH)),
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata(
-            bosituasjon = listOf(bosituasjon)
+        grunnlagsdata = Grunnlagsdata.create(
+            bosituasjon = listOf(bosituasjon),
         ),
         vilkårsvurderinger = Vilkårsvurderinger(
             uføre = Vilkår.Uførhet.Vurdert.create(

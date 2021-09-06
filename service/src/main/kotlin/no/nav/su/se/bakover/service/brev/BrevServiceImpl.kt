@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.dokarkiv.JournalpostFactory
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
@@ -33,6 +35,7 @@ internal class BrevServiceImpl(
     private val dokumentRepo: DokumentRepo,
     private val sakService: SakService,
     private val personService: PersonService,
+    private val sessionFactory: SessionFactory,
 ) : BrevService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -77,7 +80,13 @@ internal class BrevServiceImpl(
             }
 
     override fun lagreDokument(dokument: Dokument.MedMetadata) {
-        dokumentRepo.lagre(dokument)
+        sessionFactory.withTransactionContext {
+            lagreDokument(dokument, it)
+        }
+    }
+
+    override fun lagreDokument(dokument: Dokument.MedMetadata, transactionContext: TransactionContext) {
+        dokumentRepo.lagre(dokument, transactionContext)
     }
 
     /**
