@@ -7,7 +7,7 @@ buildscript {
 plugins {
     kotlin("jvm")
     // Støtter unicode filer (i motsetning til https://github.com/JLLeitschuh/ktlint-gradle 10.0.0) og har nyere dependencies som gradle. Virker som den oppdateres hyppigere.
-    id("org.jmailen.kotlinter") version "3.5.1"
+    id("org.jmailen.kotlinter") version "3.6.0"
     id("com.github.ben-manes.versions") version "0.39.0" // Finds latest versions
     id("se.patrikerdes.use-latest-versions") version "0.2.17"
 }
@@ -35,7 +35,7 @@ allprojects {
         implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
         implementation("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
         implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion")
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
         implementation("io.arrow-kt:arrow-core:0.13.2")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
