@@ -1,24 +1,20 @@
 package no.nav.su.se.bakover.service.personhendelser
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedLocalDate
 import org.junit.jupiter.api.Test
-import java.time.Clock
 import java.time.LocalDate
-import java.time.ZoneOffset
 
 internal class OppgavebeskrivelseMapperTest {
-    private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
-
     @Test
     fun `mapper dødsfallshendelser riktig`() {
-        val personhendelse = Personhendelse.Hendelse.Dødsfall(LocalDate.now(fixedClock))
+        val personhendelse = Personhendelse.Hendelse.Dødsfall(fixedLocalDate)
 
         OppgavebeskrivelseMapper.map(personhendelse) shouldBe "Dødsfall\n" +
-            "\tDødsdato: 2020-12-31"
+            "\tDødsdato: 2021-01-01"
     }
 
     @Test
@@ -32,7 +28,7 @@ internal class OppgavebeskrivelseMapperTest {
 
         OppgavebeskrivelseMapper.map(personhendelse) shouldBe "Endring i sivilstand\n" +
             "\ttype: Gift\n" +
-            "\tGyldig fra og med: 2020-12-31\n" +
+            "\tGyldig fra og med: 2021-01-01\n" +
             "\tBekreftelsesdato: Ikke oppgitt"
     }
 
@@ -41,6 +37,6 @@ internal class OppgavebeskrivelseMapperTest {
         val personhendelse = Personhendelse.Hendelse.UtflyttingFraNorge(LocalDate.now(fixedClock))
 
         OppgavebeskrivelseMapper.map(personhendelse) shouldBe "Utflytting fra Norge\n" +
-            "\tUtflyttingsdato: 2020-12-31"
+            "\tUtflyttingsdato: 2021-01-01"
     }
 }

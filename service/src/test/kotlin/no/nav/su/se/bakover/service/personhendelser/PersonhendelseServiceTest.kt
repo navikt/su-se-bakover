@@ -4,8 +4,6 @@ import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.database.hendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.domain.AktørId
@@ -18,6 +16,7 @@ import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
 import org.junit.jupiter.api.Test
@@ -26,14 +25,9 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-import java.time.Clock
-import java.time.LocalDate
-import java.time.ZoneOffset
 import java.util.UUID
 
 internal class PersonhendelseServiceTest {
-    private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
-
     @Test
     internal fun `kan lagre personhendelser`() {
         val sakId = UUID.randomUUID()
@@ -112,7 +106,7 @@ internal class PersonhendelseServiceTest {
             argThat {
                 it shouldBe OppgaveConfig.Personhendelse(
                     saksnummer = personhendelse.saksnummer,
-                    beskrivelse = "Dødsfall\n\tDødsdato: 2020-12-31",
+                    beskrivelse = "Dødsfall\n\tDødsdato: 2021-01-01",
                     aktørId = AktørId("aktørId"),
                 )
             },
@@ -124,7 +118,7 @@ internal class PersonhendelseServiceTest {
 
     private fun lagNyPersonhendelse() = Personhendelse.IkkeTilknyttetSak(
         endringstype = Personhendelse.Endringstype.OPPRETTET,
-        hendelse = Personhendelse.Hendelse.Dødsfall(dødsdato = LocalDate.now(fixedClock)),
+        hendelse = Personhendelse.Hendelse.Dødsfall(dødsdato = fixedLocalDate),
         metadata = Personhendelse.Metadata(
             hendelseId = UUID.randomUUID().toString(),
             personidenter = nonEmptyListOf(Fnr.generer().toString(), "123456789010"),
@@ -138,7 +132,7 @@ internal class PersonhendelseServiceTest {
 
     private fun lagPersonhendelseTilknyttetSak(sakId: UUID = UUID.randomUUID()) = Personhendelse.TilknyttetSak.IkkeSendtTilOppgave(
         endringstype = Personhendelse.Endringstype.OPPRETTET,
-        hendelse = Personhendelse.Hendelse.Dødsfall(dødsdato = LocalDate.now(fixedClock)),
+        hendelse = Personhendelse.Hendelse.Dødsfall(dødsdato = fixedLocalDate),
         id = UUID.randomUUID(),
         saksnummer = Saksnummer(2021),
         sakId = sakId,

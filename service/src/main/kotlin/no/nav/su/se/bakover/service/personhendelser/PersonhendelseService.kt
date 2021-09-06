@@ -36,8 +36,12 @@ class PersonhendelseService(
         f.eks hvis endringstypen er ANNULERT eller KORRIGERT.
     */
     fun opprettOppgaverForPersonhendelser() =
-        personhendelseRepo.hentPersonhendelserUtenOppgave().forEach { personhendelse ->
-            val sak = sakRepo.hentSak(personhendelse.sakId)!!
+        personhendelseRepo.hentPersonhendelserUtenOppgave().forEach loop@{ personhendelse ->
+            val sak = sakRepo.hentSak(personhendelse.sakId)
+            if (sak == null) {
+                log.error("Fant ikke sak for personhendelse med id: ${personhendelse.id}")
+                return@loop // continue
+            }
 
             personService.hentAktørIdMedSystembruker(sak.fnr).fold(
                 ifLeft = { log.error("Fant ikke person for personhendelse med id: ${personhendelse.id}") },

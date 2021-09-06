@@ -54,6 +54,9 @@ internal class SakPostgresRepo(
         }
     }
 
+    /***
+     * @param personidenter Inneholder alle identer til brukeren, f.eks fnr og aktørid.
+     */
     override fun hentSakIdOgNummerForIdenter(personidenter: NonEmptyList<String>): SakIdOgNummer? {
         return dataSource.withSession { session ->
             """
