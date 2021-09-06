@@ -187,7 +187,6 @@ sealed class KunneIkkeOppdatereRevurdering {
 }
 
 sealed class KunneIkkeBeregneOgSimulereRevurdering {
-    object MåSendeGrunnbeløpReguleringSomÅrsakSammenMedForventetInntekt : KunneIkkeBeregneOgSimulereRevurdering()
     object FantIkkeRevurdering : KunneIkkeBeregneOgSimulereRevurdering()
     object KanIkkeVelgeSisteMånedVedNedgangIStønaden : KunneIkkeBeregneOgSimulereRevurdering()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
@@ -197,7 +196,6 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
         val reason: no.nav.su.se.bakover.domain.beregning.UgyldigBeregningsgrunnlag,
     ) : KunneIkkeBeregneOgSimulereRevurdering()
 
-    object UfullstendigVilkårsvurdering : KunneIkkeBeregneOgSimulereRevurdering()
     object KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps : KunneIkkeBeregneOgSimulereRevurdering()
 
     data class KunneIkkeSimulere(val simuleringFeilet: SimuleringFeilet) : KunneIkkeBeregneOgSimulereRevurdering()
@@ -206,10 +204,7 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
 sealed class KunneIkkeForhåndsvarsle {
     object AlleredeForhåndsvarslet : KunneIkkeForhåndsvarsle()
     object FantIkkeRevurdering : KunneIkkeForhåndsvarsle()
-    object FantIkkeAktørId : KunneIkkeForhåndsvarsle()
     object FantIkkePerson : KunneIkkeForhåndsvarsle()
-    object KunneIkkeJournalføre : KunneIkkeForhåndsvarsle()
-    object KunneIkkeDistribuere : KunneIkkeForhåndsvarsle()
     object KunneIkkeOppretteOppgave : KunneIkkeForhåndsvarsle()
     object KunneIkkeHenteNavnForSaksbehandler : KunneIkkeForhåndsvarsle()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
@@ -282,14 +277,10 @@ sealed class KunneIkkeLeggeTilGrunnlag {
 
 sealed class KunneIkkeLeggeTilFradragsgrunnlag {
     object FantIkkeBehandling : KunneIkkeLeggeTilFradragsgrunnlag()
-    object FradragsgrunnlagUtenforRevurderingsperiode : KunneIkkeLeggeTilFradragsgrunnlag()
-    object UgyldigFradragstypeForGrunnlag : KunneIkkeLeggeTilFradragsgrunnlag()
-    object HarIkkeEktelle : KunneIkkeLeggeTilFradragsgrunnlag()
     data class UgyldigTilstand(
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
     ) : KunneIkkeLeggeTilFradragsgrunnlag()
-
     data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
         KunneIkkeLeggeTilFradragsgrunnlag()
 }

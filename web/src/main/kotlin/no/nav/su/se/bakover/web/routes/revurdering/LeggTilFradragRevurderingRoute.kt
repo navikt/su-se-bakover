@@ -21,8 +21,6 @@ import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
-import no.nav.su.se.bakover.web.routes.Feilresponser.kanIkkeHaEpsFradragUtenEps
-import no.nav.su.se.bakover.web.routes.Feilresponser.utenforBehandlingsperioden
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson.Companion.toFradrag
 import no.nav.su.se.bakover.web.sikkerlogg
@@ -70,17 +68,11 @@ internal fun Route.leggTilFradragRevurdering(
                                 ).mapLeft {
                                     when (it) {
                                         KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling -> Revurderingsfeilresponser.fantIkkeRevurdering
-                                        is KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand -> Revurderingsfeilresponser.ugyldigTilstand(
+                                        is KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
                                             fra = it.fra,
                                             til = it.til,
                                         )
-                                        KunneIkkeLeggeTilFradragsgrunnlag.FradragsgrunnlagUtenforRevurderingsperiode -> utenforBehandlingsperioden
-                                        KunneIkkeLeggeTilFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> BadRequest.errorJson(
-                                            "ugyldig fradragstype",
-                                            "fradrag_ugyldig_fradragstype",
-                                        )
-                                        KunneIkkeLeggeTilFradragsgrunnlag.HarIkkeEktelle -> kanIkkeHaEpsFradragUtenEps
-                                        is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
+                                        is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> Feilresponser.Fradrag.kunneIkkeLeggeTilFradragsgrunnlag
                                     }
                                 }.map {
                                     call.sikkerlogg("Lagret fradrag for revudering $revurderingId på $sakId")

@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
+import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.grunnlag.FormuegrunnlagJson
 import no.nav.su.se.bakover.web.routes.revurdering.FormueBody.Companion.toServiceRequest
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
@@ -37,9 +38,24 @@ private data class FormueBody(
 ) {
 
     companion object {
+        private fun lagFormuegrunnlag(json: FormuegrunnlagJson.VerdierJson) =
+            Formuegrunnlag.Verdier.tryCreate(
+                verdiIkkePrimærbolig = json.verdiIkkePrimærbolig,
+                verdiEiendommer = json.verdiEiendommer,
+                verdiKjøretøy = json.verdiKjøretøy,
+                innskudd = json.innskudd,
+                verdipapir = json.verdipapir,
+                pengerSkyldt = json.pengerSkyldt,
+                kontanter = json.kontanter,
+                depositumskonto = json.depositumskonto,
+            )
+
         fun List<FormueBody>.toServiceRequest(revurderingId: UUID): Either<Resultat, LeggTilFormuegrunnlagRequest> {
             if (this.isEmpty()) {
-                return Revurderingsfeilresponser.formueListeKanIkkeVæreTom.left()
+                return HttpStatusCode.BadRequest.errorJson(
+                    "Formueliste kan ikke være tom",
+                    "formueliste_kan_ikke_være_tom",
+                ).left()
             }
 
             return LeggTilFormuegrunnlagRequest(
@@ -50,29 +66,11 @@ private data class FormueBody(
                             periode = formueBody.periode.toPeriode()
                                 .getOrHandle { return it.left() },
                             epsFormue = formueBody.epsFormue?.let {
-                                Formuegrunnlag.Verdier.tryCreate(
-                                    verdiIkkePrimærbolig = formueBody.epsFormue.verdiIkkePrimærbolig,
-                                    verdiEiendommer = formueBody.epsFormue.verdiEiendommer,
-                                    verdiKjøretøy = formueBody.epsFormue.verdiKjøretøy,
-                                    innskudd = formueBody.epsFormue.innskudd,
-                                    verdipapir = formueBody.epsFormue.verdipapir,
-                                    pengerSkyldt = formueBody.epsFormue.pengerSkyldt,
-                                    kontanter = formueBody.epsFormue.kontanter,
-                                    depositumskonto = formueBody.epsFormue.depositumskonto,
-                                ).getOrHandle {
+                                lagFormuegrunnlag(formueBody.epsFormue).getOrHandle {
                                     return it.tilResultat().left()
                                 }
                             },
-                            søkersFormue = Formuegrunnlag.Verdier.tryCreate(
-                                verdiIkkePrimærbolig = formueBody.søkersFormue.verdiIkkePrimærbolig,
-                                verdiEiendommer = formueBody.søkersFormue.verdiEiendommer,
-                                verdiKjøretøy = formueBody.søkersFormue.verdiKjøretøy,
-                                innskudd = formueBody.søkersFormue.innskudd,
-                                verdipapir = formueBody.søkersFormue.verdipapir,
-                                pengerSkyldt = formueBody.søkersFormue.pengerSkyldt,
-                                kontanter = formueBody.søkersFormue.kontanter,
-                                depositumskonto = formueBody.søkersFormue.depositumskonto,
-                            ).getOrHandle {
+                            søkersFormue = lagFormuegrunnlag(formueBody.søkersFormue).getOrHandle {
                                 return it.tilResultat().left()
                             },
                             begrunnelse = formueBody.begrunnelse,
@@ -129,9 +127,18 @@ private fun KunneIkkeLageFormueVerdier.tilResultat() = when (this) {
 
 private fun KunneIkkeLeggeTilFormuegrunnlag.tilResultat() = when (this) {
     KunneIkkeLeggeTilFormuegrunnlag.FantIkkeRevurdering -> Revurderingsfeilresponser.fantIkkeRevurdering
-    is KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand -> Revurderingsfeilresponser.ugyldigTilstand(this.fra, this.til)
-    KunneIkkeLeggeTilFormuegrunnlag.IkkeLovMedOverlappendePerioder -> Revurderingsfeilresponser.ikkeLovMedOverlappendePerioder
-    KunneIkkeLeggeTilFormuegrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode -> Revurderingsfeilresponser.epsFormueperiodeErUtenforBosituasjonPeriode
-    KunneIkkeLeggeTilFormuegrunnlag.FormuePeriodeErUtenforBehandlingsperioden -> Revurderingsfeilresponser.formuePeriodeErUtenforBehandlingsperioden
-    KunneIkkeLeggeTilFormuegrunnlag.MåHaEpsHvisManHarSattEpsFormue -> Revurderingsfeilresponser.måHaEpsHvisManHarSattEpsFormue
+    is KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand -> Feilresponser.ugyldigTilstand(this.fra, this.til)
+    KunneIkkeLeggeTilFormuegrunnlag.IkkeLovMedOverlappendePerioder -> Feilresponser.overlappendeVurderingsperioder
+    KunneIkkeLeggeTilFormuegrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode -> HttpStatusCode.BadRequest.errorJson(
+        "Ikke lov med formueperiode utenfor bosituasjonperioder",
+        "ikke_lov_med_formueperiode_utenfor_bosituasjonperiode",
+    )
+    KunneIkkeLeggeTilFormuegrunnlag.FormuePeriodeErUtenforBehandlingsperioden -> HttpStatusCode.BadRequest.errorJson(
+        "Ikke lov med formueperiode utenfor behandlingsperioden",
+        "ikke_lov_med_formueperiode_utenfor_behandlingsperioden",
+    )
+    KunneIkkeLeggeTilFormuegrunnlag.MåHaEpsHvisManHarSattEpsFormue -> HttpStatusCode.BadRequest.errorJson(
+        "Ikke lov med formue for eps hvis man ikke har eps",
+        "ikke_lov_med_formue_for_eps_hvis_man_ikke_har_eps",
+    )
 }

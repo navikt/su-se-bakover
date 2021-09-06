@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
-import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
@@ -23,10 +22,10 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
-import no.nav.su.se.bakover.web.routes.Feilresponser.kanIkkeHaEpsFradragUtenEps
+import no.nav.su.se.bakover.web.routes.Feilresponser.Fradrag.kanIkkeHaEpsFradragUtenEps
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
+import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withRevurderingId
@@ -97,17 +96,9 @@ private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
             "Kan ikke velge siste måned av stønadsperioden ved nedgang i stønaden",
             "siste_måned_ved_nedgang_i_stønaden",
         )
-        is KunneIkkeBeregneOgSimulereRevurdering.MåSendeGrunnbeløpReguleringSomÅrsakSammenMedForventetInntekt -> BadRequest.errorJson(
-            "Forventet inntekt kan kun sendes sammen med regulering av grunnbeløp",
-            "grunnbelop_forventetinntekt",
-        )
         is KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag -> BadRequest.errorJson(
             "Ugyldig beregningsgrunnlag. Underliggende årsak: ${this.reason}",
             "ugyldig_beregningsgrunnlag",
-        )
-        is KunneIkkeBeregneOgSimulereRevurdering.UfullstendigVilkårsvurdering -> InternalServerError.errorJson(
-            "Vurdering av vilkår er ufullstendig",
-            "ufullstendig_vilkårsvurdering",
         )
         is KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> kanIkkeHaEpsFradragUtenEps
         is KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere -> this.simuleringFeilet.tilResultat()

@@ -112,8 +112,8 @@ internal class LeggTilFormueRevurderingRouteKtTest {
             expectStatusCode = HttpStatusCode.BadRequest,
             expectErrorJson = """
                 {
-                    "message":"Ikke lov med overlappende perioder",
-                    "code":"ikke_lov_med_overlappende_perioder"
+                    "message":"Vurderingperioder kan ikke overlappe",
+                    "code":"overlappende_vurderingsperioder"
                 }
             """.trimIndent(),
 

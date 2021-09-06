@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeAktørId
+import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeAktørId
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIngenVedtakSomKanRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.kunneIkkeOppretteOppgave
@@ -96,7 +96,7 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
         KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig -> tidslinjeForVedtakErIkkeKontinuerlig
         KunneIkkeOppretteRevurdering.BosituasjonMedFlerePerioderMåRevurderes -> Revurderingsfeilresponser.bosituasjonMedFlerePerioderMåRevurderes
         KunneIkkeOppretteRevurdering.EpsInntektMedFlereBosituasjonsperioderMåRevurderes -> Revurderingsfeilresponser.epsInntektMedFlereBosituasjonsperioderMåRevurderes
-        KunneIkkeOppretteRevurdering.FormueSomFørerTilOpphørMåRevurderes -> Revurderingsfeilresponser.formueSomFørerTilOpphørMåRevurderes
-        KunneIkkeOppretteRevurdering.EpsFormueMedFlereBosituasjonsperioderMåRevurderes -> Revurderingsfeilresponser.epsFormueMedFlereBosituasjonsperioderMåRevurderes
+        KunneIkkeOppretteRevurdering.FormueSomFørerTilOpphørMåRevurderes -> Revurderingsfeilresponser.Formue.formueSomFørerTilOpphørMåRevurderes
+        KunneIkkeOppretteRevurdering.EpsFormueMedFlereBosituasjonsperioderMåRevurderes -> Revurderingsfeilresponser.Formue.epsFormueMedFlereBosituasjonsperioderMåRevurderes
     }
 }

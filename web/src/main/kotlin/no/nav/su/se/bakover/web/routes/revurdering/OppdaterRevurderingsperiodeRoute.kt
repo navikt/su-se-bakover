@@ -18,15 +18,15 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
+import no.nav.su.se.bakover.web.routes.Feilresponser
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Formue.formueSomFørerTilOpphørMåRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.bosituasjonMedFlerePerioderMåRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.epsInntektMedFlereBosituasjonsperioderMåRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIngenVedtakSomKanRevurderes
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.formueSomFørerTilOpphørMåRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.måVelgeInformasjonSomRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tidslinjeForVedtakErIkkeKontinuerlig
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -78,7 +78,7 @@ private fun KunneIkkeOppdatereRevurdering.tilResultat(): Resultat {
             this.subError,
         )
         is KunneIkkeOppdatereRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
-        is KunneIkkeOppdatereRevurdering.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
+        is KunneIkkeOppdatereRevurdering.UgyldigTilstand -> Feilresponser.ugyldigTilstand(this.fra, this.til)
         KunneIkkeOppdatereRevurdering.UgyldigBegrunnelse -> HttpStatusCode.BadRequest.errorJson(
             "Begrunnelse kan ikke være tom",
             "begrunnelse_kan_ikke_være_tom",
