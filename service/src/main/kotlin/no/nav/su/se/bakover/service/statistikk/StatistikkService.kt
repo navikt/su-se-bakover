@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
 
 interface StatistikkService {
     fun publiser(statistikk: Statistikk)
@@ -60,5 +61,7 @@ sealed class Event {
             data class RevurderingUnderkjent(override val revurdering: UnderkjentRevurdering) :
                 RevurderingStatistikk()
         }
+
+        data class Vedtaksstatistik(val vedtak: Vedtak.EndringIYtelse) : Statistikk()
     }
 }

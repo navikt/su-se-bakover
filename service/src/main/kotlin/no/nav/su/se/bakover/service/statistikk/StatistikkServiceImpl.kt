@@ -3,8 +3,6 @@ package no.nav.su.se.bakover.service.statistikk
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.person.PersonService
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -74,23 +72,13 @@ internal class StatistikkServiceImpl(
                 publiser(SøknadStatistikkMapper(clock).map(event.søknad, event.saksnummer, Statistikk.Behandling.SøknadStatus.SØKNAD_LUKKET))
             is Event.Statistikk.SøknadsbehandlingStatistikk -> {
                 publiser(SøknadsbehandlingStatistikkMapper(clock).map(event.søknadsbehandling))
-
-                // Her må vi også publisere en stønadsstatistikk-event
-                if (event.søknadsbehandling is Søknadsbehandling.Iverksatt.Innvilget) {
-                    publiser(StønadsstatistikkMapper(clock).map(event.søknadsbehandling))
-                }
             }
             is Event.Statistikk.RevurderingStatistikk -> {
                 publiser(RevurderingStatistikkMapper(clock).map(event.revurdering))
-
-                // Her må vi også publisere en stønadsstatistikk-event
-                if (event.revurdering is IverksattRevurdering.Innvilget || event.revurdering is IverksattRevurdering.Opphørt) {
-                    publiser(StønadsstatistikkMapper(clock).map(event.revurdering))
-                }
             }
-            /* TODO: is Event.Statistikk.Vedtaksstatistikk -> {
-
-            }*/
+            is Event.Statistikk.Vedtaksstatistik -> {
+                publiser(StønadsstatistikkMapper(clock).map(event.vedtak))
+            }
         }
     }
 }

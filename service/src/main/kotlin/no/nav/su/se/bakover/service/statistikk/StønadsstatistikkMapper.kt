@@ -2,13 +2,14 @@ package no.nav.su.se.bakover.service.statistikk
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
+import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.Sats.Companion.utledSats
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import java.time.Clock
 import java.time.LocalDate
 import kotlin.math.roundToLong
@@ -16,59 +17,55 @@ import kotlin.math.roundToLong
 internal class StønadsstatistikkMapper(private val clock: Clock) {
     val nå = Tidspunkt.now(clock)
 
-    // TODO: Heller en map per type?
-    fun map(behandling: Behandling): Statistikk.Stønad = Statistikk.Stønad(
-        funksjonellTid = nå,
-        tekniskTid = nå,
-        stonadstype = Statistikk.Stønad.Stønadstype.SU_UFØR,
-        sakId = behandling.sakId,
-        aktorId = 9999999, // MÅ FINNE AKTØR-ID FRA FNR?
-        sakstype = vedtakstype(behandling),
-        vedtaksdato = LocalDate.now(clock),
-        vedtakstype = vedtakstype(behandling),
-        vedtaksresultat = vedtaksresultat(behandling),
-        behandlendeEnhetKode = "4815",
-        ytelseVirkningstidspunkt = LocalDate.now(), // MÅ FINNE FØRSTE VIRKNINGSTIDSPUNKT FOR YTELSEN, FINNE FØRST FOM PÅ VEDTAK/BEHANDLINGER PÅ SAKEN?
-        gjeldendeStonadVirkningstidspunkt = behandling.periode.fraOgMed,
-        gjeldendeStonadStopptidspunkt = behandling.periode.tilOgMed,
-        gjeldendeStonadUtbetalingsstart = behandling.periode.fraOgMed,
-        gjeldendeStonadUtbetalingsstopp = behandling.periode.tilOgMed,
-        stonadsklassifisering = stønadsklassifisering(behandling),
-        bruttosatsMnd = bosituasjon(behandling).utledSats().månedsbeløpSomHeltall(behandling.periode.fraOgMed).toLong(), // BURDE ALLE DISSE EGENTLIG VÆRE EN LISTE MED MÅNEDSBELØP?
-        nettosatsMnd = beregning(behandling).getMånedsberegninger().first().getSumYtelse().toLong(), // MÅ SPØRRE STØNADSSTATISTIKK HVA VI SKAL GJØRE MED VARIERENDE BELØP PER MÅNED
-        inntekter = listOf(Statistikk.Inntekt("Arbeidsinntekt", 5000)),
-        fradragSum = beregning(behandling).getSumFradrag().roundToLong(),
-        fullSats = bosituasjon(behandling).utledSats().årsbeløp(behandling.periode.fraOgMed).roundToLong(),
-    )
-
-    private fun vedtakstype(behandling: Behandling): Statistikk.Stønad.Vedtakstype {
-        return when (behandling) {
-            is Søknadsbehandling -> Statistikk.Stønad.Vedtakstype.SØKNAD
-            is Revurdering -> Statistikk.Stønad.Vedtakstype.REVURDERING
-            else -> {
-                log.error("Fant ikke vedtakstype for behandling " + behandling.id)
-                throw RuntimeException("Fant ikke vedtakstype for behandling")
+    fun map(vedtak: Vedtak.EndringIYtelse, aktørId: AktørId): Statistikk.Stønad {
+        return Statistikk.Stønad(
+            funksjonellTid = nå,
+            tekniskTid = nå,
+            stonadstype = Statistikk.Stønad.Stønadstype.SU_UFØR,
+            sakId = vedtak.behandling.sakId,
+            aktorId = aktørId.toString().toLong(),
+            sakstype = vedtakstype(vedtak.vedtakType),
+            vedtaksdato = vedtak.opprettet.toLocalDate(zoneIdOslo),
+            vedtakstype = vedtakstype(vedtak.vedtakType),
+            vedtaksresultat = when (vedtak.vedtakType) {
+                VedtakType.SØKNAD -> Statistikk.Stønad.Vedtaksresultat.INNVILGET
+                VedtakType.ENDRING -> Statistikk.Stønad.Vedtaksresultat.INNVILGET
+                VedtakType.OPPHØR -> Statistikk.Stønad.Vedtaksresultat.OPPHØRT
+                else -> throw RuntimeException("Ugyldig vedtaksresultat")
+            },
+            behandlendeEnhetKode = "4815",
+            ytelseVirkningstidspunkt = LocalDate.now(), // MÅ FINNE FØRSTE VIRKNINGSTIDSPUNKT FOR YTELSEN, FINNE FØRST FOM PÅ VEDTAK/BEHANDLINGER PÅ SAKEN?
+            gjeldendeStonadVirkningstidspunkt = vedtak.behandling.periode.fraOgMed,
+            gjeldendeStonadStopptidspunkt = vedtak.behandling.periode.tilOgMed,
+            gjeldendeStonadUtbetalingsstart = vedtak.behandling.periode.fraOgMed,
+            gjeldendeStonadUtbetalingsstopp = vedtak.behandling.periode.tilOgMed,
+            stonadsklassifisering = stønadsklassifisering(vedtak.behandling),
+            bruttosatsMnd = 0, // BURDE ALLE DISSE EGENTLIG VÆRE EN LISTE MED MÅNEDSBELØP?
+            nettosatsMnd = 0, // MÅ SPØRRE STØNADSSTATISTIKK HVA VI SKAL GJØRE MED VARIERENDE BELØP PER MÅNED
+            inntekter = listOf(Statistikk.Inntekt("Inntekt", 0L)), // Endre
+            fradragSum = 0, // Endre
+            fullSats = vedtak.beregning.getSats().årsbeløp(vedtak.behandling.periode.fraOgMed).roundToLong(),
+            versjon = System.currentTimeMillis(),
+            opphorsgrunn = when (vedtak.vedtakType) {
+                VedtakType.OPPHØR -> (vedtak.behandling as IverksattRevurdering.Opphørt).utledOpphørsgrunner().joinToString()
+                else -> null
+            },
+            opphorsdato = when (vedtak.vedtakType) {
+                VedtakType.OPPHØR -> (vedtak.behandling as IverksattRevurdering.Opphørt).utledOpphørsdato()
+                else -> null
             }
-        }
+        )
     }
 
-    private fun vedtaksresultat(behandling: Behandling): Statistikk.Stønad.Vedtaksresultat {
-        return when (behandling) {
-            is Søknadsbehandling.Iverksatt.Innvilget -> Statistikk.Stønad.Vedtaksresultat.INNVILGET
-            is IverksattRevurdering.Innvilget -> Statistikk.Stønad.Vedtaksresultat.INNVILGET
-            is IverksattRevurdering.Opphørt -> Statistikk.Stønad.Vedtaksresultat.OPPHØRT
-
-            else -> {
-                log.error("Fant ikke vedtaksresultat for behandling " + behandling.id)
-                throw RuntimeException("Fant ikke vedtaksresultat for behandling")
-            }
-        }
+    private fun vedtakstype(vedtakType: VedtakType) = when (vedtakType) {
+        VedtakType.SØKNAD -> Statistikk.Stønad.Vedtakstype.SØKNAD
+        VedtakType.ENDRING -> Statistikk.Stønad.Vedtakstype.REVURDERING
+        VedtakType.OPPHØR -> Statistikk.Stønad.Vedtakstype.REVURDERING
+        else -> throw RuntimeException("Ugyldig vedtakstype")
     }
 
-    private fun bosituasjon(behandling: Behandling): Grunnlag.Bosituasjon.Fullstendig {
-        // TODO: first WTF
-        return (behandling.grunnlagsdata.bosituasjon.first() as Grunnlag.Bosituasjon.Fullstendig)
-    }
+    private fun bosituasjon(behandling: Behandling): Grunnlag.Bosituasjon.Fullstendig =
+        (behandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow())
 
     private fun stønadsklassifisering(behandling: Behandling): Statistikk.Stønad.Stønadsklassifisering {
         return when (bosituasjon(behandling)) {
@@ -80,17 +77,6 @@ internal class StønadsstatistikkMapper(private val clock: Clock) {
             else -> {
                 log.error("Fant ikke stønadsklassifisering for behandling " + behandling.id)
                 throw RuntimeException("Fant ikke stønadsklassifisering for behandling")
-            }
-        }
-    }
-
-    private fun beregning(behandling: Behandling): Beregning {
-        return when (behandling) {
-            is Søknadsbehandling.Iverksatt.Innvilget -> behandling.beregning
-            is IverksattRevurdering -> behandling.beregning
-            else -> {
-                log.error("Fant ikke beregning for behandling " + behandling.id)
-                throw RuntimeException("Fant ikke beregning for behandling")
             }
         }
     }
