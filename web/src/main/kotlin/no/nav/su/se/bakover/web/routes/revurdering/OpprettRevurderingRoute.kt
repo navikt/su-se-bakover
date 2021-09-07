@@ -96,7 +96,10 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
         KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig -> tidslinjeForVedtakErIkkeKontinuerlig
         KunneIkkeOppretteRevurdering.BosituasjonMedFlerePerioderMåRevurderes -> Revurderingsfeilresponser.bosituasjonMedFlerePerioderMåRevurderes
         KunneIkkeOppretteRevurdering.EpsInntektMedFlereBosituasjonsperioderMåRevurderes -> Revurderingsfeilresponser.epsInntektMedFlereBosituasjonsperioderMåRevurderes
-        KunneIkkeOppretteRevurdering.FormueSomFørerTilOpphørMåRevurderes -> Revurderingsfeilresponser.Formue.formueSomFørerTilOpphørMåRevurderes
-        KunneIkkeOppretteRevurdering.EpsFormueMedFlereBosituasjonsperioderMåRevurderes -> Revurderingsfeilresponser.Formue.epsFormueMedFlereBosituasjonsperioderMåRevurderes
+        KunneIkkeOppretteRevurdering.FormueSomFørerTilOpphørMåRevurderes -> Revurderingsfeilresponser.formueSomFørerTilOpphørMåRevurderes
+        KunneIkkeOppretteRevurdering.EpsFormueMedFlereBosituasjonsperioderMåRevurderes -> BadRequest.errorJson(
+            "Formue må revurderes siden det finnes EPS formue og flere bosituasjonsperioder",
+            "eps_formue_med_flere_perioder_må_revurderes",
+        )
     }
 }

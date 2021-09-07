@@ -60,17 +60,10 @@ internal object Revurderingsfeilresponser {
         "eps_inntekt_med_flere_perioder_må_revurderes",
     )
 
-    object Formue {
-        val epsFormueMedFlereBosituasjonsperioderMåRevurderes = BadRequest.errorJson(
-            "Formue må revurderes siden det finnes EPS formue og flere bosituasjonsperioder",
-            "eps_formue_med_flere_perioder_må_revurderes",
-        )
-
-        val formueSomFørerTilOpphørMåRevurderes = BadRequest.errorJson(
-            "Formue som fører til opphør må revurderes",
-            "formue_som_fører_til_opphør_må_revurderes",
-        )
-    }
+    val formueSomFørerTilOpphørMåRevurderes = BadRequest.errorJson(
+        "Formue som fører til opphør må revurderes",
+        "formue_som_fører_til_opphør_må_revurderes",
+    )
 
     val brevFantIkkePerson = InternalServerError.errorJson(
         "Fant ikke person",
