@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.domain.hendelse
 
 import arrow.core.NonEmptyList
-import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
+import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
 import java.time.LocalDate
 import java.util.UUID
 
@@ -17,27 +17,60 @@ sealed class Personhendelse {
         OPPHØRT,
     }
 
-    abstract val gjeldendeAktørId: AktørId
     abstract val endringstype: Endringstype
     abstract val hendelse: Hendelse
+    abstract val metadata: Metadata
 
-    data class Ny(
-        override val gjeldendeAktørId: AktørId,
+    data class IkkeTilknyttetSak(
         override val endringstype: Endringstype,
         override val hendelse: Hendelse,
-        val personidenter: NonEmptyList<String>,
-        val metadata: Metadata,
-    ) : Personhendelse()
+        override val metadata: Metadata,
+    ) : Personhendelse() {
+        fun tilknyttSak(id: UUID, sakIdOgNummer: SakIdOgNummer) = TilknyttetSak.IkkeSendtTilOppgave(
+            endringstype = endringstype,
+            hendelse = hendelse,
+            id = id,
+            sakId = sakIdOgNummer.sakId,
+            saksnummer = sakIdOgNummer.saksnummer,
+            metadata = metadata
+        )
+    }
 
-    data class TilknyttetSak(
-        val id: UUID,
-        override val gjeldendeAktørId: AktørId,
-        override val endringstype: Endringstype,
-        override val hendelse: Hendelse,
-        val saksnummer: Saksnummer,
-        val sakId: UUID,
-        val oppgaveId: OppgaveId?,
-    ) : Personhendelse()
+    sealed class TilknyttetSak : Personhendelse() {
+        abstract val id: UUID
+        abstract val sakId: UUID
+        abstract val saksnummer: Saksnummer
+
+        data class IkkeSendtTilOppgave(
+            override val endringstype: Endringstype,
+            override val hendelse: Hendelse,
+            override val id: UUID,
+            override val sakId: UUID,
+            override val saksnummer: Saksnummer,
+            override val metadata: Metadata,
+        ) : TilknyttetSak() {
+            fun tilSendtTilOppgave(oppgaveId: OppgaveId) =
+                SendtTilOppgave(
+                    endringstype = endringstype,
+                    hendelse = hendelse,
+                    id = id,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    oppgaveId = oppgaveId,
+                    metadata = metadata
+                )
+        }
+
+        data class SendtTilOppgave(
+            override val endringstype: Endringstype,
+            override val hendelse: Hendelse,
+            override val id: UUID,
+            override val sakId: UUID,
+            override val saksnummer: Saksnummer,
+            override val metadata: Metadata,
+            val oppgaveId: OppgaveId,
+        ) : TilknyttetSak()
+    }
 
     sealed class Hendelse {
         /**
@@ -83,6 +116,7 @@ sealed class Personhendelse {
      * */
     data class Metadata(
         val hendelseId: String,
+        val personidenter: NonEmptyList<String>,
         val tidligereHendelseId: String?,
         val offset: Long,
         val partisjon: Int,

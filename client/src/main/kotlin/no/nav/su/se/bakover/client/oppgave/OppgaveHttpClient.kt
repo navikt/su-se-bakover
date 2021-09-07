@@ -30,7 +30,6 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Clock
 import java.time.Duration
-import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 internal const val oppgavePath = "/api/v1/oppgaver"
@@ -96,8 +95,6 @@ internal class OppgaveHttpClient(
         config: OppgaveConfig,
         token: String,
     ): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> {
-        val aktivDato = LocalDate.now(clock)
-
         val beskrivelse = when (config) {
             is OppgaveConfig.Attestering, is OppgaveConfig.Saksbehandling ->
                 "--- ${
@@ -111,7 +108,7 @@ internal class OppgaveHttpClient(
             is OppgaveConfig.Personhendelse ->
                 "--- ${
                 Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\nPersonhendelse: ${config.beskrivelse}"
+                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}\nPersonhendelse: ${OppgavebeskrivelseMapper.map(config.personhendelsestype)}"
         }
 
         return Either.catch {
@@ -134,8 +131,8 @@ internal class OppgaveHttpClient(
                                 oppgavetype = config.oppgavetype.toString(),
                                 behandlingstema = config.behandlingstema?.toString(),
                                 behandlingstype = config.behandlingstype.toString(),
-                                aktivDato = aktivDato,
-                                fristFerdigstillelse = aktivDato.plusDays(30),
+                                aktivDato = config.aktivDato,
+                                fristFerdigstillelse = config.fristFerdigstillelse,
                                 prioritet = "NORM",
                                 tilordnetRessurs = config.tilordnetRessurs?.toString(),
                             ),

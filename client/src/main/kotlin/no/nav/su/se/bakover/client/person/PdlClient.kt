@@ -110,6 +110,12 @@ internal class PdlClient(
             }
         }
     }
+    fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
+        return kallPDLMedSystembruker<IdentResponseData>(fnr, hentIdenterQuery).map {
+            val identer = it.hentIdenter ?: return FantIkkePerson.left()
+            finnIdent(identer).aktørId
+        }
+    }
 
     private fun finnIdent(hentIdenter: HentIdenter) =
         PdlIdent(
