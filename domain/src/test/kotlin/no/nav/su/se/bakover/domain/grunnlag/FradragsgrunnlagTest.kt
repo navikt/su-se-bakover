@@ -92,7 +92,7 @@ internal class FradragsgrunnlagTest {
 
         fradragsgrunnlag.oppdaterFradragsperiode(
             oppdatertPeriode,
-        ).periode shouldBe oppdatertPeriode
+        ).orNull()!!.periode shouldBe oppdatertPeriode
     }
 
     @Test
@@ -110,7 +110,7 @@ internal class FradragsgrunnlagTest {
 
         fradragsgrunnlag.oppdaterFradragsperiode(
             oppdatertPeriode,
-        ).periode shouldBe oppdatertPeriode
+        ).orNull()!!.periode shouldBe oppdatertPeriode
     }
 
     @Test
@@ -128,7 +128,7 @@ internal class FradragsgrunnlagTest {
 
         fradragsgrunnlag.oppdaterFradragsperiode(
             oppdatertPeriode,
-        ).periode shouldBe oppdatertPeriode
+        ).orNull()!!.periode shouldBe oppdatertPeriode
     }
 
     @Test
@@ -146,6 +146,6 @@ internal class FradragsgrunnlagTest {
 
         fradragsgrunnlag.oppdaterFradragsperiode(
             oppdatertPeriode,
-        ).periode shouldBe oppdatertPeriode
+        ).orNull()!!.periode shouldBe oppdatertPeriode
     }
 }

@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
+import arrow.core.sequenceEither
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
@@ -56,8 +57,8 @@ sealed class Grunnlag {
 
         fun oppdaterFradragsperiode(
             oppdatertPeriode: Periode,
-        ): Fradragsgrunnlag {
-            return this.copy(CopyArgs.Snitt(oppdatertPeriode)) ?: this.copy(
+        ): Either<UgyldigFradragsgrunnlag, Fradragsgrunnlag> {
+            return this.copy(CopyArgs.Snitt(oppdatertPeriode))?.right() ?: tryCreate(
                 fradrag = FradragFactory.ny(
                     type = this.fradrag.fradragstype,
                     månedsbeløp = this.fradrag.månedsbeløp,
@@ -70,7 +71,7 @@ sealed class Grunnlag {
 
         override fun copy(args: CopyArgs.Snitt): Fradragsgrunnlag? {
             return fradrag.copy(args)
-                ?.let { this.copy(id = UUID.randomUUID(), opprettet = this.opprettet, fradrag = it) }
+                ?.let { create(id = UUID.randomUUID(), opprettet = this.opprettet, fradrag = it) }
         }
 
         companion object {
@@ -91,6 +92,12 @@ sealed class Grunnlag {
                 }
 
                 return Fradragsgrunnlag(id = id, opprettet = opprettet, fradrag = fradrag).right()
+            }
+
+            fun List<Fradragsgrunnlag>.oppdaterFradragsperiode(
+                oppdatertPeriode: Periode,
+            ): Either<UgyldigFradragsgrunnlag, List<Fradragsgrunnlag>> {
+                return this.map { it.oppdaterFradragsperiode(oppdatertPeriode) }.sequenceEither()
             }
 
             /**
@@ -126,6 +133,12 @@ sealed class Grunnlag {
                 is Fullstendig.Enslig -> this.copy(periode = oppdatertPeriode)
                 is Ufullstendig.HarEps -> this.copy(periode = oppdatertPeriode)
                 is Ufullstendig.HarIkkeEps -> this.copy(periode = oppdatertPeriode)
+            }
+        }
+
+        companion object {
+            fun List<Bosituasjon>.oppdaterBosituasjonsperiode(oppdatertPeriode: Periode): List<Bosituasjon> {
+                return this.map { it.oppdaterBosituasjonsperiode(oppdatertPeriode) }
             }
         }
 

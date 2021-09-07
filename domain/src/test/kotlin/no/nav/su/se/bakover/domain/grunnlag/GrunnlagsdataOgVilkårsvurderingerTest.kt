@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.nonEmptyListOf
+import arrow.core.right
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
@@ -153,7 +154,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
 
         tomGrunnlagsdata.oppdaterGrunnlagsperioder(
             oppdatertPeriode = Periode.create(1.januar(2021), 31.januar(2021)),
-        ) shouldBe Grunnlagsdata.create(emptyList(), emptyList())
+        ) shouldBe Grunnlagsdata.create(emptyList(), emptyList()).right()
     }
 
     @Test
@@ -182,7 +183,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
 
         val actual = grunnlagsdata.oppdaterGrunnlagsperioder(
             oppdatertPeriode = oppdatertPeriode,
-        )
+        ).orNull()!!
 
         actual.fradragsgrunnlag.size shouldBe 1
         actual.fradragsgrunnlag.first().periode shouldBe oppdatertPeriode

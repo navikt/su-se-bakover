@@ -483,10 +483,12 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
 
-        return statusovergang(
+        return forsøkStatusovergang(
             søknadsbehandling = søknadsbehandling,
             statusovergang = Statusovergang.OppdaterStønadsperiode(request.stønadsperiode),
-        ).let {
+        ).mapLeft {
+            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode(it)
+        }.map {
             søknadsbehandlingRepo.lagre(it)
             vilkårsvurderingService.lagre(
                 it.id,
@@ -494,7 +496,7 @@ internal class SøknadsbehandlingServiceImpl(
             )
             grunnlagService.lagreBosituasjongrunnlag(it.id, it.grunnlagsdata.bosituasjon)
             grunnlagService.lagreFradragsgrunnlag(it.id, it.grunnlagsdata.fradragsgrunnlag)
-            it.right()
+            it
         }
     }
 
