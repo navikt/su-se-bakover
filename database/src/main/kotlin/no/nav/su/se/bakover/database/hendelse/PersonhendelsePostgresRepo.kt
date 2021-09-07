@@ -22,12 +22,7 @@ import java.util.UUID
 import javax.sql.DataSource
 
 class PersonhendelsePostgresRepo(private val datasource: DataSource) : PersonhendelseRepo {
-    override fun lagre(personhendelse: Personhendelse.TilknyttetSak) = when (personhendelse) {
-        is Personhendelse.TilknyttetSak.IkkeSendtTilOppgave -> lagrePersonhendelse(personhendelse)
-        is Personhendelse.TilknyttetSak.SendtTilOppgave -> lagrePersonhendelse(personhendelse)
-    }
-
-    private fun lagrePersonhendelse(personhendelse: Personhendelse.TilknyttetSak) {
+    override fun lagre(personhendelse: Personhendelse.TilknyttetSak.IkkeSendtTilOppgave) {
         val tidspunkt = Tidspunkt.now()
         datasource.withSession { session ->
             """
@@ -61,7 +56,7 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
         }
     }
 
-    private fun lagrePersonhendelse(personhendelse: Personhendelse.TilknyttetSak.SendtTilOppgave) {
+    override fun lagre(personhendelse: Personhendelse.TilknyttetSak.SendtTilOppgave) {
         val tidspunkt = Tidspunkt.now()
         datasource.withSession { session ->
             """
@@ -82,14 +77,7 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
             """ 
                 select p.*, s.saksnummer as saksnummer from personhendelse p left join sak s on s.id = p.sakId where oppgaveId is null
             """.trimIndent().hentListe(mapOf(), session) { row ->
-                Personhendelse.TilknyttetSak.IkkeSendtTilOppgave(
-                    id = UUID.fromString(row.string("id")),
-                    sakId = row.uuid("sakId"),
-                    endringstype = PersonhendelseEndringstype.tryParse(row.string("endringstype")).toDomain(),
-                    hendelse = row.hentHendelse(),
-                    saksnummer = Saksnummer(row.long("saksnummer")),
-                    metadata = objectMapper.readValue<MetadataJson>(row.string("metadata")).toDomain(),
-                )
+                row.toIkkeSendtTilOppgave()
             }
         }
 
@@ -107,25 +95,28 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
             ) { it.toPersonhendelse() }
     }
 
+    private fun Row.toIkkeSendtTilOppgave() = Personhendelse.TilknyttetSak.IkkeSendtTilOppgave(
+        id = UUID.fromString(string("id")),
+        sakId = uuid("sakId"),
+        endringstype = PersonhendelseEndringstype.tryParse(string("endringstype")).toDomain(),
+        hendelse = hentHendelse(),
+        saksnummer = Saksnummer(long("saksnummer")),
+        metadata = objectMapper.readValue<MetadataJson>(string("metadata")).toDomain(),
+    )
+    private fun Row.toSendtTilOppgave(oppgaveId: OppgaveId) = Personhendelse.TilknyttetSak.SendtTilOppgave(
+        id = UUID.fromString(string("id")),
+        sakId = uuid("sakId"),
+        endringstype = PersonhendelseEndringstype.tryParse(string("endringstype")).toDomain(),
+        hendelse = hentHendelse(),
+        saksnummer = Saksnummer(long("saksnummer")),
+        metadata = objectMapper.readValue<MetadataJson>(string("metadata")).toDomain(),
+        oppgaveId = oppgaveId,
+    )
+
     private fun Row.toPersonhendelse(): Personhendelse.TilknyttetSak =
         when (val oppgaveId = stringOrNull("oppgaveId")) {
-            null -> Personhendelse.TilknyttetSak.IkkeSendtTilOppgave(
-                id = UUID.fromString(string("id")),
-                sakId = uuid("sakId"),
-                endringstype = PersonhendelseEndringstype.tryParse(string("endringstype")).toDomain(),
-                hendelse = hentHendelse(),
-                saksnummer = Saksnummer(long("saksnummer")),
-                metadata = objectMapper.readValue<MetadataJson>(string("metadata")).toDomain(),
-            )
-            else -> Personhendelse.TilknyttetSak.SendtTilOppgave(
-                id = UUID.fromString(string("id")),
-                sakId = uuid("sakId"),
-                endringstype = PersonhendelseEndringstype.tryParse(string("endringstype")).toDomain(),
-                hendelse = hentHendelse(),
-                saksnummer = Saksnummer(long("saksnummer")),
-                metadata = objectMapper.readValue<MetadataJson>(string("metadata")).toDomain(),
-                oppgaveId = OppgaveId(oppgaveId),
-            )
+            null -> this.toIkkeSendtTilOppgave()
+            else -> this.toSendtTilOppgave(OppgaveId(oppgaveId))
         }
 
     private fun Row.hentHendelse(): Personhendelse.Hendelse = when (val type = string("type")) {
@@ -274,7 +265,7 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
         val partisjon: Int,
         val master: String,
         val key: String,
-        val personidenter: List<String>
+        val personidenter: List<String>,
     ) {
         companion object {
             fun Personhendelse.Metadata.toJson() = MetadataJson(
@@ -284,9 +275,10 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
                 partisjon = partisjon,
                 master = master,
                 key = key,
-                personidenter = personidenter
+                personidenter = personidenter,
             )
         }
+
         fun toDomain() = Personhendelse.Metadata(
             hendelseId = hendelseId,
             personidenter = NonEmptyList.fromListUnsafe(personidenter),
@@ -294,7 +286,7 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
             offset = offset,
             partisjon = partisjon,
             master = master,
-            key = key
+            key = key,
         )
     }
 }

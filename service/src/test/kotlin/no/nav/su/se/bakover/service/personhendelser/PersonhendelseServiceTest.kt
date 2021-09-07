@@ -47,7 +47,7 @@ internal class PersonhendelseServiceTest {
 
         verify(sakRepoMock).hentSakIdOgNummerForIdenter(argThat { it shouldBe nyPersonhendelse.metadata.personidenter })
         verify(personhendelseRepoMock).lagre(
-            personhendelse = argThat { it shouldBe nyPersonhendelse.tilknyttSak(it.id, SakIdOgNummer(sakId, Saksnummer(2021))) },
+            personhendelse = argThat<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> { it shouldBe nyPersonhendelse.tilknyttSak(it.id, SakIdOgNummer(sakId, Saksnummer(2021))) },
         )
         verifyNoMoreInteractions(personhendelseRepoMock, sakRepoMock, oppgaveServiceMock)
     }
@@ -112,7 +112,7 @@ internal class PersonhendelseServiceTest {
             },
         )
 
-        verify(personhendelseRepoMock).lagre(argThat { it shouldBe personhendelse.tilSendtTilOppgave(OppgaveId("oppgaveId")) })
+        verify(personhendelseRepoMock).lagre(argThat<Personhendelse.TilknyttetSak.SendtTilOppgave> { it shouldBe personhendelse.tilSendtTilOppgave(OppgaveId("oppgaveId")) })
         verifyNoMoreInteractions(oppgaveServiceMock, personhendelseRepoMock, sakRepoMock, personServiceMock)
     }
 
