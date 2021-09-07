@@ -7,7 +7,6 @@ import javax.sql.DataSource
 
 private val log = LoggerFactory.getLogger("EmbeddedDatabase.kt")
 
-// private var preparers: MutableList<CustomFlywayPreparer> = CopyOnWriteArrayList(listOf(CustomFlywayPreparer()))
 private var preparer: CustomFlywayPreparer = CustomFlywayPreparer()
 
 /** Kjører kun flyway-migrering på første kallet, bruker templates for å opprette nye databaser. */
@@ -26,27 +25,6 @@ private fun createNewDatabase(): DataSource {
     val info = provider.createNewDatabase()
     return provider.createDataSourceFromConnectionInfo(info)
 }
-
-// private fun createNewDatabase(): DataSource {
-//     preparers.forEach { preparer ->
-//         tryCreateNewDatabase(PreparedDbProvider.forPreparer(preparer)).map { dataSource ->
-//             return dataSource
-//         }
-//     }
-//     return CustomFlywayPreparer().let { preparer ->
-//         preparers.add(preparer)
-//         tryCreateNewDatabase(PreparedDbProvider.forPreparer(preparer)).getOrHandle {
-//             throw IllegalStateException("Failed to create new PreparedDbProvider when previous one failed", it)
-//         }
-//     }
-// }
-//
-// private fun tryCreateNewDatabase(provider: PreparedDbProvider): Either<Throwable, DataSource> {
-//     return Either.catch {
-//         val info = provider.createNewDatabase()
-//         provider.createDataSourceFromConnectionInfo(info)
-//     }
-// }
 
 private class CustomFlywayPreparer(val role: String = "postgres", val toVersion: Int? = null) : DatabasePreparer {
     override fun prepare(ds: DataSource) {

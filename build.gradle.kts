@@ -70,9 +70,6 @@ allprojects {
         testImplementation("io.zonky.test:embedded-postgres:1.3.1")
 
         constraints {
-            testImplementation("com.opentable.components:otj-pg-embedded:0.13.4") {
-                because("Brukes i både web og database")
-            }
             implementation("org.apache.commons:commons-compress") {
                 because("org.apache.avro:avro:1.10.2 -> https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECOMMONS-1316641")
                 version {
