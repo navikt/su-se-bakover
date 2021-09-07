@@ -109,6 +109,9 @@ internal class KonsistensavstemmingXmlMappingTest {
                       <fradragTillegg>T</fradragTillegg>
                       <brukKjoreplan>N</brukKjoreplan>
                       <utbetalesTilId>88888888888</utbetalesTilId>
+                      <attestantListe>
+                        <attestantId>attestant</attestantId>
+                      </attestantListe>
                     </oppdragslinjeListe>
                   </oppdragsdataListe>
                 </konsistensavstemmingsdata>

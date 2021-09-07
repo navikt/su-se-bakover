@@ -5,11 +5,13 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
+import org.jetbrains.kotlin.utils.keysToMap
 import java.time.LocalDate
 
 sealed class Avstemming {
@@ -31,14 +33,14 @@ sealed class Avstemming {
      *  1.  Filtrer vekk alle utbetalinger som er opprettet senere enn [opprettetTilOgMed].
      *      Tidspunktet brukes til å informere OS om uttrekket vi har gjort, slik at de kan gjøre tilsvarende uttrekk.
      *  2.  Grupper alle utbetalingene per sak.
-     *  3.  Slå sammen alle utbetalinger for en sak til en instans av [OppdragForKonsistensavstemming] som inneholder
+     *  3.  Slå sammen alle utbetalinger for en sak til en instans av [UtbetalingslinjerPerSak] som inneholder
      *      alle utbetalingslinjene for saken.
      *  4.  Lag tidslinje som inkluderer alle elementer i intervallet [løpendeFraOgMed] til [LocalDate.MAX] for alle utbetalinjene på hver sak.
      *      Filtrer vekk eventuelle opphør fra tidslinjen, da disse ikke regnes som "aktiv" i OS.
      *  5.  Filtrer vekk eventuelle saker som har 0 elementer igjen på tidslinjen etter at opphør er filtrert vekk.
      *      Dersom tidslinjen inneholder elementer, betyr dette at saken har "aktive" linjer som skal avstemmes.
      *  6.  Transformer de resterende utbetalingslinjene fra tidslinjen til en liste med deres id'er.
-     *  7.  For hver instans av [OppdragForKonsistensavstemming], filtrer vekk alle utbetalingslinjer som ikke er av typen [Utbetalingslinje.Ny].
+     *  7.  For hver instans av [UtbetalingslinjerPerSak], filtrer vekk alle utbetalingslinjer som ikke er av typen [Utbetalingslinje.Ny].
      *      Årsaken til dette er at stans/reak/opph er den samme linja (samme id), men med status satt, noe som vil føre til duplikater.
      *      Filtrer til slutt vekk alle utbetalingslinjene hvis id ikke eksisterer i listen fra 6.
      */
@@ -63,14 +65,17 @@ sealed class Avstemming {
                 .groupBy { it.saksnummer } // 2
                 .mapValues { entry -> // 3
                     entry.value.map { utbetaling ->
-                        OppdragForKonsistensavstemming(
+                        UtbetalingslinjerPerSak(
                             saksnummer = utbetaling.saksnummer,
                             fnr = utbetaling.fnr,
                             utbetalingslinjer = utbetaling.utbetalingslinjer,
+                            utbetalingslinjerTilAttestant = utbetaling.utbetalingslinjer.map { it.id }
+                                .keysToMap { utbetaling.behandler },
                         )
                     }.reduce { acc, other ->
                         acc.copy(
                             utbetalingslinjer = acc.utbetalingslinjer + other.utbetalingslinjer,
+                            utbetalingslinjerTilAttestant = acc.utbetalingslinjerTilAttestant + other.utbetalingslinjerTilAttestant,
                         )
                     }
                 }
@@ -88,12 +93,13 @@ sealed class Avstemming {
                 .filterNot { it.value.second.isEmpty() } // 5
                 .mapValues { pair -> pair.value.first to pair.value.second.map { it.kopiertFraId } } // 6
                 .map { entry -> // 7
-                    entry.value.first.copy(
+                    OppdragForKonsistensavstemming(
+                        saksnummer = entry.value.first.saksnummer,
+                        fnr = entry.value.first.fnr,
                         utbetalingslinjer = entry.value.first.utbetalingslinjer
                             .filterIsInstance<Utbetalingslinje.Ny>()
-                            .filter {
-                                entry.value.second.contains(it.id)
-                            },
+                            .filter { entry.value.second.contains(it.id) }
+                            .map { it.toOppdragslinjeForKonsistensavstemming(entry.value.first.attestant(it.id)) },
                     )
                 }
         }
@@ -109,8 +115,41 @@ sealed class Avstemming {
     }
 }
 
-data class OppdragForKonsistensavstemming(
+internal fun Utbetalingslinje.toOppdragslinjeForKonsistensavstemming(attestant: NavIdentBruker): OppdragslinjeForKonsistensavstemming {
+    return OppdragslinjeForKonsistensavstemming(
+        id = id,
+        opprettet = opprettet,
+        fraOgMed = fraOgMed,
+        tilOgMed = tilOgMed,
+        forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
+        beløp = beløp,
+        attestant = attestant,
+    )
+}
+
+private data class UtbetalingslinjerPerSak(
     val saksnummer: Saksnummer,
     val fnr: Fnr,
     val utbetalingslinjer: List<Utbetalingslinje>,
+    val utbetalingslinjerTilAttestant: Map<UUID30, NavIdentBruker>,
+) {
+    fun attestant(utbetalingslinjeId: UUID30): NavIdentBruker {
+        return utbetalingslinjerTilAttestant[utbetalingslinjeId]!!
+    }
+}
+
+data class OppdragForKonsistensavstemming(
+    val saksnummer: Saksnummer,
+    val fnr: Fnr,
+    val utbetalingslinjer: List<OppdragslinjeForKonsistensavstemming>,
+)
+
+data class OppdragslinjeForKonsistensavstemming(
+    val id: UUID30,
+    val opprettet: Tidspunkt,
+    val fraOgMed: LocalDate,
+    val tilOgMed: LocalDate,
+    var forrigeUtbetalingslinjeId: UUID30?,
+    val beløp: Int,
+    val attestant: NavIdentBruker,
 )

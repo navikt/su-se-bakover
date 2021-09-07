@@ -95,6 +95,7 @@ internal fun OppdragForKonsistensavstemming.toOppdragdata(): Konsistensavstemmin
                 fradragTillegg = OppdragslinjeDefaults.fradragEllerTillegg.toString(),
                 brukKjoreplan = OppdragslinjeDefaults.BRUK_KJOREPLAN,
                 utbetalesTilId = fnr.toString(),
+                attestantListe = listOf(KonsistensavstemmingData.Attestant(attestantId = it.attestant.navIdent)),
             )
         },
     )

@@ -158,6 +158,11 @@ internal data class KonsistensavstemmingData(
         val fradragTillegg: String,
         val brukKjoreplan: String,
         val utbetalesTilId: String,
+        val attestantListe: List<Attestant>,
+    )
+
+    data class Attestant(
+        val attestantId: String,
     )
 }
 
