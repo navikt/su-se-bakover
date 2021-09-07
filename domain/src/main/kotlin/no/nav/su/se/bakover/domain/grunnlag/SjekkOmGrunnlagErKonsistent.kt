@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import arrow.core.separateEither
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.harEpsInntekt
 
 data class SjekkOmGrunnlagErKonsistent(
     private val formuegrunnlag: List<Formuegrunnlag>,

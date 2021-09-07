@@ -1,12 +1,17 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.nonEmptyListOf
+import arrow.core.right
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -141,5 +146,48 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
+    }
+
+    @Test
+    fun `oppdaterGrunnlagsperioder på tomme lister`() {
+        val tomGrunnlagsdata = Grunnlagsdata.create(emptyList(), emptyList())
+
+        tomGrunnlagsdata.oppdaterGrunnlagsperioder(
+            oppdatertPeriode = Periode.create(1.januar(2021), 31.januar(2021)),
+        ) shouldBe Grunnlagsdata.create(emptyList(), emptyList()).right()
+    }
+
+    @Test
+    fun `oppdaterer periodene på grunnlagene`() {
+        val forrigePeriode = Periode.create(1.januar(2021), 31.desember(2021))
+        val oppdatertPeriode = Periode.create(1.januar(2021), 31.januar(2021))
+        val fradragsgrunnlag = Grunnlag.Fradragsgrunnlag.create(
+            fradrag = FradragFactory.ny(
+                type = Fradragstype.Kontantstøtte,
+                månedsbeløp = 0.0,
+                periode = forrigePeriode,
+                utenlandskInntekt = null,
+                tilhører = FradragTilhører.BRUKER,
+            ),
+        )
+        val bosiutasjongrunnlag = Grunnlag.Bosituasjon.Fullstendig.Enslig(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            periode = forrigePeriode,
+            begrunnelse = null,
+        )
+        val grunnlagsdata = Grunnlagsdata.create(
+            fradragsgrunnlag = listOf(fradragsgrunnlag),
+            bosituasjon = listOf(bosiutasjongrunnlag),
+        )
+
+        val actual = grunnlagsdata.oppdaterGrunnlagsperioder(
+            oppdatertPeriode = oppdatertPeriode,
+        ).orNull()!!
+
+        actual.fradragsgrunnlag.size shouldBe 1
+        actual.fradragsgrunnlag.first().periode shouldBe oppdatertPeriode
+        actual.bosituasjon.size shouldBe 1
+        actual.bosituasjon.first().periode shouldBe oppdatertPeriode
     }
 }

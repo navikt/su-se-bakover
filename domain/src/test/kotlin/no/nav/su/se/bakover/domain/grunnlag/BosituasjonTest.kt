@@ -2,10 +2,13 @@ package no.nav.su.se.bakover.domain.grunnlag
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -90,7 +93,21 @@ internal class BosituasjonTest {
         Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(),
-            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021))
+            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
         ).harEndretEllerFjernetEktefelle(gjeldendeBosituasjon) shouldBe true
+    }
+
+    @Test
+    fun `oppdaterer periode i bosituasjon`() {
+        val oppdatertPeriode = Periode.create(1.februar(2021), 31.januar(2022))
+        val gjeldendeBosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+        )
+
+        gjeldendeBosituasjon.oppdaterBosituasjonsperiode(oppdatertPeriode) shouldBe gjeldendeBosituasjon.copy(
+            periode = oppdatertPeriode,
+        )
     }
 }

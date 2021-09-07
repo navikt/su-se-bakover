@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
+import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
@@ -137,6 +138,8 @@ interface SøknadsbehandlingService {
         object FantIkkeBehandling : SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
         object FraOgMedDatoKanIkkeVæreFør2021 : SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
         object PeriodeKanIkkeVæreLengreEnn12Måneder : SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
+        data class KunneIkkeOppdatereStønadsperiode(val feil: Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode) :
+            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
     }
 
     data class OppdaterStønadsperiodeRequest(
