@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.hendelse
 
+import arrow.core.NonEmptyList
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -7,10 +8,10 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo.HendelseJson.Companion.toJson
 import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo.MetadataJson.Companion.toJson
 import no.nav.su.se.bakover.database.hent
+import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
@@ -21,18 +22,16 @@ import java.util.UUID
 import javax.sql.DataSource
 
 class PersonhendelsePostgresRepo(private val datasource: DataSource) : PersonhendelseRepo {
-
-    override fun lagre(personhendelse: Personhendelse.Ny, id: UUID, sakId: UUID) {
+    override fun lagre(personhendelse: Personhendelse.TilknyttetSak.IkkeSendtTilOppgave) {
         val tidspunkt = Tidspunkt.now()
         datasource.withSession { session ->
             """
-                insert into personhendelse (id, sakId, opprettet, endret, aktørId, endringstype, hendelse, oppgaveId, type, metadata)
+                insert into personhendelse (id, sakId, opprettet, endret, endringstype, hendelse, oppgaveId, type, metadata)
                 values(
                     :id,
                     :sakId,
                     :opprettet,
                     :endret,
-                    :aktoerId,
                     :endringstype,
                     to_jsonb(:hendelse::jsonb),
                     :oppgaveId,
@@ -42,11 +41,10 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
                 on conflict do nothing
             """.trimIndent().insert(
                 mapOf(
-                    "id" to id,
-                    "sakId" to sakId,
+                    "id" to personhendelse.id,
+                    "sakId" to personhendelse.sakId,
                     "opprettet" to tidspunkt,
                     "endret" to tidspunkt,
-                    "aktoerId" to personhendelse.gjeldendeAktørId.toString(),
                     "endringstype" to personhendelse.endringstype.toDatabasetype(),
                     "hendelse" to objectMapper.writeValueAsString(personhendelse.hendelse.toJson()),
                     "oppgaveId" to null,
@@ -57,6 +55,31 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
             )
         }
     }
+
+    override fun lagre(personhendelse: Personhendelse.TilknyttetSak.SendtTilOppgave) {
+        val tidspunkt = Tidspunkt.now()
+        datasource.withSession { session ->
+            """
+                update personhendelse set oppgaveId = :oppgaveId, endret = :endret where id = :id
+            """.trimIndent().insert(
+                mapOf(
+                    "id" to personhendelse.id,
+                    "endret" to tidspunkt,
+                    "oppgaveId" to personhendelse.oppgaveId,
+                ),
+                session,
+            )
+        }
+    }
+
+    override fun hentPersonhendelserUtenOppgave(): List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> =
+        datasource.withSession { session ->
+            """ 
+                select p.*, s.saksnummer as saksnummer from personhendelse p left join sak s on s.id = p.sakId where oppgaveId is null
+            """.trimIndent().hentListe(mapOf(), session) { row ->
+                row.toIkkeSendtTilOppgave()
+            }
+        }
 
     internal fun hent(id: UUID): Personhendelse.TilknyttetSak? = datasource.withSession { session ->
         """
@@ -69,18 +92,32 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
                     "id" to id,
                 ),
                 session,
-            ) {
-                Personhendelse.TilknyttetSak(
-                    id = id,
-                    sakId = it.uuid("sakId"),
-                    gjeldendeAktørId = AktørId(it.string("aktørId")),
-                    endringstype = PersonhendelseEndringstype.tryParse(it.string("endringstype")).toDomain(),
-                    hendelse = it.hentHendelse(),
-                    saksnummer = Saksnummer(it.long("saksnummer")),
-                    oppgaveId = it.stringOrNull("oppgaveId")?.let { id -> OppgaveId(id) },
-                )
-            }
+            ) { it.toPersonhendelse() }
     }
+
+    private fun Row.toIkkeSendtTilOppgave() = Personhendelse.TilknyttetSak.IkkeSendtTilOppgave(
+        id = UUID.fromString(string("id")),
+        sakId = uuid("sakId"),
+        endringstype = PersonhendelseEndringstype.tryParse(string("endringstype")).toDomain(),
+        hendelse = hentHendelse(),
+        saksnummer = Saksnummer(long("saksnummer")),
+        metadata = objectMapper.readValue<MetadataJson>(string("metadata")).toDomain(),
+    )
+    private fun Row.toSendtTilOppgave(oppgaveId: OppgaveId) = Personhendelse.TilknyttetSak.SendtTilOppgave(
+        id = UUID.fromString(string("id")),
+        sakId = uuid("sakId"),
+        endringstype = PersonhendelseEndringstype.tryParse(string("endringstype")).toDomain(),
+        hendelse = hentHendelse(),
+        saksnummer = Saksnummer(long("saksnummer")),
+        metadata = objectMapper.readValue<MetadataJson>(string("metadata")).toDomain(),
+        oppgaveId = oppgaveId,
+    )
+
+    private fun Row.toPersonhendelse(): Personhendelse.TilknyttetSak =
+        when (val oppgaveId = stringOrNull("oppgaveId")) {
+            null -> this.toIkkeSendtTilOppgave()
+            else -> this.toSendtTilOppgave(OppgaveId(oppgaveId))
+        }
 
     private fun Row.hentHendelse(): Personhendelse.Hendelse = when (val type = string("type")) {
         PersonhendelseType.DØDSFALL.value -> {
@@ -94,22 +131,6 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
         }
         else -> throw RuntimeException("Kunne ikke deserialisere [Personhendelse]. Ukjent type: $type")
     }
-
-    // TODO jah: Denne er litt premature. Trengs ikke før neste PR.
-    // override fun oppdaterOppgave(hendelseId: String, oppgaveId: OppgaveId) {
-    //     datasource.withSession { session ->
-    //         """
-    //             update personhendelse set oppgaveId=:oppgaveId, endret=:endret where id=:hendelseId
-    //         """.trimIndent().oppdatering(
-    //             mapOf(
-    //                 "hendelseId" to hendelseId,
-    //                 "endret" to LocalDate.now(),
-    //                 "oppgaveId" to oppgaveId.toString()
-    //             ),
-    //             session
-    //         )
-    //     }
-    // }
 
     private fun Personhendelse.Hendelse.toDatabasetype(): String = when (this) {
         is Personhendelse.Hendelse.Dødsfall -> PersonhendelseType.DØDSFALL.value
@@ -244,6 +265,7 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
         val partisjon: Int,
         val master: String,
         val key: String,
+        val personidenter: List<String>,
     ) {
         companion object {
             fun Personhendelse.Metadata.toJson() = MetadataJson(
@@ -253,7 +275,18 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
                 partisjon = partisjon,
                 master = master,
                 key = key,
+                personidenter = personidenter,
             )
         }
+
+        fun toDomain() = Personhendelse.Metadata(
+            hendelseId = hendelseId,
+            personidenter = NonEmptyList.fromListUnsafe(personidenter),
+            tidligereHendelseId = tidligereHendelseId,
+            offset = offset,
+            partisjon = partisjon,
+            master = master,
+            key = key,
+        )
     }
 }

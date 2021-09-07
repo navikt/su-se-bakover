@@ -156,6 +156,10 @@ internal fun Route.søknadsbehandlingRoutes(
                                                     "stønadsperiode_max_12mnd",
                                                 )
                                             }
+                                            is SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode -> InternalServerError.errorJson(
+                                                message = "Feil ved oppdatering av stønadsperiode",
+                                                code = "oppdatering_av_stønadsperiode",
+                                            )
                                         },
                                     )
                                 }

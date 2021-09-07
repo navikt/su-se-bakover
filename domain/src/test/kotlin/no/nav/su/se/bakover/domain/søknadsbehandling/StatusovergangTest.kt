@@ -769,7 +769,7 @@ internal class StatusovergangTest {
                 underkjentInnvilget,
             ).forEach {
                 assertDoesNotThrow {
-                    statusovergang(
+                    forsøkStatusovergang(
                         søknadsbehandling = it,
                         statusovergang = Statusovergang.OppdaterStønadsperiode(stønadsperiode),
                     )
@@ -788,7 +788,7 @@ internal class StatusovergangTest {
                 iverksattInnvilget,
             ).forEach {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
-                    statusovergang(
+                    forsøkStatusovergang(
                         søknadsbehandling = it,
                         statusovergang = Statusovergang.OppdaterStønadsperiode(stønadsperiode),
                     )
@@ -822,7 +822,7 @@ internal class StatusovergangTest {
             )
 
             val nyPeriode = Periode.create(1.februar(2021), 31.mars(2021))
-            val actual = statusovergang(
+            val actual = forsøkStatusovergang(
                 søknadsbehandling = opprettetMedGrunnlag,
                 statusovergang = Statusovergang.OppdaterStønadsperiode(
                     Stønadsperiode.create(
@@ -832,8 +832,8 @@ internal class StatusovergangTest {
                 ),
             )
 
-            actual.periode shouldBe nyPeriode
-            actual.vilkårsvurderinger.uføre.grunnlag.first().periode shouldBe nyPeriode
+            actual.orNull()!!.periode shouldBe nyPeriode
+            actual.orNull()!!.vilkårsvurderinger.uføre.grunnlag.first().periode shouldBe nyPeriode
         }
     }
 }

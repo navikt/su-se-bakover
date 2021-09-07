@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
 import no.nav.su.se.bakover.domain.sak.SakRestans
 import java.util.UUID
 import javax.sql.DataSource
@@ -53,17 +54,27 @@ internal class SakPostgresRepo(
         }
     }
 
-    override fun hentSakIdForIdenter(personidenter: NonEmptyList<String>): UUID? {
+    /***
+     * @param personidenter Inneholder alle identer til brukeren, f.eks fnr og aktørid.
+     */
+    override fun hentSakIdOgNummerForIdenter(personidenter: NonEmptyList<String>): SakIdOgNummer? {
         return dataSource.withSession { session ->
             """
                 SELECT
-                    id
+                    id, saksnummer
                 FROM sak
                 WHERE fnr = ANY (:fnrs)
             """.trimIndent().hent(
                 mapOf("fnrs" to personidenter),
                 session,
-            ) { row -> row.uuidOrNull("id") }
+            ) { row ->
+                row.uuidOrNull("id")?.let { id ->
+                    SakIdOgNummer(
+                        sakId = id,
+                        saksnummer = Saksnummer(row.long("saksnummer"))
+                    )
+                }
+            }
         }
     }
 

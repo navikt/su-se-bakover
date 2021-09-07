@@ -123,6 +123,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 journalpostId,
                 søknadId,
                 AktørId(aktørId),
+                clock = fixedEpochClock
             ),
         ) shouldBe OppgaveId("111").right()
 
@@ -137,6 +138,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 journalpostId,
                 søknadId,
                 AktørId(aktørId),
+                clock = fixedEpochClock
             ),
         ) shouldBe OppgaveId("111").right()
 
@@ -217,6 +219,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 søknadId = søknadId,
                 aktørId = AktørId(aktørId),
                 tilordnetRessurs = saksbehandler,
+                clock = fixedEpochClock
             ),
         ) shouldBe OppgaveId("111").right()
     }
@@ -290,6 +293,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             OppgaveConfig.Attestering(
                 søknadId = søknadId,
                 aktørId = AktørId(aktørId),
+                clock = fixedEpochClock
             ),
         ) shouldBe OppgaveId("111").right()
     }
@@ -315,6 +319,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 journalpostId,
                 søknadId,
                 AktørId(aktørId),
+                clock = fixedEpochClock
             ),
         ) shouldBe OppgaveFeil.KunneIkkeOppretteOppgave.left()
     }
@@ -693,7 +698,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
 
         client.opprettOppgave(
             OppgaveConfig.Revurderingsbehandling(
-                saksnummer = saksnummer, aktørId = AktørId(aktørId), tilordnetRessurs = null,
+                saksnummer = saksnummer, aktørId = AktørId(aktørId), tilordnetRessurs = null, clock = fixedEpochClock
             ),
         ) shouldBe OppgaveId("111").right()
 
@@ -705,7 +710,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
 
         client.opprettOppgaveMedSystembruker(
             OppgaveConfig.Revurderingsbehandling(
-                saksnummer = saksnummer, aktørId = AktørId(aktørId), tilordnetRessurs = null,
+                saksnummer = saksnummer, aktørId = AktørId(aktørId), tilordnetRessurs = null, clock = fixedEpochClock
             ),
         ) shouldBe OppgaveId("111").right()
 
@@ -783,6 +788,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 saksnummer = saksnummer,
                 aktørId = AktørId(aktørId),
                 tilordnetRessurs = null,
+                clock = fixedEpochClock
             ),
         ) shouldBe OppgaveId("111").right()
     }

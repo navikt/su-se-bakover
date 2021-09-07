@@ -1,16 +1,21 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.Either
+import arrow.core.flatMap
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
+import arrow.core.sequenceEither
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Copyable
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
+import org.jetbrains.annotations.TestOnly
 import java.util.UUID
 
 sealed class Grunnlag {
@@ -51,12 +56,44 @@ sealed class Grunnlag {
         val fradrag: Fradrag,
     ) : Grunnlag(), Fradrag by fradrag {
 
+        fun oppdaterFradragsperiode(
+            oppdatertPeriode: Periode,
+        ): Either<UgyldigFradragsgrunnlag, Fradragsgrunnlag> {
+            return this.copyInternal(CopyArgs.Snitt(oppdatertPeriode)).flatMap {
+                it?.right() ?: tryCreate(
+                    fradrag = FradragFactory.ny(
+                        type = this.fradrag.fradragstype,
+                        månedsbeløp = this.fradrag.månedsbeløp,
+                        periode = oppdatertPeriode,
+                        utenlandskInntekt = this.fradrag.utenlandskInntekt,
+                        tilhører = this.fradrag.tilhører,
+                    ),
+                )
+            }
+        }
+
         override fun copy(args: CopyArgs.Snitt): Fradragsgrunnlag? {
-            return fradrag.copy(args)
-                ?.let { this.copy(id = UUID.randomUUID(), opprettet = this.opprettet, fradrag = it) }
+            return copyInternal(args).getOrHandle { throw IllegalArgumentException(it.toString()) }
+        }
+
+        private fun copyInternal(args: CopyArgs.Snitt): Either<UgyldigFradragsgrunnlag, Fradragsgrunnlag?> {
+            return fradrag.copy(args)?.let {
+                tryCreate(
+                    id = UUID.randomUUID(),
+                    opprettet = this.opprettet,
+                    fradrag = it,
+                ).getOrHandle { return it.left() }
+            }.right()
         }
 
         companion object {
+            @TestOnly
+            fun create(
+                id: UUID = UUID.randomUUID(),
+                opprettet: Tidspunkt = Tidspunkt.now(),
+                fradrag: Fradrag,
+            ) = tryCreate(id, opprettet, fradrag).getOrHandle { throw IllegalArgumentException(it.toString()) }
+
             fun tryCreate(
                 id: UUID = UUID.randomUUID(),
                 opprettet: Tidspunkt = Tidspunkt.now(),
@@ -67,6 +104,21 @@ sealed class Grunnlag {
                 }
 
                 return Fradragsgrunnlag(id = id, opprettet = opprettet, fradrag = fradrag).right()
+            }
+
+            fun List<Fradragsgrunnlag>.oppdaterFradragsperiode(
+                oppdatertPeriode: Periode,
+            ): Either<UgyldigFradragsgrunnlag, List<Fradragsgrunnlag>> {
+                return this.map { it.oppdaterFradragsperiode(oppdatertPeriode) }.sequenceEither()
+            }
+
+            fun List<Fradragsgrunnlag>.harEpsInntekt() = this.any { it.fradrag.tilhørerEps() }
+            fun List<Fradragsgrunnlag>.periode(): Periode? = this.map { it.fradrag.periode }.let { perioder ->
+                if (perioder.isEmpty()) null else
+                    Periode.create(
+                        fraOgMed = perioder.minOf { it.fraOgMed },
+                        tilOgMed = perioder.maxOf { it.tilOgMed },
+                    )
             }
 
             /**
@@ -92,6 +144,24 @@ sealed class Grunnlag {
         abstract override val id: UUID
         abstract val opprettet: Tidspunkt
         abstract val periode: Periode
+
+        fun oppdaterBosituasjonsperiode(oppdatertPeriode: Periode): Bosituasjon {
+            return when (this) {
+                is Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> this.copy(periode = oppdatertPeriode)
+                is Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> this.copy(periode = oppdatertPeriode)
+                is Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> this.copy(periode = oppdatertPeriode)
+                is Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> this.copy(periode = oppdatertPeriode)
+                is Fullstendig.Enslig -> this.copy(periode = oppdatertPeriode)
+                is Ufullstendig.HarEps -> this.copy(periode = oppdatertPeriode)
+                is Ufullstendig.HarIkkeEps -> this.copy(periode = oppdatertPeriode)
+            }
+        }
+
+        companion object {
+            fun List<Bosituasjon>.oppdaterBosituasjonsperiode(oppdatertPeriode: Periode): List<Bosituasjon> {
+                return this.map { it.oppdaterBosituasjonsperiode(oppdatertPeriode) }
+            }
+        }
 
         sealed class Fullstendig : Bosituasjon(), Copyable<CopyArgs.Snitt, Fullstendig?> {
             abstract val begrunnelse: String?

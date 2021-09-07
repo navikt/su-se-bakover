@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.database.stønadsperiode
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
 import no.nav.su.se.bakover.domain.sak.SakRestans
 import org.junit.jupiter.api.Test
 
@@ -38,31 +39,31 @@ internal class SakPostgresRepoTest {
     @Test
     fun `hent sakId fra fnr liste med 1 element`() {
         withMigratedDb {
-            val nySak = testDataHelper.nySakMedNySøknad()
-            repo.hentSakIdForIdenter(nonEmptyListOf(nySak.fnr.toString())) shouldBe nySak.id
+            val nySak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            repo.hentSakIdOgNummerForIdenter(nonEmptyListOf(nySak.fnr.toString())) shouldBe SakIdOgNummer(nySak.id, nySak.saksnummer)
         }
     }
 
     @Test
     fun `hent sakId fra fnr liste med 2 elementer`() {
         withMigratedDb {
-            val nySak = testDataHelper.nySakMedNySøknad()
-            repo.hentSakIdForIdenter(nonEmptyListOf("1234567890123", nySak.fnr.toString())) shouldBe nySak.id
-            repo.hentSakIdForIdenter(nonEmptyListOf(nySak.fnr.toString(), "1234567890123")) shouldBe nySak.id
+            val nySak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            repo.hentSakIdOgNummerForIdenter(nonEmptyListOf("1234567890123", nySak.fnr.toString())) shouldBe SakIdOgNummer(nySak.id, nySak.saksnummer)
+            repo.hentSakIdOgNummerForIdenter(nonEmptyListOf(nySak.fnr.toString(), "1234567890123")) shouldBe SakIdOgNummer(nySak.id, nySak.saksnummer)
         }
     }
 
     @Test
     fun `hent sakId fra fnr liste med 3 elementer`() {
         withMigratedDb {
-            val nySak = testDataHelper.nySakMedNySøknad()
-            repo.hentSakIdForIdenter(
+            val nySak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            repo.hentSakIdOgNummerForIdenter(
                 nonEmptyListOf(
                     "1234567890123",
                     nySak.fnr.toString(),
                     "1234567890123",
                 ),
-            ) shouldBe nySak.id
+            ) shouldBe SakIdOgNummer(nySak.id, nySak.saksnummer)
         }
     }
 
