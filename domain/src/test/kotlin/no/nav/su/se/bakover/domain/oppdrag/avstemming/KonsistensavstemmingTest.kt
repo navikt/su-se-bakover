@@ -82,9 +82,6 @@ internal class KonsistensavstemmingTest {
             avstemmingXmlRequest = "",
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
-                id = første.id,
-                opprettet = første.opprettet,
-                sakId = første.sakId,
                 saksnummer = første.saksnummer,
                 fnr = første.fnr,
                 utbetalingslinjer = listOf(
@@ -135,9 +132,6 @@ internal class KonsistensavstemmingTest {
             avstemmingXmlRequest = "",
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
-                id = første.id,
-                opprettet = første.opprettet,
-                sakId = første.sakId,
                 saksnummer = første.saksnummer,
                 fnr = første.fnr,
                 utbetalingslinjer = listOf(
@@ -235,9 +229,6 @@ internal class KonsistensavstemmingTest {
             avstemmingXmlRequest = "",
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
-                id = s1u1.id,
-                opprettet = s1u1.opprettet,
-                sakId = s1u1.sakId,
                 saksnummer = s1u1.saksnummer,
                 fnr = s1u1.fnr,
                 utbetalingslinjer = listOf(
@@ -247,9 +238,6 @@ internal class KonsistensavstemmingTest {
                 ),
             ),
             OppdragForKonsistensavstemming(
-                id = s2u1.id,
-                opprettet = s2u1.opprettet,
-                sakId = s2u1.sakId,
                 saksnummer = s2u1.saksnummer,
                 fnr = s2u1.fnr,
                 utbetalingslinjer = listOf(
@@ -347,9 +335,6 @@ internal class KonsistensavstemmingTest {
             avstemmingXmlRequest = "",
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
-                id = s1u1.id,
-                opprettet = s1u1.opprettet,
-                sakId = s1u1.sakId,
                 saksnummer = s1u1.saksnummer,
                 fnr = s1u1.fnr,
                 utbetalingslinjer = listOf(
@@ -357,9 +342,6 @@ internal class KonsistensavstemmingTest {
                 ),
             ),
             OppdragForKonsistensavstemming(
-                id = s2u1.id,
-                opprettet = s2u1.opprettet,
-                sakId = s2u1.sakId,
                 saksnummer = s2u1.saksnummer,
                 fnr = s2u1.fnr,
                 utbetalingslinjer = listOf(
@@ -386,9 +368,6 @@ internal class KonsistensavstemmingTest {
             avstemmingXmlRequest = "",
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
-                id = s1u1.id,
-                opprettet = s1u1.opprettet,
-                sakId = s1u1.sakId,
                 saksnummer = s1u1.saksnummer,
                 fnr = s1u1.fnr,
                 utbetalingslinjer = listOf(
@@ -396,9 +375,6 @@ internal class KonsistensavstemmingTest {
                 ),
             ),
             OppdragForKonsistensavstemming(
-                id = s2u1.id,
-                opprettet = s2u1.opprettet,
-                sakId = s2u1.sakId,
                 saksnummer = s2u1.saksnummer,
                 fnr = s2u1.fnr,
                 utbetalingslinjer = listOf(
@@ -448,9 +424,6 @@ internal class KonsistensavstemmingTest {
             avstemmingXmlRequest = "",
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
-                id = første.id,
-                opprettet = første.opprettet,
-                sakId = første.sakId,
                 saksnummer = første.saksnummer,
                 fnr = første.fnr,
                 utbetalingslinjer = listOf(
@@ -514,9 +487,6 @@ internal class KonsistensavstemmingTest {
             avstemmingXmlRequest = "",
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
-                id = første.id,
-                opprettet = første.opprettet,
-                sakId = første.sakId,
                 saksnummer = første.saksnummer,
                 fnr = første.fnr,
                 utbetalingslinjer = listOf(
@@ -662,9 +632,6 @@ internal class KonsistensavstemmingTest {
             avstemmingXmlRequest = "",
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
-                id = første.id,
-                opprettet = første.opprettet,
-                sakId = første.sakId,
                 saksnummer = første.saksnummer,
                 fnr = første.fnr,
                 utbetalingslinjer = listOf(
@@ -682,9 +649,6 @@ internal class KonsistensavstemmingTest {
             avstemmingXmlRequest = "",
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
-                id = første.id,
-                opprettet = første.opprettet,
-                sakId = første.sakId,
                 saksnummer = første.saksnummer,
                 fnr = første.fnr,
                 utbetalingslinjer = listOf(

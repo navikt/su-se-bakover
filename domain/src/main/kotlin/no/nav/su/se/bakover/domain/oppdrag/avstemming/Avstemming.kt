@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import java.time.LocalDate
-import java.util.UUID
 
 sealed class Avstemming {
     abstract val id: UUID30
@@ -65,9 +64,6 @@ sealed class Avstemming {
                 .mapValues { entry -> // 3
                     entry.value.map { utbetaling ->
                         OppdragForKonsistensavstemming(
-                            id = utbetaling.id,
-                            opprettet = utbetaling.opprettet,
-                            sakId = utbetaling.sakId,
                             saksnummer = utbetaling.saksnummer,
                             fnr = utbetaling.fnr,
                             utbetalingslinjer = utbetaling.utbetalingslinjer,
@@ -114,9 +110,6 @@ sealed class Avstemming {
 }
 
 data class OppdragForKonsistensavstemming(
-    val id: UUID30,
-    val opprettet: Tidspunkt,
-    val sakId: UUID,
     val saksnummer: Saksnummer,
     val fnr: Fnr,
     val utbetalingslinjer: List<Utbetalingslinje>,
