@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.oppdaterBosituasjonsperiode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.oppdaterFradragsperiode
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
@@ -96,14 +97,6 @@ sealed class KunneIkkeLageGrunnlagsdata {
 }
 
 fun List<Uføregrunnlag>.harForventetInntektStørreEnn0() = this.sumOf { it.forventetInntekt } > 0
-fun List<Fradragsgrunnlag>.harEpsInntekt() = this.any { it.fradrag.tilhørerEps() }
-fun List<Fradragsgrunnlag>.periode(): Periode? = this.map { it.fradrag.periode }.let { perioder ->
-    if (perioder.isEmpty()) null else
-        Periode.create(
-            fraOgMed = perioder.minOf { it.fraOgMed },
-            tilOgMed = perioder.maxOf { it.tilOgMed },
-        )
-}
 
 @JvmName("bosituasjonperiode")
 fun List<Bosituasjon>.periode(): Periode? = this.map { it.periode }.let { perioder ->

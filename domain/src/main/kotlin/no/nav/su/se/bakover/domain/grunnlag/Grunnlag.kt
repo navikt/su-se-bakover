@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -58,20 +59,31 @@ sealed class Grunnlag {
         fun oppdaterFradragsperiode(
             oppdatertPeriode: Periode,
         ): Either<UgyldigFradragsgrunnlag, Fradragsgrunnlag> {
-            return this.copy(CopyArgs.Snitt(oppdatertPeriode))?.right() ?: tryCreate(
-                fradrag = FradragFactory.ny(
-                    type = this.fradrag.fradragstype,
-                    månedsbeløp = this.fradrag.månedsbeløp,
-                    periode = oppdatertPeriode,
-                    utenlandskInntekt = this.fradrag.utenlandskInntekt,
-                    tilhører = this.fradrag.tilhører,
-                ),
-            )
+            return this.copyInternal(CopyArgs.Snitt(oppdatertPeriode)).flatMap {
+                it?.right() ?: tryCreate(
+                    fradrag = FradragFactory.ny(
+                        type = this.fradrag.fradragstype,
+                        månedsbeløp = this.fradrag.månedsbeløp,
+                        periode = oppdatertPeriode,
+                        utenlandskInntekt = this.fradrag.utenlandskInntekt,
+                        tilhører = this.fradrag.tilhører,
+                    ),
+                )
+            }
         }
 
         override fun copy(args: CopyArgs.Snitt): Fradragsgrunnlag? {
-            return fradrag.copy(args)
-                ?.let { create(id = UUID.randomUUID(), opprettet = this.opprettet, fradrag = it) }
+            return copyInternal(args).getOrHandle { throw IllegalArgumentException(it.toString()) }
+        }
+
+        private fun copyInternal(args: CopyArgs.Snitt): Either<UgyldigFradragsgrunnlag, Fradragsgrunnlag?> {
+            return fradrag.copy(args)?.let {
+                tryCreate(
+                    id = UUID.randomUUID(),
+                    opprettet = this.opprettet,
+                    fradrag = it,
+                ).getOrHandle { return it.left() }
+            }.right()
         }
 
         companion object {
@@ -98,6 +110,15 @@ sealed class Grunnlag {
                 oppdatertPeriode: Periode,
             ): Either<UgyldigFradragsgrunnlag, List<Fradragsgrunnlag>> {
                 return this.map { it.oppdaterFradragsperiode(oppdatertPeriode) }.sequenceEither()
+            }
+
+            fun List<Fradragsgrunnlag>.harEpsInntekt() = this.any { it.fradrag.tilhørerEps() }
+            fun List<Fradragsgrunnlag>.periode(): Periode? = this.map { it.fradrag.periode }.let { perioder ->
+                if (perioder.isEmpty()) null else
+                    Periode.create(
+                        fraOgMed = perioder.minOf { it.fraOgMed },
+                        tilOgMed = perioder.maxOf { it.tilOgMed },
+                    )
             }
 
             /**
