@@ -135,6 +135,7 @@ internal class AvstemmingPostgresRepo(
         opprettetTilOgMed: Tidspunkt,
     ): List<Utbetaling.OversendtUtbetaling> {
         return dataSource.withSession { session ->
+            /* TODO: midlertidig fjernet pga inkonsistens i data mellom oss og OS - dette skyldes manglene opprydding etter datalast f.eks.
             """
                 select distinct
                     s.saksnummer,
@@ -144,6 +145,25 @@ internal class AvstemmingPostgresRepo(
                 join sak s on s.id = u.sakid
                 where ul.tom >= :lopendeFraOgMed
                     and (u.avstemmingsnøkkel ->> 'opprettet')::timestamptz <= :opprettetTilOgMed
+            """.trimIndent() */
+            // TODO: midlertidig sql for å prøve å begrense uttrekket til å bare inkludere oppdrag med førstegangsutbetaling siden forrige datalast (23/07/21).
+            """
+select distinct
+	s.saksnummer,
+	u1.* 
+from utbetaling u1 
+join utbetalingslinje ul1 on ul1.utbetalingid = u1.id
+join sak s on s.id = u1.sakid
+where (u1.avstemmingsnøkkel ->> 'opprettet')::timestamptz <= :opprettetTilOgMed
+and exists(
+	select 1 from utbetaling u2
+	join utbetalingslinje ul2 on ul2.utbetalingid = u2.id
+	where ul2.tom >= :lopendeFraOgMed
+	and ul2.forrigeutbetalingslinjeid is null
+	and ul2.opprettet >= '2021-07-23'
+	and ul2.utbetalingid = u2.id
+	and u2.sakid = u1.sakid
+);  
             """.trimIndent()
                 .hentListe(
                     mapOf(
