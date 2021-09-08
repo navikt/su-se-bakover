@@ -22,7 +22,7 @@ data class Beregningsgrunnlag private constructor(
         fun create(
             beregningsperiode: Periode,
             uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
-            fradragFraSaksbehandler: List<Fradrag>,
+            fradragFraSaksbehandler: List<Grunnlag.Fradragsgrunnlag>,
         ): Beregningsgrunnlag {
             return tryCreate(
                 beregningsperiode,
@@ -34,9 +34,9 @@ data class Beregningsgrunnlag private constructor(
         fun tryCreate(
             beregningsperiode: Periode,
             uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
-            fradragFraSaksbehandler: List<Fradrag>,
+            fradragFraSaksbehandler: List<Grunnlag.Fradragsgrunnlag>,
         ): Either<UgyldigBeregningsgrunnlag, Beregningsgrunnlag> {
-            val fradrag: List<Fradrag> = fradragFraSaksbehandler.plus(
+            val fradrag: List<Fradrag> = fradragFraSaksbehandler.map { it.fradrag }.plus(
                 uføregrunnlag.map {
                     FradragFactory.ny(
                         type = Fradragstype.ForventetInntekt,

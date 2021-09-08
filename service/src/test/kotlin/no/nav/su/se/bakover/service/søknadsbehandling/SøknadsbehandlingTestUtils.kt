@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.fnr
-import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.fixedClock
@@ -43,7 +42,6 @@ internal fun createSøknadsbehandlingService(
     personService: PersonService = mock(),
     behandlingMetrics: BehandlingMetrics = mock(),
     observer: EventObserver = mock(),
-    beregningService: BeregningService = mock(),
     microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = mock(),
     brevService: BrevService = mock(),
     opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
@@ -60,7 +58,6 @@ internal fun createSøknadsbehandlingService(
     personService,
     oppgaveService,
     behandlingMetrics,
-    beregningService,
     microsoftGraphApiOppslag,
     brevService,
     opprettVedtakssnapshotService,
@@ -80,7 +77,6 @@ internal data class SøknadsbehandlingServiceAndMocks(
     val personService: PersonService = mock(),
     val behandlingMetrics: BehandlingMetrics = mock(),
     val observer: EventObserver = mock(),
-    val beregningService: BeregningService = mock(),
     val microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = mock(),
     val brevService: BrevService = mock(),
     val opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
@@ -98,7 +94,6 @@ internal data class SøknadsbehandlingServiceAndMocks(
         personService = personService,
         oppgaveService = oppgaveService,
         behandlingMetrics = behandlingMetrics,
-        beregningService = beregningService,
         microsoftGraphApiClient = microsoftGraphApiOppslag,
         brevService = brevService,
         opprettVedtakssnapshotService = opprettVedtakssnapshotService,
@@ -119,7 +114,6 @@ internal data class SøknadsbehandlingServiceAndMocks(
             personService,
             behandlingMetrics,
             observer,
-            beregningService,
             microsoftGraphApiOppslag,
             brevService,
             opprettVedtakssnapshotService,
@@ -140,7 +134,6 @@ internal data class SøknadsbehandlingServiceAndMocks(
             personService,
             behandlingMetrics,
             observer,
-            beregningService,
             microsoftGraphApiOppslag,
             brevService,
             opprettVedtakssnapshotService,

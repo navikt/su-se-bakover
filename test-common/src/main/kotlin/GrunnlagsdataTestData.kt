@@ -4,7 +4,6 @@ import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -25,17 +24,15 @@ fun fradragsgrunnlagArbeidsinntekt1000(
 fun fradragsgrunnlagArbeidsinntekt(
     periode: Periode = periode2021,
     arbeidsinntekt: Double,
+    tilhører: FradragTilhører = FradragTilhører.BRUKER
 ): Grunnlag.Fradragsgrunnlag {
-    return Grunnlag.Fradragsgrunnlag(
+    return lagFradragsgrunnlag(
         id = fradragsgrunnlagId,
-        opprettet = fixedTidspunkt,
-        fradrag = FradragFactory.ny(
-            type = Fradragstype.Arbeidsinntekt,
-            månedsbeløp = arbeidsinntekt,
-            periode = periode,
-            utenlandskInntekt = null,
-            tilhører = FradragTilhører.BRUKER,
-        ),
+        type = Fradragstype.Arbeidsinntekt,
+        månedsbeløp = arbeidsinntekt,
+        periode = periode,
+        utenlandskInntekt = null,
+        tilhører = tilhører,
     )
 }
 
@@ -64,10 +61,7 @@ fun grunnlagsdataEnsligUtenFradrag(
     fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = emptyList(),
     bosituasjon: Nel<Grunnlag.Bosituasjon> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode)),
 ): Grunnlagsdata {
-    return Grunnlagsdata(
-        fradragsgrunnlag = fradragsgrunnlag,
-        bosituasjon = bosituasjon,
-    )
+    return Grunnlagsdata.create(fradragsgrunnlag, bosituasjon)
 }
 
 /**
@@ -78,11 +72,12 @@ fun grunnlagsdataEnsligUtenFradrag(
  */
 fun grunnlagsdataEnsligMedFradrag(
     periode: Periode = periode2021,
-    fradragsgrunnlag: NonEmptyList<Grunnlag.Fradragsgrunnlag> = nonEmptyListOf(fradragsgrunnlagArbeidsinntekt1000(periode = periode)),
+    fradragsgrunnlag: NonEmptyList<Grunnlag.Fradragsgrunnlag> = nonEmptyListOf(
+        fradragsgrunnlagArbeidsinntekt1000(
+            periode = periode,
+        ),
+    ),
     bosituasjon: Nel<Grunnlag.Bosituasjon> = nonEmptyListOf(bosituasjongrunnlagEnslig(periode)),
 ): Grunnlagsdata {
-    return Grunnlagsdata(
-        fradragsgrunnlag = fradragsgrunnlag,
-        bosituasjon = bosituasjon,
-    )
+    return Grunnlagsdata.create(fradragsgrunnlag, bosituasjon)
 }

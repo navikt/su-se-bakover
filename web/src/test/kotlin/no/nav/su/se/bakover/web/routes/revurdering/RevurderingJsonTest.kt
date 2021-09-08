@@ -56,7 +56,7 @@ internal class RevurderingJsonTest {
 
         val revurdering = OpprettetRevurdering(
             id = id,
-            periode = Periode.create(1.januar(2020), 31.desember(2020)),
+            periode = Periode.create(1.januar(2021), 31.desember(2021)),
             opprettet = opprettet,
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
@@ -64,9 +64,9 @@ internal class RevurderingJsonTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = listOf(fradragsgrunnlag),
-                bosituasjon = listOf(bosituasjon)
+                bosituasjon = listOf(bosituasjon),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Uførhet.Vurdert.create(
@@ -79,7 +79,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
-            attesteringer = Attesteringshistorikk.empty()
+            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingJson =
@@ -91,8 +91,8 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "status": "${RevurderingsStatus.OPPRETTET}",
                 "periode": {
-                    "fraOgMed": "2020-01-01",
-                    "tilOgMed": "2020-12-31"
+                    "fraOgMed": "2021-01-01",
+                    "tilOgMed": "2021-12-31"
                 },
                 "saksbehandler": "Petter",
                 "fritekstTilBrev": "",

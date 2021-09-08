@@ -17,17 +17,24 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.test.external.ResultCaptor
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.doAnswer
+import org.mockito.kotlin.reset
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.whenever
+import org.postgresql.ds.PGSimpleDataSource
+import java.sql.Connection
 
 internal class SøknadPostgresRepoTest {
-
-    private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
+    val datasource = spy(EmbeddedDatabase.instance() as PGSimpleDataSource)
+    private val testDataHelper = TestDataHelper(datasource)
     private val søknadRepo = testDataHelper.søknadRepo
 
     @Test
     fun `opprett og hent søknad`() {
         withMigratedDb {
-            EmbeddedDatabase.instance().withSession {
+            datasource.withSession {
                 val sak: NySak = testDataHelper.nySakMedNySøknad()
                 val nySøknad: Søknad = testDataHelper.nySøknadForEksisterendeSak(sak.id)
                 søknadRepo.hentSøknad(nySøknad.id) shouldBe nySøknad
@@ -54,11 +61,17 @@ internal class SøknadPostgresRepoTest {
                 .lukk(
                     lukketAv = saksbehandler,
                     type = Søknad.Lukket.LukketType.TRUKKET,
-                    lukketTidspunkt = fixedTidspunkt
+                    lukketTidspunkt = fixedTidspunkt,
                 )
+            reset(datasource)
+            val resultCaptor = ResultCaptor<Connection>()
+            doAnswer(resultCaptor).whenever(datasource).connection
             søknadRepo.oppdaterSøknad(lukketSøknad)
             val hentetSøknad = søknadRepo.hentSøknad(journalførtSøknadMedOppgave.id)!!
             hentetSøknad shouldBe lukketSøknad
+            resultCaptor.result.size shouldBe 2
+            resultCaptor.result[0]!!.isClosed shouldBe true
+            resultCaptor.result[1]!!.isClosed shouldBe true
         }
     }
 
@@ -84,9 +97,9 @@ internal class SøknadPostgresRepoTest {
     fun `lagrer journalPostId`() {
         withMigratedDb {
             fun hentJournalpostId(nySak: NySak): List<String?> {
-                return EmbeddedDatabase.instance().withSession { session ->
+                return datasource.withSession { session ->
                     "select journalpostId from søknad where id='${nySak.søknad.id}'".hentListe(
-                        session = session
+                        session = session,
                     ) { it.stringOrNull("journalpostId") }
                 }
             }
@@ -119,7 +132,7 @@ internal class SøknadPostgresRepoTest {
             testDataHelper.nySakMedJournalførtSøknad()
             testDataHelper.nyLukketSøknadForEksisterendeSak(sak.id)
             søknadRepo.hentSøknaderUtenJournalpost() shouldBe listOf(
-                sak.søknad
+                sak.søknad,
             )
         }
     }
@@ -132,7 +145,7 @@ internal class SøknadPostgresRepoTest {
             testDataHelper.journalførtSøknadMedOppgaveForEksisterendeSak(sak.id)
             testDataHelper.nyLukketSøknadForEksisterendeSak(sak.id)
             søknadRepo.hentSøknaderMedJournalpostMenUtenOppgave() shouldBe listOf(
-                journalførtSøknad
+                journalførtSøknad,
             )
         }
     }

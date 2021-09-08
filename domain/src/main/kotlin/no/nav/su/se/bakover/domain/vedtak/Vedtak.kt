@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.toAvslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
@@ -238,12 +237,6 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         val grunnlagsdata: Grunnlagsdata,
         val vilkårsvurderinger: Vilkårsvurderinger,
         /**
-         * Burde ideelt sett utledet fradrag direkte fra aktuell grunnlagsdata, men pt. er modell for fradragsgrunnlag
-         * kun innført for revurdering. For å sørge for at vi kan utlede fradragsgrunnlag fra både tidligere
-         * søknadsbehandlinger og revurderinger, må vi inntil videre utlede fradragsgrunnlag fra tidligere beregninger.
-         */
-        val fradrag: List<Fradrag>,
-        /**
          * Referanse til det originale vedtaket dette tidslinje-elementet er basert på. Må ikke endres eller benyttes
          * til uthenting av grunnlagsdata.
          */
@@ -282,20 +275,20 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     }
                     copy(
                         periode = periode,
-                        grunnlagsdata = Grunnlagsdata(
+                        grunnlagsdata = Grunnlagsdata.create(
                             bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
                                 (it.fullstendigOrThrow()).copy(
                                     CopyArgs.Snitt(periode),
                                 )
+                            },
+                            fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.mapNotNull {
+                                it.copy(args = CopyArgs.Snitt(periode))
                             },
                         ),
                         vilkårsvurderinger = Vilkårsvurderinger(
                             uføre = uførevilkår,
                             formue = formue,
                         ),
-                        fradrag = fradrag.filterNot { it.fradragstype == Fradragstype.ForventetInntekt }.mapNotNull {
-                            it.copy(CopyArgs.Snitt(periode))
-                        },
                         originaltVedtak = originaltVedtak,
                     )
                 }
@@ -324,20 +317,22 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     }
                     copy(
                         periode = args.periode,
-                        grunnlagsdata = Grunnlagsdata(
+                        grunnlagsdata = Grunnlagsdata.create(
                             bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
                                 (it.fullstendigOrThrow()).copy(
                                     CopyArgs.Snitt(args.periode),
                                 )
+                            },
+                            fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.filterNot {
+                                it.fradragstype == Fradragstype.ForventetInntekt
+                            }.mapNotNull {
+                                it.copy(args = CopyArgs.Snitt(args.periode))
                             },
                         ),
                         vilkårsvurderinger = Vilkårsvurderinger(
                             uføre = uførevilkår,
                             formue = formue,
                         ),
-                        fradrag = fradrag.filterNot { it.fradragstype == Fradragstype.ForventetInntekt }.mapNotNull {
-                            it.copy(CopyArgs.Snitt(args.periode))
-                        },
                         originaltVedtak = originaltVedtak,
                     )
                 }
@@ -362,7 +357,6 @@ fun List<VedtakSomKanRevurderes>.lagTidslinje(periode: Periode, clock: Clock): T
                     ) else behandling.vilkårsvurderinger.formue
                 },
             ),
-            fradrag = it.beregning.getFradrag(),
             originaltVedtak = it,
         )
     }.let {

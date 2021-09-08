@@ -272,7 +272,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak.copy(årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP),
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata(
+            grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -695,7 +695,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             vedtakRepo = vedtakRepoMock,
-            clock = fixedClock
+            clock = fixedClock,
         ).apply { addObserver(eventObserver) }
             .iverksett(
                 revurderingId = revurderingTilAttestering.id,

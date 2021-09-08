@@ -4,6 +4,9 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.persistence.TransactionContext
+import no.nav.su.se.bakover.database.PostgresSessionFactory
+import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.hent
@@ -14,7 +17,6 @@ import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.uuidOrNull
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
@@ -26,10 +28,11 @@ import javax.sql.DataSource
 
 internal class DokumentPostgresRepo(
     private val dataSource: DataSource,
+    private val postgresSessionFactory: PostgresSessionFactory,
 ) : DokumentRepo {
 
-    override fun lagre(dokument: Dokument.MedMetadata) {
-        dataSource.withTransaction { tx ->
+    override fun lagre(dokument: Dokument.MedMetadata, transactionContext: TransactionContext) {
+        transactionContext.withTransaction { tx ->
             """
                 insert into dokument(id, opprettet, sakId, generertDokument, generertDokumentJson, type, tittel, søknadId, vedtakId, revurderingId, bestillbrev) 
                 values (:id, :opprettet, :sakId, :generertDokument, to_json(:generertDokumentJson::json), :type, :tittel, :soknadId, :vedtakId, :revurderingId, :bestillbrev)
@@ -171,6 +174,10 @@ internal class DokumentPostgresRepo(
                     session,
                 )
         }
+    }
+
+    override fun defaultTransactionContext(): TransactionContext {
+        return postgresSessionFactory.newTransactionContext()
     }
 
     private fun lagreDokumentdistribusjon(dokumentdistribusjon: Dokumentdistribusjon, tx: TransactionalSession) {

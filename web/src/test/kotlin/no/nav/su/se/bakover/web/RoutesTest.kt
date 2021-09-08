@@ -21,11 +21,13 @@ import io.ktor.server.testing.contentType
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonOppslag
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.routes.person.personPath
 import no.nav.su.se.bakover.web.stubs.asBearerToken
@@ -104,13 +106,16 @@ class RoutesTest {
                             throw RuntimeException("thrown exception")
 
                         override fun aktørId(fnr: Fnr) = throw RuntimeException("thrown exception")
+                        override fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
+                            throw RuntimeException("thrown exception")
+
                         override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> = throw RuntimeException("thrown exception")
                     }
                 )
             )
         }) {
             defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
-                setBody("""{"fnr":"${FnrGenerator.random()}"}""")
+                setBody("""{"fnr":"${Fnr.generer()}"}""")
             }
         }.apply {
             response.status() shouldBe InternalServerError
@@ -124,7 +129,7 @@ class RoutesTest {
             testSusebakover()
         }) {
             defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
-                setBody("""{"fnr":"${FnrGenerator.random()}"}""")
+                setBody("""{"fnr":"${Fnr.generer()}"}""")
             }
         }.apply {
             response.contentType().toString() shouldBe "${ContentType.Application.Json}; charset=${Charsets.UTF_8}"

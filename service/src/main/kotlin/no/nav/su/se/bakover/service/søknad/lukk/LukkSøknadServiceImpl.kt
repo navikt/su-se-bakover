@@ -9,6 +9,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -29,6 +30,7 @@ import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.slf4j.LoggerFactory
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 internal class LukkSøknadServiceImpl(
@@ -39,6 +41,7 @@ internal class LukkSøknadServiceImpl(
     private val personService: PersonService,
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     private val clock: Clock,
+    private val sessionFactory: SessionFactory,
 ) : LukkSøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val observers = mutableListOf<EventObserver>()
@@ -52,8 +55,12 @@ internal class LukkSøknadServiceImpl(
             return it.left()
         }
         val opprettetDato = søknad.opprettet.toLocalDate(zoneIdOslo)
-        if (request is LukkSøknadRequest.MedBrev.TrekkSøknad && !request.erDatoGyldig(opprettetDato)) {
-            log.info("Kan ikke lukke søknad ${søknad.id}. ${request.trukketDato} må være mellom $opprettetDato og idag")
+        if (request is LukkSøknadRequest.MedBrev.TrekkSøknad && !request.erDatoGyldig(opprettetDato, clock)) {
+            log.info(
+                "Kan ikke lukke søknad ${søknad.id}. ${request.trukketDato} må være mellom $opprettetDato og idag (${
+                LocalDate.now(clock)
+                })",
+            )
             return KunneIkkeLukkeSøknad.UgyldigTrukketDato.left()
         }
         if (søknadRepo.harSøknadPåbegyntBehandling(søknad.id)) {
@@ -190,9 +197,10 @@ internal class LukkSøknadServiceImpl(
 
         val lukketSøknad = søknad.lukk(request, Tidspunkt.now(clock))
 
-        // TODO jah: Det hadde vært tryggere om dette gikk som en transaksjon. Dette kan ikke føre til duplikate dokumentutsender, men det kan føre til ghost-utsendinger, dersom lagreDokument feiler.
-        søknadRepo.oppdaterSøknad(lukketSøknad)
-        brevService.lagreDokument(dokument)
+        sessionFactory.withTransactionContext {
+            søknadRepo.oppdaterSøknad(lukketSøknad, it)
+            brevService.lagreDokument(dokument, it)
+        }
 
         return lukketSøknad.right()
     }

@@ -5,12 +5,14 @@ import arrow.core.right
 import io.kotest.assertions.throwables.shouldThrow
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.person.PersonRepo
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -42,7 +44,7 @@ internal class AccessCheckProxyTest {
     inner class `Kaster feil når PDL sier at man ikke har tilgang` {
         @Test
         fun `Når man gjør oppslag på fnr`() {
-            val fnr = FnrGenerator.random()
+            val fnr = Fnr.generer()
             val sakId = UUID.randomUUID()
 
             val proxied = AccessCheckProxy(
@@ -70,6 +72,9 @@ internal class AccessCheckProxyTest {
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
+                        override fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
                         override fun sjekkTilgangTilPerson(fnr: Fnr) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                     },
@@ -83,7 +88,7 @@ internal class AccessCheckProxyTest {
         fun `Når man gjør oppslag på sakId`() {
             val proxied = AccessCheckProxy(
                 personRepo = mock {
-                    on { hentFnrForSak(any()) } doReturn listOf(FnrGenerator.random())
+                    on { hentFnrForSak(any()) } doReturn listOf(Fnr.generer())
                 },
                 services = services.copy(
                     person = object : PersonService {
@@ -92,6 +97,9 @@ internal class AccessCheckProxyTest {
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
+                        override fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
                         override fun sjekkTilgangTilPerson(fnr: Fnr) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                     },
@@ -105,7 +113,7 @@ internal class AccessCheckProxyTest {
         fun `Når man gjør oppslag på søknadId`() {
             val proxied = AccessCheckProxy(
                 personRepo = mock {
-                    on { hentFnrForSøknad(any()) } doReturn listOf(FnrGenerator.random())
+                    on { hentFnrForSøknad(any()) } doReturn listOf(Fnr.generer())
                 },
                 services = services.copy(
                     person = object : PersonService {
@@ -114,6 +122,9 @@ internal class AccessCheckProxyTest {
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
+                        override fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
                         override fun sjekkTilgangTilPerson(fnr: Fnr) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                     },
@@ -127,7 +138,7 @@ internal class AccessCheckProxyTest {
         fun `Når man gjør oppslag på behandlingId`() {
             val proxied = AccessCheckProxy(
                 personRepo = mock {
-                    on { hentFnrForBehandling(any()) } doReturn listOf(FnrGenerator.random())
+                    on { hentFnrForBehandling(any()) } doReturn listOf(Fnr.generer())
                 },
                 services = services.copy(
                     person = object : PersonService {
@@ -136,6 +147,9 @@ internal class AccessCheckProxyTest {
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
+                        override fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
                         override fun sjekkTilgangTilPerson(fnr: Fnr) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                     },
@@ -153,7 +167,7 @@ internal class AccessCheckProxyTest {
         fun `Når man gjør oppslag på utbetalingId`() {
             val proxied = AccessCheckProxy(
                 personRepo = mock {
-                    on { hentFnrForUtbetaling(any()) } doReturn listOf(FnrGenerator.random())
+                    on { hentFnrForUtbetaling(any()) } doReturn listOf(Fnr.generer())
                 },
                 services = services.copy(
                     person = object : PersonService {
@@ -162,6 +176,9 @@ internal class AccessCheckProxyTest {
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
+                        override fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
                         override fun sjekkTilgangTilPerson(fnr: Fnr) =
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                     },
@@ -174,7 +191,7 @@ internal class AccessCheckProxyTest {
 
     @Nested
     inner class `Kaller videre til underliggende service` {
-        private val fnr = FnrGenerator.random()
+        private val fnr = Fnr.generer()
 
         private val servicesReturningSak = services.copy(
             sak = mock {
@@ -193,27 +210,27 @@ internal class AccessCheckProxyTest {
         private val proxied = AccessCheckProxy(
             personRepo = object : PersonRepo {
                 override fun hentFnrForSak(sakId: UUID): List<Fnr> {
-                    return listOf(FnrGenerator.random())
+                    return listOf(Fnr.generer())
                 }
 
                 override fun hentFnrForSøknad(søknadId: UUID): List<Fnr> {
-                    return listOf(FnrGenerator.random())
+                    return listOf(Fnr.generer())
                 }
 
                 override fun hentFnrForBehandling(behandlingId: UUID): List<Fnr> {
-                    return listOf(FnrGenerator.random())
+                    return listOf(Fnr.generer())
                 }
 
                 override fun hentFnrForUtbetaling(utbetalingId: UUID30): List<Fnr> {
-                    return listOf(FnrGenerator.random())
+                    return listOf(Fnr.generer())
                 }
 
                 override fun hentFnrForRevurdering(revurderingId: UUID): List<Fnr> {
-                    return listOf(FnrGenerator.random())
+                    return listOf(Fnr.generer())
                 }
 
                 override fun hentFnrForVedtak(vedtakId: UUID): List<Fnr> {
-                    return listOf(FnrGenerator.random())
+                    return listOf(Fnr.generer())
                 }
             },
             services = servicesReturningSak.copy(

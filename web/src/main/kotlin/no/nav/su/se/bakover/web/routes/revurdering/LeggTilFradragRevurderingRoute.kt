@@ -2,7 +2,9 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.getOrElse
 import arrow.core.getOrHandle
+import arrow.core.left
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -12,13 +14,15 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFradragsgrunnlag
-import no.nav.su.se.bakover.service.revurdering.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
+import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.kanIkkeHaEpsFradragUtenEps
+import no.nav.su.se.bakover.web.routes.Feilresponser.utenforBehandlingsperioden
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson.Companion.toFradrag
 import no.nav.su.se.bakover.web.sikkerlogg
@@ -38,10 +42,15 @@ internal fun Route.leggTilFradragRevurdering(
         fun toDomain(clock: Clock): Either<Resultat, List<Grunnlag.Fradragsgrunnlag>> =
             fradrag.toFradrag().map {
                 it.map { fradrag ->
-                    Grunnlag.Fradragsgrunnlag(
+                    Grunnlag.Fradragsgrunnlag.tryCreate(
                         fradrag = fradrag,
                         opprettet = Tidspunkt.now(clock),
-                    )
+                    ).getOrElse {
+                        return BadRequest.errorJson(
+                            message = "Kunne ikke lage fradrag",
+                            code = "kunne_ikke_lage_fradrag",
+                        ).left()
+                    }
                 }
             }
     }
@@ -65,15 +74,13 @@ internal fun Route.leggTilFradragRevurdering(
                                             fra = it.fra,
                                             til = it.til,
                                         )
-                                        KunneIkkeLeggeTilFradragsgrunnlag.FradragsgrunnlagUtenforRevurderingsperiode -> BadRequest.errorJson(
-                                            "kan ikke legge til fradrag utenfor revurderingsperioden",
-                                            "fradrag_utenfor_revurderingsperiode",
-                                        )
+                                        KunneIkkeLeggeTilFradragsgrunnlag.FradragsgrunnlagUtenforRevurderingsperiode -> utenforBehandlingsperioden
                                         KunneIkkeLeggeTilFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> BadRequest.errorJson(
                                             "ugyldig fradragstype",
                                             "fradrag_ugyldig_fradragstype",
                                         )
                                         KunneIkkeLeggeTilFradragsgrunnlag.HarIkkeEktelle -> kanIkkeHaEpsFradragUtenEps
+                                        is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
                                     }
                                 }.map {
                                     call.sikkerlogg("Lagret fradrag for revudering $revurderingId på $sakId")

@@ -11,6 +11,7 @@ interface PersonService {
     fun hentPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Person>
     fun hentPersonMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person>
     fun hentAktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId>
+    fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId>
     fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit>
 }
 
@@ -27,6 +28,10 @@ class PersonServiceImpl(
 
     override fun hentAktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
         return personOppslag.aktørId(fnr)
+    }
+
+    override fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
+        return personOppslag.aktørIdMedSystembruker(fnr)
     }
 
     override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> {

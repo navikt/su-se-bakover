@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
-import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagServiceImpl
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingServiceImpl
@@ -28,6 +27,7 @@ import java.time.Clock
 
 object ServiceBuilder {
     fun build(
+        // TODO jah: TDD-messig bør denne service-laget ha sin egen versjon av denne dataclassen som kun refererer til interfacene (som bør ligge i domain/service)
         databaseRepos: DatabaseRepos,
         clients: Clients,
         behandlingMetrics: BehandlingMetrics,
@@ -54,6 +54,7 @@ object ServiceBuilder {
             dokumentRepo = databaseRepos.dokumentRepo,
             sakService = sakService,
             personService = personService,
+            sessionFactory = databaseRepos.sessionFactory,
         )
         val oppgaveService = OppgaveServiceImpl(
             oppgaveClient = clients.oppgaveClient,
@@ -134,6 +135,7 @@ object ServiceBuilder {
                 personService = personService,
                 microsoftGraphApiClient = clients.microsoftGraphApiClient,
                 clock = clock,
+                sessionFactory = databaseRepos.sessionFactory,
             ).apply {
                 addObserver(statistikkService)
             },
@@ -149,7 +151,6 @@ object ServiceBuilder {
                 personService = personService,
                 oppgaveService = oppgaveService,
                 behandlingMetrics = behandlingMetrics,
-                beregningService = BeregningService(),
                 microsoftGraphApiClient = clients.microsoftGraphApiClient,
                 brevService = brevService,
                 opprettVedtakssnapshotService = opprettVedtakssnapshotService,
