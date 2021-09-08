@@ -82,8 +82,8 @@ internal class KonsistensavstemmingTest {
             avstemmingXmlRequest = "",
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
-                saksnummer = første.saksnummer,
-                fnr = første.fnr,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 utbetalingslinjer = listOf(
                     første.utbetalingslinjer[0],
                 ).toOppdragslinjeForKonsistensavstemming(defaultAttestant),
@@ -134,8 +134,8 @@ internal class KonsistensavstemmingTest {
             avstemmingXmlRequest = "",
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
-                saksnummer = første.saksnummer,
-                fnr = første.fnr,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 utbetalingslinjer = listOf(
                     første.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(NavIdentBruker.Attestant("første")),
                     andre.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(NavIdentBruker.Attestant("andre")),
@@ -231,8 +231,8 @@ internal class KonsistensavstemmingTest {
             avstemmingXmlRequest = "",
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
-                saksnummer = s1u1.saksnummer,
-                fnr = s1u1.fnr,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 utbetalingslinjer = listOf(
                     s1u1.utbetalingslinjer[0],
                     s1u2.utbetalingslinjer[0],
@@ -240,8 +240,8 @@ internal class KonsistensavstemmingTest {
                 ).toOppdragslinjeForKonsistensavstemming(defaultAttestant),
             ),
             OppdragForKonsistensavstemming(
-                saksnummer = s2u1.saksnummer,
-                fnr = s2u1.fnr,
+                saksnummer = saksnummer2,
+                fnr = fnr2,
                 utbetalingslinjer = listOf(
                     s2u1.utbetalingslinjer[0],
                     s2u2.utbetalingslinjer[0],
@@ -337,15 +337,15 @@ internal class KonsistensavstemmingTest {
             avstemmingXmlRequest = "",
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
-                saksnummer = s1u1.saksnummer,
-                fnr = s1u1.fnr,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 utbetalingslinjer = listOf(
                     s1u2.utbetalingslinjer[1],
                 ).toOppdragslinjeForKonsistensavstemming(defaultAttestant),
             ),
             OppdragForKonsistensavstemming(
-                saksnummer = s2u1.saksnummer,
-                fnr = s2u1.fnr,
+                saksnummer = saksnummer2,
+                fnr = fnr2,
                 utbetalingslinjer = listOf(
                     s2u2.utbetalingslinjer[0],
                 ).toOppdragslinjeForKonsistensavstemming(defaultAttestant),
@@ -370,15 +370,15 @@ internal class KonsistensavstemmingTest {
             avstemmingXmlRequest = "",
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
-                saksnummer = s1u1.saksnummer,
-                fnr = s1u1.fnr,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 utbetalingslinjer = listOf(
                     s1u1.utbetalingslinjer[0],
                 ).toOppdragslinjeForKonsistensavstemming(defaultAttestant),
             ),
             OppdragForKonsistensavstemming(
-                saksnummer = s2u1.saksnummer,
-                fnr = s2u1.fnr,
+                saksnummer = saksnummer2,
+                fnr = fnr2,
                 utbetalingslinjer = listOf(
                     s2u1.utbetalingslinjer[0],
                     s2u1.utbetalingslinjer[1],
@@ -426,8 +426,8 @@ internal class KonsistensavstemmingTest {
             avstemmingXmlRequest = "",
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
-                saksnummer = første.saksnummer,
-                fnr = første.fnr,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 utbetalingslinjer = listOf(
                     første.utbetalingslinjer[0],
                 ).toOppdragslinjeForKonsistensavstemming(defaultAttestant),
@@ -489,8 +489,8 @@ internal class KonsistensavstemmingTest {
             avstemmingXmlRequest = "",
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
-                saksnummer = første.saksnummer,
-                fnr = første.fnr,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 utbetalingslinjer = listOf(
                     første.utbetalingslinjer[0],
                     tredje.utbetalingslinjer[0],
@@ -634,8 +634,8 @@ internal class KonsistensavstemmingTest {
             avstemmingXmlRequest = "",
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
-                saksnummer = første.saksnummer,
-                fnr = første.fnr,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 utbetalingslinjer = listOf(
                     ny3,
                 ).toOppdragslinjeForKonsistensavstemming(defaultAttestant),
@@ -651,11 +651,107 @@ internal class KonsistensavstemmingTest {
             avstemmingXmlRequest = "",
         ).løpendeUtbetalinger shouldBe listOf(
             OppdragForKonsistensavstemming(
-                saksnummer = første.saksnummer,
-                fnr = første.fnr,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 utbetalingslinjer = listOf(
                     ny1, ny2, ny3,
                 ).toOppdragslinjeForKonsistensavstemming(defaultAttestant),
+            ),
+        )
+    }
+
+    @Test
+    fun `kan gjennomføre konsistensavstemming for helt vilkårlige datoer`() {
+        val første = createUtbetaling(
+            fnr = fnr,
+            saksnummer = saksnummer,
+            opprettet = Tidspunkt.now(førsteKlokke),
+            utbetalingsLinjer = nonEmptyListOf(
+                createUtbetalingslinje(
+                    opprettet = Tidspunkt.now(førsteKlokke),
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 30.april(2021),
+                    beløp = 15000,
+                    forrigeUtbetalingslinjeId = null,
+                ),
+                createUtbetalingslinje(
+                    opprettet = Tidspunkt.now(førsteKlokke),
+                    fraOgMed = 1.mai(2021),
+                    tilOgMed = 31.desember(2021),
+                    beløp = 17500,
+                    forrigeUtbetalingslinjeId = null,
+                ),
+            ),
+            behandler = NavIdentBruker.Attestant("første"),
+        )
+
+        val andre = createUtbetaling(
+            fnr = fnr,
+            saksnummer = saksnummer,
+            opprettet = Tidspunkt.now(andreKlokke),
+            utbetalingsLinjer = nonEmptyListOf(
+                createUtbetalingslinje(
+                    opprettet = Tidspunkt.now(andreKlokke),
+                    fraOgMed = 1.desember(2021),
+                    tilOgMed = 31.desember(2021),
+                    beløp = 20000,
+                    forrigeUtbetalingslinjeId = null,
+                ),
+            ),
+            behandler = NavIdentBruker.Attestant("andre"),
+        )
+
+        Avstemming.Konsistensavstemming.Ny(
+            id = UUID30.randomUUID(),
+            opprettet = fixedTidspunkt,
+            løpendeFraOgMed = 1.januar(2021).startOfDay(),
+            opprettetTilOgMed = Tidspunkt.now(andreKlokke),
+            utbetalinger = listOf(første, andre),
+            avstemmingXmlRequest = "",
+        ).løpendeUtbetalinger shouldBe listOf(
+            OppdragForKonsistensavstemming(
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utbetalingslinjer = listOf(
+                    første.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(NavIdentBruker.Attestant("første")),
+                    første.utbetalingslinjer[1].toOppdragslinjeForKonsistensavstemming(NavIdentBruker.Attestant("første")),
+                    andre.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(NavIdentBruker.Attestant("andre")),
+                ),
+            ),
+        )
+
+        Avstemming.Konsistensavstemming.Ny(
+            id = UUID30.randomUUID(),
+            opprettet = fixedTidspunkt,
+            løpendeFraOgMed = 17.juli(2021).startOfDay(),
+            opprettetTilOgMed = Tidspunkt.now(andreKlokke),
+            utbetalinger = listOf(første, andre),
+            avstemmingXmlRequest = "",
+        ).løpendeUtbetalinger shouldBe listOf(
+            OppdragForKonsistensavstemming(
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utbetalingslinjer = listOf(
+                    første.utbetalingslinjer[1].toOppdragslinjeForKonsistensavstemming(NavIdentBruker.Attestant("første")),
+                    andre.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(NavIdentBruker.Attestant("andre")),
+                ),
+            ),
+        )
+
+        Avstemming.Konsistensavstemming.Ny(
+            id = UUID30.randomUUID(),
+            opprettet = fixedTidspunkt,
+            løpendeFraOgMed = 28.desember(2021).endOfDay(),
+            opprettetTilOgMed = Tidspunkt.now(andreKlokke),
+            utbetalinger = listOf(første, andre),
+            avstemmingXmlRequest = "",
+        ).løpendeUtbetalinger shouldBe listOf(
+            OppdragForKonsistensavstemming(
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utbetalingslinjer = listOf(
+                    andre.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(NavIdentBruker.Attestant("andre")),
+                ),
             ),
         )
     }

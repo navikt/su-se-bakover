@@ -356,8 +356,12 @@ internal class TestDataHelper(
 
     fun nyOversendtUtbetalingMedKvittering(
         avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
+        utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje()),
     ): Pair<Søknadsbehandling.Iverksatt.Innvilget, Utbetaling.OversendtUtbetaling.MedKvittering> {
-        val utenKvittering = nyIverksattInnvilget(avstemmingsnøkkel = avstemmingsnøkkel)
+        val utenKvittering = nyIverksattInnvilget(
+            avstemmingsnøkkel = avstemmingsnøkkel,
+            utbetalingslinjer = utbetalingslinjer,
+        )
         return utenKvittering.first to utenKvittering.second.toKvittertUtbetaling(kvitteringOk).also {
             utbetalingRepo.oppdaterMedKvittering(it)
         }

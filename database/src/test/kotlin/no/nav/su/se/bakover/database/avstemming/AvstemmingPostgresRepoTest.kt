@@ -1,12 +1,16 @@
 package no.nav.su.se.bakover.database.avstemming
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.april
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.startOfDay
@@ -18,6 +22,7 @@ import no.nav.su.se.bakover.database.fixedTidspunkt
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import org.junit.jupiter.api.Test
@@ -266,6 +271,47 @@ internal class AvstemmingPostgresRepoTest {
                 utbetalinger = emptyMap(),
                 avstemmingXmlRequest = "xml",
             )
+        }
+    }
+
+    @Test
+    fun `konsistensavstemming henter hele utbetalingen selv om bare en linje er løpende etter løpendeFraOgMed`() {
+        withMigratedDb {
+            val første = Utbetalingslinje.Ny(
+                fraOgMed = 1.januar(2020),
+                tilOgMed = 30.april(2020),
+                forrigeUtbetalingslinjeId = null,
+                beløp = 15000,
+            )
+            val andre = Utbetalingslinje.Ny(
+                fraOgMed = 1.mai(2020),
+                tilOgMed = 31.desember(2020),
+                forrigeUtbetalingslinjeId = første.id,
+                beløp = 17000,
+            )
+            val oversendtUtbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering(
+                utbetalingslinjer = nonEmptyListOf(første, andre),
+            ).second
+
+            repo.hentUtbetalingerForKonsistensavstemming(
+                løpendeFraOgMed = 1.januar(2020).startOfDay(),
+                opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet,
+            )[0].utbetalingslinjer shouldBe nonEmptyListOf(første, andre)
+
+            repo.hentUtbetalingerForKonsistensavstemming(
+                løpendeFraOgMed = 1.mai(2020).startOfDay(),
+                opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet,
+            )[0].utbetalingslinjer shouldBe nonEmptyListOf(første, andre)
+
+            repo.hentUtbetalingerForKonsistensavstemming(
+                løpendeFraOgMed = 1.desember(2020).startOfDay(),
+                opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet,
+            )[0].utbetalingslinjer shouldBe nonEmptyListOf(første, andre)
+
+            repo.hentUtbetalingerForKonsistensavstemming(
+                løpendeFraOgMed = 1.januar(2021).startOfDay(),
+                opprettetTilOgMed = oversendtUtbetalingMedKvittering.opprettet,
+            ) shouldBe emptyList()
         }
     }
 }

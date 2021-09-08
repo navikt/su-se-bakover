@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.oppdrag.avstemming
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -29,6 +30,8 @@ sealed class Avstemming {
     ) : Avstemming()
 
     /**
+     * Plukker ut løpende/aktive utbetalinger per sak/oppdrag fra [løpendeFraOgMed] og framover i tid.
+     *
      * Algoritme for utplukk til konsistensavstemming.
      *  1.  Filtrer vekk alle utbetalinger som er opprettet senere enn [opprettetTilOgMed].
      *      Tidspunktet brukes til å informere OS om uttrekket vi har gjort, slik at de kan gjøre tilsvarende uttrekk.
@@ -80,9 +83,15 @@ sealed class Avstemming {
                     }
                 }
                 .mapValues { entry -> // 4
+                    /**
+                     * Dersom [løpendeFraOgMed] ikke er den første dagen i en måned, må denne justeres til å være det.
+                     * Funksjonelt vil dette gi det samme resultatet som følge av at minste varighet på en [Periode]
+                     * er 1 mnd - i praksis vil dette si at noe som er gyldig midt i en måned også er gyldig ved
+                     * starten og slutten av samme måned.
+                     */
                     entry.value to TidslinjeForUtbetalinger(
                         periode = Periode.create(
-                            fraOgMed = løpendeFraOgMed.toLocalDate(zoneIdOslo),
+                            fraOgMed = løpendeFraOgMed.toLocalDate(zoneIdOslo).startOfMonth(),
                             tilOgMed = LocalDate.MAX, // Langt i framtiden
                         ),
                         utbetalingslinjer = entry.value.utbetalingslinjer,
