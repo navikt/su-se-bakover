@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.readMap
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
@@ -147,7 +148,7 @@ internal class AvstemmingPostgresRepo(
             """.trimIndent()
                 .hentListe(
                     mapOf(
-                        "lopendeFraOgMed" to løpendeFraOgMed,
+                        "lopendeFraOgMed" to løpendeFraOgMed.toLocalDate(zoneIdOslo),
                         "opprettetTilOgMed" to opprettetTilOgMed,
                     ),
                     session,
