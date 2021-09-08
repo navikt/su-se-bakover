@@ -53,7 +53,7 @@ internal class StønadsstatistikkMapper(clock: Clock) {
                     fradragSum = it.getSumFradrag().toLong(),
                 )
             },
-            versjon = System.currentTimeMillis(),
+            versjon = nå.toEpochMilli(),
             opphorsgrunn = when (vedtak.vedtakType) {
                 VedtakType.OPPHØR -> (vedtak.behandling as IverksattRevurdering.Opphørt).utledOpphørsgrunner()
                     .joinToString()

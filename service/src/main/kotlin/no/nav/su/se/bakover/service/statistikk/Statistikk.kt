@@ -97,7 +97,7 @@ sealed class Statistikk {
         val versjon: Long = System.currentTimeMillis(),
         val opphorsgrunn: String? = null,
         val opphorsdato: LocalDate? = null,
-        val flyktningsstatus: String? = "Flyktning" // Alle som gjelder SU Ufør vil være flyktning
+        val flyktningsstatus: String? = "FLYKTNING" // Alle som gjelder SU Ufør vil være flyktning
     ) : Statistikk() {
         enum class Stønadstype(val beskrivelse: String) {
             SU_UFØR("SU Ufør"),
