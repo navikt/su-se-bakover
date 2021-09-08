@@ -4,6 +4,8 @@ import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.sak.SakRepo
+import no.nav.su.se.bakover.database.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.person.PersonService
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -12,6 +14,7 @@ internal class StatistikkServiceImpl(
     private val publisher: KafkaPublisher,
     private val personService: PersonService,
     private val sakRepo: SakRepo,
+    private val vedtakRepo: VedtakRepo,
     private val clock: Clock,
 ) : StatistikkService, EventObserver {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -82,8 +85,12 @@ internal class StatistikkServiceImpl(
                 sakRepo.hentSak(event.vedtak.behandling.sakId)!!.let { sak ->
                     personService.hentAktørId(sak.fnr).fold(
                         ifLeft = { log.error("Finner ikke aktørId for person med sakId: ${sak.id}") },
-                        ifRight = {
-                            publiser(StønadsstatistikkMapper(clock).map(event.vedtak, it))
+                        ifRight = { aktørId ->
+                            val ytelseVirkningstidspunkt = vedtakRepo.hentForSakId(event.vedtak.behandling.sakId)
+                                .filterIsInstance<Vedtak.EndringIYtelse>()
+                                .minOf { it.periode.fraOgMed }
+
+                            publiser(StønadsstatistikkMapper(clock).map(event.vedtak, aktørId, ytelseVirkningstidspunkt))
                         }
                     )
                 }

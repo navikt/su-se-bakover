@@ -16,7 +16,7 @@ import java.time.LocalDate
 internal class StønadsstatistikkMapper(clock: Clock) {
     val nå = Tidspunkt.now(clock)
 
-    fun map(vedtak: Vedtak.EndringIYtelse, aktørId: AktørId): Statistikk.Stønad {
+    fun map(vedtak: Vedtak.EndringIYtelse, aktørId: AktørId, ytelseVirkningstidspunkt: LocalDate): Statistikk.Stønad {
         return Statistikk.Stønad(
             funksjonellTid = nå,
             tekniskTid = nå,
@@ -33,7 +33,7 @@ internal class StønadsstatistikkMapper(clock: Clock) {
                 else -> throw RuntimeException("Ugyldig vedtaksresultat")
             },
             behandlendeEnhetKode = "4815",
-            ytelseVirkningstidspunkt = LocalDate.now(), // MÅ FINNE FØRSTE VIRKNINGSTIDSPUNKT FOR YTELSEN, FINNE FØRST FOM PÅ VEDTAK/BEHANDLINGER PÅ SAKEN?
+            ytelseVirkningstidspunkt = ytelseVirkningstidspunkt,
             gjeldendeStonadVirkningstidspunkt = vedtak.behandling.periode.fraOgMed,
             gjeldendeStonadStopptidspunkt = vedtak.behandling.periode.tilOgMed,
             gjeldendeStonadUtbetalingsstart = vedtak.behandling.periode.fraOgMed,

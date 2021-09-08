@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import java.time.LocalDate
 
 internal class StønadsstatistikkMapperTest {
     val clock = fixedClock
@@ -53,7 +52,7 @@ internal class StønadsstatistikkMapperTest {
             ),
         )
 
-        StønadsstatistikkMapper(clock).map(vedtak, aktørId) shouldBe
+        StønadsstatistikkMapper(clock).map(vedtak, aktørId, periode2021.fraOgMed) shouldBe
             Statistikk.Stønad(
                 funksjonellTid = Tidspunkt.now(fixedClock),
                 tekniskTid = Tidspunkt.now(fixedClock),
@@ -65,7 +64,7 @@ internal class StønadsstatistikkMapperTest {
                 vedtakstype = Statistikk.Stønad.Vedtakstype.SØKNAD,
                 vedtaksresultat = Statistikk.Stønad.Vedtaksresultat.INNVILGET,
                 behandlendeEnhetKode = "4815",
-                ytelseVirkningstidspunkt = LocalDate.now(),
+                ytelseVirkningstidspunkt = periode2021.fraOgMed,
                 gjeldendeStonadVirkningstidspunkt = periode2021.fraOgMed,
                 gjeldendeStonadStopptidspunkt = periode2021.tilOgMed,
                 gjeldendeStonadUtbetalingsstart = periode2021.fraOgMed,
@@ -124,7 +123,7 @@ internal class StønadsstatistikkMapperTest {
                 ),
             ),
         )
-        val actual = objectMapper.writeValueAsString(StønadsstatistikkMapper(clock).map(vedtak, aktørId))
+        val actual = objectMapper.writeValueAsString(StønadsstatistikkMapper(clock).map(vedtak, aktørId, vedtak.periode.fraOgMed))
         val expected = """
                 {
                   "funksjonellTid": "2021-01-01T01:02:03.456789Z",
@@ -137,7 +136,7 @@ internal class StønadsstatistikkMapperTest {
                   "vedtakstype": "SØKNAD",
                   "vedtaksresultat": "INNVILGET",
                   "behandlendeEnhetKode": "4815",
-                  "ytelseVirkningstidspunkt": "2021-09-08",
+                  "ytelseVirkningstidspunkt": "2021-01-01",
                   "gjeldendeStonadVirkningstidspunkt": "2021-01-01",
                   "gjeldendeStonadStopptidspunkt": "2021-12-31",
                   "gjeldendeStonadUtbetalingsstart": "2021-01-01",
