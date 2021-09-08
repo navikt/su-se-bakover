@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
+import no.nav.su.se.bakover.web.routes.Feilresponser.Uføre.periodeForGrunnlagOgVurderingErForskjellig
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -96,7 +97,7 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
                                                 it.til,
                                             )
                                             KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler -> Feilresponser.Uføre.uføregradOgForventetInntektMangler
-                                            KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig -> Feilresponser.periodeForGrunnlagOgVurderingErForskjellig
+                                            KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig -> periodeForGrunnlagOgVurderingErForskjellig
                                             KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder -> Feilresponser.overlappendeVurderingsperioder
                                             KunneIkkeLeggeTilGrunnlag.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> Feilresponser.utenforBehandlingsperioden
                                             KunneIkkeLeggeTilGrunnlag.AlleVurderingeneMåHaSammeResultat -> HttpStatusCode.BadRequest.errorJson(

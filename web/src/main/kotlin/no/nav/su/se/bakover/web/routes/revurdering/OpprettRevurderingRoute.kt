@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.FantIkkeAktørId
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.FantIkkeSak
@@ -27,11 +26,16 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeAktørId
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.begrunnelseKanIkkeVæreTom
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.bosituasjonMedFlerePerioderMåRevurderes
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.epsInntektMedFlereBosituasjonsperioderMåRevurderes
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.formueSomFørerTilOpphørMåRevurderes
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.måVelgeInformasjonSomRevurderes
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.tidslinjeForVedtakErIkkeKontinuerlig
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.ugyldigÅrsak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIngenVedtakSomKanRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.kunneIkkeOppretteOppgave
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.måVelgeInformasjonSomRevurderes
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tidslinjeForVedtakErIkkeKontinuerlig
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.ugyldigPeriode
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
@@ -84,19 +88,13 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
         is KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
         is UgyldigPeriode -> ugyldigPeriode(this.subError)
         is FantIngenVedtakSomKanRevurderes -> fantIngenVedtakSomKanRevurderes
-        is UgyldigBegrunnelse -> BadRequest.errorJson(
-            "Begrunnelse kan ikke være tom",
-            "begrunnelse_kan_ikke_være_tom",
-        )
-        is UgyldigÅrsak -> BadRequest.errorJson(
-            "Ugyldig årsak, må være en av: ${Revurderingsårsak.Årsak.values()}",
-            "ugyldig_årsak",
-        )
+        is UgyldigBegrunnelse -> begrunnelseKanIkkeVæreTom
+        is UgyldigÅrsak -> ugyldigÅrsak
         KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes -> måVelgeInformasjonSomRevurderes
         KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig -> tidslinjeForVedtakErIkkeKontinuerlig
-        KunneIkkeOppretteRevurdering.BosituasjonMedFlerePerioderMåRevurderes -> Revurderingsfeilresponser.bosituasjonMedFlerePerioderMåRevurderes
-        KunneIkkeOppretteRevurdering.EpsInntektMedFlereBosituasjonsperioderMåRevurderes -> Revurderingsfeilresponser.epsInntektMedFlereBosituasjonsperioderMåRevurderes
-        KunneIkkeOppretteRevurdering.FormueSomFørerTilOpphørMåRevurderes -> Revurderingsfeilresponser.formueSomFørerTilOpphørMåRevurderes
+        KunneIkkeOppretteRevurdering.BosituasjonMedFlerePerioderMåRevurderes -> bosituasjonMedFlerePerioderMåRevurderes
+        KunneIkkeOppretteRevurdering.EpsInntektMedFlereBosituasjonsperioderMåRevurderes -> epsInntektMedFlereBosituasjonsperioderMåRevurderes
+        KunneIkkeOppretteRevurdering.FormueSomFørerTilOpphørMåRevurderes -> formueSomFørerTilOpphørMåRevurderes
         KunneIkkeOppretteRevurdering.EpsFormueMedFlereBosituasjonsperioderMåRevurderes -> BadRequest.errorJson(
             "Formue må revurderes siden det finnes EPS formue og flere bosituasjonsperioder",
             "eps_formue_med_flere_perioder_må_revurderes",

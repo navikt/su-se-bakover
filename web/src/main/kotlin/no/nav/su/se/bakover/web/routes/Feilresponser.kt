@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes
 
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -30,11 +31,6 @@ internal object Feilresponser {
         "overlappende_vurderingsperioder",
     )
 
-    val periodeForGrunnlagOgVurderingErForskjellig = BadRequest.errorJson(
-        "Det er ikke samsvar mellom perioden for vurdering og perioden for grunnlaget",
-        "periode_for_grunnlag_og_vurdering_er_forskjellig",
-    )
-
     val utenforBehandlingsperioden = BadRequest.errorJson(
         "Vurderingsperioden(e) kan ikke være utenfor behandlingsperioden",
         "vurderingsperiode_utenfor_behandlingsperiode",
@@ -48,6 +44,16 @@ internal object Feilresponser {
     val ugyldigInput = BadRequest.errorJson(
         "Ugyldig input",
         "ugyldig_input",
+    )
+
+    val feilVedGenereringAvDokument = InternalServerError.errorJson(
+        "Feil ved generering av dokument",
+        "feil_ved_generering_av_dokument",
+    )
+
+    val kunneIkkeGenerereBrev = HttpStatusCode.Companion.InternalServerError.errorJson(
+        "Kunne ikke generere brev",
+        "kunne_ikke_generere_brev",
     )
 
     fun ugyldigTilstand(fra: KClass<*>, til: KClass<*>): Resultat {
@@ -66,25 +72,21 @@ internal object Feilresponser {
             "Hvis man innvilger uførevilkåret må man sende med uføregrad og forventet inntekt",
             "uføregrad_og_forventet_inntekt_mangler",
         )
-    }
-
-    object Bosituasjon {
-        val kunneIkkeLeggeTilBosituasjonsgrunnlag = BadRequest.errorJson(
-            "Kunne ikke legge til bosituasjonsgrunnlag",
-            "kunne_ikke_legge_til_bosituasjonsgrunnlag",
+        val periodeForGrunnlagOgVurderingErForskjellig = BadRequest.errorJson(
+            "Det er ikke samsvar mellom perioden for vurdering og perioden for grunnlaget",
+            "periode_for_grunnlag_og_vurdering_er_forskjellig",
         )
     }
 
-    object Fradrag {
-        val kunneIkkeLeggeTilFradragsgrunnlag = BadRequest.errorJson(
-            "Kunne ikke legge til fradragsgrunnlag",
-            "kunne_ikke_legge_til_fradragsgrunnlag",
-        )
-        val kanIkkeHaEpsFradragUtenEps = BadRequest.errorJson(
-            "Kan ikke ha fradrag knyttet til EPS når bruker ikke har EPS.",
-            "kan_ikke_ha_eps_fradrag_uten_eps",
-        )
-    }
+    val kunneIkkeLeggeTilBosituasjonsgrunnlag = BadRequest.errorJson(
+        "Kunne ikke legge til bosituasjonsgrunnlag",
+        "kunne_ikke_legge_til_bosituasjonsgrunnlag",
+    )
+
+    val kunneIkkeLeggeTilFradragsgrunnlag = BadRequest.errorJson(
+        "Kunne ikke legge til fradragsgrunnlag",
+        "kunne_ikke_legge_til_fradragsgrunnlag",
+    )
 
     internal fun UtbetalingFeilet.tilResultat(): Resultat {
         return when (this) {

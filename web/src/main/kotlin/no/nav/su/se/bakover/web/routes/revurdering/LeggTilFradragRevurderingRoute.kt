@@ -72,7 +72,7 @@ internal fun Route.leggTilFradragRevurdering(
                                             fra = it.fra,
                                             til = it.til,
                                         )
-                                        is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> Feilresponser.Fradrag.kunneIkkeLeggeTilFradragsgrunnlag
+                                        is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
                                     }
                                 }.map {
                                     call.sikkerlogg("Lagret fradrag for revudering $revurderingId på $sakId")

@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
-import no.nav.su.se.bakover.web.routes.Feilresponser.Fradrag.kanIkkeHaEpsFradragUtenEps
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
@@ -100,7 +99,10 @@ private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
             "Ugyldig beregningsgrunnlag. Underliggende årsak: ${this.reason}",
             "ugyldig_beregningsgrunnlag",
         )
-        is KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> kanIkkeHaEpsFradragUtenEps
+        is KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> BadRequest.errorJson(
+            "Kan ikke ha fradrag knyttet til EPS når bruker ikke har EPS.",
+            "kan_ikke_ha_eps_fradrag_uten_eps",
+        )
         is KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere -> this.simuleringFeilet.tilResultat()
     }
 }

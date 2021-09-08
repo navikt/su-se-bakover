@@ -50,6 +50,7 @@ import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
+import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeGenerereBrev
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson
@@ -369,7 +370,6 @@ internal fun Route.søknadsbehandlingRoutes(
     }
 
     authorize(Brukerrolle.Attestant) {
-
         fun kunneIkkeIverksetteMelding(value: KunneIkkeIverksette): Resultat {
             return when (value) {
                 is KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> {
@@ -379,12 +379,7 @@ internal fun Route.søknadsbehandlingRoutes(
                     )
                 }
                 is KunneIkkeIverksette.KunneIkkeUtbetale -> value.utbetalingFeilet.tilResultat()
-                is KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev -> {
-                    InternalServerError.errorJson(
-                        "Feil ved generering av vedtaksbrev",
-                        "kunne_ikke_generere_brev",
-                    )
-                }
+                is KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev -> kunneIkkeGenerereBrev
                 is KunneIkkeIverksette.FantIkkeBehandling -> fantIkkeBehandling
                 is KunneIkkeIverksette.FantIkkePerson -> fantIkkePerson
                 is KunneIkkeIverksette.FikkIkkeHentetSaksbehandlerEllerAttestant -> {

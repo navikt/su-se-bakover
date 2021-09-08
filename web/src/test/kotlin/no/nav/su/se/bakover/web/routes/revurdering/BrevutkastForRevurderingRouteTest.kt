@@ -115,7 +115,7 @@ internal class BrevutkastForRevurderingRouteTest {
     fun `fant ikke person`() {
         shouldMapErrorCorrectly(
             error = KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson,
-            expectedStatusCode = HttpStatusCode.InternalServerError,
+            expectedStatusCode = HttpStatusCode.NotFound,
             expectedJsonResponse = """
                 {
                     "message":"Fant ikke person",

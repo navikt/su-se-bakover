@@ -5,12 +5,16 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import no.nav.su.se.bakover.common.periode.Periode.UgyldigPeriode
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
+import no.nav.su.se.bakover.web.routes.Feilresponser.feilVedGenereringAvDokument
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.fantIkkeGjeldendeUtbetaling
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.navneoppslagSaksbehandlerAttesttantFeilet
 
 internal object Revurderingsfeilresponser {
     val fantIkkeSak = NotFound.errorJson(
@@ -26,59 +30,54 @@ internal object Revurderingsfeilresponser {
         "Fant ikke revurdering",
         "fant_ikke_revurdering",
     )
-    val manglerBeslutningPåForhåndsvarsel = BadRequest.errorJson(
-        "Mangler beslutning på forhåndsvarsel",
-        "mangler_beslutning_på_forhåndsvarsel",
-    )
-
-    val måVelgeInformasjonSomRevurderes = BadRequest.errorJson(
-        "Må velge minst en ting som skal revurderes",
-        "må_velge_informasjon_som_revurderes",
-    )
-
-    val feilutbetalingStøttesIkke = InternalServerError.errorJson(
-        "Feilutbetalinger støttes ikke",
-        "feilutbetalinger_støttes_ikke",
-    )
 
     val fantIngenVedtakSomKanRevurderes = NotFound.errorJson(
         "Fant ingen vedtak som kan revurderes for angitt periode",
         "ingenting_å_revurdere_i_perioden",
     )
 
-    val tidslinjeForVedtakErIkkeKontinuerlig = InternalServerError.errorJson(
-        "Mangler systemstøtte for revurdering av perioder med hull i tidslinjen for vedtak",
-        "tidslinje_for_vedtak_ikke_kontinuerlig",
-    )
+    object OpprettelseOgOppdateringAvRevurdering {
+        val måVelgeInformasjonSomRevurderes = BadRequest.errorJson(
+            "Må velge minst en ting som skal revurderes",
+            "må_velge_informasjon_som_revurderes",
+        )
+        val tidslinjeForVedtakErIkkeKontinuerlig = InternalServerError.errorJson(
+            "Mangler systemstøtte for revurdering av perioder med hull i tidslinjen for vedtak",
+            "tidslinje_for_vedtak_ikke_kontinuerlig",
+        )
+        val begrunnelseKanIkkeVæreTom = BadRequest.errorJson(
+            "Begrunnelse kan ikke være tom",
+            "begrunnelse_kan_ikke_være_tom",
+        )
+        val ugyldigÅrsak = BadRequest.errorJson(
+            "Ugyldig årsak, må være en av: ${Revurderingsårsak.Årsak.values()}",
+            "ugyldig_årsak",
+        )
+        val bosituasjonMedFlerePerioderMåRevurderes = BadRequest.errorJson(
+            "Bosituasjon må revurderes siden det finnes bosituasjonsperioder",
+            "bosituasjon_med_flere_perioder_må_revurderes",
+        )
+        val epsInntektMedFlereBosituasjonsperioderMåRevurderes = BadRequest.errorJson(
+            "Inntekt må revurderes siden det finnes EPS inntekt og flere bosituasjonsperioder",
+            "eps_inntekt_med_flere_perioder_må_revurderes",
+        )
+        val formueSomFørerTilOpphørMåRevurderes = BadRequest.errorJson(
+            "Formue som fører til opphør må revurderes",
+            "formue_som_fører_til_opphør_må_revurderes",
+        )
+    }
 
-    val bosituasjonMedFlerePerioderMåRevurderes = BadRequest.errorJson(
-        "Bosituasjon må revurderes siden det finnes bosituasjonsperioder",
-        "bosituasjon_med_flere_perioder_må_revurderes",
-    )
-    val epsInntektMedFlereBosituasjonsperioderMåRevurderes = BadRequest.errorJson(
-        "Inntekt må revurderes siden det finnes EPS inntekt og flere bosituasjonsperioder",
-        "eps_inntekt_med_flere_perioder_må_revurderes",
-    )
+    object Brev {
+        val navneoppslagSaksbehandlerAttesttantFeilet = InternalServerError.errorJson(
+            "Kunne ikke hente navn for saksbehandler eller attestant",
+            "navneoppslag_feilet",
+        )
 
-    val formueSomFørerTilOpphørMåRevurderes = BadRequest.errorJson(
-        "Formue som fører til opphør må revurderes",
-        "formue_som_fører_til_opphør_må_revurderes",
-    )
-
-    val brevFantIkkePerson = InternalServerError.errorJson(
-        "Fant ikke person",
-        "fant_ikke_person",
-    )
-
-    val brevNavneoppslagSaksbehandlerAttesttantFeilet = InternalServerError.errorJson(
-        "Kunne ikke hente navn for saksbehandler eller attestant",
-        "navneoppslag_feilet",
-    )
-
-    val brevFantIkkeGjeldendeUtbetaling = InternalServerError.errorJson(
-        "Kunne ikke hente gjeldende utbetaling",
-        "kunne_ikke_hente_gjeldende_utbetaling",
-    )
+        val fantIkkeGjeldendeUtbetaling = InternalServerError.errorJson(
+            "Kunne ikke hente gjeldende utbetaling",
+            "kunne_ikke_hente_gjeldende_utbetaling",
+        )
+    }
 
     fun ugyldigPeriode(ugyldigPeriode: UgyldigPeriode): Resultat {
         return BadRequest.errorJson(
@@ -97,14 +96,8 @@ internal object Revurderingsfeilresponser {
         is KunneIkkeForhåndsvarsle.FantIkkeRevurdering -> fantIkkeRevurdering
         is KunneIkkeForhåndsvarsle.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
         is KunneIkkeForhåndsvarsle.Attestering -> this.subError.tilResultat()
-        is KunneIkkeForhåndsvarsle.KunneIkkeHenteNavnForSaksbehandler -> InternalServerError.errorJson(
-            "Kunne ikke hente navn for saksbehandler eller attestant",
-            "navneoppslag_feilet",
-        )
-        KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument -> InternalServerError.errorJson(
-            "Feil ved generering av dokument",
-            "feil_ved_generering_av_dokument",
-        )
+        is KunneIkkeForhåndsvarsle.KunneIkkeHenteNavnForSaksbehandler -> navneoppslagSaksbehandlerAttesttantFeilet
+        KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument -> feilVedGenereringAvDokument
     }
 
     fun KunneIkkeLageBrevutkastForRevurdering.tilResultat(): Resultat {
@@ -114,9 +107,9 @@ internal object Revurderingsfeilresponser {
                 "Kunne ikke lage brevutkast",
                 "kunne_ikke_lage_brevutkast",
             )
-            KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson -> brevFantIkkePerson
-            KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> brevNavneoppslagSaksbehandlerAttesttantFeilet
-            KunneIkkeLageBrevutkastForRevurdering.KunneIkkeFinneGjeldendeUtbetaling -> brevFantIkkeGjeldendeUtbetaling
+            KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson -> fantIkkePerson
+            KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> navneoppslagSaksbehandlerAttesttantFeilet
+            KunneIkkeLageBrevutkastForRevurdering.KunneIkkeFinneGjeldendeUtbetaling -> fantIkkeGjeldendeUtbetaling
         }
     }
 }

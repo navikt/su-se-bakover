@@ -90,7 +90,7 @@ internal fun Route.leggTilGrunnlagFradrag(
                                                 "periode mangler",
                                                 "periode_mangler",
                                             )
-                                            is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> Feilresponser.Fradrag.kunneIkkeLeggeTilFradragsgrunnlag
+                                            is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
                                         }
                                     }
                                     .map {

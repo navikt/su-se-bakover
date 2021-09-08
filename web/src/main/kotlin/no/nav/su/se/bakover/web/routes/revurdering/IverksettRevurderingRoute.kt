@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
-import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
@@ -20,6 +19,8 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
+import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
+import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeGenerereBrev
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
@@ -59,11 +60,8 @@ private fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
         "attestant_og_saksbehandler_kan_ikke_være_samme_person",
     )
     is KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> this.utbetalingFeilet.tilResultat()
-    KunneIkkeIverksetteRevurdering.FantIkkePerson -> Revurderingsfeilresponser.brevFantIkkePerson
-    KunneIkkeIverksetteRevurdering.KunneIkkeFinneGjeldendeUtbetaling -> Revurderingsfeilresponser.brevFantIkkeGjeldendeUtbetaling
-    KunneIkkeIverksetteRevurdering.KunneIkkeGenerereBrev -> InternalServerError.errorJson(
-        "Kunne ikke generere brev",
-        "kunne_ikke_generere_brev",
-    )
-    KunneIkkeIverksetteRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> Revurderingsfeilresponser.brevNavneoppslagSaksbehandlerAttesttantFeilet
+    KunneIkkeIverksetteRevurdering.FantIkkePerson -> fantIkkePerson
+    KunneIkkeIverksetteRevurdering.KunneIkkeFinneGjeldendeUtbetaling -> Revurderingsfeilresponser.Brev.fantIkkeGjeldendeUtbetaling
+    KunneIkkeIverksetteRevurdering.KunneIkkeGenerereBrev -> kunneIkkeGenerereBrev
+    KunneIkkeIverksetteRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> Revurderingsfeilresponser.Brev.navneoppslagSaksbehandlerAttesttantFeilet
 }

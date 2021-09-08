@@ -72,17 +72,17 @@ internal fun Route.fortsettEtterForhåndsvarselRoute(
                                     when (fortsettEtterForhåndsvarselFeil) {
                                         FortsettEtterForhåndsvarselFeil.AlleredeBesluttet -> HttpStatusCode.BadRequest.errorJson(
                                             "Forhåndsvarslingen er allerede besluttet",
-                                            "Forhåndsvarslingen_er_allerede_besluttet",
+                                            "forhåndsvarslingen_er_allerede_besluttet",
                                         )
                                         is FortsettEtterForhåndsvarselFeil.Attestering -> fortsettEtterForhåndsvarselFeil.subError.tilResultat()
                                         FortsettEtterForhåndsvarselFeil.FantIkkeRevurdering -> Revurderingsfeilresponser.fantIkkeRevurdering
                                         FortsettEtterForhåndsvarselFeil.RevurderingErIkkeForhåndsvarslet -> HttpStatusCode.BadRequest.errorJson(
                                             "Revurderingen er ikke forhåndsvarslet for å kunne beslutte",
-                                            "Revurderingen_er_ikke_forhåndsvarslet_for_å_kunne_beslutte",
+                                            "ikke_forhåndsvarslet_for_å_kunne_beslutte",
                                         )
                                         FortsettEtterForhåndsvarselFeil.RevurderingErIkkeIRiktigTilstand -> HttpStatusCode.BadRequest.errorJson(
                                             "Revurderingen er ikke i riktig tilstand for å beslutte forhåndsvarslingen",
-                                            "Revurderingen_er_ikke_i_riktig_tilstand_for_å_beslutte_forhåndsvarslingen",
+                                            "ikke_riktig_tilstand_for_å_beslutte_forhåndsvarslingen",
                                         )
                                     }
                                 }

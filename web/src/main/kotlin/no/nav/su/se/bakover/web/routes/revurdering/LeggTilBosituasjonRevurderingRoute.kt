@@ -76,5 +76,5 @@ private fun KunneIkkeLeggeTilBosituasjongrunnlag.tilResultat() = when (this) {
         this.fra,
         this.til,
     )
-    is KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeEndreBosituasjongrunnlag -> Feilresponser.Bosituasjon.kunneIkkeLeggeTilBosituasjonsgrunnlag
+    is KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeEndreBosituasjongrunnlag -> Feilresponser.kunneIkkeLeggeTilBosituasjonsgrunnlag
 }
