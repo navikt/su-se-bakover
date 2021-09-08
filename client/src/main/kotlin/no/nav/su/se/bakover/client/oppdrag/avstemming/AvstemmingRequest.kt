@@ -75,7 +75,7 @@ internal data class GrensesnittsavstemmingData(
          */
         val offnr: String,
         val avleverendeTransaksjonNokkel: String,
-        val tidspunkt: String, // TODO: Finne format på denne
+        val tidspunkt: String,
     ) {
         enum class Detaljtype(@JsonValue val value: String) {
             GODKJENT_MED_VARSEL("VARS"),

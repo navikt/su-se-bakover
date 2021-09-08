@@ -5,7 +5,6 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.endOfDay
-import no.nav.su.se.bakover.common.igår
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
@@ -34,9 +33,9 @@ internal class AvstemmingServiceImpl(
 
     override fun konsistensavstemming(
         løpendeFraOgMed: LocalDate,
-    ): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming> {
+    ): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming.Ny> {
         val fraOgMed = løpendeFraOgMed.startOfDay(zoneIdOslo)
-        val tilOgMed = igår().endOfDay(zoneIdOslo)
+        val tilOgMed = løpendeFraOgMed.minusDays(1).endOfDay(zoneIdOslo)
 
         val utbetalinger = repo.hentUtbetalingerForKonsistensavstemming(
             løpendeFraOgMed = fraOgMed,

@@ -12,5 +12,5 @@ interface AvstemmingService {
         tilOgMed: Tidspunkt,
     ): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming>
 
-    fun konsistensavstemming(løpendeFraOgMed: LocalDate): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming>
+    fun konsistensavstemming(løpendeFraOgMed: LocalDate): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming.Ny>
 }

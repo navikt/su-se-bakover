@@ -127,7 +127,7 @@ open class AccessCheckProxy(
 
                 override fun konsistensavstemming(
                     løpendeFraOgMed: LocalDate,
-                ): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming> {
+                ): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming.Ny> {
                     return services.avstemming.konsistensavstemming(løpendeFraOgMed)
                 }
             },

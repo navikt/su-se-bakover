@@ -66,7 +66,7 @@ internal class AvstemmingRoutesKtTest {
 
         override fun konsistensavstemming(
             løpendeFraOgMed: LocalDate,
-        ): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming> {
+        ): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming.Ny> {
             return Avstemming.Konsistensavstemming.Ny(
                 id = UUID30.randomUUID(),
                 opprettet = Tidspunkt.now(),
