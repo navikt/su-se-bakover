@@ -443,11 +443,7 @@ internal class RevurderingServiceImplTest {
                 },
             )
             verify(revurderingRepoMock).lagre(argThat { it shouldBe iverksattRevurdering })
-            verify(eventObserver).handle(
-                argThat {
-                    it shouldBe Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering)
-                },
-            )
+            verify(eventObserver, times(2)).handle(any())
         }
         verifyNoMoreInteractions(
             revurderingRepoMock,

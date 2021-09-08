@@ -49,12 +49,16 @@ internal class StatistikkSchemaValidatorTest {
             gjeldendeStonadStopptidspunkt = LocalDate.now().plusYears(1),
             gjeldendeStonadUtbetalingsstart = LocalDate.now(),
             gjeldendeStonadUtbetalingsstopp = LocalDate.now().plusYears(1),
-            stonadsklassifisering = Statistikk.Stønad.Stønadsklassifisering.BOR_ALENE,
-            bruttosatsMnd = 10000,
-            nettosatsMnd = 5000,
-            inntekter = listOf(Statistikk.Inntekt("Arbeidsinntekt", 5000)),
-            fradragSum = 5000,
-            fullSats = 242590,
+            månedsbeløp = listOf(
+                Statistikk.Stønad.Månedsbeløp(
+                    måned = "todo",
+                    stonadsklassifisering = Statistikk.Stønad.Stønadsklassifisering.BOR_ALENE,
+                    bruttosats = 10000,
+                    nettosats = 5000,
+                    inntekter = listOf(Statistikk.Inntekt("Arbeidsinntekt", 5000)),
+                    fradragSum = 5000,
+                ),
+            ),
         )
     }
 
@@ -79,8 +83,8 @@ internal class StatistikkSchemaValidatorTest {
                     aktorer = null,
                     underType = null,
                     underTypeBeskrivelse = null,
-                )
-            )
+                ),
+            ),
         ) shouldBe true
     }
 
@@ -104,7 +108,7 @@ internal class StatistikkSchemaValidatorTest {
               "underType": "SUUFORE",
               "underTypeBeskrivelse": "Supplerende stønad for uføre flyktninger"
             }
-            """.trimIndent()
+            """.trimIndent(),
         ) shouldBe false
     }
 
@@ -128,7 +132,7 @@ internal class StatistikkSchemaValidatorTest {
               "underType": "SUUFORE",
               "underTypeBeskrivelse": "Supplerende stønad for uføre flyktninger"
             }
-            """.trimIndent()
+            """.trimIndent(),
         ) shouldBe false
     }
 
@@ -139,7 +143,7 @@ internal class StatistikkSchemaValidatorTest {
                {
                "bogus": true
                }
-            """.trimIndent()
+            """.trimIndent(),
         ) shouldBe false
     }
 

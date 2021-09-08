@@ -5,16 +5,15 @@ import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import java.time.Clock
 import java.time.LocalDate
-import kotlin.math.roundToLong
 
-internal class StønadsstatistikkMapper(private val clock: Clock) {
+internal class StønadsstatistikkMapper(clock: Clock) {
     val nå = Tidspunkt.now(clock)
 
     fun map(vedtak: Vedtak.EndringIYtelse, aktørId: AktørId): Statistikk.Stønad {
@@ -39,21 +38,31 @@ internal class StønadsstatistikkMapper(private val clock: Clock) {
             gjeldendeStonadStopptidspunkt = vedtak.behandling.periode.tilOgMed,
             gjeldendeStonadUtbetalingsstart = vedtak.behandling.periode.fraOgMed,
             gjeldendeStonadUtbetalingsstopp = vedtak.behandling.periode.tilOgMed,
-            stonadsklassifisering = stønadsklassifisering(vedtak.behandling),
-            bruttosatsMnd = 0, // BURDE ALLE DISSE EGENTLIG VÆRE EN LISTE MED MÅNEDSBELØP?
-            nettosatsMnd = 0, // MÅ SPØRRE STØNADSSTATISTIKK HVA VI SKAL GJØRE MED VARIERENDE BELØP PER MÅNED
-            inntekter = listOf(Statistikk.Inntekt("Inntekt", 0L)), // Endre
-            fradragSum = 0, // Endre
-            fullSats = vedtak.beregning.getSats().årsbeløp(vedtak.behandling.periode.fraOgMed).roundToLong(),
+            månedsbeløp = vedtak.beregning.getMånedsberegninger().map {
+                Statistikk.Stønad.Månedsbeløp(
+                    måned = it.periode.fraOgMed.toString(),
+                    stonadsklassifisering = stønadsklassifisering(vedtak.behandling, it),
+                    bruttosats = it.getSatsbeløp().toLong(),
+                    nettosats = it.getSumYtelse().toLong(),
+                    inntekter = it.getFradrag().map { fradrag ->
+                        Statistikk.Inntekt(
+                            inntektstype = fradrag.fradragstype.toString(),
+                            beløp = fradrag.månedsbeløp.toLong(),
+                        )
+                    },
+                    fradragSum = it.getSumFradrag().toLong(),
+                )
+            },
             versjon = System.currentTimeMillis(),
             opphorsgrunn = when (vedtak.vedtakType) {
-                VedtakType.OPPHØR -> (vedtak.behandling as IverksattRevurdering.Opphørt).utledOpphørsgrunner().joinToString()
+                VedtakType.OPPHØR -> (vedtak.behandling as IverksattRevurdering.Opphørt).utledOpphørsgrunner()
+                    .joinToString()
                 else -> null
             },
             opphorsdato = when (vedtak.vedtakType) {
                 VedtakType.OPPHØR -> (vedtak.behandling as IverksattRevurdering.Opphørt).utledOpphørsdato()
                 else -> null
-            }
+            },
         )
     }
 
@@ -64,11 +73,12 @@ internal class StønadsstatistikkMapper(private val clock: Clock) {
         else -> throw RuntimeException("Ugyldig vedtakstype")
     }
 
-    private fun bosituasjon(behandling: Behandling): Grunnlag.Bosituasjon.Fullstendig =
-        (behandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow())
+    private fun stønadsklassifisering(behandling: Behandling, månedsberegning: Månedsberegning): Statistikk.Stønad.Stønadsklassifisering {
+        val bosituasjon = behandling.grunnlagsdata.bosituasjon.single {
+            it.periode inneholder månedsberegning.periode
+        }
 
-    private fun stønadsklassifisering(behandling: Behandling): Statistikk.Stønad.Stønadsklassifisering {
-        return when (bosituasjon(behandling)) {
+        return when (bosituasjon) {
             is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> Statistikk.Stønad.Stønadsklassifisering.BOR_MED_ANDRE_VOKSNE
             is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> Statistikk.Stønad.Stønadsklassifisering.BOR_MED_EKTEFELLE_UNDER_67_IKKE_UFØR_FLYKTNING
             is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> Statistikk.Stønad.Stønadsklassifisering.BOR_MED_EKTEFELLE_OVER_67

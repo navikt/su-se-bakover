@@ -1020,22 +1020,24 @@ sealed class IverksattRevurdering : Revurdering() {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
     ) : IverksattRevurdering() {
-        val opphør = VurderOpphørVedRevurdering(vilkårsvurderinger, beregning).resultat
-
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
 
         fun utledOpphørsgrunner(): List<Opphørsgrunn> {
+            val opphør = VurderOpphørVedRevurdering(vilkårsvurderinger, beregning).resultat
             return when (opphør) {
                 is OpphørVedRevurdering.Ja -> opphør.opphørsgrunner
                 OpphørVedRevurdering.Nei -> emptyList()
             }
         }
 
-        fun utledOpphørsdato(): LocalDate? = when (opphør) {
-            is OpphørVedRevurdering.Ja -> opphør.opphørsdato
-            OpphørVedRevurdering.Nei -> null
+        fun utledOpphørsdato(): LocalDate? {
+            val opphør = VurderOpphørVedRevurdering(vilkårsvurderinger, beregning).resultat
+            return when (opphør) {
+                is OpphørVedRevurdering.Ja -> opphør.opphørsdato
+                OpphørVedRevurdering.Nei -> null
+            }
         }
     }
 

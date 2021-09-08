@@ -93,12 +93,7 @@ sealed class Statistikk {
         val gjeldendeStonadStopptidspunkt: LocalDate,
         val gjeldendeStonadUtbetalingsstart: LocalDate,
         val gjeldendeStonadUtbetalingsstopp: LocalDate,
-        val stonadsklassifisering: Stønadsklassifisering,
-        val bruttosatsMnd: Long, // TODO: Kanskje endre alle heltall til flyttall?
-        val nettosatsMnd: Long,
-        val inntekter: List<Inntekt>,
-        val fradragSum: Long,
-        val fullSats: Long,
+        val månedsbeløp: List<Månedsbeløp>,
         val versjon: Long = System.currentTimeMillis(),
         val opphorsgrunn: String? = null,
         val opphorsdato: LocalDate? = null,
@@ -122,6 +117,15 @@ sealed class Statistikk {
             BOR_MED_EKTEFELLE_OVER_67("Bor med ektefelle over 67 år"),
             BOR_MED_EKTEFELLE_UNDER_67_UFØR_FLYKTNING("Bor med ektefelle under 67 år, ufør flyktning"),
         }
+
+        data class Månedsbeløp(
+            val måned: String,
+            val stonadsklassifisering: Stønadsklassifisering,
+            val bruttosats: Long,
+            val nettosats: Long,
+            val inntekter: List<Inntekt>,
+            val fradragSum: Long,
+        )
     }
 
     data class Inntekt(

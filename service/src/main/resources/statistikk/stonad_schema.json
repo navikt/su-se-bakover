@@ -18,12 +18,7 @@
     "gjeldendeStonadStopptidspunkt",
     "gjeldendeStonadUtbetalingsstart",
     "gjeldendeStonadUtbetalingsstopp",
-    "stonadsklassifisering",
-    "bruttosatsMnd",
-    "nettosatsMnd",
-    "inntekter",
-    "fradragSum",
-    "fullSats",
+    "månedsbeløp",
     "versjon"
   ],
   "type": "object",
@@ -96,38 +91,43 @@
       "format": "date",
       "description": "Dato for når utbetalingene stoppes for gjeldende stønadsperiode."
     },
-    "stonadsklassifisering": {
-      "type": "string",
-      "description": "Klassifisering av hva som gjør at stønadsmottaker mottar ordinær eller høy sats."
-    },
-    "bruttosatsMnd": {
-      "type": "number",
-      "description": "Utgangspunktet for månedlig utbetaling, før fradrag blir trukket fra."
-    },
-    "nettosatsMnd": {
-      "type": "number",
-      "description": "Faktisk utbetaling per måned."
-    },
-    "inntekter": {
+    "månedsbeløp": {
       "type": "array",
       "properties": {
-        "inntektstype": {
+        "måned": {
           "type": "string",
-          "description": "Type inntekt, f.eks. arbeidsinntekt, sosialstønad, osv."
+          "description": "Måned for når beløpene gjelder, f.eks. Jan 2021"
         },
-        "beløp": {
+        "stonadsklassifisering": {
+          "type": "string",
+          "description": "Klassifisering av hva som gjør at stønadsmottaker mottar ordinær eller høy sats."
+        },
+        "bruttosats": {
           "type": "number",
-          "description": "Inntekten i kroner per måned."
+          "description": "Utgangspunktet for månedlig utbetaling, før fradrag blir trukket fra."
+        },
+        "nettosats": {
+          "type": "number",
+          "description": "Faktisk utbetaling per måned."
+        },
+        "inntekter": {
+          "type": "array",
+          "properties": {
+            "inntektstype": {
+              "type": "string",
+              "description": "Type inntekt, f.eks. arbeidsinntekt, sosialstønad, osv."
+            },
+            "beløp": {
+              "type": "number",
+              "description": "Inntekten i kroner per måned."
+            }
+          }
+        },
+        "fradragSum": {
+          "type": "number",
+          "description": "Summen av alle fradrag/inntekter som gjelder for stønadsmottaker."
         }
       }
-    },
-    "fradragSum": {
-      "type": "number",
-      "description": "Summen av alle fradrag/inntekter som gjelder for stønadsmottaker."
-    },
-    "fullSats": {
-      "type": "number",
-      "description": "Maksimal ytelse stønadsmottaker kunne mottatt, altså bruttosats per år. Kalles også beregningsgrunnlag."
     },
     "opphorsgrunn": {
       "type": "string",

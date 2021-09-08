@@ -62,6 +62,6 @@ sealed class Event {
                 RevurderingStatistikk()
         }
 
-        data class Vedtaksstatistik(val vedtak: Vedtak.EndringIYtelse) : Statistikk()
+        data class Vedtaksstatistikk(val vedtak: Vedtak.EndringIYtelse) : Statistikk()
     }
 }

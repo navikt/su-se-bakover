@@ -831,6 +831,7 @@ internal class RevurderingServiceImpl(
         }
     }
 
+    // TODO ai: Extraher ut logikk till funskjoner for å forenkle flyten
     override fun iverksett(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant,
@@ -936,7 +937,7 @@ internal class RevurderingServiceImpl(
                     )
                     if (vedtak is Vedtak.EndringIYtelse) {
                         observer.handle(
-                            Event.Statistikk.Vedtaksstatistik(
+                            Event.Statistikk.Vedtaksstatistikk(
                                 vedtak as Vedtak.EndringIYtelse
                             ),
                         )
