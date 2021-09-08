@@ -158,8 +158,7 @@ where (u1.avstemmingsnøkkel ->> 'opprettet')::timestamptz <= :opprettetTilOgMed
 and exists(
 	select 1 from utbetaling u2
 	join utbetalingslinje ul2 on ul2.utbetalingid = u2.id
-	where ul2.tom >= :lopendeFraOgMed
-	and ul2.forrigeutbetalingslinjeid is null
+	where ul2.forrigeutbetalingslinjeid is null
 	and ul2.opprettet >= '2021-07-23'
 	and ul2.utbetalingid = u2.id
 	and u2.sakid = u1.sakid
