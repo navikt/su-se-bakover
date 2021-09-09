@@ -77,8 +77,8 @@ internal fun Route.fortsettEtterForhåndsvarselRoute(
                                         is FortsettEtterForhåndsvarselFeil.Attestering -> fortsettEtterForhåndsvarselFeil.subError.tilResultat()
                                         FortsettEtterForhåndsvarselFeil.FantIkkeRevurdering -> Revurderingsfeilresponser.fantIkkeRevurdering
                                         FortsettEtterForhåndsvarselFeil.RevurderingErIkkeForhåndsvarslet -> HttpStatusCode.BadRequest.errorJson(
-                                            "Revurderingen er ikke forhåndsvarslet for å kunne beslutte",
-                                            "ikke_forhåndsvarslet_for_å_kunne_beslutte",
+                                            "Revurderingen er ikke forhåndsvarslet",
+                                            "ikke_forhåndsvarslet",
                                         )
                                         FortsettEtterForhåndsvarselFeil.RevurderingErIkkeIRiktigTilstand -> HttpStatusCode.BadRequest.errorJson(
                                             "Revurderingen er ikke i riktig tilstand for å beslutte forhåndsvarslingen",
