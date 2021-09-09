@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -48,7 +49,7 @@ import java.util.UUID
 import javax.sql.DataSource
 
 interface RevurderingRepo {
-    fun hent(id: UUID): Revurdering?
+    fun hent(id: UUID): AbstraktRevurdering?
     fun hentEventuellTidligereAttestering(id: UUID): Attestering?
     fun lagre(revurdering: Revurdering)
     fun oppdaterForhåndsvarsel(id: UUID, forhåndsvarsel: Forhåndsvarsel)
@@ -83,7 +84,7 @@ internal class RevurderingPostgresRepo(
 ) : RevurderingRepo {
     private val vedtakRepo = VedtakPosgresRepo(dataSource, søknadsbehandlingRepo, this, dbMetrics)
 
-    override fun hent(id: UUID): Revurdering? {
+    override fun hent(id: UUID): AbstraktRevurdering? {
         return dbMetrics.timeQuery("hentRevurdering") {
             dataSource.withSession { session ->
                 hent(id, session)

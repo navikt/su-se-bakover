@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -441,7 +442,7 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
             },
             revurdering = object : RevurderingService {
-                override fun hentRevurdering(revurderingId: UUID): Revurdering? {
+                override fun hentRevurdering(revurderingId: UUID): AbstraktRevurdering? {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.hentRevurdering(revurderingId)
                 }

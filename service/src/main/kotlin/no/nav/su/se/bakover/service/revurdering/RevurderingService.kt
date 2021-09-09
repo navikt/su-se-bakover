@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -31,7 +32,7 @@ import java.util.UUID
 import kotlin.reflect.KClass
 
 interface RevurderingService {
-    fun hentRevurdering(revurderingId: UUID): Revurdering?
+    fun hentRevurdering(revurderingId: UUID): AbstraktRevurdering?
 
     fun opprettRevurdering(
         opprettRevurderingRequest: OpprettRevurderingRequest,

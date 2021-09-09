@@ -8,12 +8,11 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -63,16 +62,19 @@ fun Forhåndsvarsel?.erKlarForAttestering() =
         is Forhåndsvarsel.SkalForhåndsvarsles.Besluttet -> true
     }
 
-sealed class Revurdering : BehandlingMedOppgave, BehandlingMedAttestering, Visitable<RevurderingVisitor> {
+sealed class AbstraktRevurdering : Behandling {
     abstract val tilRevurdering: VedtakSomKanRevurderes
-    abstract val saksbehandler: Saksbehandler
-    override val sakId: UUID
-        get() = tilRevurdering.behandling.sakId
-    override val saksnummer: Saksnummer
-        get() = tilRevurdering.behandling.saksnummer
-    override val fnr: Fnr
-        get() = tilRevurdering.behandling.fnr
+    override val sakId by lazy { tilRevurdering.behandling.sakId }
+    override val saksnummer by lazy { tilRevurdering.behandling.saksnummer }
+    override val fnr by lazy { tilRevurdering.behandling.fnr }
+}
 
+sealed class Revurdering :
+    AbstraktRevurdering(),
+    BehandlingMedOppgave,
+    BehandlingMedAttestering,
+    Visitable<RevurderingVisitor> {
+    abstract val saksbehandler: Saksbehandler
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på søknadsbehandlinger)
     abstract val fritekstTilBrev: String
     abstract val revurderingsårsak: Revurderingsårsak
