@@ -335,7 +335,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             verify(vedtakRepoMock).lagre(
                 argThat {
                     it.behandling shouldBe expected
-                    it should beOfType<Vedtak.EndringIYtelse>()
+                    it should beOfType<Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling>()
                     it.vedtakType shouldBe VedtakType.SØKNAD
                 },
             )
