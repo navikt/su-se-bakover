@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad.UgyldigTr
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.routes.Feilresponser
+import no.nav.su.se.bakover.web.routes.Feilresponser.feilVedGenereringAvDokument
 
 internal object LukkSøknadErrorHandler {
     fun kunneIkkeLukkeSøknadResponse(request: LukkSøknadRequest, error: KunneIkkeLukkeSøknad): Resultat {
@@ -36,10 +37,7 @@ internal object LukkSøknadErrorHandler {
                 "Søknad med id $søknadId mangler oppgave",
                 "søknad_mangler_oppgave"
             )
-            KunneIkkeLukkeSøknad.KunneIkkeGenerereDokument -> InternalServerError.errorJson(
-                "Feil ved generering av dokument",
-                "feil_ved_generering_av_dokument",
-            )
+            KunneIkkeLukkeSøknad.KunneIkkeGenerereDokument -> feilVedGenereringAvDokument
         }
     }
 }

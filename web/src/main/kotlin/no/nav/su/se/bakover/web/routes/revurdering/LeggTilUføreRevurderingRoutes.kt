@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
+import no.nav.su.se.bakover.web.routes.Feilresponser.Uføre.periodeForGrunnlagOgVurderingErForskjellig
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -62,10 +63,7 @@ private data class Body(val vurderinger: List<Vurdering>) {
             }
             val validUføregrad = uføregrad?.let {
                 Uføregrad.tryParse(it).getOrElse {
-                    return HttpStatusCode.BadRequest.errorJson(
-                        message = "Uføregrad må være mellom en og hundre",
-                        code = "uføregrad_må_være_mellom_en_og_hundre",
-                    ).left()
+                    return Feilresponser.Uføre.uføregradMåVæreMellomEnOgHundre.left()
                 }
             }
             return LeggTilUførevurderingRequest(
@@ -94,15 +92,18 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
                                     .mapLeft {
                                         when (it) {
                                             KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
-                                            is KunneIkkeLeggeTilGrunnlag.UgyldigTilstand -> Revurderingsfeilresponser.ugyldigTilstand(
+                                            is KunneIkkeLeggeTilGrunnlag.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
                                                 it.fra,
                                                 it.til,
                                             )
-                                            KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler -> Feilresponser.uføregradOgForventetInntektMangler
-                                            KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig -> Feilresponser.periodeForGrunnlagOgVurderingErForskjellig
+                                            KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler -> Feilresponser.Uføre.uføregradOgForventetInntektMangler
+                                            KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig -> periodeForGrunnlagOgVurderingErForskjellig
                                             KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder -> Feilresponser.overlappendeVurderingsperioder
                                             KunneIkkeLeggeTilGrunnlag.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> Feilresponser.utenforBehandlingsperioden
-                                            KunneIkkeLeggeTilGrunnlag.AlleVurderingeneMåHaSammeResultat -> Feilresponser.alleVurderingeneMåHaSammeResultat
+                                            KunneIkkeLeggeTilGrunnlag.AlleVurderingeneMåHaSammeResultat -> HttpStatusCode.BadRequest.errorJson(
+                                                "Alle vurderingsperiodene må ha samme vurdering (ja/nei)",
+                                                "vurderingene_må_ha_samme_resultat",
+                                            )
                                             KunneIkkeLeggeTilGrunnlag.HeleBehandlingsperiodenMåHaVurderinger -> HttpStatusCode.BadRequest.errorJson(
                                                 "Hele behandlingsperioden må ha vurderinger",
                                                 "hele_behandlingsperioden_må_ha_vurderinger",
