@@ -365,11 +365,6 @@ internal class SøknadsbehandlingServiceImpl(
                                     iverksattBehandling,
                                 ),
                             )
-                            /* TODO: observer.handle(
-                                Event.Statistikk.Vedtaksstatistikk(
-                                    vedtak,
-                                ),
-                            )*/
                         }
                     }
                 }

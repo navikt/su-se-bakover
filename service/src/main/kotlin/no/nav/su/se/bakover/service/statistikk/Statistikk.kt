@@ -94,7 +94,7 @@ sealed class Statistikk {
         val gjeldendeStonadUtbetalingsstart: LocalDate,
         val gjeldendeStonadUtbetalingsstopp: LocalDate,
         val månedsbeløp: List<Månedsbeløp>,
-        val versjon: Long = System.currentTimeMillis(),
+        val versjon: Long,
         val opphorsgrunn: String? = null,
         val opphorsdato: LocalDate? = null,
         val flyktningsstatus: String? = "FLYKTNING" // Alle som gjelder SU Ufør vil være flyktning

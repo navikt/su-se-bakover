@@ -19,7 +19,7 @@ interface EventObserver {
 }
 
 sealed class Event {
-    sealed class Statistikk : Event() {
+    internal sealed class Statistikk : Event() {
         data class SakOpprettet(val sak: Sak) : Statistikk()
 
         sealed class SøknadStatistikk : Statistikk() {

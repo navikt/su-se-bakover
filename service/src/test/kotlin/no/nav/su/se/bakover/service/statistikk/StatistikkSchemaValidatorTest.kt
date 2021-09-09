@@ -59,6 +59,7 @@ internal class StatistikkSchemaValidatorTest {
                     fradragSum = 5000,
                 ),
             ),
+            versjon = Tidspunkt.now().toEpochMilli()
         )
     }
 

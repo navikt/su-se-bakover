@@ -895,10 +895,12 @@ internal class RevurderingServiceImpl(
                                 utbetaling = it
                                 it.id
                             }
-                        }.map {
-                            vedtak = Vedtak.from(it, utbetaling!!.id, clock)
-                            vedtakRepo.lagre(vedtak as Vedtak.EndringIYtelse)
-                            it
+                        }.map { iverksattRevurdering ->
+                            vedtak = Vedtak.from(iverksattRevurdering, utbetaling!!.id, clock).let {
+                                vedtakRepo.lagre(it)
+                                it
+                            }
+                            iverksattRevurdering
                         }
                     }
                     is RevurderingTilAttestering.Opphørt -> {

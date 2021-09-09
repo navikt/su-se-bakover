@@ -13,10 +13,11 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import java.time.Clock
 import java.time.LocalDate
 
-internal class StønadsstatistikkMapper(clock: Clock) {
-    val nå = Tidspunkt.now(clock)
+internal class StønadsstatistikkMapper(private val clock: Clock) {
 
     fun map(vedtak: Vedtak.EndringIYtelse, aktørId: AktørId, ytelseVirkningstidspunkt: LocalDate): Statistikk.Stønad {
+        val nå = Tidspunkt.now(clock)
+
         return Statistikk.Stønad(
             funksjonellTid = nå,
             tekniskTid = nå,
