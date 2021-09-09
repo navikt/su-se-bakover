@@ -7,8 +7,6 @@ import no.nav.su.se.bakover.database.beregning.PersistertFradrag
 import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
 import no.nav.su.se.bakover.database.fixedLocalDate
 import no.nav.su.se.bakover.database.fixedTidspunkt
-import no.nav.su.se.bakover.database.iverksattBrevbestillingId
-import no.nav.su.se.bakover.database.iverksattJournalpostId
 import no.nav.su.se.bakover.database.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotJson.Companion.toJson
 import no.nav.su.se.bakover.domain.Fnr
@@ -27,7 +25,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName.Enslig
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører.BRUKER
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.Arbeidsinntekt
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
@@ -93,7 +90,6 @@ internal class VedtakssnapshotJsonTest {
             opprettet = fixedTidspunkt,
             søknadsbehandling = avslagUtenBeregning,
             avslagsgrunner = listOf(Avslagsgrunn.PERSONLIG_OPPMØTE),
-            journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(iverksattJournalpostId, iverksattBrevbestillingId),
         )
 
         //language=JSON
@@ -117,8 +113,6 @@ internal class VedtakssnapshotJsonTest {
                      "opprettet": "2021-01-01T01:02:03.456789Z"
                   },
                   "oppgaveId":"oppgaveId",
-                  "iverksattJournalpostId":"iverksattJournalpostId",
-                  "iverksattBrevbestillingId":"iverksattBrevbestillingId",
                   "beregning":null,
                   "behandlingsinformasjon":{
                      "uførhet":{
@@ -441,7 +435,6 @@ internal class VedtakssnapshotJsonTest {
             opprettet = fixedTidspunkt,
             søknadsbehandling = innvilget,
             utbetaling = utbetaling,
-            journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(iverksattJournalpostId, iverksattBrevbestillingId),
         )
 
         //language=JSON
@@ -464,8 +457,6 @@ internal class VedtakssnapshotJsonTest {
                      "opprettet": "2021-01-01T01:02:03.456789Z"
                   },
                   "oppgaveId":"oppgaveId",
-                  "iverksattJournalpostId":"iverksattJournalpostId",
-                  "iverksattBrevbestillingId":"iverksattBrevbestillingId",
                   "beregning":{
                     "id":"$beregningId",
                     "opprettet":"2021-01-01T01:02:03.456789Z",

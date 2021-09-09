@@ -353,7 +353,6 @@ internal class SøknadsbehandlingServiceImpl(
                         vedtakssnapshot = Vedtakssnapshot.Innvilgelse.createFromBehandling(
                             iverksattBehandling,
                             utbetaling!!,
-                            vedtak.journalføringOgBrevdistribusjon,
                         ),
                     )
                     behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
@@ -385,7 +384,6 @@ internal class SøknadsbehandlingServiceImpl(
                         vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(
                             søknadsbehandling = iverksattBehandling,
                             avslagsgrunner = iverksattBehandling.avslagsgrunner,
-                            journalføringOgBrevdistribusjon = vedtak.journalføringOgBrevdistribusjon,
                         ),
                     )
                     behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)

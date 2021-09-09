@@ -248,7 +248,7 @@ internal fun Application.susebakover(
                     avstemmingRoutes(accessProtectedServices.avstemming)
                     stansutbetalingRoutes(accessProtectedServices.utbetaling)
                     gjenopptaUtbetalingRoutes(accessProtectedServices.utbetaling)
-                    driftRoutes(accessProtectedServices.søknad, accessProtectedServices.ferdigstillVedtak)
+                    driftRoutes(accessProtectedServices.søknad)
                     revurderingRoutes(accessProtectedServices.revurdering, accessProtectedServices.vedtakService, clock)
                     dokumentRoutes(accessProtectedServices.brev)
                 }

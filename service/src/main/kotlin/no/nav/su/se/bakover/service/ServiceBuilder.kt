@@ -80,7 +80,6 @@ object ServiceBuilder {
             utbetalingService = utbetalingService,
             microsoftGraphApiOppslag = clients.microsoftGraphApiClient,
             clock = clock,
-            utbetalingRepo = databaseRepos.utbetaling,
             behandlingMetrics = behandlingMetrics,
         )
 

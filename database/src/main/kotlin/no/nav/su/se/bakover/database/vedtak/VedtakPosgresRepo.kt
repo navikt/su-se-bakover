@@ -21,9 +21,6 @@ import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -38,8 +35,6 @@ interface VedtakRepo {
     fun hentAktive(dato: LocalDate): List<Vedtak.EndringIYtelse>
     fun lagre(vedtak: Vedtak)
     fun hentForUtbetaling(utbetalingId: UUID30): Vedtak.EndringIYtelse?
-    fun hentUtenJournalpost(): List<Vedtak>
-    fun hentUtenBrevbestilling(): List<Vedtak>
 }
 
 internal class VedtakPosgresRepo(
@@ -83,32 +78,6 @@ internal class VedtakPosgresRepo(
                 .hent(mapOf("utbetalingId" to utbetalingId), session) {
                     it.toVedtak(session)
                 }?.let { it as Vedtak.EndringIYtelse }
-        }
-    }
-
-    override fun hentUtenJournalpost(): List<Vedtak> {
-        return dataSource.withSession { session ->
-            """
-                SELECT *
-                FROM vedtak
-                WHERE iverksattJournalpostId is null and iverksattBrevbestillingId is null
-            """.trimIndent()
-                .hentListe(emptyMap(), session) {
-                    it.toVedtak(session)
-                }
-        }
-    }
-
-    override fun hentUtenBrevbestilling(): List<Vedtak> {
-        return dataSource.withSession { session ->
-            """
-                SELECT *
-                FROM vedtak
-                WHERE iverksattJournalpostId is not null and iverksattBrevbestillingId is null
-            """.trimIndent()
-                .hentListe(emptyMap(), session) {
-                    it.toVedtak(session)
-                }
         }
     }
 
@@ -156,8 +125,6 @@ internal class VedtakPosgresRepo(
         val utbetalingId = uuid30OrNull("utbetalingId")
         val beregning = stringOrNull("beregning")?.let { objectMapper.readValue<PersistertBeregning>(it) }
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
-        val iverksattJournalpostId = stringOrNull("iverksattJournalpostId")?.let { JournalpostId(it) }
-        val iverksattBrevbestillingId = stringOrNull("iverksattBrevbestillingId")?.let { BrevbestillingId(it) }
 
         return when (val vedtakType = VedtakType.valueOf(string("vedtaktype"))) {
             VedtakType.SØKNAD,
@@ -167,17 +134,13 @@ internal class VedtakPosgresRepo(
                 Vedtak.EndringIYtelse(
                     id = id,
                     opprettet = opprettet,
-                    periode = periode,
                     behandling = behandling,
-                    beregning = beregning!!,
-                    simulering = simulering!!,
                     saksbehandler = saksbehandler,
                     attestant = attestant,
+                    periode = periode,
+                    beregning = beregning!!,
+                    simulering = simulering!!,
                     utbetalingId = utbetalingId!!,
-                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
-                        iverksattJournalpostId,
-                        iverksattBrevbestillingId,
-                    ),
                     vedtakType = vedtakType,
                 )
             }
@@ -191,10 +154,6 @@ internal class VedtakPosgresRepo(
                         beregning = beregning,
                         saksbehandler = saksbehandler,
                         attestant = attestant,
-                        journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
-                            iverksattJournalpostId,
-                            iverksattBrevbestillingId,
-                        ),
                         periode = periode,
                     )
                 } else {
@@ -205,10 +164,6 @@ internal class VedtakPosgresRepo(
                         behandling = behandling as Søknadsbehandling,
                         saksbehandler = saksbehandler,
                         attestant = attestant,
-                        journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
-                            iverksattJournalpostId,
-                            iverksattBrevbestillingId,
-                        ),
                         periode = periode,
                     )
                 }
@@ -216,15 +171,11 @@ internal class VedtakPosgresRepo(
             VedtakType.INGEN_ENDRING -> Vedtak.IngenEndringIYtelse(
                 id = id,
                 opprettet = opprettet,
-                periode = periode,
                 behandling = behandling,
-                beregning = beregning!!,
                 saksbehandler = saksbehandler,
                 attestant = attestant,
-                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
-                    iverksattJournalpostId,
-                    iverksattBrevbestillingId,
-                ),
+                periode = periode,
+                beregning = beregning!!,
             )
         }
     }
@@ -242,8 +193,6 @@ internal class VedtakPosgresRepo(
                     utbetalingid,
                     simulering,
                     beregning,
-                    iverksattjournalpostid,
-                    iverksattbrevbestillingid,
                     vedtaktype
                 ) VALUES (
                     :id,
@@ -255,12 +204,8 @@ internal class VedtakPosgresRepo(
                     :utbetalingid,
                     to_json(:simulering::json),
                     to_json(:beregning::json),
-                    :iverksattjournalpostId,
-                    :iverksattbrevbestillingId,
                     :vedtaktype
-                ) ON CONFLICT(id) DO UPDATE SET
-                    iverksattjournalpostid = :iverksattjournalpostId,
-                    iverksattbrevbestillingid = :iverksattbrevbestillingId
+                )
             """.trimIndent()
                 .insert(
                     mapOf(
@@ -273,12 +218,6 @@ internal class VedtakPosgresRepo(
                         "utbetalingid" to vedtak.utbetalingId,
                         "simulering" to objectMapper.writeValueAsString(vedtak.simulering),
                         "beregning" to objectMapper.writeValueAsString(vedtak.beregning.toSnapshot()),
-                        "iverksattjournalpostId" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(
-                            vedtak.journalføringOgBrevdistribusjon,
-                        )?.toString(),
-                        "iverksattbrevbestillingId" to JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(
-                            vedtak.journalføringOgBrevdistribusjon,
-                        )?.toString(),
                         "vedtaktype" to vedtak.vedtakType,
                     ),
                     tx,
@@ -304,8 +243,6 @@ internal class VedtakPosgresRepo(
                     utbetalingid,
                     simulering,
                     beregning,
-                    iverksattjournalpostid,
-                    iverksattbrevbestillingid,
                     vedtaktype
                 ) values (
                     :id,
@@ -317,12 +254,8 @@ internal class VedtakPosgresRepo(
                     :utbetalingid,
                     to_json(:simulering::json),
                     to_json(:beregning::json),
-                    :iverksattjournalpostId,
-                    :iverksattbrevbestillingId,
                     :vedtaktype
-                )  ON CONFLICT(id) DO UPDATE SET
-                    iverksattjournalpostid = :iverksattjournalpostId,
-                    iverksattbrevbestillingid = :iverksattbrevbestillingId
+                )
             """.trimIndent()
                 .insert(
                     mapOf(
@@ -333,12 +266,6 @@ internal class VedtakPosgresRepo(
                         "saksbehandler" to vedtak.saksbehandler,
                         "attestant" to vedtak.attestant,
                         "beregning" to beregning?.let { objectMapper.writeValueAsString(it.toSnapshot()) },
-                        "iverksattjournalpostId" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(
-                            vedtak.journalføringOgBrevdistribusjon,
-                        )?.toString(),
-                        "iverksattbrevbestillingId" to JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(
-                            vedtak.journalføringOgBrevdistribusjon,
-                        )?.toString(),
                         "vedtaktype" to vedtak.vedtakType,
                     ),
                     tx,
@@ -360,8 +287,6 @@ internal class VedtakPosgresRepo(
                     utbetalingid,
                     simulering,
                     beregning,
-                    iverksattjournalpostid,
-                    iverksattbrevbestillingid,
                     vedtaktype
                 ) VALUES (
                     :id,
@@ -373,12 +298,8 @@ internal class VedtakPosgresRepo(
                     :utbetalingid,
                     to_json(:simulering::json),
                     to_json(:beregning::json),
-                    :iverksattjournalpostId,
-                    :iverksattbrevbestillingId,
                     :vedtaktype
-                ) ON CONFLICT(id) DO UPDATE SET
-                    iverksattjournalpostid = :iverksattjournalpostId,
-                    iverksattbrevbestillingid = :iverksattbrevbestillingId
+                )
             """.trimIndent()
                 .insert(
                     mapOf(
@@ -391,12 +312,6 @@ internal class VedtakPosgresRepo(
                         "utbetalingid" to null,
                         "simulering" to null,
                         "beregning" to objectMapper.writeValueAsString(vedtak.beregning.toSnapshot()),
-                        "iverksattjournalpostId" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(
-                            vedtak.journalføringOgBrevdistribusjon,
-                        )?.toString(),
-                        "iverksattbrevbestillingId" to JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(
-                            vedtak.journalføringOgBrevdistribusjon,
-                        )?.toString(),
                         "vedtaktype" to vedtak.vedtakType,
                     ),
                     tx,
