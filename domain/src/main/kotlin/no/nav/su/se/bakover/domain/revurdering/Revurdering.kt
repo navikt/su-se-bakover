@@ -14,7 +14,8 @@ import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
+import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
@@ -62,7 +63,7 @@ fun Forhåndsvarsel?.erKlarForAttestering() =
         is Forhåndsvarsel.SkalForhåndsvarsles.Besluttet -> true
     }
 
-sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
+sealed class Revurdering : BehandlingMedOppgave, BehandlingMedAttestering, Visitable<RevurderingVisitor> {
     abstract val tilRevurdering: VedtakSomKanRevurderes
     abstract val saksbehandler: Saksbehandler
     override val sakId: UUID
