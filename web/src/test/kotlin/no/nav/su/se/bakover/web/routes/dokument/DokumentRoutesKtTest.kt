@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.web.routes.dokument
 
-import arrow.core.left
-import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.http.HttpMethod.Companion.Get
@@ -11,7 +9,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserializeList
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.service.brev.FantIngenDokumenter
 import no.nav.su.se.bakover.service.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
@@ -99,7 +96,7 @@ internal class DokumentRoutesKtTest {
                         generertDokument = "".toByteArray(),
                         generertDokumentJson = "",
                     ),
-                ).right()
+                )
             },
         )
 
@@ -131,9 +128,7 @@ internal class DokumentRoutesKtTest {
         val sakId = "39f05293-39e0-47be-ba35-a7e0b233b630"
         val services = TestServicesBuilder.services().copy(
             brev = mock {
-                on { hentDokumenterFor(argThat { it is HentDokumenterForIdType.Sak }) } doReturn FantIngenDokumenter(
-                    HentDokumenterForIdType.Sak(UUID.fromString(sakId)),
-                ).left()
+                on { hentDokumenterFor(argThat { it is HentDokumenterForIdType.Sak }) } doReturn emptyList()
             },
         )
 
@@ -145,9 +140,8 @@ internal class DokumentRoutesKtTest {
                 uri = "/dokumenter?id=$sakId&idType=sak",
                 roller = listOf(Brukerrolle.Saksbehandler),
             ).response.let {
-                it.status() shouldBe HttpStatusCode.NotFound
-                it.content shouldContain "Fant ingen dokumenter for sak med id: $sakId"
-                it.content shouldContain """"code":"fant_ingen_dokumenter""""
+                it.status() shouldBe HttpStatusCode.OK
+                it.content shouldBe "[]"
                 verify(services.brev).hentDokumenterFor(
                     HentDokumenterForIdType.Sak(
                         UUID.fromString(sakId),

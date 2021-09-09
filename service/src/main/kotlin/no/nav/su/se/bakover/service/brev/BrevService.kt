@@ -17,7 +17,7 @@ interface BrevService {
     fun journalførDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeJournalføreDokument, Dokumentdistribusjon>
     fun distribuerDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeBestilleBrevForDokument, Dokumentdistribusjon>
     fun hentDokumenterForDistribusjon(): List<Dokumentdistribusjon>
-    fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): Either<FantIngenDokumenter, List<Dokument>>
+    fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): List<Dokument>
 }
 
 /**
@@ -55,7 +55,3 @@ sealed class KunneIkkeBestilleBrevForDokument {
     object FeilVedBestillingAvBrev : KunneIkkeBestilleBrevForDokument()
     object MåJournalføresFørst : KunneIkkeBestilleBrevForDokument()
 }
-
-data class FantIngenDokumenter(
-    val hentDokumenterForIdType: HentDokumenterForIdType
-)
