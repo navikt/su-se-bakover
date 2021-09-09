@@ -278,11 +278,6 @@ open class AccessCheckProxy(
             brev = object : BrevService {
                 override fun lagBrev(request: LagBrevRequest) = kastKanKunKallesFraAnnenService()
 
-                override fun journalførBrev(
-                    request: LagBrevRequest,
-                    saksnummer: Saksnummer,
-                ) = kastKanKunKallesFraAnnenService()
-
                 override fun distribuerBrev(journalpostId: JournalpostId) = kastKanKunKallesFraAnnenService()
 
                 override fun distribuerDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeBestilleBrevForDokument, Dokumentdistribusjon> {
@@ -446,17 +441,6 @@ open class AccessCheckProxy(
             },
             ferdigstillVedtak = object : FerdigstillVedtakService {
                 override fun ferdigstillVedtakEtterUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering): Unit =
-                    kastKanKunKallesFraAnnenService()
-
-                override fun opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver(): FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
-                    // Dette er et driftsendepunkt og vi vil ikke returnere kode 6/7/person-sensitive data.
-                    return services.ferdigstillVedtak.opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver()
-                }
-
-                override fun journalførOgLagre(vedtak: Vedtak): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev, Vedtak> =
-                    kastKanKunKallesFraAnnenService()
-
-                override fun distribuerOgLagre(vedtak: Vedtak): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeDistribuereBrev, Vedtak> =
                     kastKanKunKallesFraAnnenService()
 
                 override fun lukkOppgaveMedBruker(vedtak: Vedtak): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> =

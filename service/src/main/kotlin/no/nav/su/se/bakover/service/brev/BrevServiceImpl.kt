@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
@@ -42,26 +41,6 @@ internal class BrevServiceImpl(
 
     override fun lagBrev(request: LagBrevRequest): Either<KunneIkkeLageBrev, ByteArray> {
         return lagPdf(request.brevInnhold)
-    }
-
-    override fun journalførBrev(
-        request: LagBrevRequest,
-        saksnummer: Saksnummer,
-    ): Either<KunneIkkeJournalføreBrev, JournalpostId> {
-        val brevInnhold = request.brevInnhold
-        val brevPdf = lagPdf(brevInnhold).fold(
-            { return KunneIkkeJournalføreBrev.KunneIkkeGenereBrev.left() },
-            { it },
-        )
-
-        return journalfør(
-            journalpost = JournalpostFactory.lagJournalpost(
-                person = request.person,
-                saksnummer = saksnummer,
-                brevInnhold = brevInnhold,
-                pdf = brevPdf,
-            ),
-        )
     }
 
     private fun journalfør(journalpost: Journalpost): Either<KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost, JournalpostId> {
