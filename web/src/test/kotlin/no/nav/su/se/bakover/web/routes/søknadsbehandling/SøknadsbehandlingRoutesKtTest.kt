@@ -243,7 +243,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 setBody("""{ "fritekst": "Fritekst!" }""")
             }.apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
-                response.content shouldContain "Kunne ikke opprette oppgave for attestering"
+                response.content shouldContain "Kunne ikke opprette oppgave"
             }
         }
     }

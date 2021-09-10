@@ -19,8 +19,8 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
+import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeGenerereBrev
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
-import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeGenerereBrev
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
