@@ -12,16 +12,22 @@ import kotlin.concurrent.fixedRateTimer
 internal class PersonhendelseOppgaveJob(
     private val personhendelseService: PersonhendelseService,
     private val leaderPodLookup: LeaderPodLookup,
+    private val intervall: Long
 ) {
+    companion object {
+        object intervall {
+            val preprod: Long = Duration.of(10, ChronoUnit.MINUTES).toMillis()
+            val prod: Long = Duration.of(1, ChronoUnit.DAYS).toMillis()
+        }
+    }
     private val log = LoggerFactory.getLogger(this::class.java)
     private val jobName = "Opprett personhendelse oppgaver"
-    private val periode = Duration.of(1, ChronoUnit.DAYS).toMillis()
     fun schedule() {
-        log.info("Starter skeduleringsjobb '$jobName' med intervall: $periode. Mitt hostnavn er $hostName. Jeg er ${if (isLeaderPod()) "" else "ikke "}leder.")
+        log.info("Starter skeduleringsjobb '$jobName' med intervall: $intervall. Mitt hostnavn er $hostName. Jeg er ${if (isLeaderPod()) "" else "ikke "}leder.")
         fixedRateTimer(
             name = jobName,
             daemon = true,
-            period = periode,
+            period = intervall,
         ) {
             log.info("Kjører skeduleringsjobb '$jobName'")
             Either.catch {

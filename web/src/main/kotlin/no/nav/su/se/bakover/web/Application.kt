@@ -283,6 +283,10 @@ internal fun Application.susebakover(
         PersonhendelseOppgaveJob(
             personhendelseService = personhendelseService,
             leaderPodLookup = clients.leaderPodLookup,
+            intervall = when (applicationConfig.naisCluster) {
+                ApplicationConfig.NaisCluster.Prod -> PersonhendelseOppgaveJob.Companion.intervall.prod
+                else -> PersonhendelseOppgaveJob.Companion.intervall.preprod
+            }
         ).schedule()
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         LokalKvitteringJob(databaseRepos.utbetaling, utbetalingKvitteringConsumer).schedule()
@@ -294,6 +298,7 @@ internal fun Application.susebakover(
         PersonhendelseOppgaveJob(
             personhendelseService = personhendelseService,
             leaderPodLookup = clients.leaderPodLookup,
+            intervall = PersonhendelseOppgaveJob.Companion.intervall.preprod
         ).schedule()
     }
 }
