@@ -10,9 +10,11 @@ internal object StatistikkSchemaValidator {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val sakSchema: JsonSchema = createSchema("/statistikk/sak_schema.json")
     private val behandlingSchema: JsonSchema = createSchema("/statistikk/behandling_schema.json")
+    private val stønadSchema: JsonSchema = createSchema("/statistikk/stonad_schema.json")
 
     fun validerSak(json: String): Boolean = validate(json, sakSchema)
     fun validerBehandling(json: String): Boolean = validate(json, behandlingSchema)
+    fun validerStønad(json: String): Boolean = validate(json, stønadSchema)
 
     private fun validate(json: String, schema: JsonSchema): Boolean {
         val errors = schema.validate(objectMapper.readTree(json))
@@ -20,7 +22,7 @@ internal object StatistikkSchemaValidator {
         return errors.isEmpty()
     }
 
-    private fun createSchema(resource: String) = this::class.java.getResourceAsStream(resource)
+    private fun createSchema(resource: String) = this::class.java.getResourceAsStream(resource)!!
         .readAllBytes()
         .toString(Charsets.UTF_8)
         .toJsonSchema()

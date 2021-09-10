@@ -77,5 +77,61 @@ sealed class Statistikk {
         }
     }
 
+    data class Stønad(
+        val funksjonellTid: Tidspunkt,
+        val tekniskTid: Tidspunkt,
+        val stonadstype: Stønadstype,
+        val sakId: UUID,
+        val aktorId: Long,
+        val sakstype: Vedtakstype, // TODO: Skulle denne være noe annet enn en duplikat av vedtakstype?
+        val vedtaksdato: LocalDate,
+        val vedtakstype: Vedtakstype,
+        val vedtaksresultat: Vedtaksresultat,
+        val behandlendeEnhetKode: String,
+        val ytelseVirkningstidspunkt: LocalDate,
+        val gjeldendeStonadVirkningstidspunkt: LocalDate,
+        val gjeldendeStonadStopptidspunkt: LocalDate,
+        val gjeldendeStonadUtbetalingsstart: LocalDate,
+        val gjeldendeStonadUtbetalingsstopp: LocalDate,
+        val månedsbeløp: List<Månedsbeløp>,
+        val versjon: Long,
+        val opphorsgrunn: String? = null,
+        val opphorsdato: LocalDate? = null,
+        val flyktningsstatus: String? = "FLYKTNING" // Alle som gjelder SU Ufør vil være flyktning
+    ) : Statistikk() {
+        enum class Stønadstype(val beskrivelse: String) {
+            SU_UFØR("SU Ufør"),
+        }
+        enum class Vedtakstype(val beskrivelse: String) {
+            SØKNAD("Søknad"),
+            REVURDERING("Revurdering"),
+        }
+        enum class Vedtaksresultat(val beskrivelse: String) {
+            INNVILGET("Innvilget"),
+            OPPHØRT("Opphørt"),
+        }
+        enum class Stønadsklassifisering(val beskrivelse: String) {
+            BOR_ALENE("Bor alene"),
+            BOR_MED_ANDRE_VOKSNE("Bor med andre voksne"),
+            BOR_MED_EKTEFELLE_UNDER_67_IKKE_UFØR_FLYKTNING("Bor med ektefelle under 67 år, ikke ufør flyktning"),
+            BOR_MED_EKTEFELLE_OVER_67("Bor med ektefelle over 67 år"),
+            BOR_MED_EKTEFELLE_UNDER_67_UFØR_FLYKTNING("Bor med ektefelle under 67 år, ufør flyktning"),
+        }
+
+        data class Månedsbeløp(
+            val måned: String,
+            val stonadsklassifisering: Stønadsklassifisering,
+            val bruttosats: Long,
+            val nettosats: Long,
+            val inntekter: List<Inntekt>,
+            val fradragSum: Long,
+        )
+    }
+
+    data class Inntekt(
+        val inntektstype: String,
+        val beløp: Long,
+    )
+
     data class Aktør(val aktorId: Int, val rolle: String, val rolleBeskrivelse: String)
 }
