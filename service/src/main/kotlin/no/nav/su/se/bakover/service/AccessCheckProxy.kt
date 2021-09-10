@@ -47,7 +47,6 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.service.brev.FantIngenDokumenter
 import no.nav.su.se.bakover.service.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.service.brev.KunneIkkeBestilleBrevForDokument
 import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreDokument
@@ -294,7 +293,7 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): Either<FantIngenDokumenter, List<Dokument>> {
+                override fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): List<Dokument> {
                     when (hentDokumenterForIdType) {
                         is HentDokumenterForIdType.Revurdering -> assertHarTilgangTilRevurdering(hentDokumenterForIdType.id)
                         is HentDokumenterForIdType.Sak -> assertHarTilgangTilSak(hentDokumenterForIdType.id)

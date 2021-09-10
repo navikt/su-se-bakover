@@ -330,28 +330,20 @@ internal class BrevServiceImplTest {
 
         service.hentDokumenterFor(HentDokumenterForIdType.Sak(sakId)) shouldBe listOf(
             sakDokument,
-        ).right()
-        service.hentDokumenterFor(HentDokumenterForIdType.Sak(randomId)) shouldBe FantIngenDokumenter(
-            HentDokumenterForIdType.Sak(randomId),
-        ).left()
+        )
+        service.hentDokumenterFor(HentDokumenterForIdType.Sak(randomId)) shouldBe emptyList()
         service.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtakId)) shouldBe listOf(
             vedtakDokument,
-        ).right()
-        service.hentDokumenterFor(HentDokumenterForIdType.Vedtak(randomId)) shouldBe FantIngenDokumenter(
-            HentDokumenterForIdType.Vedtak(randomId),
-        ).left()
+        )
+        service.hentDokumenterFor(HentDokumenterForIdType.Vedtak(randomId)) shouldBe emptyList()
         service.hentDokumenterFor(HentDokumenterForIdType.Søknad(søknadId)) shouldBe listOf(
             søknadDokument,
-        ).right()
-        service.hentDokumenterFor(HentDokumenterForIdType.Søknad(randomId)) shouldBe FantIngenDokumenter(
-            HentDokumenterForIdType.Søknad(randomId),
-        ).left()
+        )
+        service.hentDokumenterFor(HentDokumenterForIdType.Søknad(randomId)) shouldBe emptyList()
         service.hentDokumenterFor(HentDokumenterForIdType.Revurdering(revurderingId)) shouldBe listOf(
             revurderingDokument,
-        ).right()
-        service.hentDokumenterFor(HentDokumenterForIdType.Revurdering(randomId)) shouldBe FantIngenDokumenter(
-            HentDokumenterForIdType.Revurdering(randomId),
-        ).left()
+        )
+        service.hentDokumenterFor(HentDokumenterForIdType.Revurdering(randomId)) shouldBe emptyList()
     }
 
     private fun lagDokument(metadata: Dokument.Metadata): Dokument.MedMetadata.Vedtak {
