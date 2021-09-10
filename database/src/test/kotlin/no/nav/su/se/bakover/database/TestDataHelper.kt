@@ -44,7 +44,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -134,9 +133,7 @@ internal val underkjentAttestering =
         opprettet = fixedTidspunkt,
     )
 internal val iverksattAttestering = Attestering.Iverksatt(attestant, fixedTidspunkt)
-internal val iverksattJournalpostId = JournalpostId("iverksattJournalpostId")
-internal val iverksattBrevbestillingId = BrevbestillingId("iverksattBrevbestillingId")
-internal val avstemmingsnøkkel = Avstemmingsnøkkel()
+internal val avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt)
 internal fun utbetalingslinje() = Utbetalingslinje.Ny(
     fraOgMed = 1.januar(2020),
     tilOgMed = 31.desember(2020),
@@ -356,8 +353,12 @@ internal class TestDataHelper(
 
     fun nyOversendtUtbetalingMedKvittering(
         avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
+        utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje()),
     ): Pair<Søknadsbehandling.Iverksatt.Innvilget, Utbetaling.OversendtUtbetaling.MedKvittering> {
-        val utenKvittering = nyIverksattInnvilget(avstemmingsnøkkel = avstemmingsnøkkel)
+        val utenKvittering = nyIverksattInnvilget(
+            avstemmingsnøkkel = avstemmingsnøkkel,
+            utbetalingslinjer = utbetalingslinjer,
+        )
         return utenKvittering.first to utenKvittering.second.toKvittertUtbetaling(kvitteringOk).also {
             utbetalingRepo.oppdaterMedKvittering(it)
         }
@@ -566,7 +567,7 @@ internal class TestDataHelper(
         formue = Vilkår.Formue.IkkeVurdert,
     )
 
-    private fun innvilgetGrunnlagsdataSøknadsbehandling(epsFnr: Fnr? = null) = Grunnlagsdata.tryCreate(
+    private fun innvilgetGrunnlagsdataSøknadsbehandling(epsFnr: Fnr? = null) = Grunnlagsdata.create(
         bosituasjon = listOf(
             if (epsFnr != null) Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                 id = UUID.randomUUID(),

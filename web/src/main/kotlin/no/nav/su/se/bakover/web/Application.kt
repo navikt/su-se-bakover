@@ -43,7 +43,7 @@ import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
-import no.nav.su.se.bakover.service.hendelser.PersonhendelseService
+import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import no.nav.su.se.bakover.web.external.frikortVedtakRoutes
 import no.nav.su.se.bakover.web.features.Authorization
 import no.nav.su.se.bakover.web.features.AuthorizationException
@@ -77,6 +77,7 @@ import no.nav.su.se.bakover.web.routes.utbetaling.stans.stansutbetalingRoutes
 import no.nav.su.se.bakover.web.services.avstemming.AvstemmingJob
 import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
+import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringIbmMqConsumer
@@ -247,7 +248,7 @@ internal fun Application.susebakover(
                     avstemmingRoutes(accessProtectedServices.avstemming)
                     stansutbetalingRoutes(accessProtectedServices.utbetaling)
                     gjenopptaUtbetalingRoutes(accessProtectedServices.utbetaling)
-                    driftRoutes(accessProtectedServices.søknad, accessProtectedServices.ferdigstillVedtak)
+                    driftRoutes(accessProtectedServices.søknad)
                     revurderingRoutes(accessProtectedServices.revurdering, accessProtectedServices.vedtakService, clock)
                     dokumentRoutes(accessProtectedServices.brev)
                 }
@@ -259,6 +260,7 @@ internal fun Application.susebakover(
         ferdigstillVedtakService = services.ferdigstillVedtak,
         clock = clock,
     )
+    val personhendelseService = PersonhendelseService(databaseRepos.sak, databaseRepos.personhendelseRepo, services.oppgave, services.person)
     if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
         UtbetalingKvitteringIbmMqConsumer(
             kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,
@@ -271,11 +273,15 @@ internal fun Application.susebakover(
         ).schedule()
         PersonhendelseConsumer(
             consumer = KafkaConsumer(applicationConfig.kafkaConfig.consumerCfg.kafkaConfig),
-            personhendelseService = PersonhendelseService(databaseRepos.sak, databaseRepos.personhendelseRepo),
+            personhendelseService = personhendelseService,
         )
 
         DistribuerDokumentJob(
             brevService = services.brev,
+            leaderPodLookup = clients.leaderPodLookup,
+        ).schedule()
+        PersonhendelseOppgaveJob(
+            personhendelseService = personhendelseService,
             leaderPodLookup = clients.leaderPodLookup,
         ).schedule()
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
@@ -283,6 +289,10 @@ internal fun Application.susebakover(
 
         DistribuerDokumentJob(
             brevService = services.brev,
+            leaderPodLookup = clients.leaderPodLookup,
+        ).schedule()
+        PersonhendelseOppgaveJob(
+            personhendelseService = personhendelseService,
             leaderPodLookup = clients.leaderPodLookup,
         ).schedule()
     }

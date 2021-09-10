@@ -6,7 +6,6 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.assertions.fail
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
@@ -34,6 +33,7 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -133,7 +133,7 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = listOf(
                     lagFradragsgrunnlag(
                         type = Fradragstype.Arbeidsinntekt,
@@ -279,7 +279,7 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = listOf(
                     lagFradragsgrunnlag(
                         type = Fradragstype.Arbeidsinntekt,
@@ -438,16 +438,12 @@ internal class RevurderingServiceImplTest {
             verify(utbetalingMock, times(2)).id
             verify(vedtakRepoMock).lagre(
                 argThat {
-                    it should beOfType<Vedtak.EndringIYtelse>()
+                    it should beOfType<Vedtak.EndringIYtelse.InnvilgetRevurdering>()
                     it.vedtakType shouldBe VedtakType.ENDRING
                 },
             )
             verify(revurderingRepoMock).lagre(argThat { it shouldBe iverksattRevurdering })
-            verify(eventObserver).handle(
-                argThat {
-                    it shouldBe Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering)
-                },
-            )
+            verify(eventObserver, times(2)).handle(any())
         }
         verifyNoMoreInteractions(
             revurderingRepoMock,
@@ -510,7 +506,7 @@ internal class RevurderingServiceImplTest {
             )
             verify(vedtakRepoMock).lagre(
                 argThat {
-                    it should beOfType<Vedtak.EndringIYtelse>()
+                    it should beOfType<Vedtak.EndringIYtelse.OpphørtRevurdering>()
                     it.vedtakType shouldBe VedtakType.OPPHØR
                 },
             )
@@ -632,7 +628,7 @@ internal class RevurderingServiceImplTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attestering),
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = listOf(
                     lagFradragsgrunnlag(
                         type = Fradragstype.Arbeidsinntekt,
@@ -744,7 +740,7 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -1830,7 +1826,7 @@ internal class RevurderingServiceImplTest {
             revurderingsperiode = revurderingsperiode,
             grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
                 vilkårsvurderinger = vilkårsvurderingerInnvilget(periode = revurderingsperiode),
-                grunnlagsdata = Grunnlagsdata.tryCreate(
+                grunnlagsdata = Grunnlagsdata.create(
                     bosituasjon = listOf(
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
                             id = UUID.randomUUID(),
@@ -1871,10 +1867,8 @@ internal class RevurderingServiceImplTest {
             ),
         )
 
-        shouldThrow<IllegalArgumentException> {
-            revurderingService.leggTilFradragsgrunnlag(
-                request,
-            )
-        }
+        revurderingService.leggTilFradragsgrunnlag(
+            request,
+        ) shouldBe KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(KunneIkkeLageGrunnlagsdata.FradragManglerBosituasjon).left()
     }
 }

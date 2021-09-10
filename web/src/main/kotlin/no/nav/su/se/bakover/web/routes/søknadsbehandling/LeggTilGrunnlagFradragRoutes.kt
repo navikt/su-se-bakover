@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
+import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.utenforBehandlingsperioden
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
@@ -51,11 +52,7 @@ internal fun Route.leggTilGrunnlagFradrag(
                             },
                             type = fradrag.type.let {
                                 Fradragstype.tryParse(it).getOrHandle {
-                                    return HttpStatusCode.BadRequest.errorJson(
-                                        "Ugyldig fradragstype",
-                                        "ugyldig_fradragstype",
-                                    )
-                                        .left()
+                                    return Behandlingsfeilresponser.ugyldigFradragstype.left()
                                 }
                             },
                             månedsbeløp = fradrag.beløp,
@@ -67,10 +64,7 @@ internal fun Route.leggTilGrunnlagFradrag(
                         ),
                     ).getOrHandle {
                         return when (it) {
-                            Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> HttpStatusCode.BadRequest.errorJson(
-                                "Ugyldig fradragstype",
-                                "ugyldig_fradragstype",
-                            ).left()
+                            Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> Behandlingsfeilresponser.ugyldigFradragstype.left()
                         }
                     }
                 },
@@ -89,12 +83,14 @@ internal fun Route.leggTilGrunnlagFradrag(
                                         when (it) {
                                             KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling -> fantIkkeBehandling
                                             KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden -> utenforBehandlingsperioden
-                                            KunneIkkeLeggeTilFradragsgrunnlag.HarIkkeEktelle -> Behandlingsfeilresponser.måHaEpsHvisManHarfradragForEps
-                                            KunneIkkeLeggeTilFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> Behandlingsfeilresponser.ugyldigFradragstype
                                             is KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand -> Behandlingsfeilresponser.ugyldigTilstand(
                                                 fra = it.fra,
                                             )
-                                            KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler -> Behandlingsfeilresponser.periodeMangler
+                                            KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler -> HttpStatusCode.BadRequest.errorJson(
+                                                "periode mangler",
+                                                "periode_mangler",
+                                            )
+                                            is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
                                         }
                                     }
                                     .map {
@@ -122,19 +118,9 @@ private data class FradragsgrunnlagJson(
 )
 
 internal object Behandlingsfeilresponser {
-    val måHaEpsHvisManHarfradragForEps = HttpStatusCode.BadRequest.errorJson(
-        "Ikke lov med fradrag for eps hvis man ikke har eps",
-        "ikke_lov_med_fradrag_for_eps_hvis_man_ikke_har_eps",
-    )
-
     val ugyldigFradragstype = HttpStatusCode.BadRequest.errorJson(
         "ugyldig fradragstype",
         "fradrag_ugyldig_fradragstype",
-    )
-
-    val periodeMangler = HttpStatusCode.BadRequest.errorJson(
-        "periode mangler",
-        "periode_mangler",
     )
 
     fun ugyldigTilstand(fra: KClass<*>): Resultat {

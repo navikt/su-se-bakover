@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
+import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarslingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.Resultat
@@ -67,11 +68,23 @@ internal fun Route.fortsettEtterForhåndsvarselRoute(
                     }
                         .flatMap {
                             revurderingService.fortsettEtterForhåndsvarsling(it)
-                                .mapLeft {
-                                    HttpStatusCode.BadRequest.errorJson(
-                                        "Klarte ikke fortsette revurdering etter forhåndsvarsling",
-                                        "klarte_ikke_fortsette_revurdering_etter_forhåndsvarsling",
-                                    )
+                                .mapLeft { fortsettEtterForhåndsvarselFeil ->
+                                    when (fortsettEtterForhåndsvarselFeil) {
+                                        FortsettEtterForhåndsvarselFeil.AlleredeBesluttet -> HttpStatusCode.BadRequest.errorJson(
+                                            "Forhåndsvarslingen er allerede besluttet",
+                                            "forhåndsvarslingen_er_allerede_besluttet",
+                                        )
+                                        is FortsettEtterForhåndsvarselFeil.Attestering -> fortsettEtterForhåndsvarselFeil.subError.tilResultat()
+                                        FortsettEtterForhåndsvarselFeil.FantIkkeRevurdering -> Revurderingsfeilresponser.fantIkkeRevurdering
+                                        FortsettEtterForhåndsvarselFeil.RevurderingErIkkeForhåndsvarslet -> HttpStatusCode.BadRequest.errorJson(
+                                            "Revurderingen er ikke forhåndsvarslet",
+                                            "ikke_forhåndsvarslet",
+                                        )
+                                        FortsettEtterForhåndsvarselFeil.RevurderingErIkkeIRiktigTilstand -> HttpStatusCode.BadRequest.errorJson(
+                                            "Revurderingen er ikke i riktig tilstand for å beslutte forhåndsvarslingen",
+                                            "ikke_riktig_tilstand_for_å_beslutte_forhåndsvarslingen",
+                                        )
+                                    }
                                 }
                         }
                         .fold(

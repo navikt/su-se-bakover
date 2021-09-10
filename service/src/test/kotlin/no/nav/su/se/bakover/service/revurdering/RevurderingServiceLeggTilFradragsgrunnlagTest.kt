@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.nonEmptyListOf
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -15,6 +14,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
@@ -81,7 +81,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
                     informasjonSomRevurderes = InformasjonSomRevurderes.create(
                         mapOf(Revurderingsteg.Inntekt to Vurderingstatus.Vurdert),
                     ),
-                    grunnlagsdata = Grunnlagsdata.tryCreate(
+                    grunnlagsdata = Grunnlagsdata.create(
                         bosituasjon = revurdering.grunnlagsdata.bosituasjon,
                         fradragsgrunnlag = nonEmptyListOf(
                             fradragsgrunnlagArbeidsinntekt(periode = revurdering.periode, arbeidsinntekt = 5000.0).copy(
@@ -184,7 +184,7 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
             revurderingsperiode = revurderingsperiode,
             grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
                 vilkårsvurderinger = vilkårsvurderingerInnvilget(periode = revurderingsperiode),
-                grunnlagsdata = Grunnlagsdata.tryCreate(
+                grunnlagsdata = Grunnlagsdata.create(
                     bosituasjon = listOf(
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
                             id = UUID.randomUUID(),
@@ -228,10 +228,9 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
             ),
         )
 
-        shouldThrow<IllegalArgumentException> {
-            revurderingService.leggTilFradragsgrunnlag(
-                request,
-            )
-        }
+        revurderingService.leggTilFradragsgrunnlag(
+            request,
+        ) shouldBe KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(KunneIkkeLageGrunnlagsdata.FradragManglerBosituasjon)
+            .left()
     }
 }

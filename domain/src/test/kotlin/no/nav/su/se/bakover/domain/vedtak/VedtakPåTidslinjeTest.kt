@@ -88,7 +88,7 @@ internal class VedtakPåTidslinjeTest {
         val original = Vedtak.VedtakPåTidslinje(
             opprettet = Tidspunkt.now(fixedClock),
             periode = periode,
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = listOf(f1, f2),
                 bosituasjon = listOf(bosituasjon),
             ),
@@ -216,7 +216,7 @@ internal class VedtakPåTidslinjeTest {
         val original = Vedtak.VedtakPåTidslinje(
             opprettet = Tidspunkt.now(fixedClock),
             periode = periode,
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(b1, b2),
                 fradragsgrunnlag = listOf(f1, f2),
             ),

@@ -66,7 +66,7 @@ class SøknadsbehandlingServiceBeregningTest {
         fnr = Fnr.generer(),
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.tryCreate(
+        grunnlagsdata = Grunnlagsdata.create(
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
@@ -100,7 +100,7 @@ class SøknadsbehandlingServiceBeregningTest {
         )
 
         val behandling = vilkårsvurdertBehandling.copy(
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = vilkårsvurdertBehandling.grunnlagsdata.bosituasjon,
                 fradragsgrunnlag = listOf(
                     lagFradragsgrunnlag(
@@ -164,7 +164,7 @@ class SøknadsbehandlingServiceBeregningTest {
             ),
             fritekstTilBrev = "",
             stønadsperiode = vilkårsvurdertBehandling.stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.tryCreate(
+            grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = response.orNull()!!.grunnlagsdata.bosituasjon[0].id,

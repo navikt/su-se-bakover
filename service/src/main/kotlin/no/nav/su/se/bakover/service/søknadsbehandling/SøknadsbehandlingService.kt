@@ -4,9 +4,10 @@ import arrow.core.Either
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
+import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
@@ -60,9 +61,6 @@ interface SøknadsbehandlingService {
 
     sealed class KunneIkkeBeregne {
         object FantIkkeBehandling : KunneIkkeBeregne()
-        object IkkeLovMedFradragUtenforPerioden : KunneIkkeBeregne()
-        object UgyldigFradragstype : KunneIkkeBeregne()
-        object HarIkkeEktefelle : KunneIkkeBeregne()
     }
 
     data class SimulerRequest(
@@ -118,7 +116,6 @@ interface SøknadsbehandlingService {
     }
 
     sealed class KunneIkkeLageBrev {
-        data class KanIkkeLageBrevutkastForStatus(val status: BehandlingsStatus) : KunneIkkeLageBrev()
         object KunneIkkeLagePDF : KunneIkkeLageBrev()
         object FantIkkePerson : KunneIkkeLageBrev()
         object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeLageBrev()
@@ -134,8 +131,8 @@ interface SøknadsbehandlingService {
 
     sealed class KunneIkkeOppdatereStønadsperiode {
         object FantIkkeBehandling : SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
-        object FraOgMedDatoKanIkkeVæreFør2021 : SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
-        object PeriodeKanIkkeVæreLengreEnn12Måneder : SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
+        data class KunneIkkeOppdatereStønadsperiode(val feil: Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode) :
+            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
     }
 
     data class OppdaterStønadsperiodeRequest(
@@ -164,6 +161,7 @@ interface SøknadsbehandlingService {
         ) : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
 
         object KlarteIkkeHentePersonIPdl : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
+        data class KunneIkkeEndreBosituasjonEpsGrunnlag(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
     }
 
     sealed class KunneIkkeFullføreBosituasjonGrunnlag {
@@ -175,17 +173,17 @@ interface SøknadsbehandlingService {
 
         object KlarteIkkeLagreBosituasjon : KunneIkkeFullføreBosituasjonGrunnlag()
         object KlarteIkkeHentePersonIPdl : KunneIkkeFullføreBosituasjonGrunnlag()
+        data class KunneIkkeEndreBosituasjongrunnlag(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeFullføreBosituasjonGrunnlag()
     }
 
     sealed class KunneIkkeLeggeTilFradragsgrunnlag {
         object FantIkkeBehandling : KunneIkkeLeggeTilFradragsgrunnlag()
         object GrunnlagetMåVæreInnenforBehandlingsperioden : KunneIkkeLeggeTilFradragsgrunnlag()
-        object UgyldigFradragstypeForGrunnlag : KunneIkkeLeggeTilFradragsgrunnlag()
         object PeriodeMangler : KunneIkkeLeggeTilFradragsgrunnlag()
-        object HarIkkeEktelle : KunneIkkeLeggeTilFradragsgrunnlag()
         data class UgyldigTilstand(
             val fra: KClass<out Søknadsbehandling>,
             val til: KClass<out Søknadsbehandling>,
         ) : KunneIkkeLeggeTilFradragsgrunnlag()
+        data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilFradragsgrunnlag()
     }
 }

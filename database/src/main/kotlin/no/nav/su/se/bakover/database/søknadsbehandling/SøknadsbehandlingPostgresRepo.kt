@@ -156,10 +156,11 @@ internal class SøknadsbehandlingPostgresRepo(
         val stønadsperiode = stringOrNull("stønadsperiode")?.let { objectMapper.readValue<Stønadsperiode>(it) }
 
         val fnr = Fnr(string("fnr"))
-        val grunnlagsdata = Grunnlagsdata.tryCreate(
+        val grunnlagsdata = Grunnlagsdata.create(
             fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingId, session),
             bosituasjon = bosituasjongrunnlagRepo.hentBosituasjongrunnlag(behandlingId, session),
         )
+
         val vilkårsvurderinger = Vilkårsvurderinger(
             uføre = uføreVilkårsvurderingRepo.hent(behandlingId, session),
         )

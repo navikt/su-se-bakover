@@ -156,7 +156,7 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
         }
 
-        // TODO ai 25.02.2021 - Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
+        // Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
         return oppgaveService.opprettOppgave(
             OppgaveConfig.Revurderingsbehandling(
                 saksnummer = gjeldendeVedtakPåFraOgMedDato.behandling.saksnummer,
@@ -254,10 +254,15 @@ internal class RevurderingServiceImpl(
             ?: return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
 
         return revurdering.oppdaterFradragOgMarkerSomVurdert(request.fradragsgrunnlag).mapLeft {
-            KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
-                revurdering::class,
-                OpprettetRevurdering::class,
-            )
+            when (it) {
+                is Revurdering.KunneIkkeLeggeTilFradrag.Valideringsfeil -> KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(
+                    it.feil,
+                )
+                is Revurdering.KunneIkkeLeggeTilFradrag.UgyldigTilstand -> KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
+                    revurdering::class,
+                    OpprettetRevurdering::class,
+                )
+            }
         }.map {
             // TODO jah: Flytt denne inn i revurderingRepo.lagre
             grunnlagService.lagreFradragsgrunnlag(it.id, it.grunnlagsdata.fradragsgrunnlag)
@@ -281,10 +286,15 @@ internal class RevurderingServiceImpl(
             }
 
         return revurdering.oppdaterBosituasjonOgMarkerSomVurdert(bosituasjongrunnlag).mapLeft {
-            KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand(
-                revurdering::class,
-                OpprettetRevurdering::class,
-            )
+            when (it) {
+                is Revurdering.KunneIkkeLeggeTilBosituasjon.Valideringsfeil -> KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeEndreBosituasjongrunnlag(
+                    it.feil,
+                )
+                is Revurdering.KunneIkkeLeggeTilBosituasjon.UgyldigTilstand -> KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand(
+                    revurdering::class,
+                    OpprettetRevurdering::class,
+                )
+            }
         }.map {
             // TODO jah: Flytt denne inn i revurderingRepo.lagre
             grunnlagService.lagreBosituasjongrunnlag(it.id, it.grunnlagsdata.bosituasjon)
@@ -821,11 +831,13 @@ internal class RevurderingServiceImpl(
         }
     }
 
+    // TODO ai: Extraher ut logikk till funskjoner for å forenkle flyten
     override fun iverksett(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
         var utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering? = null
+        var vedtak: Vedtak? = null
 
         val revurdering = revurderingRepo.hent(revurderingId)
             ?: return KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left()
@@ -863,6 +875,7 @@ internal class RevurderingServiceImpl(
                                     vedtakRepo.lagre(vedtakIngenEndring)
                                     brevService.lagreDokument(dokument)
                                 } else {
+                                    vedtak = vedtakIngenEndring
                                     vedtakRepo.lagre(vedtakIngenEndring)
                                 }
                                 iverksattRevurdering
@@ -882,9 +895,12 @@ internal class RevurderingServiceImpl(
                                 utbetaling = it
                                 it.id
                             }
-                        }.map {
-                            vedtakRepo.lagre(Vedtak.from(it, utbetaling!!.id, clock))
-                            it
+                        }.map { iverksattRevurdering ->
+                            vedtak = Vedtak.from(iverksattRevurdering, utbetaling!!.id, clock).let {
+                                vedtakRepo.lagre(it)
+                                it
+                            }
+                            iverksattRevurdering
                         }
                     }
                     is RevurderingTilAttestering.Opphørt -> {
@@ -902,14 +918,17 @@ internal class RevurderingServiceImpl(
                                 it.id
                             }
                         }.map {
-                            vedtakRepo.lagre(Vedtak.from(it, utbetaling!!.id, clock))
+                            vedtak = Vedtak.from(it, utbetaling!!.id, clock)
+                            vedtakRepo.lagre(vedtak as Vedtak.EndringIYtelse)
                             it
                         }
                     }
                 }.getOrHandle {
                     return when (it) {
                         RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
-                        is RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it.utbetalingFeilet)
+                        is RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(
+                            it.utbetalingFeilet,
+                        )
                     }.left()
                 }
 
@@ -918,7 +937,15 @@ internal class RevurderingServiceImpl(
                     observer.handle(
                         Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering),
                     )
+                    if (vedtak is Vedtak.EndringIYtelse) {
+                        observer.handle(
+                            Event.Statistikk.Vedtaksstatistikk(
+                                vedtak as Vedtak.EndringIYtelse
+                            ),
+                        )
+                    }
                 }
+
                 return iverksattRevurdering.right()
             }
             else -> KunneIkkeIverksetteRevurdering.UgyldigTilstand(revurdering::class, IverksattRevurdering::class)

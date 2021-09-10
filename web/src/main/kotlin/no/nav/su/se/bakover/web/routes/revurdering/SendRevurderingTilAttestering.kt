@@ -17,12 +17,10 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeAktørId
+import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeAktørId
+import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.feilutbetalingStøttesIkke
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.kunneIkkeOppretteOppgave
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.manglerBeslutningPåForhåndsvarsel
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -72,8 +70,14 @@ internal fun KunneIkkeSendeRevurderingTilAttestering.tilResultat(): Resultat {
             "G-regulering kan ikke føre til opphør",
             "g_regulering_kan_ikke_føre_til_opphør",
         )
-        is KunneIkkeSendeRevurderingTilAttestering.ManglerBeslutningPåForhåndsvarsel -> manglerBeslutningPåForhåndsvarsel
-        KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke -> feilutbetalingStøttesIkke
+        is KunneIkkeSendeRevurderingTilAttestering.ManglerBeslutningPåForhåndsvarsel -> BadRequest.errorJson(
+            "Mangler beslutning på forhåndsvarsel",
+            "mangler_beslutning_på_forhåndsvarsel",
+        )
+        KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke -> HttpStatusCode.InternalServerError.errorJson(
+            "Feilutbetalinger støttes ikke",
+            "feilutbetalinger_støttes_ikke",
+        )
         is KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke -> BadRequest.errorJson(feilmeldinger.map { it.toJson() })
     }
 }

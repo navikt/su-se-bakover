@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.Either
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
@@ -8,6 +9,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 
@@ -208,43 +210,68 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
     }
 
     class OppdaterStønadsperiode(
-        private val stønadsperiode: Stønadsperiode,
-    ) : Statusovergang<Nothing, Søknadsbehandling.Vilkårsvurdert>() {
+        private val oppdatertStønadsperiode: Stønadsperiode,
+    ) : Statusovergang<OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode, Søknadsbehandling.Vilkårsvurdert>() {
+
+        sealed class KunneIkkeOppdatereStønadsperiode {
+            data class KunneIkkeOppdatereGrunnlagsdata(val feil: KunneIkkeLageGrunnlagsdata) :
+                KunneIkkeOppdatereStønadsperiode()
+        }
+
+        private fun oppdater(søknadsbehandling: Søknadsbehandling): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling.Vilkårsvurdert> {
+            return Søknadsbehandling.Vilkårsvurdert.Uavklart(
+                id = søknadsbehandling.id,
+                opprettet = søknadsbehandling.opprettet,
+                sakId = søknadsbehandling.sakId,
+                saksnummer = søknadsbehandling.saksnummer,
+                søknad = søknadsbehandling.søknad,
+                oppgaveId = søknadsbehandling.oppgaveId,
+                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
+                fnr = søknadsbehandling.fnr,
+                fritekstTilBrev = søknadsbehandling.fritekstTilBrev,
+                stønadsperiode = oppdatertStønadsperiode,
+                grunnlagsdata = søknadsbehandling.grunnlagsdata.oppdaterGrunnlagsperioder(
+                    oppdatertPeriode = oppdatertStønadsperiode.periode,
+                ).getOrHandle { return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left() },
+                vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger.oppdaterStønadsperiode(oppdatertStønadsperiode),
+                attesteringer = søknadsbehandling.attesteringer,
+            ).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
+        }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {
-            result = søknadsbehandling.copy(stønadsperiode = stønadsperiode, vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger.oppdaterStønadsperiode(stønadsperiode)).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
+            result = oppdater(søknadsbehandling)
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {
-            result = søknadsbehandling.copy(stønadsperiode = stønadsperiode, vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger.oppdaterStønadsperiode(stønadsperiode)).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
+            result = oppdater(søknadsbehandling)
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
-            result = søknadsbehandling.copy(stønadsperiode = stønadsperiode, vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger.oppdaterStønadsperiode(stønadsperiode)).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
+            result = oppdater(søknadsbehandling)
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
-            result = søknadsbehandling.copy(stønadsperiode = stønadsperiode, vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger.oppdaterStønadsperiode(stønadsperiode)).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
+            result = oppdater(søknadsbehandling)
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
-            result = søknadsbehandling.copy(stønadsperiode = stønadsperiode, vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger.oppdaterStønadsperiode(stønadsperiode)).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
+            result = oppdater(søknadsbehandling)
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
-            result = søknadsbehandling.copy(stønadsperiode = stønadsperiode, vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger.oppdaterStønadsperiode(stønadsperiode)).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
+            result = oppdater(søknadsbehandling)
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
-            result = søknadsbehandling.copy(stønadsperiode = stønadsperiode, vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger.oppdaterStønadsperiode(stønadsperiode)).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
+            result = oppdater(søknadsbehandling)
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
-            result = søknadsbehandling.copy(stønadsperiode = stønadsperiode, vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger.oppdaterStønadsperiode(stønadsperiode)).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
+            result = oppdater(søknadsbehandling)
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.UtenBeregning) {
-            result = søknadsbehandling.copy(stønadsperiode = stønadsperiode, vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger.oppdaterStønadsperiode(stønadsperiode)).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
+            result = oppdater(søknadsbehandling)
         }
     }
 }

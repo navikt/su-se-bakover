@@ -353,7 +353,6 @@ internal class SøknadsbehandlingServiceImpl(
                         vedtakssnapshot = Vedtakssnapshot.Innvilgelse.createFromBehandling(
                             iverksattBehandling,
                             utbetaling!!,
-                            vedtak.journalføringOgBrevdistribusjon,
                         ),
                     )
                     behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
@@ -365,6 +364,7 @@ internal class SøknadsbehandlingServiceImpl(
                                     iverksattBehandling,
                                 ),
                             )
+                            observer.handle((Event.Statistikk.Vedtaksstatistikk(vedtak)))
                         }
                     }
                 }
@@ -385,7 +385,6 @@ internal class SøknadsbehandlingServiceImpl(
                         vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(
                             søknadsbehandling = iverksattBehandling,
                             avslagsgrunner = iverksattBehandling.avslagsgrunner,
-                            journalføringOgBrevdistribusjon = vedtak.journalføringOgBrevdistribusjon,
                         ),
                     )
                     behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
@@ -483,16 +482,20 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
 
-        return statusovergang(
+        return forsøkStatusovergang(
             søknadsbehandling = søknadsbehandling,
             statusovergang = Statusovergang.OppdaterStønadsperiode(request.stønadsperiode),
-        ).let {
+        ).mapLeft {
+            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode(it)
+        }.map {
             søknadsbehandlingRepo.lagre(it)
             vilkårsvurderingService.lagre(
                 it.id,
                 it.vilkårsvurderinger,
             )
-            it.right()
+            grunnlagService.lagreBosituasjongrunnlag(it.id, it.grunnlagsdata.bosituasjon)
+            grunnlagService.lagreFradragsgrunnlag(it.id, it.grunnlagsdata.fradragsgrunnlag)
+            it
         }
     }
 
@@ -581,19 +584,25 @@ internal class SøknadsbehandlingServiceImpl(
                             bosituasjon,
                         ),
                         fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                    ),
+                    ).getOrHandle {
+                        return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag(it).left()
+                    },
                 )
                 is Søknadsbehandling.Vilkårsvurdert.Innvilget -> it.copy(
                     grunnlagsdata = Grunnlagsdata.tryCreate(
                         bosituasjon = listOf(bosituasjon),
                         fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                    ),
+                    ).getOrHandle {
+                        return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag(it).left()
+                    },
                 )
                 is Søknadsbehandling.Vilkårsvurdert.Uavklart -> it.copy(
                     grunnlagsdata = Grunnlagsdata.tryCreate(
                         bosituasjon = listOf(bosituasjon),
                         fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                    ),
+                    ).getOrHandle {
+                        return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag(it).left()
+                    },
                 )
             }.right()
         }
@@ -633,19 +642,25 @@ internal class SøknadsbehandlingServiceImpl(
                     grunnlagsdata = Grunnlagsdata.tryCreate(
                         bosituasjon = listOf(bosituasjon),
                         fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                    ),
+                    ).getOrHandle {
+                        return KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(it).left()
+                    },
                 )
                 is Søknadsbehandling.Vilkårsvurdert.Innvilget -> it.copy(
                     grunnlagsdata = Grunnlagsdata.tryCreate(
                         bosituasjon = listOf(bosituasjon),
                         fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                    ),
+                    ).getOrHandle {
+                        return KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(it).left()
+                    },
                 )
                 is Søknadsbehandling.Vilkårsvurdert.Uavklart -> it.copy(
                     grunnlagsdata = Grunnlagsdata.tryCreate(
                         bosituasjon = listOf(bosituasjon),
                         fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                    ),
+                    ).getOrHandle {
+                        return KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag(it).left()
+                    },
                 )
             }.right()
         }
@@ -688,6 +703,9 @@ internal class SøknadsbehandlingServiceImpl(
                     til = Søknadsbehandling.Vilkårsvurdert.Innvilget::class,
                 ).left()
                 PeriodeMangler -> KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler.left()
+                is Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(
+                    it.feil,
+                ).left()
             }
         }
 

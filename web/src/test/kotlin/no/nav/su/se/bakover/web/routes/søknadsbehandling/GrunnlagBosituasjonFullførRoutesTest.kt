@@ -317,8 +317,8 @@ class GrunnlagBosituasjonFullførRoutesTest {
             ) {
                 setBody("""{ "bosituasjon": "EPS_UFØR_FLYKTNING", "begrunnelse": null}""".trimIndent())
             }.apply {
-                response.status() shouldBe HttpStatusCode.NotFound
-                response.content shouldContain ("klarte_ikke_lagre_bosituasjon")
+                response.status() shouldBe HttpStatusCode.BadRequest
+                response.content shouldContain ("kunne_ikke_legge_til_bosituasjonsgrunnlag")
                 // For å treffe denne må man prøve å fullføre en ufullstendig bosituasjon som burde ha fnr, men som ikke har det
             }
         }

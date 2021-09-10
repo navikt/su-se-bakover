@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.web.Resultat
+import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
 import no.nav.su.se.bakover.web.svar
@@ -69,8 +70,14 @@ internal fun Route.hentGrunnlagRevurderingRoutes(
                         ifLeft = {
                             call.svar(
                                 when (it) {
-                                    KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIkkeVedtak -> Revurderingsfeilresponser.fantIkkeVedtak
-                                    KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.IngenTidligereVedtak -> Revurderingsfeilresponser.fantIkkeTidligereGrunnlagsdata
+                                    KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.FantIkkeVedtak -> HttpStatusCode.NotFound.errorJson(
+                                        "Fant ikke vedtak",
+                                        "fant_ikke_vedtak",
+                                    )
+                                    KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak.IngenTidligereVedtak -> HttpStatusCode.NotFound.errorJson(
+                                        "Fant ikke grunnlagsdata for tidligere vedtak",
+                                        "fant_ikke_tidligere_grunnlagsdata",
+                                    )
                                 },
                             )
                         },

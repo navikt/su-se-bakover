@@ -50,7 +50,7 @@ import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
-import no.nav.su.se.bakover.web.routes.Feilresponser.kanIkkeHaEpsFradragUtenEps
+import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeGenerereBrev
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson
@@ -144,18 +144,10 @@ internal fun Route.søknadsbehandlingRoutes(
                                     call.svar(
                                         when (error) {
                                             SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> fantIkkeBehandling
-                                            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FraOgMedDatoKanIkkeVæreFør2021 -> {
-                                                BadRequest.errorJson(
-                                                    "En stønadsperiode kan ikke starte før 2021",
-                                                    "stønadsperiode_før_2021",
-                                                )
-                                            }
-                                            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.PeriodeKanIkkeVæreLengreEnn12Måneder -> {
-                                                BadRequest.errorJson(
-                                                    "En stønadsperiode kan være maks 12 måneder",
-                                                    "stønadsperiode_max_12mnd",
-                                                )
-                                            }
+                                            is SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode -> InternalServerError.errorJson(
+                                                message = "Feil ved oppdatering av stønadsperiode",
+                                                code = "oppdatering_av_stønadsperiode",
+                                            )
                                         },
                                     )
                                 }
@@ -194,7 +186,6 @@ internal fun Route.søknadsbehandlingRoutes(
                             ),
                         )
                     }
-
                     søknadsbehandlingService.vilkårsvurder(
                         VilkårsvurderRequest(
                             behandlingId = behandlingId,
@@ -247,15 +238,6 @@ internal fun Route.søknadsbehandlingRoutes(
                                 .mapLeft { kunneIkkeBeregne ->
                                     val resultat = when (kunneIkkeBeregne) {
                                         KunneIkkeBeregne.FantIkkeBehandling -> fantIkkeBehandling
-                                        KunneIkkeBeregne.IkkeLovMedFradragUtenforPerioden -> BadRequest.errorJson(
-                                            "Ikke lov med fradrag utenfor perioden",
-                                            "ikke_lov_med_fradrag_utenfor_perioden",
-                                        )
-                                        KunneIkkeBeregne.UgyldigFradragstype -> BadRequest.errorJson(
-                                            "Ugyldig fradragstype",
-                                            "ugyldig_fradragstype",
-                                        )
-                                        KunneIkkeBeregne.HarIkkeEktefelle -> kanIkkeHaEpsFradragUtenEps
                                     }
                                     call.svar(resultat)
                                 }.map { behandling ->
@@ -277,12 +259,6 @@ internal fun Route.søknadsbehandlingRoutes(
                         val resultat = when (it) {
                             is KunneIkkeLageBrev.KunneIkkeLagePDF -> {
                                 InternalServerError.errorJson("Kunne ikke lage brev", "kunne_ikke_lage_pdf")
-                            }
-                            is KunneIkkeLageBrev.KanIkkeLageBrevutkastForStatus -> {
-                                BadRequest.errorJson(
-                                    "Kunne ikke lage brev for behandlingstatus: ${it.status}",
-                                    "kunne_ikke_lage_brevutkast",
-                                )
                             }
                             is KunneIkkeLageBrev.FantIkkePerson -> fantIkkePerson
                             is KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant -> {
@@ -376,12 +352,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                             "kunne_ikke_opprette_oppgave",
                                         )
                                     }
-                                    KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId -> {
-                                        InternalServerError.errorJson(
-                                            "Kunne ikke finne person",
-                                            "kunne_ikke_finne_aktørid",
-                                        )
-                                    }
+                                    KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId -> Feilresponser.fantIkkeAktørId
                                     KunneIkkeSendeTilAttestering.FantIkkeBehandling -> fantIkkeBehandling
                                 }
                                 call.svar(resultat)
@@ -399,7 +370,6 @@ internal fun Route.søknadsbehandlingRoutes(
     }
 
     authorize(Brukerrolle.Attestant) {
-
         fun kunneIkkeIverksetteMelding(value: KunneIkkeIverksette): Resultat {
             return when (value) {
                 is KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> {
@@ -409,12 +379,7 @@ internal fun Route.søknadsbehandlingRoutes(
                     )
                 }
                 is KunneIkkeIverksette.KunneIkkeUtbetale -> value.utbetalingFeilet.tilResultat()
-                is KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev -> {
-                    InternalServerError.errorJson(
-                        "Feil ved generering av vedtaksbrev",
-                        "kunne_ikke_generere_brev",
-                    )
-                }
+                is KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev -> kunneIkkeGenerereBrev
                 is KunneIkkeIverksette.FantIkkeBehandling -> fantIkkeBehandling
                 is KunneIkkeIverksette.FantIkkePerson -> fantIkkePerson
                 is KunneIkkeIverksette.FikkIkkeHentetSaksbehandlerEllerAttestant -> {
@@ -495,12 +460,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                                 "kunne_ikke_opprette_oppgave",
                                             )
                                         }
-                                        KunneIkkeUnderkjenne.FantIkkeAktørId -> {
-                                            InternalServerError.errorJson(
-                                                "Fant ikke aktørid som er knyttet til tokenet",
-                                                "fant_ikke_aktørid",
-                                            )
-                                        }
+                                        KunneIkkeUnderkjenne.FantIkkeAktørId -> Feilresponser.fantIkkeAktørId
                                     }
                                     call.svar(resultat)
                                 },

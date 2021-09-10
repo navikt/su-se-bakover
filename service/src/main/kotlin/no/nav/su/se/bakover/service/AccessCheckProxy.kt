@@ -47,7 +47,6 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.service.brev.FantIngenDokumenter
 import no.nav.su.se.bakover.service.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.service.brev.KunneIkkeBestilleBrevForDokument
 import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreDokument
@@ -114,15 +113,21 @@ open class AccessCheckProxy(
     fun proxy(): Services {
         return Services(
             avstemming = object : AvstemmingService {
-                override fun avstemming(): Either<AvstemmingFeilet, Avstemming> {
-                    return services.avstemming.avstemming()
+                override fun grensesnittsavstemming(): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming> {
+                    return services.avstemming.grensesnittsavstemming()
                 }
 
-                override fun avstemming(
+                override fun grensesnittsavstemming(
                     fraOgMed: Tidspunkt,
                     tilOgMed: Tidspunkt,
-                ): Either<AvstemmingFeilet, Avstemming> {
-                    return services.avstemming.avstemming(fraOgMed, tilOgMed)
+                ): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming> {
+                    return services.avstemming.grensesnittsavstemming(fraOgMed, tilOgMed)
+                }
+
+                override fun konsistensavstemming(
+                    løpendeFraOgMed: LocalDate,
+                ): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming.Ny> {
+                    return services.avstemming.konsistensavstemming(løpendeFraOgMed)
                 }
             },
             utbetaling = object : UtbetalingService {
@@ -272,11 +277,6 @@ open class AccessCheckProxy(
             brev = object : BrevService {
                 override fun lagBrev(request: LagBrevRequest) = kastKanKunKallesFraAnnenService()
 
-                override fun journalførBrev(
-                    request: LagBrevRequest,
-                    saksnummer: Saksnummer,
-                ) = kastKanKunKallesFraAnnenService()
-
                 override fun distribuerBrev(journalpostId: JournalpostId) = kastKanKunKallesFraAnnenService()
 
                 override fun distribuerDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeBestilleBrevForDokument, Dokumentdistribusjon> {
@@ -299,7 +299,7 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): Either<FantIngenDokumenter, List<Dokument>> {
+                override fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): List<Dokument> {
                     when (hentDokumenterForIdType) {
                         is HentDokumenterForIdType.Revurdering -> assertHarTilgangTilRevurdering(hentDokumenterForIdType.id)
                         is HentDokumenterForIdType.Sak -> assertHarTilgangTilSak(hentDokumenterForIdType.id)
@@ -351,6 +351,10 @@ open class AccessCheckProxy(
                     assertHarTilgangTilPerson(fnr)
 
                     return services.person.hentAktørId(fnr)
+                }
+
+                override fun hentAktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
+                    kastKanKunKallesFraAnnenService()
                 }
 
                 override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> {
@@ -436,17 +440,6 @@ open class AccessCheckProxy(
             },
             ferdigstillVedtak = object : FerdigstillVedtakService {
                 override fun ferdigstillVedtakEtterUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering): Unit =
-                    kastKanKunKallesFraAnnenService()
-
-                override fun opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver(): FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
-                    // Dette er et driftsendepunkt og vi vil ikke returnere kode 6/7/person-sensitive data.
-                    return services.ferdigstillVedtak.opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver()
-                }
-
-                override fun journalførOgLagre(vedtak: Vedtak): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev, Vedtak> =
-                    kastKanKunKallesFraAnnenService()
-
-                override fun distribuerOgLagre(vedtak: Vedtak): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeDistribuereBrev, Vedtak> =
                     kastKanKunKallesFraAnnenService()
 
                 override fun lukkOppgaveMedBruker(vedtak: Vedtak): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> =

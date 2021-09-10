@@ -12,6 +12,8 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
+import no.nav.su.se.bakover.web.routes.Feilresponser
+import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigBody
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -69,12 +71,10 @@ private fun KunneIkkeLeggeTilBosituasjongrunnlag.tilResultat() = when (this) {
         "kunne ikke slå opp EPS",
         "kunne_ikke_slå_opp_eps",
     )
-    KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData -> HttpStatusCode.BadRequest.errorJson(
-        "ugyldig data",
-        "ugyldig_data",
-    )
-    is KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand -> Revurderingsfeilresponser.ugyldigTilstand(
+    KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData -> ugyldigBody
+    is KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
         this.fra,
         this.til,
     )
+    is KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeEndreBosituasjongrunnlag -> Feilresponser.kunneIkkeLeggeTilBosituasjonsgrunnlag
 }

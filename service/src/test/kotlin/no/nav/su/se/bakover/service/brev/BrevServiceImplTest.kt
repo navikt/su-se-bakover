@@ -6,7 +6,6 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
-import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.dokdistfordeling.KunneIkkeBestilleDistribusjon
 import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
@@ -29,7 +28,6 @@ import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
@@ -83,30 +81,6 @@ internal class BrevServiceImplTest {
         ).brevService.lagBrev(DummyRequest) shouldBe KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
         verify(pdfGeneratorMock).genererPdf(DummyBrevInnhold)
         verifyNoMoreInteractions(pdfGeneratorMock)
-    }
-
-    @Test
-    fun `journalfører brev`() {
-        val pdf = "".toByteArray()
-        val saksnummer = Saksnummer(2021)
-
-        val pdfGeneratorMock = mock<PdfGenerator> {
-            on { genererPdf(any<BrevInnhold>()) } doReturn pdf.right()
-        }
-        val dokArkivMock = mock<DokArkiv> {
-            on { opprettJournalpost(any()) } doReturn JournalpostId("journalpostId").right()
-        }
-
-        ServiceOgMocks(
-            pdfGenerator = pdfGeneratorMock,
-            dokArkiv = dokArkivMock,
-        ).brevService.journalførBrev(DummyRequest, saksnummer) shouldBe JournalpostId("journalpostId").right()
-
-        verify(pdfGeneratorMock).genererPdf(DummyBrevInnhold)
-        verify(dokArkivMock).opprettJournalpost(
-            argThat { it shouldBe Journalpost.Vedtakspost.from(person, saksnummer, DummyBrevInnhold, pdf) },
-        )
-        verifyNoMoreInteractions(pdfGeneratorMock, dokArkivMock)
     }
 
     @Test
@@ -356,28 +330,20 @@ internal class BrevServiceImplTest {
 
         service.hentDokumenterFor(HentDokumenterForIdType.Sak(sakId)) shouldBe listOf(
             sakDokument,
-        ).right()
-        service.hentDokumenterFor(HentDokumenterForIdType.Sak(randomId)) shouldBe FantIngenDokumenter(
-            HentDokumenterForIdType.Sak(randomId),
-        ).left()
+        )
+        service.hentDokumenterFor(HentDokumenterForIdType.Sak(randomId)) shouldBe emptyList()
         service.hentDokumenterFor(HentDokumenterForIdType.Vedtak(vedtakId)) shouldBe listOf(
             vedtakDokument,
-        ).right()
-        service.hentDokumenterFor(HentDokumenterForIdType.Vedtak(randomId)) shouldBe FantIngenDokumenter(
-            HentDokumenterForIdType.Vedtak(randomId),
-        ).left()
+        )
+        service.hentDokumenterFor(HentDokumenterForIdType.Vedtak(randomId)) shouldBe emptyList()
         service.hentDokumenterFor(HentDokumenterForIdType.Søknad(søknadId)) shouldBe listOf(
             søknadDokument,
-        ).right()
-        service.hentDokumenterFor(HentDokumenterForIdType.Søknad(randomId)) shouldBe FantIngenDokumenter(
-            HentDokumenterForIdType.Søknad(randomId),
-        ).left()
+        )
+        service.hentDokumenterFor(HentDokumenterForIdType.Søknad(randomId)) shouldBe emptyList()
         service.hentDokumenterFor(HentDokumenterForIdType.Revurdering(revurderingId)) shouldBe listOf(
             revurderingDokument,
-        ).right()
-        service.hentDokumenterFor(HentDokumenterForIdType.Revurdering(randomId)) shouldBe FantIngenDokumenter(
-            HentDokumenterForIdType.Revurdering(randomId),
-        ).left()
+        )
+        service.hentDokumenterFor(HentDokumenterForIdType.Revurdering(randomId)) shouldBe emptyList()
     }
 
     private fun lagDokument(metadata: Dokument.Metadata): Dokument.MedMetadata.Vedtak {

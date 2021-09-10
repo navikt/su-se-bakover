@@ -141,7 +141,7 @@ object BehandlingTestUtils {
             .leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("kjella"), Tidspunkt.EPOCH)),
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.tryCreate(
+        grunnlagsdata = Grunnlagsdata.create(
             bosituasjon = listOf(bosituasjon),
         ),
         vilkårsvurderinger = Vilkårsvurderinger(

@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBehandlingId
 import no.nav.su.se.bakover.web.withBody
@@ -63,11 +62,12 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                 ).mapLeft {
                                     when (it) {
                                         SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
-                                        is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.UgyldigTilstand -> Revurderingsfeilresponser.ugyldigTilstand(
+                                        is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
                                             it.fra,
                                             it.til,
                                         )
                                         SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl -> Feilresponser.fantIkkePerson
+                                        is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag -> Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
                                     }
                                 }.map {
                                     Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
@@ -93,12 +93,13 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                 ).mapLeft {
                                     when (it) {
                                         SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
-                                        is SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.UgyldigTilstand -> Revurderingsfeilresponser.ugyldigTilstand(
+                                        is SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
                                             it.fra,
                                             it.til,
                                         )
-                                        SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLagreBosituasjon -> Feilresponser.kunneIkkeLageBosituasjon
+                                        SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLagreBosituasjon -> Feilresponser.kunneIkkeLeggeTilBosituasjonsgrunnlag
                                         SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeHentePersonIPdl -> Feilresponser.fantIkkePerson
+                                        is SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag -> Feilresponser.kunneIkkeLeggeTilBosituasjonsgrunnlag
                                     }
                                 }.map {
                                     Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))

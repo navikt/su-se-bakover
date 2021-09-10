@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
 
 interface StatistikkService {
     fun publiser(statistikk: Statistikk)
@@ -18,7 +19,7 @@ interface EventObserver {
 }
 
 sealed class Event {
-    sealed class Statistikk : Event() {
+    internal sealed class Statistikk : Event() {
         data class SakOpprettet(val sak: Sak) : Statistikk()
 
         sealed class SøknadStatistikk : Statistikk() {
@@ -60,5 +61,7 @@ sealed class Event {
             data class RevurderingUnderkjent(override val revurdering: UnderkjentRevurdering) :
                 RevurderingStatistikk()
         }
+
+        data class Vedtaksstatistikk(val vedtak: Vedtak.EndringIYtelse) : Statistikk()
     }
 }

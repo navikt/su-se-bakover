@@ -29,6 +29,7 @@ internal class PersonClient(
         pdlClient.personForSystembruker(fnr).map { toPerson(it) }
 
     override fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> = pdlClient.aktørId(fnr)
+    override fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> = pdlClient.aktørIdMedSystembruker(fnr)
     override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> = pdlClient.person(fnr).map {}
 
     private fun toPerson(pdlData: PdlData) =

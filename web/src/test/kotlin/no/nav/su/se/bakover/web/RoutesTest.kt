@@ -21,6 +21,7 @@ import io.ktor.server.testing.contentType
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
@@ -111,6 +112,9 @@ class RoutesTest {
                             throw RuntimeException("thrown exception")
 
                         override fun aktørId(fnr: Fnr) = throw RuntimeException("thrown exception")
+                        override fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> =
+                            throw RuntimeException("thrown exception")
+
                         override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> = throw RuntimeException("thrown exception")
                     }
                 )

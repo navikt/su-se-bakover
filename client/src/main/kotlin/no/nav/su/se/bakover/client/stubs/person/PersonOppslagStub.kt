@@ -56,5 +56,7 @@ object PersonOppslagStub :
     override fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = nyTestPerson(fnr).right()
     override fun personMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = nyTestPerson(fnr).right()
     override fun aktørId(fnr: Fnr) = AktørId("2437280977705").right()
+    override fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> = AktørId("2437280977705").right()
+
     override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> = Unit.right()
 }
