@@ -438,7 +438,7 @@ internal class RevurderingServiceImplTest {
             verify(utbetalingMock, times(2)).id
             verify(vedtakRepoMock).lagre(
                 argThat {
-                    it should beOfType<Vedtak.EndringIYtelse>()
+                    it should beOfType<Vedtak.EndringIYtelse.InnvilgetRevurdering>()
                     it.vedtakType shouldBe VedtakType.ENDRING
                 },
             )
@@ -506,7 +506,7 @@ internal class RevurderingServiceImplTest {
             )
             verify(vedtakRepoMock).lagre(
                 argThat {
-                    it should beOfType<Vedtak.EndringIYtelse>()
+                    it should beOfType<Vedtak.EndringIYtelse.OpphørtRevurdering>()
                     it.vedtakType shouldBe VedtakType.OPPHØR
                 },
             )

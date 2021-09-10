@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -126,22 +127,44 @@ internal class VedtakPosgresRepo(
         val beregning = stringOrNull("beregning")?.let { objectMapper.readValue<PersistertBeregning>(it) }
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
 
-        return when (val vedtakType = VedtakType.valueOf(string("vedtaktype"))) {
-            VedtakType.SØKNAD,
-            VedtakType.ENDRING,
-            VedtakType.OPPHØR,
-            -> {
-                Vedtak.EndringIYtelse(
+        return when (VedtakType.valueOf(string("vedtaktype"))) {
+            VedtakType.SØKNAD -> {
+                Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling(
                     id = id,
                     opprettet = opprettet,
-                    behandling = behandling,
+                    behandling = behandling as Søknadsbehandling.Iverksatt.Innvilget,
                     saksbehandler = saksbehandler,
                     attestant = attestant,
                     periode = periode,
                     beregning = beregning!!,
                     simulering = simulering!!,
                     utbetalingId = utbetalingId!!,
-                    vedtakType = vedtakType,
+                )
+            }
+            VedtakType.ENDRING -> {
+                Vedtak.EndringIYtelse.InnvilgetRevurdering(
+                    id = id,
+                    opprettet = opprettet,
+                    behandling = behandling as IverksattRevurdering.Innvilget,
+                    saksbehandler = saksbehandler,
+                    attestant = attestant,
+                    periode = periode,
+                    beregning = beregning!!,
+                    simulering = simulering!!,
+                    utbetalingId = utbetalingId!!,
+                )
+            }
+            VedtakType.OPPHØR -> {
+                Vedtak.EndringIYtelse.OpphørtRevurdering(
+                    id = id,
+                    opprettet = opprettet,
+                    behandling = behandling as IverksattRevurdering.Opphørt,
+                    saksbehandler = saksbehandler,
+                    attestant = attestant,
+                    periode = periode,
+                    beregning = beregning!!,
+                    simulering = simulering!!,
+                    utbetalingId = utbetalingId!!,
                 )
             }
             VedtakType.AVSLAG -> {
@@ -150,7 +173,7 @@ internal class VedtakPosgresRepo(
                         id = id,
                         opprettet = opprettet,
                         // AVSLAG gjelder kun for søknadsbehandling
-                        behandling = behandling as Søknadsbehandling,
+                        behandling = behandling as Søknadsbehandling.Iverksatt.Avslag.MedBeregning,
                         beregning = beregning,
                         saksbehandler = saksbehandler,
                         attestant = attestant,
@@ -161,7 +184,7 @@ internal class VedtakPosgresRepo(
                         id = id,
                         opprettet = opprettet,
                         // AVSLAG gjelder kun for søknadsbehandling
-                        behandling = behandling as Søknadsbehandling,
+                        behandling = behandling as Søknadsbehandling.Iverksatt.Avslag.UtenBeregning,
                         saksbehandler = saksbehandler,
                         attestant = attestant,
                         periode = periode,
@@ -171,7 +194,7 @@ internal class VedtakPosgresRepo(
             VedtakType.INGEN_ENDRING -> Vedtak.IngenEndringIYtelse(
                 id = id,
                 opprettet = opprettet,
-                behandling = behandling,
+                behandling = behandling as IverksattRevurdering.IngenEndring,
                 saksbehandler = saksbehandler,
                 attestant = attestant,
                 periode = periode,

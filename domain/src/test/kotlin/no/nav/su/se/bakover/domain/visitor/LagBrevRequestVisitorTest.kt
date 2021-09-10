@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.visitor
 
 import arrow.core.Either
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -9,7 +10,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
@@ -45,7 +45,7 @@ import no.nav.su.se.bakover.domain.fixedClock
 import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
@@ -56,6 +56,7 @@ import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -63,10 +64,17 @@ import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.oppgaveIdRevurdering
+import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgInnvilgetFormue
+import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.fail
 import org.mockito.kotlin.mock
 import java.time.Clock
 import java.time.ZoneOffset
@@ -848,61 +856,40 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager opphørsvedtak med opphørsgrunn for uførhet`() {
         val utbetalingId = UUID30.randomUUID()
-        val søknadsbehandling =
-            uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
-                .tilBeregnet(innvilgetBeregning)
-                .tilSimulert(simulering)
-                .tilAttestering(saksbehandler, "Fritekst!")
-                .tilIverksatt(Attestering.Iverksatt(attestant, Tidspunkt.now(clock)))
-
         val opphørsperiode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
-        val revurdering = IverksattRevurdering.Opphørt(
-            id = UUID.randomUUID(),
-            periode = opphørsperiode,
-            opprettet = Tidspunkt.now(clock),
-            tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock),
-            saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("15"),
-            beregning = innvilgetBeregning,
-            simulering = simulering,
-            attesteringer = Attesteringshistorikk.empty()
-                .leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now(clock))),
-            fritekstTilBrev = "FRITEKST REVURDERING",
-            revurderingsårsak = Revurderingsårsak(
-                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-            ),
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            grunnlagsdata = Grunnlagsdata.create(
-                bosituasjon = listOf(
-                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = opphørsperiode,
-                        begrunnelse = null,
-                    ),
-                ),
-            ),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
-                    vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Uføre.create(
-                            resultat = Resultat.Avslag,
-                            grunnlag = Grunnlag.Uføregrunnlag(
-                                periode = Periode.create(1.januar(2021), 30.april(2021)),
-                                uføregrad = Uføregrad.parse(20),
-                                forventetInntekt = 10_000,
-                                opprettet = fixedTidspunkt,
+
+        val revurdering = (
+            opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+                revurderingsperiode = opphørsperiode,
+                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
+                    grunnlagsdata = Grunnlagsdata.create(
+                        fradragsgrunnlag = listOf(
+                            fradragsgrunnlagArbeidsinntekt(
+                                arbeidsinntekt = 150000.0,
+                                periode = opphørsperiode,
                             ),
-                            periode = Periode.create(1.januar(2021), 30.april(2021)),
-                            begrunnelse = "",
-                            opprettet = fixedTidspunkt,
+                        ),
+                        bosituasjon = listOf(
+                            bosituasjongrunnlagEnslig(opphørsperiode),
                         ),
                     ),
+                    vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(
+                        periode = opphørsperiode,
+                    ),
                 ),
-            ),
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-        )
+            ).second
+                .beregn(eksisterendeUtbetalinger = emptyList())
+                .getOrHandle { fail("Skulle gått bra") }
+                .toSimulert(simulering) as SimulertRevurdering.Opphørt
+            )
+            .tilAttestering(
+                attesteringsoppgaveId = oppgaveIdRevurdering,
+                saksbehandler = saksbehandler,
+                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+                fritekstTilBrev = "FRITEKST REVURDERING",
+            ).getOrHandle { fail("Skulle gått bra") }
+            .tilIverksatt(attestant) { utbetalingId.right() }
+            .getOrHandle { fail("Skulle gått bra") }
 
         val opphørsvedtak = Vedtak.from(revurdering, utbetalingId, fixedClock)
 
@@ -928,8 +915,75 @@ internal class LagBrevRequestVisitorTest {
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             fritekst = "FRITEKST REVURDERING",
-            forventetInntektStørreEnn0 = true,
+            forventetInntektStørreEnn0 = false,
             opphørsgrunner = listOf(Opphørsgrunn.UFØRHET),
+        ).right()
+    }
+
+    @Test
+    fun `lager opphørsvedtak med opphørsgrunn for høy inntekt`() {
+        val utbetalingId = UUID30.randomUUID()
+        val opphørsperiode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
+
+        val revurdering = (
+            opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+                revurderingsperiode = opphørsperiode,
+                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
+                    grunnlagsdata = Grunnlagsdata.create(
+                        fradragsgrunnlag = listOf(
+                            fradragsgrunnlagArbeidsinntekt(
+                                arbeidsinntekt = 150000.0,
+                                periode = opphørsperiode,
+                            ),
+                        ),
+                        bosituasjon = listOf(
+                            bosituasjongrunnlagEnslig(opphørsperiode),
+                        ),
+                    ),
+                    vilkårsvurderinger = vilkårsvurderingerInnvilget(
+                        periode = opphørsperiode,
+                    ),
+                ),
+            ).second
+                .beregn(eksisterendeUtbetalinger = emptyList())
+                .getOrHandle { fail("Skulle gått bra") }
+                .toSimulert(simulering) as SimulertRevurdering.Opphørt
+            )
+            .tilAttestering(
+                attesteringsoppgaveId = oppgaveIdRevurdering,
+                saksbehandler = saksbehandler,
+                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+                fritekstTilBrev = "FRITEKST REVURDERING",
+            ).getOrHandle { fail("Skulle gått bra") }
+            .tilIverksatt(attestant) { utbetalingId.right() }
+            .getOrHandle { fail("Skulle gått bra") }
+
+        val opphørsvedtak = Vedtak.from(revurdering, utbetalingId, fixedClock)
+
+        val brevRevurdering = LagBrevRequestVisitor(
+            hentPerson = { person.right() },
+            hentNavn = { hentNavn(it) },
+            hentGjeldendeUtbetaling = { _, _ -> 0.right() },
+            clock = clock,
+        ).apply { revurdering.accept(this) }
+
+        val brevVedtak = LagBrevRequestVisitor(
+            hentPerson = { person.right() },
+            hentNavn = { hentNavn(it) },
+            hentGjeldendeUtbetaling = { _, _ -> 0.right() },
+            clock = clock,
+        ).apply { opphørsvedtak.accept(this) }
+
+        brevRevurdering.brevRequest shouldBe brevVedtak.brevRequest
+        brevRevurdering.brevRequest shouldBe LagBrevRequest.Opphørsvedtak(
+            person = person,
+            beregning = revurdering.beregning,
+            harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
+            saksbehandlerNavn = saksbehandlerNavn,
+            attestantNavn = attestantNavn,
+            fritekst = "FRITEKST REVURDERING",
+            forventetInntektStørreEnn0 = false,
+            opphørsgrunner = listOf(Opphørsgrunn.FOR_HØY_INNTEKT),
         ).right()
     }
 

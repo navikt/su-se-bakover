@@ -36,7 +36,6 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -533,7 +532,7 @@ internal class OppdaterRevurderingServiceTest {
         val andreVedtakFormueVilkår = formueVilkår(periodePlussEtÅr)
         val andreVedtak = vedtakSøknadsbehandlingIverksattInnvilget().second.copy(
             periode = periodePlussEtÅr,
-            behandling = (vedtakSøknadsbehandlingIverksattInnvilget().second.behandling as Søknadsbehandling.Iverksatt.Innvilget).copy(
+            behandling = vedtakSøknadsbehandlingIverksattInnvilget().second.behandling.copy(
                 stønadsperiode = Stønadsperiode.create(periodePlussEtÅr),
                 grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjon)),
                 vilkårsvurderinger = Vilkårsvurderinger(

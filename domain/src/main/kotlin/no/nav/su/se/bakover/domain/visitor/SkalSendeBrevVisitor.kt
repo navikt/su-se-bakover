@@ -9,7 +9,15 @@ import kotlin.properties.Delegates
 internal class SkalSendeBrevVisitor : VedtakVisitor {
     var sendBrev by Delegates.notNull<Boolean>()
 
-    override fun visit(vedtak: Vedtak.EndringIYtelse) {
+    override fun visit(vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling) {
+        sendBrev = !vedtak.innvilgetGRegulering()
+    }
+
+    override fun visit(vedtak: Vedtak.EndringIYtelse.InnvilgetRevurdering) {
+        sendBrev = !vedtak.innvilgetGRegulering()
+    }
+
+    override fun visit(vedtak: Vedtak.EndringIYtelse.OpphørtRevurdering) {
         sendBrev = !vedtak.innvilgetGRegulering()
     }
 
@@ -34,7 +42,7 @@ internal class SkalSendeBrevVisitor : VedtakVisitor {
     }
 
     private fun Vedtak.IngenEndringIYtelse.sendBrevErValgt(): Boolean {
-        return (behandling as IverksattRevurdering.IngenEndring).skalFøreTilBrevutsending
+        return behandling.skalFøreTilBrevutsending
     }
 
     /**
