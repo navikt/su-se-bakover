@@ -47,6 +47,7 @@ internal class TidslinjeForUtbetalingerTest {
             utbetalingslinjer = listOf(første),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = første.id,
                 opprettet = første.opprettet,
                 periode = Periode.create(1.januar(2020), 30.april(2020)),
                 beløp = første.beløp,
@@ -74,11 +75,13 @@ internal class TidslinjeForUtbetalingerTest {
             utbetalingslinjer = listOf(første, andre),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = første.id,
                 opprettet = første.opprettet,
                 periode = Periode.create(1.januar(2020), 30.april(2020)),
                 beløp = første.beløp,
             ),
             UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = andre.id,
                 opprettet = andre.opprettet,
                 periode = Periode.create(1.mai(2020), 31.desember(2020)),
                 beløp = andre.beløp,
@@ -111,11 +114,13 @@ internal class TidslinjeForUtbetalingerTest {
             utbetalingslinjer = listOf(første, andre, stans),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = første.id,
                 opprettet = første.opprettet,
                 periode = Periode.create(1.januar(2020), 31.mars(2020)),
                 beløp = første.beløp,
             ),
             UtbetalingslinjePåTidslinje.Stans(
+                kopiertFraId = stans.id,
                 opprettet = stans.opprettet,
                 periode = Periode.create(1.april(2020), 31.desember(2020)),
                 beløp = 0,
@@ -153,21 +158,25 @@ internal class TidslinjeForUtbetalingerTest {
             utbetalingslinjer = listOf(første, andre, stans, reaktivering),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = første.id,
                 opprettet = første.opprettet,
                 periode = Periode.create(1.januar(2020), 29.februar(2020)),
                 beløp = første.beløp,
             ),
             UtbetalingslinjePåTidslinje.Stans(
+                kopiertFraId = stans.id,
                 opprettet = stans.opprettet,
                 periode = Periode.create(1.mars(2020), 31.mars(2020)),
                 beløp = 0,
             ),
             UtbetalingslinjePåTidslinje.Reaktivering(
+                kopiertFraId = første.id,
                 opprettet = reaktivering.opprettet.plus(1, ChronoUnit.MICROS),
                 periode = Periode.create(1.april(2020), 30.april(2020)),
                 beløp = første.beløp,
             ),
             UtbetalingslinjePåTidslinje.Reaktivering(
+                kopiertFraId = reaktivering.id,
                 opprettet = reaktivering.opprettet,
                 periode = Periode.create(1.mai(2020), 31.desember(2020)),
                 beløp = reaktivering.beløp,
@@ -205,21 +214,25 @@ internal class TidslinjeForUtbetalingerTest {
             utbetalingslinjer = listOf(første, andre, opphør, reaktivering),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = første.id,
                 opprettet = første.opprettet,
                 periode = Periode.create(1.januar(2020), 29.februar(2020)),
                 beløp = første.beløp,
             ),
             UtbetalingslinjePåTidslinje.Opphør(
+                kopiertFraId = opphør.id,
                 opprettet = opphør.opprettet,
                 periode = Periode.create(1.mars(2020), 31.mars(2020)),
                 beløp = 0,
             ),
             UtbetalingslinjePåTidslinje.Reaktivering(
+                kopiertFraId = første.id,
                 opprettet = reaktivering.opprettet.plus(1, ChronoUnit.MICROS),
                 periode = Periode.create(1.april(2020), 30.april(2020)),
                 beløp = første.beløp,
             ),
             UtbetalingslinjePåTidslinje.Reaktivering(
+                kopiertFraId = reaktivering.id,
                 opprettet = reaktivering.opprettet,
                 periode = Periode.create(1.mai(2020), 31.desember(2020)),
                 beløp = reaktivering.beløp,
@@ -252,6 +265,7 @@ internal class TidslinjeForUtbetalingerTest {
             utbetalingslinjer = listOf(første, andre, opphør),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Opphør(
+                kopiertFraId = opphør.id,
                 opprettet = opphør.opprettet,
                 periode = Periode.create(1.januar(2020), 31.desember(2020)),
                 beløp = 0,
@@ -289,11 +303,13 @@ internal class TidslinjeForUtbetalingerTest {
             utbetalingslinjer = listOf(første, andre, opphør, reaktivering),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Reaktivering(
+                kopiertFraId = første.id,
                 opprettet = reaktivering.opprettet.plus(1, ChronoUnit.MICROS),
                 periode = Periode.create(1.januar(2020), 30.april(2020)),
                 beløp = første.beløp,
             ),
             UtbetalingslinjePåTidslinje.Reaktivering(
+                kopiertFraId = andre.id,
                 opprettet = reaktivering.opprettet,
                 periode = Periode.create(1.mai(2020), 31.desember(2020)),
                 beløp = andre.beløp,
@@ -342,21 +358,25 @@ internal class TidslinjeForUtbetalingerTest {
             utbetalingslinjer = listOf(andre, første, tredje, førsteStans, andreStans, reaktivering),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = første.id,
                 opprettet = første.opprettet,
                 periode = Periode.create(1.januar(2020), 29.februar(2020)),
                 beløp = første.beløp,
             ),
             UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = tredje.id,
                 opprettet = tredje.opprettet,
                 periode = Periode.create(1.mars(2020), 30.september(2020)),
                 beløp = tredje.beløp,
             ),
             UtbetalingslinjePåTidslinje.Stans(
+                kopiertFraId = andreStans.id,
                 opprettet = andreStans.opprettet,
                 periode = Periode.create(1.oktober(2020), 31.oktober(2020)),
                 beløp = 0,
             ),
             UtbetalingslinjePåTidslinje.Reaktivering(
+                kopiertFraId = reaktivering.id,
                 opprettet = reaktivering.opprettet,
                 periode = Periode.create(1.november(2020), 31.desember(2020)),
                 beløp = reaktivering.beløp,
@@ -399,11 +419,13 @@ internal class TidslinjeForUtbetalingerTest {
             utbetalingslinjer = listOf(andre, første, førsteStans, andreStans, reaktivering),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = første.id,
                 opprettet = første.opprettet,
                 periode = Periode.create(1.januar(2020), 31.mars(2020)),
                 beløp = første.beløp,
             ),
             UtbetalingslinjePåTidslinje.Stans(
+                kopiertFraId = andreStans.id,
                 opprettet = andreStans.opprettet,
                 periode = Periode.create(1.april(2020), 31.desember(2020)),
                 beløp = 0,
@@ -516,21 +538,25 @@ internal class TidslinjeForUtbetalingerTest {
             utbetalingslinjer = listOf(andre, første, førsteStans, tredje, reaktivering),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = første.id,
                 opprettet = første.opprettet,
                 periode = Periode.create(1.januar(2020), 31.mars(2020)),
                 beløp = første.beløp,
             ),
             UtbetalingslinjePåTidslinje.Reaktivering(
+                kopiertFraId = første.id,
                 opprettet = tredje.opprettet,
                 periode = Periode.create(1.april(2020), 30.april(2020)),
                 beløp = første.beløp,
             ),
             UtbetalingslinjePåTidslinje.Reaktivering(
+                kopiertFraId = andre.id,
                 opprettet = reaktivering.opprettet,
                 periode = Periode.create(1.mai(2020), 31.desember(2020)),
                 beløp = andre.beløp,
             ),
             UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = tredje.id,
                 opprettet = tredje.opprettet,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 beløp = tredje.beløp,
@@ -578,26 +604,31 @@ internal class TidslinjeForUtbetalingerTest {
             utbetalingslinjer = listOf(andre, andreReaktivering, førsteStans, førsteReaktivering, første, andreStans),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = første.id,
                 opprettet = første.opprettet,
                 periode = Periode.create(1.januar(2020), 29.februar(2020)),
                 beløp = første.beløp,
             ),
             UtbetalingslinjePåTidslinje.Reaktivering(
+                kopiertFraId = første.id,
                 opprettet = førsteReaktivering.opprettet.plus(1, ChronoUnit.MICROS),
                 periode = Periode.create(1.mars(2020), 30.april(2020)),
                 beløp = første.beløp,
             ),
             UtbetalingslinjePåTidslinje.Reaktivering(
+                kopiertFraId = andre.id,
                 opprettet = førsteReaktivering.opprettet,
                 periode = Periode.create(1.mai(2020), 30.september(2020)),
                 beløp = andre.beløp,
             ),
             UtbetalingslinjePåTidslinje.Stans(
+                kopiertFraId = andreStans.id,
                 opprettet = andreStans.opprettet,
                 periode = Periode.create(1.oktober(2020), 31.oktober(2020)),
                 beløp = 0,
             ),
             UtbetalingslinjePåTidslinje.Reaktivering(
+                kopiertFraId = andreReaktivering.id,
                 opprettet = andreReaktivering.opprettet,
                 periode = Periode.create(1.november(2020), 31.desember(2020)),
                 beløp = andreReaktivering.beløp,
@@ -635,21 +666,25 @@ internal class TidslinjeForUtbetalingerTest {
             utbetalingslinjer = listOf(første, andre, opphør, reaktivering),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = første.id,
                 opprettet = første.opprettet,
                 periode = Periode.create(1.januar(2020), 29.februar(2020)),
                 beløp = første.beløp,
             ),
             UtbetalingslinjePåTidslinje.Opphør(
+                kopiertFraId = opphør.id,
                 opprettet = opphør.opprettet,
                 periode = Periode.create(1.mars(2020), 31.mars(2020)),
                 beløp = 0,
             ),
             UtbetalingslinjePåTidslinje.Reaktivering(
+                kopiertFraId = første.id,
                 opprettet = reaktivering.opprettet.plus(1, ChronoUnit.MICROS),
                 periode = Periode.create(1.april(2020), 30.april(2020)),
                 beløp = første.beløp,
             ),
             UtbetalingslinjePåTidslinje.Reaktivering(
+                kopiertFraId = andre.id,
                 opprettet = reaktivering.opprettet,
                 periode = Periode.create(1.mai(2020), 31.desember(2020)),
                 beløp = andre.beløp,
@@ -698,21 +733,25 @@ internal class TidslinjeForUtbetalingerTest {
             utbetalingslinjer = listOf(første, andre, opphør, tredje, stans, reaktivering),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = første.id,
                 opprettet = første.opprettet,
                 periode = Periode.create(1.januar(2020), 30.april(2020)),
                 beløp = første.beløp,
             ),
             UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = andre.id,
                 opprettet = andre.opprettet,
                 periode = Periode.create(1.mai(2020), 31.juli(2020)),
                 beløp = andre.beløp,
             ),
             UtbetalingslinjePåTidslinje.Reaktivering(
+                kopiertFraId = andre.id,
                 opprettet = reaktivering.opprettet.plus(1, ChronoUnit.MICROS),
                 periode = Periode.create(1.august(2020), 30.september(2020)),
                 beløp = andre.beløp,
             ),
             UtbetalingslinjePåTidslinje.Reaktivering(
+                kopiertFraId = tredje.id,
                 opprettet = reaktivering.opprettet,
                 periode = Periode.create(1.oktober(2020), 31.desember(2020)),
                 beløp = tredje.beløp,
@@ -758,26 +797,31 @@ internal class TidslinjeForUtbetalingerTest {
             utbetalingslinjer = listOf(andre, femte, tredje, første, fjerde),
         ).tidslinje shouldBe listOf(
             UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = første.id,
                 opprettet = første.opprettet,
                 periode = Periode.create(1.januar(2020), 30.april(2020)),
                 beløp = første.beløp,
             ),
             UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = andre.id,
                 opprettet = andre.opprettet,
                 periode = Periode.create(1.mai(2020), 31.desember(2020)),
                 beløp = andre.beløp,
             ),
             UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = tredje.id,
                 opprettet = tredje.opprettet,
                 periode = Periode.create(1.januar(2021), 31.januar(2021)),
                 beløp = tredje.beløp,
             ),
             UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = fjerde.id,
                 opprettet = fjerde.opprettet,
                 periode = Periode.create(1.februar(2021), 28.februar(2021)),
                 beløp = fjerde.beløp,
             ),
             UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = femte.id,
                 opprettet = femte.opprettet,
                 periode = Periode.create(1.mars(2021), 31.desember(2021)),
                 beløp = femte.beløp,

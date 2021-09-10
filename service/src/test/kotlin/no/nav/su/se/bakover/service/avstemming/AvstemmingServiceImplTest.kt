@@ -1,0 +1,106 @@
+package no.nav.su.se.bakover.service.avstemming
+
+import arrow.core.left
+import arrow.core.right
+import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.endOfDay
+import no.nav.su.se.bakover.common.mars
+import no.nav.su.se.bakover.common.startOfDay
+import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.getOrFail
+import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.whenever
+
+internal class AvstemmingServiceImplTest {
+    @Test
+    fun `konsistensavstemming inkluderer utbetalinger opprettet til og med dagen før konsistensavstemming`() {
+        val avstemmingRepoMock = mock<AvstemmingRepo> {
+            on { hentUtbetalingerForKonsistensavstemming(any(), any()) } doReturn emptyList()
+        }
+        val publisherMock = mock<AvstemmingPublisher>() {
+            doAnswer {
+                (it.arguments[0] as Avstemming.Konsistensavstemming.Ny).copy(avstemmingXmlRequest = "jippi").right()
+            }.whenever(mock).publish(any<Avstemming.Konsistensavstemming.Ny>())
+        }
+
+        val expectedLøpendeFraOgMed = 17.mars(2021)
+        val expectedOpprettetTilOgMed = 16.mars(2021)
+
+        val konsistensavstemming = AvstemmingServiceImpl(
+            repo = avstemmingRepoMock,
+            publisher = publisherMock,
+            clock = fixedClock,
+        ).konsistensavstemming(
+            løpendeFraOgMed = expectedLøpendeFraOgMed,
+        ).getOrFail("Skulle gått fint")
+
+        konsistensavstemming shouldBe Avstemming.Konsistensavstemming.Ny(
+            id = konsistensavstemming.id,
+            opprettet = Tidspunkt.now(fixedClock),
+            løpendeFraOgMed = expectedLøpendeFraOgMed.startOfDay(zoneIdOslo),
+            opprettetTilOgMed = expectedOpprettetTilOgMed.endOfDay(zoneIdOslo),
+            utbetalinger = emptyList(),
+            avstemmingXmlRequest = "jippi",
+        )
+
+        inOrder(
+            avstemmingRepoMock,
+            publisherMock,
+        ) {
+            verify(avstemmingRepoMock).hentUtbetalingerForKonsistensavstemming(
+                løpendeFraOgMed = expectedLøpendeFraOgMed.startOfDay(zoneIdOslo),
+                opprettetTilOgMed = expectedOpprettetTilOgMed.endOfDay(zoneIdOslo),
+            )
+            verify(publisherMock).publish(
+                konsistensavstemming.copy(
+                    avstemmingXmlRequest = null,
+                ),
+            )
+            verify(avstemmingRepoMock).opprettKonsistensavstemming(konsistensavstemming)
+        }
+    }
+
+    @Test
+    fun `svarer med feil dersom publisering feiler`() {
+        val avstemmingRepoMock = mock<AvstemmingRepo> {
+            on { hentUtbetalingerForKonsistensavstemming(any(), any()) } doReturn emptyList()
+        }
+        val publisherMock = mock<AvstemmingPublisher> {
+            on { publish(any<Avstemming.Konsistensavstemming.Ny>()) } doReturn AvstemmingPublisher.KunneIkkeSendeAvstemming.left()
+        }
+
+        val expectedLøpendeFraOgMed = 17.mars(2021)
+        val expectedOpprettetTilOgMed = 16.mars(2021)
+
+        AvstemmingServiceImpl(
+            repo = avstemmingRepoMock,
+            publisher = publisherMock,
+            clock = fixedClock,
+        ).konsistensavstemming(
+            løpendeFraOgMed = expectedLøpendeFraOgMed,
+        ) shouldBe AvstemmingFeilet.left()
+
+        inOrder(
+            avstemmingRepoMock,
+            publisherMock,
+        ) {
+            verify(avstemmingRepoMock).hentUtbetalingerForKonsistensavstemming(
+                løpendeFraOgMed = expectedLøpendeFraOgMed.startOfDay(zoneIdOslo),
+                opprettetTilOgMed = expectedOpprettetTilOgMed.endOfDay(zoneIdOslo),
+            )
+            verify(publisherMock).publish(any<Avstemming.Konsistensavstemming.Ny>())
+            verify(avstemmingRepoMock, never()).opprettKonsistensavstemming(any())
+        }
+    }
+}

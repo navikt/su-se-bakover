@@ -1,18 +1,11 @@
 package no.nav.su.se.bakover.client.oppdrag.avstemming
 
-import no.nav.su.se.bakover.client.oppdrag.OppdragDefaults
 import no.nav.su.se.bakover.client.oppdrag.XmlMapper
 import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.AksjonType.AVSLUTT
 import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.AksjonType.DATA
-import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.AksjonType.START
-import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.AvstemmingType.GRENSESNITTAVSTEMMING
-import no.nav.su.se.bakover.client.oppdrag.avstemming.Aksjonsdata.KildeType.AVLEVERT
-import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingDataRequest.Detaljdata
-import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingDataRequest.Detaljdata.Detaljtype.GODKJENT_MED_VARSEL
-import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingDataRequest.Fortegn.TILLEGG
-import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingDataRequest.Grunnlagdata
-import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingDataRequest.Periodedata
-import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingDataRequest.Totaldata
+import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingData.Detaljdata
+import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingData.Detaljdata.Detaljtype.GODKJENT_MED_VARSEL
+import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingData.Grunnlagdata
 import org.hamcrest.MatcherAssert
 import org.junit.jupiter.api.Test
 import org.xmlunit.diff.DefaultNodeMatcher
@@ -20,97 +13,85 @@ import org.xmlunit.diff.ElementSelectors
 import org.xmlunit.matchers.CompareMatcher
 import java.math.BigDecimal
 
-internal class AvstemmingXmlMappingTest {
+internal class GrensesnittsavstemmingXmlMappingTest {
     private val nodeMatcher = DefaultNodeMatcher().apply { ElementSelectors.byName }
 
     @Test
     fun `Sjekk mapping av start melding`() {
         val request = AvstemmingStartRequest(
-            aksjon = Aksjonsdata(
-                aksjonType = START,
-                kildeType = AVLEVERT,
-                avstemmingType = GRENSESNITTAVSTEMMING,
-                mottakendeKomponentKode = "OS",
-                brukerId = "SU",
+            aksjon = Aksjonsdata.Grensesnittsavstemming(
                 nokkelFom = "nokkelFom",
                 nokkelTom = "nokkelTom",
-                avleverendeKomponentKode = OppdragDefaults.KODE_KOMPONENT,
-                underkomponentKode = OppdragDefaults.KODE_FAGOMRÅDE,
-                avleverendeAvstemmingId = "avleverendeAvstemmingId"
-            )
+                avleverendeAvstemmingId = "avleverendeAvstemmingId",
+            ).start(),
         )
 
+        //language=xml
         val expected =
             """
             <?xml version='1.0' encoding='UTF-8'?>
             <avstemmingsdata>
               <aksjon>
-                <aksjonType>START</aksjonType>
                 <kildeType>AVLEV</kildeType>
-                <avstemmingType>GRSN</avstemmingType>
                 <mottakendeKomponentKode>OS</mottakendeKomponentKode>
                 <brukerId>SU</brukerId>
                 <avleverendeKomponentKode>SU</avleverendeKomponentKode>
                 <underkomponentKode>SUUFORE</underkomponentKode>
+                <aksjonType>START</aksjonType>
+                <avleverendeAvstemmingId>avleverendeAvstemmingId</avleverendeAvstemmingId>
                 <nokkelFom>nokkelFom</nokkelFom>
                 <nokkelTom>nokkelTom</nokkelTom>
-                <avleverendeAvstemmingId>avleverendeAvstemmingId</avleverendeAvstemmingId>
+                <avstemmingType>GRSN</avstemmingType>
               </aksjon>
             </avstemmingsdata>
             """.trimIndent()
 
         MatcherAssert.assertThat(
             XmlMapper.writeValueAsString(request),
-            CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher)
+            CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher),
         )
     }
 
     @Test
     fun `Sjekk mapping av data melding`() {
-        val dataRequest = AvstemmingDataRequest(
-            aksjon = Aksjonsdata(
+        val dataRequest = GrensesnittsavstemmingData(
+            aksjon = Aksjonsdata.Grensesnittsavstemming(
                 aksjonType = DATA,
-                kildeType = AVLEVERT,
-                avstemmingType = GRENSESNITTAVSTEMMING,
-                mottakendeKomponentKode = "OS",
-                brukerId = "SU",
                 nokkelFom = "nokkelFom",
                 nokkelTom = "nokkelTom",
-                avleverendeKomponentKode = OppdragDefaults.KODE_KOMPONENT,
-                underkomponentKode = OppdragDefaults.KODE_FAGOMRÅDE,
-                avleverendeAvstemmingId = "avleverendeAvstemmingId"
+                avleverendeAvstemmingId = "avleverendeAvstemmingId",
             ),
             total = Totaldata(
                 totalAntall = 1,
                 totalBelop = BigDecimal(100),
-                fortegn = TILLEGG
+                fortegn = Fortegn.TILLEGG,
             ),
             periode = Periodedata(
                 datoAvstemtFom = "2020090100",
-                datoAvstemtTom = "2020090123"
+                datoAvstemtTom = "2020090123",
             ),
             grunnlag = Grunnlagdata(
                 godkjentAntall = 1,
                 godkjentBelop = BigDecimal("100.45"),
-                godkjentFortegn = TILLEGG,
+                godkjentFortegn = Fortegn.TILLEGG,
                 varselAntall = 0,
                 varselBelop = BigDecimal(0),
-                varselFortegn = TILLEGG,
+                varselFortegn = Fortegn.TILLEGG,
                 avvistAntall = 0,
                 avvistBelop = BigDecimal(0),
-                avvistFortegn = TILLEGG,
+                avvistFortegn = Fortegn.TILLEGG,
                 manglerAntall = 0,
                 manglerBelop = BigDecimal(0),
-                manglerFortegn = TILLEGG
+                manglerFortegn = Fortegn.TILLEGG,
             ),
             detalj = listOf(
                 Detaljdata(
                     detaljType = GODKJENT_MED_VARSEL,
                     offnr = "12345678901",
                     avleverendeTransaksjonNokkel = "123456789",
-                    tidspunkt = "2020-09-02.01.01.01.000000"
-                )
-            )
+                    tidspunkt = "2020-09-02.01.01.01.000000",
+                ),
+            ),
         )
 
         val expected =
@@ -118,16 +99,16 @@ internal class AvstemmingXmlMappingTest {
             <?xml version='1.0' encoding='UTF-8'?>
             <avstemmingsdata>
               <aksjon>
-                <aksjonType>DATA</aksjonType>
                 <kildeType>AVLEV</kildeType>
-                <avstemmingType>GRSN</avstemmingType>
                 <mottakendeKomponentKode>OS</mottakendeKomponentKode>
                 <brukerId>SU</brukerId>
                 <avleverendeKomponentKode>SU</avleverendeKomponentKode>
                 <underkomponentKode>SUUFORE</underkomponentKode>
+                <aksjonType>DATA</aksjonType>
+                <avleverendeAvstemmingId>avleverendeAvstemmingId</avleverendeAvstemmingId>
                 <nokkelFom>nokkelFom</nokkelFom>
                 <nokkelTom>nokkelTom</nokkelTom>
-                <avleverendeAvstemmingId>avleverendeAvstemmingId</avleverendeAvstemmingId>
+                <avstemmingType>GRSN</avstemmingType>
               </aksjon>
               <total>
                 <totalAntall>1</totalAntall>
@@ -163,25 +144,19 @@ internal class AvstemmingXmlMappingTest {
 
         MatcherAssert.assertThat(
             XmlMapper.writeValueAsString(dataRequest),
-            CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher)
+            CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher),
         )
     }
 
     @Test
     fun `Sjekk mapping av stopp melding`() {
         val request = AvstemmingStoppRequest(
-            aksjon = Aksjonsdata(
+            aksjon = Aksjonsdata.Grensesnittsavstemming(
                 aksjonType = AVSLUTT,
-                kildeType = AVLEVERT,
-                avstemmingType = GRENSESNITTAVSTEMMING,
-                mottakendeKomponentKode = "OS",
-                brukerId = "SU",
                 nokkelFom = "nokkelFom",
                 nokkelTom = "nokkelTom",
-                avleverendeKomponentKode = OppdragDefaults.KODE_KOMPONENT,
-                underkomponentKode = OppdragDefaults.KODE_FAGOMRÅDE,
                 avleverendeAvstemmingId = "avleverendeAvstemmingId",
-            )
+            ).avslutt(),
         )
 
         val expected =
@@ -189,23 +164,23 @@ internal class AvstemmingXmlMappingTest {
             <?xml version='1.0' encoding='UTF-8'?>
             <avstemmingsdata>
               <aksjon>
-                <aksjonType>AVSL</aksjonType>
                 <kildeType>AVLEV</kildeType>
-                <avstemmingType>GRSN</avstemmingType>
                 <mottakendeKomponentKode>OS</mottakendeKomponentKode>
                 <brukerId>SU</brukerId>
                 <avleverendeKomponentKode>SU</avleverendeKomponentKode>
                 <underkomponentKode>SUUFORE</underkomponentKode>
+                <aksjonType>AVSL</aksjonType>
+                <avleverendeAvstemmingId>avleverendeAvstemmingId</avleverendeAvstemmingId>
                 <nokkelFom>nokkelFom</nokkelFom>
                 <nokkelTom>nokkelTom</nokkelTom>
-                <avleverendeAvstemmingId>avleverendeAvstemmingId</avleverendeAvstemmingId>
+                <avstemmingType>GRSN</avstemmingType>
               </aksjon>
             </avstemmingsdata>
             """.trimIndent()
 
         MatcherAssert.assertThat(
             XmlMapper.writeValueAsString(request),
-            CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher)
+            CompareMatcher.isSimilarTo(expected).withNodeMatcher(nodeMatcher),
         )
     }
 }

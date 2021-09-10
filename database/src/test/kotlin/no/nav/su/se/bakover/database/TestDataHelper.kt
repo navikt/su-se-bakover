@@ -133,7 +133,7 @@ internal val underkjentAttestering =
         opprettet = fixedTidspunkt,
     )
 internal val iverksattAttestering = Attestering.Iverksatt(attestant, fixedTidspunkt)
-internal val avstemmingsnøkkel = Avstemmingsnøkkel()
+internal val avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt)
 internal fun utbetalingslinje() = Utbetalingslinje.Ny(
     fraOgMed = 1.januar(2020),
     tilOgMed = 31.desember(2020),
@@ -353,8 +353,12 @@ internal class TestDataHelper(
 
     fun nyOversendtUtbetalingMedKvittering(
         avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
+        utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje()),
     ): Pair<Søknadsbehandling.Iverksatt.Innvilget, Utbetaling.OversendtUtbetaling.MedKvittering> {
-        val utenKvittering = nyIverksattInnvilget(avstemmingsnøkkel = avstemmingsnøkkel)
+        val utenKvittering = nyIverksattInnvilget(
+            avstemmingsnøkkel = avstemmingsnøkkel,
+            utbetalingslinjer = utbetalingslinjer,
+        )
         return utenKvittering.first to utenKvittering.second.toKvittertUtbetaling(kvitteringOk).also {
             utbetalingRepo.oppdaterMedKvittering(it)
         }

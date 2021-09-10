@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.client.oppdrag.avstemming
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingDataRequest.Detaljdata
+import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingData.Detaljdata
 import org.junit.jupiter.api.Test
 
 internal class DetaljBuilderTest {

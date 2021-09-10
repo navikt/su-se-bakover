@@ -86,6 +86,7 @@ data class TidslinjeForUtbetalinger(
                                     ) throw RegenerertInformasjonVilOverskriveOriginaleOpplysningerSomErFerskereException
 
                                     UtbetalingslinjePåTidslinje.Reaktivering(
+                                        kopiertFraId = utbetalingslinje.kopiertFraId,
                                         opprettet = opprettet,
                                         periode = periode,
                                         beløp = utbetalingslinje.beløp,
@@ -134,19 +135,23 @@ data class TidslinjeForUtbetalinger(
     private fun Utbetalingslinje.mapTilTidslinje(): UtbetalingslinjePåTidslinje {
         return when (this) {
             is Utbetalingslinje.Endring.Opphør -> UtbetalingslinjePåTidslinje.Opphør(
+                kopiertFraId = id,
                 opprettet = opprettet,
                 periode = Periode.create(virkningstidspunkt, tilOgMed),
             )
             is Utbetalingslinje.Endring.Reaktivering -> UtbetalingslinjePåTidslinje.Reaktivering(
+                kopiertFraId = id,
                 opprettet = opprettet,
                 periode = Periode.create(virkningstidspunkt, tilOgMed),
                 beløp = beløp,
             )
             is Utbetalingslinje.Endring.Stans -> UtbetalingslinjePåTidslinje.Stans(
+                kopiertFraId = id,
                 opprettet = opprettet,
                 periode = Periode.create(virkningstidspunkt, tilOgMed),
             )
             is Utbetalingslinje.Ny -> UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = id,
                 opprettet = opprettet,
                 periode = Periode.create(fraOgMed, tilOgMed),
                 beløp = beløp,

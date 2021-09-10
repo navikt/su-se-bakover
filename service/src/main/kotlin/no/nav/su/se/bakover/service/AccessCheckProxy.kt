@@ -113,15 +113,21 @@ open class AccessCheckProxy(
     fun proxy(): Services {
         return Services(
             avstemming = object : AvstemmingService {
-                override fun avstemming(): Either<AvstemmingFeilet, Avstemming> {
-                    return services.avstemming.avstemming()
+                override fun grensesnittsavstemming(): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming> {
+                    return services.avstemming.grensesnittsavstemming()
                 }
 
-                override fun avstemming(
+                override fun grensesnittsavstemming(
                     fraOgMed: Tidspunkt,
                     tilOgMed: Tidspunkt,
-                ): Either<AvstemmingFeilet, Avstemming> {
-                    return services.avstemming.avstemming(fraOgMed, tilOgMed)
+                ): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming> {
+                    return services.avstemming.grensesnittsavstemming(fraOgMed, tilOgMed)
+                }
+
+                override fun konsistensavstemming(
+                    løpendeFraOgMed: LocalDate,
+                ): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming.Ny> {
+                    return services.avstemming.konsistensavstemming(løpendeFraOgMed)
                 }
             },
             utbetaling = object : UtbetalingService {

@@ -37,7 +37,7 @@ class AvstemmingJob(
                 MDC.put("X-Correlation-ID", UUID.randomUUID().toString())
                 if (isLeaderPod()) {
                     log.info("Executing $jobName")
-                    avstemmingService.avstemming().fold(
+                    avstemmingService.grensesnittsavstemming().fold(
                         { log.error("$jobName failed with error: $it") },
                         { log.info("$jobName completed successfully. Details: id:${it.id}, fraOgMed:${it.fraOgMed}, tilOgMed:${it.tilOgMed}, amount:{${it.utbetalinger.size}}") },
                     )
