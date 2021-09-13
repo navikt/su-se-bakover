@@ -31,8 +31,19 @@ private class CustomFlywayPreparer(val role: String = "postgres", val toVersion:
         log.info("Preparing and migrating database for tests ...")
         ds.connection.use { connection ->
             connection
+                // Ikke feile dersom dette kjører flere ganger (selvom det ikke skal skje). Kan vurdere legge på synchronous
                 //language=SQL
-                .prepareStatement("""create role "$role-${Postgres.Role.Admin}" """).use {
+                .prepareStatement(
+                    """
+                    DO $$
+                    BEGIN
+                        CREATE ROLE "$role-${Postgres.Role.Admin}";
+                        EXCEPTION WHEN DUPLICATE_OBJECT THEN
+                        RAISE NOTICE 'not creating role my_role -- it already exists';
+                    END
+                    $$;
+                    """,
+                ).use {
                     it.execute() // Må legge til rollen i databasen for at Flyway skal få kjørt migrering.
                 }
             connection

@@ -19,9 +19,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -48,8 +46,6 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.HentDokumenterForIdType
-import no.nav.su.se.bakover.service.brev.KunneIkkeBestilleBrevForDokument
-import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreDokument
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -277,13 +273,7 @@ open class AccessCheckProxy(
             brev = object : BrevService {
                 override fun lagBrev(request: LagBrevRequest) = kastKanKunKallesFraAnnenService()
 
-                override fun distribuerBrev(journalpostId: JournalpostId) = kastKanKunKallesFraAnnenService()
-
-                override fun distribuerDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeBestilleBrevForDokument, Dokumentdistribusjon> {
-                    kastKanKunKallesFraAnnenService()
-                }
-
-                override fun hentDokumenterForDistribusjon(): List<Dokumentdistribusjon> {
+                override fun journalførOgDistribuerUtgåendeDokumenter() {
                     kastKanKunKallesFraAnnenService()
                 }
 
@@ -292,10 +282,6 @@ open class AccessCheckProxy(
                 }
 
                 override fun lagreDokument(dokument: Dokument.MedMetadata, transactionContext: TransactionContext) {
-                    kastKanKunKallesFraAnnenService()
-                }
-
-                override fun journalførDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeJournalføreDokument, Dokumentdistribusjon> {
                     kastKanKunKallesFraAnnenService()
                 }
 

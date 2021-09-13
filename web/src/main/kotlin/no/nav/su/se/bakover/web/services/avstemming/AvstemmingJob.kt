@@ -33,10 +33,10 @@ class AvstemmingJob(
             period = periode
         ) {
             Either.catch {
-                // Ktor legger på X-Correlation-ID for web-requests, men vi har ikke noe tilsvarende automagi for meldingskøen.
-                MDC.put("X-Correlation-ID", UUID.randomUUID().toString())
                 if (isLeaderPod()) {
                     log.info("Executing $jobName")
+                    // Ktor legger på X-Correlation-ID for web-requests, men vi har ikke noe tilsvarende automagi for meldingskøen.
+                    MDC.put("X-Correlation-ID", UUID.randomUUID().toString())
                     avstemmingService.grensesnittsavstemming().fold(
                         { log.error("$jobName failed with error: $it") },
                         { log.info("$jobName completed successfully. Details: id:${it.id}, fraOgMed:${it.fraOgMed}, tilOgMed:${it.tilOgMed}, amount:{${it.utbetalinger.size}}") },
