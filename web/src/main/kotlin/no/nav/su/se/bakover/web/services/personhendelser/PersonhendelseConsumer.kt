@@ -92,9 +92,11 @@ class PersonhendelseConsumer(
                         },
                     )
                 }
+                // TODO ai: Burde denne flyttes ut en nivå?
                 // I tilfeller der vi har prosessert alle meldingene OK.
                 consumer.commitSync(processedMessages)
             }
+            log.debug("Personhendelse: Prossesert ferdigt meldingene. Siste var till og med: ${messages.last().value().getOpprettet()})")
         }
     }
 }
