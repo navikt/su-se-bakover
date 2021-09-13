@@ -47,6 +47,7 @@ class PersonhendelseConsumer(
         val processedMessages = mutableMapOf<TopicPartition, OffsetAndMetadata>()
 
         if (!messages.isEmpty) {
+            log.debug("Personhendelse: ${messages.count()} nye meldinger fra PDL.")
             run processMessages@{
                 messages.forEach { message ->
                     PersonhendelseMapper.map(message).fold(
