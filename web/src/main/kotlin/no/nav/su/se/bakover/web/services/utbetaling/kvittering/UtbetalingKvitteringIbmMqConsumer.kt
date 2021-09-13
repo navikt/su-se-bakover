@@ -16,6 +16,8 @@ class UtbetalingKvitteringIbmMqConsumer(
     private val jmsContext = globalJmsContext.createContext(Session.AUTO_ACKNOWLEDGE)
     private val consumer = jmsContext.createConsumer(jmsContext.createQueue(kvitteringQueueName))
 
+    // TODO: Vurder å gjøre om dette til en jobb som poller med receive, i stedet for asynkron messageListener
+    // Da slipper vi sannsynligvis exceptionListeneren og vi har litt mer kontroll på når/hvordan tråden kjører
     init {
         consumer.setMessageListener { message ->
             try {
@@ -31,6 +33,9 @@ class UtbetalingKvitteringIbmMqConsumer(
                 throw ex
             }
         }
+
+        jmsContext.setExceptionListener { exception -> log.error("Feil mot $kvitteringQueueName", exception) }
+
         jmsContext.start()
     }
 }
