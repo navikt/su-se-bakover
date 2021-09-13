@@ -100,18 +100,9 @@ open class Session(
                 is OffsetDateTime -> this.setTimestamp(idx, Timestamp.from(v.toInstant()))
                 is Instant -> this.setTimestamp(idx, Timestamp.from(v))
                 is Tidspunkt -> this.setTimestamp(idx, Timestamp.from(v.instant))
-                is LocalDateTime -> this.setTimestamp(
-                    idx,
-                    Timestamp(org.joda.time.LocalDateTime.parse(v.toString()).toDate().time)
-                )
-                is LocalDate -> this.setDate(
-                    idx,
-                    java.sql.Date(org.joda.time.LocalDate.parse(v.toString()).toDate().time)
-                )
-                is LocalTime -> this.setTime(
-                    idx,
-                    java.sql.Time(org.joda.time.LocalTime.parse(v.toString()).toDateTimeToday().millis)
-                )
+                is LocalDateTime -> this.setTimestamp(idx, Timestamp.valueOf(v))
+                is LocalDate -> this.setDate(idx, java.sql.Date.valueOf(v))
+                is LocalTime -> this.setTime(idx, java.sql.Time.valueOf(v))
                 is java.util.Date -> this.setTimestamp(idx, Timestamp(v.time))
                 is Timestamp -> this.setTimestamp(idx, v)
                 is java.sql.Time -> this.setTime(idx, v)
