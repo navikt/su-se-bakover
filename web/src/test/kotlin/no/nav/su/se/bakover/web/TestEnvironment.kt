@@ -98,6 +98,7 @@ val applicationConfig = ApplicationConfig(
         consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(emptyMap()),
     ),
     unleash = ApplicationConfig.UnleashConfig("https://localhost", "su-se-bakover"),
+    jobConfig = ApplicationConfig.JobConfig(ApplicationConfig.JobConfig.Personhendelse(null))
 )
 
 internal val jwtStub = JwtStub(applicationConfig)

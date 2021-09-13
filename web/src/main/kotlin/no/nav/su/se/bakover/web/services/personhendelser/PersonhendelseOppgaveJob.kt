@@ -5,8 +5,6 @@ import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
 import org.slf4j.LoggerFactory
 import java.net.InetAddress
-import java.time.Duration
-import java.time.temporal.ChronoUnit
 import kotlin.concurrent.fixedRateTimer
 
 internal class PersonhendelseOppgaveJob(
@@ -14,12 +12,6 @@ internal class PersonhendelseOppgaveJob(
     private val leaderPodLookup: LeaderPodLookup,
     private val intervall: Long
 ) {
-    companion object {
-        object intervall {
-            val preprod: Long = Duration.of(10, ChronoUnit.MINUTES).toMillis()
-            val prod: Long = Duration.of(1, ChronoUnit.DAYS).toMillis()
-        }
-    }
     private val log = LoggerFactory.getLogger(this::class.java)
     private val jobName = "Opprett personhendelse oppgaver"
     fun schedule() {
