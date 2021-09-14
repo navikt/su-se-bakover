@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.utbetaling
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.getOrElse
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import arrow.core.rightIfNotNull
@@ -205,15 +206,13 @@ internal class UtbetalingServiceImpl(
             }
     }
 
-    override fun stansUtbetalinger(
+    override fun simulerStans(
         sakId: UUID,
         saksbehandler: NavIdentBruker,
         stansDato: LocalDate,
-    ): Either<KunneIkkeStanseUtbetalinger, Sak> {
-        val sak = sakService.hentSak(sakId).getOrElse {
-            return KunneIkkeStanseUtbetalinger.FantIkkeSak.left()
-        }
-        val utbetalingTilSimulering =
+    ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+        val sak: Sak = sakService.hentSak(sakId).orNull()!!
+        return simulerUtbetaling(
             Utbetalingsstrategi.Stans(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
@@ -222,26 +221,40 @@ internal class UtbetalingServiceImpl(
                 behandler = saksbehandler,
                 stansDato = stansDato,
                 clock = clock,
-            ).generate()
-        return simulerUtbetaling(utbetalingTilSimulering)
-            .mapLeft {
-                KunneIkkeStanseUtbetalinger.SimuleringAvStansFeilet
-            }.flatMap { simulertUtbetaling ->
-                KontrollerSimulering(
-                    simulertUtbetaling = simulertUtbetaling,
-                    eksisterendeUtbetalinger = sak.utbetalinger,
-                    clock = clock,
-                ).resultat.mapLeft {
-                    KunneIkkeStanseUtbetalinger.KontrollAvSimuleringFeilet
-                }.flatMap {
-                    utbetal(it)
-                        .mapLeft {
-                            KunneIkkeStanseUtbetalinger.SendingAvUtbetalingTilOppdragFeilet
-                        }
-                }
-            }.map {
-                sakService.hentSak(sakId).orNull()!!
-            }
+            ).generate(),
+        )
+    }
+
+    override fun stansUtbetalinger(
+        sakId: UUID,
+        attestant: NavIdentBruker,
+        simulering: Simulering,
+        stansDato: LocalDate,
+    ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering> {
+        val sak = sakService.hentSak(sakId).getOrElse {
+            return UtbetalingFeilet.FantIkkeSak.left()
+        }
+        return simulerStans(
+            sakId = sakId,
+            saksbehandler = attestant,
+            stansDato = stansDato,
+        ).mapLeft {
+            UtbetalingFeilet.KunneIkkeSimulere(it)
+        }.flatMap { simulertStans ->
+            if (harEndringerIUtbetalingSidenSaksbehandlersSimulering(
+                    saksbehandlersSimulering = simulering,
+                    attestantsSimulering = simulertStans,
+                )
+            ) return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+
+            KontrollerSimulering(
+                simulertUtbetaling = simulertStans,
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                clock = clock,
+            ).resultat.getOrHandle { return UtbetalingFeilet.KontrollAvSimuleringFeilet.left() }
+
+            utbetal(simulertStans)
+        }
     }
 
     override fun gjenopptaUtbetalinger(

@@ -42,11 +42,18 @@ interface UtbetalingService {
         simulering: Simulering,
     ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
-    fun stansUtbetalinger(
+    fun simulerStans(
         sakId: UUID,
         saksbehandler: NavIdentBruker,
         stansDato: LocalDate,
-    ): Either<KunneIkkeStanseUtbetalinger, Sak>
+    ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
+
+    fun stansUtbetalinger(
+        sakId: UUID,
+        attestant: NavIdentBruker,
+        simulering: Simulering,
+        stansDato: LocalDate,
+    ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun gjenopptaUtbetalinger(
         sakId: UUID,

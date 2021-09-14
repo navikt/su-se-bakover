@@ -81,6 +81,7 @@ sealed class Utbetalingsstrategi {
             )
 
             return Utbetaling.UtbetalingForSimulering(
+                opprettet = Tidspunkt.now(clock),
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,

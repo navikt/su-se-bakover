@@ -64,21 +64,29 @@ internal object Feilresponser {
 
     val ugyldigBody = BadRequest.errorJson(
         "Ugyldig body",
-        "ugyldig_body"
+        "ugyldig_body",
     )
 
     val ugyldigInput = BadRequest.errorJson(
         "Ugyldig input",
-        "ugyldig_input"
+        "ugyldig_input",
     )
 
     internal fun UtbetalingFeilet.tilResultat(): Resultat {
         return when (this) {
             is UtbetalingFeilet.KunneIkkeSimulere -> this.simuleringFeilet.tilResultat()
-            UtbetalingFeilet.Protokollfeil -> InternalServerError.errorJson("Kunne ikke utføre utbetaling", "kunne_ikke_utbetale")
+            UtbetalingFeilet.Protokollfeil -> InternalServerError.errorJson(
+                "Kunne ikke utføre utbetaling",
+                "kunne_ikke_utbetale",
+            )
             UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> InternalServerError.errorJson(
                 "Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres",
-                "kontrollsimulering_ulik_saksbehandlers_simulering"
+                "kontrollsimulering_ulik_saksbehandlers_simulering",
+            )
+            UtbetalingFeilet.FantIkkeSak -> InternalServerError.errorJson("Fant ikke sak", "kunne_ikke_finne_sak")
+            UtbetalingFeilet.KontrollAvSimuleringFeilet -> InternalServerError.errorJson(
+                "Kontroll av simulering feilet. Inkonsistens må undersøkes",
+                "kontroll_av_simulering_feilet",
             )
         }
     }

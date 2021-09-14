@@ -95,7 +95,6 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
-import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
@@ -174,14 +173,21 @@ open class AccessCheckProxy(
                     return services.utbetaling.utbetal(sakId, attestant, beregning, simulering)
                 }
 
-                override fun stansUtbetalinger(
+                override fun simulerStans(
                     sakId: UUID,
                     saksbehandler: NavIdentBruker,
-                    stansDato: LocalDate,
-                ): Either<KunneIkkeStanseUtbetalinger, Sak> {
-                    assertHarTilgangTilSak(sakId)
+                    stansDato: LocalDate
+                ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+                    kastKanKunKallesFraAnnenService()
+                }
 
-                    return services.utbetaling.stansUtbetalinger(sakId, saksbehandler, stansDato)
+                override fun stansUtbetalinger(
+                    sakId: UUID,
+                    attestant: NavIdentBruker,
+                    simulering: Simulering,
+                    stansDato: LocalDate
+                ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering> {
+                    kastKanKunKallesFraAnnenService()
                 }
 
                 override fun gjenopptaUtbetalinger(

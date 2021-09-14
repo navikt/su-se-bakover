@@ -73,7 +73,6 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.overordnetSøknadsbeha
 import no.nav.su.se.bakover.web.routes.togglePaths
 import no.nav.su.se.bakover.web.routes.toggleRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.gjenoppta.gjenopptaUtbetalingRoutes
-import no.nav.su.se.bakover.web.routes.utbetaling.stans.stansutbetalingRoutes
 import no.nav.su.se.bakover.web.services.avstemming.AvstemmingJob
 import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
@@ -246,7 +245,6 @@ internal fun Application.susebakover(
                     )
                     overordnetSøknadsbehandligRoutes(accessProtectedServices.søknadsbehandling)
                     avstemmingRoutes(accessProtectedServices.avstemming)
-                    stansutbetalingRoutes(accessProtectedServices.utbetaling)
                     gjenopptaUtbetalingRoutes(accessProtectedServices.utbetaling)
                     driftRoutes(accessProtectedServices.søknad)
                     revurderingRoutes(accessProtectedServices.revurdering, accessProtectedServices.vedtakService, clock)
@@ -260,7 +258,8 @@ internal fun Application.susebakover(
         ferdigstillVedtakService = services.ferdigstillVedtak,
         clock = clock,
     )
-    val personhendelseService = PersonhendelseService(databaseRepos.sak, databaseRepos.personhendelseRepo, services.oppgave, services.person)
+    val personhendelseService =
+        PersonhendelseService(databaseRepos.sak, databaseRepos.personhendelseRepo, services.oppgave, services.person)
     if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
         UtbetalingKvitteringIbmMqConsumer(
             kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,
