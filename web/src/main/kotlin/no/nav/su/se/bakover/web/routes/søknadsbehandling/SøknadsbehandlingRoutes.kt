@@ -48,9 +48,9 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.Feilresponser
+import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeGenerereBrev
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
-import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeGenerereBrev
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson
@@ -72,6 +72,15 @@ internal fun Route.søknadsbehandlingRoutes(
 
     data class OpprettBehandlingBody(val soknadId: String)
     data class WithFritekstBody(val fritekst: String)
+
+    val feilVedHentingAvSaksbehandlerEllerAttestant = InternalServerError.errorJson(
+        "Klarte ikke hente informasjon om saksbehandler og/eller attestant",
+        "feil_ved_henting_av_saksbehandler_eller_attestant",
+    )
+    val attestantSammeSomSaksbehandler = Forbidden.errorJson(
+        "Attestant og saksbehandler kan ikke være samme person",
+        "attestant_samme_som_saksbehandler",
+    )
 
     authorize(Brukerrolle.Saksbehandler) {
         post("$sakPath/{sakId}/behandlinger") {
@@ -261,12 +270,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                 InternalServerError.errorJson("Kunne ikke lage brev", "kunne_ikke_lage_pdf")
                             }
                             is KunneIkkeLageBrev.FantIkkePerson -> fantIkkePerson
-                            is KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant -> {
-                                InternalServerError.errorJson(
-                                    "Klarte ikke hente informasjon om saksbehandler og/eller attestant",
-                                    "feil_ved_henting_av_saksbehandler_eller_attestant",
-                                )
-                            }
+                            is KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant -> feilVedHentingAvSaksbehandlerEllerAttestant
                             is KunneIkkeLageBrev.KunneIkkeFinneGjeldendeUtbetaling -> {
                                 InternalServerError.errorJson(
                                     "Kunne ikke hente gjeldende utbetaling",
@@ -346,12 +350,7 @@ internal fun Route.søknadsbehandlingRoutes(
                         ).fold(
                             {
                                 val resultat = when (it) {
-                                    KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave -> {
-                                        InternalServerError.errorJson(
-                                            "Kunne ikke opprette oppgave for attestering",
-                                            "kunne_ikke_opprette_oppgave",
-                                        )
-                                    }
+                                    KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave -> Feilresponser.kunneIkkeOppretteOppgave
                                     KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId -> Feilresponser.fantIkkeAktørId
                                     KunneIkkeSendeTilAttestering.FantIkkeBehandling -> fantIkkeBehandling
                                 }
@@ -372,22 +371,12 @@ internal fun Route.søknadsbehandlingRoutes(
     authorize(Brukerrolle.Attestant) {
         fun kunneIkkeIverksetteMelding(value: KunneIkkeIverksette): Resultat {
             return when (value) {
-                is KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> {
-                    Forbidden.errorJson(
-                        "Attestant og saksbehandler kan ikke være samme person",
-                        "attestant_samme_som_saksbehandler",
-                    )
-                }
+                is KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantSammeSomSaksbehandler
                 is KunneIkkeIverksette.KunneIkkeUtbetale -> value.utbetalingFeilet.tilResultat()
                 is KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev -> kunneIkkeGenerereBrev
                 is KunneIkkeIverksette.FantIkkeBehandling -> fantIkkeBehandling
                 is KunneIkkeIverksette.FantIkkePerson -> fantIkkePerson
-                is KunneIkkeIverksette.FikkIkkeHentetSaksbehandlerEllerAttestant -> {
-                    InternalServerError.errorJson(
-                        "Klarte ikke hente informasjon om saksbehandler og/eller attestant",
-                        "feil_ved_henting_av_saksbehandler_eller_attestant",
-                    )
-                }
+                is KunneIkkeIverksette.FikkIkkeHentetSaksbehandlerEllerAttestant -> feilVedHentingAvSaksbehandlerEllerAttestant
             }
         }
 
@@ -448,18 +437,8 @@ internal fun Route.søknadsbehandlingRoutes(
                                 ifLeft = {
                                     val resultat = when (it) {
                                         KunneIkkeUnderkjenne.FantIkkeBehandling -> fantIkkeBehandling
-                                        KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> {
-                                            Forbidden.errorJson(
-                                                "Attestant og saksbehandler kan ikke være samme person",
-                                                "attestant_samme_som_saksbehandler",
-                                            )
-                                        }
-                                        KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave -> {
-                                            InternalServerError.errorJson(
-                                                "Oppgaven er lukket, men vi kunne ikke opprette oppgave. Prøv igjen senere.",
-                                                "kunne_ikke_opprette_oppgave",
-                                            )
-                                        }
+                                        KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantSammeSomSaksbehandler
+                                        KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave -> Feilresponser.kunneIkkeOppretteOppgave
                                         KunneIkkeUnderkjenne.FantIkkeAktørId -> Feilresponser.fantIkkeAktørId
                                     }
                                     call.svar(resultat)

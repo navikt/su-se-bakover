@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.receiveTextUTF8
 import no.nav.su.se.bakover.web.routes.Feilresponser
+import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadErrorHandler
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
@@ -158,12 +159,7 @@ internal fun Route.søknadRoutes(
                                         )
                                     )
                                 else ->
-                                    call.svar(
-                                        InternalServerError.errorJson(
-                                            "Kunne ikke lage brevutkast",
-                                            "kunne_ikke_lage_brevutkast"
-                                        )
-                                    )
+                                    call.svar(kunneIkkeLageBrevutkast)
                             }
                         },
                         { call.respondBytes(it, ContentType.Application.Pdf) },

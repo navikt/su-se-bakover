@@ -10,8 +10,10 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
+import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.feilVedGenereringAvDokument
+import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.fantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Brev.navneoppslagSaksbehandlerAttesttantFeilet
@@ -22,10 +24,6 @@ internal object Revurderingsfeilresponser {
         "fant_ikke_sak",
     )
 
-    val kunneIkkeOppretteOppgave = InternalServerError.errorJson(
-        "Kunne ikke opprette oppgave",
-        "kunne_ikke_opprette_oppgave",
-    )
     val fantIkkeRevurdering = NotFound.errorJson(
         "Fant ikke revurdering",
         "fant_ikke_revurdering",
@@ -103,10 +101,7 @@ internal object Revurderingsfeilresponser {
     fun KunneIkkeLageBrevutkastForRevurdering.tilResultat(): Resultat {
         return when (this) {
             is KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
-            KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast -> InternalServerError.errorJson(
-                "Kunne ikke lage brevutkast",
-                "kunne_ikke_lage_brevutkast",
-            )
+            KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast -> kunneIkkeLageBrevutkast
             KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson -> fantIkkePerson
             KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> navneoppslagSaksbehandlerAttesttantFeilet
             KunneIkkeLageBrevutkastForRevurdering.KunneIkkeFinneGjeldendeUtbetaling -> fantIkkeGjeldendeUtbetaling
