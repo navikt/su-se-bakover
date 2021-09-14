@@ -41,6 +41,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -51,7 +52,7 @@ import javax.sql.DataSource
 interface RevurderingRepo {
     fun hent(id: UUID): AbstraktRevurdering?
     fun hentEventuellTidligereAttestering(id: UUID): Attestering?
-    fun lagre(revurdering: Revurdering)
+    fun lagre(revurdering: AbstraktRevurdering)
     fun oppdaterForhåndsvarsel(id: UUID, forhåndsvarsel: Forhåndsvarsel)
 }
 
@@ -70,7 +71,9 @@ enum class RevurderingsType {
     IVERKSATT_INGEN_ENDRING,
     UNDERKJENT_INNVILGET,
     UNDERKJENT_OPPHØRT,
-    UNDERKJENT_INGEN_ENDRING
+    UNDERKJENT_INGEN_ENDRING,
+    SIMULERT_STANS,
+    IVERKSATT_STANS,
 }
 
 internal class RevurderingPostgresRepo(
@@ -92,7 +95,7 @@ internal class RevurderingPostgresRepo(
         }
     }
 
-    internal fun hent(id: UUID, session: Session): Revurdering? =
+    internal fun hent(id: UUID, session: Session): AbstraktRevurdering? =
         """
                 SELECT *
                 FROM revurdering
@@ -113,9 +116,12 @@ internal class RevurderingPostgresRepo(
                 }
         }
 
-    override fun lagre(revurdering: Revurdering) {
+    override fun lagre(revurdering: AbstraktRevurdering) {
         dataSource.withSession { session ->
-            lagre(revurdering, session)
+            when (revurdering) {
+                is Revurdering -> lagre(revurdering, session)
+                is StansAvYtelseRevurdering -> lagre(revurdering, session)
+            }
         }
     }
 
@@ -127,6 +133,72 @@ internal class RevurderingPostgresRepo(
             is RevurderingTilAttestering -> lagre(revurdering, session)
             is IverksattRevurdering -> lagre(revurdering, session)
             is UnderkjentRevurdering -> lagre(revurdering, session)
+        }
+    }
+
+    internal fun lagre(revurdering: StansAvYtelseRevurdering, session: Session) {
+        when (revurdering) {
+            is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
+                """
+                    insert into revurdering (
+                        id,
+                        opprettet,
+                        periode,
+                        simulering,
+                        saksbehandler,
+                        revurderingsType,
+                        vedtakSomRevurderesId,
+                        årsak,
+                        begrunnelse,
+                        informasjonSomRevurderes,
+                        attestering
+                    ) values (
+                        :id,
+                        :opprettet,
+                        to_json(:periode::json),
+                        to_json(:simulering::json),
+                        :saksbehandler,
+                        :revurderingsType,
+                        :vedtakSomRevurderesId,
+                        :arsak,
+                        :begrunnelse,
+                        to_json(:informasjonSomRevurderes::json),
+                        to_json(:attestering::json)
+                    )
+                """.trimIndent()
+                    .insert(
+                        mapOf(
+                            "id" to revurdering.id,
+                            "opprettet" to revurdering.opprettet,
+                            "periode" to objectMapper.writeValueAsString(revurdering.periode),
+                            "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
+                            "saksbehandler" to revurdering.saksbehandler,
+                            "revurderingsType" to RevurderingsType.SIMULERT_STANS,
+                            "vedtakSomRevurderesId" to revurdering.tilRevurdering.id,
+                            "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                            "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
+                            "informasjonSomRevurderes" to objectMapper.writeValueAsString(revurdering.informasjonSomRevurderes),
+                            "attestering" to Attesteringshistorikk.empty().hentAttesteringer().serialize(),
+                        ),
+                        session,
+                    )
+            }
+            is StansAvYtelseRevurdering.IverksattStansAvYtelse -> {
+                """
+                    update revurdering set 
+                        attestering = to_json(:attestering::json),
+                        revurderingsType = :revurderingsType 
+                    where id = :id
+                """.trimIndent()
+                    .oppdatering(
+                        mapOf(
+                            "attestering" to revurdering.attesteringer.hentAttesteringer().serialize(),
+                            "revurderingsType" to RevurderingsType.IVERKSATT_STANS,
+                            "id" to revurdering.id,
+                        ),
+                        session,
+                    )
+            }
         }
     }
 
@@ -150,7 +222,7 @@ internal class RevurderingPostgresRepo(
         }
     }
 
-    internal fun hentRevurderingerForSak(sakId: UUID, session: Session): List<Revurdering> =
+    internal fun hentRevurderingerForSak(sakId: UUID, session: Session): List<AbstraktRevurdering> =
         """
             SELECT
                 r.*
@@ -164,7 +236,7 @@ internal class RevurderingPostgresRepo(
                 it.toRevurdering(session)
             }
 
-    private fun Row.toRevurdering(session: Session): Revurdering {
+    private fun Row.toRevurdering(session: Session): AbstraktRevurdering {
         val id = uuid("id")
         val periode = string("periode").let { objectMapper.readValue<Periode>(it) }
         val opprettet = tidspunkt("opprettet")
@@ -450,6 +522,29 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
+            )
+            RevurderingsType.SIMULERT_STANS -> StansAvYtelseRevurdering.SimulertStansAvYtelse(
+                id = id,
+                periode = periode,
+                opprettet = opprettet,
+                tilRevurdering = tilRevurdering,
+                saksbehandler = Saksbehandler(saksbehandler),
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                begrunnelse = begrunnelse,
+                simulering = simulering!!,
+            )
+            RevurderingsType.IVERKSATT_STANS -> StansAvYtelseRevurdering.IverksattStansAvYtelse(
+                id = id,
+                periode = periode,
+                opprettet = opprettet,
+                tilRevurdering = tilRevurdering,
+                saksbehandler = Saksbehandler(saksbehandler),
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                begrunnelse = begrunnelse,
+                simulering = simulering!!,
+                attesteringer = attesteringer,
             )
         }
     }

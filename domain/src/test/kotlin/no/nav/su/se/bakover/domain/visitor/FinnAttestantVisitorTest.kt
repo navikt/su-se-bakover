@@ -36,6 +36,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -240,7 +241,7 @@ internal class FinnAttestantVisitorTest {
         id = UUID.randomUUID(),
         periode = periode,
         opprettet = Tidspunkt.now(),
-        tilRevurdering = mock {
+        tilRevurdering = mock<VedtakSomKanRevurderes.VedtakMedBeregning> {
             on { beregning } doReturn beregningMock
         },
         saksbehandler = NavIdentBruker.Saksbehandler("Petter"),

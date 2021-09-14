@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
+import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
@@ -33,6 +34,15 @@ import kotlin.reflect.KClass
 
 interface RevurderingService {
     fun hentRevurdering(revurderingId: UUID): AbstraktRevurdering?
+
+    fun stansAvYtelse(
+        opprettRevurderingRequest: OpprettRevurderingRequest
+    ): Either<KunneIkkeOppretteRevurdering, StansAvYtelseRevurdering.SimulertStansAvYtelse>
+
+    fun iverksettStansAvYtelse(
+        revurderingId: UUID,
+        attestant: NavIdentBruker.Attestant,
+    ): Either<KunneIkkeIverksetteRevurdering, StansAvYtelseRevurdering.IverksattStansAvYtelse>
 
     fun opprettRevurdering(
         opprettRevurderingRequest: OpprettRevurderingRequest,
@@ -243,8 +253,8 @@ sealed class KunneIkkeIverksetteRevurdering {
     object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeIverksetteRevurdering()
     object FantIkkeRevurdering : KunneIkkeIverksetteRevurdering()
     data class UgyldigTilstand(
-        val fra: KClass<out Revurdering>,
-        val til: KClass<out Revurdering>,
+        val fra: KClass<out AbstraktRevurdering>,
+        val til: KClass<out AbstraktRevurdering>,
     ) : KunneIkkeIverksetteRevurdering()
 }
 

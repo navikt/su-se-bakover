@@ -11,9 +11,12 @@ import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.attestant
 import no.nav.su.se.bakover.database.beregning
 import no.nav.su.se.bakover.database.fixedClock
+import no.nav.su.se.bakover.database.fixedTidspunkt
 import no.nav.su.se.bakover.database.hent
+import no.nav.su.se.bakover.database.simulering
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -24,9 +27,15 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
+import no.nav.su.se.bakover.test.periode2021
+import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 internal class VedtakPosgresRepoTest {
     private val datasource = EmbeddedDatabase.instance()
@@ -180,7 +189,7 @@ internal class VedtakPosgresRepoTest {
                 grunnlagsdata = nyRevurdering.grunnlagsdata,
                 vilkårsvurderinger = nyRevurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-                attesteringer = Attesteringshistorikk.empty()
+                attesteringer = Attesteringshistorikk.empty(),
             )
             testDataHelper.revurderingRepo.lagre(attestertRevurdering)
             val iverksattRevurdering = IverksattRevurdering.IngenEndring(
@@ -191,7 +200,8 @@ internal class VedtakPosgresRepoTest {
                 saksbehandler = nyRevurdering.saksbehandler,
                 oppgaveId = OppgaveId(""),
                 beregning = beregning(nyRevurdering.periode),
-                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
+                attesteringer = Attesteringshistorikk.empty()
+                    .leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
                 fritekstTilBrev = "",
                 revurderingsårsak = Revurderingsårsak(
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
@@ -221,6 +231,55 @@ internal class VedtakPosgresRepoTest {
                         it.stringOrNull("søknadsbehandlingId") shouldBe null
                         it.stringOrNull("revurderingId") shouldBe iverksattRevurdering.id.toString()
                     }
+            }
+        }
+    }
+
+    @Test
+    fun `oppretter og henter vedtak for stans av ytelse`() {
+        withMigratedDb {
+            val søknadsbehandling = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val simulertRevurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = periode2021,
+                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
+                vilkårsvurderinger = vilkårsvurderingerInnvilget(),
+                tilRevurdering = søknadsbehandling,
+                saksbehandler = saksbehandler,
+                begrunnelse = "slem",
+                simulering = simulering(søknadsbehandling.behandling.fnr),
+            )
+            testDataHelper.revurderingRepo.lagre(simulertRevurdering)
+            testDataHelper.grunnlagRepo.lagreBosituasjongrunnlag(
+                simulertRevurdering.id,
+                simulertRevurdering.grunnlagsdata.bosituasjon,
+            )
+            testDataHelper.grunnlagRepo.lagreFradragsgrunnlag(
+                simulertRevurdering.id,
+                simulertRevurdering.grunnlagsdata.fradragsgrunnlag,
+            )
+            testDataHelper.uføreVilkårsvurderingRepo.lagre(
+                simulertRevurdering.id,
+                simulertRevurdering.vilkårsvurderinger.uføre,
+            )
+            testDataHelper.formueVilkårsvurderingPostgresRepo.lagre(
+                simulertRevurdering.id,
+                simulertRevurdering.vilkårsvurderinger.formue,
+            )
+
+            val iverksattRevurdering = simulertRevurdering.iverksett(
+                Attestering.Iverksatt(NavIdentBruker.Attestant("atte"), fixedTidspunkt),
+            )
+            testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
+
+            val utbetaling = testDataHelper.nyOversendtUtbetalingMedKvittering().second
+            val vedtak = Vedtak.from(iverksattRevurdering, utbetaling.id, fixedClock)
+
+            vedtakRepo.lagre(vedtak)
+            testDataHelper.datasource.withSession {
+                vedtakRepo.hent(vedtak.id, it) shouldBe vedtak
             }
         }
     }

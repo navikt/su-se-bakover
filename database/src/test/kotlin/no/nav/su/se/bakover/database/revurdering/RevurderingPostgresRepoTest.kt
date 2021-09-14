@@ -39,12 +39,16 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
+import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.LocalDate
@@ -925,6 +929,52 @@ internal class RevurderingPostgresRepoTest {
             ),
             true,
         )
+    }
+
+    @Test
+    fun `lagrer og henter revurdering for stans av ytelse`() {
+        withMigratedDb {
+            val søknadsbehandling = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val simulertRevurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = periode2021,
+                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
+                vilkårsvurderinger = vilkårsvurderingerInnvilget(),
+                tilRevurdering = søknadsbehandling,
+                saksbehandler = saksbehandler,
+                begrunnelse = "slem",
+                simulering = simulering,
+            )
+
+            repo.lagre(simulertRevurdering)
+            testDataHelper.grunnlagRepo.lagreBosituasjongrunnlag(
+                simulertRevurdering.id,
+                simulertRevurdering.grunnlagsdata.bosituasjon,
+            )
+            testDataHelper.grunnlagRepo.lagreFradragsgrunnlag(
+                simulertRevurdering.id,
+                simulertRevurdering.grunnlagsdata.fradragsgrunnlag,
+            )
+            testDataHelper.uføreVilkårsvurderingRepo.lagre(
+                simulertRevurdering.id,
+                simulertRevurdering.vilkårsvurderinger.uføre,
+            )
+            testDataHelper.formueVilkårsvurderingPostgresRepo.lagre(
+                simulertRevurdering.id,
+                simulertRevurdering.vilkårsvurderinger.formue,
+            )
+
+            repo.hent(simulertRevurdering.id) shouldBe simulertRevurdering
+
+            val iverksattRevurdering = simulertRevurdering.iverksett(
+                Attestering.Iverksatt(NavIdentBruker.Attestant("atte"), fixedTidspunkt),
+            )
+            repo.lagre(iverksattRevurdering)
+
+            repo.hent(iverksattRevurdering.id) shouldBe iverksattRevurdering
+        }
     }
 
     private fun hentRevurdering(id: UUID): Revurdering {

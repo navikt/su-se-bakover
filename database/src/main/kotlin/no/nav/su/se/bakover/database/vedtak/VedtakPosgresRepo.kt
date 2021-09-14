@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakType
@@ -34,7 +34,7 @@ interface VedtakRepo {
     fun hentForSakId(sakId: UUID): List<Vedtak>
     fun hentAktive(dato: LocalDate): List<Vedtak.EndringIYtelse>
     fun lagre(vedtak: Vedtak)
-    fun hentForUtbetaling(utbetalingId: UUID30): Vedtak.EndringIYtelse?
+    fun hentForUtbetaling(utbetalingId: UUID30): Vedtak?
 }
 
 internal class VedtakPosgresRepo(
@@ -66,9 +66,10 @@ internal class VedtakPosgresRepo(
             is Vedtak.EndringIYtelse -> lagre(vedtak)
             is Vedtak.Avslag -> lagre(vedtak)
             is Vedtak.IngenEndringIYtelse -> lagre(vedtak)
+            is Vedtak.StansAvYtelse -> lagre(vedtak)
         }
 
-    override fun hentForUtbetaling(utbetalingId: UUID30): Vedtak.EndringIYtelse? {
+    override fun hentForUtbetaling(utbetalingId: UUID30): Vedtak? {
         return dataSource.withSession { session ->
             """
                 SELECT *
@@ -77,7 +78,7 @@ internal class VedtakPosgresRepo(
             """.trimIndent()
                 .hent(mapOf("utbetalingId" to utbetalingId), session) {
                     it.toVedtak(session)
-                }?.let { it as Vedtak.EndringIYtelse }
+                }
         }
     }
 
@@ -177,6 +178,16 @@ internal class VedtakPosgresRepo(
                 periode = periode,
                 beregning = beregning!!,
             )
+            VedtakType.STANS_AV_YTELSE -> Vedtak.StansAvYtelse(
+                id = id,
+                opprettet = opprettet,
+                behandling = behandling,
+                saksbehandler = saksbehandler,
+                attestant = attestant,
+                periode = periode,
+                simulering = simulering!!,
+                utbetalingId = utbetalingId!!,
+            )
         }
     }
 
@@ -218,6 +229,49 @@ internal class VedtakPosgresRepo(
                         "utbetalingid" to vedtak.utbetalingId,
                         "simulering" to objectMapper.writeValueAsString(vedtak.simulering),
                         "beregning" to objectMapper.writeValueAsString(vedtak.beregning.toSnapshot()),
+                        "vedtaktype" to vedtak.vedtakType,
+                    ),
+                    tx,
+                )
+            lagreBehandlingVedtakKnytning(vedtak, tx)
+        }
+    }
+
+    private fun lagre(vedtak: Vedtak.StansAvYtelse) {
+        dataSource.withTransaction { tx ->
+            """
+                INSERT INTO vedtak(
+                    id,
+                    opprettet,
+                    fraOgMed,
+                    tilOgMed,
+                    saksbehandler,
+                    attestant,
+                    utbetalingid,
+                    simulering,
+                    vedtaktype
+                ) VALUES (
+                    :id,
+                    :opprettet,
+                    :fraOgMed,
+                    :tilOgMed,
+                    :saksbehandler,
+                    :attestant,
+                    :utbetalingid,
+                    to_json(:simulering::json),
+                    :vedtaktype
+                )
+            """.trimIndent()
+                .insert(
+                    mapOf(
+                        "id" to vedtak.id,
+                        "opprettet" to vedtak.opprettet,
+                        "fraOgMed" to vedtak.periode.fraOgMed,
+                        "tilOgMed" to vedtak.periode.tilOgMed,
+                        "saksbehandler" to vedtak.saksbehandler,
+                        "attestant" to vedtak.attestant,
+                        "utbetalingid" to vedtak.utbetalingId,
+                        "simulering" to objectMapper.writeValueAsString(vedtak.simulering),
                         "vedtaktype" to vedtak.vedtakType,
                     ),
                     tx,
@@ -322,7 +376,7 @@ internal class VedtakPosgresRepo(
 
     private fun lagreBehandlingVedtakKnytning(vedtak: Vedtak, session: Session) {
         val knytning = when (vedtak.behandling) {
-            is Revurdering ->
+            is AbstraktRevurdering ->
                 BehandlingVedtakKnytning.ForRevurdering(
                     vedtakId = vedtak.id,
                     sakId = vedtak.behandling.sakId,

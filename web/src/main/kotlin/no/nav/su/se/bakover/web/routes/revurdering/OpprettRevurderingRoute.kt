@@ -46,7 +46,7 @@ internal fun Route.opprettRevurderingRoute(
         val fraOgMed: LocalDate,
         val årsak: String,
         val begrunnelse: String,
-        val informasjonSomRevurderes: List<Revurderingsteg>
+        val informasjonSomRevurderes: List<Revurderingsteg>,
     )
     authorize(Brukerrolle.Saksbehandler) {
         post(revurderingPath) {
@@ -54,23 +54,44 @@ internal fun Route.opprettRevurderingRoute(
                 call.withBody<Body> { body ->
                     val navIdent = call.suUserContext.navIdent
 
-                    revurderingService.opprettRevurdering(
-                        OpprettRevurderingRequest(
-                            sakId = sakId,
-                            fraOgMed = body.fraOgMed,
-                            årsak = body.årsak,
-                            begrunnelse = body.begrunnelse,
-                            saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
-                            informasjonSomRevurderes = body.informasjonSomRevurderes
-                        ),
-                    ).fold(
-                        ifLeft = { call.svar(it.tilResultat()) },
-                        ifRight = {
-                            call.sikkerlogg("Opprettet en ny revurdering på sak med id $sakId")
-                            call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
-                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson())))
-                        },
-                    )
+                    // TODO gjøre noe annet her?
+                    if (body.årsak == Revurderingsårsak.Årsak.STANS_AV_YTELSE.name) {
+                        revurderingService.stansAvYtelse(
+                            OpprettRevurderingRequest(
+                                sakId = sakId,
+                                fraOgMed = body.fraOgMed,
+                                årsak = body.årsak,
+                                begrunnelse = body.begrunnelse,
+                                saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
+                                informasjonSomRevurderes = body.informasjonSomRevurderes,
+                            ),
+                        ).fold(
+                            ifLeft = { call.svar(it.tilResultat()) },
+                            ifRight = {
+                                call.sikkerlogg("Opprettet en ny revurdering på sak med id $sakId")
+                                call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
+                                call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson())))
+                            },
+                        )
+                    } else {
+                        revurderingService.opprettRevurdering(
+                            OpprettRevurderingRequest(
+                                sakId = sakId,
+                                fraOgMed = body.fraOgMed,
+                                årsak = body.årsak,
+                                begrunnelse = body.begrunnelse,
+                                saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
+                                informasjonSomRevurderes = body.informasjonSomRevurderes,
+                            ),
+                        ).fold(
+                            ifLeft = { call.svar(it.tilResultat()) },
+                            ifRight = {
+                                call.sikkerlogg("Opprettet en ny revurdering på sak med id $sakId")
+                                call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
+                                call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson())))
+                            },
+                        )
+                    }
                 }
             }
         }

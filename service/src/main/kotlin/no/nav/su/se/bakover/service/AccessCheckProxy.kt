@@ -38,6 +38,7 @@ import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.SakRestans
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
@@ -451,6 +452,19 @@ open class AccessCheckProxy(
                 override fun hentRevurdering(revurderingId: UUID): AbstraktRevurdering? {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.hentRevurdering(revurderingId)
+                }
+
+                override fun stansAvYtelse(opprettRevurderingRequest: OpprettRevurderingRequest): Either<KunneIkkeOppretteRevurdering, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
+                    assertHarTilgangTilSak(opprettRevurderingRequest.sakId)
+                    return services.revurdering.stansAvYtelse(opprettRevurderingRequest)
+                }
+
+                override fun iverksettStansAvYtelse(
+                    revurderingId: UUID,
+                    attestant: NavIdentBruker.Attestant
+                ): Either<KunneIkkeIverksetteRevurdering, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
+                    assertHarTilgangTilRevurdering(revurderingId)
+                    return services.revurdering.iverksettStansAvYtelse(revurderingId, attestant)
                 }
 
                 override fun opprettRevurdering(

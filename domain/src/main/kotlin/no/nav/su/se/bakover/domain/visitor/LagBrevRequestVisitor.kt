@@ -224,6 +224,7 @@ class LagBrevRequestVisitor(
             }
             VedtakType.AVSLAG,
             VedtakType.INGEN_ENDRING,
+            VedtakType.STANS_AV_YTELSE,
             -> {
                 throw KunneIkkeLageBrevRequest.UgyldigKombinasjonAvVedtakOgTypeException(
                     vedtak::class,
@@ -243,6 +244,10 @@ class LagBrevRequestVisitor(
 
     override fun visit(vedtak: Vedtak.IngenEndringIYtelse) {
         brevRequest = vedtakIngenEndringIYtelse(vedtak)
+    }
+
+    override fun visit(vedtak: Vedtak.StansAvYtelse) {
+        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(vedtak::class)
     }
 
     private fun hentPersonOgNavn(

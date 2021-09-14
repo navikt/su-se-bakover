@@ -69,12 +69,70 @@ sealed class AbstraktRevurdering : Behandling {
     override val fnr by lazy { tilRevurdering.behandling.fnr }
 }
 
+sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
+
+    data class SimulertStansAvYtelse(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        override val periode: Periode,
+        override val grunnlagsdata: Grunnlagsdata,
+        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val tilRevurdering: VedtakSomKanRevurderes,
+        val saksbehandler: Saksbehandler,
+        val begrunnelse: String,
+        val simulering: Simulering,
+    ) : StansAvYtelseRevurdering() {
+        val informasjonSomRevurderes =
+            InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Ytelse to Vurderingstatus.Vurdert))
+        val revurderingsårsak = Revurderingsårsak.create(
+            årsak = Revurderingsårsak.Årsak.STANS_AV_YTELSE.toString(),
+            begrunnelse = begrunnelse,
+        )
+
+        fun iverksett(attestering: Attestering): IverksattStansAvYtelse {
+            return IverksattStansAvYtelse(
+                id = id,
+                opprettet = opprettet,
+                periode = periode,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                tilRevurdering = tilRevurdering,
+                saksbehandler = saksbehandler,
+                begrunnelse = begrunnelse,
+                simulering = simulering,
+                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attestering),
+            )
+        }
+    }
+
+    data class IverksattStansAvYtelse(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        override val periode: Periode,
+        override val grunnlagsdata: Grunnlagsdata,
+        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val tilRevurdering: VedtakSomKanRevurderes,
+        val saksbehandler: Saksbehandler,
+        val begrunnelse: String,
+        val simulering: Simulering,
+        override val attesteringer: Attesteringshistorikk,
+    ) : StansAvYtelseRevurdering(), BehandlingMedAttestering {
+        val informasjonSomRevurderes =
+            InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Ytelse to Vurderingstatus.Vurdert))
+        val revurderingsårsak = Revurderingsårsak.create(
+            årsak = Revurderingsårsak.Årsak.STANS_AV_YTELSE.toString(),
+            begrunnelse = begrunnelse,
+        )
+    }
+}
+
 sealed class Revurdering :
     AbstraktRevurdering(),
     BehandlingMedOppgave,
     BehandlingMedAttestering,
     Visitable<RevurderingVisitor> {
     abstract val saksbehandler: Saksbehandler
+
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på søknadsbehandlinger)
     abstract val fritekstTilBrev: String
     abstract val revurderingsårsak: Revurderingsårsak
@@ -1298,4 +1356,5 @@ enum class Revurderingsteg(val vilkår: String) {
     // InnlagtPåInstitusjon("InnlagtPåInstitusjon"),
     // UtenlandsoppholdOver90Dager("UtenlandsoppholdOver90Dager"),
     Inntekt("Inntekt"),
+    Ytelse("Ytelse"),
 }

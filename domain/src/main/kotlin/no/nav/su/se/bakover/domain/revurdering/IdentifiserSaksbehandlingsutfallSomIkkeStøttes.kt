@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 
+// TODO: Dersom sjekken mot tidligereBeregning er relevant og gjennomførbar bør den endres til å sjekke mot utbetalinger.
 data class IdentifiserSaksbehandlingsutfallSomIkkeStøttes(
     private val vilkårsvurderinger: Vilkårsvurderinger,
     private val tidligereBeregning: Beregning,

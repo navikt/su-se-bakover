@@ -47,7 +47,7 @@ internal class RevurderingJsonTest {
         Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
         Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
     )
-    private val vedtak: VedtakSomKanRevurderes = RevurderingRoutesTestData.vedtak
+    private val vedtak: VedtakSomKanRevurderes.VedtakMedBeregning = RevurderingRoutesTestData.vedtak
 
     @Test
     fun `should serialize and deserialize OpprettetRevurdering`() {
@@ -168,7 +168,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "status": "${RevurderingsStatus.BEREGNET_INNVILGET}",
@@ -250,7 +249,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "status": "${RevurderingsStatus.BEREGNET_OPPHØRT}",
@@ -332,7 +330,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "status": "${RevurderingsStatus.BEREGNET_INGEN_ENDRING}",
@@ -415,7 +412,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                 {
-                  "beregning": ${serialize(vedtak.beregning.toJson())},
                   "revurdert": ${serialize(beregning.toJson())}
                 },
                 "simulering": {
@@ -502,7 +498,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                 {
-                  "beregning": ${serialize(vedtak.beregning.toJson())},
                   "revurdert": ${serialize(beregning.toJson())}
                 },
                 "simulering": {
@@ -589,7 +584,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "simulering": {
@@ -677,7 +671,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "simulering": {
@@ -765,7 +758,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "simulering": null,
@@ -858,7 +850,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "simulering": {
@@ -961,7 +952,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "simulering": {
@@ -1064,7 +1054,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "simulering": null,
@@ -1163,7 +1152,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "simulering": {
@@ -1186,7 +1174,7 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": [],
                   "formue": {
-         "resultat": "MåInnhenteMerInformasjon",
+                  "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
                           "gyldigFra": "2021-05-01",
@@ -1258,7 +1246,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "simulering": {
@@ -1353,7 +1340,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "simulering": null,

@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
@@ -36,6 +37,7 @@ enum class VedtakType {
     ENDRING, // Revurdering innvilget                       -> EndringIYtelse
     INGEN_ENDRING, // Revurdering mellom 2% og 10% endring  -> IngenEndringIYtelse
     OPPHØR, // Revurdering ført til opphør                  -> EndringIYtelse
+    STANS_AV_YTELSE,
 }
 
 interface VedtakFelles {
@@ -49,7 +51,10 @@ interface VedtakFelles {
 }
 
 sealed interface VedtakSomKanRevurderes : VedtakFelles {
-    val beregning: Beregning
+
+    sealed interface VedtakMedBeregning : VedtakSomKanRevurderes {
+        val beregning: Beregning
+    }
 }
 
 sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
@@ -115,6 +120,40 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             utbetalingId = utbetalingId,
             vedtakType = VedtakType.OPPHØR,
         )
+
+        fun from(
+            revurdering: StansAvYtelseRevurdering.IverksattStansAvYtelse,
+            utbetalingId: UUID30,
+            clock: Clock,
+        ): StansAvYtelse {
+            return StansAvYtelse(
+                id = UUID.randomUUID(),
+                opprettet = Tidspunkt.now(clock),
+                behandling = revurdering,
+                periode = revurdering.periode,
+                simulering = revurdering.simulering,
+                saksbehandler = revurdering.saksbehandler,
+                attestant = revurdering.attesteringer.hentSisteAttestering().attestant,
+                utbetalingId = utbetalingId,
+            )
+        }
+    }
+
+    data class StansAvYtelse(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        override val behandling: Behandling,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val attestant: NavIdentBruker.Attestant,
+        override val periode: Periode,
+        val simulering: Simulering,
+        val utbetalingId: UUID30,
+    ) : Vedtak(), VedtakSomKanRevurderes {
+        override val vedtakType: VedtakType = VedtakType.STANS_AV_YTELSE
+
+        override fun accept(visitor: VedtakVisitor) {
+            visitor.visit(this)
+        }
     }
 
     data class EndringIYtelse(
@@ -128,7 +167,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         val simulering: Simulering,
         val utbetalingId: UUID30,
         override val vedtakType: VedtakType,
-    ) : Vedtak(), VedtakSomKanRevurderes {
+    ) : Vedtak(), VedtakSomKanRevurderes.VedtakMedBeregning {
 
         override fun accept(visitor: VedtakVisitor) {
             visitor.visit(this)
@@ -143,7 +182,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         override val attestant: NavIdentBruker.Attestant,
         override val periode: Periode,
         override val beregning: Beregning,
-    ) : Vedtak(), VedtakSomKanRevurderes {
+    ) : Vedtak(), VedtakSomKanRevurderes.VedtakMedBeregning {
         override val vedtakType: VedtakType = VedtakType.INGEN_ENDRING
 
         override fun accept(visitor: VedtakVisitor) {
