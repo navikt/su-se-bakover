@@ -8,20 +8,20 @@ import org.junit.jupiter.api.Test
 internal class PostgresTest {
 
     @Test
-    internal fun `bygger riktig datasource basert på vaultMountPath`() {
+    internal fun `bygger riktig dataSource basert på vaultMountPath`() {
 
         Postgres(
             ApplicationConfig.DatabaseConfig.StaticCredentials(
                 jdbcUrl = "postgresql://localhost",
-            )
+            ),
         ).build().shouldBeTypeOf<NonVaultPostgres>()
 
         Postgres(
             ApplicationConfig.DatabaseConfig.RotatingCredentials(
                 jdbcUrl = "postgresql://localhost",
                 vaultMountPath = "aVaultPath",
-                databaseName = "dbName"
-            )
+                databaseName = "dbName",
+            ),
         ).build().shouldBeTypeOf<VaultPostgres>()
     }
 

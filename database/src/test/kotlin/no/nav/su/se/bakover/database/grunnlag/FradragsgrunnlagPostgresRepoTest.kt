@@ -4,7 +4,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.beregning.PersistertFradrag
 import no.nav.su.se.bakover.database.withMigratedDb
@@ -16,12 +15,11 @@ import org.junit.jupiter.api.Test
 
 internal class FradragsgrunnlagPostgresRepoTest {
 
-    private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
-    private val grunnlagRepo = testDataHelper.grunnlagRepo
-
     @Test
     fun `lagrer, henter og erstatter fradragsgrunnlag`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val grunnlagRepo = testDataHelper.grunnlagRepo
             val behandling = testDataHelper.nySøknadsbehandling()
 
             val fradragsgrunnlag1 = lagFradragsgrunnlag(

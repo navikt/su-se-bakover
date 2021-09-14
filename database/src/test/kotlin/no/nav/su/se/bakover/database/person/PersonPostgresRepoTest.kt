@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.database.person
 
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
-import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.beregning
 import no.nav.su.se.bakover.database.simulering
@@ -16,11 +15,11 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
+import javax.sql.DataSource
 
 internal class PersonPostgresRepoTest {
-    private val testDataHelper = TestDataHelper()
+
     private val ektefellePartnerSamboerFnr = Fnr.generer()
-    private val repo = testDataHelper.personRepo
 
     @Test
     fun `hent fnr for sak gir søkers fnr`() {
@@ -162,13 +161,13 @@ internal class PersonPostgresRepoTest {
         epsFnr: Fnr?,
         test: Ctx.() -> Unit,
     ) {
-        val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
             val (innvilget, utbetaling) = testDataHelper.nyIverksattInnvilget(epsFnr = epsFnr)
             val vedtak = testDataHelper.vedtakForSøknadsbehandlingOgUtbetalingId(innvilget, utbetaling.id)
             val revurdering = testDataHelper.nyRevurdering(vedtak, vedtak.periode, epsFnr)
 
-            Ctx(innvilget, utbetaling, revurdering).test()
+            Ctx(dataSource, testDataHelper.personRepo, innvilget, utbetaling, revurdering).test()
         }
     }
 
@@ -177,13 +176,14 @@ internal class PersonPostgresRepoTest {
         epsFnrRevurdering: Fnr?,
         test: Ctx.() -> Unit,
     ) {
-        val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
-        withMigratedDb {
+
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
             val (innvilget, utbetaling) = testDataHelper.nyIverksattInnvilget(epsFnr = epsFnrBehandling)
             val vedtak = testDataHelper.vedtakForSøknadsbehandlingOgUtbetalingId(innvilget, utbetaling.id)
             val revurdering = testDataHelper.nyRevurdering(vedtak, vedtak.periode, epsFnrRevurdering)
 
-            Ctx(innvilget, utbetaling, revurdering).test()
+            Ctx(dataSource, testDataHelper.personRepo, innvilget, utbetaling, revurdering).test()
         }
     }
 
@@ -192,8 +192,9 @@ internal class PersonPostgresRepoTest {
         epsFnrRevurdering: Fnr?,
         test: VedtakCtx.() -> Unit,
     ) {
-        val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
-        withMigratedDb {
+
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
             val (innvilget, utbetaling) = testDataHelper.nyIverksattInnvilget(epsFnr = epsFnrBehandling)
             val vedtak = testDataHelper.vedtakForSøknadsbehandlingOgUtbetalingId(innvilget, utbetaling.id)
             val revurdering = testDataHelper.nyRevurdering(vedtak, vedtak.periode, epsFnrRevurdering)
@@ -218,6 +219,8 @@ internal class PersonPostgresRepoTest {
             ).first
 
             VedtakCtx(
+                dataSource = dataSource,
+                repo = testDataHelper.personRepo,
                 søknadsbehandlingVedtak = vedtak,
                 revurderingVedtak = revurderingVedtak,
             ).test()
@@ -230,8 +233,8 @@ internal class PersonPostgresRepoTest {
         epsFnrRevurderingAvRevurdering: Fnr?,
         test: Ctx.() -> Unit,
     ) {
-        val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
             val (innvilget, utbetaling) = testDataHelper.nyIverksattInnvilget(epsFnr = epsFnrBehandling)
             val vedtak = testDataHelper.vedtakForSøknadsbehandlingOgUtbetalingId(innvilget, utbetaling.id)
             val revurdering = testDataHelper.nyRevurdering(vedtak, vedtak.periode, epsFnrRevurdering)
@@ -259,17 +262,21 @@ internal class PersonPostgresRepoTest {
                 revurderingVedtak.periode,
                 epsFnrRevurderingAvRevurdering,
             )
-            Ctx(innvilget, utbetaling, revurderingAvRevurdering).test()
+            Ctx(dataSource, testDataHelper.personRepo, innvilget, utbetaling, revurderingAvRevurdering).test()
         }
     }
 
     private data class Ctx(
+        val dataSource: DataSource,
+        val repo: PersonPostgresRepo,
         val innvilgetSøknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
         val utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering,
         val revurdering: Revurdering,
     )
 
     private data class VedtakCtx(
+        val dataSource: DataSource,
+        val repo: PersonPostgresRepo,
         val søknadsbehandlingVedtak: Vedtak,
         val revurderingVedtak: Vedtak,
     )

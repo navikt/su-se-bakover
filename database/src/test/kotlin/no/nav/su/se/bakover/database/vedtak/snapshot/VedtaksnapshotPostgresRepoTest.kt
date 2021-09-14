@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.database.vedtak.snapshot
 
-import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.fixedTidspunkt
 import no.nav.su.se.bakover.database.withMigratedDb
@@ -11,12 +10,11 @@ import java.util.UUID
 
 internal class VedtaksnapshotPostgresRepoTest {
 
-    private val repo = VedtakssnapshotPostgresRepo(EmbeddedDatabase.instance())
-    private val testDataHelper = TestDataHelper()
-
     @Test
     fun `insert avslag`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val repo = VedtakssnapshotPostgresRepo(dataSource)
+            val testDataHelper = TestDataHelper(dataSource)
             val avslagUtenBeregning = testDataHelper.nyIverksattAvslagUtenBeregning()
 
             repo.opprettVedtakssnapshot(
@@ -24,7 +22,7 @@ internal class VedtaksnapshotPostgresRepoTest {
                     id = UUID.randomUUID(),
                     opprettet = fixedTidspunkt,
                     søknadsbehandling = avslagUtenBeregning,
-                    avslagsgrunner = listOf(Avslagsgrunn.PERSONLIG_OPPMØTE)
+                    avslagsgrunner = listOf(Avslagsgrunn.PERSONLIG_OPPMØTE),
                 )
             )
         }
@@ -32,7 +30,9 @@ internal class VedtaksnapshotPostgresRepoTest {
 
     @Test
     fun `insert innvilgelse`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val repo = VedtakssnapshotPostgresRepo(dataSource)
+            val testDataHelper = TestDataHelper(dataSource)
             val (innvilget, utenKvittering) = testDataHelper.nyIverksattInnvilget()
             repo.opprettVedtakssnapshot(
                 vedtakssnapshot = Vedtakssnapshot.Innvilgelse(

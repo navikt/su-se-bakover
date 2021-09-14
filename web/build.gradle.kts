@@ -38,10 +38,6 @@ dependencies {
         exclude(group = "org.eclipse.jetty") // conflicts with WireMock
         exclude(group = "org.eclipse.jetty.http2") // conflicts with WireMock
     }
-    testImplementation("com.opentable.components:otj-pg-embedded") {
-        // versjon definert i root build.gradle.kts
-        exclude(group = "com.github.spotbugs")
-    }
     testImplementation("no.nav:kafka-embedded-env:2.8.0") {
         // Breaks build: exclude(group = "org.glassfish.jersey.ext", module = "jersey-bean-validation")
         // Breaks build: exclude(group = "org.glassfish", module = "jakarta.el")

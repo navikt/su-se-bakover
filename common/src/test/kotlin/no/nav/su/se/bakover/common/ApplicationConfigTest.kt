@@ -5,7 +5,11 @@ import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.shouldBe
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
+// Environment bruker static context og er ikke thread safe
+@Execution(value = ExecutionMode.SAME_THREAD)
 internal class ApplicationConfigTest {
 
     private val expectedApplicationConfig = ApplicationConfig(

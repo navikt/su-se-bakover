@@ -79,6 +79,7 @@ import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringJob
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringService
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringIbmMqConsumer
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -281,7 +282,7 @@ internal fun Application.susebakover(
             leaderPodLookup = clients.leaderPodLookup,
         ).schedule()
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
-        LokalKvitteringJob(databaseRepos.utbetaling, utbetalingKvitteringConsumer).schedule()
+        LokalKvitteringJob(LokalKvitteringService(databaseRepos.utbetaling, utbetalingKvitteringConsumer)).schedule()
 
         DistribuerDokumentJob(
             brevService = services.brev,

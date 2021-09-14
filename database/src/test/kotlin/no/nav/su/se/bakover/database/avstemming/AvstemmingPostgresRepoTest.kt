@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.antall
 import no.nav.su.se.bakover.database.fixedTidspunkt
@@ -30,14 +29,12 @@ import java.time.temporal.ChronoUnit
 
 internal class AvstemmingPostgresRepoTest {
 
-    private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
-    private val repo = AvstemmingPostgresRepo(EmbeddedDatabase.instance())
-
     @Test
     fun `henter siste grensesnittsavstemming`() {
-        withMigratedDb {
-            val utbetalingMedKvittering =
-                testDataHelper.nyOversendtUtbetalingMedKvittering()
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = AvstemmingPostgresRepo(dataSource)
+            val utbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering()
 
             val zero = repo.hentSisteGrensesnittsavstemming()
             zero shouldBe null
@@ -65,7 +62,9 @@ internal class AvstemmingPostgresRepoTest {
 
     @Test
     fun `hent utbetalinger for grensesnittsavstemming`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = AvstemmingPostgresRepo(dataSource)
             val (innvilget, utbetaling) =
                 testDataHelper.nyIverksattInnvilget(
                     avstemmingsnøkkel = Avstemmingsnøkkel(
@@ -75,7 +74,7 @@ internal class AvstemmingPostgresRepoTest {
                     ),
                 )
 
-            testDataHelper.datasource.withSession { session ->
+            dataSource.withSession { session ->
                 """
                     insert into utbetaling (id, opprettet, sakId, fnr, type, behandler, avstemmingsnøkkel, simulering, utbetalingsrequest)
                     values (:id, :opprettet, :sakId, :fnr, :type, :behandler, to_json(:avstemmingsnokkel::json), to_json(:simulering::json), to_json(:utbetalingsrequest::json))
@@ -118,7 +117,9 @@ internal class AvstemmingPostgresRepoTest {
 
     @Test
     fun `hent utbetalinger for grensesnittsavstemming tidspunkt test`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = AvstemmingPostgresRepo(dataSource)
             val utbetaling1 =
                 testDataHelper.nyOversendtUtbetalingMedKvittering(
                     avstemmingsnøkkel = Avstemmingsnøkkel(
@@ -145,9 +146,10 @@ internal class AvstemmingPostgresRepoTest {
 
     @Test
     fun `oppretter grensesnittsavstemming og oppdaterer aktuelle utbetalinger`() {
-        withMigratedDb {
-            val oversendtUtbetalingMedKvittering =
-                testDataHelper.nyOversendtUtbetalingMedKvittering()
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = AvstemmingPostgresRepo(dataSource)
+            val oversendtUtbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering()
 
             val avstemming = Avstemming.Grensesnittavstemming(
                 id = UUID30.randomUUID(),
@@ -161,7 +163,7 @@ internal class AvstemmingPostgresRepoTest {
             repo.opprettGrensesnittsavstemming(avstemming)
             repo.oppdaterUtbetalingerEtterGrensesnittsavstemming(avstemming)
 
-            testDataHelper.datasource.withSession { session ->
+            dataSource.withSession { session ->
                 "select count(*) from Utbetaling where avstemmingId is not null".antall(session = session)
             } shouldBe 1
         }
@@ -169,7 +171,9 @@ internal class AvstemmingPostgresRepoTest {
 
     @Test
     fun `oppretter og henter konsistensavstemming`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = AvstemmingPostgresRepo(dataSource)
             val oversendtUtbetalingMedKvittering =
                 testDataHelper.nyOversendtUtbetalingMedKvittering()
 
@@ -199,7 +203,9 @@ internal class AvstemmingPostgresRepoTest {
 
     @Test
     fun `konsistensavstemming henter kun utbetalinger hvor det eksisterer utbetalingslinjer med tom større enn eller lik løpendeFraOgMed`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = AvstemmingPostgresRepo(dataSource)
             val oversendtUtbetalingMedKvittering =
                 testDataHelper.nyOversendtUtbetalingMedKvittering().second
 
@@ -229,7 +235,9 @@ internal class AvstemmingPostgresRepoTest {
 
     @Test
     fun `konsistensavstemming henter bare utbetalinger opprettet tidligere enn opprettetTilOgMed`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = AvstemmingPostgresRepo(dataSource)
             val oversendtUtbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering().second
 
             repo.hentUtbetalingerForKonsistensavstemming(
@@ -251,7 +259,8 @@ internal class AvstemmingPostgresRepoTest {
 
     @Test
     fun `konsistensavstemming uten løpende utbetalinger`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val repo = AvstemmingPostgresRepo(dataSource)
             val avstemming = Avstemming.Konsistensavstemming.Ny(
                 id = UUID30.randomUUID(),
                 opprettet = Tidspunkt.now(),
@@ -276,7 +285,9 @@ internal class AvstemmingPostgresRepoTest {
 
     @Test
     fun `konsistensavstemming henter hele utbetalingen selv om bare en linje er løpende etter løpendeFraOgMed`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = AvstemmingPostgresRepo(dataSource)
             val første = Utbetalingslinje.Ny(
                 fraOgMed = 1.januar(2020),
                 tilOgMed = 30.april(2020),
