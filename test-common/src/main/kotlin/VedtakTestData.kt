@@ -32,7 +32,7 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
     beregning: Beregning = beregning(),
     utbetalingId: UUID30 = UUID30.randomUUID(),
     clock: Clock = fixedClock,
-): Pair<Sak, Vedtak.EndringIYtelse> {
+): Pair<Sak, Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling> {
     return søknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,

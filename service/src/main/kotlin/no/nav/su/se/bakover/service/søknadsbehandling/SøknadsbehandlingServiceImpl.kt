@@ -365,6 +365,7 @@ internal class SøknadsbehandlingServiceImpl(
                                     iverksattBehandling,
                                 ),
                             )
+                            observer.handle((Event.Statistikk.Vedtaksstatistikk(vedtak)))
                         }
                     }
                 }

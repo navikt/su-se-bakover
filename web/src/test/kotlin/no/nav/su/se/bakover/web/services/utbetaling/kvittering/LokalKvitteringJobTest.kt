@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.timeout
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.time.Clock
@@ -93,23 +92,23 @@ internal class LokalKvitteringJobTest {
         val utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
             utbetalingService = utbetalingServiceMock,
             ferdigstillVedtakService = ferdigstillVedtakServiceMock,
-            clock = fixedClock
+            clock = fixedClock,
         )
-        LokalKvitteringJob(utbetalingRepoMock, utbetalingKvitteringConsumer).schedule()
-        verify(utbetalingRepoMock, timeout(3000)).hentUkvitterteUtbetalinger()
-        verify(utbetalingServiceMock, timeout(3000)).oppdaterMedKvittering(
+        LokalKvitteringService(utbetalingRepoMock, utbetalingKvitteringConsumer).run()
+        verify(utbetalingRepoMock).hentUkvitterteUtbetalinger()
+        verify(utbetalingServiceMock).oppdaterMedKvittering(
             avstemmingsnøkkel = argThat { it shouldBe utbetaling.avstemmingsnøkkel },
-            kvittering = argThat { it shouldBe kvittering.copy(originalKvittering = it.originalKvittering) }
+            kvittering = argThat { it shouldBe kvittering.copy(originalKvittering = it.originalKvittering) },
         )
-        verify(ferdigstillVedtakServiceMock, timeout(1000)).ferdigstillVedtakEtterUtbetaling(
-            argThat { it shouldBe utbetalingMedKvittering }
+        verify(ferdigstillVedtakServiceMock).ferdigstillVedtakEtterUtbetaling(
+            argThat { it shouldBe utbetalingMedKvittering },
         )
 
         verifyNoMoreInteractions(
             utbetalingRepoMock,
             utbetalingServiceMock,
             ferdigstillVedtakServiceMock,
-            innvilgetSøknadsbehandling
+            innvilgetSøknadsbehandling,
         )
     }
 }

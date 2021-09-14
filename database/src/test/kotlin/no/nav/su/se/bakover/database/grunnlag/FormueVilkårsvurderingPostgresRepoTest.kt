@@ -25,17 +25,15 @@ import java.util.UUID
 
 internal class FormueVilkårsvurderingPostgresRepoTest {
 
-    private val testDataHelper = TestDataHelper()
-    private val datasource = testDataHelper.datasource
-    private val repo = testDataHelper.formueVilkårsvurderingPostgresRepo
-
     @Test
     fun `lagrer og henter IkkeVurdert`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.formueVilkårsvurderingPostgresRepo
             val behandlingId = UUID.randomUUID()
             val vilkår = Vilkår.Formue.IkkeVurdert
             repo.lagre(behandlingId, vilkår)
-            datasource.withSession { session ->
+            dataSource.withSession { session ->
                 repo.hent(behandlingId, session).let {
                     it shouldBe vilkår
                     it.erAvslag shouldBe false
@@ -83,7 +81,9 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
     fun `lagrer og henter innvilget med epsFormue`() {
         val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
 
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.formueVilkårsvurderingPostgresRepo
             val behandlingId = UUID.randomUUID()
             val vilkår = Vilkår.Formue.Vurdert.createFromGrunnlag(
                 grunnlag = formuegrunnlag(
@@ -101,7 +101,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                 ),
             )
             repo.lagre(behandlingId, vilkår)
-            datasource.withSession { session ->
+            dataSource.withSession { session ->
                 repo.hent(behandlingId, session).let {
                     it shouldBe vilkår
                     it.erAvslag shouldBe false
@@ -116,7 +116,9 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
     fun `lagrer og henter innvilget uten epsFormue`() {
         val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
 
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.formueVilkårsvurderingPostgresRepo
             val behandlingId = UUID.randomUUID()
             val vilkår = Vilkår.Formue.Vurdert.createFromGrunnlag(
                 grunnlag = formuegrunnlag(
@@ -125,7 +127,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                 ),
             )
             repo.lagre(behandlingId, vilkår)
-            datasource.withSession { session ->
+            dataSource.withSession { session ->
                 repo.hent(behandlingId, session).let {
                     it shouldBe vilkår
                     it.erAvslag shouldBe false
@@ -140,7 +142,9 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
     fun `lagrer og henter avslag med for høy epsFormue`() {
         val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
 
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.formueVilkårsvurderingPostgresRepo
             val behandlingId = UUID.randomUUID()
             val vilkår = Vilkår.Formue.Vurdert.createFromGrunnlag(
                 grunnlag = formuegrunnlag(
@@ -158,7 +162,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                 ),
             )
             repo.lagre(behandlingId, vilkår)
-            datasource.withSession { session ->
+            dataSource.withSession { session ->
                 repo.hent(behandlingId, session).let {
                     it shouldBe vilkår
                     it.erAvslag shouldBe true
@@ -173,7 +177,9 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
     fun `lagrer og henter uavklart uten epsFormue`() {
         val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
 
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.formueVilkårsvurderingPostgresRepo
             val behandlingId = UUID.randomUUID()
             val vilkår = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
                 nonEmptyListOf(
@@ -190,7 +196,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                 ),
             )
             repo.lagre(behandlingId, vilkår)
-            datasource.withSession { session ->
+            dataSource.withSession { session ->
                 repo.hent(behandlingId, session).let {
                     it shouldBe vilkår
                     it.erAvslag shouldBe false

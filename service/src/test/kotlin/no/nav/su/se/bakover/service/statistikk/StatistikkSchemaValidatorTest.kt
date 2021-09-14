@@ -32,6 +32,35 @@ internal class StatistikkSchemaValidatorTest {
             aktorId = 1235,
             saksnummer = 2021,
         )
+
+        val gyldigStønad = Statistikk.Stønad(
+            funksjonellTid = Tidspunkt.now(),
+            tekniskTid = Tidspunkt.now(),
+            stonadstype = Statistikk.Stønad.Stønadstype.SU_UFØR,
+            sakId = UUID.randomUUID(),
+            aktorId = 1234567890,
+            sakstype = Statistikk.Stønad.Vedtakstype.SØKNAD,
+            vedtaksdato = LocalDate.now(),
+            vedtakstype = Statistikk.Stønad.Vedtakstype.SØKNAD,
+            vedtaksresultat = Statistikk.Stønad.Vedtaksresultat.INNVILGET,
+            behandlendeEnhetKode = "4815",
+            ytelseVirkningstidspunkt = LocalDate.now(),
+            gjeldendeStonadVirkningstidspunkt = LocalDate.now(),
+            gjeldendeStonadStopptidspunkt = LocalDate.now().plusYears(1),
+            gjeldendeStonadUtbetalingsstart = LocalDate.now(),
+            gjeldendeStonadUtbetalingsstopp = LocalDate.now().plusYears(1),
+            månedsbeløp = listOf(
+                Statistikk.Stønad.Månedsbeløp(
+                    måned = "todo",
+                    stonadsklassifisering = Statistikk.Stønad.Stønadsklassifisering.BOR_ALENE,
+                    bruttosats = 10000,
+                    nettosats = 5000,
+                    inntekter = listOf(Statistikk.Inntekt("Arbeidsinntekt", 5000)),
+                    fradragSum = 5000,
+                ),
+            ),
+            versjon = Tidspunkt.now().toEpochMilli()
+        )
     }
 
     @Test
@@ -55,8 +84,8 @@ internal class StatistikkSchemaValidatorTest {
                     aktorer = null,
                     underType = null,
                     underTypeBeskrivelse = null,
-                )
-            )
+                ),
+            ),
         ) shouldBe true
     }
 
@@ -80,7 +109,7 @@ internal class StatistikkSchemaValidatorTest {
               "underType": "SUUFORE",
               "underTypeBeskrivelse": "Supplerende stønad for uføre flyktninger"
             }
-            """.trimIndent()
+            """.trimIndent(),
         ) shouldBe false
     }
 
@@ -104,7 +133,7 @@ internal class StatistikkSchemaValidatorTest {
               "underType": "SUUFORE",
               "underTypeBeskrivelse": "Supplerende stønad for uføre flyktninger"
             }
-            """.trimIndent()
+            """.trimIndent(),
         ) shouldBe false
     }
 
@@ -115,12 +144,17 @@ internal class StatistikkSchemaValidatorTest {
                {
                "bogus": true
                }
-            """.trimIndent()
+            """.trimIndent(),
         ) shouldBe false
     }
 
     @Test
     fun `gyldig behandling blir OK under validering`() {
         StatistikkSchemaValidator.validerBehandling(objectMapper.writeValueAsString(gyldigBehandling)) shouldBe true
+    }
+
+    @Test
+    fun `gyldig stønad validerer OK`() {
+        StatistikkSchemaValidator.validerStønad(objectMapper.writeValueAsString(gyldigStønad)) shouldBe true
     }
 }

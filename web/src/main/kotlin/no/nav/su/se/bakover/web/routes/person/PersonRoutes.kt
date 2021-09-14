@@ -36,7 +36,14 @@ internal fun Route.personRoutes(
 
         call.withBody<Body> { body ->
             Either.catch { Fnr(body.fnr) }.fold(
-                ifLeft = { call.svar(Feilresponser.ikkeGyldigFødselsnummer) },
+                ifLeft = {
+                    call.svar(
+                        HttpStatusCode.BadRequest.errorJson(
+                            "Inneholder ikke et gyldig fødselsnummer",
+                            "ikke_gyldig_fødselsnummer",
+                        ),
+                    )
+                },
                 ifRight = { fnr ->
                     call.svar(
                         personService.hentPerson(fnr).fold(
@@ -45,7 +52,7 @@ internal fun Route.personRoutes(
                                 when (it) {
                                     FantIkkePerson -> Feilresponser.fantIkkePerson
                                     IkkeTilgangTilPerson -> HttpStatusCode.Forbidden.errorJson(
-                                        "Ikke tilgang til å se person", "ikke_tilgang_til_person"
+                                        "Ikke tilgang til å se person", "ikke_tilgang_til_person",
                                     )
                                     Ukjent -> HttpStatusCode.InternalServerError.errorJson(
                                         "Feil ved oppslag på person", "feil_ved_oppslag_person"
@@ -55,10 +62,10 @@ internal fun Route.personRoutes(
                             {
                                 call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
                                 Resultat.json(HttpStatusCode.OK, objectMapper.writeValueAsString(it.toJson(clock)))
-                            }
-                        )
+                            },
+                        ),
                     )
-                }
+                },
             )
         }
     }

@@ -9,19 +9,19 @@ import org.junit.jupiter.api.Test
 internal class GrunnlagBuilderTest {
     @Test
     fun `summerer grunnlag for alle typer`() {
-        val expected = AvstemmingDataRequest.Grunnlagdata(
+        val expected = GrensesnittsavstemmingData.Grunnlagdata(
             godkjentAntall = 2,
             godkjentBelop = 1600.toBigDecimal(),
-            godkjentFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
+            godkjentFortegn = Fortegn.TILLEGG,
             varselAntall = 1,
             varselBelop = 1400.toBigDecimal(),
-            varselFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
+            varselFortegn = Fortegn.TILLEGG,
             avvistAntall = 1,
             avvistBelop = 10000.toBigDecimal(),
-            avvistFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
+            avvistFortegn = Fortegn.TILLEGG,
             manglerAntall = 1,
             manglerBelop = 5000.toBigDecimal(),
-            manglerFortegn = AvstemmingDataRequest.Fortegn.TILLEGG
+            manglerFortegn = Fortegn.TILLEGG
         )
 
         GrunnlagBuilder(alleUtbetalinger()).build() shouldBe expected
@@ -32,7 +32,7 @@ internal class GrunnlagBuilderTest {
         val expected = expected().copy(
             godkjentAntall = 1,
             godkjentBelop = 1000.toBigDecimal(),
-            godkjentFortegn = AvstemmingDataRequest.Fortegn.TILLEGG
+            godkjentFortegn = Fortegn.TILLEGG
         )
 
         GrunnlagBuilder(
@@ -53,10 +53,10 @@ internal class GrunnlagBuilderTest {
         val expected = expected().copy(
             godkjentAntall = 1,
             godkjentBelop = 1000.toBigDecimal(),
-            godkjentFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
+            godkjentFortegn = Fortegn.TILLEGG,
             avvistAntall = 1,
             avvistBelop = (-1000).toBigDecimal(),
-            avvistFortegn = AvstemmingDataRequest.Fortegn.FRADRAG
+            avvistFortegn = Fortegn.FRADRAG
         )
 
         GrunnlagBuilder(
@@ -79,18 +79,18 @@ internal class GrunnlagBuilderTest {
         ).build() shouldBe expected
     }
 
-    private fun expected() = AvstemmingDataRequest.Grunnlagdata(
+    private fun expected() = GrensesnittsavstemmingData.Grunnlagdata(
         godkjentAntall = 0,
         godkjentBelop = 0.toBigDecimal(),
-        godkjentFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
+        godkjentFortegn = Fortegn.TILLEGG,
         varselAntall = 0,
         varselBelop = 0.toBigDecimal(),
-        varselFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
+        varselFortegn = Fortegn.TILLEGG,
         avvistAntall = 0,
         avvistBelop = 0.toBigDecimal(),
-        avvistFortegn = AvstemmingDataRequest.Fortegn.TILLEGG,
+        avvistFortegn = Fortegn.TILLEGG,
         manglerAntall = 0,
         manglerBelop = 0.toBigDecimal(),
-        manglerFortegn = AvstemmingDataRequest.Fortegn.TILLEGG
+        manglerFortegn = Fortegn.TILLEGG
     )
 }

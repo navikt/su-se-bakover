@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.client.oppdrag.avstemming
 
-import no.nav.su.se.bakover.client.oppdrag.avstemming.AvstemmingDataRequest.Detaljdata
+import no.nav.su.se.bakover.client.oppdrag.avstemming.GrensesnittsavstemmingData.Detaljdata
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering.Utbetalingsstatus
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering.Utbetalingsstatus.FEIL
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering.Utbetalingsstatus.OK_MED_VARSEL
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 
-class DetaljBuilder(
+internal class DetaljBuilder(
     internal val utbetalinger: List<Utbetaling.OversendtUtbetaling>
 ) {
     fun build(): List<Detaljdata> =

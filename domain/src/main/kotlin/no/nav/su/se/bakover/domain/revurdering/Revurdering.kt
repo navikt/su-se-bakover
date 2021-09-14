@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -1080,15 +1081,23 @@ sealed class IverksattRevurdering : Revurdering() {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
     ) : IverksattRevurdering() {
-
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
 
         fun utledOpphørsgrunner(): List<Opphørsgrunn> {
-            return when (val opphør = VurderOpphørVedRevurdering(vilkårsvurderinger, beregning).resultat) {
+            val opphør = VurderOpphørVedRevurdering(vilkårsvurderinger, beregning).resultat
+            return when (opphør) {
                 is OpphørVedRevurdering.Ja -> opphør.opphørsgrunner
                 OpphørVedRevurdering.Nei -> emptyList()
+            }
+        }
+
+        fun utledOpphørsdato(): LocalDate? {
+            val opphør = VurderOpphørVedRevurdering(vilkårsvurderinger, beregning).resultat
+            return when (opphør) {
+                is OpphørVedRevurdering.Ja -> opphør.opphørsdato
+                OpphørVedRevurdering.Nei -> null
             }
         }
     }

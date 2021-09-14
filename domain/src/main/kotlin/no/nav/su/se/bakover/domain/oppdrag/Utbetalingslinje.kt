@@ -140,11 +140,13 @@ sealed class Utbetalingslinje {
 }
 
 sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<UtbetalingslinjePåTidslinje> {
+    abstract val kopiertFraId: UUID30
     abstract override val opprettet: Tidspunkt
     abstract override val periode: Periode
     abstract val beløp: Int
 
     data class Ny(
+        override val kopiertFraId: UUID30,
         override val opprettet: Tidspunkt,
         override val periode: Periode,
         override val beløp: Int,
@@ -158,6 +160,7 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
     }
 
     data class Stans(
+        override val kopiertFraId: UUID30,
         override val opprettet: Tidspunkt,
         override val periode: Periode,
         override val beløp: Int = 0,
@@ -171,6 +174,7 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
     }
 
     data class Opphør(
+        override val kopiertFraId: UUID30,
         override val opprettet: Tidspunkt,
         override val periode: Periode,
         override val beløp: Int = 0,
@@ -184,6 +188,7 @@ sealed class UtbetalingslinjePåTidslinje : KanPlasseresPåTidslinje<Utbetalings
     }
 
     data class Reaktivering(
+        override val kopiertFraId: UUID30,
         override val opprettet: Tidspunkt,
         override val periode: Periode,
         override val beløp: Int,

@@ -32,16 +32,22 @@ import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.routes.person.personPath
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import org.skyscreamer.jsonassert.JSONAssert
 import org.slf4j.LoggerFactory
 
+// LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) er ikke thread safe
+@Execution(value = ExecutionMode.SAME_THREAD)
 class RoutesTest {
 
     @Test
     fun `should add provided X-Correlation-ID header to response`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
+        withTestApplication(
+            {
+                testSusebakover()
+            },
+        ) {
             defaultRequest(Get, secureEndpoint, listOf(Brukerrolle.Veileder))
         }.apply {
             response.status() shouldBe OK

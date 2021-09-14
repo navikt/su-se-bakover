@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.database.hendelseslogg
 
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.fixedTidspunkt
 import no.nav.su.se.bakover.database.withMigratedDb
@@ -12,16 +11,15 @@ import org.junit.jupiter.api.Test
 
 internal class HendelsesloggPostgresRepoTest {
 
-    private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
-    private val repo = HendelsesloggPostgresRepo(EmbeddedDatabase.instance())
-
     @Test
     fun `hent hendelseslogg`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = HendelsesloggPostgresRepo(dataSource)
             val underkjentAttestering = UnderkjentAttestering(
                 attestant = "attestant",
                 begrunnelse = "Dette er feil begrunnelse",
-                tidspunkt = fixedTidspunkt
+                tidspunkt = fixedTidspunkt,
             )
 
             val opprettet = Hendelseslogg("id").also { testDataHelper.oppdaterHendelseslogg(it) }

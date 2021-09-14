@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.antall
 import no.nav.su.se.bakover.database.fixedTidspunkt
@@ -17,13 +16,12 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import org.junit.jupiter.api.Test
 
 internal class UføregrunnlagPostgresRepoTest {
-    private val datasource = EmbeddedDatabase.instance()
-    private val testDataHelper = TestDataHelper(datasource)
-    private val grunnlagRepo = UføregrunnlagPostgresRepo()
 
     @Test
     fun `lagrer uføregrunnlag, kobler til behandling og sletter`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val grunnlagRepo = UføregrunnlagPostgresRepo()
             val behandling = testDataHelper.nySøknadsbehandling()
 
             val uføregrunnlag1 = Uføregrunnlag(
@@ -40,7 +38,7 @@ internal class UføregrunnlagPostgresRepoTest {
                 opprettet = fixedTidspunkt,
             )
 
-            datasource.withSession { session ->
+            dataSource.withSession { session ->
                 session.transaction { tx ->
                     grunnlagRepo.lagre(behandling.id, listOf(uføregrunnlag1, uføregrunnlag2), tx)
                 }

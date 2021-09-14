@@ -19,14 +19,14 @@ import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
-import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.Feilresponser
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeAktørId
+import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeAktørId
+import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigBody
+import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.kunneIkkeOppretteOppgave
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.enumContains
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
@@ -47,10 +47,7 @@ data class UnderkjennBody(
                 opprettet = Tidspunkt.now()
             ).right()
         }
-        return HttpStatusCode.BadRequest.errorJson(
-            message = "Grunn er feil, eller kommentar finnes ikke.",
-            code = "ugyldig_body"
-        ).left()
+        return ugyldigBody.left()
     }
 }
 

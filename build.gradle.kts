@@ -41,11 +41,11 @@ allprojects {
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
         implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
-        implementation("ch.qos.logback:logback-classic:1.2.5")
+        implementation("ch.qos.logback:logback-classic:1.2.6")
         implementation("net.logstash.logback:logstash-logback-encoder:6.6")
         implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
         implementation("org.apache.kafka:kafka-clients:2.8.0")
-        implementation("com.networknt:json-schema-validator:1.0.58")
+        implementation("com.networknt:json-schema-validator:1.0.59")
         implementation("no.finn.unleash:unleash-client-java:4.4.0")
 
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.3.0")
@@ -62,11 +62,15 @@ allprojects {
         testImplementation("io.kotest:kotest-extensions:$kotestVersion")
         testImplementation("org.skyscreamer:jsonassert:1.5.0")
         testImplementation("org.mockito.kotlin:mockito-kotlin:3.2.0")
+        // Embedded database brukes av modulene: web og database
+        testImplementation(
+            //select version() i preprod -> PostgreSQL 11.7 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-39), 64-bit
+            // The releases without the -1 suffix has a dyld/dylib issue on MacOs (e.g. the 11.7.0 version won't work)
+            enforcedPlatform("io.zonky.test.postgres:embedded-postgres-binaries-bom:11.6.0-1"),
+        )
+        testImplementation("io.zonky.test:embedded-postgres:1.3.1")
 
         constraints {
-            testImplementation("com.opentable.components:otj-pg-embedded:0.13.4") {
-                because("Brukes i både web og database")
-            }
             implementation("org.apache.commons:commons-compress") {
                 because("org.apache.avro:avro:1.10.2 -> https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECOMMONS-1316641")
                 version {
@@ -102,15 +106,6 @@ allprojects {
         }
     }
 
-    tasks.withType<Test> {
-        useJUnitPlatform()
-        testLogging {
-            // We only want to log failed and skipped tests when running Gradle.
-            events("skipped", "failed")
-            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-        }
-    }
-
     tasks.withType<Wrapper> {
         gradleVersion = "7.2"
     }
@@ -135,6 +130,45 @@ allprojects {
 
     // Run `./gradlew allDeps` to get a dependency graph
     task("allDeps", DependencyReportTask::class) {}
+}
+
+configure(listOf(project(":client"))) {
+    // TODO jah: We can't parallelize client at this point because of static usage of wiremockServer
+    tasks.withType<Test> {
+        useJUnitPlatform()
+        testLogging {
+            // We only want to log failed and skipped tests when running Gradle.
+            events("skipped", "failed")
+            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        }
+        failFast = true
+    }
+}
+
+configure(
+    listOf(
+        project(":common"),
+        project(":domain"),
+        project(":test-common"),
+        project(":service"),
+        project(":web"),
+        project(":database"),
+    ),
+) {
+    tasks.withType<Test> {
+        useJUnitPlatform()
+        testLogging {
+            // We only want to log failed and skipped tests when running Gradle.
+            events("skipped", "failed")
+            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        }
+        // https://docs.gradle.org/current/userguide/performance.html#suggestions_for_java_projects
+        failFast = true
+        maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
+        // https://junit.org/junit5/docs/snapshot/user-guide/#writing-tests-parallel-execution
+        systemProperties["junit.jupiter.execution.parallel.enabled"] = true
+        systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
+    }
 }
 
 tasks.check {

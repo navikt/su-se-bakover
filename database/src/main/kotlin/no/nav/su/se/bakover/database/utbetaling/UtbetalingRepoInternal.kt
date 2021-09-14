@@ -46,6 +46,14 @@ internal object UtbetalingInternalRepo {
         ) {
             it.toUtbetalingslinje()
         }
+
+    fun hentUtbetalingslinje(utbetalingslinjeId: UUID30, session: Session): Utbetalingslinje? =
+        """select * from utbetalingslinje where id = :id""".hent(
+            mapOf("id" to utbetalingslinjeId),
+            session,
+        ) {
+            it.toUtbetalingslinje()
+        }
 }
 
 internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling {

@@ -956,11 +956,13 @@ internal class RevurderingServiceImpl(
         }
     }
 
+    // TODO ai: Extraher ut logikk till funskjoner for å forenkle flyten
     override fun iverksett(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
         var utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering? = null
+        var vedtak: Vedtak? = null
 
         val revurdering = revurderingRepo.hent(revurderingId)
             ?: return KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left()
@@ -997,6 +999,7 @@ internal class RevurderingServiceImpl(
                                     vedtakRepo.lagre(vedtakIngenEndring)
                                     brevService.lagreDokument(dokument)
                                 } else {
+                                    vedtak = vedtakIngenEndring
                                     vedtakRepo.lagre(vedtakIngenEndring)
                                 }
                                 iverksattRevurdering
@@ -1016,9 +1019,12 @@ internal class RevurderingServiceImpl(
                                 utbetaling = it
                                 it.id
                             }
-                        }.map {
-                            vedtakRepo.lagre(Vedtak.from(it, utbetaling!!.id, clock))
-                            it
+                        }.map { iverksattRevurdering ->
+                            vedtak = Vedtak.from(iverksattRevurdering, utbetaling!!.id, clock).let {
+                                vedtakRepo.lagre(it)
+                                it
+                            }
+                            iverksattRevurdering
                         }
                     }
                     is RevurderingTilAttestering.Opphørt -> {
@@ -1036,7 +1042,8 @@ internal class RevurderingServiceImpl(
                                 it.id
                             }
                         }.map {
-                            vedtakRepo.lagre(Vedtak.from(it, utbetaling!!.id, clock))
+                            vedtak = Vedtak.from(it, utbetaling!!.id, clock)
+                            vedtakRepo.lagre(vedtak as Vedtak.EndringIYtelse)
                             it
                         }
                     }
@@ -1054,7 +1061,15 @@ internal class RevurderingServiceImpl(
                     observer.handle(
                         Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering),
                     )
+                    if (vedtak is Vedtak.EndringIYtelse) {
+                        observer.handle(
+                            Event.Statistikk.Vedtaksstatistikk(
+                                vedtak as Vedtak.EndringIYtelse
+                            ),
+                        )
+                    }
                 }
+
                 return iverksattRevurdering.right()
             }
             else -> KunneIkkeIverksetteRevurdering.UgyldigTilstand(revurdering::class, IverksattRevurdering::class)

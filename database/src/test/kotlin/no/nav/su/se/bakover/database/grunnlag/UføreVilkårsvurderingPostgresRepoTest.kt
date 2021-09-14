@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.fixedClock
 import no.nav.su.se.bakover.database.withMigratedDb
@@ -21,12 +20,11 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 internal class UføreVilkårsvurderingPostgresRepoTest {
-    private val datasource = EmbeddedDatabase.instance()
-    private val testDataHelper = TestDataHelper(datasource)
 
     @Test
     fun `lagrer og henter vilkårsvurdering uten grunnlag`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
             val søknadsbehandling = testDataHelper.nySøknadsbehandling()
             val vurderingUførhet = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
@@ -43,7 +41,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
 
             testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
 
-            datasource.withSession { session ->
+            dataSource.withSession { session ->
                 testDataHelper.uføreVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
             }
         }
@@ -51,7 +49,8 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
 
     @Test
     fun `lagrer og henter vilkårsvurdering med grunnlag`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
             val søknadsbehandling = testDataHelper.nySøknadsbehandling()
             val uføregrunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
@@ -76,7 +75,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
 
             testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
 
-            datasource.withSession { session ->
+            dataSource.withSession { session ->
                 testDataHelper.uføreVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
             }
         }
@@ -84,7 +83,8 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
 
     @Test
     fun `kan erstatte eksisterende vilkårsvurderinger med grunnlag`() {
-        withMigratedDb {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
             val søknadsbehandling = testDataHelper.nySøknadsbehandling()
             val uføregrunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
@@ -109,13 +109,13 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
 
             testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
 
-            datasource.withSession { session ->
+            dataSource.withSession { session ->
                 testDataHelper.uføreVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
             }
 
             testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
 
-            datasource.withSession { session ->
+            dataSource.withSession { session ->
                 testDataHelper.uføreVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
             }
         }

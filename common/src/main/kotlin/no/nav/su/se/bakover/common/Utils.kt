@@ -22,6 +22,7 @@ fun Int.oktober(year: Int): LocalDate = LocalDate.of(year, Month.OCTOBER, this)
 fun Int.november(year: Int): LocalDate = LocalDate.of(year, Month.NOVEMBER, this)
 fun Int.desember(year: Int): LocalDate = LocalDate.of(year, Month.DECEMBER, this)
 fun idag(clock: Clock = Clock.systemUTC()): LocalDate = LocalDate.now(clock)
+fun igår(clock: Clock = Clock.systemUTC()): LocalDate = idag(clock).minusDays(1)
 
 fun LocalDate.startOfDay(zoneId: ZoneId = zoneIdOslo) = this.atStartOfDay().toTidspunkt(zoneId)
 fun LocalDate.endOfDay(zoneId: ZoneId = zoneIdOslo) = this.atStartOfDay().plusDays(1).minusNanos(1).toTidspunkt(zoneId)

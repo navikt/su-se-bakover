@@ -438,16 +438,12 @@ internal class RevurderingServiceImplTest {
             verify(utbetalingMock, times(2)).id
             verify(vedtakRepoMock).lagre(
                 argThat {
-                    it should beOfType<Vedtak.EndringIYtelse>()
+                    it should beOfType<Vedtak.EndringIYtelse.InnvilgetRevurdering>()
                     it.vedtakType shouldBe VedtakType.ENDRING
                 },
             )
             verify(revurderingRepoMock).lagre(argThat { it shouldBe iverksattRevurdering })
-            verify(eventObserver).handle(
-                argThat {
-                    it shouldBe Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering)
-                },
-            )
+            verify(eventObserver, times(2)).handle(any())
         }
         verifyNoMoreInteractions(
             revurderingRepoMock,
@@ -510,7 +506,7 @@ internal class RevurderingServiceImplTest {
             )
             verify(vedtakRepoMock).lagre(
                 argThat {
-                    it should beOfType<Vedtak.EndringIYtelse>()
+                    it should beOfType<Vedtak.EndringIYtelse.OpphørtRevurdering>()
                     it.vedtakType shouldBe VedtakType.OPPHØR
                 },
             )

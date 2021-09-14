@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.service.revurdering.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
@@ -18,15 +17,17 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.bosituasjonMedFlerePerioderMåRevurderes
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.epsInntektMedFlereBosituasjonsperioderMåRevurderes
+import no.nav.su.se.bakover.web.routes.Feilresponser
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.begrunnelseKanIkkeVæreTom
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.bosituasjonMedFlerePerioderMåRevurderes
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.epsInntektMedFlereBosituasjonsperioderMåRevurderes
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.formueSomFørerTilOpphørMåRevurderes
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.måVelgeInformasjonSomRevurderes
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.tidslinjeForVedtakErIkkeKontinuerlig
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.ugyldigÅrsak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIngenVedtakSomKanRevurderes
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.formueSomFørerTilOpphørMåRevurderes
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.måVelgeInformasjonSomRevurderes
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tidslinjeForVedtakErIkkeKontinuerlig
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -78,15 +79,9 @@ private fun KunneIkkeOppdatereRevurdering.tilResultat(): Resultat {
             this.subError,
         )
         is KunneIkkeOppdatereRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
-        is KunneIkkeOppdatereRevurdering.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
-        KunneIkkeOppdatereRevurdering.UgyldigBegrunnelse -> HttpStatusCode.BadRequest.errorJson(
-            "Begrunnelse kan ikke være tom",
-            "begrunnelse_kan_ikke_være_tom",
-        )
-        KunneIkkeOppdatereRevurdering.UgyldigÅrsak -> HttpStatusCode.BadRequest.errorJson(
-            "Ugyldig årsak, må være en av: ${Revurderingsårsak.Årsak.values()}",
-            "ugyldig_årsak",
-        )
+        is KunneIkkeOppdatereRevurdering.UgyldigTilstand -> Feilresponser.ugyldigTilstand(this.fra, this.til)
+        KunneIkkeOppdatereRevurdering.UgyldigBegrunnelse -> begrunnelseKanIkkeVæreTom
+        KunneIkkeOppdatereRevurdering.UgyldigÅrsak -> ugyldigÅrsak
         KunneIkkeOppdatereRevurdering.KanIkkeOppdatereRevurderingSomErForhåndsvarslet -> HttpStatusCode.BadRequest.errorJson(
             "Kan ikke oppdatere revurdering som er forhåndsvarslet",
             "kan_ikke_oppdatere_revurdering_som_er_forhåndsvarslet",

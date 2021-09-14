@@ -621,6 +621,7 @@ internal class UtbetalingServiceImplTest {
             )
 
             actual shouldBe UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = expectedGjeldendeUtbetalingslinje.id,
                 opprettet = expectedGjeldendeUtbetalingslinje.opprettet,
                 periode = Periode.create(
                     expectedGjeldendeUtbetalingslinje.fraOgMed,

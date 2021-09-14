@@ -66,6 +66,7 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.whenever
 import java.time.ZoneOffset
 import java.util.UUID
@@ -335,17 +336,13 @@ internal class SøknadsbehandlingServiceIverksettTest {
             verify(vedtakRepoMock).lagre(
                 argThat {
                     it.behandling shouldBe expected
-                    it should beOfType<Vedtak.EndringIYtelse>()
+                    it should beOfType<Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling>()
                     it.vedtakType shouldBe VedtakType.SØKNAD
                 },
             )
             verify(serviceAndMocks.opprettVedtakssnapshotService).opprettVedtak(argThat { it is Vedtakssnapshot.Innvilgelse })
             verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
-            verify(statistikkObserver).handle(
-                argThat {
-                    it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(expected)
-                },
-            )
+            verify(statistikkObserver, times(2)).handle(any())
             serviceAndMocks.verifyNoMoreInteractions()
         }
     }

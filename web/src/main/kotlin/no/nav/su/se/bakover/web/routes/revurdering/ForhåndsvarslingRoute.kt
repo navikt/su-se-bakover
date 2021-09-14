@@ -14,9 +14,9 @@ import no.nav.su.se.bakover.service.revurdering.Revurderingshandling
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
-import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
@@ -53,7 +53,7 @@ internal fun Route.forhåndsvarslingRoute(
             call.withRevurderingId { revurderingId ->
                 call.withBody<ForhåndsvarselBrevutkastBody> { body ->
                     val revurdering = revurderingService.hentRevurdering(revurderingId)
-                        ?: return@withRevurderingId call.svar(HttpStatusCode.NotFound.errorJson("Fant ikke revurdering", "fant_ikke_revurdering"))
+                        ?: return@withRevurderingId call.svar(fantIkkeRevurdering)
 
                     revurderingService.lagBrevutkastForForhåndsvarsling(revurderingId, body.fritekst).fold(
                         ifLeft = { call.svar(it.tilResultat()) },

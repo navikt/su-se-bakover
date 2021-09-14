@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.test.iverksattRevurderingIngenEndringFraInnvilgetSø
 import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
+import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 
 internal class SkalSendeBrevVisitorTest {
@@ -105,5 +106,20 @@ internal class SkalSendeBrevVisitorTest {
             it.sendBrev
         } shouldBe false
         skalIkkeSendeBrev.skalSendeBrev() shouldBe false
+    }
+
+    @Test
+    fun `vedtak for innvilget søknadsbehandling skal sende brev`() {
+        val vedtak = Vedtak.fromSøknadsbehandling(
+            søknadsbehandling = søknadsbehandlingIverksattInnvilget().second,
+            utbetalingId = UUID30.randomUUID(),
+            fixedClock,
+        )
+
+        SkalSendeBrevVisitor().let {
+            vedtak.accept(it)
+            it.sendBrev
+        } shouldBe true
+        vedtak.skalSendeBrev() shouldBe true
     }
 }

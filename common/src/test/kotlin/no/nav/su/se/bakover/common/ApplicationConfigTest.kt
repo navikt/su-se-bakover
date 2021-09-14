@@ -5,7 +5,11 @@ import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.shouldBe
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
+// Environment bruker static context og er ikke thread safe
+@Execution(value = ExecutionMode.SAME_THREAD)
 internal class ApplicationConfigTest {
 
     private val expectedApplicationConfig = ApplicationConfig(
@@ -123,6 +127,7 @@ internal class ApplicationConfigTest {
             )
         ),
         unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover"),
+        jobConfig = ApplicationConfig.JobConfig(ApplicationConfig.JobConfig.Personhendelse(ApplicationConfig.NaisCluster.Prod))
     )
 
     @Test
@@ -232,6 +237,7 @@ internal class ApplicationConfigTest {
                     consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(emptyMap()),
                 ),
                 unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover"),
+                jobConfig = ApplicationConfig.JobConfig(ApplicationConfig.JobConfig.Personhendelse(null))
             )
         }
     }

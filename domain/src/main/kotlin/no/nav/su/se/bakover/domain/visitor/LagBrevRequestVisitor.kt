@@ -31,7 +31,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.FinnSaksbehandlerVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingVisitor
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import no.nav.su.se.bakover.domain.vedtak.VedtakVisitor
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
@@ -211,27 +210,16 @@ class LagBrevRequestVisitor(
         brevRequest = revurderingIngenEndring(revurdering, revurdering.beregning)
     }
 
-    override fun visit(vedtak: Vedtak.EndringIYtelse) {
-        brevRequest = when (vedtak.vedtakType) {
-            VedtakType.SØKNAD -> {
-                innvilgetVedtakSøknadsbehandling(vedtak)
-            }
-            VedtakType.ENDRING -> {
-                innvilgetVedtakRevurdering(vedtak)
-            }
-            VedtakType.OPPHØR -> {
-                opphørsvedtak(vedtak)
-            }
-            VedtakType.AVSLAG,
-            VedtakType.INGEN_ENDRING,
-            VedtakType.STANS_AV_YTELSE,
-            -> {
-                throw KunneIkkeLageBrevRequest.UgyldigKombinasjonAvVedtakOgTypeException(
-                    vedtak::class,
-                    vedtak.vedtakType,
-                )
-            }
-        }
+    override fun visit(vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling) {
+        brevRequest = innvilgetVedtakSøknadsbehandling(vedtak)
+    }
+
+    override fun visit(vedtak: Vedtak.EndringIYtelse.InnvilgetRevurdering) {
+        brevRequest = innvilgetVedtakRevurdering(vedtak)
+    }
+
+    override fun visit(vedtak: Vedtak.EndringIYtelse.OpphørtRevurdering) {
+        brevRequest = opphørsvedtak(vedtak)
     }
 
     override fun visit(vedtak: Vedtak.Avslag.AvslagVilkår) {
@@ -416,15 +404,9 @@ class LagBrevRequestVisitor(
             val instans: KClass<*>,
             val msg: String = "Kan ikke lage brevrequest for instans av typen: ${instans.qualifiedName}",
         ) : RuntimeException(msg)
-
-        data class UgyldigKombinasjonAvVedtakOgTypeException(
-            val instans: KClass<*>,
-            val vedtakType: VedtakType,
-            val msg: String = "Kombinasjon av ${instans.qualifiedName} og vedtakType: $vedtakType er ugyldig!",
-        ) : RuntimeException(msg)
     }
 
-    private fun innvilgetVedtakSøknadsbehandling(vedtak: Vedtak.EndringIYtelse) =
+    private fun innvilgetVedtakSøknadsbehandling(vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling) =
         hentPersonOgNavn(
             fnr = vedtak.behandling.fnr,
             saksbehandler = vedtak.saksbehandler,
@@ -434,18 +416,12 @@ class LagBrevRequestVisitor(
                 personOgNavn = it,
                 bosituasjon = vedtak.behandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
                 beregning = vedtak.beregning,
-                fritekst =
-                // TODO ia: kommer vi oss unna denne? Hadde kanskje gått dersom vi lagret de genererte brevene.
-                // Gjelder også de andre metodene her inne som går på vedtak
-                when (val b = vedtak.behandling) {
-                    is Søknadsbehandling -> b.fritekstTilBrev
-                    else -> ""
-                },
+                fritekst = vedtak.behandling.fritekstTilBrev,
                 uføregrunnlag = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag,
             )
         }
 
-    private fun innvilgetVedtakRevurdering(vedtak: Vedtak.EndringIYtelse) =
+    private fun innvilgetVedtakRevurdering(vedtak: Vedtak.EndringIYtelse.InnvilgetRevurdering) =
         hentPersonOgNavn(
             fnr = vedtak.behandling.fnr,
             saksbehandler = vedtak.saksbehandler,
@@ -456,16 +432,13 @@ class LagBrevRequestVisitor(
                 saksbehandlerNavn = it.saksbehandlerNavn,
                 attestantNavn = it.attestantNavn,
                 revurdertBeregning = vedtak.beregning,
-                fritekst = when (val b = vedtak.behandling) {
-                    is Revurdering -> b.fritekstTilBrev
-                    else -> ""
-                },
+                fritekst = vedtak.behandling.fritekstTilBrev,
                 harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
                 forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
             )
         }
 
-    private fun opphørsvedtak(vedtak: Vedtak.EndringIYtelse) =
+    private fun opphørsvedtak(vedtak: Vedtak.EndringIYtelse.OpphørtRevurdering) =
         hentPersonOgNavn(
             fnr = vedtak.behandling.fnr,
             saksbehandler = vedtak.saksbehandler,
@@ -476,13 +449,10 @@ class LagBrevRequestVisitor(
                 saksbehandlerNavn = it.saksbehandlerNavn,
                 attestantNavn = it.attestantNavn,
                 beregning = vedtak.beregning,
-                fritekst = when (val b = vedtak.behandling) {
-                    is Revurdering -> b.fritekstTilBrev
-                    else -> ""
-                },
+                fritekst = vedtak.behandling.fritekstTilBrev,
                 harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
                 forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
-                opphørsgrunner = vedtak.behandling.vilkårsvurderinger.utledOpphørsgrunner(),
+                opphørsgrunner = vedtak.utledOpphørsgrunner(),
             )
         }
 
@@ -502,9 +472,9 @@ class LagBrevRequestVisitor(
                     is Vedtak.Avslag.AvslagBeregning -> vedtak.beregning
                     is Vedtak.Avslag.AvslagVilkår -> null
                 },
-                fritekst = when (val b = vedtak.behandling) {
-                    is Søknadsbehandling -> b.fritekstTilBrev // TODO ia: kommer vi oss unna denne?
-                    else -> ""
+                fritekst = when (vedtak) {
+                    is Vedtak.Avslag.AvslagBeregning -> vedtak.behandling.fritekstTilBrev
+                    is Vedtak.Avslag.AvslagVilkår -> vedtak.behandling.fritekstTilBrev
                 },
                 uføregrunnlag = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag,
             )
@@ -542,10 +512,7 @@ class LagBrevRequestVisitor(
                 requestIngenEndring(
                     personOgNavn = personOgNavn,
                     beregning = vedtak.beregning,
-                    fritekst = when (val b = vedtak.behandling) {
-                        is Revurdering -> b.fritekstTilBrev
-                        else -> ""
-                    },
+                    fritekst = vedtak.behandling.fritekstTilBrev,
                     harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
                     uføregrunnlag = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag,
                     gjeldendeMånedsutbetaling = gjeldendeUtbetaling,

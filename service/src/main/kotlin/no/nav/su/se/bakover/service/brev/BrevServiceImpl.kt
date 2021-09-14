@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.brev
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -21,7 +22,9 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalfø
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.LoggerFactory
+import java.util.UUID
 
 /**
  * TODO jah: Prøve å finne skillet/abstraksjonen mellom brev og dokument
@@ -51,7 +54,8 @@ internal class BrevServiceImpl(
             }
     }
 
-    override fun distribuerBrev(journalpostId: JournalpostId): Either<KunneIkkeDistribuereBrev, BrevbestillingId> =
+    // Internal for testing.
+    internal fun distribuerBrev(journalpostId: JournalpostId): Either<KunneIkkeDistribuereBrev, BrevbestillingId> =
         dokDistFordeling.bestillDistribusjon(journalpostId)
             .mapLeft {
                 log.error("Feil ved bestilling av distribusjon for journalpostId:$journalpostId")
@@ -68,11 +72,56 @@ internal class BrevServiceImpl(
         dokumentRepo.lagre(dokument, transactionContext)
     }
 
+    override fun journalførOgDistribuerUtgåendeDokumenter() {
+        dokumentRepo.hentDokumenterForDistribusjon()
+            .map { dokumentdistribusjon ->
+                journalførDokument(dokumentdistribusjon)
+                    .mapLeft {
+                        Distribusjonsresultat.Feil.Journalføring(dokumentdistribusjon.id)
+                    }
+                    .flatMap { journalført ->
+                        distribuerDokument(journalført)
+                            .mapLeft {
+                                Distribusjonsresultat.Feil.Brevdistribusjon(journalført.id)
+                            }
+                            .map { distribuert ->
+                                Distribusjonsresultat.Ok(distribuert.id)
+                            }
+                    }
+            }.ifNotEmpty {
+                val ok = this.ok()
+                val feil = this.feil()
+                if (feil.isEmpty()) {
+                    log.info("Journalførte/distribuerte distribusjonsIDene: $ok")
+                } else {
+                    log.error("Kunne ikke journalføre/distribuere distribusjonsIDene: $feil. Disse gikk ok: $ok")
+                }
+            }
+    }
+
+    private sealed class Distribusjonsresultat {
+        sealed class Feil {
+            data class Journalføring(val id: UUID) : Feil()
+            data class Brevdistribusjon(val id: UUID) : Feil()
+        }
+
+        data class Ok(val id: UUID) : Distribusjonsresultat()
+    }
+
+    private fun List<Either<Distribusjonsresultat.Feil, Distribusjonsresultat.Ok>>.ok() =
+        this.filterIsInstance<Either.Right<Distribusjonsresultat.Ok>>()
+            .map { it.value.id.toString() }
+
+    private fun List<Either<Distribusjonsresultat.Feil, Distribusjonsresultat.Ok>>.feil() =
+        this.filterIsInstance<Either.Left<Distribusjonsresultat.Feil>>()
+            .map { it.value }
+
     /**
      * Henter Person fra PersonService med systembruker.
      * Ment brukt fra async-operasjoner som ikke er knyttet til en bruker med token.
      */
-    override fun journalførDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeJournalføreDokument, Dokumentdistribusjon> {
+    // Internal for testing.
+    internal fun journalførDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeJournalføreDokument, Dokumentdistribusjon> {
         val sak = sakService.hentSak(dokumentdistribusjon.dokument.metadata.sakId)
             .getOrHandle { return KunneIkkeJournalføreDokument.KunneIkkeFinneSak.left() }
         val person = personService.hentPersonMedSystembruker(sak.fnr)
@@ -99,7 +148,8 @@ internal class BrevServiceImpl(
         }
     }
 
-    override fun distribuerDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeBestilleBrevForDokument, Dokumentdistribusjon> {
+    // Internal for testing.
+    internal fun distribuerDokument(dokumentdistribusjon: Dokumentdistribusjon): Either<KunneIkkeBestilleBrevForDokument, Dokumentdistribusjon> {
         return dokumentdistribusjon.distribuerBrev { jounalpostId ->
             distribuerBrev(jounalpostId)
                 .mapLeft {
@@ -119,18 +169,12 @@ internal class BrevServiceImpl(
         }
     }
 
-    override fun hentDokumenterForDistribusjon(): List<Dokumentdistribusjon> {
-        return dokumentRepo.hentDokumenterForDistribusjon()
-    }
-
-    override fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): Either<FantIngenDokumenter, List<Dokument>> {
+    override fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): List<Dokument> {
         return when (hentDokumenterForIdType) {
             is HentDokumenterForIdType.Sak -> dokumentRepo.hentForSak(hentDokumenterForIdType.id)
             is HentDokumenterForIdType.Søknad -> dokumentRepo.hentForSøknad(hentDokumenterForIdType.id)
             is HentDokumenterForIdType.Revurdering -> dokumentRepo.hentForRevurdering(hentDokumenterForIdType.id)
             is HentDokumenterForIdType.Vedtak -> dokumentRepo.hentForVedtak(hentDokumenterForIdType.id)
-        }.let {
-            if (it.isEmpty()) FantIngenDokumenter(hentDokumenterForIdType).left() else it.right()
         }
     }
 

@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
-import no.nav.su.se.bakover.database.EmbeddedDatabase
+import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -65,6 +65,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
+import javax.sql.DataSource
 import kotlin.random.Random
 
 internal class SøknadRoutesKtTest {
@@ -88,11 +89,11 @@ internal class SøknadRoutesKtTest {
     )
     private val søknadId = UUID.randomUUID()
 
-    private val databaseRepos = DatabaseBuilder.build(
-        embeddedDatasource = EmbeddedDatabase.instance(),
+    private fun databaseRepos(dataSource: DataSource) = DatabaseBuilder.build(
+        embeddedDatasource = dataSource,
         dbMetrics = dbMetricsStub,
     )
-    private val sakRepo = databaseRepos.sak
+
     private val trekkSøknadRequest = LukkSøknadRequest.MedBrev.TrekkSøknad(
         søknadId = søknadId,
         saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z990Lokal"),
@@ -106,27 +107,30 @@ internal class SøknadRoutesKtTest {
         val fnr = Fnr.generer()
         val søknadInnhold: SøknadInnhold = søknadInnhold(fnr)
         val soknadJson: String = objectMapper.writeValueAsString(søknadInnhold.toSøknadInnholdJson())
-        withTestApplication(
-            {
-                testSusebakover()
-            },
-        ) {
-            val createResponse = defaultRequest(
-                Post,
-                søknadPath,
-                listOf(Brukerrolle.Veileder),
+        withMigratedDb { dataSource ->
+            val repos = databaseRepos(dataSource)
+            withTestApplication(
+                {
+                    testSusebakover(databaseRepos = repos)
+                },
             ) {
-                addHeader(ContentType, Json.toString())
-                setBody(soknadJson)
-            }.apply {
-                response.status() shouldBe Created
-            }.response
+                val createResponse = defaultRequest(
+                    Post,
+                    søknadPath,
+                    listOf(Brukerrolle.Veileder),
+                ) {
+                    addHeader(ContentType, Json.toString())
+                    setBody(soknadJson)
+                }.apply {
+                    response.status() shouldBe Created
+                }.response
 
-            shouldNotThrow<Throwable> { objectMapper.readValue<OpprettetSøknadJson>(createResponse.content!!) }
+                shouldNotThrow<Throwable> { objectMapper.readValue<OpprettetSøknadJson>(createResponse.content!!) }
 
-            val sakFraDb = sakRepo.hentSak(fnr)
-            sakFraDb shouldNotBe null
-            sakFraDb!!.søknader shouldHaveAtLeastSize 1
+                val sakFraDb = repos.sak.hentSak(fnr)
+                sakFraDb shouldNotBe null
+                sakFraDb!!.søknader shouldHaveAtLeastSize 1
+            }
         }
     }
 
@@ -182,46 +186,53 @@ internal class SøknadRoutesKtTest {
         val oppgaveClient: OppgaveClient = mock {
             on { opprettOppgave(any<OppgaveConfig.Saksbehandling>()) } doReturn OppgaveId("11").right()
         }
+        withMigratedDb { dataSource ->
+            val repos = DatabaseBuilder.build(
+                embeddedDatasource = dataSource,
+                dbMetrics = dbMetricsStub,
+            )
 
-        val clients = TestClientsBuilder.build(applicationConfig).copy(
-            pdfGenerator = pdfGenerator,
-            dokArkiv = dokArkiv,
-            personOppslag = personOppslag,
-            oppgaveClient = oppgaveClient,
-        )
+            val clients = TestClientsBuilder.build(applicationConfig).copy(
+                pdfGenerator = pdfGenerator,
+                dokArkiv = dokArkiv,
+                personOppslag = personOppslag,
+                oppgaveClient = oppgaveClient,
+            )
 
-        val services = ServiceBuilder.build(
-            databaseRepos = databaseRepos,
-            clients = clients,
-            behandlingMetrics = mock(),
-            søknadMetrics = mock(),
-            clock = fixedClock,
-            unleash = mock(),
-        )
+            val services = ServiceBuilder.build(
+                databaseRepos = repos,
+                clients = clients,
+                behandlingMetrics = mock(),
+                søknadMetrics = mock(),
+                clock = fixedClock,
+                unleash = mock(),
+            )
 
-        withTestApplication(
-            {
-                testSusebakover(
-                    clients = clients,
-                    services = services,
-                )
-            },
-        ) {
-            defaultRequest(
-                Post,
-                søknadPath,
-                listOf(Brukerrolle.Veileder),
+            withTestApplication(
+                {
+                    testSusebakover(
+                        databaseRepos = repos,
+                        clients = clients,
+                        services = services,
+                    )
+                },
             ) {
-                addHeader(ContentType, Json.toString())
-                setBody(soknadJson)
-            }.apply {
-                response.status() shouldBe Created
-                verify(pdfGenerator).genererPdf(any<SøknadPdfInnhold>())
-                verify(dokArkiv).opprettJournalpost(any())
-                // Kalles én gang i AccessCheckProxy og én gang eksplisitt i søknadService
-                verify(personOppslag).person(argThat { it shouldBe fnr })
-                verify(personOppslag).aktørId(argThat { it shouldBe fnr })
-                verify(oppgaveClient).opprettOppgave(any())
+                defaultRequest(
+                    Post,
+                    søknadPath,
+                    listOf(Brukerrolle.Veileder),
+                ) {
+                    addHeader(ContentType, Json.toString())
+                    setBody(soknadJson)
+                }.apply {
+                    response.status() shouldBe Created
+                    verify(pdfGenerator).genererPdf(any<SøknadPdfInnhold>())
+                    verify(dokArkiv).opprettJournalpost(any())
+                    // Kalles én gang i AccessCheckProxy og én gang eksplisitt i søknadService
+                    verify(personOppslag).person(argThat { it shouldBe fnr })
+                    verify(personOppslag).aktørId(argThat { it shouldBe fnr })
+                    verify(oppgaveClient).opprettOppgave(any())
+                }
             }
         }
     }

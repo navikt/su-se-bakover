@@ -47,6 +47,7 @@ class PersonhendelseConsumer(
         val processedMessages = mutableMapOf<TopicPartition, OffsetAndMetadata>()
 
         if (!messages.isEmpty) {
+            log.debug("Personhendelse: ${messages.count()} nye meldinger fra PDL. Første melding er fra ${messages.first().value().getOpprettet()}")
             run processMessages@{
                 messages.forEach { message ->
                     PersonhendelseMapper.map(message).fold(
@@ -91,9 +92,11 @@ class PersonhendelseConsumer(
                         },
                     )
                 }
+                // TODO ai: Burde denne flyttes ut en nivå?
                 // I tilfeller der vi har prosessert alle meldingene OK.
                 consumer.commitSync(processedMessages)
             }
+            log.debug("Personhendelse: Prossesert ferdigt meldingene. Siste var till og med: ${messages.last().value().getOpprettet()})")
         }
     }
 }

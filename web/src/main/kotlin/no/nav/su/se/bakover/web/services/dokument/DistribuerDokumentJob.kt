@@ -1,10 +1,8 @@
 package no.nav.su.se.bakover.web.services.dokument
 
 import arrow.core.Either
-import arrow.core.flatMap
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
 import no.nav.su.se.bakover.service.brev.BrevService
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import java.net.InetAddress
@@ -34,57 +32,19 @@ class DistribuerDokumentJob(
             period = periode,
         ) {
             Either.catch {
-                // Ktor legger på X-Correlation-ID for web-requests, men vi har ikke noe tilsvarende automagi for meldingskøen.
-                MDC.put("X-Correlation-ID", UUID.randomUUID().toString())
                 if (isLeaderPod()) {
-                    brevService.hentDokumenterForDistribusjon()
-                        .map { dokumentdistribusjon ->
-                            brevService.journalførDokument(dokumentdistribusjon)
-                                .mapLeft {
-                                    Distribusjonsresultat.Feil.Journalføring(dokumentdistribusjon.id)
-                                }
-                                .flatMap { journalført ->
-                                    brevService.distribuerDokument(journalført)
-                                        .mapLeft {
-                                            Distribusjonsresultat.Feil.Brevdistribusjon(journalført.id)
-                                        }
-                                        .map { distribuert ->
-                                            Distribusjonsresultat.Ok(distribuert.id)
-                                        }
-                                }
-                        }.ifNotEmpty {
-                            log.info("Fullførte skeduleringsjobb '$jobName'")
-                            val ok = this.ok()
-                            val feil = this.feil()
-                            if (feil.isEmpty()) {
-                                log.info("Journalførte/distribuerte distribusjonsidene: $ok")
-                            } else {
-                                log.error("Kunne ikke journalføre/distribuere distribusjonsidene: $feil. Disse gikk ok: $ok")
-                            }
-                        }
+                    // Ktor legger på X-Correlation-ID for web-requests, men vi har ikke noe tilsvarende automagi for meldingskøen.
+                    MDC.put("X-Correlation-ID", UUID.randomUUID().toString())
+                    // Disse er debug siden jobben kjører hvert minutt.
+                    log.debug("Kjører skeduleringsjobb '$jobName'")
+                    brevService.journalførOgDistribuerUtgåendeDokumenter()
+                    log.debug("Fullførte skeduleringsjobb '$jobName'")
                 }
             }.mapLeft {
                 log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)
             }
         }
     }
-
-    private sealed class Distribusjonsresultat {
-        sealed class Feil {
-            data class Journalføring(val id: UUID) : Feil()
-            data class Brevdistribusjon(val id: UUID) : Feil()
-        }
-
-        data class Ok(val id: UUID) : Distribusjonsresultat()
-    }
-
-    private fun List<Either<Distribusjonsresultat.Feil, Distribusjonsresultat.Ok>>.ok() =
-        this.filterIsInstance<Either.Right<Distribusjonsresultat.Ok>>()
-            .map { it.value.id.toString() }
-
-    private fun List<Either<Distribusjonsresultat.Feil, Distribusjonsresultat.Ok>>.feil() =
-        this.filterIsInstance<Either.Left<Distribusjonsresultat.Feil>>()
-            .map { it.value }
 
     private val hostName = InetAddress.getLocalHost().hostName
     private fun isLeaderPod() = leaderPodLookup.amITheLeader(hostName).isRight()

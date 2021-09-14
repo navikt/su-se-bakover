@@ -11,7 +11,6 @@ import io.ktor.routing.get
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.service.brev.FantIngenDokumenter
 import no.nav.su.se.bakover.service.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
@@ -71,15 +70,7 @@ internal fun Route.dokumentRoutes(
                 }
 
             brevService.hentDokumenterFor(parameters.toDomain())
-                .mapLeft {
-                    call.svar(
-                        HttpStatusCode.NotFound.errorJson(
-                            "${it.errorMessage()}",
-                            "fant_ingen_dokumenter",
-                        ),
-                    )
-                }
-                .map { dokumenter ->
+                .let { dokumenter ->
                     call.svar(
                         Resultat.json(
                             httpCode = HttpStatusCode.OK,
@@ -126,15 +117,4 @@ private enum class IdType {
     SØKNAD,
     VEDTAK,
     REVURDERING
-}
-
-private fun FantIngenDokumenter.errorMessage(): String {
-    return "Fant ingen dokumenter for ${
-    when (hentDokumenterForIdType) {
-        is HentDokumenterForIdType.Revurdering -> "revurdering"
-        is HentDokumenterForIdType.Sak -> "sak"
-        is HentDokumenterForIdType.Søknad -> "søknad"
-        is HentDokumenterForIdType.Vedtak -> "vedtak"
-    }
-    } med id: ${hentDokumenterForIdType.id}"
 }
