@@ -281,10 +281,6 @@ internal fun Application.susebakover(
             brevService = services.brev,
             leaderPodLookup = clients.leaderPodLookup,
         ).schedule()
-        PersonhendelseOppgaveJob(
-            personhendelseService = personhendelseService,
-            leaderPodLookup = clients.leaderPodLookup,
-        ).schedule()
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         LokalKvitteringJob(LokalKvitteringService(databaseRepos.utbetaling, utbetalingKvitteringConsumer)).schedule()
 
@@ -292,11 +288,13 @@ internal fun Application.susebakover(
             brevService = services.brev,
             leaderPodLookup = clients.leaderPodLookup,
         ).schedule()
-        PersonhendelseOppgaveJob(
-            personhendelseService = personhendelseService,
-            leaderPodLookup = clients.leaderPodLookup,
-        ).schedule()
     }
+
+    PersonhendelseOppgaveJob(
+        personhendelseService = personhendelseService,
+        leaderPodLookup = clients.leaderPodLookup,
+        intervall = applicationConfig.jobConfig.personhendelse.intervall
+    ).schedule()
 }
 
 fun Route.withAccessProtectedServices(

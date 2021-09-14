@@ -228,6 +228,7 @@ internal class SøknadsbehandlingRoutesKtTest {
 
     @Test
     fun `Opprette en oppgave til attestering feiler mot oppgave`() {
+
         withMigratedDb { dataSource ->
             val repos = repos(dataSource)
             val clients = testClients.copy(
@@ -254,13 +255,13 @@ internal class SøknadsbehandlingRoutesKtTest {
                     }
                 },
             )
-            val services = services(repos, clients = clients)
+            val services = services(repos, clients)
             withTestApplication(
                 {
                     testSusebakover(
+                        clients = clients,
                         services = services,
                         databaseRepos = repos,
-                        clients = clients,
                     )
                 },
             ) {
@@ -284,7 +285,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     setBody("""{ "fritekst": "Fritekst!" }""")
                 }.apply {
                     response.status() shouldBe HttpStatusCode.InternalServerError
-                    response.content shouldContain "Kunne ikke opprette oppgave for attestering"
+                    response.content shouldContain "Kunne ikke opprette oppgave"
                 }
             }
         }

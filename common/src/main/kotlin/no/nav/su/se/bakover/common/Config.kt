@@ -13,6 +13,8 @@ import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.LoggerFactory
+import java.time.Duration
+import java.time.temporal.ChronoUnit
 
 private object EnvironmentConfig {
     private val env by lazy {
@@ -52,6 +54,7 @@ data class ApplicationConfig(
     val clientsConfig: ClientsConfig,
     val kafkaConfig: KafkaConfig,
     val unleash: UnleashConfig,
+    val jobConfig: JobConfig,
 ) {
     enum class RuntimeEnvironment {
         Test,
@@ -486,6 +489,9 @@ data class ApplicationConfig(
             clientsConfig = ClientsConfig.createFromEnvironmentVariables(),
             kafkaConfig = KafkaConfig.createFromEnvironmentVariables(),
             unleash = UnleashConfig.createFromEnvironmentVariables(),
+            jobConfig = JobConfig(
+                personhendelse = JobConfig.Personhendelse(naisCluster())
+            )
         )
 
         fun createLocalConfig() = ApplicationConfig(
@@ -501,6 +507,9 @@ data class ApplicationConfig(
             clientsConfig = ClientsConfig.createLocalConfig(),
             kafkaConfig = KafkaConfig.createLocalConfig(),
             unleash = UnleashConfig.createFromEnvironmentVariables(),
+            jobConfig = JobConfig(
+                personhendelse = JobConfig.Personhendelse(naisCluster())
+            )
         ).also {
             log.warn("**********  Using local config (the environment variable 'NAIS_CLUSTER_NAME' is missing.)")
         }
@@ -516,5 +525,17 @@ data class ApplicationConfig(
 
         fun isRunningLocally() = naisCluster() == null
         fun isNotProd() = isRunningLocally() || naisCluster() == NaisCluster.Dev
+    }
+    data class JobConfig(val personhendelse: Personhendelse) {
+        data class Personhendelse(private val naisCluster: NaisCluster?) {
+            private val PREPROD: Long = Duration.of(10, ChronoUnit.MINUTES).toMillis()
+            private val PROD: Long = Duration.of(1, ChronoUnit.DAYS).toMillis()
+
+            val intervall
+                get() = when (naisCluster) {
+                    NaisCluster.Prod -> PROD
+                    else -> PREPROD
+                }
+        }
     }
 }

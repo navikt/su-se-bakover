@@ -127,6 +127,7 @@ internal class ApplicationConfigTest {
             )
         ),
         unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover"),
+        jobConfig = ApplicationConfig.JobConfig(ApplicationConfig.JobConfig.Personhendelse(ApplicationConfig.NaisCluster.Prod))
     )
 
     @Test
@@ -236,6 +237,7 @@ internal class ApplicationConfigTest {
                     consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(emptyMap()),
                 ),
                 unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover"),
+                jobConfig = ApplicationConfig.JobConfig(ApplicationConfig.JobConfig.Personhendelse(null))
             )
         }
     }

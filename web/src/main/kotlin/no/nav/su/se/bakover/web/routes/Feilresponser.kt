@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes
 
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -26,6 +25,11 @@ internal object Feilresponser {
         "fant_ikke_aktør_id",
     )
 
+    val kunneIkkeOppretteOppgave = InternalServerError.errorJson(
+        "Kunne ikke opprette oppgave",
+        "kunne_ikke_opprette_oppgave",
+    )
+
     val overlappendeVurderingsperioder = BadRequest.errorJson(
         "Vurderingperioder kan ikke overlappe",
         "overlappende_vurderingsperioder",
@@ -49,11 +53,6 @@ internal object Feilresponser {
     val feilVedGenereringAvDokument = InternalServerError.errorJson(
         "Feil ved generering av dokument",
         "feil_ved_generering_av_dokument",
-    )
-
-    val kunneIkkeGenerereBrev = HttpStatusCode.Companion.InternalServerError.errorJson(
-        "Kunne ikke generere brev",
-        "kunne_ikke_generere_brev",
     )
 
     fun ugyldigTilstand(fra: KClass<*>, til: KClass<*>): Resultat {
@@ -87,6 +86,18 @@ internal object Feilresponser {
         "Kunne ikke legge til fradragsgrunnlag",
         "kunne_ikke_legge_til_fradragsgrunnlag",
     )
+
+    object Brev {
+        val kunneIkkeGenerereBrev = InternalServerError.errorJson(
+            "Kunne ikke generere brev",
+            "kunne_ikke_generere_brev",
+        )
+
+        val kunneIkkeLageBrevutkast = InternalServerError.errorJson(
+            "Kunne ikke lage brevutkast",
+            "kunne_ikke_lage_brevutkast",
+        )
+    }
 
     internal fun UtbetalingFeilet.tilResultat(): Resultat {
         return when (this) {
