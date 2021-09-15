@@ -67,7 +67,6 @@ class PersonhendelseConsumer(
                                 // Vi ønsker ikke få disse hendelsene sendt på nytt.
                                 processedMessages[TopicPartition(message.topic(), message.partition())] =
                                     OffsetAndMetadata(message.offset() + 1)
-                                log.debug("Personhendelse: Uaktuell personhendelse: Ignorerer hendelse ${it.opplysningstype} med hendelsesid ${it.hendelseId}, offset ${message.offset()}, partisjon ${message.partition()}")
                             }
                             is KunneIkkeMappePersonhendelse.KunneIkkeHenteAktørId -> {
                                 if (ApplicationConfig.isNotProd()) {
