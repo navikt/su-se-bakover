@@ -258,8 +258,11 @@ internal class VedtakPosgresRepoTest {
                 vilkårsvurderinger = vilkårsvurderingerInnvilget(),
                 tilRevurdering = søknadsbehandling,
                 saksbehandler = saksbehandler,
-                begrunnelse = "slem",
                 simulering = simulering(søknadsbehandling.behandling.fnr),
+                revurderingsårsak = Revurderingsårsak.create(
+                    årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
+                    begrunnelse = "huffa",
+                ),
             )
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
             testDataHelper.grunnlagRepo.lagreBosituasjongrunnlag(

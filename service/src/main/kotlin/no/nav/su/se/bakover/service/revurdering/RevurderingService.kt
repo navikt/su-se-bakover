@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -36,13 +37,13 @@ interface RevurderingService {
     fun hentRevurdering(revurderingId: UUID): AbstraktRevurdering?
 
     fun stansAvYtelse(
-        opprettRevurderingRequest: OpprettRevurderingRequest
-    ): Either<KunneIkkeOppretteRevurdering, StansAvYtelseRevurdering.SimulertStansAvYtelse>
+        request: StansYtelseRequest,
+    ): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse>
 
     fun iverksettStansAvYtelse(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant,
-    ): Either<KunneIkkeIverksetteRevurdering, StansAvYtelseRevurdering.IverksattStansAvYtelse>
+    ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse>
 
     fun opprettRevurdering(
         opprettRevurderingRequest: OpprettRevurderingRequest,
@@ -292,6 +293,7 @@ sealed class KunneIkkeLeggeTilFradragsgrunnlag {
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
     ) : KunneIkkeLeggeTilFradragsgrunnlag()
+
     data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
         KunneIkkeLeggeTilFradragsgrunnlag()
 }
@@ -334,6 +336,30 @@ data class HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse(
     val grunnlagsdata: Grunnlagsdata,
     val vilkårsvurderinger: Vilkårsvurderinger,
 )
+
+data class StansYtelseRequest(
+    val sakId: UUID,
+    val saksbehandler: NavIdentBruker.Saksbehandler,
+    val fraOgMed: LocalDate,
+    val revurderingsårsak: Revurderingsårsak,
+)
+
+sealed class KunneIkkeStanseYtelse {
+    object FantIkkeSak : KunneIkkeStanseYtelse()
+    object SimuleringAvStansFeilet : KunneIkkeStanseYtelse()
+    object SendingAvUtbetalingTilOppdragFeilet : KunneIkkeStanseYtelse()
+    object KontrollAvSimuleringFeilet : KunneIkkeStanseYtelse()
+    object KunneIkkeOppretteRevurdering : KunneIkkeStanseYtelse()
+}
+
+sealed class KunneIkkeIverksetteStansYtelse {
+    data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksetteStansYtelse()
+    object FantIkkeRevurdering : KunneIkkeIverksetteStansYtelse()
+    data class UgyldigTilstand(
+        val faktiskTilstand: KClass<out AbstraktRevurdering>,
+        val målTilstand: KClass<out StansAvYtelseRevurdering.IverksattStansAvYtelse> = StansAvYtelseRevurdering.IverksattStansAvYtelse::class,
+    ) : KunneIkkeIverksetteStansYtelse()
+}
 
 data class LeggTilBosituasjongrunnlagRequest(
     val revurderingId: UUID,

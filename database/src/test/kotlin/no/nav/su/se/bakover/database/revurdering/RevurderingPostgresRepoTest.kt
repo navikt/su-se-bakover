@@ -980,8 +980,11 @@ internal class RevurderingPostgresRepoTest {
                 vilkårsvurderinger = vilkårsvurderingerInnvilget(),
                 tilRevurdering = søknadsbehandling,
                 saksbehandler = saksbehandler,
-                begrunnelse = "slem",
                 simulering = simulering,
+                revurderingsårsak = Revurderingsårsak.create(
+                    årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
+                    begrunnelse = "huffa",
+                ),
             )
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)

@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakFelles
@@ -146,6 +147,7 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         )
     }
 }
+
 fun lagFradragsgrunnlag(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
@@ -163,7 +165,7 @@ fun lagFradragsgrunnlag(
         periode = periode,
         utenlandskInntekt = utenlandskInntekt,
         tilhører = tilhører,
-    )
+    ),
 ).orNull()!!
 
 fun beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
@@ -583,4 +585,26 @@ fun iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
             innvilgetIverksattRevurdering,
         )
     }
+}
+
+fun simulertStansAvytelseFraIverksattSøknadsbehandlingsvedtak(
+    periode: Periode,
+): StansAvYtelseRevurdering.SimulertStansAvYtelse {
+    val vedtak = vedtakSøknadsbehandlingIverksattInnvilget(
+        stønadsperiode = Stønadsperiode.create(periode, "whatever"),
+    ).second
+    return StansAvYtelseRevurdering.SimulertStansAvYtelse(
+        id = revurderingId,
+        opprettet = fixedTidspunkt,
+        periode = periode,
+        grunnlagsdata = vedtak.behandling.grunnlagsdata,
+        vilkårsvurderinger = vedtak.behandling.vilkårsvurderinger,
+        tilRevurdering = vedtak,
+        saksbehandler = saksbehandler,
+        simulering = simulering(periode),
+        revurderingsårsak = Revurderingsårsak.create(
+            årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
+            begrunnelse = "valid",
+        ),
+    )
 }

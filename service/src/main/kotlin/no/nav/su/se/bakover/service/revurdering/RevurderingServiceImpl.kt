@@ -94,26 +94,25 @@ internal class RevurderingServiceImpl(
     }
 
     override fun stansAvYtelse(
-        opprettRevurderingRequest: OpprettRevurderingRequest,
-    ): Either<KunneIkkeOppretteRevurdering, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
+        request: StansYtelseRequest,
+    ): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
+
         val gjeldendeVedtaksdata: GjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
-            sakId = opprettRevurderingRequest.sakId,
-            fraOgMed = opprettRevurderingRequest.fraOgMed,
+            sakId = request.sakId,
+            fraOgMed = request.fraOgMed,
         ).getOrHandle {
-            return when (it) {
-                KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak -> KunneIkkeOppretteRevurdering.FantIkkeSak
-                KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak -> KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes
-                is KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode -> KunneIkkeOppretteRevurdering.UgyldigPeriode(it.cause)
-            }.left()
+            return KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering.left()
         }.also {
-            if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
+            if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering.left()
         }
 
         val simulering = utbetalingService.simulerStans(
-            sakId = opprettRevurderingRequest.sakId,
-            saksbehandler = opprettRevurderingRequest.saksbehandler,
-            stansDato = opprettRevurderingRequest.fraOgMed,
-        ).getOrHandle { return KunneIkkeOppretteRevurdering.UgyldigBegrunnelse.left() }
+            sakId = request.sakId,
+            saksbehandler = request.saksbehandler,
+            stansDato = request.fraOgMed,
+        ).getOrHandle {
+            return KunneIkkeStanseYtelse.SimuleringAvStansFeilet.left()
+        }
 
         val simulertRevurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
             id = UUID.randomUUID(),
@@ -121,10 +120,13 @@ internal class RevurderingServiceImpl(
             periode = gjeldendeVedtaksdata.periode,
             grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
             vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
-            saksbehandler = opprettRevurderingRequest.saksbehandler,
-            begrunnelse = opprettRevurderingRequest.begrunnelse,
+            tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(request.fraOgMed)!!,
+            saksbehandler = request.saksbehandler,
             simulering = simulering.simulering,
-            tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(opprettRevurderingRequest.fraOgMed)!!,
+            revurderingsårsak = Revurderingsårsak.create(
+                årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
+                begrunnelse = request.revurderingsårsak.begrunnelse.toString(),
+            ),
         )
 
         revurderingRepo.lagre(simulertRevurdering)
@@ -150,9 +152,9 @@ internal class RevurderingServiceImpl(
     override fun iverksettStansAvYtelse(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant,
-    ): Either<KunneIkkeIverksetteRevurdering, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
+    ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
         val revurdering = revurderingRepo.hent(revurderingId)
-            ?: return KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left()
+            ?: return KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering.left()
 
         return when (revurdering) {
             is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
@@ -162,22 +164,24 @@ internal class RevurderingServiceImpl(
                         Tidspunkt.now(clock),
                     ),
                 )
-                revurderingRepo.lagre(iverksattRevurdering)
 
                 val stansUtbetaling = utbetalingService.stansUtbetalinger(
                     sakId = iverksattRevurdering.sakId,
                     attestant = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
                     simulering = revurdering.simulering,
                     stansDato = iverksattRevurdering.periode.fraOgMed,
-                ).getOrHandle { return KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left() }
+                ).getOrHandle { return KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(it).left() }
 
                 val vedtak = Vedtak.from(iverksattRevurdering, stansUtbetaling.id, clock)
 
+                revurderingRepo.lagre(iverksattRevurdering)
                 vedtakRepo.lagre(vedtak)
 
                 return iverksattRevurdering.right()
             }
-            else -> KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left()
+            else -> KunneIkkeIverksetteStansYtelse.UgyldigTilstand(
+                faktiskTilstand = revurdering::class,
+            ).left()
         }
     }
 
@@ -1064,7 +1068,7 @@ internal class RevurderingServiceImpl(
                     if (vedtak is Vedtak.EndringIYtelse) {
                         observer.handle(
                             Event.Statistikk.Vedtaksstatistikk(
-                                vedtak as Vedtak.EndringIYtelse
+                                vedtak as Vedtak.EndringIYtelse,
                             ),
                         )
                     }

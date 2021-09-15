@@ -31,6 +31,8 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.createFromGrunnlag
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.simulering
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -44,7 +46,7 @@ object RevurderingRoutesTestData {
     internal val sakId = UUID.randomUUID()
     internal val requestPath = "$sakPath/$sakId/revurderinger"
     internal val testServices = TestServicesBuilder.services()
-    internal val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
+    internal val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
 
     internal val vedtak = Vedtak.fromSøknadsbehandling(
         søknadsbehandling = Søknadsbehandling.Iverksatt.Innvilget(
@@ -58,7 +60,7 @@ object RevurderingRoutesTestData {
                 sakId = sakId,
                 søknadInnhold = SøknadInnholdTestdataBuilder.build(),
                 journalpostId = JournalpostId(value = ""),
-                oppgaveId = OppgaveId(value = "")
+                oppgaveId = OppgaveId(value = ""),
 
             ),
             oppgaveId = OppgaveId(value = ""),

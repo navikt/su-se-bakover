@@ -82,6 +82,29 @@ fun oversendtUtbetalingUtenKvittering(
     utbetalingsrequest = Utbetalingsrequest("<xml></xml>"),
 )
 
+fun simulertUtbetaling(
+    id: UUID30 = UUID30.randomUUID(),
+    periode: Periode = periode2021,
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje(periode = periode)),
+    avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
+    type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
+    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+) = Utbetaling.SimulertUtbetaling(
+    id = id,
+    opprettet = fixedTidspunkt,
+    sakId = sakId,
+    saksnummer = saksnummer,
+    fnr = fnr,
+    utbetalingslinjer = utbetalingslinjer,
+    type = type,
+    behandler = attestant,
+    avstemmingsnøkkel = avstemmingsnøkkel,
+    simulering = simuleringNy(fnr = fnr, eksisterendeUtbetalinger = eksisterendeUtbetalinger),
+)
+
 /**
  * Defaultverdier:
  * - id: arbitrær

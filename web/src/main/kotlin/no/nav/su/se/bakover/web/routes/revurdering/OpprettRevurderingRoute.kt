@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.FantIkkeAktørId
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.FantIkkeSak
@@ -59,44 +58,23 @@ internal fun Route.opprettRevurderingRoute(
                 call.withBody<Body> { body ->
                     val navIdent = call.suUserContext.navIdent
 
-                    // TODO gjøre noe annet her?
-                    if (body.årsak == Revurderingsårsak.Årsak.STANS_AV_YTELSE.name) {
-                        revurderingService.stansAvYtelse(
-                            OpprettRevurderingRequest(
-                                sakId = sakId,
-                                fraOgMed = body.fraOgMed,
-                                årsak = body.årsak,
-                                begrunnelse = body.begrunnelse,
-                                saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
-                                informasjonSomRevurderes = body.informasjonSomRevurderes,
-                            ),
-                        ).fold(
-                            ifLeft = { call.svar(it.tilResultat()) },
-                            ifRight = {
-                                call.sikkerlogg("Opprettet en ny revurdering på sak med id $sakId")
-                                call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
-                                call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson())))
-                            },
-                        )
-                    } else {
-                        revurderingService.opprettRevurdering(
-                            OpprettRevurderingRequest(
-                                sakId = sakId,
-                                fraOgMed = body.fraOgMed,
-                                årsak = body.årsak,
-                                begrunnelse = body.begrunnelse,
-                                saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
-                                informasjonSomRevurderes = body.informasjonSomRevurderes,
-                            ),
-                        ).fold(
-                            ifLeft = { call.svar(it.tilResultat()) },
-                            ifRight = {
-                                call.sikkerlogg("Opprettet en ny revurdering på sak med id $sakId")
-                                call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
-                                call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson())))
-                            },
-                        )
-                    }
+                    revurderingService.opprettRevurdering(
+                        OpprettRevurderingRequest(
+                            sakId = sakId,
+                            fraOgMed = body.fraOgMed,
+                            årsak = body.årsak,
+                            begrunnelse = body.begrunnelse,
+                            saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
+                            informasjonSomRevurderes = body.informasjonSomRevurderes,
+                        ),
+                    ).fold(
+                        ifLeft = { call.svar(it.tilResultat()) },
+                        ifRight = {
+                            call.sikkerlogg("Opprettet en ny revurdering på sak med id $sakId")
+                            call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
+                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson())))
+                        },
+                    )
                 }
             }
         }

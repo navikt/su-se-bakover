@@ -525,14 +525,14 @@ internal class RevurderingPostgresRepo(
             )
             RevurderingsType.SIMULERT_STANS -> StansAvYtelseRevurdering.SimulertStansAvYtelse(
                 id = id,
-                periode = periode,
                 opprettet = opprettet,
-                tilRevurdering = tilRevurdering,
-                saksbehandler = Saksbehandler(saksbehandler),
+                periode = periode,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
-                begrunnelse = begrunnelse,
+                tilRevurdering = tilRevurdering,
+                saksbehandler = Saksbehandler(saksbehandler),
                 simulering = simulering!!,
+                revurderingsårsak = revurderingsårsak,
             )
             RevurderingsType.IVERKSATT_STANS -> StansAvYtelseRevurdering.IverksattStansAvYtelse(
                 id = id,
@@ -542,9 +542,9 @@ internal class RevurderingPostgresRepo(
                 saksbehandler = Saksbehandler(saksbehandler),
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
-                begrunnelse = begrunnelse,
                 simulering = simulering!!,
                 attesteringer = attesteringer,
+                revurderingsårsak = revurderingsårsak
             )
         }
     }

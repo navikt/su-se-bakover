@@ -60,6 +60,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurd
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteStansYtelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilBosituasjongrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFormuegrunnlag
@@ -68,6 +69,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAttestering
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.service.revurdering.LeggTilBosituasjongrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.LeggTilFormuegrunnlagRequest
@@ -76,6 +78,7 @@ import no.nav.su.se.bakover.service.revurdering.OpprettRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.revurdering.Revurderingshandling
 import no.nav.su.se.bakover.service.revurdering.SendTilAttesteringRequest
+import no.nav.su.se.bakover.service.revurdering.StansYtelseRequest
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Statistikk
@@ -445,15 +448,15 @@ open class AccessCheckProxy(
                     return services.revurdering.hentRevurdering(revurderingId)
                 }
 
-                override fun stansAvYtelse(opprettRevurderingRequest: OpprettRevurderingRequest): Either<KunneIkkeOppretteRevurdering, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
-                    assertHarTilgangTilSak(opprettRevurderingRequest.sakId)
-                    return services.revurdering.stansAvYtelse(opprettRevurderingRequest)
+                override fun stansAvYtelse(request: StansYtelseRequest): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
+                    assertHarTilgangTilSak(request.sakId)
+                    return services.revurdering.stansAvYtelse(request)
                 }
 
                 override fun iverksettStansAvYtelse(
                     revurderingId: UUID,
                     attestant: NavIdentBruker.Attestant
-                ): Either<KunneIkkeIverksetteRevurdering, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
+                ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.iverksettStansAvYtelse(revurderingId, attestant)
                 }

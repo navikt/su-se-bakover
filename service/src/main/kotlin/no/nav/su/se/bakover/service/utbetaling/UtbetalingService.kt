@@ -76,13 +76,6 @@ interface UtbetalingService {
 object FantIkkeUtbetaling
 object FantIkkeGjeldendeUtbetaling
 
-sealed class KunneIkkeStanseUtbetalinger {
-    object FantIkkeSak : KunneIkkeStanseUtbetalinger()
-    object SimuleringAvStansFeilet : KunneIkkeStanseUtbetalinger()
-    object SendingAvUtbetalingTilOppdragFeilet : KunneIkkeStanseUtbetalinger()
-    object KontrollAvSimuleringFeilet : KunneIkkeStanseUtbetalinger()
-}
-
 sealed class KunneIkkeGjenopptaUtbetalinger {
     object FantIkkeSak : KunneIkkeGjenopptaUtbetalinger()
     object HarIngenOversendteUtbetalinger : KunneIkkeGjenopptaUtbetalinger()

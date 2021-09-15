@@ -80,15 +80,11 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
         override val vilkårsvurderinger: Vilkårsvurderinger,
         override val tilRevurdering: VedtakSomKanRevurderes,
         val saksbehandler: Saksbehandler,
-        val begrunnelse: String,
         val simulering: Simulering,
+        val revurderingsårsak: Revurderingsårsak,
     ) : StansAvYtelseRevurdering() {
         val informasjonSomRevurderes =
             InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Ytelse to Vurderingstatus.Vurdert))
-        val revurderingsårsak = Revurderingsårsak.create(
-            årsak = Revurderingsårsak.Årsak.STANS_AV_YTELSE.toString(),
-            begrunnelse = begrunnelse,
-        )
 
         fun iverksett(attestering: Attestering): IverksattStansAvYtelse {
             return IverksattStansAvYtelse(
@@ -99,9 +95,9 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
                 vilkårsvurderinger = vilkårsvurderinger,
                 tilRevurdering = tilRevurdering,
                 saksbehandler = saksbehandler,
-                begrunnelse = begrunnelse,
                 simulering = simulering,
                 attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attestering),
+                revurderingsårsak = revurderingsårsak,
             )
         }
     }
@@ -114,16 +110,12 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
         override val vilkårsvurderinger: Vilkårsvurderinger,
         override val tilRevurdering: VedtakSomKanRevurderes,
         val saksbehandler: Saksbehandler,
-        val begrunnelse: String,
         val simulering: Simulering,
         override val attesteringer: Attesteringshistorikk,
+        val revurderingsårsak: Revurderingsårsak
     ) : StansAvYtelseRevurdering(), BehandlingMedAttestering {
         val informasjonSomRevurderes =
             InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Ytelse to Vurderingstatus.Vurdert))
-        val revurderingsårsak = Revurderingsårsak.create(
-            årsak = Revurderingsårsak.Årsak.STANS_AV_YTELSE.toString(),
-            begrunnelse = begrunnelse,
-        )
     }
 }
 
