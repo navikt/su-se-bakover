@@ -436,33 +436,7 @@ internal class RevurderingLeggTilFormueServiceTest {
 
     @Test
     fun `får feilmelding om at opphør ikke er fra første måned i revurderingsperioden`() {
-        val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
-            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
-                grunnlagsdata = Grunnlagsdata.create(
-                    bosituasjon = listOf(
-                        Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                            id = UUID.randomUUID(), opprettet = fixedTidspunkt,
-                            periode = stønadsperiode2021.periode,
-                            begrunnelse = ":)",
-                        ),
-                    ),
-                ),
-                vilkårsvurderinger = Vilkårsvurderinger(
-                    uføre = Vilkår.Uførhet.Vurdert.create(
-                        vurderingsperioder = nonEmptyListOf(
-                            Vurderingsperiode.Uføre.create(
-                                id = UUID.randomUUID(),
-                                opprettet = fixedTidspunkt,
-                                resultat = Resultat.Innvilget,
-                                grunnlag = null,
-                                periode = stønadsperiode2021.periode,
-                                begrunnelse = ":)",
-                            ),
-                        ),
-                    ),
-                ),
-            ),
-        ).second
+        val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering
