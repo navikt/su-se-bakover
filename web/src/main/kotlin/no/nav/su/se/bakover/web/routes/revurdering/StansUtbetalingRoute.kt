@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
+import io.ktor.routing.patch
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -30,25 +31,25 @@ internal fun Route.stansUtbetaling(
     revurderingService: RevurderingService,
 ) {
     authorize(Brukerrolle.Saksbehandler) {
-        post("$revurderingPath/utbetalinger/stans") {
+        post("$revurderingPath/stans") {
             call.withSakId { sakId ->
                 call.withBody<StansUtbetalingBody> { body ->
                     val navIdent = call.suUserContext.navIdent
 
-                    revurderingService.stansAvYtelse(
-                        StansYtelseRequest(
-                            sakId = sakId,
-                            fraOgMed = body.fraOgMed,
-                            saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
-                            revurderingsårsak = Revurderingsårsak.create(
-                                årsak = body.årsak,
-                                begrunnelse = body.begrunnelse,
-                            ),
+                    val request = StansYtelseRequest.Opprett(
+                        sakId = sakId,
+                        fraOgMed = body.fraOgMed,
+                        saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
+                        revurderingsårsak = Revurderingsårsak.create(
+                            årsak = body.årsak,
+                            begrunnelse = body.begrunnelse,
                         ),
-                    ).fold(
+                    )
+
+                    revurderingService.stansAvYtelse(request).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
-                            call.sikkerlogg("Pågbegynner stans av ytelse for $sakId")
+                            call.sikkerlogg("Opprettet revurdering for satans av ytelse for $sakId")
                             call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
                             call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson())))
                         },
@@ -58,8 +59,40 @@ internal fun Route.stansUtbetaling(
         }
     }
 
-    authorize(Brukerrolle.Attestant) {
-        post("$revurderingPath/{revurderingId}/utbetalinger/stans/iverksett") {
+    authorize(Brukerrolle.Saksbehandler) {
+        patch("$revurderingPath/stans/{revurderingId}") {
+            call.withSakId { sakId ->
+                call.withRevurderingId { revurderingId ->
+                    call.withBody<StansUtbetalingBody> { body ->
+                        val navIdent = call.suUserContext.navIdent
+
+                        val request = StansYtelseRequest.Oppdater(
+                            sakId = sakId,
+                            fraOgMed = body.fraOgMed,
+                            saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
+                            revurderingsårsak = Revurderingsårsak.create(
+                                årsak = body.årsak,
+                                begrunnelse = body.begrunnelse,
+                            ),
+                            revurderingId = revurderingId,
+                        )
+
+                        revurderingService.stansAvYtelse(request).fold(
+                            ifLeft = { call.svar(it.tilResultat()) },
+                            ifRight = {
+                                call.sikkerlogg("Oppdaterer revurdering for stans av ytelse for $sakId")
+                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                                call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
+                            },
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+        post("$revurderingPath/stans/{revurderingId}/iverksett") {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     revurderingService.iverksettStansAvYtelse(
@@ -103,6 +136,11 @@ private fun KunneIkkeStanseYtelse.tilResultat(): Resultat {
         KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering -> HttpStatusCode.InternalServerError.errorJson(
             message = "kunne ikke opprette revurdering",
             code = "kunne_ikke_opprette_revurdering",
+        )
+        KunneIkkeStanseYtelse.FantIkkeRevurdering -> Revurderingsfeilresponser.fantIkkeRevurdering
+        is KunneIkkeStanseYtelse.UgyldigTypeForOppdatering -> HttpStatusCode.BadRequest.errorJson(
+            message = "kunne ikke oppdatere revurdering for stans, eksisterende revurdering er av feil type: ${this.type}",
+            code = "ugyldig_type_for_oppdatering_av_stans",
         )
     }
 }

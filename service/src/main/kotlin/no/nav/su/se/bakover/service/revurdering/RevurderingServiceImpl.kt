@@ -114,37 +114,43 @@ internal class RevurderingServiceImpl(
             return KunneIkkeStanseYtelse.SimuleringAvStansFeilet.left()
         }
 
-        val simulertRevurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
-            periode = gjeldendeVedtaksdata.periode,
-            grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
-            vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
-            tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(request.fraOgMed)!!,
-            saksbehandler = request.saksbehandler,
-            simulering = simulering.simulering,
-            revurderingsårsak = Revurderingsårsak.create(
-                årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
-                begrunnelse = request.revurderingsårsak.begrunnelse.toString(),
-            ),
-        )
+        val simulertRevurdering = when (request) {
+            is StansYtelseRequest.Oppdater -> {
+                val update = revurderingRepo.hent(request.revurderingId)
+                    ?: return KunneIkkeStanseYtelse.FantIkkeRevurdering.left()
+                when (update) {
+                    is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
+                        StansAvYtelseRevurdering.SimulertStansAvYtelse(
+                            id = update.id,
+                            opprettet = update.opprettet,
+                            periode = gjeldendeVedtaksdata.periode,
+                            grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
+                            vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
+                            tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(request.fraOgMed)!!,
+                            saksbehandler = request.saksbehandler,
+                            simulering = simulering.simulering,
+                            revurderingsårsak = request.revurderingsårsak,
+                        )
+                    }
+                    else -> return KunneIkkeStanseYtelse.UgyldigTypeForOppdatering(update::class).left()
+                }
+            }
+            is StansYtelseRequest.Opprett -> {
+                StansAvYtelseRevurdering.SimulertStansAvYtelse(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(),
+                    periode = gjeldendeVedtaksdata.periode,
+                    grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
+                    vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
+                    tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(request.fraOgMed)!!,
+                    saksbehandler = request.saksbehandler,
+                    simulering = simulering.simulering,
+                    revurderingsårsak = request.revurderingsårsak,
+                )
+            }
+        }
 
         revurderingRepo.lagre(simulertRevurdering)
-
-        vilkårsvurderingService.lagre(
-            behandlingId = simulertRevurdering.id,
-            vilkårsvurderinger = simulertRevurdering.vilkårsvurderinger,
-        )
-
-        grunnlagService.lagreFradragsgrunnlag(
-            behandlingId = simulertRevurdering.id,
-            fradragsgrunnlag = simulertRevurdering.grunnlagsdata.fradragsgrunnlag,
-        )
-
-        grunnlagService.lagreBosituasjongrunnlag(
-            simulertRevurdering.id,
-            simulertRevurdering.grunnlagsdata.bosituasjon,
-        )
 
         return simulertRevurdering.right()
     }

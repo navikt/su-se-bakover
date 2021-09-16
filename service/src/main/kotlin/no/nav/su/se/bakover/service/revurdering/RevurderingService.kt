@@ -337,19 +337,36 @@ data class HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse(
     val vilkårsvurderinger: Vilkårsvurderinger,
 )
 
-data class StansYtelseRequest(
-    val sakId: UUID,
-    val saksbehandler: NavIdentBruker.Saksbehandler,
-    val fraOgMed: LocalDate,
-    val revurderingsårsak: Revurderingsårsak,
-)
+sealed class StansYtelseRequest {
+    abstract val sakId: UUID
+    abstract val saksbehandler: NavIdentBruker.Saksbehandler
+    abstract val fraOgMed: LocalDate
+    abstract val revurderingsårsak: Revurderingsårsak
+
+    data class Opprett(
+        override val sakId: UUID,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val fraOgMed: LocalDate,
+        override val revurderingsårsak: Revurderingsårsak,
+    ) : StansYtelseRequest()
+
+    data class Oppdater(
+        override val sakId: UUID,
+        val revurderingId: UUID,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val fraOgMed: LocalDate,
+        override val revurderingsårsak: Revurderingsårsak,
+    ) : StansYtelseRequest()
+}
 
 sealed class KunneIkkeStanseYtelse {
     object FantIkkeSak : KunneIkkeStanseYtelse()
+    object FantIkkeRevurdering : KunneIkkeStanseYtelse()
     object SimuleringAvStansFeilet : KunneIkkeStanseYtelse()
     object SendingAvUtbetalingTilOppdragFeilet : KunneIkkeStanseYtelse()
     object KontrollAvSimuleringFeilet : KunneIkkeStanseYtelse()
     object KunneIkkeOppretteRevurdering : KunneIkkeStanseYtelse()
+    data class UgyldigTypeForOppdatering(val type: KClass<out AbstraktRevurdering>) : KunneIkkeStanseYtelse()
 }
 
 sealed class KunneIkkeIverksetteStansYtelse {

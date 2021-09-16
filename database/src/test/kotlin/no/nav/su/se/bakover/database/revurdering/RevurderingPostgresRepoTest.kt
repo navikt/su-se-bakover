@@ -46,6 +46,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.periode2021
+import no.nav.su.se.bakover.test.periodeMai2021
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
@@ -988,22 +989,6 @@ internal class RevurderingPostgresRepoTest {
             )
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
-            testDataHelper.grunnlagRepo.lagreBosituasjongrunnlag(
-                simulertRevurdering.id,
-                simulertRevurdering.grunnlagsdata.bosituasjon,
-            )
-            testDataHelper.grunnlagRepo.lagreFradragsgrunnlag(
-                simulertRevurdering.id,
-                simulertRevurdering.grunnlagsdata.fradragsgrunnlag,
-            )
-            testDataHelper.uføreVilkårsvurderingRepo.lagre(
-                simulertRevurdering.id,
-                simulertRevurdering.vilkårsvurderinger.uføre,
-            )
-            testDataHelper.formueVilkårsvurderingPostgresRepo.lagre(
-                simulertRevurdering.id,
-                simulertRevurdering.vilkårsvurderinger.formue,
-            )
 
             testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering
 
@@ -1013,6 +998,52 @@ internal class RevurderingPostgresRepoTest {
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
             testDataHelper.revurderingRepo.hent(iverksattRevurdering.id) shouldBe iverksattRevurdering
+        }
+    }
+
+    @Test
+    fun `kan oppdatere revurdering for stans av ytelse`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val søknadsbehandling = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val simulertRevurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = periode2021,
+                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
+                vilkårsvurderinger = vilkårsvurderingerInnvilget(),
+                tilRevurdering = søknadsbehandling,
+                saksbehandler = saksbehandler,
+                simulering = simulering,
+                revurderingsårsak = Revurderingsårsak.create(
+                    årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
+                    begrunnelse = "huffa",
+                ),
+            )
+
+            testDataHelper.revurderingRepo.lagre(simulertRevurdering)
+            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering
+
+            val nyInformasjon = simulertRevurdering.copy(
+                id = simulertRevurdering.id,
+                opprettet = simulertRevurdering.opprettet,
+                periode = periodeMai2021,
+                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(periodeMai2021),
+                vilkårsvurderinger = vilkårsvurderingerInnvilget(periodeMai2021),
+                tilRevurdering = søknadsbehandling,
+                saksbehandler = Saksbehandler("saksern"),
+                simulering = simulering.copy(
+                    gjelderNavn = "et navn",
+                ),
+                revurderingsårsak = Revurderingsårsak.create(
+                    årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
+                    begrunnelse = "en begrunnelse",
+                ),
+            )
+
+            testDataHelper.revurderingRepo.lagre(nyInformasjon)
+            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe nyInformasjon
         }
     }
 }

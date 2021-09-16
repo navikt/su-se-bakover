@@ -164,7 +164,14 @@ internal class RevurderingPostgresRepo(
                         :begrunnelse,
                         to_json(:informasjonSomRevurderes::json),
                         to_json(:attestering::json)
-                    )
+                    ) on conflict(id) do update set
+                        periode=to_json(:periode::json),
+                        simulering=to_json(:simulering::json),
+                        saksbehandler=:saksbehandler,
+                        revurderingsType=:revurderingsType,
+                        vedtakSomRevurderesId=:vedtakSomRevurderesId,
+                        årsak=:arsak,
+                        begrunnelse=:begrunnelse
                 """.trimIndent()
                     .insert(
                         mapOf(
@@ -182,6 +189,16 @@ internal class RevurderingPostgresRepo(
                         ),
                         session,
                     )
+                fradragsgrunnlagPostgresRepo.lagreFradragsgrunnlag(
+                    revurdering.id,
+                    revurdering.grunnlagsdata.fradragsgrunnlag,
+                )
+                bosituasjonsgrunnlagPostgresRepo.lagreBosituasjongrunnlag(
+                    revurdering.id,
+                    revurdering.grunnlagsdata.bosituasjon,
+                )
+                uføreVilkårsvurderingRepo.lagre(revurdering.id, revurdering.vilkårsvurderinger.uføre)
+                formueVilkårsvurderingRepo.lagre(revurdering.id, revurdering.vilkårsvurderinger.formue)
             }
             is StansAvYtelseRevurdering.IverksattStansAvYtelse -> {
                 """
@@ -544,7 +561,7 @@ internal class RevurderingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 simulering = simulering!!,
                 attesteringer = attesteringer,
-                revurderingsårsak = revurderingsårsak
+                revurderingsårsak = revurderingsårsak,
             )
         }
     }
