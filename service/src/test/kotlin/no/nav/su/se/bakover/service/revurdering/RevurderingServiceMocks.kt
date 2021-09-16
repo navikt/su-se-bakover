@@ -36,7 +36,6 @@ internal data class RevurderingServiceMocks(
         microsoftGraphApiClient = microsoftGraphApiClient,
         brevService = brevService,
         vedtakRepo = vedtakRepo,
-        ferdigstillVedtakService = ferdigstillVedtakService,
         vilkårsvurderingService = vilkårsvurderingService,
         grunnlagService = grunnlagService,
         clock = fixedClock,

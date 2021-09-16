@@ -38,7 +38,7 @@ internal class VurderOpphørVedRevurderingTest {
 
         VurderOpphørVedRevurdering(
             vilkårsvurderinger = vilkårsvurderingerMock,
-            beregning = beregningMock,
+            beregningEllerPeriode = BeregningEllerRevurderingsPeriode.Beregning(beregningMock),
             clock = fixedClock,
         ).resultat shouldBe OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.UFØRHET), 1.juni(2021))
     }
@@ -58,7 +58,7 @@ internal class VurderOpphørVedRevurderingTest {
 
         VurderOpphørVedRevurdering(
             vilkårsvurderinger = vilkårsvurderingerMock,
-            beregning = beregningMock,
+            beregningEllerPeriode = BeregningEllerRevurderingsPeriode.Beregning(beregningMock),
             clock = fixedClock,
         ).resultat shouldBe OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE), 1.desember(2021))
     }
@@ -82,7 +82,7 @@ internal class VurderOpphørVedRevurderingTest {
 
         VurderOpphørVedRevurdering(
             vilkårsvurderinger = vilkårsvurderingerMock,
-            beregning = beregningMock,
+            beregningEllerPeriode = BeregningEllerRevurderingsPeriode.Beregning(beregningMock),
             clock = fixedClock,
         ).resultat shouldBe OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE), 1.november(2021))
     }
@@ -102,7 +102,7 @@ internal class VurderOpphørVedRevurderingTest {
 
         VurderOpphørVedRevurdering(
             vilkårsvurderinger = vilkårsvurderingerMock,
-            beregning = beregningMock,
+            beregningEllerPeriode = BeregningEllerRevurderingsPeriode.Beregning(beregningMock),
             clock = fixedClock,
         ).resultat shouldBe OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE), LocalDate.now(fixedClock).startOfMonth())
     }
@@ -123,7 +123,7 @@ internal class VurderOpphørVedRevurderingTest {
 
         VurderOpphørVedRevurdering(
             vilkårsvurderinger = vilkårsvurderingerMock,
-            beregning = beregningMock,
+            beregningEllerPeriode = BeregningEllerRevurderingsPeriode.Beregning(beregningMock),
             clock = fixedClock,
         ).resultat shouldBe OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.FOR_HØY_INNTEKT), 1.desember(2021))
     }
@@ -148,7 +148,7 @@ internal class VurderOpphørVedRevurderingTest {
 
         VurderOpphørVedRevurdering(
             vilkårsvurderinger = vilkårsvurderingerMock,
-            beregning = beregningMock,
+            beregningEllerPeriode = BeregningEllerRevurderingsPeriode.Beregning(beregningMock),
             clock = fixedClock,
         ).resultat shouldBe OpphørVedRevurdering.Nei
     }
@@ -174,7 +174,7 @@ internal class VurderOpphørVedRevurderingTest {
 
         VurderOpphørVedRevurdering(
             vilkårsvurderinger = vilkårsvurderingerMock,
-            beregning = beregningMock,
+            beregningEllerPeriode = BeregningEllerRevurderingsPeriode.Beregning(beregningMock),
             clock = fixedClock,
         ).resultat shouldBe OpphørVedRevurdering.Nei
     }
@@ -202,7 +202,7 @@ internal class VurderOpphørVedRevurderingTest {
 
         VurderOpphørVedRevurdering(
             vilkårsvurderinger = vilkårsvurderingerMock,
-            beregning = beregningMock,
+            beregningEllerPeriode = BeregningEllerRevurderingsPeriode.Beregning(beregningMock),
             clock = fixedClock,
         ).resultat shouldBe OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.FOR_HØY_INNTEKT), 1.januar(2021))
     }
@@ -230,7 +230,7 @@ internal class VurderOpphørVedRevurderingTest {
 
         VurderOpphørVedRevurdering(
             vilkårsvurderinger = vilkårsvurderingerMock,
-            beregning = beregningMock,
+            beregningEllerPeriode = BeregningEllerRevurderingsPeriode.Beregning(beregningMock),
             clock = fixedClock,
         ).resultat shouldBe OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE), 1.januar(2021))
     }
@@ -243,7 +243,7 @@ internal class VurderOpphørVedRevurderingTest {
         assertThrows<IllegalStateException> {
             VurderOpphørVedRevurdering(
                 vilkårsvurderinger = vilkårsvurderingerMock,
-                beregning = mock(),
+                beregningEllerPeriode = mock(),
                 clock = fixedClock,
             )
         }
@@ -274,7 +274,7 @@ internal class VurderOpphørVedRevurderingTest {
 
         VurderOpphørVedRevurdering(
             vilkårsvurderinger = vilkårsvurderingerMock,
-            beregning = beregningMock,
+            beregningEllerPeriode = BeregningEllerRevurderingsPeriode.Beregning(beregningMock),
             clock = fixedClock,
         ).resultat shouldBe OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.UFØRHET), LocalDate.EPOCH)
     }

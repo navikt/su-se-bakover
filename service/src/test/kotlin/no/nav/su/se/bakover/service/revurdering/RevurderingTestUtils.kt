@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
@@ -96,7 +95,6 @@ object RevurderingTestUtils {
         brevService: BrevService = mock(),
         clock: Clock = fixedClock,
         vedtakRepo: VedtakRepo = mock(),
-        ferdigstillVedtakService: FerdigstillVedtakService = mock(),
         vilkårsvurderingService: VilkårsvurderingService = mock(),
         grunnlagService: GrunnlagService = mock(),
     ) =
@@ -110,7 +108,6 @@ object RevurderingTestUtils {
             brevService = brevService,
             clock = clock,
             vedtakRepo = vedtakRepo,
-            ferdigstillVedtakService = ferdigstillVedtakService,
             vilkårsvurderingService = vilkårsvurderingService,
             grunnlagService = grunnlagService,
         )

@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.BeregningEllerRevurderingsPeriode
 import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.IdentifiserSaksbehandlingsutfallSomIkkeStøttes
@@ -56,7 +57,6 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
@@ -72,7 +72,6 @@ internal class RevurderingServiceImpl(
     private val brevService: BrevService,
     private val clock: Clock,
     private val vedtakRepo: VedtakRepo,
-    private val ferdigstillVedtakService: FerdigstillVedtakService,
     private val vilkårsvurderingService: VilkårsvurderingService,
     private val grunnlagService: GrunnlagService,
     private val vedtakService: VedtakService,
@@ -222,7 +221,7 @@ internal class RevurderingServiceImpl(
 
     override fun leggTilUføregrunnlag(
         request: LeggTilUførevurderingerRequest,
-    ): Either<KunneIkkeLeggeTilGrunnlag, OpprettetRevurdering> {
+    ): Either<KunneIkkeLeggeTilGrunnlag, RevurderingOgFeilmeldingerResponse> {
         val revurdering = revurderingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling.left()
 
@@ -245,11 +244,11 @@ internal class RevurderingServiceImpl(
             // TODO jah: Flytt denne inn i revurderingRepo.lagre
             vilkårsvurderingService.lagre(it.id, it.vilkårsvurderinger)
             revurderingRepo.lagre(it)
-            it
+            identifiserFeilOgLagResponse(it)
         }
     }
 
-    override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, OpprettetRevurdering> {
+    override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, RevurderingOgFeilmeldingerResponse> {
         val revurdering = revurderingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
 
@@ -267,11 +266,11 @@ internal class RevurderingServiceImpl(
             // TODO jah: Flytt denne inn i revurderingRepo.lagre
             grunnlagService.lagreFradragsgrunnlag(it.id, it.grunnlagsdata.fradragsgrunnlag)
             revurderingRepo.lagre(it)
-            it
+            identifiserFeilOgLagResponse(it)
         }
     }
 
-    override fun leggTilBosituasjongrunnlag(request: LeggTilBosituasjongrunnlagRequest): Either<KunneIkkeLeggeTilBosituasjongrunnlag, OpprettetRevurdering> {
+    override fun leggTilBosituasjongrunnlag(request: LeggTilBosituasjongrunnlagRequest): Either<KunneIkkeLeggeTilBosituasjongrunnlag, RevurderingOgFeilmeldingerResponse> {
         val revurdering = revurderingRepo.hent(request.revurderingId)
             ?: return KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeBehandling.left()
 
@@ -299,11 +298,11 @@ internal class RevurderingServiceImpl(
             // TODO jah: Flytt denne inn i revurderingRepo.lagre
             grunnlagService.lagreBosituasjongrunnlag(it.id, it.grunnlagsdata.bosituasjon)
             revurderingRepo.lagre(it)
-            it
+            identifiserFeilOgLagResponse(it)
         }
     }
 
-    override fun leggTilFormuegrunnlag(request: LeggTilFormuegrunnlagRequest): Either<KunneIkkeLeggeTilFormuegrunnlag, OpprettetRevurdering> {
+    override fun leggTilFormuegrunnlag(request: LeggTilFormuegrunnlagRequest): Either<KunneIkkeLeggeTilFormuegrunnlag, RevurderingOgFeilmeldingerResponse> {
         val revurdering = revurderingRepo.hent(request.revurderingId)
             ?: return KunneIkkeLeggeTilFormuegrunnlag.FantIkkeRevurdering.left()
 
@@ -321,8 +320,46 @@ internal class RevurderingServiceImpl(
             // TODO jah: Flytt denne inn i revurderingRepo.lagre
             vilkårsvurderingService.lagre(it.id, it.vilkårsvurderinger)
             revurderingRepo.lagre(it)
-            it
+            identifiserFeilOgLagResponse(it)
         }
+    }
+
+    private fun identifiserFeilOgLagResponse(revurdering: Revurdering): RevurderingOgFeilmeldingerResponse {
+        val feilmeldinger = when (revurdering) {
+            is OpprettetRevurdering -> {
+                identifiserUtfallSomIkkeStøttes(
+                    vilkårsvurderinger = revurdering.vilkårsvurderinger,
+                    tidligereBeregning = revurdering.tilRevurdering.beregning,
+                    nyBeregningEllerRevurderingsPeriode = BeregningEllerRevurderingsPeriode.Periode(revurdering.periode),
+                ).fold(
+                    ifLeft = { it },
+                    ifRight = { emptySet() },
+                ).toList()
+            }
+            is BeregnetRevurdering -> {
+                identifiserUtfallSomIkkeStøttes(
+                    vilkårsvurderinger = revurdering.vilkårsvurderinger,
+                    tidligereBeregning = revurdering.tilRevurdering.beregning,
+                    nyBeregningEllerRevurderingsPeriode = BeregningEllerRevurderingsPeriode.Beregning(revurdering.beregning),
+                ).fold(
+                    ifLeft = { it },
+                    ifRight = { emptySet() },
+                ).toList()
+            }
+            is SimulertRevurdering -> {
+                identifiserUtfallSomIkkeStøttes(
+                    vilkårsvurderinger = revurdering.vilkårsvurderinger,
+                    tidligereBeregning = revurdering.tilRevurdering.beregning,
+                    nyBeregningEllerRevurderingsPeriode = BeregningEllerRevurderingsPeriode.Beregning(revurdering.beregning),
+                ).fold(
+                    ifLeft = { it },
+                    ifRight = { emptySet() },
+                ).toList()
+            }
+            else -> throw IllegalStateException("Skal ikke kunne lage en RevurderingOgFeilmeldingerResponse fra ${revurdering::class}")
+        }
+
+        return RevurderingOgFeilmeldingerResponse(revurdering, feilmeldinger)
     }
 
     override fun hentGjeldendeGrunnlagsdataOgVilkårsvurderinger(revurderingId: UUID): Either<KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger, HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse> {
@@ -464,7 +501,7 @@ internal class RevurderingServiceImpl(
     override fun beregnOgSimuler(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeBeregneOgSimulereRevurdering, BeregnOgSimulerResponse> {
+    ): Either<KunneIkkeBeregneOgSimulereRevurdering, RevurderingOgFeilmeldingerResponse> {
         return when (val originalRevurdering = revurderingRepo.hent(revurderingId)) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering, is UnderkjentRevurdering -> {
                 val eksisterendeUtbetalinger = utbetalingService.hentUtbetalinger(originalRevurdering.sakId)
@@ -479,19 +516,11 @@ internal class RevurderingServiceImpl(
                             Revurdering.KunneIkkeBeregneRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps
                         }.left()
                     }
-                val feilmeldinger = identifiserUtfallSomIkkeStøttes(
-                    vilkårsvurderinger = beregnetRevurdering.vilkårsvurderinger,
-                    tidligereBeregning = beregnetRevurdering.tilRevurdering.beregning,
-                    nyBeregning = beregnetRevurdering.beregning,
-                ).fold(
-                    ifLeft = { it },
-                    ifRight = { emptySet() },
-                ).toList()
 
                 when (beregnetRevurdering) {
                     is BeregnetRevurdering.IngenEndring -> {
                         revurderingRepo.lagre(beregnetRevurdering)
-                        BeregnOgSimulerResponse(beregnetRevurdering, feilmeldinger).right()
+                        identifiserFeilOgLagResponse(beregnetRevurdering).right()
                     }
                     is BeregnetRevurdering.Innvilget -> {
                         utbetalingService.simulerUtbetaling(
@@ -503,10 +532,9 @@ internal class RevurderingServiceImpl(
                         }.map {
                             val simulert = beregnetRevurdering.toSimulert(it.simulering)
                             revurderingRepo.lagre(simulert)
-                            BeregnOgSimulerResponse(simulert, feilmeldinger)
+                            identifiserFeilOgLagResponse(simulert)
                         }
                     }
-
                     is BeregnetRevurdering.Opphørt -> {
                         utbetalingService.simulerOpphør(
                             sakId = beregnetRevurdering.sakId,
@@ -517,7 +545,7 @@ internal class RevurderingServiceImpl(
                         }.map {
                             val simulert = beregnetRevurdering.toSimulert(it.simulering)
                             revurderingRepo.lagre(simulert)
-                            BeregnOgSimulerResponse(simulert, feilmeldinger)
+                            identifiserFeilOgLagResponse(simulert)
                         }
                     }
                 }
@@ -533,11 +561,11 @@ internal class RevurderingServiceImpl(
     private fun identifiserUtfallSomIkkeStøttes(
         vilkårsvurderinger: Vilkårsvurderinger,
         tidligereBeregning: Beregning,
-        nyBeregning: Beregning,
+        nyBeregningEllerRevurderingsPeriode: BeregningEllerRevurderingsPeriode,
     ) = IdentifiserSaksbehandlingsutfallSomIkkeStøttes(
         vilkårsvurderinger = vilkårsvurderinger,
         tidligereBeregning = tidligereBeregning,
-        nyBeregning = nyBeregning,
+        nyBeregningEllerPeriode = nyBeregningEllerRevurderingsPeriode,
     ).resultat
 
     override fun forhåndsvarsleEllerSendTilAttestering(
@@ -711,7 +739,7 @@ internal class RevurderingServiceImpl(
                 identifiserUtfallSomIkkeStøttes(
                     revurdering.vilkårsvurderinger,
                     revurdering.tilRevurdering.beregning,
-                    revurdering.beregning,
+                    BeregningEllerRevurderingsPeriode.Beregning(revurdering.beregning),
                 ).mapLeft {
                     KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
                 }
@@ -720,7 +748,7 @@ internal class RevurderingServiceImpl(
                 identifiserUtfallSomIkkeStøttes(
                     revurdering.vilkårsvurderinger,
                     revurdering.tilRevurdering.beregning,
-                    revurdering.beregning,
+                    BeregningEllerRevurderingsPeriode.Beregning(revurdering.beregning),
                 )
                     .mapLeft {
                         KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
@@ -733,7 +761,7 @@ internal class RevurderingServiceImpl(
                 identifiserUtfallSomIkkeStøttes(
                     revurdering.vilkårsvurderinger,
                     revurdering.tilRevurdering.beregning,
-                    revurdering.beregning,
+                    BeregningEllerRevurderingsPeriode.Beregning(revurdering.beregning),
                 )
                     .mapLeft {
                         KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
@@ -746,7 +774,7 @@ internal class RevurderingServiceImpl(
                 identifiserUtfallSomIkkeStøttes(
                     revurdering.vilkårsvurderinger,
                     revurdering.tilRevurdering.beregning,
-                    revurdering.beregning,
+                    BeregningEllerRevurderingsPeriode.Beregning(revurdering.beregning),
                 )
                     .mapLeft {
                         KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
@@ -759,7 +787,7 @@ internal class RevurderingServiceImpl(
                 identifiserUtfallSomIkkeStøttes(
                     revurdering.vilkårsvurderinger,
                     revurdering.tilRevurdering.beregning,
-                    revurdering.beregning,
+                    BeregningEllerRevurderingsPeriode.Beregning(revurdering.beregning),
                 ).mapLeft {
                     KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(it.toList())
                 }
