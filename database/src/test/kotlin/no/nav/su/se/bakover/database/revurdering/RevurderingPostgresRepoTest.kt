@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
+import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -1038,6 +1039,86 @@ internal class RevurderingPostgresRepoTest {
                 ),
                 revurderingsårsak = Revurderingsårsak.create(
                     årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
+                    begrunnelse = "en begrunnelse",
+                ),
+            )
+
+            testDataHelper.revurderingRepo.lagre(nyInformasjon)
+            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe nyInformasjon
+        }
+    }
+
+    @Test
+    fun `lagrer og henter revurdering for gjenopptak av ytelse`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val søknadsbehandling = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val simulertRevurdering = GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = periode2021,
+                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
+                vilkårsvurderinger = vilkårsvurderingerInnvilget(),
+                tilRevurdering = søknadsbehandling,
+                saksbehandler = saksbehandler,
+                simulering = simulering,
+                revurderingsårsak = Revurderingsårsak.create(
+                    årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
+                    begrunnelse = "huffa",
+                ),
+            )
+
+            testDataHelper.revurderingRepo.lagre(simulertRevurdering)
+
+            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering
+
+            val iverksattRevurdering = simulertRevurdering.iverksett(
+                Attestering.Iverksatt(NavIdentBruker.Attestant("atte"), fixedTidspunkt),
+            )
+            testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
+
+            testDataHelper.revurderingRepo.hent(iverksattRevurdering.id) shouldBe iverksattRevurdering
+        }
+    }
+
+    @Test
+    fun `kan oppdatere revurdering for gjenopptak av ytelse`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val søknadsbehandling = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val simulertRevurdering = GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = periode2021,
+                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
+                vilkårsvurderinger = vilkårsvurderingerInnvilget(),
+                tilRevurdering = søknadsbehandling,
+                saksbehandler = saksbehandler,
+                simulering = simulering,
+                revurderingsårsak = Revurderingsårsak.create(
+                    årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
+                    begrunnelse = "huffa",
+                ),
+            )
+
+            testDataHelper.revurderingRepo.lagre(simulertRevurdering)
+            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering
+
+            val nyInformasjon = simulertRevurdering.copy(
+                id = simulertRevurdering.id,
+                opprettet = simulertRevurdering.opprettet,
+                periode = periodeMai2021,
+                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(periodeMai2021),
+                vilkårsvurderinger = vilkårsvurderingerInnvilget(periodeMai2021),
+                tilRevurdering = søknadsbehandling,
+                saksbehandler = Saksbehandler("saksern"),
+                simulering = simulering.copy(
+                    gjelderNavn = "et navn",
+                ),
+                revurderingsårsak = Revurderingsårsak.create(
+                    årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
                     begrunnelse = "en begrunnelse",
                 ),
             )

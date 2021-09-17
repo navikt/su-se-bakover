@@ -69,6 +69,7 @@ internal class VedtakPosgresRepo(
             is Vedtak.Avslag -> lagre(vedtak)
             is Vedtak.IngenEndringIYtelse -> lagre(vedtak)
             is Vedtak.StansAvYtelse -> lagre(vedtak)
+            is Vedtak.GjenopptakAvYtelse -> lagre(vedtak)
         }
 
     override fun hentForUtbetaling(utbetalingId: UUID30): Vedtak? {
@@ -212,6 +213,16 @@ internal class VedtakPosgresRepo(
                 simulering = simulering!!,
                 utbetalingId = utbetalingId!!,
             )
+            VedtakType.GJENOPPTAK_AV_YTELSE -> Vedtak.GjenopptakAvYtelse(
+                id = id,
+                opprettet = opprettet,
+                behandling = behandling as StansAvYtelseRevurdering.IverksattStansAvYtelse,
+                saksbehandler = saksbehandler,
+                attestant = attestant,
+                periode = periode,
+                simulering = simulering!!,
+                utbetalingId = utbetalingId!!,
+            )
         }
     }
 
@@ -262,6 +273,49 @@ internal class VedtakPosgresRepo(
     }
 
     private fun lagre(vedtak: Vedtak.StansAvYtelse) {
+        dataSource.withTransaction { tx ->
+            """
+                INSERT INTO vedtak(
+                    id,
+                    opprettet,
+                    fraOgMed,
+                    tilOgMed,
+                    saksbehandler,
+                    attestant,
+                    utbetalingid,
+                    simulering,
+                    vedtaktype
+                ) VALUES (
+                    :id,
+                    :opprettet,
+                    :fraOgMed,
+                    :tilOgMed,
+                    :saksbehandler,
+                    :attestant,
+                    :utbetalingid,
+                    to_json(:simulering::json),
+                    :vedtaktype
+                )
+            """.trimIndent()
+                .insert(
+                    mapOf(
+                        "id" to vedtak.id,
+                        "opprettet" to vedtak.opprettet,
+                        "fraOgMed" to vedtak.periode.fraOgMed,
+                        "tilOgMed" to vedtak.periode.tilOgMed,
+                        "saksbehandler" to vedtak.saksbehandler,
+                        "attestant" to vedtak.attestant,
+                        "utbetalingid" to vedtak.utbetalingId,
+                        "simulering" to objectMapper.writeValueAsString(vedtak.simulering),
+                        "vedtaktype" to vedtak.vedtakType,
+                    ),
+                    tx,
+                )
+            lagreBehandlingVedtakKnytning(vedtak, tx)
+        }
+    }
+
+    private fun lagre(vedtak: Vedtak.GjenopptakAvYtelse) {
         dataSource.withTransaction { tx ->
             """
                 INSERT INTO vedtak(

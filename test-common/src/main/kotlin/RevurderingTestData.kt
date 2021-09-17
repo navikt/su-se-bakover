@@ -6,6 +6,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -22,6 +23,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
+import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -34,6 +36,7 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.VedtakFelles
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import java.time.LocalDate
 import java.util.UUID
 
 val revurderingId: UUID = UUID.randomUUID()
@@ -587,24 +590,102 @@ fun iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
     }
 }
 
-fun simulertStansAvytelseFraIverksattSøknadsbehandlingsvedtak(
-    periode: Periode,
-): StansAvYtelseRevurdering.SimulertStansAvYtelse {
-    val vedtak = vedtakSøknadsbehandlingIverksattInnvilget(
+fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+    periode: Periode = Periode.create(
+        fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
+        tilOgMed = periode2021.tilOgMed,
+    ),
+): Pair<Sak, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
+    return vedtakSøknadsbehandlingIverksattInnvilget(
         stønadsperiode = Stønadsperiode.create(periode, "whatever"),
-    ).second
-    return StansAvYtelseRevurdering.SimulertStansAvYtelse(
-        id = revurderingId,
-        opprettet = fixedTidspunkt,
-        periode = periode,
-        grunnlagsdata = vedtak.behandling.grunnlagsdata,
-        vilkårsvurderinger = vedtak.behandling.vilkårsvurderinger,
-        tilRevurdering = vedtak,
-        saksbehandler = saksbehandler,
-        simulering = simulering(periode),
-        revurderingsårsak = Revurderingsårsak.create(
-            årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
-            begrunnelse = "valid",
-        ),
-    )
+    ).let { (sak, vedtak) ->
+        val revurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
+            id = revurderingId,
+            opprettet = Tidspunkt.now(fixedClock),
+            periode = periode,
+            grunnlagsdata = vedtak.behandling.grunnlagsdata,
+            vilkårsvurderinger = vedtak.behandling.vilkårsvurderinger,
+            tilRevurdering = vedtak,
+            saksbehandler = saksbehandler,
+            simulering = simuleringStans(
+                stansDato = periode.fraOgMed,
+                eksisterendeUtbetalinger = sak.utbetalinger,
+            ),
+            revurderingsårsak = Revurderingsårsak.create(
+                årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
+                begrunnelse = "valid",
+            ),
+        )
+
+        sak.copy(
+            // Erstatter den gamle versjonen av samme revurderinger.
+            revurderinger = sak.revurderinger.filterNot { it.id == revurdering.id } + revurdering,
+        ) to revurdering
+    }
+}
+
+fun iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+    periode: Periode = Periode.create(
+        fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
+        tilOgMed = periode2021.tilOgMed,
+    ),
+    attestering: Attestering = attesteringIverksatt,
+): Pair<Sak, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
+    return simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+        periode,
+    ).let { (sak, simulert) ->
+        val iverksatt = simulert.iverksett(attestering)
+
+        sak.copy(
+            // Erstatter den gamle versjonen av samme revurderinger.
+            revurderinger = sak.revurderinger.filterNot { it.id == iverksatt.id } + iverksatt,
+        ) to iverksatt
+    }
+}
+
+fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
+    periodeForStans: Periode = Periode.create(
+        fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
+        tilOgMed = periode2021.tilOgMed,
+    ),
+): Pair<Sak, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
+    return vedtakIverksattStansAvYtelse(periodeForStans)
+        .let { (sak, vedtak) ->
+            val revurdering = GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
+                id = revurderingId,
+                opprettet = fixedTidspunkt,
+                periode = vedtak.periode,
+                grunnlagsdata = vedtak.behandling.grunnlagsdata,
+                vilkårsvurderinger = vedtak.behandling.vilkårsvurderinger,
+                tilRevurdering = vedtak,
+                saksbehandler = saksbehandler,
+                simulering = simuleringGjenopptak(
+                    eksisterendeUtbetalinger = sak.utbetalinger,
+                    fnr = sak.fnr,
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
+                ),
+                revurderingsårsak = Revurderingsårsak.create(
+                    årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
+                    begrunnelse = "valid",
+                ),
+            )
+            sak.copy(
+                revurderinger = sak.revurderinger.filterNot { it.id == revurdering.id } + revurdering,
+            ) to revurdering
+        }
+}
+
+fun iverksattGjenopptakelseAvytelseFraVedtakStansAvYtelse(
+    periode: Periode,
+    attestering: Attestering = attesteringIverksatt,
+): Pair<Sak, GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse> {
+    return simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
+        periode,
+    ).let { (sak, simulert) ->
+        val iverksatt = simulert.iverksett(attestering)
+        sak.copy(
+            revurderinger = sak.revurderinger.filterNot { it.id == iverksatt.id } + iverksatt,
+        ) to iverksatt
+    }
 }

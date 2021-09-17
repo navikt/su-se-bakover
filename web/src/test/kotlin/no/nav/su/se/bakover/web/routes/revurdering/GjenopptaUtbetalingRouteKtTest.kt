@@ -11,11 +11,11 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteStansYtelse
+import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseRequest
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteGjenopptakAvYtelse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
-import no.nav.su.se.bakover.service.revurdering.StansYtelseRequest
 import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
+import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
@@ -26,15 +26,16 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
-internal class StansUtbetalingRouteKtTest {
+internal class GjenopptaUtbetalingRouteKtTest {
 
     private val mockServices = TestServicesBuilder.services()
 
     @Test
-    fun `svarer med 201 ved påbegynt stans av utbetaling`() {
-        val enRevurdering = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().second
+    fun `svarer med 201 ved påbegynt gjenopptak av utbetaling`() {
+        val enRevurdering = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse()
+            .second
         val revurderingServiceMock = mock<RevurderingService>() {
-            on { stansAvYtelse(any()) } doReturn enRevurdering.right()
+            on { gjenopptaYtelse(any()) } doReturn enRevurdering.right()
         }
         withTestApplication(
             {
@@ -47,7 +48,7 @@ internal class StansUtbetalingRouteKtTest {
         ) {
             defaultRequest(
                 HttpMethod.Post,
-                "saker/${enRevurdering.sakId}/revurderinger/stans",
+                "saker/${enRevurdering.sakId}/revurderinger/gjenoppta",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -55,7 +56,7 @@ internal class StansUtbetalingRouteKtTest {
                     """
                         {
                           "fraOgMed": "2021-05-01",
-                          "årsak": "MANGLENDE_KONTROLLERKLÆRING",
+                          "årsak": "MOTTATT_KONTROLLERKLÆRING",
                           "begrunnelse": "huffda"
                         }
                     """.trimIndent(),
@@ -70,7 +71,12 @@ internal class StansUtbetalingRouteKtTest {
     fun `svarer med 400 ved forsøk å iverksetting av ugyldig revurdering`() {
         val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
         val revurderingServiceMock = mock<RevurderingService>() {
-            on { iverksettStansAvYtelse(any(), any()) } doReturn KunneIkkeIverksetteStansYtelse.UgyldigTilstand(
+            on {
+                iverksettGjenopptakAvYtelse(
+                    any(),
+                    any(),
+                )
+            } doReturn KunneIkkeIverksetteGjenopptakAvYtelse.UgyldigTilstand(
                 enRevurdering::class,
             ).left()
         }
@@ -85,11 +91,11 @@ internal class StansUtbetalingRouteKtTest {
         ) {
             defaultRequest(
                 HttpMethod.Post,
-                "saker/${enRevurdering.sakId}/revurderinger/stans/${enRevurdering.id}/iverksett",
+                "saker/${enRevurdering.sakId}/revurderinger/gjenoppta/${enRevurdering.id}/iverksett",
                 listOf(Brukerrolle.Attestant),
             ).apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "kunne_ikke_iverksette_stans_ugyldig_tilstand"
+                response.content shouldContain "kunne_ikke_iverksette_gjenopptak_ugyldig_tilstand"
             }
         }
     }
@@ -98,8 +104,13 @@ internal class StansUtbetalingRouteKtTest {
     fun `svarer med 500 hvis utbetaling feiler`() {
         val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
         val revurderingServiceMock = mock<RevurderingService>() {
-            on { iverksettStansAvYtelse(any(), any()) } doReturn KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(
-                UtbetalingFeilet.Protokollfeil,
+            on {
+                iverksettGjenopptakAvYtelse(
+                    any(),
+                    any(),
+                )
+            } doReturn KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale(
+                UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte,
             ).left()
         }
         withTestApplication(
@@ -113,26 +124,29 @@ internal class StansUtbetalingRouteKtTest {
         ) {
             defaultRequest(
                 HttpMethod.Post,
-                "saker/${enRevurdering.sakId}/revurderinger/stans/${enRevurdering.id}/iverksett",
+                "saker/${enRevurdering.sakId}/revurderinger/gjenoppta/${enRevurdering.id}/iverksett",
                 listOf(Brukerrolle.Attestant),
             ).apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
-                response.content shouldContain "kunne_ikke_utbetale"
+                response.content shouldContain "kontrollsimulering_ulik_saksbehandlers_simulering"
             }
         }
     }
 
     @Test
     fun `svarer med 200 ved oppdatering av eksisterende revurdering`() {
-        val eksisterende = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().second
+        val eksisterende = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse()
+        val simulertRevurdering = eksisterende.second
+        val sisteVedtak = eksisterende.first.vedtakListe.last()
+
         val revurderingServiceMock = mock<RevurderingService>() {
             doAnswer {
-                val args = (it.arguments[0] as StansYtelseRequest.Oppdater)
-                eksisterende.copy(
-                    periode = Periode.create(args.fraOgMed, eksisterende.periode.tilOgMed),
+                val args = (it.arguments[0] as GjenopptaYtelseRequest.Oppdater)
+                simulertRevurdering.copy(
+                    periode = Periode.create(sisteVedtak.periode.fraOgMed, simulertRevurdering.periode.tilOgMed),
                     revurderingsårsak = args.revurderingsårsak,
                 ).right()
-            }.whenever(mock).stansAvYtelse(any())
+            }.whenever(mock).gjenopptaYtelse(any())
         }
         withTestApplication(
             {
@@ -145,22 +159,22 @@ internal class StansUtbetalingRouteKtTest {
         ) {
             defaultRequest(
                 HttpMethod.Patch,
-                "saker/${eksisterende.sakId}/revurderinger/stans/${eksisterende.id}",
+                "saker/${simulertRevurdering.sakId}/revurderinger/gjenoppta/${simulertRevurdering.id}",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
                     //language=json
                     """
                         {
-                          "fraOgMed": "2021-01-01",
-                          "årsak": "MANGLENDE_KONTROLLERKLÆRING",
+                          "fraOgMed": "2021-08-01",
+                          "årsak": "MOTTATT_KONTROLLERKLÆRING",
                           "begrunnelse": "kebabeluba"
                         }
                     """.trimIndent(),
                 )
             }.apply {
                 response.status() shouldBe HttpStatusCode.OK
-                response.content shouldContain "2021-01-01"
+                response.content shouldContain "2021-08-01"
                 response.content shouldContain "kebabeluba"
             }
         }

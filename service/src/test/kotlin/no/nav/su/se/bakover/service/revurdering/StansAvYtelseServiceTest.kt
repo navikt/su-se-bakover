@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -26,13 +27,14 @@ import no.nav.su.se.bakover.test.periodeMars2021
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.simulertStansAvytelseFraIverksattSøknadsbehandlingsvedtak
+import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import java.time.LocalDate
 
 class StansAvYtelseServiceTest {
 
@@ -72,10 +74,13 @@ class StansAvYtelseServiceTest {
 
     @Test
     fun `svarer med feil dersom simulering feiler`() {
-        val periode = Periode.create(1.mai(2021), 31.desember(2021))
-        val expected = simulertStansAvytelseFraIverksattSøknadsbehandlingsvedtak(
-            periode = periode,
+        val periode = Periode.create(
+            fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
+            tilOgMed = periode2021.tilOgMed,
         )
+        val expected = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            periode = periode,
+        ).second
 
         val vedtakServiceMock = mock<VedtakService> {
             on {
@@ -125,10 +130,13 @@ class StansAvYtelseServiceTest {
 
     @Test
     fun `happy path for opprettelse`() {
-        val periode = Periode.create(1.mai(2021), 31.desember(2021))
-        val expected = simulertStansAvytelseFraIverksattSøknadsbehandlingsvedtak(
-            periode = periode,
+        val periode = Periode.create(
+            fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
+            tilOgMed = periode2021.tilOgMed,
         )
+        val expected = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            periode = periode,
+        ).second
 
         val vedtakServiceMock = mock<VedtakService> {
             on {
@@ -179,10 +187,13 @@ class StansAvYtelseServiceTest {
 
     @Test
     fun `svarer med feil dersom oversendelse av stans til oppdrag feiler`() {
-        val periode = Periode.create(1.mai(2021), 31.desember(2021))
-        val simulertStans = simulertStansAvytelseFraIverksattSøknadsbehandlingsvedtak(
-            periode = periode,
+        val periode = Periode.create(
+            fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
+            tilOgMed = periode2021.tilOgMed,
         )
+        val simulertStans = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            periode = periode,
+        ).second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn simulertStans
@@ -287,9 +298,13 @@ class StansAvYtelseServiceTest {
 
     @Test
     fun `happy path for oppdatering`() {
-        val eksisterende = simulertStansAvytelseFraIverksattSøknadsbehandlingsvedtak(
-            periode = periode2021,
+        val periode = Periode.create(
+            fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
+            tilOgMed = periode2021.tilOgMed,
         )
+        val eksisterende = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            periode = periode,
+        ).second
 
         val vedtakServiceMock = mock<VedtakService> {
             on {

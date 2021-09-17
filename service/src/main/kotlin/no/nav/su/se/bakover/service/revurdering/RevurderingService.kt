@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
+import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -44,6 +45,15 @@ interface RevurderingService {
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse>
+
+    fun gjenopptaYtelse(
+        request: GjenopptaYtelseRequest,
+    ): Either<KunneIkkeGjenopptaYtelse, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse>
+
+    fun iverksettGjenopptakAvYtelse(
+        revurderingId: UUID,
+        attestant: NavIdentBruker.Attestant,
+    ): Either<KunneIkkeIverksetteGjenopptakAvYtelse, GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse>
 
     fun opprettRevurdering(
         opprettRevurderingRequest: OpprettRevurderingRequest,
@@ -376,6 +386,46 @@ sealed class KunneIkkeIverksetteStansYtelse {
         val faktiskTilstand: KClass<out AbstraktRevurdering>,
         val målTilstand: KClass<out StansAvYtelseRevurdering.IverksattStansAvYtelse> = StansAvYtelseRevurdering.IverksattStansAvYtelse::class,
     ) : KunneIkkeIverksetteStansYtelse()
+}
+
+sealed class GjenopptaYtelseRequest {
+    abstract val sakId: UUID
+    abstract val saksbehandler: NavIdentBruker.Saksbehandler
+    abstract val revurderingsårsak: Revurderingsårsak
+
+    data class Opprett(
+        override val sakId: UUID,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val revurderingsårsak: Revurderingsårsak,
+    ) : GjenopptaYtelseRequest()
+
+    data class Oppdater(
+        override val sakId: UUID,
+        val revurderingId: UUID,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val revurderingsårsak: Revurderingsårsak,
+    ) : GjenopptaYtelseRequest()
+}
+
+sealed class KunneIkkeGjenopptaYtelse {
+    object FantIkkeSak : KunneIkkeGjenopptaYtelse()
+    object FantIkkeRevurdering : KunneIkkeGjenopptaYtelse()
+    object FantIngenVedtak : KunneIkkeGjenopptaYtelse()
+    object SimuleringAvGjenopptakFeilet : KunneIkkeGjenopptaYtelse()
+    object SendingAvUtbetalingTilOppdragFeilet : KunneIkkeGjenopptaYtelse()
+    object KontrollAvSimuleringFeilet : KunneIkkeGjenopptaYtelse()
+    object KunneIkkeOppretteRevurdering : KunneIkkeGjenopptaYtelse()
+    data class UgyldigTypeForOppdatering(val type: KClass<out AbstraktRevurdering>) : KunneIkkeGjenopptaYtelse()
+    object SisteVedtakErIkkeStans : KunneIkkeGjenopptaYtelse()
+}
+
+sealed class KunneIkkeIverksetteGjenopptakAvYtelse {
+    data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksetteGjenopptakAvYtelse()
+    object FantIkkeRevurdering : KunneIkkeIverksetteGjenopptakAvYtelse()
+    data class UgyldigTilstand(
+        val faktiskTilstand: KClass<out AbstraktRevurdering>,
+        val målTilstand: KClass<out GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse> = GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse::class,
+    ) : KunneIkkeIverksetteGjenopptakAvYtelse()
 }
 
 data class LeggTilBosituasjongrunnlagRequest(

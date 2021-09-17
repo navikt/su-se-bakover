@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
+import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -74,6 +75,8 @@ enum class RevurderingsType {
     UNDERKJENT_INGEN_ENDRING,
     SIMULERT_STANS,
     IVERKSATT_STANS,
+    SIMULERT_GJENOPPTAK,
+    IVKERSATT_GJENOPPTAK,
 }
 
 internal class RevurderingPostgresRepo(
@@ -121,6 +124,7 @@ internal class RevurderingPostgresRepo(
             when (revurdering) {
                 is Revurdering -> lagre(revurdering, session)
                 is StansAvYtelseRevurdering -> lagre(revurdering, session)
+                is GjenopptaYtelseRevurdering -> lagre(revurdering, session)
             }
         }
     }
@@ -211,6 +215,89 @@ internal class RevurderingPostgresRepo(
                         mapOf(
                             "attestering" to revurdering.attesteringer.hentAttesteringer().serialize(),
                             "revurderingsType" to RevurderingsType.IVERKSATT_STANS,
+                            "id" to revurdering.id,
+                        ),
+                        session,
+                    )
+            }
+        }
+    }
+
+    internal fun lagre(revurdering: GjenopptaYtelseRevurdering, session: Session) {
+        when (revurdering) {
+            is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> {
+                """
+                    insert into revurdering (
+                        id,
+                        opprettet,
+                        periode,
+                        simulering,
+                        saksbehandler,
+                        revurderingsType,
+                        vedtakSomRevurderesId,
+                        årsak,
+                        begrunnelse,
+                        informasjonSomRevurderes,
+                        attestering
+                    ) values (
+                        :id,
+                        :opprettet,
+                        to_json(:periode::json),
+                        to_json(:simulering::json),
+                        :saksbehandler,
+                        :revurderingsType,
+                        :vedtakSomRevurderesId,
+                        :arsak,
+                        :begrunnelse,
+                        to_json(:informasjonSomRevurderes::json),
+                        to_json(:attestering::json)
+                    ) on conflict(id) do update set
+                        periode=to_json(:periode::json),
+                        simulering=to_json(:simulering::json),
+                        saksbehandler=:saksbehandler,
+                        revurderingsType=:revurderingsType,
+                        vedtakSomRevurderesId=:vedtakSomRevurderesId,
+                        årsak=:arsak,
+                        begrunnelse=:begrunnelse
+                """.trimIndent()
+                    .insert(
+                        mapOf(
+                            "id" to revurdering.id,
+                            "opprettet" to revurdering.opprettet,
+                            "periode" to objectMapper.writeValueAsString(revurdering.periode),
+                            "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
+                            "saksbehandler" to revurdering.saksbehandler,
+                            "revurderingsType" to RevurderingsType.SIMULERT_GJENOPPTAK,
+                            "vedtakSomRevurderesId" to revurdering.tilRevurdering.id,
+                            "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                            "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
+                            "informasjonSomRevurderes" to objectMapper.writeValueAsString(revurdering.informasjonSomRevurderes),
+                            "attestering" to Attesteringshistorikk.empty().hentAttesteringer().serialize(),
+                        ),
+                        session,
+                    )
+                fradragsgrunnlagPostgresRepo.lagreFradragsgrunnlag(
+                    revurdering.id,
+                    revurdering.grunnlagsdata.fradragsgrunnlag,
+                )
+                bosituasjonsgrunnlagPostgresRepo.lagreBosituasjongrunnlag(
+                    revurdering.id,
+                    revurdering.grunnlagsdata.bosituasjon,
+                )
+                uføreVilkårsvurderingRepo.lagre(revurdering.id, revurdering.vilkårsvurderinger.uføre)
+                formueVilkårsvurderingRepo.lagre(revurdering.id, revurdering.vilkårsvurderinger.formue)
+            }
+            is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse -> {
+                """
+                    update revurdering set 
+                        attestering = to_json(:attestering::json),
+                        revurderingsType = :revurderingsType 
+                    where id = :id
+                """.trimIndent()
+                    .oppdatering(
+                        mapOf(
+                            "attestering" to revurdering.attesteringer.hentAttesteringer().serialize(),
+                            "revurderingsType" to RevurderingsType.IVKERSATT_GJENOPPTAK,
                             "id" to revurdering.id,
                         ),
                         session,
@@ -552,6 +639,29 @@ internal class RevurderingPostgresRepo(
                 revurderingsårsak = revurderingsårsak,
             )
             RevurderingsType.IVERKSATT_STANS -> StansAvYtelseRevurdering.IverksattStansAvYtelse(
+                id = id,
+                periode = periode,
+                opprettet = opprettet,
+                tilRevurdering = tilRevurdering,
+                saksbehandler = Saksbehandler(saksbehandler),
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                simulering = simulering!!,
+                attesteringer = attesteringer,
+                revurderingsårsak = revurderingsårsak,
+            )
+            RevurderingsType.SIMULERT_GJENOPPTAK -> GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
+                id = id,
+                opprettet = opprettet,
+                periode = periode,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                tilRevurdering = tilRevurdering,
+                saksbehandler = Saksbehandler(saksbehandler),
+                simulering = simulering!!,
+                revurderingsårsak = revurderingsårsak,
+            )
+            RevurderingsType.IVKERSATT_GJENOPPTAK -> GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,

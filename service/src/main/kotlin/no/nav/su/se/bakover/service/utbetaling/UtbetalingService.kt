@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.utbetaling
 import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -55,10 +54,16 @@ interface UtbetalingService {
         stansDato: LocalDate,
     ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
-    fun gjenopptaUtbetalinger(
+    fun simulerGjenopptak(
         sakId: UUID,
         saksbehandler: NavIdentBruker,
-    ): Either<KunneIkkeGjenopptaUtbetalinger, Sak>
+    ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
+
+    fun gjenopptaUtbetalinger(
+        sakId: UUID,
+        attestant: NavIdentBruker,
+        simulering: Simulering,
+    ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun opphør(
         sakId: UUID,

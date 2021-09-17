@@ -35,6 +35,7 @@ internal fun Vedtak.toJson(): VedtakJson {
         is Vedtak.EndringIYtelse -> this.toJson()
         is Vedtak.IngenEndringIYtelse -> this.toJson()
         is Vedtak.StansAvYtelse -> this.toJson()
+        is Vedtak.GjenopptakAvYtelse -> this.toJson()
     }
 }
 
@@ -118,8 +119,25 @@ internal fun Vedtak.StansAvYtelse.toJson(): VedtakJson = VedtakJson(
     type = vedtakType,
 )
 
+internal fun Vedtak.GjenopptakAvYtelse.toJson(): VedtakJson = VedtakJson(
+    id = id.toString(),
+    opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+    beregning = null,
+    simulering = simulering.toJson(),
+    attestant = attestant.navIdent,
+    saksbehandler = saksbehandler.navIdent,
+    utbetalingId = utbetalingId.toString(),
+    behandlingId = behandling.id,
+    sakId = behandling.sakId,
+    saksnummer = behandling.saksnummer.toString(),
+    fnr = behandling.fnr.toString(),
+    periode = periode.toJson(),
+    type = vedtakType,
+)
+
 internal fun VedtakSomKanRevurderes.toJson(): VedtakJson = when (this) {
     is Vedtak.EndringIYtelse -> this.toJson()
     is Vedtak.IngenEndringIYtelse -> this.toJson()
     is Vedtak.StansAvYtelse -> this.toJson()
+    is Vedtak.GjenopptakAvYtelse -> this.toJson()
 }

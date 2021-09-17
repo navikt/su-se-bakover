@@ -10,4 +10,5 @@ interface VedtakVisitor : Visitor {
     fun visit(vedtak: Vedtak.Avslag.AvslagBeregning)
     fun visit(vedtak: Vedtak.IngenEndringIYtelse)
     fun visit(vedtak: Vedtak.StansAvYtelse)
+    fun visit(vedtak: Vedtak.GjenopptakAvYtelse)
 }

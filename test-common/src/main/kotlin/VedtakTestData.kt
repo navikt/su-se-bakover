@@ -3,8 +3,10 @@ package no.nav.su.se.bakover.test
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
@@ -18,6 +20,8 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 /**
  * Ikke journalført eller distribuert brev.
@@ -137,6 +141,63 @@ fun vedtakRevurderingIverksattInnvilget(
             ),
             vedtak,
         )
+    }
+}
+
+fun vedtakIverksattStansAvYtelse(
+    periode: Periode = Periode.create(
+        fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
+        tilOgMed = periode2021.tilOgMed,
+    ),
+    attestering: Attestering = attesteringIverksatt,
+): Pair<Sak, Vedtak.StansAvYtelse> {
+    return iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+        periode = periode,
+        attestering = attestering,
+    ).let { (sak, revurdering) ->
+        val utbetaling = oversendtStansUtbetalingUtenKvittering(
+            stansDato = revurdering.periode.fraOgMed,
+            fnr = sak.fnr,
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            eksisterendeUtbetalinger = sak.utbetalinger,
+        )
+
+        val vedtak = Vedtak.from(
+            // Legger til litt tid på opprettet da dette vedtaket umulig kan være det første - først og fremst for periodisering av vedtak.
+            revurdering, utbetaling.id, fixedClock.plus(1, ChronoUnit.DAYS),
+        )
+
+        sak.copy(
+            vedtakListe = sak.vedtakListe + vedtak,
+            utbetalinger = sak.utbetalinger + utbetaling,
+        ) to vedtak
+    }
+}
+
+fun vedtakIverksattGjenopptakAvYtelse(
+    periode: Periode,
+    attestering: Attestering = attesteringIverksatt,
+): Pair<Sak, Vedtak.StansAvYtelse> {
+    return iverksattGjenopptakelseAvytelseFraVedtakStansAvYtelse(
+        periode = periode,
+        attestering = attestering,
+    ).let { (sak, revurdering) ->
+        val utbetaling = oversendtGjenopptakUtbetalingUtenKvittering(
+            fnr = sak.fnr,
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            eksisterendeUtbetalinger = sak.utbetalinger,
+        )
+
+        val vedtak = Vedtak.from(
+            revurdering, utbetaling.id, fixedClock,
+        )
+
+        sak.copy(
+            vedtakListe = sak.vedtakListe + vedtak,
+            utbetalinger = sak.utbetalinger + utbetaling,
+        ) to vedtak
     }
 }
 

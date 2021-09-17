@@ -72,7 +72,6 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.overordnetSøknadsbehandligRoutes
 import no.nav.su.se.bakover.web.routes.togglePaths
 import no.nav.su.se.bakover.web.routes.toggleRoutes
-import no.nav.su.se.bakover.web.routes.utbetaling.gjenoppta.gjenopptaUtbetalingRoutes
 import no.nav.su.se.bakover.web.services.avstemming.AvstemmingJob
 import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
@@ -246,7 +245,6 @@ internal fun Application.susebakover(
                     )
                     overordnetSøknadsbehandligRoutes(accessProtectedServices.søknadsbehandling)
                     avstemmingRoutes(accessProtectedServices.avstemming)
-                    gjenopptaUtbetalingRoutes(accessProtectedServices.utbetaling)
                     driftRoutes(accessProtectedServices.søknad)
                     revurderingRoutes(accessProtectedServices.revurdering, accessProtectedServices.vedtakService, clock)
                     dokumentRoutes(accessProtectedServices.brev)

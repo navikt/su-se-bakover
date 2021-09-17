@@ -238,6 +238,10 @@ class LagBrevRequestVisitor(
         throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(vedtak::class)
     }
 
+    override fun visit(vedtak: Vedtak.GjenopptakAvYtelse) {
+        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(vedtak::class)
+    }
+
     private fun hentPersonOgNavn(
         fnr: Fnr,
         saksbehandler: NavIdentBruker.Saksbehandler?,

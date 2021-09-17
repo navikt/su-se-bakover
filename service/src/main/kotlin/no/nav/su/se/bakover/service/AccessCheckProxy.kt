@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
+import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -55,10 +56,13 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.BeregnOgSimulerResponse
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarslingRequest
+import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.service.revurdering.HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeForhåndsvarsle
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeGjenopptaYtelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteGjenopptakAvYtelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteStansYtelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurdering
@@ -93,7 +97,6 @@ import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
-import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
@@ -195,13 +198,19 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun gjenopptaUtbetalinger(
+                override fun simulerGjenopptak(
                     sakId: UUID,
                     saksbehandler: NavIdentBruker,
-                ): Either<KunneIkkeGjenopptaUtbetalinger, Sak> {
-                    assertHarTilgangTilSak(sakId)
+                ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+                    kastKanKunKallesFraAnnenService()
+                }
 
-                    return services.utbetaling.gjenopptaUtbetalinger(sakId, saksbehandler)
+                override fun gjenopptaUtbetalinger(
+                    sakId: UUID,
+                    attestant: NavIdentBruker,
+                    simulering: Simulering,
+                ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering> {
+                    kastKanKunKallesFraAnnenService()
                 }
 
                 override fun opphør(
@@ -459,6 +468,19 @@ open class AccessCheckProxy(
                 ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.iverksettStansAvYtelse(revurderingId, attestant)
+                }
+
+                override fun gjenopptaYtelse(request: GjenopptaYtelseRequest): Either<KunneIkkeGjenopptaYtelse, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
+                    assertHarTilgangTilSak(request.sakId)
+                    return services.revurdering.gjenopptaYtelse(request)
+                }
+
+                override fun iverksettGjenopptakAvYtelse(
+                    revurderingId: UUID,
+                    attestant: NavIdentBruker.Attestant
+                ): Either<KunneIkkeIverksetteGjenopptakAvYtelse, GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse> {
+                    assertHarTilgangTilRevurdering(revurderingId)
+                    return services.revurdering.iverksettGjenopptakAvYtelse(revurderingId, attestant)
                 }
 
                 override fun opprettRevurdering(

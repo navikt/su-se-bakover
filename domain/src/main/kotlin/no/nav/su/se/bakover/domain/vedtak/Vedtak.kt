@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.ErAvslag
@@ -38,6 +39,7 @@ enum class VedtakType {
     INGEN_ENDRING, // Revurdering mellom 2% og 10% endring  -> IngenEndringIYtelse
     OPPHØR, // Revurdering ført til opphør                  -> EndringIYtelse
     STANS_AV_YTELSE,
+    GJENOPPTAK_AV_YTELSE,
 }
 
 interface VedtakFelles {
@@ -136,6 +138,23 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                 utbetalingId = utbetalingId,
             )
         }
+
+        fun from(
+            revurdering: GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse,
+            utbetalingId: UUID30,
+            clock: Clock,
+        ): StansAvYtelse {
+            return StansAvYtelse(
+                id = UUID.randomUUID(),
+                opprettet = Tidspunkt.now(clock),
+                behandling = revurdering,
+                periode = revurdering.periode,
+                simulering = revurdering.simulering,
+                saksbehandler = revurdering.saksbehandler,
+                attestant = revurdering.attesteringer.hentSisteAttestering().attestant,
+                utbetalingId = utbetalingId,
+            )
+        }
     }
 
     data class StansAvYtelse(
@@ -149,6 +168,23 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         val utbetalingId: UUID30,
     ) : Vedtak(), VedtakSomKanRevurderes {
         override val vedtakType: VedtakType = VedtakType.STANS_AV_YTELSE
+
+        override fun accept(visitor: VedtakVisitor) {
+            visitor.visit(this)
+        }
+    }
+
+    data class GjenopptakAvYtelse(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        override val behandling: Behandling,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val attestant: NavIdentBruker.Attestant,
+        override val periode: Periode,
+        val simulering: Simulering,
+        val utbetalingId: UUID30,
+    ) : Vedtak(), VedtakSomKanRevurderes {
+        override val vedtakType: VedtakType = VedtakType.GJENOPPTAK_AV_YTELSE
 
         override fun accept(visitor: VedtakVisitor) {
             visitor.visit(this)

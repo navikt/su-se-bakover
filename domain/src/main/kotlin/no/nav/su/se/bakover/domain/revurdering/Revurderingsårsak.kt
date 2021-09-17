@@ -18,6 +18,7 @@ data class Revurderingsårsak(
         ANDRE_KILDER,
         REGULER_GRUNNBELØP,
         MANGLENDE_KONTROLLERKLÆRING,
+        MOTTATT_KONTROLLERKLÆRING,
 
         /* Reservert for migrering */
         MIGRERT;

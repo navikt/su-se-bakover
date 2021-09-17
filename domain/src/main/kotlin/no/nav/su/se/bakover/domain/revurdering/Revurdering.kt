@@ -112,8 +112,57 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
         val saksbehandler: Saksbehandler,
         val simulering: Simulering,
         override val attesteringer: Attesteringshistorikk,
-        val revurderingsårsak: Revurderingsårsak
+        val revurderingsårsak: Revurderingsårsak,
     ) : StansAvYtelseRevurdering(), BehandlingMedAttestering {
+        val informasjonSomRevurderes =
+            InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Ytelse to Vurderingstatus.Vurdert))
+    }
+}
+
+sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
+
+    data class SimulertGjenopptakAvYtelse(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        override val periode: Periode,
+        override val grunnlagsdata: Grunnlagsdata,
+        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val tilRevurdering: VedtakSomKanRevurderes,
+        val saksbehandler: Saksbehandler,
+        val simulering: Simulering,
+        val revurderingsårsak: Revurderingsårsak,
+    ) : GjenopptaYtelseRevurdering() {
+        val informasjonSomRevurderes =
+            InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Ytelse to Vurderingstatus.Vurdert))
+
+        fun iverksett(attestering: Attestering): IverksattGjenopptakAvYtelse {
+            return IverksattGjenopptakAvYtelse(
+                id = id,
+                opprettet = opprettet,
+                periode = periode,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                tilRevurdering = tilRevurdering,
+                saksbehandler = saksbehandler,
+                simulering = simulering,
+                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attestering),
+                revurderingsårsak = revurderingsårsak,
+            )
+        }
+    }
+
+    data class IverksattGjenopptakAvYtelse(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        override val periode: Periode,
+        override val grunnlagsdata: Grunnlagsdata,
+        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val tilRevurdering: VedtakSomKanRevurderes,
+        val saksbehandler: Saksbehandler,
+        val simulering: Simulering,
+        override val attesteringer: Attesteringshistorikk,
+        val revurderingsårsak: Revurderingsårsak,
+    ) : GjenopptaYtelseRevurdering(), BehandlingMedAttestering {
         val informasjonSomRevurderes =
             InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Ytelse to Vurderingstatus.Vurdert))
     }
