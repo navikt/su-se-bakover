@@ -412,8 +412,8 @@ internal class InstansTilStatusMapper(revurdering: AbstraktRevurdering) {
         is UnderkjentRevurdering.Opphørt -> RevurderingsStatus.UNDERKJENT_OPPHØRT
         is StansAvYtelseRevurdering.IverksattStansAvYtelse -> RevurderingsStatus.IVERKSATT_STANS
         is StansAvYtelseRevurdering.SimulertStansAvYtelse -> RevurderingsStatus.SIMULERT_STANS
-        is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse -> RevurderingsStatus.SIMULERT_GJENOPPTAK
-        is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> RevurderingsStatus.IVERKSATT_GJENOPPTAK
+        is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse -> RevurderingsStatus.IVERKSATT_GJENOPPTAK
+        is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> RevurderingsStatus.SIMULERT_GJENOPPTAK
     }
 }
 
@@ -468,6 +468,25 @@ internal fun StansAvYtelseRevurdering.toJson(): RevurderingJson {
 
 internal fun GjenopptaYtelseRevurdering.toJson(): RevurderingJson {
     return when (this) {
+        is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse -> {
+            GjenopptakAvYtelseJson(
+                id = id.toString(),
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+                periode = periode.toJson(),
+                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(
+                    grunnlagsdata,
+                    vilkårsvurderinger,
+                ),
+                tilRevurdering = tilRevurdering.toJson(),
+                saksbehandler = saksbehandler.toString(),
+                årsak = revurderingsårsak.årsak.toString(),
+                begrunnelse = revurderingsårsak.begrunnelse.toString(),
+                status = InstansTilStatusMapper(this).status,
+                simulering = simulering.toJson(),
+                attesteringer = attesteringer.toJson(),
+                informasjonSomRevurderes = informasjonSomRevurderes,
+            )
+        }
         is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> GjenopptakAvYtelseJson(
             id = id.toString(),
             opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
@@ -485,24 +504,5 @@ internal fun GjenopptaYtelseRevurdering.toJson(): RevurderingJson {
             attesteringer = emptyList(),
             informasjonSomRevurderes = informasjonSomRevurderes,
         )
-        is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse -> {
-            GjenopptakAvYtelseJson(
-                id = id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-                periode = periode.toJson(),
-                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(
-                    grunnlagsdata,
-                    vilkårsvurderinger,
-                ),
-                tilRevurdering = tilRevurdering.toJson(),
-                saksbehandler = saksbehandler.toString(),
-                årsak = revurderingsårsak.årsak.toString(),
-                begrunnelse = revurderingsårsak.begrunnelse.toString(),
-                status = InstansTilStatusMapper(this).status,
-                simulering = simulering.toJson(),
-                attesteringer = emptyList(),
-                informasjonSomRevurderes = informasjonSomRevurderes,
-            )
-        }
     }
 }
