@@ -99,7 +99,7 @@ internal class RevurderingPostgresRepoTest {
 
     private fun beregnetIngenEndring(
         opprettet: OpprettetRevurdering,
-        vedtak: Vedtak.EndringIYtelse,
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling,
     ) = BeregnetRevurdering.IngenEndring(
         id = opprettet.id,
         periode = opprettet.periode,
@@ -119,7 +119,7 @@ internal class RevurderingPostgresRepoTest {
 
     private fun beregnetInnvilget(
         opprettet: OpprettetRevurdering,
-        vedtak: Vedtak.EndringIYtelse,
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling,
     ) = BeregnetRevurdering.Innvilget(
         id = opprettet.id,
         periode = opprettet.periode,
@@ -139,7 +139,7 @@ internal class RevurderingPostgresRepoTest {
 
     private fun beregnetOpphørt(
         opprettet: OpprettetRevurdering,
-        vedtak: Vedtak.EndringIYtelse,
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling,
     ) = BeregnetRevurdering.Opphørt(
         id = opprettet.id,
         periode = opprettet.periode,

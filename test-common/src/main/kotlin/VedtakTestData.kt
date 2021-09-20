@@ -150,7 +150,7 @@ fun vedtakIverksattStansAvYtelse(
         tilOgMed = periode2021.tilOgMed,
     ),
     attestering: Attestering = attesteringIverksatt,
-): Pair<Sak, Vedtak.StansAvYtelse> {
+): Pair<Sak, Vedtak.EndringIYtelse.StansAvYtelse> {
     return iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periode,
         attestering = attestering,
@@ -178,7 +178,7 @@ fun vedtakIverksattStansAvYtelse(
 fun vedtakIverksattGjenopptakAvYtelse(
     periode: Periode,
     attestering: Attestering = attesteringIverksatt,
-): Pair<Sak, Vedtak.GjenopptakAvYtelse> {
+): Pair<Sak, Vedtak.EndringIYtelse.GjenopptakAvYtelse> {
     return iverksattGjenopptakelseAvytelseFraVedtakStansAvYtelse(
         periode = periode,
         attestering = attestering,

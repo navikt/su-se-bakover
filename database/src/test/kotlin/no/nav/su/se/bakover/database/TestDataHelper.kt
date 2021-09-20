@@ -77,6 +77,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.getOrFail
 import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -375,7 +376,7 @@ internal class TestDataHelper(
             vedtakRepo.lagre(it)
         }
 
-    fun vedtakMedInnvilgetSøknadsbehandling(): Pair<Vedtak.EndringIYtelse, Utbetaling> {
+    fun vedtakMedInnvilgetSøknadsbehandling(): Pair<Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling, Utbetaling> {
         val (søknadsbehandling, utbetaling) = nyOversendtUtbetalingMedKvittering()
         return Pair(
             Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetaling.id, fixedClock).also {
@@ -455,6 +456,18 @@ internal class TestDataHelper(
         ).getOrHandle {
             throw java.lang.IllegalStateException("Her skal vi ha en beregnet revurdering")
         }.also {
+            revurderingRepo.lagre(it)
+        }
+    }
+
+    fun beregnetIngenEndring(): BeregnetRevurdering {
+        val vedtak = vedtakMedInnvilgetSøknadsbehandling()
+        return nyRevurdering(
+            vedtak.first,
+            vedtak.first.periode,
+        ).beregn(
+            listOf(vedtak.second),
+        ).getOrFail("skulle gått bra").also {
             revurderingRepo.lagre(it)
         }
     }

@@ -32,32 +32,16 @@ import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 import java.util.UUID
 
-enum class VedtakType {
-    SØKNAD, // Innvilget Søknadsbehandling                  -> EndringIYtelse
-    AVSLAG, // Avslått Søknadsbehandling                    -> Avslag
-    ENDRING, // Revurdering innvilget                       -> EndringIYtelse
-    INGEN_ENDRING, // Revurdering mellom 2% og 10% endring  -> IngenEndringIYtelse
-    OPPHØR, // Revurdering ført til opphør                  -> EndringIYtelse
-    STANS_AV_YTELSE,
-    GJENOPPTAK_AV_YTELSE,
-}
-
 interface VedtakFelles {
     val id: UUID
     val opprettet: Tidspunkt
     val behandling: Behandling
     val saksbehandler: NavIdentBruker.Saksbehandler
     val attestant: NavIdentBruker.Attestant
-    val vedtakType: VedtakType
     val periode: Periode
 }
 
-sealed interface VedtakSomKanRevurderes : VedtakFelles {
-
-    sealed interface VedtakMedBeregning : VedtakSomKanRevurderes {
-        val beregning: Beregning
-    }
-}
+sealed interface VedtakSomKanRevurderes : VedtakFelles
 
 sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
 
@@ -126,8 +110,8 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             revurdering: StansAvYtelseRevurdering.IverksattStansAvYtelse,
             utbetalingId: UUID30,
             clock: Clock,
-        ): StansAvYtelse {
-            return StansAvYtelse(
+        ): EndringIYtelse.StansAvYtelse {
+            return EndringIYtelse.StansAvYtelse(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(clock),
                 behandling = revurdering,
@@ -143,8 +127,8 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             revurdering: GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse,
             utbetalingId: UUID30,
             clock: Clock,
-        ): GjenopptakAvYtelse {
-            return GjenopptakAvYtelse(
+        ): EndringIYtelse.GjenopptakAvYtelse {
+            return EndringIYtelse.GjenopptakAvYtelse(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(clock),
                 behandling = revurdering,
@@ -157,51 +141,15 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         }
     }
 
-    data class StansAvYtelse(
-        override val id: UUID,
-        override val opprettet: Tidspunkt,
-        override val behandling: Behandling,
-        override val saksbehandler: NavIdentBruker.Saksbehandler,
-        override val attestant: NavIdentBruker.Attestant,
-        override val periode: Periode,
-        val simulering: Simulering,
-        val utbetalingId: UUID30,
-    ) : Vedtak(), VedtakSomKanRevurderes {
-        override val vedtakType: VedtakType = VedtakType.STANS_AV_YTELSE
-
-        override fun accept(visitor: VedtakVisitor) {
-            visitor.visit(this)
-        }
-    }
-
-    data class GjenopptakAvYtelse(
-        override val id: UUID,
-        override val opprettet: Tidspunkt,
-        override val behandling: Behandling,
-        override val saksbehandler: NavIdentBruker.Saksbehandler,
-        override val attestant: NavIdentBruker.Attestant,
-        override val periode: Periode,
-        val simulering: Simulering,
-        val utbetalingId: UUID30,
-    ) : Vedtak(), VedtakSomKanRevurderes {
-        override val vedtakType: VedtakType = VedtakType.GJENOPPTAK_AV_YTELSE
-
-        override fun accept(visitor: VedtakVisitor) {
-            visitor.visit(this)
-        }
-    }
-
-    sealed class EndringIYtelse : Vedtak(), VedtakSomKanRevurderes.VedtakMedBeregning {
+    sealed class EndringIYtelse : Vedtak(), VedtakSomKanRevurderes {
         abstract override val id: UUID
         abstract override val opprettet: Tidspunkt
         abstract override val behandling: Behandling
         abstract override val saksbehandler: NavIdentBruker.Saksbehandler
         abstract override val attestant: NavIdentBruker.Attestant
         abstract override val periode: Periode
-        abstract override val beregning: Beregning
         abstract val simulering: Simulering
         abstract val utbetalingId: UUID30
-        abstract override val vedtakType: VedtakType
 
         data class InnvilgetSøknadsbehandling(
             override val id: UUID,
@@ -210,11 +158,10 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestant: NavIdentBruker.Attestant,
             override val periode: Periode,
-            override val beregning: Beregning,
+            val beregning: Beregning,
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse() {
-            override val vedtakType: VedtakType = VedtakType.SØKNAD
 
             override fun accept(visitor: VedtakVisitor) {
                 visitor.visit(this)
@@ -228,11 +175,10 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestant: NavIdentBruker.Attestant,
             override val periode: Periode,
-            override val beregning: Beregning,
+            val beregning: Beregning,
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse() {
-            override val vedtakType: VedtakType = VedtakType.ENDRING
 
             override fun accept(visitor: VedtakVisitor) {
                 visitor.visit(this)
@@ -246,13 +192,44 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestant: NavIdentBruker.Attestant,
             override val periode: Periode,
-            override val beregning: Beregning,
+            val beregning: Beregning,
             override val simulering: Simulering,
             override val utbetalingId: UUID30,
         ) : EndringIYtelse() {
-            override val vedtakType: VedtakType = VedtakType.OPPHØR
 
             fun utledOpphørsgrunner() = behandling.utledOpphørsgrunner()
+
+            override fun accept(visitor: VedtakVisitor) {
+                visitor.visit(this)
+            }
+        }
+
+        data class StansAvYtelse(
+            override val id: UUID,
+            override val opprettet: Tidspunkt,
+            override val behandling: Behandling,
+            override val saksbehandler: NavIdentBruker.Saksbehandler,
+            override val attestant: NavIdentBruker.Attestant,
+            override val periode: Periode,
+            override val simulering: Simulering,
+            override val utbetalingId: UUID30,
+        ) : EndringIYtelse() {
+
+            override fun accept(visitor: VedtakVisitor) {
+                visitor.visit(this)
+            }
+        }
+
+        data class GjenopptakAvYtelse(
+            override val id: UUID,
+            override val opprettet: Tidspunkt,
+            override val behandling: Behandling,
+            override val saksbehandler: NavIdentBruker.Saksbehandler,
+            override val attestant: NavIdentBruker.Attestant,
+            override val periode: Periode,
+            override val simulering: Simulering,
+            override val utbetalingId: UUID30,
+        ) : EndringIYtelse() {
 
             override fun accept(visitor: VedtakVisitor) {
                 visitor.visit(this)
@@ -267,9 +244,8 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val attestant: NavIdentBruker.Attestant,
         override val periode: Periode,
-        override val beregning: Beregning,
-    ) : Vedtak(), VedtakSomKanRevurderes.VedtakMedBeregning {
-        override val vedtakType: VedtakType = VedtakType.INGEN_ENDRING
+        val beregning: Beregning,
+    ) : Vedtak(), VedtakSomKanRevurderes {
 
         override fun accept(visitor: VedtakVisitor) {
             visitor.visit(this)
@@ -277,7 +253,6 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
     }
 
     sealed class Avslag : Vedtak(), ErAvslag {
-        override val vedtakType = VedtakType.AVSLAG
 
         companion object {
             fun fromSøknadsbehandlingMedBeregning(

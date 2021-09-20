@@ -37,6 +37,7 @@ import kotliquery.using
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
+import no.nav.su.se.bakover.database.vedtak.VedtakType
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -45,7 +46,6 @@ import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.math.BigDecimal

@@ -42,7 +42,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
@@ -337,7 +336,6 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 argThat {
                     it.behandling shouldBe expected
                     it should beOfType<Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling>()
-                    it.vedtakType shouldBe VedtakType.SØKNAD
                 },
             )
             verify(serviceAndMocks.opprettVedtakssnapshotService).opprettVedtak(argThat { it is Vedtakssnapshot.Innvilgelse })

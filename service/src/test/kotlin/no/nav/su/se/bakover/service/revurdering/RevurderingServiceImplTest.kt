@@ -55,7 +55,6 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -439,7 +438,6 @@ internal class RevurderingServiceImplTest {
             verify(vedtakRepoMock).lagre(
                 argThat {
                     it should beOfType<Vedtak.EndringIYtelse.InnvilgetRevurdering>()
-                    it.vedtakType shouldBe VedtakType.ENDRING
                 },
             )
             verify(revurderingRepoMock).lagre(argThat { it shouldBe iverksattRevurdering })
@@ -507,7 +505,6 @@ internal class RevurderingServiceImplTest {
             verify(vedtakRepoMock).lagre(
                 argThat {
                     it should beOfType<Vedtak.EndringIYtelse.OpphørtRevurdering>()
-                    it.vedtakType shouldBe VedtakType.OPPHØR
                 },
             )
             verify(revurderingRepoMock).lagre(any())
