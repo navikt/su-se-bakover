@@ -181,7 +181,6 @@ internal data class StansAvUtbetalingJson(
     val status: RevurderingsStatus,
     val simulering: SimuleringJson,
     val attesteringer: List<AttesteringJson>,
-    val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
 ) : RevurderingJson()
 
 internal data class GjenopptakAvYtelseJson(
@@ -196,7 +195,6 @@ internal data class GjenopptakAvYtelseJson(
     val status: RevurderingsStatus,
     val simulering: SimuleringJson,
     val attesteringer: List<AttesteringJson>,
-    val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
 ) : RevurderingJson()
 
 internal fun Forhåndsvarsel.toJson() = when (this) {
@@ -442,7 +440,6 @@ internal fun StansAvYtelseRevurdering.toJson(): RevurderingJson {
             status = InstansTilStatusMapper(this).status,
             simulering = simulering.toJson(),
             attesteringer = attesteringer.toJson(),
-            informasjonSomRevurderes = informasjonSomRevurderes,
         )
         is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
             StansAvUtbetalingJson(
@@ -460,7 +457,6 @@ internal fun StansAvYtelseRevurdering.toJson(): RevurderingJson {
                 status = InstansTilStatusMapper(this).status,
                 simulering = simulering.toJson(),
                 attesteringer = emptyList(),
-                informasjonSomRevurderes = informasjonSomRevurderes,
             )
         }
     }
@@ -484,7 +480,6 @@ internal fun GjenopptaYtelseRevurdering.toJson(): RevurderingJson {
                 status = InstansTilStatusMapper(this).status,
                 simulering = simulering.toJson(),
                 attesteringer = attesteringer.toJson(),
-                informasjonSomRevurderes = informasjonSomRevurderes,
             )
         }
         is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> GjenopptakAvYtelseJson(
@@ -502,7 +497,6 @@ internal fun GjenopptaYtelseRevurdering.toJson(): RevurderingJson {
             status = InstansTilStatusMapper(this).status,
             simulering = simulering.toJson(),
             attesteringer = emptyList(),
-            informasjonSomRevurderes = informasjonSomRevurderes,
         )
     }
 }

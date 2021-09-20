@@ -83,8 +83,6 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
         val simulering: Simulering,
         val revurderingsårsak: Revurderingsårsak,
     ) : StansAvYtelseRevurdering() {
-        val informasjonSomRevurderes =
-            InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Ytelse to Vurderingstatus.Vurdert))
 
         fun iverksett(attestering: Attestering): IverksattStansAvYtelse {
             return IverksattStansAvYtelse(
@@ -113,10 +111,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
         val simulering: Simulering,
         override val attesteringer: Attesteringshistorikk,
         val revurderingsårsak: Revurderingsårsak,
-    ) : StansAvYtelseRevurdering(), BehandlingMedAttestering {
-        val informasjonSomRevurderes =
-            InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Ytelse to Vurderingstatus.Vurdert))
-    }
+    ) : StansAvYtelseRevurdering(), BehandlingMedAttestering
 }
 
 sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
@@ -132,8 +127,6 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
         val simulering: Simulering,
         val revurderingsårsak: Revurderingsårsak,
     ) : GjenopptaYtelseRevurdering() {
-        val informasjonSomRevurderes =
-            InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Ytelse to Vurderingstatus.Vurdert))
 
         fun iverksett(attestering: Attestering): IverksattGjenopptakAvYtelse {
             return IverksattGjenopptakAvYtelse(
@@ -162,10 +155,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
         val simulering: Simulering,
         override val attesteringer: Attesteringshistorikk,
         val revurderingsårsak: Revurderingsårsak,
-    ) : GjenopptaYtelseRevurdering(), BehandlingMedAttestering {
-        val informasjonSomRevurderes =
-            InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Ytelse to Vurderingstatus.Vurdert))
-    }
+    ) : GjenopptaYtelseRevurdering(), BehandlingMedAttestering
 }
 
 sealed class Revurdering :
@@ -1406,5 +1396,4 @@ enum class Revurderingsteg(val vilkår: String) {
     // InnlagtPåInstitusjon("InnlagtPåInstitusjon"),
     // UtenlandsoppholdOver90Dager("UtenlandsoppholdOver90Dager"),
     Inntekt("Inntekt"),
-    Ytelse("Ytelse"),
 }

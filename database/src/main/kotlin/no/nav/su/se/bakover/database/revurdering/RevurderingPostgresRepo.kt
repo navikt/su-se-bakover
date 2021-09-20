@@ -154,8 +154,8 @@ internal class RevurderingPostgresRepo(
                         vedtakSomRevurderesId,
                         årsak,
                         begrunnelse,
-                        informasjonSomRevurderes,
-                        attestering
+                        attestering,
+                        skalFøreTilBrevutsending
                     ) values (
                         :id,
                         :opprettet,
@@ -166,8 +166,8 @@ internal class RevurderingPostgresRepo(
                         :vedtakSomRevurderesId,
                         :arsak,
                         :begrunnelse,
-                        to_json(:informasjonSomRevurderes::json),
-                        to_json(:attestering::json)
+                        to_json(:attestering::json),
+                        :skalFoereTilBrevutsending
                     ) on conflict(id) do update set
                         periode=to_json(:periode::json),
                         simulering=to_json(:simulering::json),
@@ -188,8 +188,8 @@ internal class RevurderingPostgresRepo(
                             "vedtakSomRevurderesId" to revurdering.tilRevurdering.id,
                             "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                             "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                            "informasjonSomRevurderes" to objectMapper.writeValueAsString(revurdering.informasjonSomRevurderes),
                             "attestering" to Attesteringshistorikk.empty().hentAttesteringer().serialize(),
+                            "skalFoereTilBrevutsending" to false,
                         ),
                         session,
                     )
@@ -237,8 +237,8 @@ internal class RevurderingPostgresRepo(
                         vedtakSomRevurderesId,
                         årsak,
                         begrunnelse,
-                        informasjonSomRevurderes,
-                        attestering
+                        attestering,
+                        skalFøreTilBrevutsending
                     ) values (
                         :id,
                         :opprettet,
@@ -249,8 +249,8 @@ internal class RevurderingPostgresRepo(
                         :vedtakSomRevurderesId,
                         :arsak,
                         :begrunnelse,
-                        to_json(:informasjonSomRevurderes::json),
-                        to_json(:attestering::json)
+                        to_json(:attestering::json),
+                        :skalFoereTilBrevutsending
                     ) on conflict(id) do update set
                         periode=to_json(:periode::json),
                         simulering=to_json(:simulering::json),
@@ -271,8 +271,8 @@ internal class RevurderingPostgresRepo(
                             "vedtakSomRevurderesId" to revurdering.tilRevurdering.id,
                             "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                             "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                            "informasjonSomRevurderes" to objectMapper.writeValueAsString(revurdering.informasjonSomRevurderes),
                             "attestering" to Attesteringshistorikk.empty().hentAttesteringer().serialize(),
+                            "skalFoereTilBrevutsending" to false,
                         ),
                         session,
                     )
@@ -362,8 +362,9 @@ internal class RevurderingPostgresRepo(
             objectMapper.readValue<ForhåndsvarselDto>(it).toDomain()
         }
 
-        val informasjonSomRevurderes: InformasjonSomRevurderes =
-            InformasjonSomRevurderes.create(objectMapper.readValue<Map<Revurderingsteg, Vurderingstatus>>(string("informasjonSomRevurderes")))
+        val informasjonSomRevurderes = stringOrNull("informasjonSomRevurderes")?.let {
+            InformasjonSomRevurderes.create(objectMapper.readValue<Map<Revurderingsteg, Vurderingstatus>>(it))
+        }
 
         val fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(id, session)
         val bosituasjonsgrunnlag = bosituasjonsgrunnlagPostgresRepo.hentBosituasjongrunnlag(id, session)
@@ -392,7 +393,7 @@ internal class RevurderingPostgresRepo(
                 forhåndsvarsel = forhåndsvarsel!!,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
+                informasjonSomRevurderes = informasjonSomRevurderes!!,
             )
             RevurderingsType.UNDERKJENT_OPPHØRT -> UnderkjentRevurdering.Opphørt(
                 id = id,
@@ -409,7 +410,7 @@ internal class RevurderingPostgresRepo(
                 forhåndsvarsel = forhåndsvarsel!!,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
+                informasjonSomRevurderes = informasjonSomRevurderes!!,
             )
             RevurderingsType.IVERKSATT_INNVILGET -> IverksattRevurdering.Innvilget(
                 id = id,
@@ -426,7 +427,7 @@ internal class RevurderingPostgresRepo(
                 forhåndsvarsel = forhåndsvarsel!!,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
+                informasjonSomRevurderes = informasjonSomRevurderes!!,
             )
             RevurderingsType.IVERKSATT_OPPHØRT -> IverksattRevurdering.Opphørt(
                 id = id,
@@ -443,7 +444,7 @@ internal class RevurderingPostgresRepo(
                 revurderingsårsak = revurderingsårsak,
                 forhåndsvarsel = forhåndsvarsel!!,
                 vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
+                informasjonSomRevurderes = informasjonSomRevurderes!!,
             )
             RevurderingsType.TIL_ATTESTERING_INNVILGET -> RevurderingTilAttestering.Innvilget(
                 id = id,
@@ -459,7 +460,7 @@ internal class RevurderingPostgresRepo(
                 revurderingsårsak = revurderingsårsak,
                 forhåndsvarsel = forhåndsvarsel!!,
                 vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
+                informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
             )
             RevurderingsType.TIL_ATTESTERING_OPPHØRT -> RevurderingTilAttestering.Opphørt(
@@ -476,7 +477,7 @@ internal class RevurderingPostgresRepo(
                 forhåndsvarsel = forhåndsvarsel!!,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
+                informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
             )
             RevurderingsType.SIMULERT_INNVILGET -> SimulertRevurdering.Innvilget(
@@ -493,7 +494,7 @@ internal class RevurderingPostgresRepo(
                 forhåndsvarsel = forhåndsvarsel,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
+                informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
             )
             RevurderingsType.SIMULERT_OPPHØRT -> SimulertRevurdering.Opphørt(
@@ -510,7 +511,7 @@ internal class RevurderingPostgresRepo(
                 revurderingsårsak = revurderingsårsak,
                 forhåndsvarsel = forhåndsvarsel,
                 vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
+                informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
             )
             RevurderingsType.BEREGNET_INNVILGET -> BeregnetRevurdering.Innvilget(
@@ -526,7 +527,7 @@ internal class RevurderingPostgresRepo(
                 revurderingsårsak = revurderingsårsak,
                 forhåndsvarsel = forhåndsvarsel,
                 vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
+                informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
             )
             RevurderingsType.BEREGNET_OPPHØRT -> BeregnetRevurdering.Opphørt(
@@ -542,7 +543,7 @@ internal class RevurderingPostgresRepo(
                 revurderingsårsak = revurderingsårsak,
                 forhåndsvarsel = forhåndsvarsel,
                 vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
+                informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
             )
             RevurderingsType.OPPRETTET -> OpprettetRevurdering(
@@ -557,7 +558,7 @@ internal class RevurderingPostgresRepo(
                 revurderingsårsak = revurderingsårsak,
                 forhåndsvarsel = forhåndsvarsel,
                 vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
+                informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
             )
             RevurderingsType.BEREGNET_INGEN_ENDRING -> BeregnetRevurdering.IngenEndring(
@@ -573,7 +574,7 @@ internal class RevurderingPostgresRepo(
                 forhåndsvarsel = forhåndsvarsel,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
+                informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
             )
             RevurderingsType.TIL_ATTESTERING_INGEN_ENDRING -> RevurderingTilAttestering.IngenEndring(
@@ -590,7 +591,7 @@ internal class RevurderingPostgresRepo(
                 skalFøreTilBrevutsending = skalFøreTilBrevutsending,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
+                informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
             )
             RevurderingsType.IVERKSATT_INGEN_ENDRING -> IverksattRevurdering.IngenEndring(
@@ -608,7 +609,7 @@ internal class RevurderingPostgresRepo(
                 skalFøreTilBrevutsending = skalFøreTilBrevutsending,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
+                informasjonSomRevurderes = informasjonSomRevurderes!!,
             )
             RevurderingsType.UNDERKJENT_INGEN_ENDRING -> UnderkjentRevurdering.IngenEndring(
                 id = id,
@@ -625,7 +626,7 @@ internal class RevurderingPostgresRepo(
                 skalFøreTilBrevutsending = skalFøreTilBrevutsending,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes,
+                informasjonSomRevurderes = informasjonSomRevurderes!!,
             )
             RevurderingsType.SIMULERT_STANS -> StansAvYtelseRevurdering.SimulertStansAvYtelse(
                 id = id,

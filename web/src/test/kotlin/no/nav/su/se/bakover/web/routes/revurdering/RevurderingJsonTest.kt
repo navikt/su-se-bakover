@@ -1421,9 +1421,6 @@ internal class RevurderingJsonTest {
                   "bosituasjon": ${serialize(simulertRevurdering.grunnlagsdata.bosituasjon.toJson())},
                   "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson())}
                 },
-                "informasjonSomRevurderes": {
-                  "Ytelse": "Vurdert"
-                },
                 "attesteringer": []
             }
             """.trimIndent()
@@ -1455,9 +1452,6 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": ${serialize(iverksattRevurdering.grunnlagsdata.bosituasjon.toJson())},
                   "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson())}
-                },
-                "informasjonSomRevurderes": {
-                  "Ytelse": "Vurdert"
                 },
                 "attesteringer": [{"attestant": "attestant", "opprettet": "${attesteringIverksatt.opprettet}", "underkjennelse": null}]
             }
@@ -1493,9 +1487,6 @@ internal class RevurderingJsonTest {
                   "bosituasjon": ${serialize(simulertRevurdering.grunnlagsdata.bosituasjon.toJson())},
                   "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson())}
                 },
-                "informasjonSomRevurderes": {
-                  "Ytelse": "Vurdert"
-                },
                 "attesteringer": []
 
             }
@@ -1526,9 +1517,6 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": ${serialize(iverksattRevurdering.grunnlagsdata.bosituasjon.toJson())},
                   "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson())}
-                },
-                "informasjonSomRevurderes": {
-                  "Ytelse": "Vurdert"
                 },
                 "attesteringer": [{"attestant": "attestant", "opprettet": "${attesteringIverksatt.opprettet}", "underkjennelse": null}]
             }
