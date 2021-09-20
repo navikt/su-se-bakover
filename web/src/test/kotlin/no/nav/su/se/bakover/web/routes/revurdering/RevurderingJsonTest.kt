@@ -1413,7 +1413,7 @@ internal class RevurderingJsonTest {
                     "fraOgMed": "2021-02-01",
                     "tilOgMed": "2021-12-31"
                 },
-                "årsak": ": ${Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING}: ",
+                "årsak": "${Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING}",
                 "begrunnelse": "valid",
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": ${serialize((simulertRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
@@ -1448,7 +1448,7 @@ internal class RevurderingJsonTest {
                     "fraOgMed": "2021-02-01",
                     "tilOgMed": "2021-12-31"
                 },
-                "årsak": ": ${Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING}: ",
+                "årsak": "${Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING}",
                 "begrunnelse": "valid",
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": ${serialize((iverksattRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
