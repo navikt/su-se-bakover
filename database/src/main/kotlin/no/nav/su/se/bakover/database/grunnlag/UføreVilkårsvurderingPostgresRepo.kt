@@ -27,14 +27,22 @@ internal class UføreVilkårsvurderingPostgresRepo(
 
     override fun lagre(behandlingId: UUID, vilkår: Vilkår.Uførhet) {
         dataSource.withTransaction { tx ->
-            slettForBehandlingId(behandlingId, tx)
-            when (vilkår) {
-                Vilkår.Uførhet.IkkeVurdert -> Unit
-                is Vilkår.Uførhet.Vurdert -> {
-                    uføregrunnlagRepo.lagre(behandlingId, vilkår.grunnlag, tx)
-                    vilkår.vurderingsperioder.forEach {
-                        lagre(behandlingId, it, tx)
-                    }
+            lagre(
+                behandlingId = behandlingId,
+                vilkår = vilkår,
+                session = tx,
+            )
+        }
+    }
+
+    internal fun lagre(behandlingId: UUID, vilkår: Vilkår.Uførhet, session: Session) {
+        slettForBehandlingId(behandlingId, session)
+        when (vilkår) {
+            Vilkår.Uførhet.IkkeVurdert -> Unit
+            is Vilkår.Uførhet.Vurdert -> {
+                uføregrunnlagRepo.lagre(behandlingId, vilkår.grunnlag, session)
+                vilkår.vurderingsperioder.forEach {
+                    lagre(behandlingId, it, session)
                 }
             }
         }

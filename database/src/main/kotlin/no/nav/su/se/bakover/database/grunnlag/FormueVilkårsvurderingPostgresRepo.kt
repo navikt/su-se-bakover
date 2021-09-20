@@ -25,18 +25,26 @@ internal class FormueVilkårsvurderingPostgresRepo(
 
     override fun lagre(behandlingId: UUID, vilkår: Vilkår.Formue) {
         dataSource.withTransaction { tx ->
-            slettForBehandlingId(behandlingId, tx)
-            when (vilkår) {
-                Vilkår.Formue.IkkeVurdert -> Unit
-                is Vilkår.Formue.Vurdert -> {
-                    formuegrunnlagPostgresRepo.lagreFormuegrunnlag(
-                        behandlingId = behandlingId,
-                        formuegrunnlag = vilkår.grunnlag,
-                        tx,
-                    )
-                    vilkår.vurderingsperioder.forEach {
-                        lagre(behandlingId, it, tx)
-                    }
+            lagre(
+                behandlingId = behandlingId,
+                vilkår = vilkår,
+                session = tx,
+            )
+        }
+    }
+
+    internal fun lagre(behandlingId: UUID, vilkår: Vilkår.Formue, session: Session) {
+        slettForBehandlingId(behandlingId, session)
+        when (vilkår) {
+            Vilkår.Formue.IkkeVurdert -> Unit
+            is Vilkår.Formue.Vurdert -> {
+                formuegrunnlagPostgresRepo.lagreFormuegrunnlag(
+                    behandlingId = behandlingId,
+                    formuegrunnlag = vilkår.grunnlag,
+                    session = session,
+                )
+                vilkår.vurderingsperioder.forEach {
+                    lagre(behandlingId, it, session)
                 }
             }
         }

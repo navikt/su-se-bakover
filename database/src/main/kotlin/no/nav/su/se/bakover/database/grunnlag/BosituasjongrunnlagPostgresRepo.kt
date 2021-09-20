@@ -80,10 +80,18 @@ class BosituasjongrunnlagPostgresRepo(
 
     override fun lagreBosituasjongrunnlag(behandlingId: UUID, grunnlag: List<Grunnlag.Bosituasjon>) {
         dataSource.withTransaction { tx ->
-            slettForBehandlingId(behandlingId, tx)
-            grunnlag.forEach { bosituasjon ->
-                lagre(behandlingId, bosituasjon, tx)
-            }
+            lagreBosituasjongrunnlag(
+                behandlingId = behandlingId,
+                grunnlag = grunnlag,
+                session = tx,
+            )
+        }
+    }
+
+    internal fun lagreBosituasjongrunnlag(behandlingId: UUID, grunnlag: List<Grunnlag.Bosituasjon>, session: Session) {
+        slettForBehandlingId(behandlingId, session)
+        grunnlag.forEach { bosituasjon ->
+            lagre(behandlingId, bosituasjon, session)
         }
     }
 

@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.Session
-import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
@@ -19,11 +18,11 @@ internal class FormuegrunnlagPostgresRepo() {
     internal fun lagreFormuegrunnlag(
         behandlingId: UUID,
         formuegrunnlag: List<Formuegrunnlag>,
-        tx: TransactionalSession,
+        session: Session,
     ) {
-        slettForBehandlingId(behandlingId, tx)
+        slettForBehandlingId(behandlingId, session)
         formuegrunnlag.forEach {
-            lagre(it, behandlingId, tx)
+            lagre(it, behandlingId, session)
         }
     }
 

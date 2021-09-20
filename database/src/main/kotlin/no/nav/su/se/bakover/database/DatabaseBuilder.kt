@@ -78,6 +78,7 @@ object DatabaseBuilder {
         dataSource: DataSource,
         dbMetrics: DbMetrics,
     ): DatabaseRepos {
+        val sessionFactory = PostgresSessionFactory(dataSource)
         val uføregrunnlagRepo = UføregrunnlagPostgresRepo()
         val fradragsgrunnlag = FradragsgrunnlagPostgresRepo(
             dataSource = dataSource,
@@ -123,6 +124,7 @@ object DatabaseBuilder {
             formueVilkårsvurderingRepo = formueVilkårsvurderingRepo,
             søknadsbehandlingRepo = saksbehandlingRepo,
             dbMetrics = dbMetrics,
+            sessionFactory = sessionFactory,
         )
         val vedtakRepo = VedtakPosgresRepo(
             dataSource = dataSource,
@@ -131,8 +133,6 @@ object DatabaseBuilder {
             dbMetrics = dbMetrics,
         )
         val hendelseRepo = PersonhendelsePostgresRepo(dataSource)
-
-        val sessionFactory = PostgresSessionFactory(dataSource)
 
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(dataSource),

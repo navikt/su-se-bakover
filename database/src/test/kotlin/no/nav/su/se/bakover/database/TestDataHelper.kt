@@ -253,6 +253,7 @@ internal class TestDataHelper(
         formueVilkårsvurderingRepo = formueVilkårsvurderingPostgresRepo,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         dbMetrics = dbMetrics,
+        sessionFactory = sessionFactory,
     )
     internal val vedtakRepo = VedtakPosgresRepo(
         dataSource = dataSource,

@@ -6,8 +6,11 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DbMetrics
+import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
@@ -87,6 +90,7 @@ internal class RevurderingPostgresRepo(
     private val formueVilkårsvurderingRepo: FormueVilkårsvurderingPostgresRepo,
     søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
     private val dbMetrics: DbMetrics,
+    private val sessionFactory: SessionFactory,
 ) : RevurderingRepo {
     private val vedtakRepo = VedtakPosgresRepo(dataSource, søknadsbehandlingRepo, this, dbMetrics)
 
@@ -120,12 +124,10 @@ internal class RevurderingPostgresRepo(
         }
 
     override fun lagre(revurdering: AbstraktRevurdering) {
-        dataSource.withSession { session ->
-            when (revurdering) {
-                is Revurdering -> lagre(revurdering, session)
-                is StansAvYtelseRevurdering -> lagre(revurdering, session)
-                is GjenopptaYtelseRevurdering -> lagre(revurdering, session)
-            }
+        when (revurdering) {
+            is Revurdering -> dataSource.withSession { lagre(revurdering, it) }
+            is GjenopptaYtelseRevurdering -> sessionFactory.withTransactionContext { lagre(revurdering, it) }
+            is StansAvYtelseRevurdering -> sessionFactory.withTransactionContext { lagre(revurdering, it) }
         }
     }
 
@@ -140,10 +142,11 @@ internal class RevurderingPostgresRepo(
         }
     }
 
-    internal fun lagre(revurdering: StansAvYtelseRevurdering, session: Session) {
-        when (revurdering) {
-            is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
-                """
+    internal fun lagre(revurdering: StansAvYtelseRevurdering, sessionContext: TransactionContext) {
+        sessionContext.withSession { tx ->
+            when (revurdering) {
+                is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
+                    """
                     insert into revurdering (
                         id,
                         opprettet,
@@ -176,57 +179,69 @@ internal class RevurderingPostgresRepo(
                         vedtakSomRevurderesId=:vedtakSomRevurderesId,
                         årsak=:arsak,
                         begrunnelse=:begrunnelse
-                """.trimIndent()
-                    .insert(
-                        mapOf(
-                            "id" to revurdering.id,
-                            "opprettet" to revurdering.opprettet,
-                            "periode" to objectMapper.writeValueAsString(revurdering.periode),
-                            "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
-                            "saksbehandler" to revurdering.saksbehandler,
-                            "revurderingsType" to RevurderingsType.SIMULERT_STANS,
-                            "vedtakSomRevurderesId" to revurdering.tilRevurdering.id,
-                            "arsak" to revurdering.revurderingsårsak.årsak.toString(),
-                            "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                            "attestering" to Attesteringshistorikk.empty().hentAttesteringer().serialize(),
-                            "skalFoereTilBrevutsending" to false,
-                        ),
-                        session,
+                    """.trimIndent()
+                        .insert(
+                            mapOf(
+                                "id" to revurdering.id,
+                                "opprettet" to revurdering.opprettet,
+                                "periode" to objectMapper.writeValueAsString(revurdering.periode),
+                                "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
+                                "saksbehandler" to revurdering.saksbehandler,
+                                "revurderingsType" to RevurderingsType.SIMULERT_STANS,
+                                "vedtakSomRevurderesId" to revurdering.tilRevurdering.id,
+                                "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                                "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
+                                "attestering" to Attesteringshistorikk.empty().hentAttesteringer().serialize(),
+                                "skalFoereTilBrevutsending" to false,
+                            ),
+                            tx,
+                        )
+                    fradragsgrunnlagPostgresRepo.lagreFradragsgrunnlag(
+                        behandlingId = revurdering.id,
+                        fradragsgrunnlag = revurdering.grunnlagsdata.fradragsgrunnlag,
+                        session = tx,
                     )
-                fradragsgrunnlagPostgresRepo.lagreFradragsgrunnlag(
-                    revurdering.id,
-                    revurdering.grunnlagsdata.fradragsgrunnlag,
-                )
-                bosituasjonsgrunnlagPostgresRepo.lagreBosituasjongrunnlag(
-                    revurdering.id,
-                    revurdering.grunnlagsdata.bosituasjon,
-                )
-                uføreVilkårsvurderingRepo.lagre(revurdering.id, revurdering.vilkårsvurderinger.uføre)
-                formueVilkårsvurderingRepo.lagre(revurdering.id, revurdering.vilkårsvurderinger.formue)
-            }
-            is StansAvYtelseRevurdering.IverksattStansAvYtelse -> {
-                """
+                    bosituasjonsgrunnlagPostgresRepo.lagreBosituasjongrunnlag(
+                        behandlingId = revurdering.id,
+                        grunnlag = revurdering.grunnlagsdata.bosituasjon,
+                        session = tx,
+                    )
+                    uføreVilkårsvurderingRepo.lagre(
+                        behandlingId = revurdering.id,
+                        vilkår = revurdering.vilkårsvurderinger.uføre,
+                        session = tx,
+                    )
+                    formueVilkårsvurderingRepo.lagre(
+                        behandlingId = revurdering.id,
+                        vilkår = revurdering.vilkårsvurderinger.formue,
+                        session = tx,
+                    )
+                }
+                is StansAvYtelseRevurdering.IverksattStansAvYtelse -> {
+                    """
                     update revurdering set 
                         attestering = to_json(:attestering::json),
                         revurderingsType = :revurderingsType 
                     where id = :id
-                """.trimIndent()
-                    .oppdatering(
-                        mapOf(
-                            "attestering" to revurdering.attesteringer.hentAttesteringer().serialize(),
-                            "revurderingsType" to RevurderingsType.IVERKSATT_STANS,
-                            "id" to revurdering.id,
-                        ),
-                        session,
-                    )
+                    """.trimIndent()
+                        .oppdatering(
+                            mapOf(
+                                "attestering" to revurdering.attesteringer.hentAttesteringer().serialize(),
+                                "revurderingsType" to RevurderingsType.IVERKSATT_STANS,
+                                "id" to revurdering.id,
+                            ),
+                            tx,
+                        )
+                }
             }
         }
     }
 
-    internal fun lagre(revurdering: GjenopptaYtelseRevurdering, session: Session) {
-        when (revurdering) {
-            is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> {
-                """
+    internal fun lagre(revurdering: GjenopptaYtelseRevurdering, sessionContext: TransactionContext) {
+        sessionContext.withSession { tx ->
+            when (revurdering) {
+                is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> {
+                    """
                     insert into revurdering (
                         id,
                         opprettet,
@@ -259,49 +274,60 @@ internal class RevurderingPostgresRepo(
                         vedtakSomRevurderesId=:vedtakSomRevurderesId,
                         årsak=:arsak,
                         begrunnelse=:begrunnelse
-                """.trimIndent()
-                    .insert(
-                        mapOf(
-                            "id" to revurdering.id,
-                            "opprettet" to revurdering.opprettet,
-                            "periode" to objectMapper.writeValueAsString(revurdering.periode),
-                            "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
-                            "saksbehandler" to revurdering.saksbehandler,
-                            "revurderingsType" to RevurderingsType.SIMULERT_GJENOPPTAK,
-                            "vedtakSomRevurderesId" to revurdering.tilRevurdering.id,
-                            "arsak" to revurdering.revurderingsårsak.årsak.toString(),
-                            "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                            "attestering" to Attesteringshistorikk.empty().hentAttesteringer().serialize(),
-                            "skalFoereTilBrevutsending" to false,
-                        ),
-                        session,
+                    """.trimIndent()
+                        .insert(
+                            mapOf(
+                                "id" to revurdering.id,
+                                "opprettet" to revurdering.opprettet,
+                                "periode" to objectMapper.writeValueAsString(revurdering.periode),
+                                "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
+                                "saksbehandler" to revurdering.saksbehandler,
+                                "revurderingsType" to RevurderingsType.SIMULERT_GJENOPPTAK,
+                                "vedtakSomRevurderesId" to revurdering.tilRevurdering.id,
+                                "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                                "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
+                                "attestering" to Attesteringshistorikk.empty().hentAttesteringer().serialize(),
+                                "skalFoereTilBrevutsending" to false,
+                            ),
+                            tx,
+                        )
+                    fradragsgrunnlagPostgresRepo.lagreFradragsgrunnlag(
+                        behandlingId = revurdering.id,
+                        fradragsgrunnlag = revurdering.grunnlagsdata.fradragsgrunnlag,
+                        session = tx,
                     )
-                fradragsgrunnlagPostgresRepo.lagreFradragsgrunnlag(
-                    revurdering.id,
-                    revurdering.grunnlagsdata.fradragsgrunnlag,
-                )
-                bosituasjonsgrunnlagPostgresRepo.lagreBosituasjongrunnlag(
-                    revurdering.id,
-                    revurdering.grunnlagsdata.bosituasjon,
-                )
-                uføreVilkårsvurderingRepo.lagre(revurdering.id, revurdering.vilkårsvurderinger.uføre)
-                formueVilkårsvurderingRepo.lagre(revurdering.id, revurdering.vilkårsvurderinger.formue)
-            }
-            is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse -> {
-                """
+                    bosituasjonsgrunnlagPostgresRepo.lagreBosituasjongrunnlag(
+                        behandlingId = revurdering.id,
+                        grunnlag = revurdering.grunnlagsdata.bosituasjon,
+                        session = tx,
+                    )
+                    uføreVilkårsvurderingRepo.lagre(
+                        behandlingId = revurdering.id,
+                        vilkår = revurdering.vilkårsvurderinger.uføre,
+                        session = tx,
+                    )
+                    formueVilkårsvurderingRepo.lagre(
+                        behandlingId = revurdering.id,
+                        vilkår = revurdering.vilkårsvurderinger.formue,
+                        session = tx,
+                    )
+                }
+                is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse -> {
+                    """
                     update revurdering set 
                         attestering = to_json(:attestering::json),
                         revurderingsType = :revurderingsType 
                     where id = :id
-                """.trimIndent()
-                    .oppdatering(
-                        mapOf(
-                            "attestering" to revurdering.attesteringer.hentAttesteringer().serialize(),
-                            "revurderingsType" to RevurderingsType.IVKERSATT_GJENOPPTAK,
-                            "id" to revurdering.id,
-                        ),
-                        session,
-                    )
+                    """.trimIndent()
+                        .oppdatering(
+                            mapOf(
+                                "attestering" to revurdering.attesteringer.hentAttesteringer().serialize(),
+                                "revurderingsType" to RevurderingsType.IVKERSATT_GJENOPPTAK,
+                                "id" to revurdering.id,
+                            ),
+                            tx,
+                        )
+                }
             }
         }
     }

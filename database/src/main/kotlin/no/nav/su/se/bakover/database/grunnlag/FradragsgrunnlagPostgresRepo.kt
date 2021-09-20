@@ -27,10 +27,22 @@ internal class FradragsgrunnlagPostgresRepo(
 
     override fun lagreFradragsgrunnlag(behandlingId: UUID, fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>) {
         dataSource.withTransaction { tx ->
-            slettForBehandlingId(behandlingId, tx)
-            fradragsgrunnlag.forEach {
-                lagre(it, behandlingId, tx)
-            }
+            lagreFradragsgrunnlag(
+                behandlingId = behandlingId,
+                fradragsgrunnlag = fradragsgrunnlag,
+                session = tx,
+            )
+        }
+    }
+
+    internal fun lagreFradragsgrunnlag(
+        behandlingId: UUID,
+        fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+        session: Session,
+    ) {
+        slettForBehandlingId(behandlingId, session)
+        fradragsgrunnlag.forEach {
+            lagre(it, behandlingId, session)
         }
     }
 
