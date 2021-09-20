@@ -179,4 +179,42 @@ internal class GjenopptaUtbetalingRouteKtTest {
             }
         }
     }
+
+    @Test
+    fun `svarer med 400 ved ugyldig input`() {
+        val enRevurdering = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse()
+            .second
+        val revurderingServiceMock = mock<RevurderingService>() {
+            on { gjenopptaYtelse(any()) } doReturn enRevurdering.right()
+        }
+        withTestApplication(
+            {
+                testSusebakover(
+                    services = mockServices.copy(
+                        revurdering = revurderingServiceMock,
+                    ),
+                )
+            },
+        ) {
+            defaultRequest(
+                HttpMethod.Post,
+                "saker/${enRevurdering.sakId}/revurderinger/gjenoppta",
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody(
+                    //language=json
+                    """
+                        {
+                          "fraOgMed": "2021-05-01",
+                          "årsak": "KJEKS",
+                          "begrunnelse": "huffda"
+                        }
+                    """.trimIndent(),
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+                response.content shouldContain """"code":"revurderingsårsak_ugyldig_årsak""""
+            }
+        }
+    }
 }

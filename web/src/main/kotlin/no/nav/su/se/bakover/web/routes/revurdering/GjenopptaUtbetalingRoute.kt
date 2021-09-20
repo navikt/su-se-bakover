@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
+import arrow.core.getOrHandle
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -35,13 +37,15 @@ internal fun Route.gjenopptaUtbetaling(
                 call.withBody<GjenopptaUtbetalingBody> { body ->
                     val navIdent = call.suUserContext.navIdent
 
+                    val revurderingsårsak = Revurderingsårsak.tryCreate(
+                        årsak = body.årsak,
+                        begrunnelse = body.begrunnelse,
+                    ).getOrHandle { return@withSakId call.svar(it.tilResultat()) }
+
                     val request = GjenopptaYtelseRequest.Opprett(
                         sakId = sakId,
                         saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
-                        revurderingsårsak = Revurderingsårsak.create(
-                            årsak = body.årsak,
-                            begrunnelse = body.begrunnelse,
-                        ),
+                        revurderingsårsak = revurderingsårsak,
                     )
 
                     revurderingService.gjenopptaYtelse(request).fold(
@@ -64,13 +68,15 @@ internal fun Route.gjenopptaUtbetaling(
                     call.withBody<GjenopptaUtbetalingBody> { body ->
                         val navIdent = call.suUserContext.navIdent
 
+                        val revurderingsårsak = Revurderingsårsak.tryCreate(
+                            årsak = body.årsak,
+                            begrunnelse = body.begrunnelse,
+                        ).getOrHandle { return@withRevurderingId call.svar(it.tilResultat()) }
+
                         val request = GjenopptaYtelseRequest.Oppdater(
                             sakId = sakId,
                             saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
-                            revurderingsårsak = Revurderingsårsak.create(
-                                årsak = body.årsak,
-                                begrunnelse = body.begrunnelse,
-                            ),
+                            revurderingsårsak = revurderingsårsak,
                             revurderingId = revurderingId,
                         )
 
@@ -144,7 +150,7 @@ private fun KunneIkkeGjenopptaYtelse.tilResultat(): Resultat {
         )
         KunneIkkeGjenopptaYtelse.FantIngenVedtak -> HttpStatusCode.BadRequest.errorJson(
             "kan ikke opprette revurdering for gjenopptak av utbetaling uten tidligere vedtak",
-            "ingen_tidligere_vedtak"
+            "ingen_tidligere_vedtak",
         )
     }
 }

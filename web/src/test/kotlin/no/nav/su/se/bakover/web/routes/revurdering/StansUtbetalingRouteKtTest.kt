@@ -165,4 +165,41 @@ internal class StansUtbetalingRouteKtTest {
             }
         }
     }
+
+    @Test
+    fun `svarer med 400 ved ugyldig input`() {
+        val enRevurdering = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().second
+        val revurderingServiceMock = mock<RevurderingService>() {
+            on { stansAvYtelse(any()) } doReturn enRevurdering.right()
+        }
+        withTestApplication(
+            {
+                testSusebakover(
+                    services = mockServices.copy(
+                        revurdering = revurderingServiceMock,
+                    ),
+                )
+            },
+        ) {
+            defaultRequest(
+                HttpMethod.Post,
+                "saker/${enRevurdering.sakId}/revurderinger/stans",
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody(
+                    //language=json
+                    """
+                        {
+                          "fraOgMed": "2021-05-01",
+                          "årsak": "MANGLENDE_KONTROLLERKLÆRING",
+                          "begrunnelse": ""
+                        }
+                    """.trimIndent(),
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+                response.content shouldContain """"code":"revurderingsårsak_ugyldig_begrunnelse""""
+            }
+        }
+    }
 }

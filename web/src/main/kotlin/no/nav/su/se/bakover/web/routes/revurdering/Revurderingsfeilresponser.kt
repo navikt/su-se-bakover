@@ -107,4 +107,17 @@ internal object Revurderingsfeilresponser {
             KunneIkkeLageBrevutkastForRevurdering.KunneIkkeFinneGjeldendeUtbetaling -> fantIkkeGjeldendeUtbetaling
         }
     }
+
+    fun Revurderingsårsak.UgyldigRevurderingsårsak.tilResultat(): Resultat {
+        return when (this) {
+            Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigBegrunnelse -> BadRequest.errorJson(
+                message = "Ugyldig begrunnelse for revurdering",
+                code = "revurderingsårsak_ugyldig_begrunnelse",
+            )
+            Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigÅrsak -> BadRequest.errorJson(
+                message = "Ugyldig årsak for revurdering",
+                code = "revurderingsårsak_ugyldig_årsak",
+            )
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
+import arrow.core.getOrHandle
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -36,14 +38,16 @@ internal fun Route.stansUtbetaling(
                 call.withBody<StansUtbetalingBody> { body ->
                     val navIdent = call.suUserContext.navIdent
 
+                    val revurderingsårsak = Revurderingsårsak.tryCreate(
+                        årsak = body.årsak,
+                        begrunnelse = body.begrunnelse,
+                    ).getOrHandle { return@withSakId call.svar(it.tilResultat()) }
+
                     val request = StansYtelseRequest.Opprett(
                         sakId = sakId,
                         fraOgMed = body.fraOgMed,
                         saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
-                        revurderingsårsak = Revurderingsårsak.create(
-                            årsak = body.årsak,
-                            begrunnelse = body.begrunnelse,
-                        ),
+                        revurderingsårsak = revurderingsårsak,
                     )
 
                     revurderingService.stansAvYtelse(request).fold(
@@ -66,14 +70,16 @@ internal fun Route.stansUtbetaling(
                     call.withBody<StansUtbetalingBody> { body ->
                         val navIdent = call.suUserContext.navIdent
 
+                        val revurderingsårsak = Revurderingsårsak.tryCreate(
+                            årsak = body.årsak,
+                            begrunnelse = body.begrunnelse,
+                        ).getOrHandle { return@withRevurderingId call.svar(it.tilResultat()) }
+
                         val request = StansYtelseRequest.Oppdater(
                             sakId = sakId,
                             fraOgMed = body.fraOgMed,
                             saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
-                            revurderingsårsak = Revurderingsårsak.create(
-                                årsak = body.årsak,
-                                begrunnelse = body.begrunnelse,
-                            ),
+                            revurderingsårsak = revurderingsårsak,
                             revurderingId = revurderingId,
                         )
 
