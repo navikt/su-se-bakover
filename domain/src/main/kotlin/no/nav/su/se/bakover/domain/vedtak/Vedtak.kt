@@ -143,8 +143,8 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             revurdering: GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse,
             utbetalingId: UUID30,
             clock: Clock,
-        ): StansAvYtelse {
-            return StansAvYtelse(
+        ): GjenopptakAvYtelse {
+            return GjenopptakAvYtelse(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(clock),
                 behandling = revurdering,

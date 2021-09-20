@@ -178,7 +178,7 @@ fun vedtakIverksattStansAvYtelse(
 fun vedtakIverksattGjenopptakAvYtelse(
     periode: Periode,
     attestering: Attestering = attesteringIverksatt,
-): Pair<Sak, Vedtak.StansAvYtelse> {
+): Pair<Sak, Vedtak.GjenopptakAvYtelse> {
     return iverksattGjenopptakelseAvytelseFraVedtakStansAvYtelse(
         periode = periode,
         attestering = attestering,
@@ -191,7 +191,9 @@ fun vedtakIverksattGjenopptakAvYtelse(
         )
 
         val vedtak = Vedtak.from(
-            revurdering, utbetaling.id, fixedClock,
+            revurdering = revurdering,
+            utbetalingId = utbetaling.id,
+            clock = fixedClock,
         )
 
         sak.copy(
