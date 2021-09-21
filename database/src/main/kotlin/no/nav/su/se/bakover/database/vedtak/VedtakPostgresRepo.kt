@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
+import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -223,7 +224,7 @@ internal class VedtakPostgresRepo(
             VedtakType.GJENOPPTAK_AV_YTELSE -> Vedtak.EndringIYtelse.GjenopptakAvYtelse(
                 id = id,
                 opprettet = opprettet,
-                behandling = behandling as StansAvYtelseRevurdering.IverksattStansAvYtelse,
+                behandling = behandling as GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse,
                 saksbehandler = saksbehandler,
                 attestant = attestant,
                 periode = periode,

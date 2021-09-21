@@ -120,13 +120,11 @@ internal class RevurderingServiceImpl(
 
         val simulertRevurdering = when (request) {
             is StansYtelseRequest.Oppdater -> {
-                val update = revurderingRepo.hent(request.revurderingId)
+                val eksisterende = revurderingRepo.hent(request.revurderingId)
                     ?: return KunneIkkeStanseYtelse.FantIkkeRevurdering.left()
-                when (update) {
+                when (eksisterende) {
                     is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
-                        StansAvYtelseRevurdering.SimulertStansAvYtelse(
-                            id = update.id,
-                            opprettet = update.opprettet,
+                        eksisterende.copy(
                             periode = gjeldendeVedtaksdata.periode,
                             grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                             vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
@@ -136,7 +134,7 @@ internal class RevurderingServiceImpl(
                             revurderingsårsak = request.revurderingsårsak,
                         )
                     }
-                    else -> return KunneIkkeStanseYtelse.UgyldigTypeForOppdatering(update::class).left()
+                    else -> return KunneIkkeStanseYtelse.UgyldigTypeForOppdatering(eksisterende::class).left()
                 }
             }
             is StansYtelseRequest.Opprett -> {

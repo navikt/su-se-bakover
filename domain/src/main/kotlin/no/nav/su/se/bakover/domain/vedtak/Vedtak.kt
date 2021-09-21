@@ -207,7 +207,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         data class StansAvYtelse(
             override val id: UUID,
             override val opprettet: Tidspunkt,
-            override val behandling: Behandling,
+            override val behandling: StansAvYtelseRevurdering.IverksattStansAvYtelse,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestant: NavIdentBruker.Attestant,
             override val periode: Periode,
@@ -223,7 +223,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         data class GjenopptakAvYtelse(
             override val id: UUID,
             override val opprettet: Tidspunkt,
-            override val behandling: Behandling,
+            override val behandling: GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestant: NavIdentBruker.Attestant,
             override val periode: Periode,

@@ -1107,8 +1107,6 @@ internal class RevurderingPostgresRepoTest {
             testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering
 
             val nyInformasjon = simulertRevurdering.copy(
-                id = simulertRevurdering.id,
-                opprettet = simulertRevurdering.opprettet,
                 periode = periodeMai2021,
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(periodeMai2021),
                 vilkårsvurderinger = vilkårsvurderingerInnvilget(periodeMai2021),

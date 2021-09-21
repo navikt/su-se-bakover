@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
+import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -265,22 +266,44 @@ internal class VedtakPostgresRepoTest {
                 ),
             )
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
-            testDataHelper.grunnlagRepo.lagreBosituasjongrunnlag(
-                simulertRevurdering.id,
-                simulertRevurdering.grunnlagsdata.bosituasjon,
+
+            val iverksattRevurdering = simulertRevurdering.iverksett(
+                Attestering.Iverksatt(NavIdentBruker.Attestant("atte"), fixedTidspunkt),
             )
-            testDataHelper.grunnlagRepo.lagreFradragsgrunnlag(
-                simulertRevurdering.id,
-                simulertRevurdering.grunnlagsdata.fradragsgrunnlag,
+
+            testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
+
+            val utbetaling = testDataHelper.nyOversendtUtbetalingMedKvittering().second
+            val vedtak = Vedtak.from(iverksattRevurdering, utbetaling.id, fixedClock)
+
+            testDataHelper.vedtakRepo.lagre(vedtak)
+            testDataHelper.dataSource.withSession {
+                testDataHelper.vedtakRepo.hent(vedtak.id, it) shouldBe vedtak
+            }
+        }
+    }
+
+    @Test
+    fun `oppretter og henter vedtak for gjenopptak av ytelse`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val søknadsbehandling = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val simulertRevurdering = GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = periode2021,
+                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
+                vilkårsvurderinger = vilkårsvurderingerInnvilget(),
+                tilRevurdering = søknadsbehandling,
+                saksbehandler = saksbehandler,
+                simulering = simulering(søknadsbehandling.behandling.fnr),
+                revurderingsårsak = Revurderingsårsak.create(
+                    årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
+                    begrunnelse = "huffa",
+                ),
             )
-            testDataHelper.uføreVilkårsvurderingRepo.lagre(
-                simulertRevurdering.id,
-                simulertRevurdering.vilkårsvurderinger.uføre,
-            )
-            testDataHelper.formueVilkårsvurderingPostgresRepo.lagre(
-                simulertRevurdering.id,
-                simulertRevurdering.vilkårsvurderinger.formue,
-            )
+            testDataHelper.revurderingRepo.lagre(simulertRevurdering)
 
             val iverksattRevurdering = simulertRevurdering.iverksett(
                 Attestering.Iverksatt(NavIdentBruker.Attestant("atte"), fixedTidspunkt),
