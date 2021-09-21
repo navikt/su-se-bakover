@@ -548,9 +548,9 @@ sealed class BeregnetRevurdering : Revurdering() {
 
         fun utledOpphørsgrunner(): List<Opphørsgrunn> {
             return when (
-                val opphør = VurderOpphørVedRevurdering(
+                val opphør = VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
                     vilkårsvurderinger,
-                    BeregningEllerRevurderingsPeriode.Beregning(beregning),
+                    beregning,
                 ).resultat
             ) {
                 is OpphørVedRevurdering.Ja -> opphør.opphørsgrunner
@@ -656,9 +656,9 @@ sealed class SimulertRevurdering : Revurdering() {
 
         fun utledOpphørsgrunner(): List<Opphørsgrunn> {
             return when (
-                val opphør = VurderOpphørVedRevurdering(
+                val opphør = VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
                     vilkårsvurderinger,
-                    BeregningEllerRevurderingsPeriode.Beregning(beregning),
+                    beregning,
                 ).resultat
             ) {
                 is OpphørVedRevurdering.Ja -> opphør.opphørsgrunner
@@ -807,9 +807,9 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
         fun utledOpphørsgrunner(): List<Opphørsgrunn> {
             return when (
-                val opphør = VurderOpphørVedRevurdering(
+                val opphør = VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
                     vilkårsvurderinger,
-                    BeregningEllerRevurderingsPeriode.Beregning(beregning),
+                    beregning,
                 ).resultat
             ) {
                 is OpphørVedRevurdering.Ja -> opphør.opphørsgrunner
@@ -1040,9 +1040,9 @@ sealed class IverksattRevurdering : Revurdering() {
         }
 
         fun utledOpphørsgrunner(): List<Opphørsgrunn> {
-            val opphør = VurderOpphørVedRevurdering(
+            val opphør = VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
                 vilkårsvurderinger,
-                BeregningEllerRevurderingsPeriode.Beregning(beregning),
+                beregning,
             ).resultat
             return when (opphør) {
                 is OpphørVedRevurdering.Ja -> opphør.opphørsgrunner
@@ -1051,9 +1051,9 @@ sealed class IverksattRevurdering : Revurdering() {
         }
 
         fun utledOpphørsdato(): LocalDate? {
-            val opphør = VurderOpphørVedRevurdering(
+            val opphør = VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
                 vilkårsvurderinger,
-                BeregningEllerRevurderingsPeriode.Beregning(beregning),
+                beregning,
             ).resultat
             return when (opphør) {
                 is OpphørVedRevurdering.Ja -> opphør.opphørsdato
@@ -1182,9 +1182,9 @@ sealed class UnderkjentRevurdering : Revurdering() {
 
         fun utledOpphørsgrunner(): List<Opphørsgrunn> {
             return when (
-                val opphør = VurderOpphørVedRevurdering(
+                val opphør = VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
                     vilkårsvurderinger,
-                    BeregningEllerRevurderingsPeriode.Beregning(beregning),
+                    beregning,
                 ).resultat
             ) {
                 is OpphørVedRevurdering.Ja -> opphør.opphørsgrunner
