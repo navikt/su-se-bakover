@@ -48,7 +48,7 @@ interface VedtakRepo {
     fun hentForUtbetaling(utbetalingId: UUID30): Vedtak?
 }
 
-internal class VedtakPosgresRepo(
+internal class VedtakPostgresRepo(
     private val dataSource: DataSource,
     private val søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
     private val revurderingRepo: RevurderingPostgresRepo,

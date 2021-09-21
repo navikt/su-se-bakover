@@ -36,7 +36,7 @@ import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class VedtakPosgresRepoTest {
+internal class VedtakPostgresRepoTest {
 
     @Test
     fun `setter inn og henter vedtak for innvilget stønad`() {

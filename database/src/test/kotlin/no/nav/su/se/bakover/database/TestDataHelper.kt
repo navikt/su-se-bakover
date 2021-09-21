@@ -29,7 +29,7 @@ import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
-import no.nav.su.se.bakover.database.vedtak.VedtakPosgresRepo
+import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
@@ -256,7 +256,7 @@ internal class TestDataHelper(
         dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
     )
-    internal val vedtakRepo = VedtakPosgresRepo(
+    internal val vedtakRepo = VedtakPostgresRepo(
         dataSource = dataSource,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         revurderingRepo = revurderingRepo,
@@ -266,7 +266,7 @@ internal class TestDataHelper(
         dataSource = dataSource,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         revurderingRepo = revurderingRepo,
-        vedtakPosgresRepo = vedtakRepo,
+        vedtakPostgresRepo = vedtakRepo,
         dbMetrics = dbMetrics,
     )
     internal val personRepo = PersonPostgresRepo(

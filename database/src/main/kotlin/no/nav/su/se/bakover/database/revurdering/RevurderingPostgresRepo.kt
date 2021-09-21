@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
-import no.nav.su.se.bakover.database.vedtak.VedtakPosgresRepo
+import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -92,7 +92,7 @@ internal class RevurderingPostgresRepo(
     private val dbMetrics: DbMetrics,
     private val sessionFactory: SessionFactory,
 ) : RevurderingRepo {
-    private val vedtakRepo = VedtakPosgresRepo(dataSource, søknadsbehandlingRepo, this, dbMetrics)
+    private val vedtakRepo = VedtakPostgresRepo(dataSource, søknadsbehandlingRepo, this, dbMetrics)
 
     override fun hent(id: UUID): AbstraktRevurdering? {
         return dbMetrics.timeQuery("hentRevurdering") {
