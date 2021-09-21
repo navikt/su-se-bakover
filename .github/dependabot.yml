@@ -12,3 +12,5 @@ updates:
         versions:
           - 1.5.0-native-mt
           - 1.5.1-native-mt
+      # Versions follow the Postgres version and should be updated manually
+      - dependency-name: io.zonky.test.postgres:embedded-postgres-binaries-bom

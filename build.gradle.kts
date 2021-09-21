@@ -25,8 +25,8 @@ allprojects {
         maven("https://oss.sonatype.org/content/repositories/releases/")
         maven("https://packages.confluent.io/maven/")
     }
-    val junitJupiterVersion = "5.7.2"
-    val kotestVersion = "4.6.2"
+    val junitJupiterVersion = "5.8.0"
+    val kotestVersion = "4.6.3"
     val jacksonVersion = "2.12.5"
     val kotlinVersion: String by this
     dependencies {
@@ -36,7 +36,7 @@ allprojects {
         implementation("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
         implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
-        implementation("io.arrow-kt:arrow-core:0.13.2")
+        implementation("io.arrow-kt:arrow-core:0.13.3")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
