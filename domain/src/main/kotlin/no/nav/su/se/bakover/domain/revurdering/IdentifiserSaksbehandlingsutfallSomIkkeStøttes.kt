@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -41,6 +42,7 @@ sealed class IdentifiserSaksbehandlingsutfallSomIkkeStøttes {
     }
 
     data class MedBeregning(
+        private val revurderingsperiode: Periode,
         private val vilkårsvurderinger: Vilkårsvurderinger,
         private val tidligereBeregning: Beregning,
         private val nyBeregning: Beregning,
@@ -107,9 +109,10 @@ sealed class IdentifiserSaksbehandlingsutfallSomIkkeStøttes {
 
         private fun harBeløpsendringerEkskludertForventetInntekt(): Boolean {
             val nyeFradrag = nyBeregning.getFradrag().filterNot { it.fradragstype == Fradragstype.ForventetInntekt }
-            val tidligereFradrag =
-                tidligereBeregning.getFradrag().filterNot { it.fradragstype == Fradragstype.ForventetInntekt }
-            return tidligereFradrag.union(nyeFradrag).minus(tidligereFradrag.intersect(nyeFradrag)).isNotEmpty()
+            val tidligereFradrag = tidligereBeregning.getFradrag()
+                .filterNot { it.fradragstype == Fradragstype.ForventetInntekt }
+                .mapNotNull { it.copy(CopyArgs.Snitt(revurderingsperiode)) }
+            return tidligereFradrag != nyeFradrag
         }
 
         override fun OpphørVedRevurdering.Ja.opphørsdatoErTidligesteDatoIRevurdering(): Boolean {
