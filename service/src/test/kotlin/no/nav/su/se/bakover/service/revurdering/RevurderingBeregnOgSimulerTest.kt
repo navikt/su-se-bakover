@@ -121,7 +121,7 @@ class RevurderingBeregnOgSimulerTest {
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-        ).getOrHandle { fail("Skulle returnert en instans av ${BeregnOgSimulerResponse::class}") }
+        ).getOrHandle { fail("Skulle returnert en instans av ${RevurderingOgFeilmeldingerResponse::class}") }
 
         response.feilmeldinger shouldBe listOf(
             RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,

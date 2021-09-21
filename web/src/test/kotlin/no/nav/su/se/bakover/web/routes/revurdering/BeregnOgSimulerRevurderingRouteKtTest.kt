@@ -32,8 +32,8 @@ import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
-import no.nav.su.se.bakover.service.revurdering.BeregnOgSimulerResponse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
+import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.web.argThat
@@ -180,7 +180,12 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
         }
 
         val revurderingServiceMock = mock<RevurderingService> {
-            on { beregnOgSimuler(any(), any()) } doReturn BeregnOgSimulerResponse(simulertRevurdering).right()
+            on {
+                beregnOgSimuler(
+                    any(),
+                    any(),
+                )
+            } doReturn RevurderingOgFeilmeldingerResponse(simulertRevurdering).right()
         }
 
         withTestApplication(

@@ -44,7 +44,7 @@ interface RevurderingService {
     fun beregnOgSimuler(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeBeregneOgSimulereRevurdering, BeregnOgSimulerResponse>
+    ): Either<KunneIkkeBeregneOgSimulereRevurdering, RevurderingOgFeilmeldingerResponse>
 
     fun forhåndsvarsleEllerSendTilAttestering(
         revurderingId: UUID,
@@ -80,26 +80,26 @@ interface RevurderingService {
 
     fun leggTilUføregrunnlag(
         request: LeggTilUførevurderingerRequest,
-    ): Either<KunneIkkeLeggeTilGrunnlag, OpprettetRevurdering>
+    ): Either<KunneIkkeLeggeTilGrunnlag, RevurderingOgFeilmeldingerResponse>
 
     fun leggTilFradragsgrunnlag(
         request: LeggTilFradragsgrunnlagRequest,
-    ): Either<KunneIkkeLeggeTilFradragsgrunnlag, OpprettetRevurdering>
+    ): Either<KunneIkkeLeggeTilFradragsgrunnlag, RevurderingOgFeilmeldingerResponse>
 
     fun leggTilBosituasjongrunnlag(
         request: LeggTilBosituasjongrunnlagRequest,
-    ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, OpprettetRevurdering>
+    ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, RevurderingOgFeilmeldingerResponse>
 
     fun leggTilFormuegrunnlag(
         request: LeggTilFormuegrunnlagRequest,
-    ): Either<KunneIkkeLeggeTilFormuegrunnlag, OpprettetRevurdering>
+    ): Either<KunneIkkeLeggeTilFormuegrunnlag, RevurderingOgFeilmeldingerResponse>
 
     fun hentGjeldendeGrunnlagsdataOgVilkårsvurderinger(
         revurderingId: UUID,
     ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger, HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse>
 }
 
-data class BeregnOgSimulerResponse(
+data class RevurderingOgFeilmeldingerResponse(
     val revurdering: Revurdering,
     val feilmeldinger: List<RevurderingsutfallSomIkkeStøttes> = emptyList(),
 )

@@ -11,6 +11,7 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFormuegrunnlag
+import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.opprettetRevurdering
@@ -199,7 +200,10 @@ internal class LeggTilFormueRevurderingRouteKtTest {
     @Test
     fun `happy case`() {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { leggTilFormuegrunnlag(any()) } doReturn opprettetRevurdering.right()
+            on { leggTilFormuegrunnlag(any()) } doReturn RevurderingOgFeilmeldingerResponse(
+                opprettetRevurdering,
+                emptyList(),
+            ).right()
         }
 
         withTestApplication(

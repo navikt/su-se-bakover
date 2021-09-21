@@ -3,10 +3,13 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.Nel
 import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juni
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.zoneIdOslo
@@ -18,6 +21,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -26,6 +30,7 @@ import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
+import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -40,8 +45,10 @@ import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
@@ -81,12 +88,12 @@ internal class RevurderingLeggTilFormueServiceTest {
             ),
         ).getOrHandle { fail("Vi skal få tilbake en revurdering") }
 
-        actual shouldBe beOfType<OpprettetRevurdering>()
+        actual shouldBe beOfType<RevurderingOgFeilmeldingerResponse>()
         val expectedVilkårsvurderinger = Vilkårsvurderinger(
             uføre = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
-                        id = (actual.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.first().id,
+                        id = (actual.revurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.first().id,
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Innvilget,
                         grunnlag = Grunnlag.Uføregrunnlag(
@@ -104,11 +111,11 @@ internal class RevurderingLeggTilFormueServiceTest {
             formue = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Formue.tryCreate(
-                        id = (actual.vilkårsvurderinger.formue as Vilkår.Formue.Vurdert).vurderingsperioder.first().id,
+                        id = (actual.revurdering.vilkårsvurderinger.formue as Vilkår.Formue.Vurdert).vurderingsperioder.first().id,
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Innvilget,
                         grunnlag = Formuegrunnlag.create(
-                            id = (actual.vilkårsvurderinger.formue as Vilkår.Formue.Vurdert).grunnlag.first().id,
+                            id = (actual.revurdering.vilkårsvurderinger.formue as Vilkår.Formue.Vurdert).grunnlag.first().id,
                             periode = periodeHele2021,
                             opprettet = fixedTidspunkt,
                             epsFormue = Formuegrunnlag.Verdier.empty(),
@@ -353,6 +360,126 @@ internal class RevurderingLeggTilFormueServiceTest {
             verify(revurderingRepoMock).hent(revurderingId)
         }
         verifyNoMoreInteractions(revurderingRepoMock, vilkårsvurderingServiceMock)
+    }
+
+    @Test
+    fun `når formue blir avslått, og uførhet er det også, får vi feil om at utfallet ikke støttes pga opphør av flere vilkår`() {
+        val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
+                grunnlagsdata = Grunnlagsdata.create(
+                    bosituasjon = listOf(
+                        Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                            id = UUID.randomUUID(), opprettet = fixedTidspunkt,
+                            periode = stønadsperiode2021.periode,
+                            begrunnelse = ":)",
+                        ),
+                    ),
+                ),
+                vilkårsvurderinger = Vilkårsvurderinger(
+                    uføre = Vilkår.Uførhet.Vurdert.create(
+                        vurderingsperioder = nonEmptyListOf(
+                            Vurderingsperiode.Uføre.create(
+                                id = UUID.randomUUID(),
+                                opprettet = fixedTidspunkt,
+                                resultat = Resultat.Avslag,
+                                grunnlag = null,
+                                periode = stønadsperiode2021.periode,
+                                begrunnelse = ":)",
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ).second
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(revurderingId) } doReturn opprettetRevurdering
+        }
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        )
+
+        val actual = revurderingService.leggTilFormuegrunnlag(
+            request = LeggTilFormuegrunnlagRequest(
+                revurderingId = opprettetRevurdering.id,
+                formuegrunnlag = nonEmptyListOf(
+                    LeggTilFormuegrunnlagRequest.Grunnlag(
+                        periode = stønadsperiode2021.periode,
+                        epsFormue = null,
+                        søkersFormue = Formuegrunnlag.Verdier.create(
+                            verdiIkkePrimærbolig = 10000000,
+                            verdiEiendommer = 0,
+                            verdiKjøretøy = 0,
+                            innskudd = 0,
+                            verdipapir = 0,
+                            pengerSkyldt = 0,
+                            kontanter = 0,
+                            depositumskonto = 0,
+                        ),
+                        begrunnelse = ":(",
+                    ),
+                ),
+            ),
+        ).getOrHandle { throw IllegalStateException(it.toString()) }
+
+        actual.feilmeldinger.shouldContain(RevurderingsutfallSomIkkeStøttes.OpphørAvFlereVilkår)
+
+        verify(revurderingRepoMock).hent(revurderingId)
+        verify(revurderingRepoMock).lagre(
+            argThat {
+                it shouldBe actual.revurdering
+            },
+        )
+        verifyNoMoreInteractions(revurderingRepoMock)
+    }
+
+    @Test
+    fun `får feilmelding om at opphør ikke er fra første måned i revurderingsperioden`() {
+        val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(revurderingId) } doReturn opprettetRevurdering
+        }
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        )
+
+        val actual = revurderingService.leggTilFormuegrunnlag(
+            request = LeggTilFormuegrunnlagRequest(
+                revurderingId = opprettetRevurdering.id,
+                formuegrunnlag = nonEmptyListOf(
+                    LeggTilFormuegrunnlagRequest.Grunnlag(
+                        periode = opprettetRevurdering.periode.copy(
+                            tilOgMed = 31.mai(2021),
+                        ),
+                        epsFormue = null,
+                        søkersFormue = Formuegrunnlag.Verdier.empty(),
+                        begrunnelse = ":)",
+                    ),
+                    LeggTilFormuegrunnlagRequest.Grunnlag(
+                        periode = opprettetRevurdering.periode.copy(
+                            fraOgMed = 1.juni(2021),
+                        ),
+                        epsFormue = null,
+                        søkersFormue = Formuegrunnlag.Verdier.create(
+                            verdiIkkePrimærbolig = 10000000,
+                            verdiEiendommer = 0,
+                            verdiKjøretøy = 0,
+                            innskudd = 0,
+                            verdipapir = 0,
+                            pengerSkyldt = 0,
+                            kontanter = 0,
+                            depositumskonto = 0,
+                        ),
+                        begrunnelse = ":(",
+                    ),
+                ),
+            ),
+        ).getOrHandle { throw IllegalStateException(it.toString()) }
+
+        actual.feilmeldinger.shouldContain(RevurderingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned)
     }
 
     @Test

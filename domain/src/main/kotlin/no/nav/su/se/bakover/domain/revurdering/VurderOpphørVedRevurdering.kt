@@ -10,20 +10,37 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
 import java.time.LocalDate
 
-data class VurderOpphørVedRevurdering(
-    private val vilkårsvurderinger: Vilkårsvurderinger,
-    private val beregning: Beregning,
-    private val clock: Clock = Clock.systemUTC(),
-) {
-    val resultat = when (
-        val opphør = setOf(
-            VurderOmVilkårGirOpphørVedRevurdering(vilkårsvurderinger).resultat,
-            VurderOmBeregningGirOpphørVedRevurdering(beregning, clock).resultat,
-        ).filterIsInstance<OpphørVedRevurdering.Ja>()
-            .firstOrNull()
-    ) {
-        is OpphørVedRevurdering.Ja -> opphør
-        else -> OpphørVedRevurdering.Nei
+sealed class VurderOpphørVedRevurdering {
+
+    data class Vilkårsvurderinger(
+        private val vilkårsvurderinger: no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger,
+    ) : VurderOpphørVedRevurdering() {
+        val resultat = when (
+            val opphør = setOf(
+                VurderOmVilkårGirOpphørVedRevurdering(vilkårsvurderinger).resultat,
+            ).filterIsInstance<OpphørVedRevurdering.Ja>()
+                .firstOrNull()
+        ) {
+            is OpphørVedRevurdering.Ja -> opphør
+            else -> OpphørVedRevurdering.Nei
+        }
+    }
+
+    data class VilkårsvurderingerOgBeregning(
+        private val vilkårsvurderinger: no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger,
+        private val beregning: Beregning,
+        private val clock: Clock = Clock.systemUTC(),
+    ) : VurderOpphørVedRevurdering() {
+        val resultat = when (
+            val opphør = setOf(
+                VurderOmVilkårGirOpphørVedRevurdering(vilkårsvurderinger).resultat,
+                VurderOmBeregningGirOpphørVedRevurdering(beregning, clock).resultat,
+            ).filterIsInstance<OpphørVedRevurdering.Ja>()
+                .firstOrNull()
+        ) {
+            is OpphørVedRevurdering.Ja -> opphør
+            else -> OpphørVedRevurdering.Nei
+        }
     }
 }
 
@@ -78,7 +95,8 @@ data class VurderOmBeregningGirOpphørVedRevurdering(
         return OpphørVedRevurdering.Nei
     }
 
-    private fun fullstendigOpphør(): Boolean = beregning.alleMånederErUnderMinstebeløp() || beregning.alleMånederHarBeløpLik0()
+    private fun fullstendigOpphør(): Boolean =
+        beregning.alleMånederErUnderMinstebeløp() || beregning.alleMånederHarBeløpLik0()
 
     private fun førsteFremtidigeMånedUnderMinstebeløp(): Månedsberegning? {
         val førsteDagInneværendeMåned = LocalDate.now(clock).startOfMonth()

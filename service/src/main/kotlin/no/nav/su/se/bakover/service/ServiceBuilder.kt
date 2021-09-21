@@ -107,7 +107,6 @@ object ServiceBuilder {
             brevService = brevService,
             clock = clock,
             vedtakRepo = databaseRepos.vedtakRepo,
-            ferdigstillVedtakService = ferdigstillVedtakService,
             vilkårsvurderingService = vilkårsvurderingService,
             grunnlagService = grunnlagService,
             vedtakService = vedtakService,
