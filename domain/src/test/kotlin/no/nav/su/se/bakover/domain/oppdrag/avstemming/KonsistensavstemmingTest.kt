@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -791,12 +792,14 @@ internal class KonsistensavstemmingTest {
         tilOgMed: LocalDate = 31.desember(2020),
         beløp: Int = 500,
         forrigeUtbetalingslinjeId: UUID30? = null,
+        uføregrad: Uføregrad = Uføregrad.parse(50),
     ) = Utbetalingslinje.Ny(
         opprettet = opprettet,
         fraOgMed = fraOgMed,
         tilOgMed = tilOgMed,
         beløp = beløp,
         forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
+        uføregrad = uføregrad
     )
 
     private fun List<Utbetalingslinje>.toOppdragslinjeForKonsistensavstemming(attestant: NavIdentBruker): List<OppdragslinjeForKonsistensavstemming> {

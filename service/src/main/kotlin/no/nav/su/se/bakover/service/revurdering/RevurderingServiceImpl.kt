@@ -603,6 +603,7 @@ internal class RevurderingServiceImpl(
                             sakId = beregnetRevurdering.sakId,
                             saksbehandler = saksbehandler,
                             beregning = beregnetRevurdering.beregning,
+                            uføregrunnlag = beregnetRevurdering.vilkårsvurderinger.uføre.grunnlag
                         ).mapLeft {
                             KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it)
                         }.map {
@@ -1025,6 +1026,7 @@ internal class RevurderingServiceImpl(
                                 beregning = revurdering.beregning,
                                 simulering = revurdering.simulering,
                                 attestant = attestant,
+                                uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
                             ).mapLeft {
                                 RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
                             }.map {

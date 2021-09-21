@@ -19,15 +19,11 @@ class UtbetalingMqPublisher(
         return mqPublisher.publish(xml)
             .mapLeft {
                 KunneIkkeSendeUtbetaling(
-                    Utbetalingsrequest(
-                        xml
-                    )
+                    Utbetalingsrequest(xml),
                 )
             }
             .map {
-                Utbetalingsrequest(
-                    value = xml
-                )
+                Utbetalingsrequest(value = xml)
             }
     }
 }

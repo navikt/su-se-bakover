@@ -140,6 +140,7 @@ internal fun utbetalingslinje() = Utbetalingslinje.Ny(
     tilOgMed = 31.desember(2020),
     forrigeUtbetalingslinjeId = null,
     beløp = 25000,
+    uføregrad = Uføregrad.parse(50),
 )
 
 internal fun oversendtUtbetalingUtenKvittering(

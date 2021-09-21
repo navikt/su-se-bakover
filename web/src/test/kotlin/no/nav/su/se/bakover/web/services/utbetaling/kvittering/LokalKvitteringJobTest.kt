@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -52,7 +53,8 @@ internal class LokalKvitteringJobTest {
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.januar(2021),
                 forrigeUtbetalingslinjeId = null,
-                beløp = 0
+                beløp = 0,
+                uføregrad = Uføregrad.parse(50),
             )
         ),
         type = Utbetaling.UtbetalingsType.NY,

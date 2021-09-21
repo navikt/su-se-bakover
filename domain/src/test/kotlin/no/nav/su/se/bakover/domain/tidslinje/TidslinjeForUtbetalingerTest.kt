@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import org.junit.jupiter.api.Test
@@ -41,6 +42,7 @@ internal class TidslinjeForUtbetalingerTest {
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
             beløp = 1000,
+            uføregrad = Uføregrad.parse(50),
         )
         TidslinjeForUtbetalinger(
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
@@ -62,12 +64,14 @@ internal class TidslinjeForUtbetalingerTest {
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
             beløp = 1000,
+            uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
             beløp = 2000,
+            uføregrad = Uføregrad.parse(50),
         )
 
         TidslinjeForUtbetalinger(
@@ -96,12 +100,14 @@ internal class TidslinjeForUtbetalingerTest {
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
             beløp = 1000,
+            uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
             beløp = 2000,
+            uføregrad = Uføregrad.parse(50),
         )
         val stans = Utbetalingslinje.Endring.Stans(
             utbetalingslinje = andre,
@@ -135,12 +141,14 @@ internal class TidslinjeForUtbetalingerTest {
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
             beløp = 1000,
+            uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
             beløp = 2000,
+            uføregrad = Uføregrad.parse(50),
         )
         val stans = Utbetalingslinje.Endring.Stans(
             utbetalingslinje = andre,
@@ -191,12 +199,14 @@ internal class TidslinjeForUtbetalingerTest {
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
             beløp = 1000,
+            uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
             beløp = 2000,
+            uføregrad = Uføregrad.parse(50),
         )
         val opphør = Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = andre,
@@ -247,12 +257,14 @@ internal class TidslinjeForUtbetalingerTest {
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
             beløp = 1000,
+            uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
             beløp = 2000,
+            uføregrad = Uføregrad.parse(50),
         )
         val opphør = Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = andre,
@@ -280,12 +292,14 @@ internal class TidslinjeForUtbetalingerTest {
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
             beløp = 1000,
+            uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
             beløp = 2000,
+            uføregrad = Uføregrad.parse(50),
         )
         val opphør = Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = andre,
@@ -324,12 +338,14 @@ internal class TidslinjeForUtbetalingerTest {
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
             beløp = 1000,
+            uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
             beløp = 2000,
+            uføregrad = Uføregrad.parse(50),
         )
         val førsteStans = Utbetalingslinje.Endring.Stans(
             utbetalingslinje = andre,
@@ -341,6 +357,7 @@ internal class TidslinjeForUtbetalingerTest {
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = førsteStans.id,
             beløp = 3000,
+            uføregrad = Uføregrad.parse(50),
         )
         val andreStans = Utbetalingslinje.Endring.Stans(
             utbetalingslinje = tredje,
@@ -391,12 +408,14 @@ internal class TidslinjeForUtbetalingerTest {
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
             beløp = 1000,
+            uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
             beløp = 2000,
+            uføregrad = Uføregrad.parse(50),
         )
         val førsteStans = Utbetalingslinje.Endring.Stans(
             utbetalingslinje = andre,
@@ -454,6 +473,7 @@ internal class TidslinjeForUtbetalingerTest {
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
             beløp = 1000,
+            uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
             opprettet = Tidspunkt.now(førsteTidspunkt),
@@ -461,6 +481,7 @@ internal class TidslinjeForUtbetalingerTest {
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
             beløp = 2000,
+            uføregrad = Uføregrad.parse(50),
         )
         val førsteStans = Utbetalingslinje.Endring.Stans(
             utbetalingslinje = andre,
@@ -507,6 +528,7 @@ internal class TidslinjeForUtbetalingerTest {
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
             beløp = 1000,
+            uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
             opprettet = Tidspunkt.now(førsteTidspunkt),
@@ -514,6 +536,7 @@ internal class TidslinjeForUtbetalingerTest {
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
             beløp = 2000,
+            uføregrad = Uføregrad.parse(50),
         )
         val førsteStans = Utbetalingslinje.Endring.Stans(
             utbetalingslinje = andre,
@@ -531,6 +554,7 @@ internal class TidslinjeForUtbetalingerTest {
             tilOgMed = 31.desember(2021),
             forrigeUtbetalingslinjeId = reaktivering.id,
             beløp = 3000,
+            uføregrad = Uføregrad.parse(50),
         )
 
         TidslinjeForUtbetalinger(
@@ -571,12 +595,14 @@ internal class TidslinjeForUtbetalingerTest {
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
             beløp = 1000,
+            uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
             beløp = 2000,
+            uføregrad = Uføregrad.parse(50),
         )
         val førsteStans = Utbetalingslinje.Endring.Stans(
             utbetalingslinje = andre,
@@ -643,12 +669,14 @@ internal class TidslinjeForUtbetalingerTest {
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
             beløp = 1000,
+            uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
             beløp = 2000,
+            uføregrad = Uføregrad.parse(50),
         )
         val opphør = Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = andre,
@@ -699,12 +727,14 @@ internal class TidslinjeForUtbetalingerTest {
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
             beløp = 1000,
+            uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
             beløp = 2000,
+            uføregrad = Uføregrad.parse(50),
         )
         val opphør = Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = andre,
@@ -716,6 +746,7 @@ internal class TidslinjeForUtbetalingerTest {
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = opphør.id,
             beløp = 3000,
+            uføregrad = Uføregrad.parse(50),
         )
         val stans = Utbetalingslinje.Endring.Stans(
             utbetalingslinje = tredje,
@@ -766,30 +797,35 @@ internal class TidslinjeForUtbetalingerTest {
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
             beløp = 1000,
+            uføregrad = Uføregrad.parse(50),
         )
         val andre = Utbetalingslinje.Ny(
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = første.id,
             beløp = 2000,
+            uføregrad = Uføregrad.parse(50),
         )
         val tredje = Utbetalingslinje.Ny(
             fraOgMed = 1.januar(2021),
             tilOgMed = 31.desember(2021),
             forrigeUtbetalingslinjeId = andre.id,
             beløp = 3000,
+            uføregrad = Uføregrad.parse(50),
         )
         val fjerde = Utbetalingslinje.Ny(
             fraOgMed = 1.februar(2021),
             tilOgMed = 31.desember(2021),
             forrigeUtbetalingslinjeId = tredje.id,
             beløp = 4000,
+            uføregrad = Uføregrad.parse(50),
         )
         val femte = Utbetalingslinje.Ny(
             fraOgMed = 1.mars(2021),
             tilOgMed = 31.desember(2021),
             forrigeUtbetalingslinjeId = fjerde.id,
             beløp = 5000,
+            uføregrad = Uføregrad.parse(50),
         )
 
         TidslinjeForUtbetalinger(

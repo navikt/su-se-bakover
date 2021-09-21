@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -51,7 +52,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             on { hent(any()) } doReturn beregnetBehandling
         }
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerUtbetaling(any(), any(), any()) } doReturn simulertUtbetaling.right()
+            on { simulerUtbetaling(any(), any(), any(), any()) } doReturn simulertUtbetaling.right()
         }
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
@@ -84,7 +85,8 @@ internal class SøknadsbehandlingServiceSimuleringTest {
         verify(utbetalingServiceMock).simulerUtbetaling(
             sakId = argThat { it shouldBe beregnetBehandling.sakId },
             saksbehandler = argThat { it shouldBe saksbehandler },
-            beregning = argThat { it shouldBe beregnetBehandling.beregning }
+            beregning = argThat { it shouldBe beregnetBehandling.beregning },
+            uføregrunnlag = argThat { it shouldBe emptyList() },
         )
         verify(søknadsbehandlingRepoMock).lagre(expected)
     }
@@ -115,7 +117,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             on { hent(any()) } doReturn beregnetBehandling
         }
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerUtbetaling(any(), any(), any()) } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
+            on { simulerUtbetaling(any(), any(), any(), any()) } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
         }
 
         val response = createSøknadsbehandlingService(
@@ -132,7 +134,8 @@ internal class SøknadsbehandlingServiceSimuleringTest {
         verify(utbetalingServiceMock).simulerUtbetaling(
             sakId = argThat { it shouldBe beregnetBehandling.sakId },
             saksbehandler = argThat { it shouldBe saksbehandler },
-            beregning = argThat { it shouldBe beregnetBehandling.beregning }
+            beregning = argThat { it shouldBe beregnetBehandling.beregning },
+            uføregrunnlag = argThat { it shouldBe emptyList() },
         )
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, utbetalingServiceMock)
     }
@@ -185,13 +188,14 @@ internal class SøknadsbehandlingServiceSimuleringTest {
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.januar(2021),
                 forrigeUtbetalingslinjeId = null,
-                beløp = 0
-            )
+                beløp = 0,
+                uføregrad = Uføregrad.parse(50),
+            ),
         ),
         fnr = fnr,
         type = Utbetaling.UtbetalingsType.NY,
         behandler = Attestant("SU"),
-        avstemmingsnøkkel = Avstemmingsnøkkel()
+        avstemmingsnøkkel = Avstemmingsnøkkel(),
     )
 
     private val simulertUtbetaling = utbetalingForSimulering.toSimulertUtbetaling(simulering)

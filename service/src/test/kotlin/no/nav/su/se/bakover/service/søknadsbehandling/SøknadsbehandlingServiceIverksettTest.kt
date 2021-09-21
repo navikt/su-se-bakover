@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -97,6 +98,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 tilOgMed = 31.januar(2021),
                 forrigeUtbetalingslinjeId = null,
                 beløp = 0,
+                uføregrad = Uføregrad.parse(50),
             ),
         ),
         type = Utbetaling.UtbetalingsType.NY,
@@ -150,7 +152,9 @@ internal class SøknadsbehandlingServiceIverksettTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { utbetal(any(), any(), any(), any()) } doReturn UtbetalingFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL).left()
+            on { utbetal(any(), any(), any(), any(), any()) } doReturn UtbetalingFeilet.KunneIkkeSimulere(
+                SimuleringFeilet.TEKNISK_FEIL,
+            ).left()
         }
 
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
@@ -176,6 +180,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 attestant = argThat { it shouldBe attestant },
                 beregning = argThat { it shouldBe beregning },
                 simulering = argThat { it shouldBe simulering },
+                uføregrunnlag = argThat { it shouldBe emptyList() },
             )
             serviceAndMocks.verifyNoMoreInteractions()
         }
@@ -192,6 +197,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val utbetalingServiceMock = mock<UtbetalingService> {
             on {
                 utbetal(
+                    any(),
                     any(),
                     any(),
                     any(),
@@ -223,6 +229,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 attestant = argThat { it shouldBe attestant },
                 beregning = argThat { it shouldBe beregning },
                 simulering = argThat { it shouldBe simulering },
+                uføregrunnlag = argThat { it shouldBe emptyList() },
             )
             serviceAndMocks.verifyNoMoreInteractions()
         }
@@ -237,7 +244,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { utbetal(any(), any(), any(), any()) } doReturn UtbetalingFeilet.Protokollfeil.left()
+            on { utbetal(any(), any(), any(), any(), any()) } doReturn UtbetalingFeilet.Protokollfeil.left()
         }
 
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
@@ -263,6 +270,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 attestant = argThat { it shouldBe attestant },
                 beregning = argThat { it shouldBe beregning },
                 simulering = argThat { it shouldBe simulering },
+                uføregrunnlag = argThat { it shouldBe emptyList() },
             )
             serviceAndMocks.verifyNoMoreInteractions()
         }
@@ -277,7 +285,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { utbetal(any(), any(), any(), any()) } doReturn utbetaling.right()
+            on { utbetal(any(), any(), any(), any(), any()) } doReturn utbetaling.right()
         }
         val behandlingMetricsMock = mock<BehandlingMetrics>()
         val vedtakRepoMock = mock<VedtakRepo>()
@@ -330,6 +338,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 attestant = argThat { it shouldBe attestant },
                 beregning = argThat { it shouldBe beregning },
                 simulering = argThat { it shouldBe simulering },
+                uføregrunnlag = argThat { it shouldBe emptyList() },
             )
             verify(søknadsbehandlingRepoMock).lagre(expected)
             verify(vedtakRepoMock).lagre(

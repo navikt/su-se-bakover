@@ -57,6 +57,12 @@ internal fun toUtbetalingRequest(
                                 refDelytelseId = null,
                                 refFagsystemId = null,
                                 attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant(utbetaling.behandler.navIdent)),
+                                grad = it.uføregrad?.let { uføregrad ->
+                                    UtbetalingRequest.Oppdragslinje.Grad(
+                                        typeGrad = UtbetalingRequest.Oppdragslinje.TypeGrad.UFOR,
+                                        grad = uføregrad.value,
+                                    )
+                                },
                             )
                         }
                         is Utbetalingslinje.Ny -> {
@@ -77,6 +83,12 @@ internal fun toUtbetalingRequest(
                                 refDelytelseId = it.forrigeUtbetalingslinjeId?.toString(),
                                 refFagsystemId = it.forrigeUtbetalingslinjeId?.let { utbetaling.saksnummer.toString() },
                                 attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant(utbetaling.behandler.navIdent)),
+                                grad = it.uføregrad?.let { uføregrad ->
+                                    UtbetalingRequest.Oppdragslinje.Grad(
+                                        typeGrad = UtbetalingRequest.Oppdragslinje.TypeGrad.UFOR,
+                                        grad = uføregrad.value,
+                                    )
+                                },
                             )
                         }
                     }

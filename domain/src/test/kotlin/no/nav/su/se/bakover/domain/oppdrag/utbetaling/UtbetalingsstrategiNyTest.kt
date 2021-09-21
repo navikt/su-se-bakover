@@ -24,6 +24,8 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedTidspunkt
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
@@ -48,6 +50,16 @@ internal class UtbetalingsstrategiNyTest {
 
     private val fixedClock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)
 
+    private val uføregrunnlagListe = listOf(
+        Grunnlag.Uføregrunnlag(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
+            uføregrad = Uføregrad.parse(50),
+            forventetInntekt = 0,
+        ),
+    )
+
     @Test
     fun `ingen eksisterende utbetalinger`() {
         val actual = Utbetalingsstrategi.Ny(
@@ -58,6 +70,7 @@ internal class UtbetalingsstrategiNyTest {
             beregning = createBeregning(1.januar(2020), 30.april(2020)),
             utbetalinger = listOf(),
             clock = fixedClock,
+            uføregrunnlag = uføregrunnlagListe,
         ).generate()
 
         val first = actual.utbetalingslinjer.first()
@@ -103,6 +116,7 @@ internal class UtbetalingsstrategiNyTest {
                         tilOgMed = 31.desember(2018),
                         forrigeUtbetalingslinjeId = null,
                         beløp = 5000,
+                        uføregrad = Uføregrad.parse(50),
                     ),
                 ),
                 fnr = fnr,
@@ -122,6 +136,7 @@ internal class UtbetalingsstrategiNyTest {
                 tilOgMed = 31.desember(2020),
             ),
             clock = fixedClock,
+            uføregrunnlagListe,
         ).generate()
 
         nyUtbetaling shouldBe Utbetaling.UtbetalingForSimulering(
@@ -164,6 +179,7 @@ internal class UtbetalingsstrategiNyTest {
                 tilOgMed = 31.januar(2021),
                 forrigeUtbetalingslinjeId = null,
                 beløp = 0,
+                uføregrad = Uføregrad.parse(50),
             ),
         )
 
@@ -259,6 +275,7 @@ internal class UtbetalingsstrategiNyTest {
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             beregning = createBeregning(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
             clock = fixedClock,
+            uføregrunnlagListe,
         ).generate()
         actualUtbetaling shouldBe Utbetaling.UtbetalingForSimulering(
             id = actualUtbetaling.id,
@@ -273,6 +290,7 @@ internal class UtbetalingsstrategiNyTest {
                     tilOgMed = 30.april(2020),
                     forrigeUtbetalingslinjeId = null,
                     beløp = 20637,
+                    uføregrad = Uføregrad.parse(50),
                 ),
                 Utbetalingslinje.Ny(
                     id = actualUtbetaling.utbetalingslinjer[1].id,
@@ -281,6 +299,7 @@ internal class UtbetalingsstrategiNyTest {
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = actualUtbetaling.utbetalingslinjer[0].id,
                     beløp = 20946,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             ),
             fnr = fnr,
@@ -320,6 +339,7 @@ internal class UtbetalingsstrategiNyTest {
                 fradragStrategy = FradragStrategy.Enslig,
             ),
             clock = fixedClock,
+            uføregrunnlagListe,
         ).generate()
         actualUtbetaling shouldBe Utbetaling.UtbetalingForSimulering(
             id = actualUtbetaling.id,
@@ -334,6 +354,7 @@ internal class UtbetalingsstrategiNyTest {
                     tilOgMed = 31.januar(2020),
                     forrigeUtbetalingslinjeId = null,
                     beløp = 19637,
+                    uføregrad = Uføregrad.parse(50),
                 ),
                 Utbetalingslinje.Ny(
                     id = actualUtbetaling.utbetalingslinjer[1].id,
@@ -342,6 +363,7 @@ internal class UtbetalingsstrategiNyTest {
                     tilOgMed = 29.februar(2020),
                     forrigeUtbetalingslinjeId = actualUtbetaling.utbetalingslinjer[0].id,
                     beløp = 16637,
+                    uføregrad = Uføregrad.parse(50),
                 ),
                 Utbetalingslinje.Ny(
                     id = actualUtbetaling.utbetalingslinjer[2].id,
@@ -350,6 +372,7 @@ internal class UtbetalingsstrategiNyTest {
                     tilOgMed = 30.april(2020),
                     forrigeUtbetalingslinjeId = actualUtbetaling.utbetalingslinjer[1].id,
                     beløp = actualUtbetaling.utbetalingslinjer[0].beløp,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             ),
             fnr = fnr,
@@ -383,6 +406,7 @@ internal class UtbetalingsstrategiNyTest {
         tilOgMed: LocalDate,
         beløp: Int,
         forrigeUtbetalingslinjeId: UUID30?,
+        uføregrad: Uføregrad = Uføregrad.parse(50),
     ): Utbetalingslinje {
         return Utbetalingslinje.Ny(
             id = utbetalingslinjeId,
@@ -391,6 +415,7 @@ internal class UtbetalingsstrategiNyTest {
             tilOgMed = tilOgMed,
             forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
             beløp = beløp,
+            uføregrad = uføregrad,
         )
     }
 

@@ -136,6 +136,7 @@ class RevurderingIngenEndringTest {
                     tilOgMed = periodeNesteMånedOgTreMånederFram.tilOgMed,
                     forrigeUtbetalingslinjeId = null,
                     beløp = 20000,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             )
         }

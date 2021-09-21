@@ -6,6 +6,7 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
@@ -17,6 +18,8 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -71,6 +74,16 @@ internal class UtbetalingServiceImplTest {
         periodeList = listOf(),
     )
 
+    private val listeMedUføregrunnlag = listOf(
+        Grunnlag.Uføregrunnlag(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
+            uføregrad = Uføregrad.parse(50),
+            forventetInntekt = 0,
+        ),
+    )
+
     private val dummyUtbetalingslinjer = nonEmptyListOf(
         Utbetalingslinje.Ny(
             opprettet = fixedTidspunkt,
@@ -78,6 +91,7 @@ internal class UtbetalingServiceImplTest {
             tilOgMed = 31.januar(2020),
             forrigeUtbetalingslinjeId = null,
             beløp = 0,
+            uføregrad = Uføregrad.parse(50),
         ),
     )
 
@@ -332,6 +346,7 @@ internal class UtbetalingServiceImplTest {
             attestant = attestant,
             beregning = beregning,
             simulering = simulering,
+            listeMedUføregrunnlag,
         ).orNull()!!
 
         actual shouldBe utbetalingForSimulering.copy(
@@ -346,6 +361,7 @@ internal class UtbetalingServiceImplTest {
                     tilOgMed = 31.januar(2020),
                     forrigeUtbetalingslinjeId = null,
                     beløp = 8637,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             ),
         ).toSimulertUtbetaling(simulering).toOversendtUtbetaling(oppdragsmelding)
@@ -372,6 +388,7 @@ internal class UtbetalingServiceImplTest {
                                 tilOgMed = 31.januar(2020),
                                 forrigeUtbetalingslinjeId = null,
                                 beløp = 8637,
+                                uføregrad = Uføregrad.parse(50),
                             ),
                         ),
                     )
@@ -391,6 +408,7 @@ internal class UtbetalingServiceImplTest {
                                 tilOgMed = 31.januar(2020),
                                 forrigeUtbetalingslinjeId = null,
                                 beløp = 8637,
+                                uføregrad = Uføregrad.parse(50),
                             ),
                         ),
                     ).toSimulertUtbetaling(simulering)
@@ -410,6 +428,7 @@ internal class UtbetalingServiceImplTest {
                                 tilOgMed = 31.januar(2020),
                                 forrigeUtbetalingslinjeId = null,
                                 beløp = 8637,
+                                uføregrad = Uføregrad.parse(50),
                             ),
                         ),
                     ).toSimulertUtbetaling(simulering).toOversendtUtbetaling(oppdragsmelding)
@@ -451,6 +470,7 @@ internal class UtbetalingServiceImplTest {
             attestant = attestant,
             beregning = beregning,
             simulering = simulering,
+            uføregrunnlag = listeMedUføregrunnlag,
         )
 
         response shouldBe UtbetalingFeilet.Protokollfeil.left()
@@ -471,6 +491,7 @@ internal class UtbetalingServiceImplTest {
                                 tilOgMed = 31.januar(2020),
                                 forrigeUtbetalingslinjeId = null,
                                 beløp = 8637,
+                                uføregrad = Uføregrad.parse(50),
                             ),
                         ),
                     )
@@ -490,6 +511,7 @@ internal class UtbetalingServiceImplTest {
                                 tilOgMed = 31.januar(2020),
                                 forrigeUtbetalingslinjeId = null,
                                 beløp = 8637,
+                                uføregrad = Uføregrad.parse(50),
                             ),
                         ),
                     ).toSimulertUtbetaling(simulering)
@@ -529,6 +551,7 @@ internal class UtbetalingServiceImplTest {
             attestant = attestant,
             beregning = beregning,
             simulering = simulering,
+            listeMedUføregrunnlag,
         )
 
         actual shouldBe UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
@@ -553,6 +576,7 @@ internal class UtbetalingServiceImplTest {
                                 tilOgMed = 31.januar(2020),
                                 forrigeUtbetalingslinjeId = null,
                                 beløp = 8637,
+                                uføregrad = Uføregrad.parse(50),
                             ),
                         ),
                     )
@@ -579,6 +603,7 @@ internal class UtbetalingServiceImplTest {
                     tilOgMed = 31.januar(2020),
                     forrigeUtbetalingslinjeId = null,
                     beløp = 53821,
+                    uføregrad = Uføregrad.parse(50),
                 )
 
             val utbetalingRepoMock = mock<UtbetalingRepo> {
@@ -593,6 +618,7 @@ internal class UtbetalingServiceImplTest {
                                 tilOgMed = 29.februar(2020),
                                 forrigeUtbetalingslinjeId = null,
                                 beløp = 53821,
+                                uføregrad = Uføregrad.parse(50),
                             ),
                             Utbetalingslinje.Ny(
                                 id = UUID30.randomUUID(),
@@ -601,6 +627,7 @@ internal class UtbetalingServiceImplTest {
                                 tilOgMed = 31.mars(2020),
                                 forrigeUtbetalingslinjeId = null,
                                 beløp = 53821,
+                                uføregrad = Uføregrad.parse(50),
                             ),
                         ),
                     ),

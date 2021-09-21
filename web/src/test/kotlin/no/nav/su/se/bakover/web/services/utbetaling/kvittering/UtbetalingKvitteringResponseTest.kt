@@ -62,10 +62,14 @@ internal class UtbetalingKvitteringResponseTest {
                         refFagsystemId = null,
                         attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456")),
                         datoStatusFom = null,
-                        kodeStatusLinje = null
-                    )
-                )
-            )
+                        kodeStatusLinje = null,
+                        grad = UtbetalingRequest.Oppdragslinje.Grad(
+                            typeGrad = UtbetalingRequest.Oppdragslinje.TypeGrad.UFOR,
+                            grad = 50,
+                        ),
+                    ),
+                ),
+            ),
         )
     }
 
@@ -113,6 +117,10 @@ internal class UtbetalingKvitteringResponseTest {
          <brukKjoreplan>N</brukKjoreplan>
          <saksbehId>SU</saksbehId>
          <utbetalesTilId>18127621833</utbetalesTilId>
+         <grad-170>
+            <typeGrad>UFOR</typeGrad>
+            <grad>50</grad>
+         </grad-170>
          <attestant-180>
             <attestantId>A123456</attestantId>
          </attestant-180>

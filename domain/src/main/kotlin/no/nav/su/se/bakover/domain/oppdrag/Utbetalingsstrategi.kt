@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import java.time.Clock
@@ -129,14 +130,16 @@ sealed class Utbetalingsstrategi {
         override val behandler: NavIdentBruker,
         val beregning: Beregning,
         val clock: Clock,
+        val uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
     ) : Utbetalingsstrategi() {
         fun generate(): Utbetaling.UtbetalingForSimulering {
-            val utbetalingslinjer = createUtbetalingsperioder(beregning).map {
+            val utbetalingslinjer = createUtbetalingsperioder(beregning, uføregrunnlag).map {
                 Utbetalingslinje.Ny(
                     fraOgMed = it.fraOgMed,
                     tilOgMed = it.tilOgMed,
                     forrigeUtbetalingslinjeId = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.id,
                     beløp = it.beløp,
+                    uføregrad = it.uføregrad,
                 )
             }.also {
                 it.zipWithNext { a, b -> b.link(a) }
@@ -152,13 +155,17 @@ sealed class Utbetalingsstrategi {
             )
         }
 
-        private fun createUtbetalingsperioder(beregning: Beregning) =
-            SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(beregning.getMånedsberegninger()).beregningsperioder
+        private fun createUtbetalingsperioder(beregning: Beregning, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) =
+            SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder.Utbetaling(
+                beregning.getMånedsberegninger(),
+                uføregrunnlag,
+            ).beregningsperioder
                 .map {
                     Utbetalingsperiode(
                         fraOgMed = it.periode.fraOgMed,
                         tilOgMed = it.periode.tilOgMed,
                         beløp = it.getSumYtelse(),
+                        uføregrad = it.uføregrunnlag.uføregrad,
                     )
                 }
     }

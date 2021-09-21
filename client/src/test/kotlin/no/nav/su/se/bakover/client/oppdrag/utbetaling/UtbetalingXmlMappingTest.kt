@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -36,12 +37,14 @@ class UtbetalingXmlMappingTest {
         tilOgMed = 31.januar(2020),
         beløp = 10,
         forrigeUtbetalingslinjeId = null,
+        uføregrad = Uføregrad.parse(50),
     )
     private val andreUtbetalingslinje = Utbetalingslinje.Ny(
         fraOgMed = 1.februar(2020),
         tilOgMed = 29.februar(2020),
         beløp = 20,
         forrigeUtbetalingslinjeId = førsteUtbetalingsLinje.id,
+        uføregrad = Uføregrad.parse(60),
     )
 
     private val tredjeUtbetalingslinje = Utbetalingslinje.Endring.Opphør(
@@ -101,6 +104,10 @@ class UtbetalingXmlMappingTest {
                   <brukKjoreplan>N</brukKjoreplan>
                   <saksbehId>SU</saksbehId>
                   <utbetalesTilId>$fnr</utbetalesTilId>
+                  <grad-170>
+                    <typeGrad>UFOR</typeGrad>
+                    <grad>50</grad>
+                  </grad-170>
                   <attestant-180>
                     <attestantId>A123456</attestantId>
                   </attestant-180>
@@ -119,6 +126,10 @@ class UtbetalingXmlMappingTest {
                   <utbetalesTilId>$fnr</utbetalesTilId>
                   <refDelytelseId>${førsteUtbetalingsLinje.id}</refDelytelseId>
                   <refFagsystemId>$saksnummer</refFagsystemId>
+                  <grad-170>
+                    <typeGrad>UFOR</typeGrad>
+                    <grad>60</grad>
+                  </grad-170>
                   <attestant-180>
                     <attestantId>A123456</attestantId>
                   </attestant-180>
@@ -137,6 +148,10 @@ class UtbetalingXmlMappingTest {
                   <brukKjoreplan>N</brukKjoreplan>
                   <saksbehId>SU</saksbehId>
                   <utbetalesTilId>$fnr</utbetalesTilId>
+                  <grad-170>
+                    <typeGrad>UFOR</typeGrad>
+                    <grad>60</grad>
+                  </grad-170>
                   <attestant-180>
                     <attestantId>A123456</attestantId>
                   </attestant-180>

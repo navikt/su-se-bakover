@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -40,6 +41,7 @@ internal class UtbetalingRequestTest {
                     tilOgMed = 30.april(2020),
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = null,
+                    uføregrad = Uføregrad.parse(50),
                 ),
                 Utbetalingslinje.Ny(
                     id = nyOppdragslinjeId2,
@@ -47,6 +49,7 @@ internal class UtbetalingRequestTest {
                     tilOgMed = 31.desember(2020),
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = nyOppdragslinjeId1,
+                    uføregrad = Uføregrad.parse(70),
                 ),
             ),
             fnr = FNR,
@@ -95,6 +98,10 @@ internal class UtbetalingRequestTest {
                         refDelytelseId = null,
                         refFagsystemId = null,
                         attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456")),
+                        grad = UtbetalingRequest.Oppdragslinje.Grad(
+                            typeGrad = UtbetalingRequest.Oppdragslinje.TypeGrad.UFOR,
+                            grad = 50,
+                        ),
                     ),
                     UtbetalingRequest.Oppdragslinje(
                         kodeEndringLinje = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.NY,
@@ -113,6 +120,10 @@ internal class UtbetalingRequestTest {
                         attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456")),
                         kodeStatusLinje = null,
                         datoStatusFom = null,
+                        grad = UtbetalingRequest.Oppdragslinje.Grad(
+                            typeGrad = UtbetalingRequest.Oppdragslinje.TypeGrad.UFOR,
+                            grad = 70,
+                        ),
                     ),
                 ),
             ),
@@ -143,6 +154,7 @@ internal class UtbetalingRequestTest {
                     tilOgMed = 30.april(2020),
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeId,
+                    uføregrad = Uføregrad.parse(50),
                 ),
                 Utbetalingslinje.Ny(
                     id = nyOppdragslinjeid2,
@@ -150,6 +162,7 @@ internal class UtbetalingRequestTest {
                     tilOgMed = 31.desember(2020),
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = nyOppdragslinjeid1,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             ),
             fnr = FNR,
@@ -199,6 +212,10 @@ internal class UtbetalingRequestTest {
                         attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456")),
                         kodeStatusLinje = null,
                         datoStatusFom = null,
+                        grad = UtbetalingRequest.Oppdragslinje.Grad(
+                            typeGrad = UtbetalingRequest.Oppdragslinje.TypeGrad.UFOR,
+                            grad = 50,
+                        ),
                     ),
                     UtbetalingRequest.Oppdragslinje(
                         kodeStatusLinje = null,
@@ -217,6 +234,10 @@ internal class UtbetalingRequestTest {
                         refDelytelseId = nyOppdragslinjeid1.toString(),
                         refFagsystemId = saksnummer.toString(),
                         attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456")),
+                        grad = UtbetalingRequest.Oppdragslinje.Grad(
+                            typeGrad = UtbetalingRequest.Oppdragslinje.TypeGrad.UFOR,
+                            grad = 50,
+                        ),
                     ),
                 ),
             ),
@@ -311,6 +332,10 @@ internal class UtbetalingRequestTest {
                     attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456")),
                     kodeStatusLinje = status,
                     datoStatusFom = "2020-01-01",
+                    grad = UtbetalingRequest.Oppdragslinje.Grad(
+                        typeGrad = UtbetalingRequest.Oppdragslinje.TypeGrad.UFOR,
+                        grad = 70,
+                    ),
                 ),
             ),
         ),

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.system.os.entiteter.typer.simpletypes.FradragTillegg
 
 // Ref: https://github.com/navikt/tjenestespesifikasjoner/blob/master/nav-virksomhet-oppdragsbehandling-v1-meldingsdefinisjon/src/main/xsd/no/trygdeetaten/skjema/oppdrag/oppdragskjema-1.xsd
 @JacksonXmlRootElement(localName = "Oppdrag")
@@ -107,6 +106,8 @@ data class UtbetalingRequest(
         /** Makslengde 30 tegn */
         val refDelytelseId: String?,
         val refFagsystemId: String?,
+        @field:JacksonXmlProperty(localName = "grad-170")
+        val grad: Grad?,
         @field:JacksonXmlProperty(localName = "attestant-180")
         val attestant: List<Attestant>,
     ) {
@@ -172,6 +173,15 @@ data class UtbetalingRequest(
             AKTO("AKTO");
 
             override fun toString() = value
+        }
+
+        data class Grad(
+            val typeGrad: TypeGrad,
+            val grad: Int,
+        )
+
+        enum class TypeGrad(@JsonValue val value: String) {
+            UFOR("UFOR")
         }
 
         data class Attestant(

@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.database.fixedTidspunkt
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -293,12 +294,14 @@ internal class AvstemmingPostgresRepoTest {
                 tilOgMed = 30.april(2020),
                 forrigeUtbetalingslinjeId = null,
                 beløp = 15000,
+                uføregrad = Uføregrad.parse(50),
             )
             val andre = Utbetalingslinje.Ny(
                 fraOgMed = 1.mai(2020),
                 tilOgMed = 31.desember(2020),
                 forrigeUtbetalingslinjeId = første.id,
                 beløp = 17000,
+                uføregrad = Uføregrad.parse(40),
             )
             val oversendtUtbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering(
                 utbetalingslinjer = nonEmptyListOf(første, andre),
