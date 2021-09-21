@@ -3,15 +3,17 @@ package no.nav.su.se.bakover.database.søknadsbehandling
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DbMetrics
+import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
+import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -40,11 +42,11 @@ import javax.sql.DataSource
 
 internal class SøknadsbehandlingPostgresRepo(
     private val dataSource: DataSource,
-    private val uføregrunnlagRepo: UføregrunnlagPostgresRepo,
     private val fradragsgrunnlagPostgresRepo: FradragsgrunnlagPostgresRepo,
     private val bosituasjongrunnlagRepo: BosituasjongrunnlagPostgresRepo,
     private val uføreVilkårsvurderingRepo: UføreVilkårsvurderingPostgresRepo,
     private val dbMetrics: DbMetrics,
+    private val sessionFactory: PostgresSessionFactory,
 ) : SøknadsbehandlingRepo {
     override fun lagre(søknadsbehandling: Søknadsbehandling) {
         dataSource.withSession { session ->
@@ -122,17 +124,23 @@ internal class SøknadsbehandlingPostgresRepo(
         }
     }
 
+    override fun hentForSak(sakId: UUID, sessionContext: SessionContext): List<Søknadsbehandling> {
+        return sessionContext.withSession { session ->
+            "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.sakId=:sakId"
+                .hentListe(mapOf("sakId" to sakId), session) {
+                    it.toSaksbehandling(session)
+                }
+        }
+    }
+
+    override fun defaultSessionContext(): SessionContext {
+        return sessionFactory.newSessionContext()
+    }
+
     internal fun hent(id: UUID, session: Session): Søknadsbehandling? {
         return "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
             .hent(mapOf("id" to id), session) { row ->
                 row.toSaksbehandling(session)
-            }
-    }
-
-    internal fun hentForSak(sakId: UUID, session: Session): List<Søknadsbehandling> {
-        return "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.sakId=:sakId"
-            .hentListe(mapOf("sakId" to sakId), session) {
-                it.toSaksbehandling(session)
             }
     }
 

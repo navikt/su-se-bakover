@@ -49,6 +49,15 @@ data class Periode private constructor(
      * true: equals
      * false: Det finnes ingen måneder som overlapper
      */
+    infix fun overlapper(other: List<Periode>): Boolean =
+        other.any { this.overlapper(it) }
+
+    /**
+     * true: Det finnes minst en måned som overlapper
+     * true: Fullstendig overlapp
+     * true: equals
+     * false: Det finnes ingen måneder som overlapper
+     */
     infix fun overlapper(other: Periode): Boolean =
         starterSamtidigEllerTidligere(other) && slutterInni(other) ||
             other.starterSamtidigEllerTidligere(this) && other.slutterInni(this) ||
