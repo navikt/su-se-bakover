@@ -334,6 +334,7 @@ internal class RevurderingServiceImpl(
             }
             is BeregnetRevurdering -> {
                 identifiserUtfallSomIkkeStøttes(
+                    revurderingsperiode = revurdering.periode,
                     vilkårsvurderinger = revurdering.vilkårsvurderinger,
                     tidligereBeregning = revurdering.tilRevurdering.beregning,
                     nyBeregning = revurdering.beregning,
@@ -341,6 +342,7 @@ internal class RevurderingServiceImpl(
             }
             is SimulertRevurdering -> {
                 identifiserUtfallSomIkkeStøttes(
+                    revurderingsperiode = revurdering.periode,
                     vilkårsvurderinger = revurdering.vilkårsvurderinger,
                     tidligereBeregning = revurdering.tilRevurdering.beregning,
                     nyBeregning = revurdering.beregning,
@@ -549,10 +551,12 @@ internal class RevurderingServiceImpl(
     }
 
     private fun identifiserUtfallSomIkkeStøttes(
+        revurderingsperiode: Periode,
         vilkårsvurderinger: Vilkårsvurderinger,
         tidligereBeregning: Beregning,
         nyBeregning: Beregning,
     ) = IdentifiserSaksbehandlingsutfallSomIkkeStøttes.MedBeregning(
+        revurderingsperiode = revurderingsperiode,
         vilkårsvurderinger = vilkårsvurderinger,
         tidligereBeregning = tidligereBeregning,
         nyBeregning = nyBeregning,
@@ -735,6 +739,7 @@ internal class RevurderingServiceImpl(
         when (revurdering) {
             is BeregnetRevurdering.IngenEndring -> {
                 identifiserUtfallSomIkkeStøttes(
+                    revurdering.periode,
                     revurdering.vilkårsvurderinger,
                     revurdering.tilRevurdering.beregning,
                     revurdering.beregning,
@@ -744,6 +749,7 @@ internal class RevurderingServiceImpl(
             }
             is SimulertRevurdering -> {
                 identifiserUtfallSomIkkeStøttes(
+                    revurdering.periode,
                     revurdering.vilkårsvurderinger,
                     revurdering.tilRevurdering.beregning,
                     revurdering.beregning,
@@ -755,6 +761,7 @@ internal class RevurderingServiceImpl(
             }
             is UnderkjentRevurdering.Innvilget -> {
                 identifiserUtfallSomIkkeStøttes(
+                    revurdering.periode,
                     revurdering.vilkårsvurderinger,
                     revurdering.tilRevurdering.beregning,
                     revurdering.beregning,
@@ -766,6 +773,7 @@ internal class RevurderingServiceImpl(
             }
             is UnderkjentRevurdering.Opphørt -> {
                 identifiserUtfallSomIkkeStøttes(
+                    revurdering.periode,
                     revurdering.vilkårsvurderinger,
                     revurdering.tilRevurdering.beregning,
                     revurdering.beregning,
@@ -777,6 +785,7 @@ internal class RevurderingServiceImpl(
             }
             is UnderkjentRevurdering.IngenEndring -> {
                 identifiserUtfallSomIkkeStøttes(
+                    revurdering.periode,
                     revurdering.vilkårsvurderinger,
                     revurdering.tilRevurdering.beregning,
                     revurdering.beregning,
