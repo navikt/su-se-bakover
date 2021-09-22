@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -57,13 +58,13 @@ interface UtbetalingService {
     fun simulerGjenopptak(
         sakId: UUID,
         saksbehandler: NavIdentBruker,
-    ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
+    ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling>
 
     fun gjenopptaUtbetalinger(
         sakId: UUID,
         attestant: NavIdentBruker,
         simulering: Simulering,
-    ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering>
+    ): Either<UtbetalGjenopptakFeil, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun opphør(
         sakId: UUID,
@@ -81,11 +82,12 @@ interface UtbetalingService {
 object FantIkkeUtbetaling
 object FantIkkeGjeldendeUtbetaling
 
-sealed class KunneIkkeGjenopptaUtbetalinger {
-    object FantIkkeSak : KunneIkkeGjenopptaUtbetalinger()
-    object HarIngenOversendteUtbetalinger : KunneIkkeGjenopptaUtbetalinger()
-    object SisteUtbetalingErIkkeEnStansutbetaling : KunneIkkeGjenopptaUtbetalinger()
-    object SimuleringAvStartutbetalingFeilet : KunneIkkeGjenopptaUtbetalinger()
-    object SendingAvUtbetalingTilOppdragFeilet : KunneIkkeGjenopptaUtbetalinger()
-    object KontrollAvSimuleringFeilet : KunneIkkeGjenopptaUtbetalinger()
+sealed class SimulerGjenopptakFeil {
+    data class KunneIkkeSimulere(val feil: SimuleringFeilet) : SimulerGjenopptakFeil()
+    data class KunneIkkeGenerereUtbetaling(val feil: Utbetalingsstrategi.Gjenoppta.Feil) : SimulerGjenopptakFeil()
+}
+
+sealed class UtbetalGjenopptakFeil {
+    data class KunneIkkeSimulere(val feil: SimulerGjenopptakFeil) : UtbetalGjenopptakFeil()
+    data class KunneIkkeUtbetale(val feil: UtbetalingFeilet) : UtbetalGjenopptakFeil()
 }

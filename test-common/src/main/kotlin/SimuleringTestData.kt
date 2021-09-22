@@ -71,8 +71,8 @@ fun simuleringGjenopptak(
         utbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
         clock = fixedClock,
-    ).generate().let {
-        simulerUtbetaling(it)
+    ).generer().let {
+        simulerUtbetaling(it.getOrFail("Skal kunne lage utbetaling for gjenopptak"))
     }.orNull()!!
 }
 

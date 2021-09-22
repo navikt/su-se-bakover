@@ -97,6 +97,8 @@ import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
+import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
+import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeHenteGjeldendeGrunnlagsdataForVedtak
@@ -201,7 +203,7 @@ open class AccessCheckProxy(
                 override fun simulerGjenopptak(
                     sakId: UUID,
                     saksbehandler: NavIdentBruker,
-                ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+                ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling> {
                     kastKanKunKallesFraAnnenService()
                 }
 
@@ -209,7 +211,7 @@ open class AccessCheckProxy(
                     sakId: UUID,
                     attestant: NavIdentBruker,
                     simulering: Simulering,
-                ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering> {
+                ): Either<UtbetalGjenopptakFeil, Utbetaling.OversendtUtbetaling.UtenKvittering> {
                     kastKanKunKallesFraAnnenService()
                 }
 

@@ -218,7 +218,7 @@ internal class RevurderingServiceImpl(
                 sakId = request.sakId,
                 saksbehandler = request.saksbehandler,
             ).getOrHandle {
-                return KunneIkkeGjenopptaYtelse.SimuleringAvGjenopptakFeilet.left()
+                return KunneIkkeGjenopptaYtelse.KunneIkkeSimulere(it).left()
             }
 
             val simulertRevurdering = when (request) {

@@ -260,47 +260,60 @@ internal class UtbetalingServiceImpl(
     override fun simulerGjenopptak(
         sakId: UUID,
         saksbehandler: NavIdentBruker,
-    ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+    ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling> {
         val sak: Sak = sakService.hentSak(sakId).orNull()!!
-        return simulerUtbetaling(
-            Utbetalingsstrategi.Gjenoppta(
-                sakId = sak.id,
-                saksnummer = sak.saksnummer,
-                fnr = sak.fnr,
-                utbetalinger = sak.utbetalinger,
-                behandler = saksbehandler,
-                clock = clock,
-            ).generate(),
-        )
+
+        return Utbetalingsstrategi.Gjenoppta(
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            fnr = sak.fnr,
+            utbetalinger = sak.utbetalinger,
+            behandler = saksbehandler,
+            clock = clock,
+        ).generer()
+            .mapLeft {
+                SimulerGjenopptakFeil.KunneIkkeGenerereUtbetaling(it)
+            }.flatMap { utbetalingForSimulering ->
+                simulerUtbetaling(utbetalingForSimulering)
+                    .mapLeft {
+                        SimulerGjenopptakFeil.KunneIkkeSimulere(it)
+                    }
+            }
     }
 
     override fun gjenopptaUtbetalinger(
         sakId: UUID,
         attestant: NavIdentBruker,
         simulering: Simulering,
-    ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering> {
+    ): Either<UtbetalGjenopptakFeil, Utbetaling.OversendtUtbetaling.UtenKvittering> {
         val sak = sakService.hentSak(sakId).getOrElse {
-            return UtbetalingFeilet.FantIkkeSak.left()
+            return UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.FantIkkeSak).left()
         }
         return simulerGjenopptak(
             sakId = sakId,
             saksbehandler = attestant,
         ).mapLeft {
-            UtbetalingFeilet.KunneIkkeSimulere(it)
+            UtbetalGjenopptakFeil.KunneIkkeSimulere(it)
         }.flatMap { simulertGjenopptak ->
             if (harEndringerIUtbetalingSidenSaksbehandlersSimulering(
                     saksbehandlersSimulering = simulering,
                     attestantsSimulering = simulertGjenopptak,
                 )
-            ) return UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+            ) return UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte)
+                .left()
 
             KontrollerSimulering(
                 simulertUtbetaling = simulertGjenopptak,
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = clock,
-            ).resultat.getOrHandle { return UtbetalingFeilet.KontrollAvSimuleringFeilet.left() }
+            ).resultat.getOrHandle {
+                return UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.KontrollAvSimuleringFeilet).left()
+            }
 
             utbetal(simulertGjenopptak)
+                .mapLeft {
+                    UtbetalGjenopptakFeil.KunneIkkeUtbetale(it)
+                }
         }
     }
 }

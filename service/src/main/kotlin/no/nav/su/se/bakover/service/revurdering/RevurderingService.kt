@@ -27,6 +27,8 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
+import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
+import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -408,19 +410,16 @@ sealed class GjenopptaYtelseRequest {
 }
 
 sealed class KunneIkkeGjenopptaYtelse {
-    object FantIkkeSak : KunneIkkeGjenopptaYtelse()
     object FantIkkeRevurdering : KunneIkkeGjenopptaYtelse()
     object FantIngenVedtak : KunneIkkeGjenopptaYtelse()
-    object SimuleringAvGjenopptakFeilet : KunneIkkeGjenopptaYtelse()
-    object SendingAvUtbetalingTilOppdragFeilet : KunneIkkeGjenopptaYtelse()
-    object KontrollAvSimuleringFeilet : KunneIkkeGjenopptaYtelse()
+    data class KunneIkkeSimulere(val feil: SimulerGjenopptakFeil) : KunneIkkeGjenopptaYtelse()
     object KunneIkkeOppretteRevurdering : KunneIkkeGjenopptaYtelse()
     data class UgyldigTypeForOppdatering(val type: KClass<out AbstraktRevurdering>) : KunneIkkeGjenopptaYtelse()
     object SisteVedtakErIkkeStans : KunneIkkeGjenopptaYtelse()
 }
 
 sealed class KunneIkkeIverksetteGjenopptakAvYtelse {
-    data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksetteGjenopptakAvYtelse()
+    data class KunneIkkeUtbetale(val feil: UtbetalGjenopptakFeil) : KunneIkkeIverksetteGjenopptakAvYtelse()
     object FantIkkeRevurdering : KunneIkkeIverksetteGjenopptakAvYtelse()
     data class UgyldigTilstand(
         val faktiskTilstand: KClass<out AbstraktRevurdering>,

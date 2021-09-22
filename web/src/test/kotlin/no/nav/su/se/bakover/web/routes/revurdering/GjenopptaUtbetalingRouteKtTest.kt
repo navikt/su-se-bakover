@@ -11,9 +11,13 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseRequest
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeGjenopptaYtelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteGjenopptakAvYtelse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
+import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
 import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -25,6 +29,7 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import java.util.UUID
 
 internal class GjenopptaUtbetalingRouteKtTest {
 
@@ -110,7 +115,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
                     any(),
                 )
             } doReturn KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale(
-                UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte,
+                UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte),
             ).left()
         }
         withTestApplication(
@@ -214,6 +219,46 @@ internal class GjenopptaUtbetalingRouteKtTest {
             }.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain """"code":"revurderingsårsak_ugyldig_årsak""""
+            }
+        }
+    }
+
+    @Test
+    fun `svarer med 500 ved forsøk på gjenopptak av opphørt periode`() {
+        val revurderingServiceMock = mock<RevurderingService>() {
+            on { gjenopptaYtelse(any()) } doReturn KunneIkkeGjenopptaYtelse.KunneIkkeSimulere(
+                SimulerGjenopptakFeil.KunneIkkeGenerereUtbetaling(
+                    Utbetalingsstrategi.Gjenoppta.Feil.KanIkkeGjenopptaOpphørtePeriode,
+                ),
+            ).left()
+        }
+        withTestApplication(
+            {
+                testSusebakover(
+                    services = mockServices.copy(
+                        revurdering = revurderingServiceMock,
+                    ),
+                )
+            },
+        ) {
+            defaultRequest(
+                HttpMethod.Post,
+                "saker/${UUID.randomUUID()}/revurderinger/gjenoppta",
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody(
+                    //language=json
+                    """
+                        {
+                          "fraOgMed": "2021-05-01",
+                          "årsak": "MOTTATT_KONTROLLERKLÆRING",
+                          "begrunnelse": "huffda"
+                        }
+                    """.trimIndent(),
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.InternalServerError
+                response.content shouldContain """"code":"kan_ikke_gjenoppta_opphørte_utbtalinger""""
             }
         }
     }

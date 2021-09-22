@@ -1,7 +1,10 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
+import arrow.core.Either
 import arrow.core.NonEmptyList
+import arrow.core.left
 import arrow.core.nonEmptyListOf
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.erFørsteDagIMåned
@@ -38,15 +41,15 @@ sealed class Utbetalingsstrategi {
         datoForStanEllerReaktivering: LocalDate,
     ) {
         if (utbetalinger.flatMap { it.utbetalingslinjer }
-            .filterIsInstance<Utbetalingslinje.Endring.Opphør>()
-            .any {
-                it.virkningstidspunkt.between(
+                .filterIsInstance<Utbetalingslinje.Endring.Opphør>()
+                .any {
+                    it.virkningstidspunkt.between(
                         Periode.create(
-                                fraOgMed = datoForStanEllerReaktivering,
-                                tilOgMed = utbetalinger.maxOf { it.senesteDato() },
-                            ),
+                            fraOgMed = datoForStanEllerReaktivering,
+                            tilOgMed = utbetalinger.maxOf { it.senesteDato() },
+                        ),
                     )
-            }
+                }
         ) {
             throw UtbetalingStrategyException("Kan ikke stanse utbetalinger for perioder hvor det eksisterer/har eksistert opphør.")
         }
@@ -182,11 +185,11 @@ sealed class Utbetalingsstrategi {
         override val behandler: NavIdentBruker,
         val clock: Clock,
     ) : Utbetalingsstrategi() {
-        override fun generate(): Utbetaling.UtbetalingForSimulering {
+        fun generer(): Either<Feil, Utbetaling.UtbetalingForSimulering> {
             val sisteOversendteUtbetalingslinje = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()
-                ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å gjenoppta")
+                ?: return Feil.FantIngenUtbetalinger.left()
 
-            validate(sisteOversendteUtbetalingslinje is Utbetalingslinje.Endring.Stans) { "Siste utbetaling er ikke en stans, kan ikke gjenoppta." }
+            if (sisteOversendteUtbetalingslinje !is Utbetalingslinje.Endring.Stans) return Feil.SisteUtbetalingErIkkeStans.left()
 
             /**
              * TODO jm: kan fjernes etter https://jira.adeo.no/browse/TOB-1772 er fikset.
@@ -194,9 +197,13 @@ sealed class Utbetalingsstrategi {
              * tilfeller hvor perioden som gjenopptas inneholder opphør (skal alt etter denne datoen reaktiveres
              * uansett, eller skal kun et spesifikt opphør reaktivers). Default oppførsel er at kun match med dato reaktivers.
              */
-            unngåBugMedReaktiveringAvOpphørIOppdrag(
-                datoForStanEllerReaktivering = sisteOversendteUtbetalingslinje.virkningstidspunkt,
-            )
+            try {
+                unngåBugMedReaktiveringAvOpphørIOppdrag(
+                    datoForStanEllerReaktivering = sisteOversendteUtbetalingslinje.virkningstidspunkt,
+                )
+            } catch (ex: UtbetalingStrategyException) {
+                return Feil.KanIkkeGjenopptaOpphørtePeriode.left()
+            }
 
             return Utbetaling.UtbetalingForSimulering(
                 sakId = sakId,
@@ -212,7 +219,18 @@ sealed class Utbetalingsstrategi {
                 type = Utbetaling.UtbetalingsType.GJENOPPTA,
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock)),
-            )
+            ).right()
+        }
+
+        @Deprecated(message = "Erstattet for å kunne returnere Either", level = DeprecationLevel.ERROR)
+        override fun generate(): Utbetaling.UtbetalingForSimulering {
+            TODO("Skal ikke brukes. Fjern når det ikke lenger er bruk for abstrakt metode")
+        }
+
+        sealed class Feil {
+            object FantIngenUtbetalinger : Feil()
+            object SisteUtbetalingErIkkeStans : Feil()
+            object KanIkkeGjenopptaOpphørtePeriode : Feil()
         }
     }
 

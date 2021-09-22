@@ -3,17 +3,22 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import arrow.core.getOrHandle
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.routing.Route
 import io.ktor.routing.patch
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeGjenopptaYtelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteGjenopptakAvYtelse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
+import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
@@ -122,46 +127,90 @@ internal class GjenopptaUtbetalingBody(
 
 private fun KunneIkkeGjenopptaYtelse.tilResultat(): Resultat {
     return when (this) {
-        KunneIkkeGjenopptaYtelse.FantIkkeSak -> Revurderingsfeilresponser.fantIkkeSak
-        KunneIkkeGjenopptaYtelse.KontrollAvSimuleringFeilet -> HttpStatusCode.InternalServerError.errorJson(
-            message = "feil ved kontroll av simulering",
-            code = "feil_ved_kontroll_av_simulering",
-        )
-        KunneIkkeGjenopptaYtelse.SendingAvUtbetalingTilOppdragFeilet -> HttpStatusCode.InternalServerError.errorJson(
-            message = "sending av utbetaling til oppdrag feilet",
-            code = "sending_til_oppdrag_feilet",
-        )
-        KunneIkkeGjenopptaYtelse.SimuleringAvGjenopptakFeilet -> HttpStatusCode.InternalServerError.errorJson(
-            message = "feil ved simulering av gjenopptak",
-            code = "feil_ved_simulering_av_gjenopptak",
-        )
-        KunneIkkeGjenopptaYtelse.KunneIkkeOppretteRevurdering -> HttpStatusCode.InternalServerError.errorJson(
-            message = "kunne ikke opprette revurdering",
-            code = "kunne_ikke_opprette_revurdering",
-        )
-        KunneIkkeGjenopptaYtelse.FantIkkeRevurdering -> Revurderingsfeilresponser.fantIkkeRevurdering
-        is KunneIkkeGjenopptaYtelse.UgyldigTypeForOppdatering -> HttpStatusCode.BadRequest.errorJson(
-            message = "kunne ikke oppdatere revurdering for gjenopptak, eksisterende revurdering er av feil type: ${this.type}",
-            code = "ugyldig_type_for_oppdatering_av_gjenopptak",
-        )
-        KunneIkkeGjenopptaYtelse.SisteVedtakErIkkeStans -> HttpStatusCode.BadRequest.errorJson(
-            "kan ikke opprette revurdering for gjenopptak av ytelse, siste vedtak er ikke en gjenopptak",
-            "siste_vedtak_ikke_gjenopptak",
-        )
-        KunneIkkeGjenopptaYtelse.FantIngenVedtak -> HttpStatusCode.BadRequest.errorJson(
-            "kan ikke opprette revurdering for gjenopptak av utbetaling uten tidligere vedtak",
-            "ingen_tidligere_vedtak",
-        )
+        KunneIkkeGjenopptaYtelse.FantIkkeRevurdering -> {
+            Revurderingsfeilresponser.fantIkkeRevurdering
+        }
+        KunneIkkeGjenopptaYtelse.FantIngenVedtak -> {
+            Revurderingsfeilresponser.fantIngenVedtakSomKanRevurderes
+        }
+        KunneIkkeGjenopptaYtelse.KunneIkkeOppretteRevurdering -> {
+            InternalServerError.errorJson(
+                message = "Kunne ikke opprette revurdering for gjenopptak",
+                code = "kunne_ikke_opprette_revurdering_for_gjenopptak",
+            )
+        }
+        is KunneIkkeGjenopptaYtelse.KunneIkkeSimulere -> {
+            feil.tilResultat()
+        }
+        KunneIkkeGjenopptaYtelse.SisteVedtakErIkkeStans -> {
+            InternalServerError.errorJson(
+                message = "Kan ikke opprette revurdering for gjenopptak, siste vetak er ikke stans",
+                code = "siste_vedtak_ikke_stans",
+            )
+        }
+        is KunneIkkeGjenopptaYtelse.UgyldigTypeForOppdatering -> {
+            BadRequest.errorJson(
+                message = "Ugyldig tilstand for oppdatering: ${this.type}",
+                code = "ugyldig_tilstand_for_oppdatering",
+            )
+        }
     }
 }
 
 private fun KunneIkkeIverksetteGjenopptakAvYtelse.tilResultat(): Resultat {
     return when (this) {
-        KunneIkkeIverksetteGjenopptakAvYtelse.FantIkkeRevurdering -> Revurderingsfeilresponser.fantIkkeRevurdering
-        is KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale -> this.utbetalingFeilet.tilResultat()
-        is KunneIkkeIverksetteGjenopptakAvYtelse.UgyldigTilstand -> HttpStatusCode.BadRequest.errorJson(
-            "Kan ikke iverksette gjenopptak av utbetalinger for revurdering av type: ${this.faktiskTilstand}, eneste gyldige tilstand er ${this.målTilstand}",
-            "kunne_ikke_iverksette_gjenopptak_ugyldig_tilstand",
-        )
+        KunneIkkeIverksetteGjenopptakAvYtelse.FantIkkeRevurdering -> {
+            Revurderingsfeilresponser.fantIkkeRevurdering
+        }
+        is KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale -> {
+            when (val kunneIkkeUtbetale = this.feil) {
+                is UtbetalGjenopptakFeil.KunneIkkeSimulere -> {
+                    kunneIkkeUtbetale.feil.tilResultat()
+                }
+                is UtbetalGjenopptakFeil.KunneIkkeUtbetale -> {
+                    kunneIkkeUtbetale.feil.tilResultat()
+                }
+            }
+        }
+        is KunneIkkeIverksetteGjenopptakAvYtelse.UgyldigTilstand -> {
+            HttpStatusCode.BadRequest.errorJson(
+                "Kan ikke iverksette gjenopptak av utbetalinger for revurdering av type: ${this.faktiskTilstand}, eneste gyldige tilstand er ${this.målTilstand}",
+                "kunne_ikke_iverksette_gjenopptak_ugyldig_tilstand",
+            )
+        }
+    }
+}
+
+private fun SimulerGjenopptakFeil.tilResultat(): Resultat {
+    return when (this) {
+        is SimulerGjenopptakFeil.KunneIkkeGenerereUtbetaling -> {
+            feil.tilResultat()
+        }
+        is SimulerGjenopptakFeil.KunneIkkeSimulere -> {
+            feil.tilResultat()
+        }
+    }
+}
+
+private fun Utbetalingsstrategi.Gjenoppta.Feil.tilResultat(): Resultat {
+    return when (this) {
+        Utbetalingsstrategi.Gjenoppta.Feil.FantIngenUtbetalinger -> {
+            InternalServerError.errorJson(
+                message = "Utbetalingsstrategi (gjenoppta): Fant ingen utbetalinger",
+                code = "fant_ingen_utbetalinger",
+            )
+        }
+        Utbetalingsstrategi.Gjenoppta.Feil.KanIkkeGjenopptaOpphørtePeriode -> {
+            InternalServerError.errorJson(
+                message = "Utbetalingsstrategi (gjenoppta): Kan ikke gjenoppta opphørte utbetalinger",
+                code = "kan_ikke_gjenoppta_opphørte_utbtalinger",
+            )
+        }
+        Utbetalingsstrategi.Gjenoppta.Feil.SisteUtbetalingErIkkeStans -> {
+            InternalServerError.errorJson(
+                message = "Utbetalingsstrategi (gjenoppta): Siste utbetaling er ikke en stans",
+                code = "siste_utbetaling_er_ikke_stans",
+            )
+        }
     }
 }

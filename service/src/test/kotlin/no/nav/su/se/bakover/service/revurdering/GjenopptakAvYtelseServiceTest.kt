@@ -16,6 +16,8 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
+import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
@@ -163,7 +165,12 @@ class GjenopptakAvYtelseServiceTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerGjenopptak(any(), any()) } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
+            on {
+                simulerGjenopptak(
+                    any(),
+                    any(),
+                )
+            } doReturn SimulerGjenopptakFeil.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL).left()
         }
 
         RevurderingServiceMocks(
@@ -180,7 +187,11 @@ class GjenopptakAvYtelseServiceTest {
                         begrunnelse = "begrunnelse",
                     ),
                 ),
-            ) shouldBe KunneIkkeGjenopptaYtelse.SimuleringAvGjenopptakFeilet.left()
+            ) shouldBe KunneIkkeGjenopptaYtelse.KunneIkkeSimulere(
+                SimulerGjenopptakFeil.KunneIkkeSimulere(
+                    SimuleringFeilet.TEKNISK_FEIL,
+                ),
+            ).left()
 
             verify(it.vedtakRepo).hentForSakId(sakId)
             verify(it.vedtakService).kopierGjeldendeVedtaksdata(
@@ -275,7 +286,9 @@ class GjenopptakAvYtelseServiceTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { gjenopptaUtbetalinger(any(), any(), any()) } doReturn UtbetalingFeilet.Protokollfeil.left()
+            on { gjenopptaUtbetalinger(any(), any(), any()) } doReturn UtbetalGjenopptakFeil.KunneIkkeUtbetale(
+                UtbetalingFeilet.Protokollfeil,
+            ).left()
         }
 
         RevurderingServiceMocks(
@@ -287,8 +300,11 @@ class GjenopptakAvYtelseServiceTest {
                 attestant = attestant,
             )
 
-            response shouldBe KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil)
-                .left()
+            response shouldBe KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale(
+                UtbetalGjenopptakFeil.KunneIkkeUtbetale(
+                    UtbetalingFeilet.Protokollfeil,
+                ),
+            ).left()
 
             verify(revurderingRepoMock).hent(revurderingGjenopptak.second.id)
             verify(it.utbetalingService).gjenopptaUtbetalinger(

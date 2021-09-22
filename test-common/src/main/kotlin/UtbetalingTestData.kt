@@ -210,7 +210,7 @@ fun gjenopptakUtbetalingForSimulering(
         utbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
         clock = fixedClock,
-    ).generate()
+    ).generer().getOrFail("Skal kunne generere utbetaling for gjenopptak")
 }
 
 fun simulertGjenopptakUtbetaling(

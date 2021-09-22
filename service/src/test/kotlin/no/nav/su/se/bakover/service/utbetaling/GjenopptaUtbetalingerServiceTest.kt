@@ -153,7 +153,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             attestant = saksbehandler,
             simulering = simulering,
         ).let {
-            it shouldBe UtbetalingFeilet.FantIkkeSak.left()
+            it shouldBe UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.FantIkkeSak).left()
 
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe sakId })
             verifyNoMoreInteractions(sakServiceMock, utbetalingRepoMock, utbetalingPublisherMock, simuleringClientMock)
@@ -186,7 +186,8 @@ internal class GjenopptaUtbetalingerServiceTest {
             attestant = saksbehandler,
             simulering = simulering,
         ).let {
-            it shouldBe UtbetalingFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL).left()
+            it shouldBe UtbetalGjenopptakFeil.KunneIkkeSimulere(SimulerGjenopptakFeil.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL))
+                .left()
 
             inOrder(sakServiceMock, simuleringClientMock) {
                 verify(sakServiceMock, times(2)).hentSak(sak.id)
@@ -237,7 +238,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             attestant = saksbehandler,
             simulering = simulering,
         ).let {
-            it shouldBe UtbetalingFeilet.Protokollfeil.left()
+            it shouldBe UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
 
             inOrder(sakServiceMock, simuleringClientMock, utbetalingPublisherMock) {
                 verify(sakServiceMock, times(2)).hentSak(sakId = argThat { sak.id })
@@ -332,7 +333,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             sakId = sak.id,
             attestant = attestant,
             simulering = simuleringMedFeil,
-        ) shouldBe UtbetalingFeilet.KontrollAvSimuleringFeilet.left()
+        ) shouldBe UtbetalGjenopptakFeil.KunneIkkeUtbetale(UtbetalingFeilet.KontrollAvSimuleringFeilet).left()
 
         verifyNoMoreInteractions(utbetalingRepoMock, utbetalingPublisherMock)
     }
