@@ -1724,7 +1724,7 @@ internal class RevurderingServiceImplTest {
                 argThat { it shouldBe eksisterendeRevurdering.id },
                 argThat { it shouldBe request.fradragsgrunnlag },
             )
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.revurdering })
         }
 
         verifyNoMoreInteractions(revurderingRepoMock, grunnlagServiceMock)

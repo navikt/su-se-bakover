@@ -53,7 +53,6 @@ import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.revurdering.BeregnOgSimulerResponse
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarslingRequest
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseRequest
@@ -79,6 +78,7 @@ import no.nav.su.se.bakover.service.revurdering.LeggTilBosituasjongrunnlagReques
 import no.nav.su.se.bakover.service.revurdering.LeggTilFormuegrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.OpprettRevurderingRequest
+import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.revurdering.Revurderingshandling
 import no.nav.su.se.bakover.service.revurdering.SendTilAttesteringRequest
@@ -504,7 +504,7 @@ open class AccessCheckProxy(
                 override fun beregnOgSimuler(
                     revurderingId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeBeregneOgSimulereRevurdering, BeregnOgSimulerResponse> {
+                ): Either<KunneIkkeBeregneOgSimulereRevurdering, RevurderingOgFeilmeldingerResponse> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.beregnOgSimuler(
                         revurderingId = revurderingId,
@@ -578,22 +578,22 @@ open class AccessCheckProxy(
 
                 override fun leggTilUføregrunnlag(
                     request: LeggTilUførevurderingerRequest,
-                ): Either<KunneIkkeLeggeTilGrunnlag, OpprettetRevurdering> {
+                ): Either<KunneIkkeLeggeTilGrunnlag, RevurderingOgFeilmeldingerResponse> {
                     assertHarTilgangTilRevurdering(request.behandlingId)
                     return services.revurdering.leggTilUføregrunnlag(request)
                 }
 
-                override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, OpprettetRevurdering> {
+                override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, RevurderingOgFeilmeldingerResponse> {
                     assertHarTilgangTilRevurdering(request.behandlingId)
                     return services.revurdering.leggTilFradragsgrunnlag(request)
                 }
 
-                override fun leggTilBosituasjongrunnlag(request: LeggTilBosituasjongrunnlagRequest): Either<KunneIkkeLeggeTilBosituasjongrunnlag, OpprettetRevurdering> {
+                override fun leggTilBosituasjongrunnlag(request: LeggTilBosituasjongrunnlagRequest): Either<KunneIkkeLeggeTilBosituasjongrunnlag, RevurderingOgFeilmeldingerResponse> {
                     assertHarTilgangTilRevurdering(request.revurderingId)
                     return services.revurdering.leggTilBosituasjongrunnlag(request)
                 }
 
-                override fun leggTilFormuegrunnlag(request: LeggTilFormuegrunnlagRequest): Either<KunneIkkeLeggeTilFormuegrunnlag, OpprettetRevurdering> {
+                override fun leggTilFormuegrunnlag(request: LeggTilFormuegrunnlagRequest): Either<KunneIkkeLeggeTilFormuegrunnlag, RevurderingOgFeilmeldingerResponse> {
                     assertHarTilgangTilRevurdering(request.revurderingId)
                     return services.revurdering.leggTilFormuegrunnlag(request)
                 }

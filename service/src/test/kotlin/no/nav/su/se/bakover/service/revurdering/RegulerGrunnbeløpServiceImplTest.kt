@@ -69,6 +69,7 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
+import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -90,79 +91,22 @@ internal class RegulerGrunnbeløpServiceImplTest {
 
     @Test
     fun `oppdaterer uførevilkåret når nytt uføregrunnlag legges til`() {
-        val tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second
-        val opprettetRevurdering = OpprettetRevurdering(
-            id = revurderingId,
-            periode = periodeNesteMånedOgTreMånederFram,
-            opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
-            forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
-                    vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Uføre.create(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            resultat = Resultat.Innvilget,
-                            grunnlag = Grunnlag.Uføregrunnlag(
-                                opprettet = fixedTidspunkt,
-                                periode = periodeNesteMånedOgTreMånederFram,
-                                uføregrad = Uføregrad.parse(20),
-                                forventetInntekt = 10,
-                            ),
-                            periode = periodeNesteMånedOgTreMånederFram,
-                            begrunnelse = null,
-                        ),
-                    ),
-                ),
-            ),
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(
-                mapOf(
-                    Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
-                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
-                ),
-            ),
-            attesteringer = Attesteringshistorikk.empty(),
-        )
+        val informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Uførhet))
+        val opprettetRevurdering =
+            opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(informasjonSomRevurderes = informasjonSomRevurderes).second
 
         val nyttUføregrunnlag = Grunnlag.Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            periode = periodeNesteMånedOgTreMånederFram,
+            periode = opprettetRevurdering.periode,
             uføregrad = Uføregrad.parse(45),
             forventetInntekt = 20,
-        )
-
-        val forventetLagretRevurdering = OpprettetRevurdering(
-            id = revurderingId,
-            periode = periodeNesteMånedOgTreMånederFram,
-            opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
-            forhåndsvarsel = null,
-            grunnlagsdata = opprettetRevurdering.grunnlagsdata,
-            vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(
-                mapOf(
-                    Revurderingsteg.Uførhet to Vurderingstatus.Vurdert,
-                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
-                ),
-            ),
-            attesteringer = Attesteringshistorikk.empty(),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturnConsecutively listOf(
                 opprettetRevurdering,
-                forventetLagretRevurdering.copy(grunnlagsdata = Grunnlagsdata.IkkeVurdert),
+                opprettetRevurdering.copy(grunnlagsdata = Grunnlagsdata.IkkeVurdert),
             )
         }
         val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
@@ -189,8 +133,8 @@ internal class RegulerGrunnbeløpServiceImplTest {
         verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
         verify(revurderingRepoMock).lagre(
             argThat {
-                it shouldBe forventetLagretRevurdering.copy(
-                    vilkårsvurderinger = forventetLagretRevurdering.vilkårsvurderinger.copy(
+                it shouldBe opprettetRevurdering.copy(
+                    vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger.copy(
                         uføre = innvilgetUførevilkår(
                             vurderingsperiodeId = (it.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.first().id,
                             grunnlagsId = (it.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).grunnlag.first().id,
@@ -201,6 +145,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                             uføregrad = nyttUføregrunnlag.uføregrad,
                         ),
                     ),
+                    informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Uførhet),
                 )
             },
         )

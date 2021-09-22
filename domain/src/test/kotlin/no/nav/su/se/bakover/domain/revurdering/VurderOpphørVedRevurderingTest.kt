@@ -36,7 +36,7 @@ internal class VurderOpphørVedRevurderingTest {
         }
         val beregningMock = mock<Beregning>()
 
-        VurderOpphørVedRevurdering(
+        VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
             vilkårsvurderinger = vilkårsvurderingerMock,
             beregning = beregningMock,
             clock = fixedClock,
@@ -56,7 +56,7 @@ internal class VurderOpphørVedRevurderingTest {
             on { getMånedsberegninger() } doReturn listOf(månedsberegningMock)
         }
 
-        VurderOpphørVedRevurdering(
+        VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
             vilkårsvurderinger = vilkårsvurderingerMock,
             beregning = beregningMock,
             clock = fixedClock,
@@ -80,7 +80,7 @@ internal class VurderOpphørVedRevurderingTest {
             on { getMånedsberegninger() } doReturn listOf(månedsberegningMock1, månedsberegningMock2)
         }
 
-        VurderOpphørVedRevurdering(
+        VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
             vilkårsvurderinger = vilkårsvurderingerMock,
             beregning = beregningMock,
             clock = fixedClock,
@@ -100,7 +100,7 @@ internal class VurderOpphørVedRevurderingTest {
             on { getMånedsberegninger() } doReturn listOf(månedsberegningMock)
         }
 
-        VurderOpphørVedRevurdering(
+        VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
             vilkårsvurderinger = vilkårsvurderingerMock,
             beregning = beregningMock,
             clock = fixedClock,
@@ -121,7 +121,7 @@ internal class VurderOpphørVedRevurderingTest {
             on { getMånedsberegninger() } doReturn listOf(månedsberegningMock)
         }
 
-        VurderOpphørVedRevurdering(
+        VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
             vilkårsvurderinger = vilkårsvurderingerMock,
             beregning = beregningMock,
             clock = fixedClock,
@@ -146,7 +146,7 @@ internal class VurderOpphørVedRevurderingTest {
             on { getMånedsberegninger() } doReturn listOf(månedsberegningMock1, månedsberegningMock2)
         }
 
-        VurderOpphørVedRevurdering(
+        VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
             vilkårsvurderinger = vilkårsvurderingerMock,
             beregning = beregningMock,
             clock = fixedClock,
@@ -172,7 +172,7 @@ internal class VurderOpphørVedRevurderingTest {
             on { getMånedsberegninger() } doReturn listOf(månedsberegningMock1, månedsberegningMock2)
         }
 
-        VurderOpphørVedRevurdering(
+        VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
             vilkårsvurderinger = vilkårsvurderingerMock,
             beregning = beregningMock,
             clock = fixedClock,
@@ -200,7 +200,7 @@ internal class VurderOpphørVedRevurderingTest {
             on { alleMånederHarBeløpLik0() } doReturn true
         }
 
-        VurderOpphørVedRevurdering(
+        VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
             vilkårsvurderinger = vilkårsvurderingerMock,
             beregning = beregningMock,
             clock = fixedClock,
@@ -228,7 +228,7 @@ internal class VurderOpphørVedRevurderingTest {
             on { alleMånederHarBeløpLik0() } doReturn true
         }
 
-        VurderOpphørVedRevurdering(
+        VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
             vilkårsvurderinger = vilkårsvurderingerMock,
             beregning = beregningMock,
             clock = fixedClock,
@@ -241,7 +241,7 @@ internal class VurderOpphørVedRevurderingTest {
             on { resultat } doReturn Resultat.Uavklart
         }
         assertThrows<IllegalStateException> {
-            VurderOpphørVedRevurdering(
+            VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
                 vilkårsvurderinger = vilkårsvurderingerMock,
                 beregning = mock(),
                 clock = fixedClock,
@@ -272,7 +272,7 @@ internal class VurderOpphørVedRevurderingTest {
             on { alleMånederHarBeløpLik0() } doReturn true
         }
 
-        VurderOpphørVedRevurdering(
+        VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
             vilkårsvurderinger = vilkårsvurderingerMock,
             beregning = beregningMock,
             clock = fixedClock,

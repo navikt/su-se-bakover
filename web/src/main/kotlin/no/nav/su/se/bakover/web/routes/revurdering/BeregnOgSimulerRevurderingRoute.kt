@@ -9,11 +9,11 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
-import no.nav.su.se.bakover.service.revurdering.BeregnOgSimulerResponse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand
+import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.ErrorJson
@@ -58,12 +58,12 @@ internal fun Route.beregnOgSimulerRevurdering(
     }
 }
 
-data class BeregnOgSimulerResponseJson(
+data class RevurderingOgFeilmeldingerResponseJson(
     val revurdering: RevurderingJson,
     val feilmeldinger: List<ErrorJson>,
 )
 
-internal fun BeregnOgSimulerResponse.toJson() = BeregnOgSimulerResponseJson(
+internal fun RevurderingOgFeilmeldingerResponse.toJson() = RevurderingOgFeilmeldingerResponseJson(
     revurdering = revurdering.toJson(),
     feilmeldinger = feilmeldinger.map { it.toJson() },
 )
