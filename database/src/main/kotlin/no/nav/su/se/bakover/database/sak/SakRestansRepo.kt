@@ -78,7 +78,8 @@ internal class SakRestansRepo(
             RestansTypeDB.SØKNAD,
             RestansTypeDB.SØKNADSBEHANDLING,
             -> SakRestans.RestansType.SØKNADSBEHANDLING
-            RestansTypeDB.REVURDERING -> SakRestans.RestansType.REVURDERING
+            RestansTypeDB.REVURDERING,
+            -> SakRestans.RestansType.REVURDERING
         }
 
         return SakRestans(
@@ -129,6 +130,8 @@ internal class SakRestansRepo(
             RevurderingsType.TIL_ATTESTERING_INNVILGET,
             RevurderingsType.TIL_ATTESTERING_OPPHØRT,
             RevurderingsType.TIL_ATTESTERING_INGEN_ENDRING,
+            RevurderingsType.SIMULERT_STANS,
+            RevurderingsType.SIMULERT_GJENOPPTAK,
             -> SakRestans.RestansStatus.TIL_ATTESTERING
 
             RevurderingsType.UNDERKJENT_INNVILGET,
@@ -136,7 +139,12 @@ internal class SakRestansRepo(
             RevurderingsType.UNDERKJENT_INGEN_ENDRING,
             -> SakRestans.RestansStatus.UNDERKJENT
 
-            else -> throw IllegalStateException("Iverksatte behandlinger er ikke en restans.")
+            RevurderingsType.IVERKSATT_INNVILGET,
+            RevurderingsType.IVERKSATT_INGEN_ENDRING,
+            RevurderingsType.IVERKSATT_OPPHØRT,
+            RevurderingsType.IVERKSATT_STANS,
+            RevurderingsType.IVERKSATT_GJENOPPTAK,
+            -> throw IllegalStateException("Iverksatte behandlinger er ikke en restans.")
         }
     }
 

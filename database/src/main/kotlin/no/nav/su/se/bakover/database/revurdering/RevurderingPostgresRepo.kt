@@ -79,7 +79,7 @@ enum class RevurderingsType {
     SIMULERT_STANS,
     IVERKSATT_STANS,
     SIMULERT_GJENOPPTAK,
-    IVKERSATT_GJENOPPTAK,
+    IVERKSATT_GJENOPPTAK,
 }
 
 internal class RevurderingPostgresRepo(
@@ -322,7 +322,7 @@ internal class RevurderingPostgresRepo(
                         .oppdatering(
                             mapOf(
                                 "attestering" to revurdering.attesteringer.hentAttesteringer().serialize(),
-                                "revurderingsType" to RevurderingsType.IVKERSATT_GJENOPPTAK,
+                                "revurderingsType" to RevurderingsType.IVERKSATT_GJENOPPTAK,
                                 "id" to revurdering.id,
                             ),
                             tx,
@@ -688,7 +688,7 @@ internal class RevurderingPostgresRepo(
                 simulering = simulering!!,
                 revurderingsårsak = revurderingsårsak,
             )
-            RevurderingsType.IVKERSATT_GJENOPPTAK -> GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse(
+            RevurderingsType.IVERKSATT_GJENOPPTAK -> GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
