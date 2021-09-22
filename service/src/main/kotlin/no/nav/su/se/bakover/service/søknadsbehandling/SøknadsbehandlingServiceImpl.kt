@@ -482,11 +482,17 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
 
+        val tidligereSøknadsbehandlinger = søknadsbehandlingRepo.hentForSak(søknadsbehandling.sakId)
+            .filter { it.id != søknadsbehandling.id }
+
         return forsøkStatusovergang(
             søknadsbehandling = søknadsbehandling,
-            statusovergang = Statusovergang.OppdaterStønadsperiode(request.stønadsperiode),
+            statusovergang = Statusovergang.OppdaterStønadsperiode(request.stønadsperiode, tidligereSøknadsbehandlinger),
         ).mapLeft {
-            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode(it)
+            when (it) {
+                is Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode(it)
+                Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedEksisterendeSøknadsbehandling -> SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedEksisterendeSøknadsbehandling
+            }
         }.map {
             søknadsbehandlingRepo.lagre(it)
             vilkårsvurderingService.lagre(

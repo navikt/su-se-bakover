@@ -2,28 +2,25 @@ package no.nav.su.se.bakover.database.sak
 
 import kotliquery.Row
 import no.nav.su.se.bakover.database.DbMetrics
+import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.database.tidspunktOrNull
-import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.sak.SakRestans
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import java.util.UUID
-import javax.sql.DataSource
 
 internal class SakRestansRepo(
-    private val dataSource: DataSource,
     private val dbMetrics: DbMetrics,
 ) {
     /**
      * Henter åpne søknadsbehandlinger, åpne revurderinger, og nye søknader
      */
-    fun hentSakRestanser(): List<SakRestans> {
+    fun hentSakRestanser(session: Session): List<SakRestans> {
         return dbMetrics.timeQuery("hentSakRestanser") {
-            dataSource.withSession { session ->
-                //language=sql
-                """
+            //language=sql
+            """
                 with sak as (
                 select id as sakId, saksnummer
                 from sak
@@ -67,8 +64,7 @@ internal class SakRestansRepo(
             select *
             from slåttSammen
                         """.hentListe(emptyMap(), session) {
-                    it.toRestans()
-                }
+                it.toRestans()
             }
         }
     }

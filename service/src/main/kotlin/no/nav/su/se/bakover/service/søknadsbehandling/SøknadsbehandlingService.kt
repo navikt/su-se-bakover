@@ -133,6 +133,7 @@ interface SøknadsbehandlingService {
         object FantIkkeBehandling : SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
         data class KunneIkkeOppdatereStønadsperiode(val feil: Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode) :
             SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
+        object StønadsperiodeOverlapperMedEksisterendeSøknadsbehandling : SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
     }
 
     data class OppdaterStønadsperiodeRequest(

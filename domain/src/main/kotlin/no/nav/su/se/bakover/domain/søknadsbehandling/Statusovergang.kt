@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus.IVERKSATT_AVSLAG
 
 abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
@@ -211,14 +212,25 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
     class OppdaterStønadsperiode(
         private val oppdatertStønadsperiode: Stønadsperiode,
+        private val tidligereSøknadsbehandlinger: List<Søknadsbehandling>
     ) : Statusovergang<OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode, Søknadsbehandling.Vilkårsvurdert>() {
 
         sealed class KunneIkkeOppdatereStønadsperiode {
             data class KunneIkkeOppdatereGrunnlagsdata(val feil: KunneIkkeLageGrunnlagsdata) :
                 KunneIkkeOppdatereStønadsperiode()
+
+            object StønadsperiodeOverlapperMedEksisterendeSøknadsbehandling :
+                KunneIkkeOppdatereStønadsperiode()
         }
 
         private fun oppdater(søknadsbehandling: Søknadsbehandling): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling.Vilkårsvurdert> {
+            // En foreløpig begrensning er at vi ikke kan starte en ny søknadsbehandling for opphørte måneder.
+            val tidligerePerioder = tidligereSøknadsbehandlinger
+                .filterNot { it.status == IVERKSATT_AVSLAG }
+                .mapNotNull { it.stønadsperiode?.periode }
+            if (oppdatertStønadsperiode.periode overlapper tidligerePerioder) {
+                return KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedEksisterendeSøknadsbehandling.left()
+            }
             return Søknadsbehandling.Vilkårsvurdert.Uavklart(
                 id = søknadsbehandling.id,
                 opprettet = søknadsbehandling.opprettet,

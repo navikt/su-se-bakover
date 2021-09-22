@@ -157,6 +157,10 @@ internal fun Route.søknadsbehandlingRoutes(
                                                 message = "Feil ved oppdatering av stønadsperiode",
                                                 code = "oppdatering_av_stønadsperiode",
                                             )
+                                            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedEksisterendeSøknadsbehandling -> BadRequest.errorJson(
+                                                message = "Stønadsperioden overlapper med eksisterende søknadsbehandling",
+                                                code = "stønadsperioden_overlapper_med_eksisterende_søknadsbehandling",
+                                            )
                                         },
                                     )
                                 }
