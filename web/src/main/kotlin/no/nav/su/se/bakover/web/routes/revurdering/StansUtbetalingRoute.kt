@@ -9,11 +9,14 @@ import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteStansYtelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.revurdering.StansYtelseRequest
+import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
+import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
@@ -126,38 +129,97 @@ internal class StansUtbetalingBody(
 
 private fun KunneIkkeStanseYtelse.tilResultat(): Resultat {
     return when (this) {
-        KunneIkkeStanseYtelse.FantIkkeSak -> Revurderingsfeilresponser.fantIkkeSak
-        KunneIkkeStanseYtelse.KontrollAvSimuleringFeilet -> HttpStatusCode.InternalServerError.errorJson(
-            message = "feil ved kontroll av simulering",
-            code = "feil_ved_kontroll_av_simulering",
-        )
-        KunneIkkeStanseYtelse.SendingAvUtbetalingTilOppdragFeilet -> HttpStatusCode.InternalServerError.errorJson(
-            message = "sending av utbetaling til oppdrag feilet",
-            code = "sending_til_oppdrag_feilet",
-        )
-        KunneIkkeStanseYtelse.SimuleringAvStansFeilet -> HttpStatusCode.InternalServerError.errorJson(
-            message = "feil ved simulering av stans",
-            code = "feil_ved_simulering_av_stans",
-        )
-        KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering -> HttpStatusCode.InternalServerError.errorJson(
-            message = "kunne ikke opprette revurdering",
-            code = "kunne_ikke_opprette_revurdering",
-        )
-        KunneIkkeStanseYtelse.FantIkkeRevurdering -> Revurderingsfeilresponser.fantIkkeRevurdering
-        is KunneIkkeStanseYtelse.UgyldigTypeForOppdatering -> HttpStatusCode.BadRequest.errorJson(
-            message = "kunne ikke oppdatere revurdering for stans, eksisterende revurdering er av feil type: ${this.type}",
-            code = "ugyldig_type_for_oppdatering_av_stans",
-        )
+        KunneIkkeStanseYtelse.FantIkkeRevurdering -> {
+            Revurderingsfeilresponser.fantIkkeRevurdering
+        }
+        KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering -> {
+            HttpStatusCode.InternalServerError.errorJson(
+                message = "Kunne ikke opprette revurdering for stans",
+                code = "kunne_ikke_opprette_revurdering_for_stans",
+            )
+        }
+        is KunneIkkeStanseYtelse.SimuleringAvStansFeilet -> {
+            this.feil.tilResultat()
+        }
+        is KunneIkkeStanseYtelse.UgyldigTypeForOppdatering -> {
+            HttpStatusCode.BadRequest.errorJson(
+                message = "Ugyldig tilstand for oppdatering: ${this.type}",
+                code = "ugyldig_tilstand_for_oppdatering",
+            )
+        }
     }
 }
 
 private fun KunneIkkeIverksetteStansYtelse.tilResultat(): Resultat {
     return when (this) {
-        KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering -> Revurderingsfeilresponser.fantIkkeRevurdering
-        is KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale -> this.utbetalingFeilet.tilResultat()
+        KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering -> {
+            Revurderingsfeilresponser.fantIkkeRevurdering
+        }
+        is KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale -> {
+            when (val kunneIkkeUtbetale = this.feil) {
+                is UtbetalStansFeil.KunneIkkeSimulere -> {
+                    kunneIkkeUtbetale.feil.tilResultat()
+                }
+                is UtbetalStansFeil.KunneIkkeUtbetale -> {
+                    kunneIkkeUtbetale.feil.tilResultat()
+                }
+            }
+        }
         is KunneIkkeIverksetteStansYtelse.UgyldigTilstand -> HttpStatusCode.BadRequest.errorJson(
             "Kan ikke iverksette stans av utbetalinger for revurdering av type: ${this.faktiskTilstand}, eneste gyldige tilstand er ${this.målTilstand}",
             "kunne_ikke_iverksette_stans_ugyldig_tilstand",
         )
+    }
+}
+
+private fun SimulerStansFeilet.tilResultat(): Resultat {
+    return when (this) {
+        is SimulerStansFeilet.KunneIkkeGenerereUtbetaling -> {
+            this.feil.tilResultat()
+        }
+        is SimulerStansFeilet.KunneIkkeSimulere -> {
+            this.feil.tilResultat()
+        }
+    }
+}
+
+private fun Utbetalingsstrategi.Stans.Feil.tilResultat(): Resultat {
+    return when (this) {
+        Utbetalingsstrategi.Stans.Feil.FantIngenUtbetalinger -> {
+            HttpStatusCode.InternalServerError.errorJson(
+                message = "Utbetalingsstrategi (stans): Fant ingen utbetalinger",
+                code = "fant_ingen_utbetalinger",
+            )
+        }
+        Utbetalingsstrategi.Stans.Feil.IngenUtbetalingerEtterStansDato -> {
+            HttpStatusCode.InternalServerError.errorJson(
+                message = "Utbetalingsstrategi (stans): Fant ingen utbetalinger etter stansdato",
+                code = "fant_ingen_utbetalinger_etter_stansdato",
+            )
+        }
+        Utbetalingsstrategi.Stans.Feil.KanIkkeStanseOpphørtePerioder -> {
+            HttpStatusCode.InternalServerError.errorJson(
+                message = "Utbetalingsstrategi (stans): Kan ikke stanse opphørte utbetalinger",
+                code = "kan_ikke_stanse_opphørte_utbetalinger",
+            )
+        }
+        Utbetalingsstrategi.Stans.Feil.SisteUtbetalingErEnStans -> {
+            HttpStatusCode.InternalServerError.errorJson(
+                message = "Utbetalingsstrategi (stans): Kan ikke stanse utbetalinger som allerede er stanset",
+                code = "utbetaling_allerede_stanset",
+            )
+        }
+        Utbetalingsstrategi.Stans.Feil.SisteUtbetalingErOpphør -> {
+            HttpStatusCode.InternalServerError.errorJson(
+                message = "Utbetalingsstrategi (stans): Kan ikke stanse utbetalinger som allerede er opphørt",
+                code = "utbetaling_allerede_opphørt",
+            )
+        }
+        Utbetalingsstrategi.Stans.Feil.StansDatoErIkkeFørsteINesteMåned -> {
+            HttpStatusCode.InternalServerError.errorJson(
+                message = "Utbetalingsstrategi (stans): Stansdato er ikke første dato i neste måned",
+                code = "stansdato_ikke_første_i_neste_måned",
+            )
+        }
     }
 }

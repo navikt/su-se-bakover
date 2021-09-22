@@ -258,7 +258,7 @@ internal class GjenopptaUtbetalingRouteKtTest {
                 )
             }.apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
-                response.content shouldContain """"code":"kan_ikke_gjenoppta_opphørte_utbtalinger""""
+                response.content shouldContain """"code":"kan_ikke_gjenoppta_opphørte_utbetalinger""""
             }
         }
     }

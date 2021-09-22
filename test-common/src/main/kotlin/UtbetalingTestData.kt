@@ -150,7 +150,7 @@ fun stansUtbetalingForSimulering(
         behandler = saksbehandler,
         clock = fixedClock,
         stansDato = stansDato,
-    ).generate()
+    ).generer().getOrFail("Skal kunne lage utbetaling for stans")
 }
 
 fun simulertStansUtbetaling(

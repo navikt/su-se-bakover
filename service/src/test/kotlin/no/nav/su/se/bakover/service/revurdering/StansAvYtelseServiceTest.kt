@@ -10,12 +10,13 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
+import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
@@ -96,7 +97,13 @@ class StansAvYtelseServiceTest {
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerStans(any(), any(), any()) } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
+            on {
+                simulerStans(
+                    any(),
+                    any(),
+                    any(),
+                )
+            } doReturn SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL).left()
         }
 
         RevurderingServiceMocks(
@@ -113,7 +120,11 @@ class StansAvYtelseServiceTest {
                         begrunnelse = "begrunnelse",
                     ),
                 ),
-            ) shouldBe KunneIkkeStanseYtelse.SimuleringAvStansFeilet.left()
+            ) shouldBe KunneIkkeStanseYtelse.SimuleringAvStansFeilet(
+                SimulerStansFeilet.KunneIkkeSimulere(
+                    SimuleringFeilet.TEKNISK_FEIL,
+                ),
+            ).left()
 
             verify(it.vedtakService).kopierGjeldendeVedtaksdata(
                 sakId = sakId,
@@ -207,7 +218,8 @@ class StansAvYtelseServiceTest {
                     any(),
                     any(),
                 )
-            } doReturn UtbetalingFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL).left()
+            } doReturn UtbetalStansFeil.KunneIkkeSimulere(SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL))
+                .left()
         }
 
         RevurderingServiceMocks(
@@ -218,8 +230,8 @@ class StansAvYtelseServiceTest {
                 revurderingId = revurderingId,
                 attestant = NavIdentBruker.Attestant(simulertStans.saksbehandler.navIdent),
             ) shouldBe KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(
-                UtbetalingFeilet.KunneIkkeSimulere(
-                    SimuleringFeilet.TEKNISK_FEIL,
+                UtbetalStansFeil.KunneIkkeSimulere(
+                    SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL),
                 ),
             ).left()
 

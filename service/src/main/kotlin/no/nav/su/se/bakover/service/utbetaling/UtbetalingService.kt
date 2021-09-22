@@ -46,14 +46,14 @@ interface UtbetalingService {
         sakId: UUID,
         saksbehandler: NavIdentBruker,
         stansDato: LocalDate,
-    ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
+    ): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling>
 
     fun stansUtbetalinger(
         sakId: UUID,
         attestant: NavIdentBruker,
         simulering: Simulering,
         stansDato: LocalDate,
-    ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering>
+    ): Either<UtbetalStansFeil, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun simulerGjenopptak(
         sakId: UUID,
@@ -90,4 +90,14 @@ sealed class SimulerGjenopptakFeil {
 sealed class UtbetalGjenopptakFeil {
     data class KunneIkkeSimulere(val feil: SimulerGjenopptakFeil) : UtbetalGjenopptakFeil()
     data class KunneIkkeUtbetale(val feil: UtbetalingFeilet) : UtbetalGjenopptakFeil()
+}
+
+sealed class SimulerStansFeilet {
+    data class KunneIkkeSimulere(val feil: SimuleringFeilet) : SimulerStansFeilet()
+    data class KunneIkkeGenerereUtbetaling(val feil: Utbetalingsstrategi.Stans.Feil) : SimulerStansFeilet()
+}
+
+sealed class UtbetalStansFeil {
+    data class KunneIkkeSimulere(val feil: SimulerStansFeilet) : UtbetalStansFeil()
+    data class KunneIkkeUtbetale(val feil: UtbetalingFeilet) : UtbetalStansFeil()
 }

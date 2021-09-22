@@ -203,7 +203,7 @@ private fun Utbetalingsstrategi.Gjenoppta.Feil.tilResultat(): Resultat {
         Utbetalingsstrategi.Gjenoppta.Feil.KanIkkeGjenopptaOpphørtePeriode -> {
             InternalServerError.errorJson(
                 message = "Utbetalingsstrategi (gjenoppta): Kan ikke gjenoppta opphørte utbetalinger",
-                code = "kan_ikke_gjenoppta_opphørte_utbtalinger",
+                code = "kan_ikke_gjenoppta_opphørte_utbetalinger",
             )
         }
         Utbetalingsstrategi.Gjenoppta.Feil.SisteUtbetalingErIkkeStans -> {

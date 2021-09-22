@@ -115,7 +115,7 @@ internal class RevurderingServiceImpl(
             saksbehandler = request.saksbehandler,
             stansDato = request.fraOgMed,
         ).getOrHandle {
-            return KunneIkkeStanseYtelse.SimuleringAvStansFeilet.left()
+            return KunneIkkeStanseYtelse.SimuleringAvStansFeilet(it).left()
         }
 
         val simulertRevurdering = when (request) {

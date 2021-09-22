@@ -230,7 +230,7 @@ internal class StansUtbetalingServiceTest {
             clock = fixedClock,
         ).stansUtbetalinger(sak.id, saksbehandler, simulering, 1.januar(2020))
 
-        response shouldBe UtbetalingFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL).left()
+        response shouldBe UtbetalStansFeil.KunneIkkeSimulere(SimulerStansFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL)).left()
 
         inOrder(sakServiceMock, simuleringClientMock) {
             verify(sakServiceMock, times(2)).hentSak(sakId = argThat { it shouldBe sak.id })
@@ -282,7 +282,7 @@ internal class StansUtbetalingServiceTest {
             clock = fixedClock,
         ).stansUtbetalinger(sak.id, saksbehandler, simulering, 1.januar(2020))
 
-        response shouldBe UtbetalingFeilet.Protokollfeil.left()
+        response shouldBe UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
 
         inOrder(
             sakServiceMock,
@@ -419,7 +419,7 @@ internal class StansUtbetalingServiceTest {
             attestant = saksbehandler,
             simulering = simuleringMedProblemer,
             stansDato = 1.januar(2020),
-        ) shouldBe UtbetalingFeilet.KontrollAvSimuleringFeilet.left()
+        ) shouldBe UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.KontrollAvSimuleringFeilet).left()
 
         verify(utbetalingPublisherMock, never()).publish(any())
         verify(utbetalingRepoMock, never()).opprettUtbetaling(any())
@@ -460,7 +460,8 @@ internal class StansUtbetalingServiceTest {
                 ),
             ),
             stansDato = 1.januar(2020),
-        ) shouldBe UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+        ) shouldBe UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte)
+            .left()
 
         verify(utbetalingPublisherMock, never()).publish(any())
         verify(utbetalingRepoMock, never()).opprettUtbetaling(any())

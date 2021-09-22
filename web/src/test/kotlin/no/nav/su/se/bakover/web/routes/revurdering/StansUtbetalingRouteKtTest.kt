@@ -11,9 +11,13 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteStansYtelse
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeStanseYtelse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.revurdering.StansYtelseRequest
+import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
+import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -25,6 +29,7 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import java.util.UUID
 
 internal class StansUtbetalingRouteKtTest {
 
@@ -99,7 +104,7 @@ internal class StansUtbetalingRouteKtTest {
         val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
         val revurderingServiceMock = mock<RevurderingService>() {
             on { iverksettStansAvYtelse(any(), any()) } doReturn KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(
-                UtbetalingFeilet.Protokollfeil,
+                UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil),
             ).left()
         }
         withTestApplication(
@@ -199,6 +204,46 @@ internal class StansUtbetalingRouteKtTest {
             }.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain """"code":"revurderingsårsak_ugyldig_begrunnelse""""
+            }
+        }
+    }
+
+    @Test
+    fun `svarer med 500 hvis simulering ikke går bra`() {
+        val revurderingServiceMock = mock<RevurderingService>() {
+            on { stansAvYtelse(any()) } doReturn KunneIkkeStanseYtelse.SimuleringAvStansFeilet(
+                SimulerStansFeilet.KunneIkkeSimulere(
+                    SimuleringFeilet.OPPDRAGET_FINNES_IKKE,
+                ),
+            ).left()
+        }
+        withTestApplication(
+            {
+                testSusebakover(
+                    services = mockServices.copy(
+                        revurdering = revurderingServiceMock,
+                    ),
+                )
+            },
+        ) {
+            defaultRequest(
+                HttpMethod.Post,
+                "saker/${UUID.randomUUID()}/revurderinger/stans",
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody(
+                    //language=json
+                    """
+                        {
+                          "fraOgMed": "2021-05-01",
+                          "årsak": "MANGLENDE_KONTROLLERKLÆRING",
+                          "begrunnelse": "huffda"
+                        }
+                    """.trimIndent(),
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.InternalServerError
+                response.content shouldContain """"code":"simulering_feilet_oppdraget_finnes_ikke""""
             }
         }
     }

@@ -28,7 +28,9 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
+import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
 import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
+import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -372,17 +374,14 @@ sealed class StansYtelseRequest {
 }
 
 sealed class KunneIkkeStanseYtelse {
-    object FantIkkeSak : KunneIkkeStanseYtelse()
     object FantIkkeRevurdering : KunneIkkeStanseYtelse()
-    object SimuleringAvStansFeilet : KunneIkkeStanseYtelse()
-    object SendingAvUtbetalingTilOppdragFeilet : KunneIkkeStanseYtelse()
-    object KontrollAvSimuleringFeilet : KunneIkkeStanseYtelse()
+    data class SimuleringAvStansFeilet(val feil: SimulerStansFeilet) : KunneIkkeStanseYtelse()
     object KunneIkkeOppretteRevurdering : KunneIkkeStanseYtelse()
     data class UgyldigTypeForOppdatering(val type: KClass<out AbstraktRevurdering>) : KunneIkkeStanseYtelse()
 }
 
 sealed class KunneIkkeIverksetteStansYtelse {
-    data class KunneIkkeUtbetale(val utbetalingFeilet: UtbetalingFeilet) : KunneIkkeIverksetteStansYtelse()
+    data class KunneIkkeUtbetale(val feil: UtbetalStansFeil) : KunneIkkeIverksetteStansYtelse()
     object FantIkkeRevurdering : KunneIkkeIverksetteStansYtelse()
     data class UgyldigTilstand(
         val faktiskTilstand: KClass<out AbstraktRevurdering>,
