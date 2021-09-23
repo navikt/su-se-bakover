@@ -56,7 +56,7 @@ internal fun Route.gjenopptaUtbetaling(
                     revurderingService.gjenopptaYtelse(request).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
-                            call.sikkerlogg("Opprettet revurdering for satans av ytelse for $sakId")
+                            call.sikkerlogg("Opprettet revurdering for gjenopptak av ytelse for sak:$sakId")
                             call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
                             call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson())))
                         },
@@ -88,7 +88,7 @@ internal fun Route.gjenopptaUtbetaling(
                         revurderingService.gjenopptaYtelse(request).fold(
                             ifLeft = { call.svar(it.tilResultat()) },
                             ifRight = {
-                                call.sikkerlogg("Oppdaterer revurdering for stans av ytelse for $sakId")
+                                call.sikkerlogg("Oppdaterer revurdering for gjenopptak av ytelse for sak:$sakId")
                                 call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                                 call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
                             },
@@ -109,7 +109,7 @@ internal fun Route.gjenopptaUtbetaling(
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
-                            call.sikkerlogg("Iverksatt stans av utbetalinger for $sakId")
+                            call.sikkerlogg("Iverksatt gjenopptak av utbetalinger for sak:$sakId")
                             call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                             call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
                         },

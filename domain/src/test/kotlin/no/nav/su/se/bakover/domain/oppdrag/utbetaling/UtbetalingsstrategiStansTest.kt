@@ -287,7 +287,7 @@ internal class UtbetalingsstrategiStansTest {
     }
 
     @Test
-    fun `svarer med feil ersom det eksisterer fremtidige opphør i perioden mellom stansdato og nyeste utbetaling`() {
+    fun `svarer med feil dersom det eksisterer fremtidige opphør i perioden mellom stansdato og nyeste utbetaling`() {
         val fixedClock15Juli21 = Clock.fixed(15.juli(2021).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
 
         val første = createUtbetaling(

@@ -385,8 +385,10 @@ sealed class KunneIkkeIverksetteStansYtelse {
     object FantIkkeRevurdering : KunneIkkeIverksetteStansYtelse()
     data class UgyldigTilstand(
         val faktiskTilstand: KClass<out AbstraktRevurdering>,
-        val målTilstand: KClass<out StansAvYtelseRevurdering.IverksattStansAvYtelse> = StansAvYtelseRevurdering.IverksattStansAvYtelse::class,
-    ) : KunneIkkeIverksetteStansYtelse()
+    ) : KunneIkkeIverksetteStansYtelse() {
+        val målTilstand: KClass<out StansAvYtelseRevurdering.IverksattStansAvYtelse> =
+            StansAvYtelseRevurdering.IverksattStansAvYtelse::class
+    }
 }
 
 sealed class GjenopptaYtelseRequest {
@@ -422,8 +424,10 @@ sealed class KunneIkkeIverksetteGjenopptakAvYtelse {
     object FantIkkeRevurdering : KunneIkkeIverksetteGjenopptakAvYtelse()
     data class UgyldigTilstand(
         val faktiskTilstand: KClass<out AbstraktRevurdering>,
-        val målTilstand: KClass<out GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse> = GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse::class,
-    ) : KunneIkkeIverksetteGjenopptakAvYtelse()
+    ) : KunneIkkeIverksetteGjenopptakAvYtelse() {
+        val målTilstand: KClass<out GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse> =
+            GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse::class
+    }
 }
 
 data class LeggTilBosituasjongrunnlagRequest(
