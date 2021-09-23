@@ -59,7 +59,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
             testDataHelper.nyAvslåttBeregning().also {
-                dataSource.withSession { session ->
+                testDataHelper.sessionFactory.withSessionContext { session ->
                     repo.hentForSak(it.sakId, session)
                 }
             }

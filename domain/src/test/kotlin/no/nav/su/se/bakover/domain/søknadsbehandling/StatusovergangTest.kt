@@ -5,6 +5,7 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
@@ -16,19 +17,12 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.behandling.withVilkårIkkeVurdert
 import no.nav.su.se.bakover.domain.fixedTidspunkt
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.attesteringUnderkjent
 import no.nav.su.se.bakover.test.beregning
-import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.stønadsperiode2021
+import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt12000
@@ -36,7 +30,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
-import java.util.UUID
 
 internal class StatusovergangTest {
 
@@ -771,7 +764,7 @@ internal class StatusovergangTest {
                 assertDoesNotThrow {
                     forsøkStatusovergang(
                         søknadsbehandling = it,
-                        statusovergang = Statusovergang.OppdaterStønadsperiode(stønadsperiode),
+                        statusovergang = Statusovergang.OppdaterStønadsperiode(stønadsperiode, emptyList()),
                     )
                 }
             }
@@ -790,7 +783,7 @@ internal class StatusovergangTest {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     forsøkStatusovergang(
                         søknadsbehandling = it,
-                        statusovergang = Statusovergang.OppdaterStønadsperiode(stønadsperiode),
+                        statusovergang = Statusovergang.OppdaterStønadsperiode(stønadsperiode, emptyList()),
                     )
                 }
             }
@@ -798,42 +791,35 @@ internal class StatusovergangTest {
 
         @Test
         fun `oppdaterer perioden riktig`() {
-            val opprettetMedGrunnlag = opprettet.copy(
-                vilkårsvurderinger = Vilkårsvurderinger(
-                    uføre = Vilkår.Uførhet.Vurdert.create(
-                        vurderingsperioder = nonEmptyListOf(
-                            Vurderingsperiode.Uføre.create(
-                                id = UUID.randomUUID(),
-                                opprettet = opprettet.opprettet,
-                                resultat = Resultat.Innvilget,
-                                grunnlag = Grunnlag.Uføregrunnlag(
-                                    periode = stønadsperiode.periode,
-                                    uføregrad = Uføregrad.parse(20),
-                                    forventetInntekt = 10,
-                                    opprettet = fixedTidspunkt,
-                                ),
-                                periode = stønadsperiode.periode,
-                                begrunnelse = "ok2k",
-                            ),
-                        ),
-                    ),
-                    formue = innvilgetFormueVilkår(stønadsperiode.periode),
-                ),
-            )
+            val opprettetSøknadsbehandling = søknadsbehandlingVilkårsvurdertInnvilget().second
 
-            val nyPeriode = Periode.create(1.februar(2021), 31.mars(2021))
+            val nyPeriode = Periode.create(1.februar(2022), 31.mars(2022))
             val actual = forsøkStatusovergang(
-                søknadsbehandling = opprettetMedGrunnlag,
+                søknadsbehandling = opprettetSøknadsbehandling,
                 statusovergang = Statusovergang.OppdaterStønadsperiode(
-                    Stønadsperiode.create(
-                        nyPeriode,
-                        "tester å oppdatere perioden",
-                    ),
+                    Stønadsperiode.create(nyPeriode, ""),
+                    tidligereSøknadsbehandlinger = listOf(søknadsbehandlingVilkårsvurdertUavklart().second),
                 ),
             )
-
             actual.orNull()!!.periode shouldBe nyPeriode
             actual.orNull()!!.vilkårsvurderinger.uføre.grunnlag.first().periode shouldBe nyPeriode
+            actual.orNull()!!.vilkårsvurderinger.formue.grunnlag.first().periode shouldBe nyPeriode
+            actual.orNull()!!.grunnlagsdata.bosituasjon.first().periode shouldBe nyPeriode
+        }
+
+        @Test
+        fun `stønadsperioder skal ikke kunne overlappe`() {
+            val opprettetSøknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().second
+
+            val nyPeriode = Periode.create(1.desember(2021), 31.mars(2022))
+            val actual = forsøkStatusovergang(
+                søknadsbehandling = opprettetSøknadsbehandling,
+                statusovergang = Statusovergang.OppdaterStønadsperiode(
+                    Stønadsperiode.create(nyPeriode, ""),
+                    tidligereSøknadsbehandlinger = listOf(søknadsbehandlingVilkårsvurdertUavklart().second),
+                ),
+            )
+            actual shouldBe Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedEksisterendeSøknadsbehandling.left()
         }
     }
 }

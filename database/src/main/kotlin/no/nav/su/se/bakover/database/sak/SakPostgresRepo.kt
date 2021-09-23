@@ -3,8 +3,10 @@ package no.nav.su.se.bakover.database.sak
 import arrow.core.NonEmptyList
 import kotliquery.Row
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.database.DbMetrics
-import no.nav.su.se.bakover.database.Session
+import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
+import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
@@ -22,35 +24,41 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
 import no.nav.su.se.bakover.domain.sak.SakRestans
 import java.util.UUID
-import javax.sql.DataSource
 
 internal class SakPostgresRepo(
-    private val dataSource: DataSource,
+    private val sessionFactory: PostgresSessionFactory,
     private val søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
     private val revurderingRepo: RevurderingPostgresRepo,
     private val vedtakPostgresRepo: VedtakPostgresRepo,
     private val dbMetrics: DbMetrics,
 ) : SakRepo {
+
     private val sakRestansRepo = SakRestansRepo(
-        dataSource = dataSource,
         dbMetrics = dbMetrics,
     )
 
     override fun hentSak(sakId: UUID): Sak? {
         return dbMetrics.timeQuery("hentSakId") {
-            dataSource.withSession { hentSakInternal(sakId, it) }
+            sessionFactory.withSessionContext {
+                hentSakInternal(sakId, it)
+            }
         }
     }
 
     override fun hentSak(fnr: Fnr): Sak? {
         return dbMetrics.timeQuery("hentSakFnr") {
-            dataSource.withSession { hentSakInternal(fnr, it) }
+            sessionFactory.withSessionContext {
+                hentSakInternal(fnr, it)
+            }
         }
     }
 
     override fun hentSak(saksnummer: Saksnummer): Sak? {
+
         return dbMetrics.timeQuery("hentSakNr") {
-            dataSource.withSession { hentSakInternal(saksnummer, it) }
+            sessionFactory.withSessionContext {
+                hentSakInternal(saksnummer, it)
+            }
         }
     }
 
@@ -58,7 +66,7 @@ internal class SakPostgresRepo(
      * @param personidenter Inneholder alle identer til brukeren, f.eks fnr og aktørid.
      */
     override fun hentSakIdOgNummerForIdenter(personidenter: NonEmptyList<String>): SakIdOgNummer? {
-        return dataSource.withSession { session ->
+        return sessionFactory.withSession { session ->
             """
                 SELECT
                     id, saksnummer
@@ -80,7 +88,7 @@ internal class SakPostgresRepo(
 
     override fun opprettSak(sak: NySak) {
         return dbMetrics.timeQuery("opprettSak") {
-            dataSource.withSession { session ->
+            sessionFactory.withSession { session ->
                 """
             with inserted_sak as (insert into sak (id, fnr, opprettet) values (:sakId, :fnr, :opprettet))
             insert into søknad (id, sakId, søknadInnhold, opprettet) values (:soknadId, :sakId, to_json(:soknad::json), :opprettet)
@@ -99,31 +107,47 @@ internal class SakPostgresRepo(
     }
 
     override fun hentSakRestanser(): List<SakRestans> {
-        return sakRestansRepo.hentSakRestanser()
+        return sessionFactory.withSession { session ->
+            sakRestansRepo.hentSakRestanser(session)
+        }
     }
 
-    private fun hentSakInternal(fnr: Fnr, session: Session): Sak? = "select * from sak where fnr=:fnr"
-        .hent(mapOf("fnr" to fnr.toString()), session) { it.toSak(session) }
+    private fun hentSakInternal(fnr: Fnr, sessionContext: SessionContext): Sak? {
+        return sessionContext.withSession { session ->
+            "select * from sak where fnr=:fnr"
+                .hent(mapOf("fnr" to fnr.toString()), session) { it.toSak(sessionContext) }
+        }
+    }
 
-    private fun hentSakInternal(sakId: UUID, session: Session): Sak? = "select * from sak where id=:sakId"
-        .hent(mapOf("sakId" to sakId), session) { it.toSak(session) }
+    private fun hentSakInternal(sakId: UUID, sessionContext: SessionContext): Sak? {
+        return sessionContext.withSession { session ->
+            "select * from sak where id=:sakId"
+                .hent(mapOf("sakId" to sakId), session) { it.toSak(sessionContext) }
+        }
+    }
 
-    private fun hentSakInternal(saksnummer: Saksnummer, session: Session): Sak? =
-        "select * from sak where saksnummer=:saksnummer"
-            .hent(mapOf("saksnummer" to saksnummer.nummer), session) { it.toSak(session) }
+    private fun hentSakInternal(saksnummer: Saksnummer, sessionContext: SessionContext): Sak? {
+        return sessionContext.withSession { session ->
+            "select * from sak where saksnummer=:saksnummer"
+                .hent(mapOf("saksnummer" to saksnummer.nummer), session) { it.toSak(sessionContext) }
+        }
+    }
 
-    private fun Row.toSak(session: Session): Sak {
-        val sakId = UUID.fromString(string("id"))
-        return Sak(
-            id = sakId,
-            saksnummer = Saksnummer(long("saksnummer")),
-            fnr = Fnr(string("fnr")),
-            opprettet = tidspunkt("opprettet"),
-            søknader = SøknadRepoInternal.hentSøknaderInternal(sakId, session),
-            søknadsbehandlinger = søknadsbehandlingRepo.hentForSak(sakId, session),
-            utbetalinger = UtbetalingInternalRepo.hentUtbetalinger(sakId, session),
-            revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session),
-            vedtakListe = vedtakPostgresRepo.hentForSakId(sakId, session),
-        )
+    private fun Row.toSak(sessionContext: SessionContext): Sak {
+        return sessionContext.withSession { session ->
+
+            val sakId = UUID.fromString(string("id"))
+            Sak(
+                id = sakId,
+                saksnummer = Saksnummer(long("saksnummer")),
+                fnr = Fnr(string("fnr")),
+                opprettet = tidspunkt("opprettet"),
+                søknader = SøknadRepoInternal.hentSøknaderInternal(sakId, session),
+                søknadsbehandlinger = søknadsbehandlingRepo.hentForSak(sakId, sessionContext),
+                utbetalinger = UtbetalingInternalRepo.hentUtbetalinger(sakId, session),
+                revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session),
+                vedtakListe = vedtakPostgresRepo.hentForSakId(sakId, session),
+            )
+        }
     }
 }
