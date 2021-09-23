@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Oppgavetype
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadstype
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -23,32 +24,43 @@ sealed class OppgaveConfig {
     abstract val aktivDato: LocalDate
     abstract val fristFerdigstillelse: LocalDate
 
-    data class Saksbehandling(
+    /**
+     * Denne er knyttet til mottak av søknad (både førstegang og ny periode), men brukes videre av søknadsbehandlinga
+     */
+    data class NySøknad(
         override val journalpostId: JournalpostId,
         val søknadId: UUID,
         override val aktørId: AktørId,
         override val tilordnetRessurs: NavIdentBruker? = null,
         override val clock: Clock = Clock.systemUTC(),
+        val søknadstype: Søknadstype,
     ) : OppgaveConfig() {
         override val saksreferanse = søknadId.toString()
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
-        override val behandlingstype = Behandlingstype.FØRSTEGANGSSØKNAD
         override val oppgavetype = Oppgavetype.BEHANDLE_SAK
+        override val behandlingstype = when (søknadstype) {
+            Søknadstype.FØRSTEGANGSSØKNAD -> Behandlingstype.FØRSTEGANGSSØKNAD
+            Søknadstype.NY_PERIODE -> Behandlingstype.NY_PERIODE
+        }
         override val aktivDato: LocalDate = LocalDate.now(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
     }
 
-    data class Attestering(
+    data class AttesterSøknadsbehandling(
         val søknadId: UUID,
         override val aktørId: AktørId,
         override val tilordnetRessurs: NavIdentBruker? = null,
         override val clock: Clock = Clock.systemUTC(),
+        val søknadstype: Søknadstype,
     ) : OppgaveConfig() {
         override val saksreferanse = søknadId.toString()
         override val journalpostId: JournalpostId? = null
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
-        override val behandlingstype = Behandlingstype.FØRSTEGANGSSØKNAD
         override val oppgavetype = Oppgavetype.ATTESTERING
+        override val behandlingstype = when (søknadstype) {
+            Søknadstype.FØRSTEGANGSSØKNAD -> Behandlingstype.FØRSTEGANGSSØKNAD
+            Søknadstype.NY_PERIODE -> Behandlingstype.NY_PERIODE
+        }
         override val aktivDato: LocalDate = LocalDate.now(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
     }

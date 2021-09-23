@@ -15,8 +15,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
-val søknadsbehandlingId: UUID = UUID.randomUUID()
-
 val behandlingsinformasjonAlleVilkårUavklart = Behandlingsinformasjon
     .lagTomBehandlingsinformasjon()
 
@@ -43,7 +41,7 @@ fun søknadsbehandlingVilkårsvurdertUavklart(
         fnr = fnr,
     ).let { (sak, journalførtSøknadMedOppgave) ->
         val søknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
-            id = søknadsbehandlingId,
+            id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             sakId = sak.id,
             saksnummer = sak.saksnummer,

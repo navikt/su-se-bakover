@@ -96,7 +96,7 @@ internal class OppgaveHttpClient(
         token: String,
     ): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> {
         val beskrivelse = when (config) {
-            is OppgaveConfig.Attestering, is OppgaveConfig.Saksbehandling ->
+            is OppgaveConfig.AttesterSøknadsbehandling, is OppgaveConfig.NySøknad ->
                 "--- ${
                 Tidspunkt.now(clock).toOppgaveFormat()
                 } - Opprettet av Supplerende Stønad ---\nSøknadId : ${config.saksreferanse}"
