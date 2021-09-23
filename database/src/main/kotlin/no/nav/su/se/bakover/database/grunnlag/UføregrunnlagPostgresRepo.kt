@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.grunnlag
 import kotliquery.Row
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.Session
+import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -15,10 +16,10 @@ import java.util.UUID
 
 internal class UføregrunnlagPostgresRepo {
 
-    internal fun lagre(behandlingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>, session: Session) {
-        slettForBehandlingId(behandlingId, session)
+    internal fun lagre(behandlingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>, tx: TransactionalSession) {
+        slettForBehandlingId(behandlingId, tx)
         uføregrunnlag.forEach {
-            lagre(it, behandlingId, session)
+            lagre(it, behandlingId, tx)
         }
     }
 
@@ -48,7 +49,7 @@ internal class UføregrunnlagPostgresRepo {
             }
     }
 
-    private fun slettForBehandlingId(behandlingId: UUID, session: Session) {
+    private fun slettForBehandlingId(behandlingId: UUID, tx: TransactionalSession) {
         """
             delete from grunnlag_uføre where behandlingId = :behandlingId
         """.trimIndent()
@@ -56,7 +57,7 @@ internal class UføregrunnlagPostgresRepo {
                 mapOf(
                     "behandlingId" to behandlingId,
                 ),
-                session,
+                tx,
             )
     }
 
@@ -70,7 +71,7 @@ internal class UføregrunnlagPostgresRepo {
         )
     }
 
-    private fun lagre(uføregrunnlag: Grunnlag.Uføregrunnlag, behandlingId: UUID, session: Session) {
+    private fun lagre(uføregrunnlag: Grunnlag.Uføregrunnlag, behandlingId: UUID, tx: TransactionalSession) {
         """
             insert into grunnlag_uføre
             (
@@ -102,7 +103,7 @@ internal class UføregrunnlagPostgresRepo {
                     "uforegrad" to uføregrunnlag.uføregrad.value,
                     "forventetInntekt" to uføregrunnlag.forventetInntekt,
                 ),
-                session,
+                tx,
             )
     }
 }

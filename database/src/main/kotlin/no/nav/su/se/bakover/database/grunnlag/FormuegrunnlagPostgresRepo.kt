@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.Session
+import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
@@ -14,15 +15,15 @@ import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import java.util.UUID
 
-internal class FormuegrunnlagPostgresRepo() {
+internal class FormuegrunnlagPostgresRepo {
     internal fun lagreFormuegrunnlag(
         behandlingId: UUID,
         formuegrunnlag: List<Formuegrunnlag>,
-        session: Session,
+        tx: TransactionalSession,
     ) {
-        slettForBehandlingId(behandlingId, session)
+        slettForBehandlingId(behandlingId, tx)
         formuegrunnlag.forEach {
-            lagre(it, behandlingId, session)
+            lagre(it, behandlingId, tx)
         }
     }
 
@@ -40,7 +41,7 @@ internal class FormuegrunnlagPostgresRepo() {
             }
     }
 
-    private fun slettForBehandlingId(behandlingId: UUID, session: Session) {
+    private fun slettForBehandlingId(behandlingId: UUID, tx: TransactionalSession) {
         """
             delete from grunnlag_formue where behandlingId = :behandlingId
         """.trimIndent()
@@ -48,7 +49,7 @@ internal class FormuegrunnlagPostgresRepo() {
                 mapOf(
                     "behandlingId" to behandlingId,
                 ),
-                session,
+                tx,
             )
     }
 
@@ -63,7 +64,7 @@ internal class FormuegrunnlagPostgresRepo() {
         )
     }
 
-    private fun lagre(formuegrunnlag: Formuegrunnlag, behandlingId: UUID, session: Session) {
+    private fun lagre(formuegrunnlag: Formuegrunnlag, behandlingId: UUID, tx: TransactionalSession) {
         """
             insert into grunnlag_formue
             (
@@ -98,7 +99,7 @@ internal class FormuegrunnlagPostgresRepo() {
                     "sokerFormue" to objectMapper.writeValueAsString(formuegrunnlag.søkersFormue.toJson()),
                     "begrunnelse" to formuegrunnlag.begrunnelse,
                 ),
-                session,
+                tx,
             )
     }
 }

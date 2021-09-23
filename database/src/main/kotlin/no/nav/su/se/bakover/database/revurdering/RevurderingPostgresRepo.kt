@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
+import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
@@ -143,7 +144,7 @@ internal class RevurderingPostgresRepo(
     }
 
     internal fun lagre(revurdering: StansAvYtelseRevurdering, sessionContext: TransactionContext) {
-        sessionContext.withSession { tx ->
+        sessionContext.withTransaction { tx ->
             when (revurdering) {
                 is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
                     """
@@ -199,22 +200,22 @@ internal class RevurderingPostgresRepo(
                     fradragsgrunnlagPostgresRepo.lagreFradragsgrunnlag(
                         behandlingId = revurdering.id,
                         fradragsgrunnlag = revurdering.grunnlagsdata.fradragsgrunnlag,
-                        session = tx,
+                        tx = tx,
                     )
                     bosituasjonsgrunnlagPostgresRepo.lagreBosituasjongrunnlag(
                         behandlingId = revurdering.id,
                         grunnlag = revurdering.grunnlagsdata.bosituasjon,
-                        session = tx,
+                        tx = tx,
                     )
                     uføreVilkårsvurderingRepo.lagre(
                         behandlingId = revurdering.id,
                         vilkår = revurdering.vilkårsvurderinger.uføre,
-                        session = tx,
+                        tx = tx,
                     )
                     formueVilkårsvurderingRepo.lagre(
                         behandlingId = revurdering.id,
                         vilkår = revurdering.vilkårsvurderinger.formue,
-                        session = tx,
+                        tx = tx,
                     )
                 }
                 is StansAvYtelseRevurdering.IverksattStansAvYtelse -> {
@@ -238,7 +239,7 @@ internal class RevurderingPostgresRepo(
     }
 
     internal fun lagre(revurdering: GjenopptaYtelseRevurdering, sessionContext: TransactionContext) {
-        sessionContext.withSession { tx ->
+        sessionContext.withTransaction { tx ->
             when (revurdering) {
                 is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> {
                     """
@@ -294,22 +295,22 @@ internal class RevurderingPostgresRepo(
                     fradragsgrunnlagPostgresRepo.lagreFradragsgrunnlag(
                         behandlingId = revurdering.id,
                         fradragsgrunnlag = revurdering.grunnlagsdata.fradragsgrunnlag,
-                        session = tx,
+                        tx = tx,
                     )
                     bosituasjonsgrunnlagPostgresRepo.lagreBosituasjongrunnlag(
                         behandlingId = revurdering.id,
                         grunnlag = revurdering.grunnlagsdata.bosituasjon,
-                        session = tx,
+                        tx = tx,
                     )
                     uføreVilkårsvurderingRepo.lagre(
                         behandlingId = revurdering.id,
                         vilkår = revurdering.vilkårsvurderinger.uføre,
-                        session = tx,
+                        tx = tx,
                     )
                     formueVilkårsvurderingRepo.lagre(
                         behandlingId = revurdering.id,
                         vilkår = revurdering.vilkårsvurderinger.formue,
-                        session = tx,
+                        tx = tx,
                     )
                 }
                 is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse -> {

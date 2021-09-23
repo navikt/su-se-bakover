@@ -6,6 +6,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
+import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
@@ -30,25 +31,25 @@ internal class UføreVilkårsvurderingPostgresRepo(
             lagre(
                 behandlingId = behandlingId,
                 vilkår = vilkår,
-                session = tx,
+                tx = tx,
             )
         }
     }
 
-    internal fun lagre(behandlingId: UUID, vilkår: Vilkår.Uførhet, session: Session) {
-        slettForBehandlingId(behandlingId, session)
+    internal fun lagre(behandlingId: UUID, vilkår: Vilkår.Uførhet, tx: TransactionalSession) {
+        slettForBehandlingId(behandlingId, tx)
         when (vilkår) {
             Vilkår.Uførhet.IkkeVurdert -> Unit
             is Vilkår.Uførhet.Vurdert -> {
-                uføregrunnlagRepo.lagre(behandlingId, vilkår.grunnlag, session)
+                uføregrunnlagRepo.lagre(behandlingId, vilkår.grunnlag, tx)
                 vilkår.vurderingsperioder.forEach {
-                    lagre(behandlingId, it, session)
+                    lagre(behandlingId, it, tx)
                 }
             }
         }
     }
 
-    private fun lagre(behandlingId: UUID, vurderingsperiode: Vurderingsperiode.Uføre, session: Session) {
+    private fun lagre(behandlingId: UUID, vurderingsperiode: Vurderingsperiode.Uføre, tx: TransactionalSession) {
         """
                 insert into vilkårsvurdering_uføre
                 (
@@ -86,11 +87,11 @@ internal class UføreVilkårsvurderingPostgresRepo(
                     "fraOgMed" to vurderingsperiode.periode.fraOgMed,
                     "tilOgMed" to vurderingsperiode.periode.tilOgMed,
                 ),
-                session,
+                tx,
             )
     }
 
-    private fun slettForBehandlingId(behandlingId: UUID, session: Session) {
+    private fun slettForBehandlingId(behandlingId: UUID, tx: TransactionalSession) {
         """
                 delete from vilkårsvurdering_uføre where behandlingId = :behandlingId
         """.trimIndent()
@@ -98,7 +99,7 @@ internal class UføreVilkårsvurderingPostgresRepo(
                 mapOf(
                     "behandlingId" to behandlingId,
                 ),
-                session,
+                tx,
             )
     }
 

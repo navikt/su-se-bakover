@@ -4,6 +4,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
+import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
@@ -83,19 +84,19 @@ class BosituasjongrunnlagPostgresRepo(
             lagreBosituasjongrunnlag(
                 behandlingId = behandlingId,
                 grunnlag = grunnlag,
-                session = tx,
+                tx = tx,
             )
         }
     }
 
-    internal fun lagreBosituasjongrunnlag(behandlingId: UUID, grunnlag: List<Grunnlag.Bosituasjon>, session: Session) {
-        slettForBehandlingId(behandlingId, session)
+    internal fun lagreBosituasjongrunnlag(behandlingId: UUID, grunnlag: List<Grunnlag.Bosituasjon>, tx: TransactionalSession) {
+        slettForBehandlingId(behandlingId, tx)
         grunnlag.forEach { bosituasjon ->
-            lagre(behandlingId, bosituasjon, session)
+            lagre(behandlingId, bosituasjon, tx)
         }
     }
 
-    private fun slettForBehandlingId(behandlingId: UUID, session: Session) {
+    private fun slettForBehandlingId(behandlingId: UUID, tx: TransactionalSession) {
         """
             delete from grunnlag_bosituasjon where behandlingId = :behandlingId
         """.trimIndent()
@@ -103,11 +104,11 @@ class BosituasjongrunnlagPostgresRepo(
                 mapOf(
                     "behandlingId" to behandlingId,
                 ),
-                session,
+                tx,
             )
     }
 
-    private fun lagre(behandlingId: UUID, grunnlag: Grunnlag.Bosituasjon, session: Session) {
+    private fun lagre(behandlingId: UUID, grunnlag: Grunnlag.Bosituasjon, tx: TransactionalSession) {
         """
             insert into grunnlag_bosituasjon
             (
@@ -166,7 +167,7 @@ class BosituasjongrunnlagPostgresRepo(
                         is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps -> null
                     },
                 ),
-                session,
+                tx,
             )
     }
 
