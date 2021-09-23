@@ -5,8 +5,10 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonIgnore
+import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.erFørsteDagIMåned
 import no.nav.su.se.bakover.common.erSisteDagIMåned
+import no.nav.su.se.bakover.common.startOfMonth
 import java.time.LocalDate
 import java.time.Period
 
@@ -100,6 +102,11 @@ data class Periode private constructor(
 
             return Periode(fraOgMed, tilOgMed).right()
         }
+    }
+
+    fun månedenEtter(): Periode {
+        val førsteINesteMåned = fraOgMed.plusMonths(1).startOfMonth()
+        return Periode(førsteINesteMåned, førsteINesteMåned.endOfMonth())
     }
 
     sealed class UgyldigPeriode {

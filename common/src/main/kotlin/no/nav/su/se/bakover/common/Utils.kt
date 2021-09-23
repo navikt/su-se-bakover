@@ -31,6 +31,7 @@ fun LocalDate.endOfMonth(): LocalDate = this.withDayOfMonth(this.lengthOfMonth()
 fun LocalDate.between(periode: Periode) = this.between(periode.fraOgMed, periode.tilOgMed)
 fun LocalDate.between(fraOgMed: LocalDate, tilOgMed: LocalDate) =
     (this == fraOgMed || this == tilOgMed) || this.isAfter(fraOgMed) && this.isBefore(tilOgMed)
+
 fun LocalDate.erFørsteDagIMåned() = dayOfMonth == 1
 fun LocalDate.erSisteDagIMåned() = dayOfMonth == lengthOfMonth()
 
@@ -38,3 +39,18 @@ fun Tidspunkt.between(fraOgMed: Tidspunkt, tilOgMed: Tidspunkt) =
     (this == fraOgMed || this == tilOgMed) || this.instant.isAfter(fraOgMed.instant) && this.instant.isBefore(tilOgMed.instant)
 
 fun LocalDate.ddMMyyyy(): String = this.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+
+fun januar(year: Int) = 1.januar(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+fun februar(year: Int) = 1.februar(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+fun mars(year: Int) = 1.mars(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+fun april(year: Int) = 1.april(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+fun mai(year: Int) = 1.mai(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+fun juni(year: Int) = 1.juni(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+fun juli(year: Int) = 1.juli(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+fun august(year: Int) = 1.august(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+fun september(year: Int) = 1.september(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+fun oktober(year: Int) = 1.oktober(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+fun november(year: Int) = 1.november(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+fun desember(year: Int) = 1.desember(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
+
+infix fun Int.prosentForskjell(other: Int): Double = (this - other) / (1.0 * other) * 100

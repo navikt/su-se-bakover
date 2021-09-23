@@ -8,7 +8,7 @@ internal data class PeriodisertFradrag(
     override val månedsbeløp: Double,
     override val periode: Periode,
     override val utenlandskInntekt: UtenlandskInntekt? = null,
-    override val tilhører: FradragTilhører
+    override val tilhører: FradragTilhører,
 ) : Fradrag {
     init {
         require(månedsbeløp >= 0) { "Fradrag kan ikke være negative" }
@@ -19,5 +19,15 @@ internal data class PeriodisertFradrag(
 
     override fun copy(args: CopyArgs.Snitt): Fradrag? {
         return args.snittFor(periode)?.let { copy(periode = it) }
+    }
+
+    override fun videreførTilNesteMåned(): PeriodisertFradrag {
+        return copy(
+            type = type,
+            månedsbeløp = månedsbeløp,
+            periode = periode.månedenEtter(),
+            utenlandskInntekt = utenlandskInntekt,
+            tilhører = tilhører,
+        )
     }
 }

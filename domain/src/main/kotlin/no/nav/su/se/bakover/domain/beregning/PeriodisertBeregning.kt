@@ -33,4 +33,13 @@ internal data class PeriodisertBeregning(
     override fun getFribeløpForEps(): Double = fribeløpForEps
 
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
+
+    internal fun shift(): PeriodisertBeregning {
+        return copy(
+            periode = periode.månedenEtter(),
+            sats = sats,
+            fradrag = fradrag.map { it.videreførTilNesteMåned() },
+            fribeløpForEps = fribeløpForEps,
+        )
+    }
 }
