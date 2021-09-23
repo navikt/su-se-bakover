@@ -8,25 +8,27 @@ object FradragFactory {
         månedsbeløp: Double,
         periode: Periode,
         utenlandskInntekt: UtenlandskInntekt? = null,
-        tilhører: FradragTilhører
+        tilhører: FradragTilhører,
     ): Fradrag {
         return IkkePeriodisertFradrag(
             periode = periode,
             type = type,
             månedsbeløp = månedsbeløp,
             utenlandskInntekt = utenlandskInntekt,
-            tilhører = tilhører
+            tilhører = tilhører,
         )
     }
 
-    fun periodiser(fradrag: Fradrag): List<Fradrag> =
+    fun periodiser(fradrag: Fradrag): List<Fradrag> = periodiserInternal(fradrag)
+
+    internal fun periodiserInternal(fradrag: Fradrag): List<PeriodisertFradrag> =
         fradrag.periode.tilMånedsperioder().map {
             PeriodisertFradrag(
                 type = fradrag.fradragstype,
                 månedsbeløp = fradrag.månedsbeløp,
                 periode = it,
                 utenlandskInntekt = fradrag.utenlandskInntekt,
-                tilhører = fradrag.tilhører
+                tilhører = fradrag.tilhører,
             )
         }
 }

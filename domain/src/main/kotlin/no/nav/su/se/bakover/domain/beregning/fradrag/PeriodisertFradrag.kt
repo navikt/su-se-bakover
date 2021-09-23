@@ -21,11 +21,11 @@ internal data class PeriodisertFradrag(
         return args.snittFor(periode)?.let { copy(periode = it) }
     }
 
-    override fun videreførTilNesteMåned(): PeriodisertFradrag {
+    internal fun forskyv(måneder: Int): PeriodisertFradrag {
         return copy(
             type = type,
             månedsbeløp = månedsbeløp,
-            periode = periode.månedenEtter(),
+            periode = periode.forskyv(måneder),
             utenlandskInntekt = utenlandskInntekt,
             tilhører = tilhører,
         )

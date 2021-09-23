@@ -80,15 +80,15 @@ data class BeregningMedVirkningstidspunkt(
                 when {
                     månedsberegning.getSumYtelse() prosentForskjell gjeldendeBeregning.getSumYtelse() < -10.0 -> {
                         virkningstidspunkt.push(månedsberegning)
-                        resultat.push(gjeldendeBeregning.shift())
+                        resultat.push(gjeldendeBeregning.forskyv(1))
                     }
                     månedsberegning.getSumYtelse() prosentForskjell gjeldendeBeregning.getSumYtelse() > 10.0 -> {
                         virkningstidspunkt.push(månedsberegning)
                         resultat.push(månedsberegning)
                     }
                     else -> {
-                        virkningstidspunkt.push(gjeldendeBeregning.shift())
-                        resultat.push(gjeldendeBeregning.shift())
+                        virkningstidspunkt.push(gjeldendeBeregning.forskyv(1))
+                        resultat.push(gjeldendeBeregning.forskyv(1))
                     }
                 }
             }

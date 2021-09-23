@@ -4,13 +4,13 @@ import no.nav.su.se.bakover.common.limitedUpwardsTo
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.positiveOrZero
 import no.nav.su.se.bakover.domain.Grunnbeløp
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.PeriodisertFradrag
 import kotlin.math.roundToInt
 
 internal data class PeriodisertBeregning(
     override val periode: Periode,
     private val sats: Sats,
-    private val fradrag: List<Fradrag>,
+    private val fradrag: List<PeriodisertFradrag>,
     private val fribeløpForEps: Double = 0.0,
 ) : Månedsberegning {
     init {
@@ -29,16 +29,16 @@ internal data class PeriodisertBeregning(
     override fun getBenyttetGrunnbeløp(): Int = Grunnbeløp.`1G`.påDato(periode.fraOgMed).toInt()
     override fun getSats(): Sats = sats
     override fun getSatsbeløp(): Double = sats.periodiser(periode).getValue(periode)
-    override fun getFradrag(): List<Fradrag> = fradrag
+    override fun getFradrag(): List<PeriodisertFradrag> = fradrag
     override fun getFribeløpForEps(): Double = fribeløpForEps
 
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
 
-    internal fun shift(): PeriodisertBeregning {
+    internal fun forskyv(måneder: Int): PeriodisertBeregning {
         return copy(
-            periode = periode.månedenEtter(),
+            periode = periode.forskyv(måneder),
             sats = sats,
-            fradrag = fradrag.map { it.videreførTilNesteMåned() },
+            fradrag = fradrag.map { it.forskyv(måneder) },
             fribeløpForEps = fribeløpForEps,
         )
     }

@@ -14,9 +14,9 @@ enum class FradragStrategyName {
 sealed class FradragStrategy(private val name: FradragStrategyName) {
     fun getName() = name
 
-    fun beregn(fradrag: List<Fradrag>, beregningsperiode: Periode): Map<Periode, List<Fradrag>> {
+    internal fun beregn(fradrag: List<Fradrag>, beregningsperiode: Periode): Map<Periode, List<PeriodisertFradrag>> {
         val periodiserteFradrag = fradrag
-            .flatMap { FradragFactory.periodiser(it) }
+            .flatMap { FradragFactory.periodiserInternal(it) }
             .groupBy { it.periode }
         val beregningsperiodeMedFradrag =
             beregningsperiode.tilMånedsperioder().associateWith { (periodiserteFradrag[it] ?: emptyList()) }
@@ -29,12 +29,12 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
         require(fradrag.values.all { it.`har nøyaktig en forventet inntekt for bruker`() }) { "Hver måned i beregningsperioden må inneholde nøyaktig ett fradrag for brukers forventede inntekt" }
     }
 
-    protected abstract fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>>
+    internal abstract fun beregnFradrag(fradrag: Map<Periode, List<PeriodisertFradrag>>): Map<Periode, List<PeriodisertFradrag>>
 
     abstract fun getEpsFribeløp(periode: Periode): Double
 
     object Enslig : FradragStrategy(FradragStrategyName.Enslig) {
-        override fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>> {
+        override fun beregnFradrag(fradrag: Map<Periode, List<PeriodisertFradrag>>): Map<Periode, List<PeriodisertFradrag>> {
             return fradrag.mapValues { it.value.filter { fradrag -> fradrag.tilhører == FradragTilhører.BRUKER } }
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
         }
@@ -43,7 +43,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
     }
 
     object EpsOver67År : FradragStrategy(FradragStrategyName.EpsOver67År) {
-        override fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>> {
+        override fun beregnFradrag(fradrag: Map<Periode, List<PeriodisertFradrag>>): Map<Periode, List<PeriodisertFradrag>> {
             return fradrag
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
                 .`fjern EPS fradrag opp til garantipensjonsnivå`()
@@ -54,19 +54,19 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
         private fun periodisertSumGarantipensjonsnivå(periode: Periode) =
             Garantipensjonsnivå.Ordinær.periodiser(periode).values.sumOf { it }
 
-        private fun Map<Periode, List<Fradrag>>.`fjern EPS fradrag opp til garantipensjonsnivå`(): Map<Periode, List<Fradrag>> {
+        private fun Map<Periode, List<PeriodisertFradrag>>.`fjern EPS fradrag opp til garantipensjonsnivå`(): Map<Periode, List<PeriodisertFradrag>> {
             return mapValues {
                 `fjern EPS fradrag opp til beløpsgrense`(
                     periode = it.key,
                     beløpsgrense = periodisertSumGarantipensjonsnivå(it.key),
-                    fradrag = it.value
+                    fradrag = it.value,
                 )
             }
         }
     }
 
     object EpsUnder67ÅrOgUførFlyktning : FradragStrategy(FradragStrategyName.EpsUnder67ÅrOgUførFlyktning) {
-        override fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>> {
+        override fun beregnFradrag(fradrag: Map<Periode, List<PeriodisertFradrag>>): Map<Periode, List<PeriodisertFradrag>> {
             return fradrag
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
                 .`fjern EPS fradrag opp til satsbeløp`()
@@ -77,55 +77,55 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
         private fun periodisertSumSatsbeløp(periode: Periode) =
             Sats.ORDINÆR.periodiser(periode).values.sumOf { it }
 
-        private fun Map<Periode, List<Fradrag>>.`fjern EPS fradrag opp til satsbeløp`(): Map<Periode, List<Fradrag>> {
+        private fun Map<Periode, List<PeriodisertFradrag>>.`fjern EPS fradrag opp til satsbeløp`(): Map<Periode, List<PeriodisertFradrag>> {
             return mapValues {
                 `fjern EPS fradrag opp til beløpsgrense`(
                     it.key,
                     periodisertSumSatsbeløp(it.key),
-                    it.value
+                    it.value,
                 )
             }
         }
     }
 
     object EpsUnder67År : FradragStrategy(FradragStrategyName.EpsUnder67År) {
-        override fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>> =
+        override fun beregnFradrag(fradrag: Map<Periode, List<PeriodisertFradrag>>): Map<Periode, List<PeriodisertFradrag>> =
             fradrag
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
                 .`slå sammen eps sine fradrag til en og samme type`()
 
         override fun getEpsFribeløp(periode: Periode): Double = 0.0
 
-        private fun Map<Periode, List<Fradrag>>.`slå sammen eps sine fradrag til en og samme type`(): Map<Periode, List<Fradrag>> {
+        private fun Map<Periode, List<PeriodisertFradrag>>.`slå sammen eps sine fradrag til en og samme type`(): Map<Periode, List<PeriodisertFradrag>> {
             return mapValues { `slå sammen eps sine fradrag til en og samme type`(it.key, it.value) }
         }
 
         private fun `slå sammen eps sine fradrag til en og samme type`(
             periode: Periode,
-            fradrag: List<Fradrag>
-        ): List<Fradrag> {
+            fradrag: List<PeriodisertFradrag>,
+        ): List<PeriodisertFradrag> {
             val (epsFradrag, søkersFradrag) = fradrag.partition { it.tilhører == FradragTilhører.EPS }
             if (epsFradrag.isEmpty()) return søkersFradrag
-            val sammenslått = FradragFactory.periodiser(
+            val sammenslått = FradragFactory.periodiserInternal(
                 FradragFactory.ny(
                     type = Fradragstype.BeregnetFradragEPS,
                     månedsbeløp = epsFradrag.sumOf { it.månedsbeløp },
                     periode = periode,
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS
-                )
+                    tilhører = FradragTilhører.EPS,
+                ),
             )
             return søkersFradrag.plus(sammenslått)
         }
     }
 
-    protected fun Map<Periode, List<Fradrag>>.`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`(): Map<Periode, List<Fradrag>> {
+    internal fun Map<Periode, List<PeriodisertFradrag>>.`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`(): Map<Periode, List<PeriodisertFradrag>> {
         return mapValues { `filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`(it.value) }
     }
 
     private fun `filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`(
-        fradrag: List<Fradrag>
-    ): List<Fradrag> {
+        fradrag: List<PeriodisertFradrag>,
+    ): List<PeriodisertFradrag> {
         val arbeidsinntekter =
             fradrag.filter { it.tilhører == FradragTilhører.BRUKER && it.fradragstype == Fradragstype.Arbeidsinntekt }
         val forventetInntekt =
@@ -137,11 +137,11 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
             fradrag.minus(arbeidsinntekter)
     }
 
-    protected fun `fjern EPS fradrag opp til beløpsgrense`(
+    internal fun `fjern EPS fradrag opp til beløpsgrense`(
         periode: Periode,
         beløpsgrense: Double,
-        fradrag: List<Fradrag>
-    ): List<Fradrag> {
+        fradrag: List<PeriodisertFradrag>,
+    ): List<PeriodisertFradrag> {
         val (epsFradrag, søkersFradrag) = fradrag.partition { it.tilhører == FradragTilhører.EPS }
         val epsFradragSum = epsFradrag.sumOf { it.månedsbeløp }
 
@@ -152,7 +152,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
         }
 
         return søkersFradrag.plus(
-            FradragFactory.periodiser(
+            FradragFactory.periodiserInternal(
                 FradragFactory.ny(
                     type = Fradragstype.BeregnetFradragEPS,
                     månedsbeløp = beregnetFradragEps,

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.beregning
 
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 
 object MånedsberegningFactory {
     fun ny(
@@ -13,8 +14,8 @@ object MånedsberegningFactory {
         return PeriodisertBeregning(
             periode = periode,
             sats = sats,
-            fradrag = fradrag,
-            fribeløpForEps = fribeløpForEps
+            fradrag = fradrag.flatMap { FradragFactory.periodiserInternal(it) },
+            fribeløpForEps = fribeløpForEps,
         )
     }
 }

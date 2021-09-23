@@ -16,8 +16,6 @@ interface Fradrag : PeriodisertInformasjon, Copyable<CopyArgs.Snitt, Fradrag?> {
     fun tilhørerEps(): Boolean {
         return tilhører == FradragTilhører.EPS
     }
-
-    fun videreførTilNesteMåned(): Fradrag = TODO("unngå denne funksjonen i interfacet")
 }
 
 enum class FradragTilhører {

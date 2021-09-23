@@ -104,9 +104,15 @@ data class Periode private constructor(
         }
     }
 
-    fun månedenEtter(): Periode {
-        val førsteINesteMåned = fraOgMed.plusMonths(1).startOfMonth()
-        return Periode(førsteINesteMåned, førsteINesteMåned.endOfMonth())
+    /**
+     * Forskyver en periode n hele måneder angitt av parameteret [måneder].
+     * Positivt heltall er framover i tid, negativt heltall er bakover i tid.
+     */
+    fun forskyv(måneder: Int): Periode {
+        return Periode(
+            fraOgMed.plusMonths(måneder.toLong()).startOfMonth(),
+            tilOgMed.plusMonths(måneder.toLong()).endOfMonth(),
+        )
     }
 
     sealed class UgyldigPeriode {
