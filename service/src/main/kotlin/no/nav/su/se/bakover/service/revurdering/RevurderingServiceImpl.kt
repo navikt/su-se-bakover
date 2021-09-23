@@ -48,8 +48,6 @@ import no.nav.su.se.bakover.domain.revurdering.erKlarForAttestering
 import no.nav.su.se.bakover.domain.revurdering.medFritekst
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
@@ -66,7 +64,6 @@ import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 internal class RevurderingServiceImpl(
@@ -82,6 +79,21 @@ internal class RevurderingServiceImpl(
     private val grunnlagService: GrunnlagService,
     private val vedtakService: VedtakService,
 ) : RevurderingService {
+    private val stansAvYtelseService = StansAvYtelseService(
+        utbetalingService = utbetalingService,
+        revurderingRepo = revurderingRepo,
+        clock = clock,
+        vedtakRepo = vedtakRepo,
+        vedtakService = vedtakService,
+    )
+
+    private val gjenopptakAvYtelseService = GjenopptakAvYtelseService(
+        utbetalingService = utbetalingService,
+        revurderingRepo = revurderingRepo,
+        clock = clock,
+        vedtakRepo = vedtakRepo,
+        vedtakService = vedtakService,
+    )
 
     private val observers: MutableList<EventObserver> = mutableListOf()
 
@@ -98,204 +110,25 @@ internal class RevurderingServiceImpl(
     override fun stansAvYtelse(
         request: StansYtelseRequest,
     ): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
-
-        val gjeldendeVedtaksdata: GjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
-            sakId = request.sakId,
-            fraOgMed = request.fraOgMed,
-        ).getOrHandle {
-            return KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering.left()
-        }.also {
-            if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering.left()
-        }
-
-        val simulering = utbetalingService.simulerStans(
-            sakId = request.sakId,
-            saksbehandler = request.saksbehandler,
-            stansDato = request.fraOgMed,
-        ).getOrHandle {
-            return KunneIkkeStanseYtelse.SimuleringAvStansFeilet(it).left()
-        }
-
-        val simulertRevurdering = when (request) {
-            is StansYtelseRequest.Oppdater -> {
-                val eksisterende = revurderingRepo.hent(request.revurderingId)
-                    ?: return KunneIkkeStanseYtelse.FantIkkeRevurdering.left()
-                when (eksisterende) {
-                    is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
-                        eksisterende.copy(
-                            periode = gjeldendeVedtaksdata.periode,
-                            grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
-                            vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
-                            tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(request.fraOgMed)!!,
-                            saksbehandler = request.saksbehandler,
-                            simulering = simulering.simulering,
-                            revurderingsårsak = request.revurderingsårsak,
-                        )
-                    }
-                    else -> return KunneIkkeStanseYtelse.UgyldigTypeForOppdatering(eksisterende::class).left()
-                }
-            }
-            is StansYtelseRequest.Opprett -> {
-                StansAvYtelseRevurdering.SimulertStansAvYtelse(
-                    id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(),
-                    periode = gjeldendeVedtaksdata.periode,
-                    grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
-                    vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
-                    tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(request.fraOgMed)!!,
-                    saksbehandler = request.saksbehandler,
-                    simulering = simulering.simulering,
-                    revurderingsårsak = request.revurderingsårsak,
-                )
-            }
-        }
-
-        revurderingRepo.lagre(simulertRevurdering)
-
-        return simulertRevurdering.right()
+        return stansAvYtelseService.stansAvYtelse(request)
     }
 
     override fun iverksettStansAvYtelse(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
-        val revurdering = revurderingRepo.hent(revurderingId)
-            ?: return KunneIkkeIverksetteStansYtelse.FantIkkeRevurdering.left()
-
-        return when (revurdering) {
-            is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
-                val iverksattRevurdering = revurdering.iverksett(
-                    Attestering.Iverksatt(
-                        attestant,
-                        Tidspunkt.now(clock),
-                    ),
-                )
-
-                val stansUtbetaling = utbetalingService.stansUtbetalinger(
-                    sakId = iverksattRevurdering.sakId,
-                    attestant = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
-                    simulering = revurdering.simulering,
-                    stansDato = iverksattRevurdering.periode.fraOgMed,
-                ).getOrHandle { return KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(it).left() }
-
-                val vedtak = Vedtak.from(iverksattRevurdering, stansUtbetaling.id, clock)
-
-                revurderingRepo.lagre(iverksattRevurdering)
-                vedtakRepo.lagre(vedtak)
-
-                return iverksattRevurdering.right()
-            }
-            else -> KunneIkkeIverksetteStansYtelse.UgyldigTilstand(
-                faktiskTilstand = revurdering::class,
-            ).left()
-        }
+        return stansAvYtelseService.iverksettStansAvYtelse(revurderingId, attestant)
     }
 
     override fun gjenopptaYtelse(request: GjenopptaYtelseRequest): Either<KunneIkkeGjenopptaYtelse, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
-        val sisteVedtak = vedtakRepo.hentForSakId(request.sakId)
-            .filterIsInstance<VedtakSomKanRevurderes>()
-            .lagTidslinje(
-                periode = Periode.create(
-                    fraOgMed = LocalDate.MIN,
-                    tilOgMed = LocalDate.MAX,
-                ),
-                clock = clock,
-            ).tidslinje.lastOrNull()?.originaltVedtak ?: return KunneIkkeGjenopptaYtelse.FantIngenVedtak.left()
-
-        if (sisteVedtak is Vedtak.EndringIYtelse.StansAvYtelse) {
-            val gjeldendeVedtaksdata: GjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
-                sakId = request.sakId,
-                fraOgMed = sisteVedtak.periode.fraOgMed,
-            ).getOrHandle {
-                return KunneIkkeGjenopptaYtelse.KunneIkkeOppretteRevurdering.left()
-            }.also {
-                if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeGjenopptaYtelse.KunneIkkeOppretteRevurdering.left()
-            }
-
-            val simulering = utbetalingService.simulerGjenopptak(
-                sakId = request.sakId,
-                saksbehandler = request.saksbehandler,
-            ).getOrHandle {
-                return KunneIkkeGjenopptaYtelse.KunneIkkeSimulere(it).left()
-            }
-
-            val simulertRevurdering = when (request) {
-                is GjenopptaYtelseRequest.Oppdater -> {
-                    val update = revurderingRepo.hent(request.revurderingId)
-                        ?: return KunneIkkeGjenopptaYtelse.FantIkkeRevurdering.left()
-                    when (update) {
-                        is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> {
-                            GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
-                                id = update.id,
-                                opprettet = update.opprettet,
-                                periode = gjeldendeVedtaksdata.periode,
-                                grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
-                                vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
-                                tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(sisteVedtak.periode.fraOgMed)!!,
-                                saksbehandler = request.saksbehandler,
-                                simulering = simulering.simulering,
-                                revurderingsårsak = request.revurderingsårsak,
-                            )
-                        }
-                        else -> return KunneIkkeGjenopptaYtelse.UgyldigTypeForOppdatering(update::class).left()
-                    }
-                }
-                is GjenopptaYtelseRequest.Opprett -> {
-                    GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(),
-                        periode = gjeldendeVedtaksdata.periode,
-                        grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
-                        vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
-                        tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(sisteVedtak.periode.fraOgMed)!!,
-                        saksbehandler = request.saksbehandler,
-                        simulering = simulering.simulering,
-                        revurderingsårsak = request.revurderingsårsak,
-                    )
-                }
-            }
-
-            revurderingRepo.lagre(simulertRevurdering)
-
-            return simulertRevurdering.right()
-        } else {
-            return KunneIkkeGjenopptaYtelse.SisteVedtakErIkkeStans.left()
-        }
+        return gjenopptakAvYtelseService.gjenopptaYtelse(request)
     }
 
     override fun iverksettGjenopptakAvYtelse(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteGjenopptakAvYtelse, GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse> {
-        val revurdering = revurderingRepo.hent(revurderingId)
-            ?: return KunneIkkeIverksetteGjenopptakAvYtelse.FantIkkeRevurdering.left()
-
-        return when (revurdering) {
-            is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> {
-                val iverksattRevurdering = revurdering.iverksett(
-                    Attestering.Iverksatt(
-                        attestant,
-                        Tidspunkt.now(clock),
-                    ),
-                )
-
-                val stansUtbetaling = utbetalingService.gjenopptaUtbetalinger(
-                    sakId = iverksattRevurdering.sakId,
-                    attestant = iverksattRevurdering.attesteringer.hentSisteAttestering().attestant,
-                    simulering = revurdering.simulering,
-                ).getOrHandle { return KunneIkkeIverksetteGjenopptakAvYtelse.KunneIkkeUtbetale(it).left() }
-
-                val vedtak = Vedtak.from(iverksattRevurdering, stansUtbetaling.id, clock)
-
-                revurderingRepo.lagre(iverksattRevurdering)
-                vedtakRepo.lagre(vedtak)
-
-                return iverksattRevurdering.right()
-            }
-            else -> KunneIkkeIverksetteGjenopptakAvYtelse.UgyldigTilstand(
-                faktiskTilstand = revurdering::class,
-            ).left()
-        }
+        return gjenopptakAvYtelseService.iverksettGjenopptakAvYtelse(revurderingId, attestant)
     }
 
     override fun opprettRevurdering(
