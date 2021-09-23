@@ -13,7 +13,7 @@ data class LagBrevinnholdForBeregning(
     private val beregning: FaktiskBeregning,
 ) {
     internal val brevInnhold: List<Beregningsperiode> =
-        SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder.Brev(beregning.getMånedsberegninger()).beregningsperioder.map { beregningsperiode ->
+        SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(beregning.getMånedsberegninger()).beregningsperioder.map { beregningsperiode ->
             Beregningsperiode(
                 // TODO eps firbeløp ikke safe vel?
                 periode = beregningsperiode.periode.formaterForBrev(),

@@ -48,6 +48,34 @@ sealed class Grunnlag {
                 this.copy(id = UUID.randomUUID(), periode = args.periode)
             }
         }
+
+        companion object {
+            fun List<Uføregrunnlag>.groupByContinuous(): List<Pair<Periode, Uføregrad>> {
+                return this.sortedBy { it.periode.fraOgMed }
+                    .fold(mutableListOf<MutableList<Uføregrunnlag>>()) { acc, uføregrunnlag ->
+                        if (acc.isEmpty()) {
+                            acc.add(mutableListOf(uføregrunnlag))
+                        } else if (acc.last().sisteUføregrunnlagErLikOgTilstøtende(uføregrunnlag)) {
+                            acc.last().add(uføregrunnlag)
+                        } else {
+                            acc.add(mutableListOf(uføregrunnlag))
+                        }
+                        acc
+                    }.map {
+                        val periode: Periode = Periode.create(
+                            fraOgMed = it.minOf { it.periode.fraOgMed },
+                            tilOgMed = it.maxOf { it.periode.tilOgMed },
+                        )
+
+                        periode to it.first().uføregrad
+                    }
+            }
+
+            private fun List<Uføregrunnlag>.sisteUføregrunnlagErLikOgTilstøtende(other: Uføregrunnlag) =
+                this.last().let {
+                    it.periode tilstøter other.periode && it.uføregrad == other.uføregrad
+                }
+        }
     }
 
     data class Fradragsgrunnlag private constructor(

@@ -83,12 +83,11 @@ internal fun toUtbetalingRequest(
                                 refDelytelseId = it.forrigeUtbetalingslinjeId?.toString(),
                                 refFagsystemId = it.forrigeUtbetalingslinjeId?.let { utbetaling.saksnummer.toString() },
                                 attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant(utbetaling.behandler.navIdent)),
-                                grad = it.uføregrad?.let { uføregrad ->
-                                    UtbetalingRequest.Oppdragslinje.Grad(
-                                        typeGrad = UtbetalingRequest.Oppdragslinje.TypeGrad.UFOR,
-                                        grad = uføregrad.value,
-                                    )
-                                },
+                                grad = UtbetalingRequest.Oppdragslinje.Grad(
+                                    typeGrad = UtbetalingRequest.Oppdragslinje.TypeGrad.UFOR,
+                                    // alle nye utbetalingslinjer skal ha uføregrad
+                                    grad = it.uføregrad!!.value,
+                                ),
                             )
                         }
                     }

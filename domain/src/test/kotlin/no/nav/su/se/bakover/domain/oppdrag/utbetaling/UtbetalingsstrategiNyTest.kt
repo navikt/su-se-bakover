@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
@@ -379,6 +380,71 @@ internal class UtbetalingsstrategiNyTest {
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.EPOCH),
+        )
+    }
+
+    @Test
+    fun `mapper flere uføregrader til riktig utbetalingslinje for periode`() {
+        val uføreList = listOf(
+            Grunnlag.Uføregrunnlag(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mai(2021)),
+                uføregrad = Uføregrad.parse(50),
+                forventetInntekt = 0,
+            ),
+            Grunnlag.Uføregrunnlag(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021)),
+                uføregrad = Uføregrad.parse(70),
+                forventetInntekt = 0,
+            ),
+        )
+
+        val actual = Utbetalingsstrategi.Ny(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            utbetalinger = listOf(),
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            clock = fixedClock,
+            beregning = createBeregning(1.januar(2021), 31.desember(2021)),
+            uføregrunnlag = uføreList,
+        ).generate()
+
+        actual.utbetalingslinjer.size shouldBe 3
+        actual shouldBe expectedUtbetaling(
+            actual = actual,
+            oppdragslinjer = nonEmptyListOf(
+                expectedUtbetalingslinje(
+                    utbetalingslinjeId = actual.utbetalingslinjer.first().id,
+                    opprettet = actual.utbetalingslinjer.first().opprettet,
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 30.april(2021),
+                    beløp = 20946,
+                    forrigeUtbetalingslinjeId = null,
+                    uføregrad = Uføregrad.parse(50),
+                ),
+                expectedUtbetalingslinje(
+                    utbetalingslinjeId = actual.utbetalingslinjer[1].id,
+                    opprettet = actual.utbetalingslinjer[1].opprettet,
+                    fraOgMed = 1.mai(2021),
+                    tilOgMed = 31.mai(2021),
+                    beløp = 21989,
+                    forrigeUtbetalingslinjeId = actual.utbetalingslinjer.first().id,
+                    uføregrad = Uføregrad.parse(50),
+                ),
+                expectedUtbetalingslinje(
+                    utbetalingslinjeId = actual.utbetalingslinjer.last().id,
+                    opprettet = actual.utbetalingslinjer.last().opprettet,
+                    fraOgMed = 1.juni(2021),
+                    tilOgMed = 31.desember(2021),
+                    beløp = 21989,
+                    forrigeUtbetalingslinjeId = actual.utbetalingslinjer[1].id,
+                    uføregrad = Uføregrad.parse(70),
+                ),
+            ),
         )
     }
 

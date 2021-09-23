@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag.Companion.groupByContinuous
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import java.time.Clock
@@ -155,19 +156,34 @@ sealed class Utbetalingsstrategi {
             )
         }
 
-        private fun createUtbetalingsperioder(beregning: Beregning, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) =
-            SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder.Utbetaling(
+        private fun createUtbetalingsperioder(
+            beregning: Beregning,
+            uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+        ): List<Utbetalingsperiode> {
+            val slåttSammenMånedsberegninger = SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(
                 beregning.getMånedsberegninger(),
-                uføregrunnlag,
             ).beregningsperioder
-                .map {
+
+            val slåttSammenUføregrunnlag =
+                uføregrunnlag.groupByContinuous()
+
+            return slåttSammenMånedsberegninger.flatMap { månedsberegning ->
+                slåttSammenUføregrunnlag.associate { grunnlag ->
+                    grunnlag.first to grunnlag.second
+                }.mapNotNull {
+                    it.key.snitt(månedsberegning.periode)?.let { periode ->
+                        periode to it.value
+                    }
+                }.map {
                     Utbetalingsperiode(
-                        fraOgMed = it.periode.fraOgMed,
-                        tilOgMed = it.periode.tilOgMed,
-                        beløp = it.getSumYtelse(),
-                        uføregrad = it.uføregrunnlag.uføregrad,
+                        fraOgMed = it.first.fraOgMed,
+                        tilOgMed = it.first.tilOgMed,
+                        beløp = månedsberegning.getSumYtelse(),
+                        uføregrad = it.second,
                     )
                 }
+            }
+        }
     }
 
     data class Opphør(
