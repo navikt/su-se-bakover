@@ -240,6 +240,57 @@ internal class BeregningMedVirkningstidspunktTest {
     }
 
     @Test
+    fun `g-regulering skal tre i kraft selv om måneden forut for reguleringsmåned har negativ 10 prosent endring`() {
+        val periode = Periode.create(1.januar(2020), 31.desember(2020))
+        val beregning = BeregningMedVirkningstidspunkt(
+            periode = periode,
+            sats = Sats.HØY,
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 0.0,
+                    periode = periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 10000.0,
+                    periode = Periode.create(1.januar(2020), 31.mars(2020)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 13000.0,
+                    periode = Periode.create(1.april(2020), 31.desember(2020)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+            fradragStrategy = FradragStrategy.Enslig,
+        )
+        beregning.getSumYtelse() shouldBe 106116
+        beregning.getSumFradrag() shouldBe 144000
+        beregning.getMånedsberegninger().assertMåneder(
+            expected = mapOf(
+                (januar(2020) to (10637 to 10000.0)),
+                (februar(2020) to (10637 to 10000.0)),
+                (mars(2020) to (10637 to 10000.0)),
+                (april(2020) to (10637 to 10000.0)),
+                (mai(2020) to (7946 to 13000.0)),
+                (juni(2020) to (7946 to 13000.0)),
+                (juli(2020) to (7946 to 13000.0)),
+                (august(2020) to (7946 to 13000.0)),
+                (september(2020) to (7946 to 13000.0)),
+                (oktober(2020) to (7946 to 13000.0)),
+                (november(2020) to (7946 to 13000.0)),
+                (desember(2020) to (7946 to 13000.0)),
+            ),
+        )
+    }
+
+    @Test
     fun `fradrag for ensom måned med virk`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
         val beregning = BeregningMedVirkningstidspunkt(
@@ -748,35 +799,36 @@ internal class BeregningMedVirkningstidspunktTest {
     @Test
     fun `klynger med inntekt`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
+        val fradrag = listOf(
+            IkkePeriodisertFradrag(
+                type = Fradragstype.ForventetInntekt,
+                månedsbeløp = 0.0,
+                periode = periode,
+                tilhører = FradragTilhører.BRUKER,
+            ),
+            IkkePeriodisertFradrag(
+                type = Fradragstype.Arbeidsinntekt,
+                månedsbeløp = 2000.0,
+                periode = Periode.create(1.januar(2020), 29.februar(2020)),
+                tilhører = FradragTilhører.BRUKER,
+            ),
+            IkkePeriodisertFradrag(
+                type = Fradragstype.Arbeidsinntekt,
+                månedsbeløp = 5000.0,
+                periode = Periode.create(1.april(2020), 31.juli(2020)),
+                tilhører = FradragTilhører.BRUKER,
+            ),
+            IkkePeriodisertFradrag(
+                type = Fradragstype.Arbeidsinntekt,
+                månedsbeløp = 3000.0,
+                periode = Periode.create(1.oktober(2020), 30.november(2020)),
+                tilhører = FradragTilhører.BRUKER,
+            ),
+        )
         val beregning = BeregningMedVirkningstidspunkt(
             periode = periode,
             sats = Sats.HØY,
-            fradrag = listOf(
-                IkkePeriodisertFradrag(
-                    type = Fradragstype.ForventetInntekt,
-                    månedsbeløp = 0.0,
-                    periode = periode,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-                IkkePeriodisertFradrag(
-                    type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 2000.0,
-                    periode = Periode.create(1.januar(2020), 29.februar(2020)),
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-                IkkePeriodisertFradrag(
-                    type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 5000.0,
-                    periode = Periode.create(1.april(2020), 31.juli(2020)),
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-                IkkePeriodisertFradrag(
-                    type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 3000.0,
-                    periode = Periode.create(1.oktober(2020), 30.november(2020)),
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-            ),
+            fradrag = fradrag,
             fradragStrategy = FradragStrategy.Enslig,
         )
 
@@ -798,17 +850,45 @@ internal class BeregningMedVirkningstidspunktTest {
                 (desember(2020) to (20946 to 0.0)),
             ),
         )
+        beregning.getFradrag() shouldBe fradrag
+        beregning.getMånedsberegninger().find { it.periode == februar(2020) }!!.getFradrag() shouldBe
+            FradragFactory.periodiser(
+                IkkePeriodisertFradrag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 2000.0,
+                    periode = februar(2020),
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            )
+        beregning.getMånedsberegninger().find { it.periode == juli(2020) }!!.getFradrag() shouldBe
+            FradragFactory.periodiser(
+                IkkePeriodisertFradrag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 5000.0,
+                    periode = juli(2020),
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            )
+        beregning.getMånedsberegninger().find { it.periode == desember(2020) }!!.getFradrag() shouldBe
+            FradragFactory.periodiser(
+                IkkePeriodisertFradrag(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 0.0,
+                    periode = desember(2020),
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            )
     }
-}
 
-private fun List<Månedsberegning>.assertMåneder(expected: Map<Periode, Pair<Int, Double>>) {
-    map {
-        Triple(
-            first = it.periode,
-            second = it.getSumYtelse(),
-            third = it.getSumFradrag(),
-        )
-    }.forEach { (periode, ytelse, fradrag) ->
-        expected[periode] shouldBe Pair(ytelse, fradrag)
+    private fun List<Månedsberegning>.assertMåneder(expected: Map<Periode, Pair<Int, Double>>) {
+        map {
+            Triple(
+                first = it.periode,
+                second = it.getSumYtelse(),
+                third = it.getSumFradrag(),
+            )
+        }.forEach { (periode, ytelse, fradrag) ->
+            expected[periode] shouldBe Pair(ytelse, fradrag)
+        }
     }
 }

@@ -46,14 +46,14 @@ data class BeregningMedVirkningstidspunkt(
 
         val beregnetPeriodisertFradrag = fradragStrategy.beregn(fradrag, periode)
 
-        val virkningstidspunkt = Stack<PeriodisertBeregning>()
+        val gjeldendeBeregninger = Stack<PeriodisertBeregning>()
 
         val resultat = Stack<PeriodisertBeregning>()
 
         while (perioder.isNotEmpty()) {
             val next = perioder.pop()
 
-            val månedsberegning = PeriodisertBeregning(
+            val inneværendeMåned = PeriodisertBeregning(
                 periode = next,
                 sats = sats,
                 fradrag = beregnetPeriodisertFradrag[next] ?: emptyList(),
@@ -71,24 +71,54 @@ data class BeregningMedVirkningstidspunkt(
             }
 
             // TODO må ta inn gjeldende utbetaling/fradrag for første måned.
-            if (virkningstidspunkt.isEmpty()) {
-                virkningstidspunkt.push(månedsberegning)
-                resultat.push(månedsberegning)
+            if (gjeldendeBeregninger.isEmpty()) {
+                gjeldendeBeregninger.push(inneværendeMåned)
+                resultat.push(inneværendeMåned)
             } else {
-                val gjeldendeBeregning = virkningstidspunkt.pop()
+                val gjeldendeBeregning = gjeldendeBeregninger.pop()
 
                 when {
-                    månedsberegning.getSumYtelse() prosentForskjell gjeldendeBeregning.getSumYtelse() < -10.0 -> {
-                        virkningstidspunkt.push(månedsberegning)
+                    inneværendeMåned.getSumYtelse() prosentForskjell gjeldendeBeregning.getSumYtelse() <= -10.0 -> {
+                        /**
+                         * Gjeldende beregning videreføres for inneværendene måned. Siden gjeldende beregning er gjort
+                         * for forrige måned, må denne forskyves en måned fram.
+                         *
+                         * Ved forskyvning vil gjeldende beregning utføres på nytt med grunnbeløp for måneden etter,
+                         * noe som fører til at g-regulering implisitt er fritatt for 10% sjekk.
+                         */
                         resultat.push(gjeldendeBeregning.forskyv(1))
+                        /**
+                         * Den ubenyttede beregningen for inneværende måned skal ikke tre i kraft før tidligst påfølgende
+                         * måned og settes til ny gjeldende beregning. Påfølgende måned vil sammenlignes mot denne.
+                         */
+                        gjeldendeBeregninger.push(inneværendeMåned)
                     }
-                    månedsberegning.getSumYtelse() prosentForskjell gjeldendeBeregning.getSumYtelse() > 10.0 -> {
-                        virkningstidspunkt.push(månedsberegning)
-                        resultat.push(månedsberegning)
+                    inneværendeMåned.getSumYtelse() prosentForskjell gjeldendeBeregning.getSumYtelse() >= 10.0 -> {
+                        /**
+                         * Beregningen for inneværende måned skal tre i kraft umiddelbart og legges til sluttresultat
+                         * og settes som ny gjeldende beregning.
+                         *
+                         * Inneværende måned vil være beregnet med korrekt grunnbeløp, og dermed trengs det ikke noen
+                         * spesiell håndtering av g-regulering.
+                         */
+                        inneværendeMåned.let {
+                            resultat.push(it)
+                            gjeldendeBeregninger.push(it)
+                        }
                     }
                     else -> {
-                        virkningstidspunkt.push(gjeldendeBeregning.forskyv(1))
-                        resultat.push(gjeldendeBeregning.forskyv(1))
+                        /**
+                         * I tilfeller hvor endring i ytelse er mindre enn 10%, videreføres gjeldende beregning.
+                         * Den videreførte beregningen settes også til ny gjeldende beregning. Siden gjeldende beregning
+                         * er gjort for forrige måned, må denne forskyves en måned fram.
+                         *
+                         * Ved forskyvning vil gjeldende beregning utføres på nytt med grunnbeløp for måneden etter,
+                         * noe som fører til at g-regulering implisitt er fritatt for 10% sjekk.
+                         */
+                        gjeldendeBeregning.forskyv(1).let {
+                            resultat.push(it)
+                            gjeldendeBeregninger.push(it)
+                        }
                     }
                 }
             }
