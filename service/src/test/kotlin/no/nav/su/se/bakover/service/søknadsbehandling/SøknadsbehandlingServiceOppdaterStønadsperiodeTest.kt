@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -134,6 +135,7 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
         )
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn uavklart
+            on { hentForSak(any(), anyOrNull()) } doReturn emptyList()
         }
 
         val expected = uavklart.copy(
@@ -150,6 +152,8 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
         verify(søknadsbehandlingRepoMock).lagre(argThat { it shouldBe expected })
+        verify(søknadsbehandlingRepoMock).defaultSessionContext()
+        verify(søknadsbehandlingRepoMock).hentForSak(argThat { it shouldBe sakId }, anyOrNull())
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }
 
@@ -181,6 +185,7 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
         )
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn uavklart
+            on { hentForSak(any(), anyOrNull()) } doReturn emptyList()
         }
         val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
 
@@ -192,16 +197,24 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            vilkårsvurderingService = vilkårsvurderingServiceMock
+            vilkårsvurderingService = vilkårsvurderingServiceMock,
         ).oppdaterStønadsperiode(
-            SøknadsbehandlingService.OppdaterStønadsperiodeRequest(behandlingId, uavklart.stønadsperiode!!.copy(periode = nyPeriode)),
+            SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
+                behandlingId,
+                uavklart.stønadsperiode!!.copy(periode = nyPeriode),
+            ),
         )
 
         response shouldBe expected.right()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
         verify(søknadsbehandlingRepoMock).lagre(argThat { it shouldBe expected })
-        verify(vilkårsvurderingServiceMock).lagre(argThat { it shouldBe behandlingId }, argThat { it shouldBe expected.vilkårsvurderinger })
+        verify(vilkårsvurderingServiceMock).lagre(
+            argThat { it shouldBe behandlingId },
+            argThat { it shouldBe expected.vilkårsvurderinger },
+        )
+        verify(søknadsbehandlingRepoMock).defaultSessionContext()
+        verify(søknadsbehandlingRepoMock).hentForSak(argThat { it shouldBe sakId }, anyOrNull())
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, vilkårsvurderingServiceMock)
     }
 
