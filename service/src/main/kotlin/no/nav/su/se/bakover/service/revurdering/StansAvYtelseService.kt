@@ -5,6 +5,7 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -32,9 +33,13 @@ internal class StansAvYtelseService(
             sakId = request.sakId,
             fraOgMed = request.fraOgMed,
         ).getOrHandle {
+            log.error("Kunne ikke opprette revurdering for stans av ytelse, årsak: $it")
             return KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering.left()
         }.also {
-            if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering.left()
+            if (!it.tidslinjeForVedtakErSammenhengende()) {
+                log.error("Kunne ikke opprette revurdering for stans av ytelse, årsak: tidslinje er ikke sammenhengende.")
+                return KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering.left()
+            }
         }
 
         val simulering = utbetalingService.simulerStans(
@@ -42,6 +47,7 @@ internal class StansAvYtelseService(
             saksbehandler = request.saksbehandler,
             stansDato = request.fraOgMed,
         ).getOrHandle {
+            log.warn("Kunne ikke opprette revurdering for stans av ytelse, årsak: $it")
             return KunneIkkeStanseYtelse.SimuleringAvStansFeilet(it).left()
         }
 
@@ -67,7 +73,7 @@ internal class StansAvYtelseService(
             is StansYtelseRequest.Opprett -> {
                 StansAvYtelseRevurdering.SimulertStansAvYtelse(
                     id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(),
+                    opprettet = Tidspunkt.now(clock),
                     periode = gjeldendeVedtaksdata.periode,
                     grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
                     vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,

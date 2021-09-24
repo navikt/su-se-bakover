@@ -29,7 +29,6 @@ sealed class Utbetalingsstrategi {
     abstract val fnr: Fnr
     abstract val utbetalinger: List<Utbetaling>
     abstract val behandler: NavIdentBruker
-    abstract fun generate(): Utbetaling.UtbetalingForSimulering
 
     /**
      * Sjekk om vi noen gang har forsøkt å opphøre ytelsen i perioden fra [datoForStanEllerReaktivering] til siste utbetaling.
@@ -112,11 +111,6 @@ sealed class Utbetalingsstrategi {
             ).right()
         }
 
-        @Deprecated(message = "Erstattet for å kunne returnere Either", level = DeprecationLevel.ERROR)
-        override fun generate(): Utbetaling.UtbetalingForSimulering {
-            TODO("Skal ikke brukes. Fjern når det ikke lenger er bruk for abstrakt metode")
-        }
-
         sealed class Feil {
             object IngenUtbetalingerEtterStansDato : Feil()
             object StansDatoErIkkeFørsteINesteMåned : Feil()
@@ -136,7 +130,7 @@ sealed class Utbetalingsstrategi {
         val beregning: Beregning,
         val clock: Clock,
     ) : Utbetalingsstrategi() {
-        override fun generate(): Utbetaling.UtbetalingForSimulering {
+        fun generate(): Utbetaling.UtbetalingForSimulering {
             val utbetalingslinjer = createUtbetalingsperioder(beregning).map {
                 Utbetalingslinje.Ny(
                     fraOgMed = it.fraOgMed,
@@ -178,7 +172,7 @@ sealed class Utbetalingsstrategi {
         val opphørsDato: LocalDate,
         val clock: Clock,
     ) : Utbetalingsstrategi() {
-        override fun generate(): Utbetaling.UtbetalingForSimulering {
+        fun generate(): Utbetaling.UtbetalingForSimulering {
             val sisteUtbetalingslinje = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.also {
                 validate(opphørsDato.isBefore(it.tilOgMed)) { "Dato for opphør må være tidligere enn tilOgMed for siste utbetalingslinje" }
                 validate(opphørsDato.erFørsteDagIMåned()) { "Ytelse kan kun opphøres fra første dag i måneden" }
@@ -239,11 +233,6 @@ sealed class Utbetalingsstrategi {
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock)),
             ).right()
-        }
-
-        @Deprecated(message = "Erstattet for å kunne returnere Either", level = DeprecationLevel.ERROR)
-        override fun generate(): Utbetaling.UtbetalingForSimulering {
-            TODO("Skal ikke brukes. Fjern når det ikke lenger er bruk for abstrakt metode")
         }
 
         sealed class Feil {
