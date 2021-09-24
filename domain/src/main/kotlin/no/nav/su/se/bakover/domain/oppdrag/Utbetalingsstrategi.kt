@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag.Companion.groupByContinuous
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag.Companion.slåSammenPeriodeOgUføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import java.time.Clock
@@ -165,7 +165,7 @@ sealed class Utbetalingsstrategi {
             ).beregningsperioder
 
             val slåttSammenUføregrunnlag =
-                uføregrunnlag.groupByContinuous()
+                uføregrunnlag.slåSammenPeriodeOgUføregrad()
 
             val månedsperioder = slåttSammenMånedsberegninger.map {
                 it.periode
@@ -188,18 +188,18 @@ sealed class Utbetalingsstrategi {
             }
 
             if (!uføregrunnlagInneholderAlleMånedsperioder || !månedsperioderInneholderAlleUføreperioder) {
-                throw UtbetalingStrategyException("Fant ikke uføregrad for en månedsperiode")
+                throw UtbetalingStrategyException("Uføregrunnlaget og beregningsperiodenen er ikke 1 til 1. Grunnlagsperiodene: $uføregrunnlagPerioder, beregningsperiodene: $månedsperioder")
             }
 
             return slåttSammenUføregrunnlag.flatMap { grunnlag ->
                 slåttSammenMånedsberegninger.mapNotNull { månedsbereging ->
                     månedsbereging.periode.snitt(grunnlag.first)?.let {
-                        månedsbereging to grunnlag.second
+                        Triple(månedsbereging, grunnlag.second, it)
                     }
                 }.map {
                     Utbetalingsperiode(
-                        fraOgMed = it.first.periode.fraOgMed,
-                        tilOgMed = it.first.periode.tilOgMed,
+                        fraOgMed = it.third.fraOgMed,
+                        tilOgMed = it.third.tilOgMed,
                         beløp = it.first.getSumYtelse(),
                         uføregrad = it.second,
                     )

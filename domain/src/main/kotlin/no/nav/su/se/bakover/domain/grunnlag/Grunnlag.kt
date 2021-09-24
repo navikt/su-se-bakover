@@ -50,7 +50,7 @@ sealed class Grunnlag {
         }
 
         companion object {
-            fun List<Uføregrunnlag>.groupByContinuous(): List<Pair<Periode, Uføregrad>> {
+            fun List<Uføregrunnlag>.slåSammenPeriodeOgUføregrad(): List<Pair<Periode, Uføregrad>> {
                 return this.sortedBy { it.periode.fraOgMed }
                     .fold(mutableListOf<MutableList<Uføregrunnlag>>()) { acc, uføregrunnlag ->
                         if (acc.isEmpty()) {

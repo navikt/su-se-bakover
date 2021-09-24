@@ -459,7 +459,7 @@ internal class UtbetalingsstrategiNyTest {
                     utbetalingslinjeId = actual.utbetalingslinjer[1].id,
                     opprettet = actual.utbetalingslinjer[1].opprettet,
                     fraOgMed = 1.mai(2021),
-                    tilOgMed = 31.desember(2021),
+                    tilOgMed = 31.mai(2021),
                     beløp = 21989,
                     forrigeUtbetalingslinjeId = actual.utbetalingslinjer.first().id,
                     uføregrad = Uføregrad.parse(50),
@@ -467,7 +467,7 @@ internal class UtbetalingsstrategiNyTest {
                 expectedUtbetalingslinje(
                     utbetalingslinjeId = actual.utbetalingslinjer.last().id,
                     opprettet = actual.utbetalingslinjer.last().opprettet,
-                    fraOgMed = 1.mai(2021),
+                    fraOgMed = 1.juni(2021),
                     tilOgMed = 31.desember(2021),
                     beløp = 21989,
                     forrigeUtbetalingslinjeId = actual.utbetalingslinjer[1].id,
@@ -501,7 +501,7 @@ internal class UtbetalingsstrategiNyTest {
                 uføregrunnlag = uføreList,
             ).generate()
         }.also {
-            it.message shouldContain "Fant ikke uføregrad for en månedsperiode"
+            it.message shouldContain "Uføregrunnlaget og beregningsperiodenen er ikke 1 til 1. Grunnlagsperiodene:"
         }
     }
 

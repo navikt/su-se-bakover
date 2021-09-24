@@ -10,7 +10,7 @@ import kotlin.math.roundToInt
 import no.nav.su.se.bakover.domain.beregning.Beregning as FaktiskBeregning
 
 data class LagBrevinnholdForBeregning(
-    private val beregning: FaktiskBeregning,
+    private val beregning: FaktiskBeregning
 ) {
     internal val brevInnhold: List<Beregningsperiode> =
         SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(beregning.getMånedsberegninger()).beregningsperioder.map { beregningsperiode ->
@@ -25,8 +25,8 @@ data class LagBrevinnholdForBeregning(
                     }.roundToInt(),
                 fradrag = Fradrag(
                     bruker = BrukerFradragBenyttetIBeregningsperiode(beregningsperiode.getFradrag()).fradrag,
-                    eps = finnFradragForEps(beregningsperiode),
-                ),
+                    eps = finnFradragForEps(beregningsperiode)
+                )
             )
         }
 
@@ -48,13 +48,13 @@ data class LagBrevinnholdForBeregning(
         // find all input-fradrag that are applicable for the period in question
         val epsFradragFraSaksbehandler = EpsFradragFraSaksbehandlerIBeregningsperiode(
             beregning.getFradrag(), // found from the original input-fradrag
-            beregningsperiode.periode,
+            beregningsperiode.periode
         ).fradrag
 
         return when (beregningsperiode.erFradragForEpsBenyttetIBeregning()) {
             true -> Fradrag.Eps(
                 fradrag = epsFradragFraSaksbehandler,
-                harFradragMedSumSomErLavereEnnFribeløp = false, // eps fradrag used in calculation excludes this (eps fradrag below fribeløp will not be used in beregning)
+                harFradragMedSumSomErLavereEnnFribeløp = false // eps fradrag used in calculation excludes this (eps fradrag below fribeløp will not be used in beregning)
             )
             false -> Fradrag.Eps(
                 fradrag = emptyList(), // no fradrag for eps are actually used for the calculation, avoid display of all eps fradrag entirely

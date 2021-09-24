@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.fixedTidspunkt
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag.Companion.groupByContinuous
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag.Companion.slåSammenPeriodeOgUføregrad
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.ZoneOffset
@@ -75,7 +75,7 @@ internal class UføregrunnlagTest {
             ),
         )
 
-        uføregrunnlag.groupByContinuous() shouldBe listOf(
+        uføregrunnlag.slåSammenPeriodeOgUføregrad() shouldBe listOf(
             Pair(periode, uføregrad),
         )
     }
@@ -105,7 +105,7 @@ internal class UføregrunnlagTest {
         )
         val listeAvUføregrunnlag = listOf(januarApril, mai, juniDesember)
 
-        listeAvUføregrunnlag.groupByContinuous() shouldBe listOf(
+        listeAvUføregrunnlag.slåSammenPeriodeOgUføregrad() shouldBe listOf(
             Pair(Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mai(2021)), Uføregrad.parse(20)),
             Pair(Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021)), Uføregrad.parse(40)),
         )
