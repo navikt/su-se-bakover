@@ -2,7 +2,9 @@ package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
@@ -51,18 +53,17 @@ internal class UtbetalingsstrategiNyTest {
 
     private val fixedClock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)
 
-    private val uføregrunnlagListe = listOf(
-        Grunnlag.Uføregrunnlag(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
-            uføregrad = Uføregrad.parse(50),
-            forventetInntekt = 0,
-        ),
-    )
-
     @Test
     fun `ingen eksisterende utbetalinger`() {
+        val uføregrunnlagListe = listOf(
+            Grunnlag.Uføregrunnlag(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 30.april(2020)),
+                uføregrad = Uføregrad.parse(50),
+                forventetInntekt = 0,
+            ),
+        )
         val actual = Utbetalingsstrategi.Ny(
             sakId = sakId,
             saksnummer = saksnummer,
@@ -93,6 +94,16 @@ internal class UtbetalingsstrategiNyTest {
     @Test
     fun `nye utbetalingslinjer skal refere til forutgående utbetalingslinjer`() {
         val forrigeUtbetalingslinjeId = UUID30.randomUUID()
+
+        val uføregrunnlagListe = listOf(
+            Grunnlag.Uføregrunnlag(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
+                uføregrad = Uføregrad.parse(50),
+                forventetInntekt = 0,
+            ),
+        )
 
         val eksisterendeUtbetalinger = listOf(
             Utbetaling.OversendtUtbetaling.MedKvittering(
@@ -268,6 +279,15 @@ internal class UtbetalingsstrategiNyTest {
 
     @Test
     fun `konverterer tilstøtende beregningsperioder med forskjellig beløp til separate utbetalingsperioder`() {
+        val uføregrunnlagListe = listOf(
+            Grunnlag.Uføregrunnlag(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
+                uføregrad = Uføregrad.parse(50),
+                forventetInntekt = 0,
+            ),
+        )
         val actualUtbetaling = Utbetalingsstrategi.Ny(
             sakId = sakId,
             saksnummer = saksnummer,
@@ -312,6 +332,15 @@ internal class UtbetalingsstrategiNyTest {
 
     @Test
     fun `perioder som har likt beløp, men ikke tilstøter hverandre får separate utbetalingsperioder`() {
+        val uføregrunnlagListe = listOf(
+            Grunnlag.Uføregrunnlag(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 30.april(2020)),
+                uføregrad = Uføregrad.parse(50),
+                forventetInntekt = 0,
+            ),
+        )
         val actualUtbetaling = Utbetalingsstrategi.Ny(
             sakId = sakId,
             saksnummer = saksnummer,
@@ -430,7 +459,7 @@ internal class UtbetalingsstrategiNyTest {
                     utbetalingslinjeId = actual.utbetalingslinjer[1].id,
                     opprettet = actual.utbetalingslinjer[1].opprettet,
                     fraOgMed = 1.mai(2021),
-                    tilOgMed = 31.mai(2021),
+                    tilOgMed = 31.desember(2021),
                     beløp = 21989,
                     forrigeUtbetalingslinjeId = actual.utbetalingslinjer.first().id,
                     uføregrad = Uføregrad.parse(50),
@@ -438,7 +467,7 @@ internal class UtbetalingsstrategiNyTest {
                 expectedUtbetalingslinje(
                     utbetalingslinjeId = actual.utbetalingslinjer.last().id,
                     opprettet = actual.utbetalingslinjer.last().opprettet,
-                    fraOgMed = 1.juni(2021),
+                    fraOgMed = 1.mai(2021),
                     tilOgMed = 31.desember(2021),
                     beløp = 21989,
                     forrigeUtbetalingslinjeId = actual.utbetalingslinjer[1].id,
@@ -446,6 +475,34 @@ internal class UtbetalingsstrategiNyTest {
                 ),
             ),
         )
+    }
+
+    @Test
+    fun `kaster exception hvis det ikke finnes en månedsberegning periode for uføreperiode, og vice versa`() {
+        val uføreList = listOf(
+            Grunnlag.Uføregrunnlag(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mai(2021)),
+                uføregrad = Uføregrad.parse(50),
+                forventetInntekt = 0,
+            ),
+        )
+
+        shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
+            Utbetalingsstrategi.Ny(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utbetalinger = listOf(),
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                clock = fixedClock,
+                beregning = createBeregning(1.januar(2021), 31.desember(2021)),
+                uføregrunnlag = uføreList,
+            ).generate()
+        }.also {
+            it.message shouldContain "Fant ikke uføregrad for en månedsperiode"
+        }
     }
 
     private fun expectedUtbetaling(

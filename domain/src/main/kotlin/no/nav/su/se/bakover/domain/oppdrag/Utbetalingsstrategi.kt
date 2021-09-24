@@ -167,18 +167,40 @@ sealed class Utbetalingsstrategi {
             val slåttSammenUføregrunnlag =
                 uføregrunnlag.groupByContinuous()
 
-            return slåttSammenMånedsberegninger.flatMap { månedsberegning ->
-                slåttSammenUføregrunnlag.associate { grunnlag ->
-                    grunnlag.first to grunnlag.second
-                }.mapNotNull {
-                    it.key.snitt(månedsberegning.periode)?.let { periode ->
-                        periode to it.value
+            val månedsperioder = slåttSammenMånedsberegninger.map {
+                it.periode
+            }.flatMap {
+                it.tilMånedsperioder()
+            }.distinct()
+
+            val uføregrunnlagPerioder = slåttSammenUføregrunnlag.map {
+                it.first
+            }.flatMap {
+                it.tilMånedsperioder()
+            }.distinct()
+
+            val uføregrunnlagInneholderAlleMånedsperioder = månedsperioder.all {
+                uføregrunnlagPerioder.contains(it)
+            }
+
+            val månedsperioderInneholderAlleUføreperioder = uføregrunnlagPerioder.all {
+                månedsperioder.contains(it)
+            }
+
+            if (!uføregrunnlagInneholderAlleMånedsperioder || !månedsperioderInneholderAlleUføreperioder) {
+                throw UtbetalingStrategyException("Fant ikke uføregrad for en månedsperiode")
+            }
+
+            return slåttSammenUføregrunnlag.flatMap { grunnlag ->
+                slåttSammenMånedsberegninger.mapNotNull { månedsbereging ->
+                    månedsbereging.periode.snitt(grunnlag.first)?.let {
+                        månedsbereging to grunnlag.second
                     }
                 }.map {
                     Utbetalingsperiode(
-                        fraOgMed = it.first.fraOgMed,
-                        tilOgMed = it.first.tilOgMed,
-                        beløp = månedsberegning.getSumYtelse(),
+                        fraOgMed = it.first.periode.fraOgMed,
+                        tilOgMed = it.first.periode.tilOgMed,
+                        beløp = it.first.getSumYtelse(),
                         uføregrad = it.second,
                     )
                 }

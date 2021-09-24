@@ -189,8 +189,8 @@ internal class UtbetalingServiceImpl(
                 utbetalinger = sak.utbetalinger,
                 behandler = saksbehandler,
                 beregning = beregning,
+                uføregrunnlag = uføregrunnlag,
                 clock = clock,
-                uføregrunnlag = uføregrunnlag
             ).generate(),
         )
     }

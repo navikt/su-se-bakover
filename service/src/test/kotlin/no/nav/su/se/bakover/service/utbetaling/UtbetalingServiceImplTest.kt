@@ -6,7 +6,6 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
@@ -78,7 +77,7 @@ internal class UtbetalingServiceImplTest {
         Grunnlag.Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
-            periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
+            periode = beregning.periode,
             uføregrad = Uføregrad.parse(50),
             forventetInntekt = 0,
         ),
@@ -321,7 +320,6 @@ internal class UtbetalingServiceImplTest {
 
     @Test
     fun `utbetaler penger og lagrer utbetaling`() {
-
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }

@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub.simulerUtbetaling
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -43,10 +41,9 @@ fun simuleringNy(
             Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
-                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                periode = beregning.periode,
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 0,
-
             ),
         ),
     ).generate().let {
