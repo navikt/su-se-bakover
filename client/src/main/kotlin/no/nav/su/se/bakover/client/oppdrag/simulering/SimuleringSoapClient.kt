@@ -34,8 +34,8 @@ internal class SimuleringSoapClient(
                 SimuleringResponseMapper(it).simulering.right()
             } ?: SimuleringResponseMapper(utbetaling, simulerRequest.request.simuleringsPeriode).simulering.right()
         } catch (e: SimulerBeregningFeilUnderBehandling) {
-            log.error("Funksjonell feil ved simulering, se sikkerlogg for detaljer", e)
-            sikkerLogg.error(
+            log.warn("Funksjonell feil ved simulering, se sikkerlogg for detaljer", e)
+            sikkerLogg.warn(
                 "Simulering feilet med feiltype:${e.faultInfo.errorType}, feilmelding=${e.faultInfo.errorMessage} for request:${simulerRequest.print()}",
                 e,
             )
