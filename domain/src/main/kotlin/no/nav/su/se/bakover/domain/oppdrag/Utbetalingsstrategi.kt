@@ -179,16 +179,10 @@ sealed class Utbetalingsstrategi {
                 it.tilMånedsperioder()
             }.distinct()
 
-            val uføregrunnlagInneholderAlleMånedsperioder = månedsperioder.all {
-                uføregrunnlagPerioder.contains(it)
-            }
+            val uføregrunnlagInneholderAlleMånedsperioder = uføregrunnlagPerioder.containsAll(månedsperioder)
 
-            val månedsperioderInneholderAlleUføreperioder = uføregrunnlagPerioder.all {
-                månedsperioder.contains(it)
-            }
-
-            if (!uføregrunnlagInneholderAlleMånedsperioder || !månedsperioderInneholderAlleUføreperioder) {
-                throw UtbetalingStrategyException("Uføregrunnlaget og beregningsperiodenen er ikke 1 til 1. Grunnlagsperiodene: $uføregrunnlagPerioder, beregningsperiodene: $månedsperioder")
+            if (!uføregrunnlagInneholderAlleMånedsperioder) {
+                throw UtbetalingStrategyException("Uføregrunnlaget inneholder ikke alle beregningsperiodene. Grunnlagsperiodene: $uføregrunnlagPerioder, beregningsperiodene: $månedsperioder")
             }
 
             return slåttSammenUføregrunnlag.flatMap { grunnlag ->
