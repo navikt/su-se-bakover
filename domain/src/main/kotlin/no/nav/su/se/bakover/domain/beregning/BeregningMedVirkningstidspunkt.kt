@@ -20,11 +20,17 @@ data class BeregningMedVirkningstidspunkt(
     private val fradrag: List<Fradrag>,
     private val fradragStrategy: FradragStrategy,
     private val begrunnelse: String? = null,
+    private val gjeldendeMånedsberegningFraTidligere: Månedsberegning?,
 ) : Beregning {
     private val beregning = beregn()
 
     init {
         require(fradrag.all { periode inneholder it.periode })
+        require(
+            if (gjeldendeMånedsberegningFraTidligere != null)
+                gjeldendeMånedsberegningFraTidligere.periode == periode.førsteMåned()
+            else true,
+        )
     }
 
     override fun getId(): UUID = id
@@ -47,6 +53,12 @@ data class BeregningMedVirkningstidspunkt(
         val beregnetPeriodisertFradrag = fradragStrategy.beregn(fradrag, periode)
 
         val gjeldendeBeregninger = Stack<PeriodisertBeregning>()
+        if (gjeldendeMånedsberegningFraTidligere != null) {
+            gjeldendeBeregninger.push(
+                (gjeldendeMånedsberegningFraTidligere as PeriodisertBeregning)
+                    .forskyv(-1),
+            )
+        }
 
         val resultat = Stack<PeriodisertBeregning>()
 
@@ -70,7 +82,6 @@ data class BeregningMedVirkningstidspunkt(
                 }
             }
 
-            // TODO må ta inn gjeldende utbetaling/fradrag for første måned.
             if (gjeldendeBeregninger.isEmpty()) {
                 gjeldendeBeregninger.push(inneværendeMåned)
                 resultat.push(inneværendeMåned)

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning.beregning
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
@@ -16,6 +17,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.beregning.BeregningMedVirkningstidspunkt
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
+import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
@@ -42,6 +44,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
+            gjeldendeMånedsberegningFraTidligere = null,
         )
         beregning.getSumYtelse() shouldBe 250116
         beregning.getSumFradrag() shouldBe 0
@@ -64,6 +67,78 @@ internal class BeregningMedVirkningstidspunktTest {
     }
 
     @Test
+    fun `beregningen bruker gjeldendeMånedsberegningFraTidligere hvis den sendes inn`() {
+        val periode = Periode.create(1.januar(2020), 31.desember(2020))
+
+        val beregning = BeregningMedVirkningstidspunkt(
+            periode = periode,
+            sats = Sats.HØY,
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 10000.0,
+                    periode = periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+            fradragStrategy = FradragStrategy.Enslig,
+            gjeldendeMånedsberegningFraTidligere = MånedsberegningFactory.ny(
+                periode = januar(2020),
+                sats = Sats.HØY,
+                fradrag = emptyList(),
+                fribeløpForEps = 0.0,
+            ),
+        )
+        beregning.getSumYtelse() shouldBe 140116
+        beregning.getSumFradrag() shouldBe 110000
+        beregning.getMånedsberegninger().assertMåneder(
+            expected = mapOf(
+                (januar(2020) to (20637 to 0.0)),
+                (februar(2020) to (10637 to 10000.0)),
+                (mars(2020) to (10637 to 10000.0)),
+                (april(2020) to (10637 to 10000.0)),
+                (mai(2020) to (10946 to 10000.0)),
+                (juni(2020) to (10946 to 10000.0)),
+                (juli(2020) to (10946 to 10000.0)),
+                (august(2020) to (10946 to 10000.0)),
+                (september(2020) to (10946 to 10000.0)),
+                (oktober(2020) to (10946 to 10000.0)),
+                (november(2020) to (10946 to 10000.0)),
+                (desember(2020) to (10946 to 10000.0)),
+            ),
+        )
+    }
+
+    @Test
+    fun `kan ikke sende inn gjeldendeMånedsberegningFraTidligere som ikke er lik første måned som skal beregnes`() {
+        val periode = Periode.create(1.januar(2020), 31.desember(2020))
+
+        shouldThrow<IllegalArgumentException> {
+            BeregningMedVirkningstidspunkt(
+                periode = periode,
+                sats = Sats.HØY,
+                fradrag = listOf(
+                    FradragFactory.ny(
+                        type = Fradragstype.ForventetInntekt,
+                        månedsbeløp = 10000.0,
+                        periode = periode,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+                fradragStrategy = FradragStrategy.Enslig,
+                gjeldendeMånedsberegningFraTidligere = MånedsberegningFactory.ny(
+                    periode = desember(2019),
+                    sats = Sats.HØY,
+                    fradrag = emptyList(),
+                    fribeløpForEps = 0.0,
+                ),
+            )
+        }
+    }
+
+    @Test
     fun `fradrag for alle perioder med virk`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
         val beregning = BeregningMedVirkningstidspunkt(
@@ -78,6 +153,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
+            gjeldendeMånedsberegningFraTidligere = null,
         )
 
         beregning.getSumYtelse() shouldBe 238116
@@ -116,6 +192,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
+            gjeldendeMånedsberegningFraTidligere = null,
         )
         beregning.getSumYtelse() shouldBe 250116
         beregning.getSumFradrag() shouldBe 0
@@ -167,6 +244,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
+            gjeldendeMånedsberegningFraTidligere = null,
         )
         beregning.getSumYtelse() shouldBe 154116
         beregning.getSumFradrag() shouldBe 96000
@@ -218,6 +296,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
+            gjeldendeMånedsberegningFraTidligere = null,
         )
         beregning.getSumYtelse() shouldBe 109116
         beregning.getSumFradrag() shouldBe 141000
@@ -269,6 +348,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
+            gjeldendeMånedsberegningFraTidligere = null,
         )
         beregning.getSumYtelse() shouldBe 106116
         beregning.getSumFradrag() shouldBe 144000
@@ -311,6 +391,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
+            gjeldendeMånedsberegningFraTidligere = null,
         )
 
         beregning.getSumYtelse() shouldBe 250116
@@ -354,6 +435,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
+            gjeldendeMånedsberegningFraTidligere = null,
         )
 
         beregning.getSumYtelse() shouldBe 245116
@@ -421,6 +503,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
+            gjeldendeMånedsberegningFraTidligere = null,
         )
 
         beregning.getSumYtelse() shouldBe 250116
@@ -506,6 +589,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
+            gjeldendeMånedsberegningFraTidligere = null,
         )
 
         beregning.getSumYtelse() shouldBe 227116
@@ -591,6 +675,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
+            gjeldendeMånedsberegningFraTidligere = null,
         )
 
         beregning.getSumYtelse() shouldBe 218116
@@ -682,6 +767,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
+            gjeldendeMånedsberegningFraTidligere = null,
         )
 
         beregning.getSumYtelse() shouldBe 192116
@@ -725,6 +811,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
+            gjeldendeMånedsberegningFraTidligere = null,
         )
 
         beregning.getSumYtelse() shouldBe 225116
@@ -774,6 +861,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
+            gjeldendeMånedsberegningFraTidligere = null,
         )
 
         beregning.getSumYtelse() shouldBe 185116
@@ -830,6 +918,7 @@ internal class BeregningMedVirkningstidspunktTest {
             sats = Sats.HØY,
             fradrag = fradrag,
             fradragStrategy = FradragStrategy.Enslig,
+            gjeldendeMånedsberegningFraTidligere = null,
         )
 
         beregning.getSumYtelse() shouldBe 228116
@@ -889,6 +978,8 @@ internal class BeregningMedVirkningstidspunktTest {
             )
         }.forEach { (periode, ytelse, fradrag) ->
             expected[periode] shouldBe Pair(ytelse, fradrag)
+        }.also {
+            this.map { it.periode } shouldBe expected.keys
         }
     }
 }
