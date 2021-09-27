@@ -33,6 +33,14 @@ internal class SkalSendeBrevVisitor : VedtakVisitor {
         sendBrev = !vedtak.årsakErGRegulering() && vedtak.sendBrevErValgt()
     }
 
+    override fun visit(vedtak: Vedtak.EndringIYtelse.StansAvYtelse) {
+        sendBrev = false
+    }
+
+    override fun visit(vedtak: Vedtak.EndringIYtelse.GjenopptakAvYtelse) {
+        sendBrev = false
+    }
+
     private fun Vedtak.årsakErGRegulering(): Boolean {
         return (behandling as IverksattRevurdering).revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
     }

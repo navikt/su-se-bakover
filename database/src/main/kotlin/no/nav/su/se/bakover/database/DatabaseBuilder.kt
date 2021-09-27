@@ -33,7 +33,7 @@ import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgr
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
-import no.nav.su.se.bakover.database.vedtak.VedtakPosgresRepo
+import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotRepo
@@ -125,8 +125,9 @@ object DatabaseBuilder {
             formueVilkårsvurderingRepo = formueVilkårsvurderingRepo,
             søknadsbehandlingRepo = saksbehandlingRepo,
             dbMetrics = dbMetrics,
+            sessionFactory = sessionFactory,
         )
-        val vedtakRepo = VedtakPosgresRepo(
+        val vedtakRepo = VedtakPostgresRepo(
             dataSource = dataSource,
             søknadsbehandlingRepo = saksbehandlingRepo,
             revurderingRepo = revurderingRepo,
@@ -150,7 +151,7 @@ object DatabaseBuilder {
                 sessionFactory = sessionFactory,
                 søknadsbehandlingRepo = saksbehandlingRepo,
                 revurderingRepo = revurderingRepo,
-                vedtakPosgresRepo = vedtakRepo,
+                vedtakPostgresRepo = vedtakRepo,
                 dbMetrics = dbMetrics,
             ),
             person = PersonPostgresRepo(

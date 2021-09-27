@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -454,7 +453,7 @@ internal class OpprettRevurderingServiceTest {
     @Test
     fun `for en ny revurdering vil det tas utgangspunkt i nyeste vedtak hvor fraOgMed er inni perioden`() {
         val vedtaksperiode = Periode.create(1.januar(2021), 31.desember(2021))
-        val behandlingMock = mock<Behandling> {
+        val behandlingMock = mock<IverksattRevurdering.Innvilget> {
             on { fnr } doReturn Fnr.generer()
             on { saksnummer } doReturn Saksnummer(2021)
             on { grunnlagsdata } doReturn Grunnlagsdata.create(
@@ -472,21 +471,21 @@ internal class OpprettRevurderingServiceTest {
                 formue = formueVilkår(periodeNesteMånedOgTreMånederFram),
             )
         }
-        val vedtakForFørsteJanuarLagetNå = mock<Vedtak.EndringIYtelse> {
+        val vedtakForFørsteJanuarLagetNå = mock<Vedtak.EndringIYtelse.InnvilgetRevurdering> {
             on { id } doReturn UUID.randomUUID()
             on { opprettet } doReturn fixedTidspunkt
             on { periode } doReturn vedtaksperiode
             on { behandling } doReturn behandlingMock
             on { beregning } doReturn testBeregning
         }
-        val vedtakForFørsteMarsLagetNå = mock<Vedtak.EndringIYtelse> {
+        val vedtakForFørsteMarsLagetNå = mock<Vedtak.EndringIYtelse.InnvilgetRevurdering> {
             on { id } doReturn UUID.randomUUID()
             on { opprettet } doReturn fixedTidspunkt.plus(1, ChronoUnit.SECONDS)
             on { periode } doReturn Periode.create(1.mars(2021), 31.desember(2021))
             on { behandling } doReturn behandlingMock
             on { beregning } doReturn testBeregning
         }
-        val vedtakForFørsteJanuarLagetForLengeSiden = mock<Vedtak.EndringIYtelse> {
+        val vedtakForFørsteJanuarLagetForLengeSiden = mock<Vedtak.EndringIYtelse.InnvilgetRevurdering> {
             on { id } doReturn UUID.randomUUID()
             on { opprettet } doReturn fixedTidspunkt.instant.minus(2, ChronoUnit.HALF_DAYS).toTidspunkt()
             on { periode } doReturn vedtaksperiode

@@ -29,7 +29,7 @@ import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
-import no.nav.su.se.bakover.database.vedtak.VedtakPosgresRepo
+import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
@@ -77,6 +77,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.getOrFail
 import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -253,8 +254,9 @@ internal class TestDataHelper(
         formueVilkårsvurderingRepo = formueVilkårsvurderingPostgresRepo,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         dbMetrics = dbMetrics,
+        sessionFactory = sessionFactory,
     )
-    internal val vedtakRepo = VedtakPosgresRepo(
+    internal val vedtakRepo = VedtakPostgresRepo(
         dataSource = dataSource,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         revurderingRepo = revurderingRepo,
@@ -264,7 +266,7 @@ internal class TestDataHelper(
         sessionFactory = sessionFactory,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         revurderingRepo = revurderingRepo,
-        vedtakPosgresRepo = vedtakRepo,
+        vedtakPostgresRepo = vedtakRepo,
         dbMetrics = dbMetrics,
     )
     internal val personRepo = PersonPostgresRepo(
@@ -374,7 +376,7 @@ internal class TestDataHelper(
             vedtakRepo.lagre(it)
         }
 
-    fun vedtakMedInnvilgetSøknadsbehandling(): Pair<Vedtak.EndringIYtelse, Utbetaling> {
+    fun vedtakMedInnvilgetSøknadsbehandling(): Pair<Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling, Utbetaling> {
         val (søknadsbehandling, utbetaling) = nyOversendtUtbetalingMedKvittering()
         return Pair(
             Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetaling.id, fixedClock).also {
@@ -454,6 +456,18 @@ internal class TestDataHelper(
         ).getOrHandle {
             throw java.lang.IllegalStateException("Her skal vi ha en beregnet revurdering")
         }.also {
+            revurderingRepo.lagre(it)
+        }
+    }
+
+    fun beregnetIngenEndring(): BeregnetRevurdering {
+        val vedtak = vedtakMedInnvilgetSøknadsbehandling()
+        return nyRevurdering(
+            vedtak.first,
+            vedtak.first.periode,
+        ).beregn(
+            listOf(vedtak.second),
+        ).getOrFail("skulle gått bra").also {
             revurderingRepo.lagre(it)
         }
     }

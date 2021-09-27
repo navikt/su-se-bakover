@@ -15,7 +15,8 @@ import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgr
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo
 import no.nav.su.se.bakover.database.uuidOrNull
-import no.nav.su.se.bakover.database.vedtak.VedtakPosgresRepo
+import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
+import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
@@ -28,7 +29,7 @@ internal class SakPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
     private val søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
     private val revurderingRepo: RevurderingPostgresRepo,
-    private val vedtakPosgresRepo: VedtakPosgresRepo,
+    private val vedtakPostgresRepo: VedtakPostgresRepo,
     private val dbMetrics: DbMetrics,
 ) : SakRepo {
 
@@ -145,7 +146,7 @@ internal class SakPostgresRepo(
                 søknadsbehandlinger = søknadsbehandlingRepo.hentForSak(sakId, sessionContext),
                 utbetalinger = UtbetalingInternalRepo.hentUtbetalinger(sakId, session),
                 revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session),
-                vedtakListe = vedtakPosgresRepo.hentForSakId(sakId, session),
+                vedtakListe = vedtakPostgresRepo.hentForSakId(sakId, session),
             )
         }
     }

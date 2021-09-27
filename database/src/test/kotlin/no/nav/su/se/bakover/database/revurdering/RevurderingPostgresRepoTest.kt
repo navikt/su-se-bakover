@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
@@ -92,7 +93,7 @@ internal class RevurderingPostgresRepoTest {
 
     private fun beregnetIngenEndring(
         opprettet: OpprettetRevurdering,
-        vedtak: Vedtak.EndringIYtelse,
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling,
     ) = BeregnetRevurdering.IngenEndring(
         id = opprettet.id,
         periode = opprettet.periode,
@@ -112,7 +113,7 @@ internal class RevurderingPostgresRepoTest {
 
     private fun beregnetInnvilget(
         opprettet: OpprettetRevurdering,
-        vedtak: Vedtak.EndringIYtelse,
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling,
     ) = BeregnetRevurdering.Innvilget(
         id = opprettet.id,
         periode = opprettet.periode,
@@ -132,7 +133,7 @@ internal class RevurderingPostgresRepoTest {
 
     private fun beregnetOpphørt(
         opprettet: OpprettetRevurdering,
-        vedtak: Vedtak.EndringIYtelse,
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling,
     ) = BeregnetRevurdering.Opphørt(
         id = opprettet.id,
         periode = opprettet.periode,
@@ -257,7 +258,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(nyBeregnet)
 
-            val actual = repo.hent(opprettet.id)!!
+            val actual = repo.hent(opprettet.id)
 
             actual shouldNotBe opprettet
             actual shouldNotBe beregnet
@@ -563,7 +564,7 @@ internal class RevurderingPostgresRepoTest {
             )
 
             repo.lagre(underkjent)
-            repo.hent(underkjent.id)!! shouldBe underkjent
+            repo.hent(underkjent.id) shouldBe underkjent
         }
     }
 
@@ -598,7 +599,7 @@ internal class RevurderingPostgresRepoTest {
             )
 
             repo.lagre(underkjent)
-            repo.hent(underkjent.id)!! shouldBe underkjent
+            repo.hent(underkjent.id) shouldBe underkjent
         }
     }
 
@@ -648,7 +649,7 @@ internal class RevurderingPostgresRepoTest {
             )
 
             repo.lagre(underkjent)
-            repo.hent(underkjent.id)!! shouldBe underkjent
+            repo.hent(underkjent.id) shouldBe underkjent
         }
     }
 
@@ -708,7 +709,7 @@ internal class RevurderingPostgresRepoTest {
             )
 
             repo.lagre(underkjent)
-            repo.hent(underkjent.id)!! shouldBe underkjent
+            repo.hent(underkjent.id) shouldBe underkjent
         }
     }
 
@@ -742,7 +743,7 @@ internal class RevurderingPostgresRepoTest {
             )
 
             repo.lagre(underkjent)
-            repo.hent(underkjent.id)!! shouldBe underkjent
+            repo.hent(underkjent.id) shouldBe underkjent
         }
     }
 
@@ -799,7 +800,7 @@ internal class RevurderingPostgresRepoTest {
             )
 
             repo.lagre(underkjent)
-            repo.hent(underkjent.id)!! shouldBe underkjent
+            repo.hent(underkjent.id) shouldBe underkjent
         }
     }
 
@@ -815,7 +816,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.oppdaterForhåndsvarsel(opprettet.id, Forhåndsvarsel.IngenForhåndsvarsel)
 
-            repo.hent(opprettet.id)!!.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
+            (repo.hent(opprettet.id) as Revurdering).forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
         }
     }
 
@@ -835,7 +836,7 @@ internal class RevurderingPostgresRepoTest {
                 opprettet.id,
                 forhåndsvarsel,
             )
-            repo.hent(opprettet.id)!!.forhåndsvarsel shouldBe forhåndsvarsel
+            (repo.hent(opprettet.id) as Revurdering).forhåndsvarsel shouldBe forhåndsvarsel
         }
     }
 
@@ -858,7 +859,7 @@ internal class RevurderingPostgresRepoTest {
                 opprettet.id,
                 forhåndsvarsel,
             )
-            repo.hent(opprettet.id)!!.forhåndsvarsel shouldBe forhåndsvarsel
+            (repo.hent(opprettet.id) as Revurdering).forhåndsvarsel shouldBe forhåndsvarsel
         }
     }
 
@@ -872,31 +873,31 @@ internal class RevurderingPostgresRepoTest {
             val opprettet = opprettet(vedtak)
             repo.lagre(opprettet.copy(forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel))
 
-            repo.hent(opprettet.id)!!.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
+            (repo.hent(opprettet.id) as Revurdering).forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
 
             val beregnetRevurdering = beregnetInnvilget(opprettet, vedtak)
 
             repo.lagre(beregnetRevurdering)
-            repo.hent(beregnetRevurdering.id)!!.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
+            (repo.hent(opprettet.id) as Revurdering).forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
 
             val simulertRevurdering = simulertInnvilget(beregnetRevurdering)
             repo.lagre(simulertRevurdering)
-            repo.hent(beregnetRevurdering.id)!!.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
+            (repo.hent(simulertRevurdering.id) as Revurdering).forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
 
             val nyOpprettet = opprettet(vedtak)
             repo.lagre(nyOpprettet.copy(forhåndsvarsel = null))
 
-            repo.hent(nyOpprettet.id)!!.forhåndsvarsel shouldBe null
+            (repo.hent(nyOpprettet.id) as Revurdering).forhåndsvarsel shouldBe null
 
             val nyBeregnetRevurdering = beregnetInnvilget(nyOpprettet, vedtak)
 
             repo.lagre(nyBeregnetRevurdering)
-            repo.hent(nyBeregnetRevurdering.id)!!.forhåndsvarsel shouldBe null
+            (repo.hent(nyBeregnetRevurdering.id) as Revurdering).forhåndsvarsel shouldBe null
 
             val nySimulertRevurdering =
                 simulertInnvilget(nyBeregnetRevurdering.copy(forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel))
             repo.lagre(nySimulertRevurdering)
-            repo.hent(nySimulertRevurdering.id)!!.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
+            (repo.hent(nySimulertRevurdering.id) as Revurdering).forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
         }
     }
 

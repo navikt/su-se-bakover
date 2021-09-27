@@ -10,24 +10,34 @@ import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.attestant
 import no.nav.su.se.bakover.database.beregning
 import no.nav.su.se.bakover.database.fixedClock
+import no.nav.su.se.bakover.database.fixedTidspunkt
 import no.nav.su.se.bakover.database.hent
+import no.nav.su.se.bakover.database.simulering
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
+import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
+import no.nav.su.se.bakover.test.periode2021
+import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
-internal class VedtakPosgresRepoTest {
+internal class VedtakPostgresRepoTest {
 
     @Test
     fun `setter inn og henter vedtak for innvilget stønad`() {
@@ -200,7 +210,8 @@ internal class VedtakPosgresRepoTest {
                 saksbehandler = nyRevurdering.saksbehandler,
                 oppgaveId = OppgaveId(""),
                 beregning = beregning(nyRevurdering.periode),
-                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
+                attesteringer = Attesteringshistorikk.empty()
+                    .leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
                 fritekstTilBrev = "",
                 revurderingsårsak = Revurderingsårsak(
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
@@ -230,6 +241,81 @@ internal class VedtakPosgresRepoTest {
                         it.stringOrNull("søknadsbehandlingId") shouldBe null
                         it.stringOrNull("revurderingId") shouldBe iverksattRevurdering.id.toString()
                     }
+            }
+        }
+    }
+
+    @Test
+    fun `oppretter og henter vedtak for stans av ytelse`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val søknadsbehandling = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val simulertRevurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = periode2021,
+                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
+                vilkårsvurderinger = vilkårsvurderingerInnvilget(),
+                tilRevurdering = søknadsbehandling,
+                saksbehandler = saksbehandler,
+                simulering = simulering(søknadsbehandling.behandling.fnr),
+                revurderingsårsak = Revurderingsårsak.create(
+                    årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
+                    begrunnelse = "huffa",
+                ),
+            )
+            testDataHelper.revurderingRepo.lagre(simulertRevurdering)
+
+            val iverksattRevurdering = simulertRevurdering.iverksett(
+                Attestering.Iverksatt(NavIdentBruker.Attestant("atte"), fixedTidspunkt),
+            )
+
+            testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
+
+            val utbetaling = testDataHelper.nyOversendtUtbetalingMedKvittering().second
+            val vedtak = Vedtak.from(iverksattRevurdering, utbetaling.id, fixedClock)
+
+            testDataHelper.vedtakRepo.lagre(vedtak)
+            testDataHelper.dataSource.withSession {
+                testDataHelper.vedtakRepo.hent(vedtak.id, it) shouldBe vedtak
+            }
+        }
+    }
+
+    @Test
+    fun `oppretter og henter vedtak for gjenopptak av ytelse`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val søknadsbehandling = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val simulertRevurdering = GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = periode2021,
+                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
+                vilkårsvurderinger = vilkårsvurderingerInnvilget(),
+                tilRevurdering = søknadsbehandling,
+                saksbehandler = saksbehandler,
+                simulering = simulering(søknadsbehandling.behandling.fnr),
+                revurderingsårsak = Revurderingsårsak.create(
+                    årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
+                    begrunnelse = "huffa",
+                ),
+            )
+            testDataHelper.revurderingRepo.lagre(simulertRevurdering)
+
+            val iverksattRevurdering = simulertRevurdering.iverksett(
+                Attestering.Iverksatt(NavIdentBruker.Attestant("atte"), fixedTidspunkt),
+            )
+            testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
+
+            val utbetaling = testDataHelper.nyOversendtUtbetalingMedKvittering().second
+            val vedtak = Vedtak.from(iverksattRevurdering, utbetaling.id, fixedClock)
+
+            testDataHelper.vedtakRepo.lagre(vedtak)
+            testDataHelper.dataSource.withSession {
+                testDataHelper.vedtakRepo.hent(vedtak.id, it) shouldBe vedtak
             }
         }
     }

@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.test.formueGrunnlagUtenEps0Innvilget
 import no.nav.su.se.bakover.test.formueGrunnlagUtenEpsAvslått
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
+import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
@@ -110,7 +111,7 @@ class RevurderingSendTilAttesteringTest {
 
     @Test
     fun `sender ikke til attestering hvis revurdering er ikke simulert`() {
-        val opprettetRevurdering = mock<OpprettetRevurdering>()
+        val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering

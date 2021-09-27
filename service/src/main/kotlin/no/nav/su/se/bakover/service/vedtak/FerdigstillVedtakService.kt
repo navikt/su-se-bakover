@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
@@ -177,12 +178,18 @@ internal class FerdigstillVedtakServiceImpl(
         vedtak: Vedtak,
         lukkOppgave: (oppgaveId: OppgaveId) -> Either<KunneIkkeLukkeOppgave, Unit>,
     ): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> {
-        return lukkOppgave(vedtak.behandling.oppgaveId)
+        val oppgaveId = if (vedtak.behandling is BehandlingMedOppgave) {
+            (vedtak.behandling as BehandlingMedOppgave).oppgaveId
+        } else {
+            return KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave.left()
+        }
+
+        return lukkOppgave(oppgaveId)
             .mapLeft {
-                log.error("Kunne ikke lukke oppgave: ${vedtak.behandling.oppgaveId} for behandling: ${vedtak.behandling.id}")
+                log.error("Kunne ikke lukke oppgave: $oppgaveId for behandling: ${vedtak.behandling.id}")
                 KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave
             }.map {
-                log.info("Lukket oppgave: ${vedtak.behandling.oppgaveId} for behandling: ${vedtak.behandling.id}")
+                log.info("Lukket oppgave: $oppgaveId for behandling: ${vedtak.behandling.id}")
                 incrementLukketOppgave(vedtak)
                 vedtak
             }

@@ -1,7 +1,10 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
+import arrow.core.Either
 import arrow.core.NonEmptyList
+import arrow.core.left
 import arrow.core.nonEmptyListOf
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.erFørsteDagIMåned
@@ -26,7 +29,6 @@ sealed class Utbetalingsstrategi {
     abstract val fnr: Fnr
     abstract val utbetalinger: List<Utbetaling>
     abstract val behandler: NavIdentBruker
-    abstract fun generate(): Utbetaling.UtbetalingForSimulering
 
     /**
      * Sjekk om vi noen gang har forsøkt å opphøre ytelsen i perioden fra [datoForStanEllerReaktivering] til siste utbetaling.
@@ -36,7 +38,7 @@ sealed class Utbetalingsstrategi {
      */
     protected fun unngåBugMedReaktiveringAvOpphørIOppdrag(
         datoForStanEllerReaktivering: LocalDate,
-    ) {
+    ): Either<Unit, Unit> {
         if (utbetalinger.flatMap { it.utbetalingslinjer }
             .filterIsInstance<Utbetalingslinje.Endring.Opphør>()
             .any {
@@ -48,8 +50,9 @@ sealed class Utbetalingsstrategi {
                     )
             }
         ) {
-            throw UtbetalingStrategyException("Kan ikke stanse utbetalinger for perioder hvor det eksisterer/har eksistert opphør.")
+            return Unit.left()
         }
+        return Unit.right()
     }
 
     data class Stans(
@@ -61,32 +64,43 @@ sealed class Utbetalingsstrategi {
         val stansDato: LocalDate,
         val clock: Clock,
     ) : Utbetalingsstrategi() {
-        override fun generate(): Utbetaling.UtbetalingForSimulering {
-            validate(harOversendteUtbetalingerEtter(stansDato)) { "Det eksisterer ingen utbetalinger med tilOgMed dato større enn eller lik stansdato $stansDato" }
-            validate(stansDato.erFørsteDagIMåned()) { "Dato for stans må være første dag i måneden" }
-            validate(LocalDate.now(clock).plusMonths(1).startOfMonth() == stansDato.startOfMonth()) {
-                "Dato for stans må være første dag i neste måned"
+
+        fun generer(): Either<Feil, Utbetaling.UtbetalingForSimulering> {
+            val sisteOversendteUtbetalingslinje =
+                sisteOversendteUtbetaling()?.sisteUtbetalingslinje() ?: return Feil.FantIngenUtbetalinger.left()
+
+            when {
+                !harOversendteUtbetalingerEtter(stansDato) -> {
+                    return Feil.IngenUtbetalingerEtterStansDato.left()
+                }
+                !stansDato.erFørsteDagIMåned() -> {
+                    return Feil.StansDatoErIkkeFørsteINesteMåned.left()
+                }
+                LocalDate.now(clock).plusMonths(1).startOfMonth() != stansDato.startOfMonth() -> {
+                    return Feil.StansDatoErIkkeFørsteINesteMåned.left()
+                }
+                sisteOversendteUtbetalingslinje is Utbetalingslinje.Endring.Stans -> {
+                    return Feil.SisteUtbetalingErEnStans.left()
+                }
+                sisteOversendteUtbetalingslinje is Utbetalingslinje.Endring.Opphør -> {
+                    return Feil.SisteUtbetalingErOpphør.left()
+                }
+                /**
+                 * TODO jm: kan fjernes etter https://jira.adeo.no/browse/TOB-1772 er fikset.
+                 */
+                unngåBugMedReaktiveringAvOpphørIOppdrag(stansDato).isLeft() -> {
+                    return Feil.KanIkkeStanseOpphørtePerioder.left()
+                }
             }
 
-            val sisteOversendtUtbetaling = sisteOversendteUtbetaling()?.also {
-                validate(Utbetaling.UtbetalingsType.STANS != it.type) { "Kan ikke stanse utbetalinger som allerede er stanset" }
-                validate(Utbetaling.UtbetalingsType.OPPHØR != it.type) { "Kan ikke stanse utbetalinger som allerede er opphørt" }
-            } ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å stanse")
-
-            /**
-             * TODO jm: kan fjernes etter https://jira.adeo.no/browse/TOB-1772 er fikset.
-             */
-            unngåBugMedReaktiveringAvOpphørIOppdrag(
-                datoForStanEllerReaktivering = stansDato,
-            )
-
             return Utbetaling.UtbetalingForSimulering(
+                opprettet = Tidspunkt.now(clock),
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
                 utbetalingslinjer = nonEmptyListOf(
                     Utbetalingslinje.Endring.Stans(
-                        utbetalingslinje = sisteOversendtUtbetaling.sisteUtbetalingslinje(),
+                        utbetalingslinje = sisteOversendteUtbetalingslinje,
                         virkningstidspunkt = stansDato,
                         clock = clock,
                     ),
@@ -94,7 +108,16 @@ sealed class Utbetalingsstrategi {
                 type = Utbetaling.UtbetalingsType.STANS,
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock)),
-            )
+            ).right()
+        }
+
+        sealed class Feil {
+            object IngenUtbetalingerEtterStansDato : Feil()
+            object StansDatoErIkkeFørsteINesteMåned : Feil()
+            object SisteUtbetalingErEnStans : Feil()
+            object SisteUtbetalingErOpphør : Feil()
+            object KanIkkeStanseOpphørtePerioder : Feil()
+            object FantIngenUtbetalinger : Feil()
         }
     }
 
@@ -107,7 +130,7 @@ sealed class Utbetalingsstrategi {
         val beregning: Beregning,
         val clock: Clock,
     ) : Utbetalingsstrategi() {
-        override fun generate(): Utbetaling.UtbetalingForSimulering {
+        fun generate(): Utbetaling.UtbetalingForSimulering {
             val utbetalingslinjer = createUtbetalingsperioder(beregning).map {
                 Utbetalingslinje.Ny(
                     fraOgMed = it.fraOgMed,
@@ -149,7 +172,7 @@ sealed class Utbetalingsstrategi {
         val opphørsDato: LocalDate,
         val clock: Clock,
     ) : Utbetalingsstrategi() {
-        override fun generate(): Utbetaling.UtbetalingForSimulering {
+        fun generate(): Utbetaling.UtbetalingForSimulering {
             val sisteUtbetalingslinje = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.also {
                 validate(opphørsDato.isBefore(it.tilOgMed)) { "Dato for opphør må være tidligere enn tilOgMed for siste utbetalingslinje" }
                 validate(opphørsDato.erFørsteDagIMåned()) { "Ytelse kan kun opphøres fra første dag i måneden" }
@@ -181,11 +204,11 @@ sealed class Utbetalingsstrategi {
         override val behandler: NavIdentBruker,
         val clock: Clock,
     ) : Utbetalingsstrategi() {
-        override fun generate(): Utbetaling.UtbetalingForSimulering {
+        fun generer(): Either<Feil, Utbetaling.UtbetalingForSimulering> {
             val sisteOversendteUtbetalingslinje = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()
-                ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å gjenoppta")
+                ?: return Feil.FantIngenUtbetalinger.left()
 
-            validate(sisteOversendteUtbetalingslinje is Utbetalingslinje.Endring.Stans) { "Siste utbetaling er ikke en stans, kan ikke gjenoppta." }
+            if (sisteOversendteUtbetalingslinje !is Utbetalingslinje.Endring.Stans) return Feil.SisteUtbetalingErIkkeStans.left()
 
             /**
              * TODO jm: kan fjernes etter https://jira.adeo.no/browse/TOB-1772 er fikset.
@@ -193,9 +216,7 @@ sealed class Utbetalingsstrategi {
              * tilfeller hvor perioden som gjenopptas inneholder opphør (skal alt etter denne datoen reaktiveres
              * uansett, eller skal kun et spesifikt opphør reaktivers). Default oppførsel er at kun match med dato reaktivers.
              */
-            unngåBugMedReaktiveringAvOpphørIOppdrag(
-                datoForStanEllerReaktivering = sisteOversendteUtbetalingslinje.virkningstidspunkt,
-            )
+            if (unngåBugMedReaktiveringAvOpphørIOppdrag(sisteOversendteUtbetalingslinje.virkningstidspunkt).isLeft()) return Feil.KanIkkeGjenopptaOpphørtePeriode.left()
 
             return Utbetaling.UtbetalingForSimulering(
                 sakId = sakId,
@@ -211,7 +232,13 @@ sealed class Utbetalingsstrategi {
                 type = Utbetaling.UtbetalingsType.GJENOPPTA,
                 behandler = behandler,
                 avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock)),
-            )
+            ).right()
+        }
+
+        sealed class Feil {
+            object FantIngenUtbetalinger : Feil()
+            object SisteUtbetalingErIkkeStans : Feil()
+            object KanIkkeGjenopptaOpphørtePeriode : Feil()
         }
     }
 

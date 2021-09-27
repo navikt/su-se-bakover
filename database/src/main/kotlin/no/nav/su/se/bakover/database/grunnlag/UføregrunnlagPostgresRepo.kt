@@ -49,7 +49,7 @@ internal class UføregrunnlagPostgresRepo {
             }
     }
 
-    private fun slettForBehandlingId(behandlingId: UUID, session: Session) {
+    private fun slettForBehandlingId(behandlingId: UUID, tx: TransactionalSession) {
         """
             delete from grunnlag_uføre where behandlingId = :behandlingId
         """.trimIndent()
@@ -57,7 +57,7 @@ internal class UføregrunnlagPostgresRepo {
                 mapOf(
                     "behandlingId" to behandlingId,
                 ),
-                session,
+                tx,
             )
     }
 
@@ -71,7 +71,7 @@ internal class UføregrunnlagPostgresRepo {
         )
     }
 
-    private fun lagre(uføregrunnlag: Grunnlag.Uføregrunnlag, behandlingId: UUID, session: Session) {
+    private fun lagre(uføregrunnlag: Grunnlag.Uføregrunnlag, behandlingId: UUID, tx: TransactionalSession) {
         """
             insert into grunnlag_uføre
             (
@@ -103,7 +103,7 @@ internal class UføregrunnlagPostgresRepo {
                     "uforegrad" to uføregrunnlag.uføregrad.value,
                     "forventetInntekt" to uføregrunnlag.forventetInntekt,
                 ),
-                session,
+                tx,
             )
     }
 }

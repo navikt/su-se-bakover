@@ -15,9 +15,15 @@ interface Behandling {
     val sakId: UUID
     val saksnummer: Saksnummer
     val fnr: Fnr
-    val oppgaveId: OppgaveId
     val periode: Periode
     val grunnlagsdata: Grunnlagsdata
     val vilkårsvurderinger: Vilkårsvurderinger
+}
+
+interface BehandlingMedOppgave : Behandling {
+    val oppgaveId: OppgaveId
+}
+
+interface BehandlingMedAttestering : Behandling {
     val attesteringer: Attesteringshistorikk
 }

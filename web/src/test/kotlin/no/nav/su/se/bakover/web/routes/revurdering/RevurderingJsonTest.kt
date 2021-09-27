@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
+import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -22,18 +23,24 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
+import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.bosituasjon
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.expectedBosituasjonJson
 import no.nav.su.se.bakover.web.routes.grunnlag.FradragsgrunnlagJsonTest.Companion.expectedFradragsgrunnlagJson
 import no.nav.su.se.bakover.web.routes.grunnlag.FradragsgrunnlagJsonTest.Companion.fradragsgrunnlag
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.expectedVurderingUføreJson
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.vurderingsperiodeUføre
+import no.nav.su.se.bakover.web.routes.grunnlag.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import no.nav.su.se.bakover.web.routes.vedtak.toJson
@@ -47,7 +54,7 @@ internal class RevurderingJsonTest {
         Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
         Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
     )
-    private val vedtak: VedtakSomKanRevurderes = RevurderingRoutesTestData.vedtak
+    private val vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = RevurderingRoutesTestData.vedtak
 
     @Test
     fun `should serialize and deserialize OpprettetRevurdering`() {
@@ -168,7 +175,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "status": "${RevurderingsStatus.BEREGNET_INNVILGET}",
@@ -250,7 +256,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "status": "${RevurderingsStatus.BEREGNET_OPPHØRT}",
@@ -332,7 +337,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "status": "${RevurderingsStatus.BEREGNET_INGEN_ENDRING}",
@@ -415,7 +419,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                 {
-                  "beregning": ${serialize(vedtak.beregning.toJson())},
                   "revurdert": ${serialize(beregning.toJson())}
                 },
                 "simulering": {
@@ -502,7 +505,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                 {
-                  "beregning": ${serialize(vedtak.beregning.toJson())},
                   "revurdert": ${serialize(beregning.toJson())}
                 },
                 "simulering": {
@@ -589,7 +591,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "simulering": {
@@ -677,7 +678,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "simulering": {
@@ -765,7 +765,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "simulering": null,
@@ -858,7 +857,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "simulering": {
@@ -961,7 +959,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "simulering": {
@@ -1064,7 +1061,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "simulering": null,
@@ -1163,7 +1159,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "simulering": {
@@ -1186,7 +1181,7 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": [],
                   "formue": {
-         "resultat": "MåInnhenteMerInformasjon",
+                  "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
                           "gyldigFra": "2021-05-01",
@@ -1258,7 +1253,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "simulering": {
@@ -1353,7 +1347,6 @@ internal class RevurderingJsonTest {
                 "tilRevurdering": ${serialize(vedtak.toJson())},
                 "beregninger":
                   {
-                    "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
                 "simulering": null,
@@ -1402,6 +1395,137 @@ internal class RevurderingJsonTest {
     }
 
     @Test
+    fun `serialiserer revurdering for stans av ytelse`() {
+        val simulertRevurdering = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak()
+            .second
+
+        val simulertRevurderingJson =
+            //language=JSON
+            """
+            {
+                "id": "${simulertRevurdering.id}",
+                "opprettet": "${simulertRevurdering.opprettet}",
+                "tilRevurdering": ${serialize(simulertRevurdering.tilRevurdering.toJson())},
+                "simulering": ${serialize(simulertRevurdering.simulering.toJson())},
+                "status": "${RevurderingsStatus.SIMULERT_STANS}",
+                "saksbehandler": "saksbehandler",
+                "periode": {
+                    "fraOgMed": "2021-02-01",
+                    "tilOgMed": "2021-12-31"
+                },
+                "årsak": "${Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING}",
+                "begrunnelse": "valid",
+                "grunnlagsdataOgVilkårsvurderinger": {
+                  "uføre": ${serialize((simulertRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
+                  "fradrag": [],
+                  "bosituasjon": ${serialize(simulertRevurdering.grunnlagsdata.bosituasjon.toJson())},
+                  "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson())}
+                },
+                "attesteringer": []
+            }
+            """.trimIndent()
+
+        JSONAssert.assertEquals(simulertRevurderingJson, serialize(simulertRevurdering.toJson()), true)
+
+        val iverksattRevurdering = simulertRevurdering.iverksett(
+            attestering = attesteringIverksatt,
+        )
+
+        val iverksattRevurderingJson =
+            //language=JSON
+            """
+            {
+                "id": "${iverksattRevurdering.id}",
+                "opprettet": "${iverksattRevurdering.opprettet}",
+                "tilRevurdering": ${serialize(iverksattRevurdering.tilRevurdering.toJson())},
+                "simulering": ${serialize(iverksattRevurdering.simulering.toJson())},
+                "status": "${RevurderingsStatus.IVERKSATT_STANS}",
+                "saksbehandler": "saksbehandler",
+                "periode": {
+                    "fraOgMed": "2021-02-01",
+                    "tilOgMed": "2021-12-31"
+                },
+                "årsak": "${Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING}",
+                "begrunnelse": "valid",
+                "grunnlagsdataOgVilkårsvurderinger": {
+                  "uføre": ${serialize((iverksattRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
+                  "fradrag": [],
+                  "bosituasjon": ${serialize(iverksattRevurdering.grunnlagsdata.bosituasjon.toJson())},
+                  "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson())}
+                },
+                "attesteringer": [{"attestant": "attestant", "opprettet": "${attesteringIverksatt.opprettet}", "underkjennelse": null}]
+            }
+            """.trimIndent()
+
+        JSONAssert.assertEquals(iverksattRevurderingJson, serialize(iverksattRevurdering.toJson()), true)
+    }
+
+    @Test
+    fun `serialiserer revurdering for gjenopptak av ytelse`() {
+        val simulertRevurdering = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse()
+            .second
+
+        val simulertRevurderingJson =
+            //language=JSON
+            """
+            {
+                "id": "${simulertRevurdering.id}",
+                "opprettet": "${simulertRevurdering.opprettet}",
+                "tilRevurdering": ${serialize(simulertRevurdering.tilRevurdering.toJson())},
+                "simulering": ${serialize(simulertRevurdering.simulering.toJson())},
+                "status": "${RevurderingsStatus.SIMULERT_GJENOPPTAK}",
+                "saksbehandler": "saksbehandler",
+                "periode": {
+                    "fraOgMed": "2021-02-01",
+                    "tilOgMed": "2021-12-31"
+                },
+                "årsak": "${Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING}",
+                "begrunnelse": "valid",
+                "grunnlagsdataOgVilkårsvurderinger": {
+                  "uføre": ${serialize((simulertRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
+                  "fradrag": [],
+                  "bosituasjon": ${serialize(simulertRevurdering.grunnlagsdata.bosituasjon.toJson())},
+                  "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson())}
+                },
+                "attesteringer": []
+
+            }
+            """.trimIndent()
+
+        JSONAssert.assertEquals(simulertRevurderingJson, serialize(simulertRevurdering.toJson()), true)
+
+        val iverksattRevurdering = simulertRevurdering.iverksett(attesteringIverksatt)
+
+        val iverksattRevurderingJson =
+            //language=JSON
+            """
+            {
+                "id": "${iverksattRevurdering.id}",
+                "opprettet": "${iverksattRevurdering.opprettet}",
+                "tilRevurdering": ${serialize(iverksattRevurdering.tilRevurdering.toJson())},
+                "simulering": ${serialize(iverksattRevurdering.simulering.toJson())},
+                "status": "${RevurderingsStatus.IVERKSATT_GJENOPPTAK}",
+                "saksbehandler": "saksbehandler",
+                "periode": {
+                    "fraOgMed": "2021-02-01",
+                    "tilOgMed": "2021-12-31"
+                },
+                "årsak": ${Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING},
+                "begrunnelse": "valid",
+                "grunnlagsdataOgVilkårsvurderinger": {
+                  "uføre": ${serialize((iverksattRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
+                  "fradrag": [],
+                  "bosituasjon": ${serialize(iverksattRevurdering.grunnlagsdata.bosituasjon.toJson())},
+                  "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson())}
+                },
+                "attesteringer": [{"attestant": "attestant", "opprettet": "${attesteringIverksatt.opprettet}", "underkjennelse": null}]
+            }
+            """.trimIndent()
+
+        JSONAssert.assertEquals(iverksattRevurderingJson, serialize(iverksattRevurdering.toJson()), true)
+    }
+
+    @Test
     fun `mapping av instans til status`() {
         InstansTilStatusMapper(mock<OpprettetRevurdering>()).status shouldBe RevurderingsStatus.OPPRETTET
         InstansTilStatusMapper(mock<BeregnetRevurdering.IngenEndring>()).status shouldBe RevurderingsStatus.BEREGNET_INGEN_ENDRING
@@ -1418,5 +1542,9 @@ internal class RevurderingJsonTest {
         InstansTilStatusMapper(mock<UnderkjentRevurdering.IngenEndring>()).status shouldBe RevurderingsStatus.UNDERKJENT_INGEN_ENDRING
         InstansTilStatusMapper(mock<UnderkjentRevurdering.Innvilget>()).status shouldBe RevurderingsStatus.UNDERKJENT_INNVILGET
         InstansTilStatusMapper(mock<UnderkjentRevurdering.Opphørt>()).status shouldBe RevurderingsStatus.UNDERKJENT_OPPHØRT
+        InstansTilStatusMapper(mock<StansAvYtelseRevurdering.SimulertStansAvYtelse>()).status shouldBe RevurderingsStatus.SIMULERT_STANS
+        InstansTilStatusMapper(mock<StansAvYtelseRevurdering.IverksattStansAvYtelse>()).status shouldBe RevurderingsStatus.IVERKSATT_STANS
+        InstansTilStatusMapper(mock<GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse>()).status shouldBe RevurderingsStatus.SIMULERT_GJENOPPTAK
+        InstansTilStatusMapper(mock<GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse>()).status shouldBe RevurderingsStatus.IVERKSATT_GJENOPPTAK
     }
 }

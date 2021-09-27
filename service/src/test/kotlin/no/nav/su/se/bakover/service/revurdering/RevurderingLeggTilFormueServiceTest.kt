@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
@@ -139,8 +140,9 @@ internal class RevurderingLeggTilFormueServiceTest {
         verify(revurderingRepoMock).hent(revurderingId)
         verify(revurderingRepoMock).lagre(
             argThat {
-                it shouldBe opprettetRevurdering.copy(
-                    informasjonSomRevurderes = it.informasjonSomRevurderes.markerSomVurdert(
+                val arg = it as Revurdering
+                arg shouldBe opprettetRevurdering.copy(
+                    informasjonSomRevurderes = arg.informasjonSomRevurderes.markerSomVurdert(
                         Revurderingsteg.Formue,
                     ),
                     vilkårsvurderinger = expectedVilkårsvurderinger,

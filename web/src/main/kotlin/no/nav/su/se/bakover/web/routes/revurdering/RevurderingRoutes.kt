@@ -11,7 +11,7 @@ internal const val revurderingPath = "$sakPath/{sakId}/revurderinger"
 internal fun Route.revurderingRoutes(
     revurderingService: RevurderingService,
     vedtakService: VedtakService,
-    clock: Clock
+    clock: Clock,
 ) {
     opprettRevurderingRoute(revurderingService)
 
@@ -40,4 +40,8 @@ internal fun Route.revurderingRoutes(
     leggTilFormueRevurderingRoute(revurderingService)
 
     hentGrunnlagRevurderingRoutes(revurderingService, vedtakService)
+
+    stansUtbetaling(revurderingService)
+
+    gjenopptaUtbetaling(revurderingService)
 }

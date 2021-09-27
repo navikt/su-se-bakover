@@ -234,6 +234,14 @@ class LagBrevRequestVisitor(
         brevRequest = vedtakIngenEndringIYtelse(vedtak)
     }
 
+    override fun visit(vedtak: Vedtak.EndringIYtelse.StansAvYtelse) {
+        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(vedtak::class)
+    }
+
+    override fun visit(vedtak: Vedtak.EndringIYtelse.GjenopptakAvYtelse) {
+        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(vedtak::class)
+    }
+
     private fun hentPersonOgNavn(
         fnr: Fnr,
         saksbehandler: NavIdentBruker.Saksbehandler?,

@@ -1,10 +1,9 @@
 package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 
 import arrow.core.NonEmptyList
+import arrow.core.left
 import arrow.core.nonEmptyListOf
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
@@ -22,6 +21,11 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.test.attestant
+import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.sakId
+import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.ZoneOffset
@@ -68,7 +72,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             utbetalinger = nonEmptyListOf(opprinnelig, stans),
             behandler = attestant,
             clock = fixedClock,
-        ).generate()
+        ).generer().getOrFail("skal kunne lage utbetaling")
 
         actual shouldBe Utbetaling.UtbetalingForSimulering(
             id = actual.id,
@@ -95,16 +99,14 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
     @Test
     fun `kan ikke gjenopprette dersom utbetalinger ikke er oversendt`() {
-        shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
-            Utbetalingsstrategi.Gjenoppta(
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                utbetalinger = emptyList(),
-                behandler = attestant,
-                clock = fixedClock,
-            ).generate()
-        }.message shouldContain "Ingen oversendte utbetalinger å gjenoppta"
+        Utbetalingsstrategi.Gjenoppta(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            utbetalinger = emptyList(),
+            behandler = attestant,
+            clock = fixedClock,
+        ).generer() shouldBe Utbetalingsstrategi.Gjenoppta.Feil.FantIngenUtbetalinger.left()
     }
 
     @Test
@@ -173,7 +175,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             utbetalinger = nonEmptyListOf(første, førsteStans, førsteGjenopptak, andre, andreStans),
             behandler = attestant,
             clock = fixedClock,
-        ).generate()
+        ).generer().getOrFail("skal kunne lage utbetaling")
 
         actual.utbetalingslinjer shouldBe nonEmptyListOf(
             Utbetalingslinje.Endring.Reaktivering(
@@ -202,18 +204,14 @@ internal class UtbetalingsstrategiGjenopptaTest {
             type = Utbetaling.UtbetalingsType.NY,
         )
 
-        shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
-            Utbetalingsstrategi.Gjenoppta(
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                utbetalinger = nonEmptyListOf(første),
-                behandler = attestant,
-                clock = fixedClock,
-            ).generate()
-        }.also {
-            it.message shouldContain "Siste utbetaling er ikke en stans, kan ikke gjenoppta."
-        }
+        Utbetalingsstrategi.Gjenoppta(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            utbetalinger = nonEmptyListOf(første),
+            behandler = attestant,
+            clock = fixedClock,
+        ).generer() shouldBe Utbetalingsstrategi.Gjenoppta.Feil.SisteUtbetalingErIkkeStans.left()
     }
 
     @Test
@@ -252,18 +250,14 @@ internal class UtbetalingsstrategiGjenopptaTest {
             type = Utbetaling.UtbetalingsType.GJENOPPTA,
         )
 
-        shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
-            Utbetalingsstrategi.Gjenoppta(
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                utbetalinger = nonEmptyListOf(første, andre, tredje),
-                behandler = attestant,
-                clock = fixedClock,
-            ).generate()
-        }.also {
-            it.message shouldContain "Siste utbetaling er ikke en stans, kan ikke gjenoppta."
-        }
+        Utbetalingsstrategi.Gjenoppta(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            utbetalinger = nonEmptyListOf(første, andre, tredje),
+            behandler = attestant,
+            clock = fixedClock,
+        ).generer() shouldBe Utbetalingsstrategi.Gjenoppta.Feil.SisteUtbetalingErIkkeStans.left()
     }
 
     @Test
@@ -303,7 +297,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             utbetalinger = nonEmptyListOf(utbetaling, stans),
             behandler = attestant,
             clock = fixedClock,
-        ).generate().also {
+        ).generer().getOrFail("skal kunne lage utbetaling").also {
             Utbetalingslinje.Endring.Reaktivering(
                 id = utbetaling.sisteUtbetalingslinje().id,
                 opprettet = it.utbetalingslinjer[0].opprettet,
