@@ -982,24 +982,6 @@ internal class UtbetalingsstrategiNyTest {
         )
     }
 
-    @Test
-    fun `kaster exception hvis det ikke finnes utøfeperioder`() {
-        val uføreList = listOf<Grunnlag.Uføregrunnlag>()
-
-        shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
-            Utbetalingsstrategi.Ny(
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                utbetalinger = listOf(),
-                behandler = NavIdentBruker.Saksbehandler("Z123"),
-                clock = fixedClock,
-                beregning = createBeregning(1.juni(2021), 30.november(2021)),
-                uføregrunnlag = uføreList,
-            ).generate()
-        }
-    }
-
     private fun expectedUtbetaling(
         actual: Utbetaling.UtbetalingForSimulering,
         oppdragslinjer: NonEmptyList<Utbetalingslinje>,
