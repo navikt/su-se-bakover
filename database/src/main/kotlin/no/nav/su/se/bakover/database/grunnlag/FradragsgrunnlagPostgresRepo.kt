@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
+import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.beregning.PersistertFradrag
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -27,10 +28,22 @@ internal class FradragsgrunnlagPostgresRepo(
 
     override fun lagreFradragsgrunnlag(behandlingId: UUID, fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>) {
         dataSource.withTransaction { tx ->
-            slettForBehandlingId(behandlingId, tx)
-            fradragsgrunnlag.forEach {
-                lagre(it, behandlingId, tx)
-            }
+            lagreFradragsgrunnlag(
+                behandlingId = behandlingId,
+                fradragsgrunnlag = fradragsgrunnlag,
+                tx = tx,
+            )
+        }
+    }
+
+    internal fun lagreFradragsgrunnlag(
+        behandlingId: UUID,
+        fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+        tx: TransactionalSession,
+    ) {
+        slettForBehandlingId(behandlingId, tx)
+        fradragsgrunnlag.forEach {
+            lagre(it, behandlingId, tx)
         }
     }
 
@@ -56,7 +69,7 @@ internal class FradragsgrunnlagPostgresRepo(
         }
     }
 
-    private fun slettForBehandlingId(behandlingId: UUID, session: Session) {
+    private fun slettForBehandlingId(behandlingId: UUID, tx: TransactionalSession) {
         """
             delete from grunnlag_fradrag where behandlingId = :behandlingId
         """.trimIndent()
@@ -64,7 +77,7 @@ internal class FradragsgrunnlagPostgresRepo(
                 mapOf(
                     "behandlingId" to behandlingId,
                 ),
-                session,
+                tx,
             )
     }
 
@@ -82,7 +95,7 @@ internal class FradragsgrunnlagPostgresRepo(
         ).orNull()!!
     }
 
-    private fun lagre(fradragsgrunnlag: Grunnlag.Fradragsgrunnlag, behandlingId: UUID, session: Session) {
+    private fun lagre(fradragsgrunnlag: Grunnlag.Fradragsgrunnlag, behandlingId: UUID, tx: TransactionalSession) {
         """
             insert into grunnlag_fradrag
             (
@@ -120,7 +133,7 @@ internal class FradragsgrunnlagPostgresRepo(
                     "utenlandskInntekt" to objectMapper.writeValueAsString(fradragsgrunnlag.fradrag.utenlandskInntekt),
                     "tilhorer" to fradragsgrunnlag.fradrag.tilhører,
                 ),
-                session,
+                tx,
             )
     }
 }

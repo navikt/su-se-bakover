@@ -50,7 +50,7 @@ internal fun Route.opprettRevurderingRoute(
         val fraOgMed: LocalDate,
         val årsak: String,
         val begrunnelse: String,
-        val informasjonSomRevurderes: List<Revurderingsteg>
+        val informasjonSomRevurderes: List<Revurderingsteg>,
     )
     authorize(Brukerrolle.Saksbehandler) {
         post(revurderingPath) {
@@ -65,7 +65,7 @@ internal fun Route.opprettRevurderingRoute(
                             årsak = body.årsak,
                             begrunnelse = body.begrunnelse,
                             saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
-                            informasjonSomRevurderes = body.informasjonSomRevurderes
+                            informasjonSomRevurderes = body.informasjonSomRevurderes,
                         ),
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },

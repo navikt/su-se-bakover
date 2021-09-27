@@ -5,6 +5,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
+import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
@@ -25,24 +26,32 @@ internal class FormueVilkårsvurderingPostgresRepo(
 
     override fun lagre(behandlingId: UUID, vilkår: Vilkår.Formue) {
         dataSource.withTransaction { tx ->
-            slettForBehandlingId(behandlingId, tx)
-            when (vilkår) {
-                Vilkår.Formue.IkkeVurdert -> Unit
-                is Vilkår.Formue.Vurdert -> {
-                    formuegrunnlagPostgresRepo.lagreFormuegrunnlag(
-                        behandlingId = behandlingId,
-                        formuegrunnlag = vilkår.grunnlag,
-                        tx,
-                    )
-                    vilkår.vurderingsperioder.forEach {
-                        lagre(behandlingId, it, tx)
-                    }
+            lagre(
+                behandlingId = behandlingId,
+                vilkår = vilkår,
+                tx = tx,
+            )
+        }
+    }
+
+    internal fun lagre(behandlingId: UUID, vilkår: Vilkår.Formue, tx: TransactionalSession) {
+        slettForBehandlingId(behandlingId, tx)
+        when (vilkår) {
+            Vilkår.Formue.IkkeVurdert -> Unit
+            is Vilkår.Formue.Vurdert -> {
+                formuegrunnlagPostgresRepo.lagreFormuegrunnlag(
+                    behandlingId = behandlingId,
+                    formuegrunnlag = vilkår.grunnlag,
+                    tx = tx,
+                )
+                vilkår.vurderingsperioder.forEach {
+                    lagre(behandlingId, it, tx)
                 }
             }
         }
     }
 
-    private fun lagre(behandlingId: UUID, vurderingsperiode: Vurderingsperiode.Formue, session: Session) {
+    private fun lagre(behandlingId: UUID, vurderingsperiode: Vurderingsperiode.Formue, tx: TransactionalSession) {
         """
                 insert into vilkårsvurdering_formue
                 (
@@ -77,11 +86,11 @@ internal class FormueVilkårsvurderingPostgresRepo(
                     "fraOgMed" to vurderingsperiode.periode.fraOgMed,
                     "tilOgMed" to vurderingsperiode.periode.tilOgMed,
                 ),
-                session,
+                tx,
             )
     }
 
-    private fun slettForBehandlingId(behandlingId: UUID, session: Session) {
+    private fun slettForBehandlingId(behandlingId: UUID, tx: TransactionalSession) {
         """
                 delete from vilkårsvurdering_formue where behandlingId = :behandlingId
         """.trimIndent()
@@ -89,7 +98,7 @@ internal class FormueVilkårsvurderingPostgresRepo(
                 mapOf(
                     "behandlingId" to behandlingId,
                 ),
-                session,
+                tx,
             )
     }
 

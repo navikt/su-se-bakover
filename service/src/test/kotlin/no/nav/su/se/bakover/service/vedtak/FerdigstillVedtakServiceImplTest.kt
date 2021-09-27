@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
@@ -201,7 +202,7 @@ internal class FerdigstillVedtakServiceImplTest {
                         )
                     },
                 )
-                verify(oppgaveService).lukkOppgaveMedSystembruker(argThat { it shouldBe vedtak.behandling.oppgaveId })
+                verify(oppgaveService).lukkOppgaveMedSystembruker(argThat { it shouldBe (vedtak.behandling as BehandlingMedOppgave).oppgaveId })
                 verify(behandlingMetrics).incrementInnvilgetCounter(argThat { it shouldBe BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE })
             }
         }
@@ -232,7 +233,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 *all(),
             ) {
                 verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
-                verify(oppgaveService).lukkOppgaveMedSystembruker(vedtak.behandling.oppgaveId)
+                verify(oppgaveService).lukkOppgaveMedSystembruker((vedtak.behandling as BehandlingMedOppgave).oppgaveId)
             }
         }
     }

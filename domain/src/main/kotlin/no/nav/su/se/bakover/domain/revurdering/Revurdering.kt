@@ -8,13 +8,13 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
+import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
@@ -63,15 +63,107 @@ fun Forhåndsvarsel?.erKlarForAttestering() =
         is Forhåndsvarsel.SkalForhåndsvarsles.Besluttet -> true
     }
 
-sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
+sealed class AbstraktRevurdering : Behandling {
     abstract val tilRevurdering: VedtakSomKanRevurderes
+    override val sakId by lazy { tilRevurdering.behandling.sakId }
+    override val saksnummer by lazy { tilRevurdering.behandling.saksnummer }
+    override val fnr by lazy { tilRevurdering.behandling.fnr }
+}
+
+sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
+
+    data class SimulertStansAvYtelse(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        override val periode: Periode,
+        override val grunnlagsdata: Grunnlagsdata,
+        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val tilRevurdering: VedtakSomKanRevurderes,
+        val saksbehandler: Saksbehandler,
+        val simulering: Simulering,
+        val revurderingsårsak: Revurderingsårsak,
+    ) : StansAvYtelseRevurdering() {
+
+        fun iverksett(attestering: Attestering): IverksattStansAvYtelse {
+            return IverksattStansAvYtelse(
+                id = id,
+                opprettet = opprettet,
+                periode = periode,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                tilRevurdering = tilRevurdering,
+                saksbehandler = saksbehandler,
+                simulering = simulering,
+                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attestering),
+                revurderingsårsak = revurderingsårsak,
+            )
+        }
+    }
+
+    data class IverksattStansAvYtelse(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        override val periode: Periode,
+        override val grunnlagsdata: Grunnlagsdata,
+        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val tilRevurdering: VedtakSomKanRevurderes,
+        val saksbehandler: Saksbehandler,
+        val simulering: Simulering,
+        override val attesteringer: Attesteringshistorikk,
+        val revurderingsårsak: Revurderingsårsak,
+    ) : StansAvYtelseRevurdering(), BehandlingMedAttestering
+}
+
+sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
+
+    data class SimulertGjenopptakAvYtelse(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        override val periode: Periode,
+        override val grunnlagsdata: Grunnlagsdata,
+        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val tilRevurdering: VedtakSomKanRevurderes,
+        val saksbehandler: Saksbehandler,
+        val simulering: Simulering,
+        val revurderingsårsak: Revurderingsårsak,
+    ) : GjenopptaYtelseRevurdering() {
+
+        fun iverksett(attestering: Attestering): IverksattGjenopptakAvYtelse {
+            return IverksattGjenopptakAvYtelse(
+                id = id,
+                opprettet = opprettet,
+                periode = periode,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                tilRevurdering = tilRevurdering,
+                saksbehandler = saksbehandler,
+                simulering = simulering,
+                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attestering),
+                revurderingsårsak = revurderingsårsak,
+            )
+        }
+    }
+
+    data class IverksattGjenopptakAvYtelse(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        override val periode: Periode,
+        override val grunnlagsdata: Grunnlagsdata,
+        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val tilRevurdering: VedtakSomKanRevurderes,
+        val saksbehandler: Saksbehandler,
+        val simulering: Simulering,
+        override val attesteringer: Attesteringshistorikk,
+        val revurderingsårsak: Revurderingsårsak,
+    ) : GjenopptaYtelseRevurdering(), BehandlingMedAttestering
+}
+
+sealed class Revurdering :
+    AbstraktRevurdering(),
+    BehandlingMedOppgave,
+    BehandlingMedAttestering,
+    Visitable<RevurderingVisitor> {
     abstract val saksbehandler: Saksbehandler
-    override val sakId: UUID
-        get() = tilRevurdering.behandling.sakId
-    override val saksnummer: Saksnummer
-        get() = tilRevurdering.behandling.saksnummer
-    override val fnr: Fnr
-        get() = tilRevurdering.behandling.fnr
 
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på søknadsbehandlinger)
     abstract val fritekstTilBrev: String

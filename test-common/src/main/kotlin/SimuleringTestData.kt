@@ -40,6 +40,42 @@ fun simuleringNy(
     }.orNull()!!
 }
 
+fun simuleringStans(
+    stansDato: LocalDate,
+    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+): Simulering {
+    return stansUtbetalingForSimulering(
+        stansDato = stansDato,
+        fnr = fnr,
+        sakId = sakId,
+        saksnummer = saksnummer,
+        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+    ).let {
+        simulerUtbetaling(it)
+    }.orNull()!!
+}
+
+fun simuleringGjenopptak(
+    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+): Simulering {
+    return Utbetalingsstrategi.Gjenoppta(
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        utbetalinger = eksisterendeUtbetalinger,
+        behandler = saksbehandler,
+        clock = fixedClock,
+    ).generer().let {
+        simulerUtbetaling(it.getOrFail("Skal kunne lage utbetaling for gjenopptak"))
+    }.orNull()!!
+}
+
 fun simuleringOpphørt(
     opphørsdato: LocalDate,
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),

@@ -118,6 +118,12 @@ internal fun Route.søknadsbehandlingRoutes(
                                                     "søknad_er_lukket",
                                                 )
                                             }
+                                            KunneIkkeOpprette.HarAlleredeÅpenSøknadsbehandling -> {
+                                                BadRequest.errorJson(
+                                                    "Har allerede en åpen søknadsbehandling",
+                                                    "har_allerede_en_åpen_søknadsbehandling",
+                                                )
+                                            }
                                         },
                                     )
                                 },

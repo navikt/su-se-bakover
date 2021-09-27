@@ -11,8 +11,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
-import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -56,31 +55,9 @@ data class Sak(
     val søknader: List<Søknad> = emptyList(),
     val søknadsbehandlinger: List<Søknadsbehandling> = emptyList(),
     val utbetalinger: List<Utbetaling>,
-    val revurderinger: List<Revurdering> = emptyList(),
+    val revurderinger: List<AbstraktRevurdering> = emptyList(),
     val vedtakListe: List<Vedtak> = emptyList(),
 ) {
-    fun hentÅpneRevurderinger(): List<Revurdering> {
-        return revurderinger.filterNot {
-            it is IverksattRevurdering
-        }
-    }
-
-    fun hentÅpneSøknadsbehandlinger(): List<Søknadsbehandling> {
-        return søknadsbehandlinger.filterNot {
-            it is Søknadsbehandling.Iverksatt
-        }
-    }
-
-    fun hentÅpneSøknader(): List<Søknad> {
-        val ikkeLukkedeSøknader = søknader.filterNot {
-            it is Søknad.Lukket
-        }
-        val søknaderMedSøknadsbehandling = søknadsbehandlinger.map {
-            it.søknad
-        }
-        return ikkeLukkedeSøknader.minus(søknaderMedSøknadsbehandling)
-    }
-
     fun utbetalingstidslinje(
         periode: Periode = Periode.create(
             fraOgMed = LocalDate.MIN,

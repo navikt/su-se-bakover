@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
@@ -109,6 +110,11 @@ internal class SøknadsbehandlingServiceImpl(
         if (søknadRepo.harSøknadPåbegyntBehandling(søknad.id)) {
             // Dersom man legger til avslutting av behandlinger, må denne spørringa spesifiseres.
             return SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
+        }
+
+        val åpneSøknadsbehandlinger = søknadsbehandlingRepo.hentForSak(søknad.sakId).filterNot { it.erIverksatt }
+        if (åpneSøknadsbehandlinger.isNotEmpty()) {
+            return SøknadsbehandlingService.KunneIkkeOpprette.HarAlleredeÅpenSøknadsbehandling.left()
         }
 
         val søknadsbehandlingId = UUID.randomUUID()
@@ -389,10 +395,12 @@ internal class SøknadsbehandlingServiceImpl(
                     )
                     behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
 
-                    ferdigstillVedtakService.lukkOppgaveMedBruker(vedtak)
-                        .mapLeft {
-                            log.error("Lukking av oppgave for behandlingId: ${vedtak.behandling.oppgaveId} feilet. Må ryddes opp manuelt.")
-                        }
+                    if (vedtak.behandling is BehandlingMedOppgave) {
+                        ferdigstillVedtakService.lukkOppgaveMedBruker(vedtak)
+                            .mapLeft {
+                                log.error("Lukking av oppgave for behandlingId: ${(vedtak.behandling as BehandlingMedOppgave).oppgaveId} feilet. Må ryddes opp manuelt.")
+                            }
+                    }
 
                     iverksattBehandling.also {
                         observers.forEach { observer ->

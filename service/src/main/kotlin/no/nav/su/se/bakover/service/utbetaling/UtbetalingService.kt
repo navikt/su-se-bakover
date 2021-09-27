@@ -3,12 +3,12 @@ package no.nav.su.se.bakover.service.utbetaling
 import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -42,16 +42,29 @@ interface UtbetalingService {
         simulering: Simulering,
     ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
-    fun stansUtbetalinger(
+    fun simulerStans(
         sakId: UUID,
         saksbehandler: NavIdentBruker,
         stansDato: LocalDate,
-    ): Either<KunneIkkeStanseUtbetalinger, Sak>
+    ): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling>
+
+    fun stansUtbetalinger(
+        sakId: UUID,
+        attestant: NavIdentBruker,
+        simulering: Simulering,
+        stansDato: LocalDate,
+    ): Either<UtbetalStansFeil, Utbetaling.OversendtUtbetaling.UtenKvittering>
+
+    fun simulerGjenopptak(
+        sakId: UUID,
+        saksbehandler: NavIdentBruker,
+    ): Either<SimulerGjenopptakFeil, Utbetaling.SimulertUtbetaling>
 
     fun gjenopptaUtbetalinger(
         sakId: UUID,
-        saksbehandler: NavIdentBruker,
-    ): Either<KunneIkkeGjenopptaUtbetalinger, Sak>
+        attestant: NavIdentBruker,
+        simulering: Simulering,
+    ): Either<UtbetalGjenopptakFeil, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun opphør(
         sakId: UUID,
@@ -69,18 +82,22 @@ interface UtbetalingService {
 object FantIkkeUtbetaling
 object FantIkkeGjeldendeUtbetaling
 
-sealed class KunneIkkeStanseUtbetalinger {
-    object FantIkkeSak : KunneIkkeStanseUtbetalinger()
-    object SimuleringAvStansFeilet : KunneIkkeStanseUtbetalinger()
-    object SendingAvUtbetalingTilOppdragFeilet : KunneIkkeStanseUtbetalinger()
-    object KontrollAvSimuleringFeilet : KunneIkkeStanseUtbetalinger()
+sealed class SimulerGjenopptakFeil {
+    data class KunneIkkeSimulere(val feil: SimuleringFeilet) : SimulerGjenopptakFeil()
+    data class KunneIkkeGenerereUtbetaling(val feil: Utbetalingsstrategi.Gjenoppta.Feil) : SimulerGjenopptakFeil()
 }
 
-sealed class KunneIkkeGjenopptaUtbetalinger {
-    object FantIkkeSak : KunneIkkeGjenopptaUtbetalinger()
-    object HarIngenOversendteUtbetalinger : KunneIkkeGjenopptaUtbetalinger()
-    object SisteUtbetalingErIkkeEnStansutbetaling : KunneIkkeGjenopptaUtbetalinger()
-    object SimuleringAvStartutbetalingFeilet : KunneIkkeGjenopptaUtbetalinger()
-    object SendingAvUtbetalingTilOppdragFeilet : KunneIkkeGjenopptaUtbetalinger()
-    object KontrollAvSimuleringFeilet : KunneIkkeGjenopptaUtbetalinger()
+sealed class UtbetalGjenopptakFeil {
+    data class KunneIkkeSimulere(val feil: SimulerGjenopptakFeil) : UtbetalGjenopptakFeil()
+    data class KunneIkkeUtbetale(val feil: UtbetalingFeilet) : UtbetalGjenopptakFeil()
+}
+
+sealed class SimulerStansFeilet {
+    data class KunneIkkeSimulere(val feil: SimuleringFeilet) : SimulerStansFeilet()
+    data class KunneIkkeGenerereUtbetaling(val feil: Utbetalingsstrategi.Stans.Feil) : SimulerStansFeilet()
+}
+
+sealed class UtbetalStansFeil {
+    data class KunneIkkeSimulere(val feil: SimulerStansFeilet) : UtbetalStansFeil()
+    data class KunneIkkeUtbetale(val feil: UtbetalingFeilet) : UtbetalStansFeil()
 }

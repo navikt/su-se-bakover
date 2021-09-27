@@ -123,7 +123,13 @@ internal class StønadsstatistikkMapperTest {
                 ),
             ),
         )
-        val actual = objectMapper.writeValueAsString(StønadsstatistikkMapper(clock).map(vedtak, aktørId, vedtak.periode.fraOgMed))
+        val actual = objectMapper.writeValueAsString(
+            StønadsstatistikkMapper(clock).map(
+                vedtak,
+                aktørId,
+                vedtak.periode.fraOgMed,
+            ),
+        )
         val expected = """
                 {
                   "funksjonellTid": "2021-01-01T01:02:03.456789Z",

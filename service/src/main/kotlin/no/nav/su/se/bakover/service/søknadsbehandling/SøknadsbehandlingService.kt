@@ -42,6 +42,7 @@ interface SøknadsbehandlingService {
         object SøknadManglerOppgave : KunneIkkeOpprette()
         object SøknadErLukket : KunneIkkeOpprette()
         object SøknadHarAlleredeBehandling : KunneIkkeOpprette()
+        object HarAlleredeÅpenSøknadsbehandling : KunneIkkeOpprette()
     }
 
     data class VilkårsvurderRequest(

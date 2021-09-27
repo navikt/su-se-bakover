@@ -110,6 +110,11 @@ internal object Feilresponser {
                 "Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres",
                 "kontrollsimulering_ulik_saksbehandlers_simulering",
             )
+            UtbetalingFeilet.FantIkkeSak -> InternalServerError.errorJson("Fant ikke sak", "kunne_ikke_finne_sak")
+            UtbetalingFeilet.KontrollAvSimuleringFeilet -> InternalServerError.errorJson(
+                "Kontroll av simulering feilet. Inkonsistens må undersøkes",
+                "kontroll_av_simulering_feilet",
+            )
         }
     }
 

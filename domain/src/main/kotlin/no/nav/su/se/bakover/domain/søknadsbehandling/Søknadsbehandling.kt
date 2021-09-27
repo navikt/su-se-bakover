@@ -13,7 +13,8 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
-import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.BehandlingMedAttestering
+import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -30,7 +31,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
 
-sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisitor> {
+sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering, Visitable<SøknadsbehandlingVisitor> {
     abstract val søknad: Søknad.Journalført.MedOppgave
     abstract val behandlingsinformasjon: Behandlingsinformasjon
     abstract val status: BehandlingsStatus
@@ -41,6 +42,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
 
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på revurderinger)
     abstract val fritekstTilBrev: String
+
+    val erIverksatt: Boolean by lazy { this is Iverksatt.Avslag || this is Iverksatt.Innvilget }
 
     sealed class KunneIkkeLeggeTilFradragsgrunnlag {
         object IkkeLovÅLeggeTilFradragIDenneStatusen : KunneIkkeLeggeTilFradragsgrunnlag()

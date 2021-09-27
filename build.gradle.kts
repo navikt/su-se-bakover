@@ -25,7 +25,7 @@ allprojects {
         maven("https://oss.sonatype.org/content/repositories/releases/")
         maven("https://packages.confluent.io/maven/")
     }
-    val junitJupiterVersion = "5.8.0"
+    val junitJupiterVersion = "5.8.1"
     val kotestVersion = "4.6.3"
     val jacksonVersion = "2.12.5"
     val kotlinVersion: String by this
@@ -44,12 +44,12 @@ allprojects {
         implementation("ch.qos.logback:logback-classic:1.2.6")
         implementation("net.logstash.logback:logstash-logback-encoder:6.6")
         implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
-        implementation("org.apache.kafka:kafka-clients:2.8.0")
-        implementation("com.networknt:json-schema-validator:1.0.59")
+        implementation("org.apache.kafka:kafka-clients:3.0.0")
+        implementation("com.networknt:json-schema-validator:1.0.60")
         implementation("no.finn.unleash:unleash-client-java:4.4.0")
 
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.3.0")
-        implementation("io.confluent:kafka-avro-serializer:6.2.0")
+        implementation("io.confluent:kafka-avro-serializer:6.2.1")
         implementation("org.apache.avro:avro:1.10.2")
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")

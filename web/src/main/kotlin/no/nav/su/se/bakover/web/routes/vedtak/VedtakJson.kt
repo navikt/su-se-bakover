@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.vedtak
 
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJson
@@ -25,7 +24,6 @@ internal data class VedtakJson(
     val saksnummer: String,
     val fnr: String,
     val periode: PeriodeJson,
-    val type: VedtakType,
 )
 
 internal fun Vedtak.toJson(): VedtakJson {
@@ -50,7 +48,6 @@ internal fun Vedtak.Avslag.AvslagVilkår.toJson(): VedtakJson = VedtakJson(
     saksnummer = behandling.saksnummer.toString(),
     fnr = behandling.fnr.toString(),
     periode = periode.toJson(),
-    type = vedtakType,
 )
 
 internal fun Vedtak.Avslag.AvslagBeregning.toJson(): VedtakJson = VedtakJson(
@@ -66,13 +63,18 @@ internal fun Vedtak.Avslag.AvslagBeregning.toJson(): VedtakJson = VedtakJson(
     saksnummer = behandling.saksnummer.toString(),
     fnr = behandling.fnr.toString(),
     periode = periode.toJson(),
-    type = vedtakType,
 )
 
 internal fun Vedtak.EndringIYtelse.toJson(): VedtakJson = VedtakJson(
     id = id.toString(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-    beregning = beregning.toJson(),
+    beregning = when (this) {
+        is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> null
+        is Vedtak.EndringIYtelse.InnvilgetRevurdering -> this.beregning.toJson()
+        is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling -> this.beregning.toJson()
+        is Vedtak.EndringIYtelse.OpphørtRevurdering -> this.beregning.toJson()
+        is Vedtak.EndringIYtelse.StansAvYtelse -> null
+    },
     simulering = simulering.toJson(),
     attestant = attestant.navIdent,
     saksbehandler = saksbehandler.navIdent,
@@ -82,7 +84,6 @@ internal fun Vedtak.EndringIYtelse.toJson(): VedtakJson = VedtakJson(
     saksnummer = behandling.saksnummer.toString(),
     fnr = behandling.fnr.toString(),
     periode = periode.toJson(),
-    type = vedtakType,
 )
 
 internal fun Vedtak.IngenEndringIYtelse.toJson(): VedtakJson = VedtakJson(
@@ -98,7 +99,6 @@ internal fun Vedtak.IngenEndringIYtelse.toJson(): VedtakJson = VedtakJson(
     saksnummer = behandling.saksnummer.toString(),
     fnr = behandling.fnr.toString(),
     periode = periode.toJson(),
-    type = vedtakType,
 )
 
 internal fun VedtakSomKanRevurderes.toJson(): VedtakJson = when (this) {
