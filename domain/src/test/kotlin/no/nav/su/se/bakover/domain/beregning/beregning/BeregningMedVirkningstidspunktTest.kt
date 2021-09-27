@@ -67,7 +67,59 @@ internal class BeregningMedVirkningstidspunktTest {
     }
 
     @Test
-    fun `beregningen bruker gjeldendeMånedsberegningFraTidligere hvis den sendes inn`() {
+    fun `flytter ikke virkningspunkt hvis første har mer enn 10 prosent økning i forhold til gjeldendeMånedsberegningFraTidligere`() {
+        val periode = Periode.create(1.januar(2020), 31.desember(2020))
+
+        val beregning = BeregningMedVirkningstidspunkt(
+            periode = periode,
+            sats = Sats.HØY,
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 10000.0,
+                    periode = periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+            fradragStrategy = FradragStrategy.Enslig,
+            gjeldendeMånedsberegningFraTidligere = MånedsberegningFactory.ny(
+                periode = januar(2020),
+                sats = Sats.HØY,
+                fradrag = listOf(
+                    FradragFactory.ny(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 15000.0,
+                        periode = januar(2020),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+                fribeløpForEps = 0.0,
+            ),
+        )
+        beregning.getSumYtelse() shouldBe 130116
+        beregning.getSumFradrag() shouldBe 120000
+        beregning.getMånedsberegninger().assertMåneder(
+            expected = mapOf(
+                (januar(2020) to (10637 to 10000.0)),
+                (februar(2020) to (10637 to 10000.0)),
+                (mars(2020) to (10637 to 10000.0)),
+                (april(2020) to (10637 to 10000.0)),
+                (mai(2020) to (10946 to 10000.0)),
+                (juni(2020) to (10946 to 10000.0)),
+                (juli(2020) to (10946 to 10000.0)),
+                (august(2020) to (10946 to 10000.0)),
+                (september(2020) to (10946 to 10000.0)),
+                (oktober(2020) to (10946 to 10000.0)),
+                (november(2020) to (10946 to 10000.0)),
+                (desember(2020) to (10946 to 10000.0)),
+            ),
+        )
+    }
+
+    @Test
+    fun `flytt virkningspunkt hvis første har mer enn 10 prosent reduksjon i forhold til gjeldendeMånedsberegningFraTidligere`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
 
         val beregning = BeregningMedVirkningstidspunkt(
@@ -95,6 +147,110 @@ internal class BeregningMedVirkningstidspunktTest {
         beregning.getMånedsberegninger().assertMåneder(
             expected = mapOf(
                 (januar(2020) to (20637 to 0.0)),
+                (februar(2020) to (10637 to 10000.0)),
+                (mars(2020) to (10637 to 10000.0)),
+                (april(2020) to (10637 to 10000.0)),
+                (mai(2020) to (10946 to 10000.0)),
+                (juni(2020) to (10946 to 10000.0)),
+                (juli(2020) to (10946 to 10000.0)),
+                (august(2020) to (10946 to 10000.0)),
+                (september(2020) to (10946 to 10000.0)),
+                (oktober(2020) to (10946 to 10000.0)),
+                (november(2020) to (10946 to 10000.0)),
+                (desember(2020) to (10946 to 10000.0)),
+            ),
+        )
+    }
+
+    @Test
+    fun `bruker gjeldendeMånedsberegningFraTidligere hvis det er mindre enn 10 prosent økning fra første måned`() {
+        val periode = Periode.create(1.januar(2020), 31.desember(2020))
+
+        val beregning = BeregningMedVirkningstidspunkt(
+            periode = periode,
+            sats = Sats.HØY,
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 9500.0,
+                    periode = periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+            fradragStrategy = FradragStrategy.Enslig,
+            gjeldendeMånedsberegningFraTidligere = MånedsberegningFactory.ny(
+                periode = januar(2020),
+                sats = Sats.HØY,
+                fradrag = listOf(
+                    FradragFactory.ny(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 10000.0,
+                        periode = januar(2020),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+                fribeløpForEps = 0.0,
+            ),
+        )
+        beregning.getSumYtelse() shouldBe 130116
+        beregning.getSumFradrag() shouldBe 120000
+        beregning.getMånedsberegninger().assertMåneder(
+            expected = mapOf(
+                (januar(2020) to (10637 to 10000.0)),
+                (februar(2020) to (10637 to 10000.0)),
+                (mars(2020) to (10637 to 10000.0)),
+                (april(2020) to (10637 to 10000.0)),
+                (mai(2020) to (10946 to 10000.0)),
+                (juni(2020) to (10946 to 10000.0)),
+                (juli(2020) to (10946 to 10000.0)),
+                (august(2020) to (10946 to 10000.0)),
+                (september(2020) to (10946 to 10000.0)),
+                (oktober(2020) to (10946 to 10000.0)),
+                (november(2020) to (10946 to 10000.0)),
+                (desember(2020) to (10946 to 10000.0)),
+            ),
+        )
+    }
+
+    @Test
+    fun `bruker gjeldendeMånedsberegningFraTidligere hvis det er mindre enn 10 prosent reduksjon fra første måned`() {
+        val periode = Periode.create(1.januar(2020), 31.desember(2020))
+
+        val beregning = BeregningMedVirkningstidspunkt(
+            periode = periode,
+            sats = Sats.HØY,
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 10500.0,
+                    periode = periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+            fradragStrategy = FradragStrategy.Enslig,
+            gjeldendeMånedsberegningFraTidligere = MånedsberegningFactory.ny(
+                periode = januar(2020),
+                sats = Sats.HØY,
+                fradrag = listOf(
+                    FradragFactory.ny(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 10000.0,
+                        periode = januar(2020),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+                fribeløpForEps = 0.0,
+            ),
+        )
+        beregning.getSumYtelse() shouldBe 130116
+        beregning.getSumFradrag() shouldBe 120000
+        beregning.getMånedsberegninger().assertMåneder(
+            expected = mapOf(
+                (januar(2020) to (10637 to 10000.0)),
                 (februar(2020) to (10637 to 10000.0)),
                 (mars(2020) to (10637 to 10000.0)),
                 (april(2020) to (10637 to 10000.0)),
