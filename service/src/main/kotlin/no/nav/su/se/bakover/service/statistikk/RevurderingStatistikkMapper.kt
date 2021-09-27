@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import java.time.Clock
 
@@ -39,7 +40,17 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
                             is IverksattRevurdering.Opphørt -> "Opphørt"
                             is IverksattRevurdering.IngenEndring -> "Uendret"
                         },
-                        resultatBegrunnelse = "Endring i søkers inntekt", // TODO ai: Må støtte flere grunner for revurdering senare
+                        resultatBegrunnelse = when (revurdering.revurderingsårsak.årsak) {
+                            Revurderingsårsak.Årsak.MELDING_FRA_BRUKER -> "Melding fra bruker"
+                            Revurderingsårsak.Årsak.INFORMASJON_FRA_KONTROLLSAMTALE -> "Informasjon fra kontrollsamtale"
+                            Revurderingsårsak.Årsak.DØDSFALL -> "Dødsfall"
+                            Revurderingsårsak.Årsak.ANDRE_KILDER -> "Andre kilder"
+                            Revurderingsårsak.Årsak.REGULER_GRUNNBELØP -> "Reguler grunnbeløp"
+                            Revurderingsårsak.Årsak.STANS_AV_YTELSE -> "Stans av ytelse"
+                            Revurderingsårsak.Årsak.OPPHØR_AV_YTELSE -> "Opphør av ytelse"
+                            Revurderingsårsak.Årsak.REAKTIVERING_AV_YTELSE -> "Reaktivering av ytelse"
+                            Revurderingsårsak.Årsak.MIGRERT -> "Migrert"
+                        },
                         beslutter = revurdering.attestering.attestant.navIdent,
                         avsluttet = true
                     )
