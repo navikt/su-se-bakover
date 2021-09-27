@@ -111,6 +111,11 @@ internal class SøknadsbehandlingServiceImpl(
             return SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
         }
 
+        val åpneSøknadsbehandlinger = søknadsbehandlingRepo.hentForSak(søknad.sakId).filterNot { it.erIverksatt }
+        if (åpneSøknadsbehandlinger.isNotEmpty()) {
+            return SøknadsbehandlingService.KunneIkkeOpprette.HarAlleredeÅpenSøknadsbehandling.left()
+        }
+
         val søknadsbehandlingId = UUID.randomUUID()
 
         søknadsbehandlingRepo.lagreNySøknadsbehandling(
