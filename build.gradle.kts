@@ -44,7 +44,7 @@ allprojects {
         implementation("ch.qos.logback:logback-classic:1.2.6")
         implementation("net.logstash.logback:logstash-logback-encoder:6.6")
         implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
-        implementation("org.apache.kafka:kafka-clients:2.8.0")
+        implementation("org.apache.kafka:kafka-clients:3.0.0")
         implementation("com.networknt:json-schema-validator:1.0.60")
         implementation("no.finn.unleash:unleash-client-java:4.4.0")
 

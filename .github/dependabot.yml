@@ -14,6 +14,10 @@ updates:
           - 1.5.1-native-mt
       # Versions follow the Postgres version and should be updated manually
       - dependency-name: io.zonky.test.postgres:embedded-postgres-binaries-bom
+      # We want to stay on the apache versions instead of confluent's
+      - dependency-name: org.apache.kafka:kafka-clients
+        versions:
+          - 6.2.1-ce
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
