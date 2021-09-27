@@ -15,15 +15,20 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
+import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
+import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedTidspunkt
@@ -38,6 +43,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.mock
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -52,6 +58,20 @@ internal class UtbetalingsstrategiNyTest {
     private val fnr = Fnr("12345678910")
 
     private val fixedClock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)
+
+    private object BeregningMedTomMånedsbereninger : Beregning {
+        override fun getId(): UUID = mock()
+        override fun getOpprettet(): Tidspunkt = mock()
+        override fun getSats(): Sats = Sats.HØY
+        override fun getMånedsberegninger(): List<Månedsberegning> = emptyList()
+        override fun getFradrag(): List<Fradrag> = emptyList()
+        override fun getSumYtelse(): Int = 1000
+        override fun getSumFradrag(): Double = 1000.0
+        override fun getFradragStrategyName(): FradragStrategyName = FradragStrategyName.Enslig
+        override fun getBegrunnelse(): String = mock()
+        override fun equals(other: Any?): Boolean = mock()
+        override val periode: Periode = Periode.create(1.juni(2021), 30.november(2021))
+    }
 
     @Test
     fun `ingen eksisterende utbetalinger`() {
@@ -413,7 +433,144 @@ internal class UtbetalingsstrategiNyTest {
     }
 
     @Test
-    fun `legger på uføregrad på utbetalingslinjer`() {
+    fun `kaster exception hvis månedsbereging og uføregrunnlag er tomme (0 til 0)`() {
+        val uføreList = listOf<Grunnlag.Uføregrunnlag>()
+
+        shouldThrow<RuntimeException> {
+            Utbetalingsstrategi.Ny(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utbetalinger = listOf(),
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                clock = fixedClock,
+                beregning = BeregningMedTomMånedsbereninger,
+                uføregrunnlag = uføreList,
+            ).generate()
+        }
+    }
+
+    @Test
+    fun `kaster exception hvis månedsbereging er tom, men finnes uføregrunnlag (0 til 1)`() {
+        val uføreList = listOf(
+            Grunnlag.Uføregrunnlag(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                uføregrad = Uføregrad.parse(50),
+                forventetInntekt = 0,
+            ),
+        )
+
+        shouldThrow<RuntimeException> {
+            Utbetalingsstrategi.Ny(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utbetalinger = listOf(),
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                clock = fixedClock,
+                beregning = BeregningMedTomMånedsbereninger,
+                uføregrunnlag = uføreList,
+            ).generate()
+        }
+    }
+
+    @Test
+    fun `kaster exception hvis månedsbereging er tom, men finnes flere uføregrunnlag (0 til mange)`() {
+        val uføreList = listOf(
+            Grunnlag.Uføregrunnlag(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mai(2021)),
+                uføregrad = Uføregrad.parse(50),
+                forventetInntekt = 0,
+            ),
+            Grunnlag.Uføregrunnlag(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021)),
+                uføregrad = Uføregrad.parse(50),
+                forventetInntekt = 0,
+            ),
+        )
+
+        shouldThrow<RuntimeException> {
+            Utbetalingsstrategi.Ny(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utbetalinger = listOf(),
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                clock = fixedClock,
+                beregning = BeregningMedTomMånedsbereninger,
+                uføregrunnlag = uføreList,
+            ).generate()
+        }
+    }
+
+    @Test
+    fun `kaster exception hvis det finnes månedsbereging, men uføregrunnlag er tom (1 til 0)`() {
+        shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
+            Utbetalingsstrategi.Ny(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utbetalinger = listOf(),
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                clock = fixedClock,
+                beregning = createBeregning(1.januar(2021), 31.desember(2021)),
+                uføregrunnlag = emptyList(),
+            ).generate()
+        }
+    }
+
+    @Test
+    fun `kaster exception hvis det finnes flere månedsbereginger, men uføregrunnlag er tom (mange til 0)`() {
+        val periode = Periode.create(1.januar(2021), 31.desember(2021))
+        shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
+            Utbetalingsstrategi.Ny(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utbetalinger = listOf(),
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                clock = fixedClock,
+                beregning = BeregningFactory.ny(
+                    periode = periode,
+                    sats = Sats.HØY,
+                    fradrag = listOf(
+                        FradragFactory.ny(
+                            type = Fradragstype.ForventetInntekt,
+                            månedsbeløp = 0.0,
+                            periode = periode,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                        FradragFactory.ny(
+                            type = Fradragstype.Sosialstønad,
+                            månedsbeløp = 1000.0,
+                            periode = Periode.create(1.januar(2021), 31.mai(2021)),
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                        FradragFactory.ny(
+                            type = Fradragstype.Kontantstøtte,
+                            månedsbeløp = 3000.0,
+                            periode = Periode.create(1.juni(2021), 31.desember(2021)),
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                    fradragStrategy = FradragStrategy.Enslig,
+                ),
+                uføregrunnlag = emptyList(),
+            ).generate()
+        }
+    }
+
+    @Test
+    fun `legger på uføregrad på utbetalingslinjer (1 til 1)`() {
         val uføreList = listOf(
             Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
@@ -462,7 +619,7 @@ internal class UtbetalingsstrategiNyTest {
     }
 
     @Test
-    fun `mapper flere uføregrader til riktig utbetalingslinje for periode`() {
+    fun `mapper flere uføregrader til riktig utbetalingslinje for periode (1 til mange)`() {
         val uføreList = listOf(
             Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
@@ -527,6 +684,183 @@ internal class UtbetalingsstrategiNyTest {
     }
 
     @Test
+    fun `mapper flere beregningsperioder til ufregrunnlag (mange til 1)`() {
+        val periode = Periode.create(1.januar(2021), 31.desember(2021))
+        val uføreList = listOf(
+            Grunnlag.Uføregrunnlag(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                uføregrad = Uføregrad.parse(50),
+                forventetInntekt = 0,
+            ),
+        )
+        val actual = Utbetalingsstrategi.Ny(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            utbetalinger = listOf(),
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            clock = fixedClock,
+            beregning = BeregningFactory.ny(
+                periode = periode,
+                sats = Sats.HØY,
+                fradrag = listOf(
+                    FradragFactory.ny(
+                        type = Fradragstype.ForventetInntekt,
+                        månedsbeløp = 1000.0,
+                        periode = periode,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                    FradragFactory.ny(
+                        type = Fradragstype.Sosialstønad,
+                        månedsbeløp = 5000.0,
+                        periode = Periode.create(1.januar(2021), 31.mai(2021)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                    FradragFactory.ny(
+                        type = Fradragstype.Kontantstøtte,
+                        månedsbeløp = 8000.0,
+                        periode = Periode.create(1.juni(2021), 31.desember(2021)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+                fradragStrategy = FradragStrategy.Enslig,
+            ),
+            uføregrunnlag = uføreList,
+        ).generate()
+
+        actual.utbetalingslinjer.size shouldBe 3
+        actual shouldBe expectedUtbetaling(
+            actual = actual,
+            oppdragslinjer = nonEmptyListOf(
+                expectedUtbetalingslinje(
+                    utbetalingslinjeId = actual.utbetalingslinjer.first().id,
+                    opprettet = actual.utbetalingslinjer.first().opprettet,
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 30.april(2021),
+                    beløp = 14946,
+                    forrigeUtbetalingslinjeId = null,
+                    uføregrad = Uføregrad.parse(50),
+                ),
+                expectedUtbetalingslinje(
+                    utbetalingslinjeId = actual.utbetalingslinjer[1].id,
+                    opprettet = actual.utbetalingslinjer[1].opprettet,
+                    fraOgMed = 1.mai(2021),
+                    tilOgMed = 31.mai(2021),
+                    beløp = 15989,
+                    forrigeUtbetalingslinjeId = actual.utbetalingslinjer.first().id,
+                    uføregrad = Uføregrad.parse(50),
+                ),
+                expectedUtbetalingslinje(
+                    utbetalingslinjeId = actual.utbetalingslinjer.last().id,
+                    opprettet = actual.utbetalingslinjer.last().opprettet,
+                    fraOgMed = 1.juni(2021),
+                    tilOgMed = 31.desember(2021),
+                    beløp = 12989,
+                    forrigeUtbetalingslinjeId = actual.utbetalingslinjer[1].id,
+                    uføregrad = Uføregrad.parse(50),
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun `mapper flere beregningsperioder til flere ufregrunnlag (mange til mange)`() {
+        val periode = Periode.create(1.januar(2021), 31.desember(2021))
+        val uføreList = listOf(
+            Grunnlag.Uføregrunnlag(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mai(2021)),
+                uføregrad = Uføregrad.parse(50),
+                forventetInntekt = 0,
+            ),
+            Grunnlag.Uføregrunnlag(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021)),
+                uføregrad = Uføregrad.parse(70),
+                forventetInntekt = 0,
+            ),
+        )
+        val actual = Utbetalingsstrategi.Ny(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            utbetalinger = listOf(),
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            clock = fixedClock,
+            beregning = BeregningFactory.ny(
+                periode = periode,
+                sats = Sats.HØY,
+                fradrag = listOf(
+                    FradragFactory.ny(
+                        type = Fradragstype.ForventetInntekt,
+                        månedsbeløp = 1000.0,
+                        periode = periode,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                    FradragFactory.ny(
+                        type = Fradragstype.Sosialstønad,
+                        månedsbeløp = 5000.0,
+                        periode = Periode.create(1.januar(2021), 31.mai(2021)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                    FradragFactory.ny(
+                        type = Fradragstype.Kontantstøtte,
+                        månedsbeløp = 8000.0,
+                        periode = Periode.create(1.juni(2021), 31.desember(2021)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+                fradragStrategy = FradragStrategy.Enslig,
+            ),
+            uføregrunnlag = uføreList,
+        ).generate()
+
+        actual.utbetalingslinjer.size shouldBe 3
+        actual shouldBe expectedUtbetaling(
+            actual = actual,
+            oppdragslinjer = nonEmptyListOf(
+                expectedUtbetalingslinje(
+                    utbetalingslinjeId = actual.utbetalingslinjer.first().id,
+                    opprettet = actual.utbetalingslinjer.first().opprettet,
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 30.april(2021),
+                    beløp = 14946,
+                    forrigeUtbetalingslinjeId = null,
+                    uføregrad = Uføregrad.parse(50),
+                ),
+                expectedUtbetalingslinje(
+                    utbetalingslinjeId = actual.utbetalingslinjer[1].id,
+                    opprettet = actual.utbetalingslinjer[1].opprettet,
+                    fraOgMed = 1.mai(2021),
+                    tilOgMed = 31.mai(2021),
+                    beløp = 15989,
+                    forrigeUtbetalingslinjeId = actual.utbetalingslinjer.first().id,
+                    uføregrad = Uføregrad.parse(50),
+                ),
+                expectedUtbetalingslinje(
+                    utbetalingslinjeId = actual.utbetalingslinjer.last().id,
+                    opprettet = actual.utbetalingslinjer.last().opprettet,
+                    fraOgMed = 1.juni(2021),
+                    tilOgMed = 31.desember(2021),
+                    beløp = 12989,
+                    forrigeUtbetalingslinjeId = actual.utbetalingslinjer[1].id,
+                    uføregrad = Uføregrad.parse(70),
+                ),
+            ),
+        )
+    }
+
+    @Test
     fun `kaster exception hvis uføregrunnalget ikke inneholder alle beregningsperiodene`() {
         val uføreList = listOf(
             Grunnlag.Uføregrunnlag(
@@ -555,7 +889,7 @@ internal class UtbetalingsstrategiNyTest {
     }
 
     @Test
-    fun `må eksistere uføreperiode for alle månedsberegninger, men ikke nødvendigvis omvendt `() {
+    fun `må eksistere uføreperiode for alle månedsberegninger`() {
         val uføreList = listOf(
             Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
@@ -599,6 +933,71 @@ internal class UtbetalingsstrategiNyTest {
                 ),
             ),
         )
+    }
+
+    @Test
+    fun `utbetalingslinje med uføregrad følger beregningsperiode`() {
+        val uføreList = listOf(
+            Grunnlag.Uføregrunnlag(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mai(2021)),
+                uføregrad = Uføregrad.parse(50),
+                forventetInntekt = 0,
+            ),
+            Grunnlag.Uføregrunnlag(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = Periode.create(fraOgMed = 1.juni(2021), tilOgMed = 31.desember(2021)),
+                uføregrad = Uføregrad.parse(70),
+                forventetInntekt = 0,
+            ),
+        )
+
+        val actual = Utbetalingsstrategi.Ny(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            utbetalinger = listOf(),
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            clock = fixedClock,
+            beregning = createBeregning(1.juni(2021), 30.november(2021)),
+            uføregrunnlag = uføreList,
+        ).generate()
+
+        actual.utbetalingslinjer.size shouldBe 1
+        actual shouldBe expectedUtbetaling(
+            actual = actual,
+            oppdragslinjer = nonEmptyListOf(
+                expectedUtbetalingslinje(
+                    utbetalingslinjeId = actual.utbetalingslinjer.first().id,
+                    opprettet = actual.utbetalingslinjer.first().opprettet,
+                    fraOgMed = 1.juni(2021),
+                    tilOgMed = 30.november(2021),
+                    beløp = 21989,
+                    forrigeUtbetalingslinjeId = null,
+                    uføregrad = Uføregrad.parse(70),
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun `kaster exception hvis det ikke finnes utøfeperioder`() {
+        val uføreList = listOf<Grunnlag.Uføregrunnlag>()
+
+        shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
+            Utbetalingsstrategi.Ny(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utbetalinger = listOf(),
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                clock = fixedClock,
+                beregning = createBeregning(1.juni(2021), 30.november(2021)),
+                uføregrunnlag = uføreList,
+            ).generate()
+        }
     }
 
     private fun expectedUtbetaling(
