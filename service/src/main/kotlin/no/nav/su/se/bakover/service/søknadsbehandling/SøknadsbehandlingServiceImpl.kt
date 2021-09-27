@@ -198,7 +198,7 @@ internal class SøknadsbehandlingServiceImpl(
         return forsøkStatusovergang(
             søknadsbehandling = saksbehandling,
             statusovergang = Statusovergang.TilSimulert { beregning ->
-                utbetalingService.simulerUtbetaling(saksbehandling.sakId, request.saksbehandler, beregning)
+                utbetalingService.simulerUtbetaling(saksbehandling.sakId, request.saksbehandler, beregning, saksbehandling.vilkårsvurderinger.uføre.grunnlag)
                     .map {
                         it.simulering
                     }
@@ -338,6 +338,7 @@ internal class SøknadsbehandlingServiceImpl(
                     attestant = request.attestering.attestant,
                     beregning = it.beregning,
                     simulering = it.simulering,
+                    uføregrunnlag = it.vilkårsvurderinger.uføre.grunnlag
                 ).mapLeft { kunneIkkeUtbetale ->
                     log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $kunneIkkeUtbetale")
                     KunneIkkeIverksette.KunneIkkeUtbetale(kunneIkkeUtbetale)

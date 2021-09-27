@@ -5,6 +5,8 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
@@ -35,6 +37,15 @@ fun simuleringNy(
         behandler = saksbehandler,
         beregning = beregning,
         clock = fixedClock,
+        uføregrunnlag = listOf(
+            Grunnlag.Uføregrunnlag(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = beregning.periode,
+                uføregrad = Uføregrad.parse(50),
+                forventetInntekt = 0,
+            ),
+        ),
     ).generate().let {
         simulerUtbetaling(it)
     }.orNull()!!

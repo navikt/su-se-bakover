@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -398,6 +399,7 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
             tilOgMed = periode.tilOgMed,
             forrigeUtbetalingslinjeId = null,
             beløp = månedsbeløp,
+            uføregrad = Uføregrad.parse(50),
         )
 
     private fun lagOpphør(

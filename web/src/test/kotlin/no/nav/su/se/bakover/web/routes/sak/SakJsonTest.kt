@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
@@ -76,6 +77,7 @@ internal class SakJsonTest {
                 tilOgMed = 31.desember(2021),
                 forrigeUtbetalingslinjeId = null,
                 beløp = 17900,
+                uføregrad = Uføregrad.parse(50),
             )
             val midlertidigStans = Utbetalingslinje.Endring.Stans(
                 utbetalingslinje = nyUtbetaling,

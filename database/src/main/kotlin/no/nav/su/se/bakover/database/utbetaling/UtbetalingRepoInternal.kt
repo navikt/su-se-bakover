@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.database.uuid30
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -101,6 +102,7 @@ internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
         opprettet = tidspunkt("opprettet"),
         forrigeUtbetalingslinjeId = stringOrNull("forrigeUtbetalingslinjeId")?.let { uuid30("forrigeUtbetalingslinjeId") },
         beløp = int("beløp"),
+        uføregrad = intOrNull("uføregrad")?.let { Uføregrad.parse(it) },
     )
 
     return if (status != null && statusFraOgMed != null) {
@@ -114,6 +116,7 @@ internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
                     forrigeUtbetalingslinjeId = linje.forrigeUtbetalingslinjeId,
                     beløp = linje.beløp,
                     virkningstidspunkt = statusFraOgMed,
+                    uføregrad = linje.uføregrad,
                 )
             }
             Utbetalingslinje.Endring.LinjeStatus.STANS -> {
@@ -125,6 +128,7 @@ internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
                     forrigeUtbetalingslinjeId = linje.forrigeUtbetalingslinjeId,
                     beløp = linje.beløp,
                     virkningstidspunkt = statusFraOgMed,
+                    uføregrad = linje.uføregrad,
                 )
             }
             Utbetalingslinje.Endring.LinjeStatus.REAKTIVERING -> {
@@ -136,6 +140,7 @@ internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
                     forrigeUtbetalingslinjeId = linje.forrigeUtbetalingslinjeId,
                     beløp = linje.beløp,
                     virkningstidspunkt = statusFraOgMed,
+                    uføregrad = linje.uføregrad,
                 )
             }
         }

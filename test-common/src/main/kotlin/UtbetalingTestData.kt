@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -28,6 +29,7 @@ fun utbetalingslinje(
     tilOgMed = periode.tilOgMed,
     forrigeUtbetalingslinjeId = null,
     beløp = 15000,
+    uføregrad = Uføregrad.parse(50),
 )
 
 @Suppress("unused")

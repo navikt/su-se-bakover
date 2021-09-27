@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -75,12 +76,14 @@ internal class UtbetalingTest {
         fraOgMed: LocalDate = 1.januar(2020),
         tilOgMed: LocalDate = 31.desember(2020),
         beløp: Int = 500,
-        forrigeUtbetalingslinjeId: UUID30? = null
+        forrigeUtbetalingslinjeId: UUID30? = null,
+        uføregrad: Uføregrad = Uføregrad.parse(50),
     ) = Utbetalingslinje.Ny(
         fraOgMed = fraOgMed,
         tilOgMed = tilOgMed,
         beløp = beløp,
-        forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId
+        forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
+        uføregrad = uføregrad
     )
 
     private fun createUtbetalingslinjer() = nonEmptyListOf(
