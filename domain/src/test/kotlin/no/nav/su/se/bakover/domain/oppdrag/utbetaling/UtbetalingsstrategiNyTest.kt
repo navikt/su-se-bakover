@@ -433,7 +433,7 @@ internal class UtbetalingsstrategiNyTest {
     }
 
     @Test
-    fun `kaster exception hvis månedsbereging og uføregrunnlag er tomme (0 til 0)`() {
+    fun `kaster exception hvis månedsberegning og uføregrunnlag er tomme (0 til 0)`() {
         val uføreList = listOf<Grunnlag.Uføregrunnlag>()
 
         shouldThrow<RuntimeException> {
@@ -451,7 +451,7 @@ internal class UtbetalingsstrategiNyTest {
     }
 
     @Test
-    fun `kaster exception hvis månedsbereging er tom, men finnes uføregrunnlag (0 til 1)`() {
+    fun `kaster exception hvis månedsberegning er tom, men finnes uføregrunnlag (0 til 1)`() {
         val uføreList = listOf(
             Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
@@ -477,7 +477,7 @@ internal class UtbetalingsstrategiNyTest {
     }
 
     @Test
-    fun `kaster exception hvis månedsbereging er tom, men finnes flere uføregrunnlag (0 til mange)`() {
+    fun `kaster exception hvis månedsberegning er tom, men finnes flere uføregrunnlag (0 til mange)`() {
         val uføreList = listOf(
             Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
@@ -510,7 +510,7 @@ internal class UtbetalingsstrategiNyTest {
     }
 
     @Test
-    fun `kaster exception hvis det finnes månedsbereging, men uføregrunnlag er tom (1 til 0)`() {
+    fun `kaster exception hvis det finnes månedsberegning, men uføregrunnlag er tom (1 til 0)`() {
         shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
             Utbetalingsstrategi.Ny(
                 sakId = sakId,
@@ -526,7 +526,7 @@ internal class UtbetalingsstrategiNyTest {
     }
 
     @Test
-    fun `kaster exception hvis det finnes flere månedsbereginger, men uføregrunnlag er tom (mange til 0)`() {
+    fun `kaster exception hvis det finnes flere månedsberegninger, men uføregrunnlag er tom (mange til 0)`() {
         val periode = Periode.create(1.januar(2021), 31.desember(2021))
         shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
             Utbetalingsstrategi.Ny(
@@ -588,30 +588,21 @@ internal class UtbetalingsstrategiNyTest {
             utbetalinger = listOf(),
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             clock = fixedClock,
-            beregning = createBeregning(1.januar(2021), 31.desember(2021)),
+            beregning = createBeregning(1.mai(2021), 31.desember(2021)),
             uføregrunnlag = uføreList,
         ).generate()
 
-        actual.utbetalingslinjer.size shouldBe 2
+        actual.utbetalingslinjer.size shouldBe 1
         actual shouldBe expectedUtbetaling(
             actual = actual,
             oppdragslinjer = nonEmptyListOf(
                 expectedUtbetalingslinje(
                     utbetalingslinjeId = actual.utbetalingslinjer.first().id,
                     opprettet = actual.utbetalingslinjer.first().opprettet,
-                    fraOgMed = 1.januar(2021),
-                    tilOgMed = 30.april(2021),
-                    beløp = 20946,
-                    forrigeUtbetalingslinjeId = null,
-                    uføregrad = Uføregrad.parse(50),
-                ),
-                expectedUtbetalingslinje(
-                    utbetalingslinjeId = actual.utbetalingslinjer[1].id,
-                    opprettet = actual.utbetalingslinjer[1].opprettet,
                     fraOgMed = 1.mai(2021),
                     tilOgMed = 31.desember(2021),
                     beløp = 21989,
-                    forrigeUtbetalingslinjeId = actual.utbetalingslinjer.first().id,
+                    forrigeUtbetalingslinjeId = null,
                     uføregrad = Uføregrad.parse(50),
                 ),
             ),
@@ -644,30 +635,21 @@ internal class UtbetalingsstrategiNyTest {
             utbetalinger = listOf(),
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             clock = fixedClock,
-            beregning = createBeregning(1.januar(2021), 31.desember(2021)),
+            beregning = createBeregning(1.mai(2021), 31.desember(2021)),
             uføregrunnlag = uføreList,
         ).generate()
 
-        actual.utbetalingslinjer.size shouldBe 3
+        actual.utbetalingslinjer.size shouldBe 2
         actual shouldBe expectedUtbetaling(
             actual = actual,
             oppdragslinjer = nonEmptyListOf(
                 expectedUtbetalingslinje(
                     utbetalingslinjeId = actual.utbetalingslinjer.first().id,
                     opprettet = actual.utbetalingslinjer.first().opprettet,
-                    fraOgMed = 1.januar(2021),
-                    tilOgMed = 30.april(2021),
-                    beløp = 20946,
-                    forrigeUtbetalingslinjeId = null,
-                    uføregrad = Uføregrad.parse(50),
-                ),
-                expectedUtbetalingslinje(
-                    utbetalingslinjeId = actual.utbetalingslinjer[1].id,
-                    opprettet = actual.utbetalingslinjer[1].opprettet,
                     fraOgMed = 1.mai(2021),
                     tilOgMed = 31.mai(2021),
                     beløp = 21989,
-                    forrigeUtbetalingslinjeId = actual.utbetalingslinjer.first().id,
+                    forrigeUtbetalingslinjeId = null,
                     uføregrad = Uføregrad.parse(50),
                 ),
                 expectedUtbetalingslinje(
@@ -676,7 +658,7 @@ internal class UtbetalingsstrategiNyTest {
                     fraOgMed = 1.juni(2021),
                     tilOgMed = 31.desember(2021),
                     beløp = 21989,
-                    forrigeUtbetalingslinjeId = actual.utbetalingslinjer[1].id,
+                    forrigeUtbetalingslinjeId = actual.utbetalingslinjer.first().id,
                     uføregrad = Uføregrad.parse(70),
                 ),
             ),
