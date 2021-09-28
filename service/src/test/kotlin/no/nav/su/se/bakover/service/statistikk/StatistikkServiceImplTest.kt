@@ -579,7 +579,7 @@ internal class StatistikkServiceImplTest {
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
             relatertBehandlingId = iverksattRevurdering.tilRevurdering.id,
             resultat = "Innvilget",
-            resultatBegrunnelse = "Endring i søkers inntekt",
+            resultatBegrunnelse = null,
             beslutter = "attestant",
             avsluttet = true,
         )
