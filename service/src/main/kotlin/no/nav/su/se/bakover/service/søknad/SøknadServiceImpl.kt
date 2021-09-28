@@ -22,6 +22,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.hentSøknadstypeUtenBehandling
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
@@ -91,7 +93,7 @@ internal class SøknadServiceImpl(
         )
         // Ved å gjøre increment først, kan vi lage en alert dersom vi får mismatch på dette.
         søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.PERSISTERT)
-        opprettJournalpostOgOppgave(sak.saksnummer, person, søknad)
+        opprettJournalpostOgOppgave(sak.saksnummer, person, søknad, sak.søknadsbehandlinger)
         observers.forEach {
             observer ->
             observer.handle(
@@ -141,15 +143,21 @@ internal class SøknadServiceImpl(
             opprettOppgave(
                 søknad = søknad,
                 person = person,
-                opprettOppgave = oppgaveService::opprettOppgaveMedSystembruker
+                behandlinger = sak.søknadsbehandlinger,
+                opprettOppgave = oppgaveService::opprettOppgaveMedSystembruker,
             )
         }
     }
 
-    private fun opprettJournalpostOgOppgave(saksnummer: Saksnummer, person: Person, søknad: Søknad.Ny) {
+    private fun opprettJournalpostOgOppgave(
+        saksnummer: Saksnummer,
+        person: Person,
+        søknad: Søknad.Ny,
+        behandlinger: List<Søknadsbehandling>,
+    ) {
         // TODO jah: Burde kanskje innføre en multi-respons-type som responderer med de stegene som er utført og de som ikke er utført.
         opprettJournalpost(saksnummer, søknad, person).map { journalførtSøknad ->
-            opprettOppgave(journalførtSøknad, person)
+            opprettOppgave(journalførtSøknad, person, behandlinger)
         }
     }
 
@@ -194,15 +202,17 @@ internal class SøknadServiceImpl(
     private fun opprettOppgave(
         søknad: Søknad.Journalført.UtenOppgave,
         person: Person,
-        opprettOppgave: (oppgaveConfig: OppgaveConfig.Saksbehandling) -> Either<no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> = oppgaveService::opprettOppgave
+        behandlinger: List<Søknadsbehandling>,
+        opprettOppgave: (oppgaveConfig: OppgaveConfig.NySøknad) -> Either<no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> = oppgaveService::opprettOppgave,
     ): Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave> {
 
         return opprettOppgave(
-            OppgaveConfig.Saksbehandling(
+            OppgaveConfig.NySøknad(
                 journalpostId = søknad.journalpostId,
                 søknadId = søknad.id,
-                aktørId = person.ident.aktørId
-            )
+                aktørId = person.ident.aktørId,
+                søknadstype = behandlinger.hentSøknadstypeUtenBehandling(),
+            ),
         ).mapLeft {
             log.error("Ny søknad: Kunne ikke opprette oppgave. Originalfeil: $it")
             KunneIkkeOppretteOppgave(søknad.sakId, søknad.id, søknad.journalpostId, "Kunne ikke opprette oppgave")

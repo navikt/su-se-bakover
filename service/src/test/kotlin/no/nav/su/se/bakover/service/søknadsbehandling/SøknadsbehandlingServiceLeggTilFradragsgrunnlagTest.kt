@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
-import no.nav.su.se.bakover.test.søknadsbehandlingId
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Test
@@ -26,6 +25,7 @@ import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import java.util.UUID
 
 class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
     @Test
@@ -103,7 +103,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             grunnlagService = grunnlagServiceMock,
         )
-
+        val søknadsbehandlingId = UUID.randomUUID()
         val request = LeggTilFradragsgrunnlagRequest(
             behandlingId = søknadsbehandlingId,
             fradragsgrunnlag = listOf(

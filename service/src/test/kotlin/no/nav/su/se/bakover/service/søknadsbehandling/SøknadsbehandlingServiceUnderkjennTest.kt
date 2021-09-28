@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadstype
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
@@ -44,6 +45,7 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
@@ -102,11 +104,12 @@ class SøknadsbehandlingServiceUnderkjennTest {
         attesteringer = Attesteringshistorikk.empty(),
     )
 
-    private val oppgaveConfig = OppgaveConfig.Saksbehandling(
+    private val oppgaveConfig = OppgaveConfig.NySøknad(
         journalpostId = journalpostId,
         søknadId = søknadId,
         aktørId = aktørId,
-        tilordnetRessurs = saksbehandler
+        tilordnetRessurs = saksbehandler,
+        søknadstype = Søknadstype.FØRSTEGANGSSØKNAD,
     )
 
     @Test
@@ -308,6 +311,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
         inOrder(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
+            verify(søknadsbehandlingRepoMock).defaultSessionContext()
+            verify(søknadsbehandlingRepoMock).hentForSak(argThat { it shouldBe sakId }, anyOrNull())
             verify(oppgaveServiceMock).opprettOppgave(argThat { it shouldBe oppgaveConfig })
         }
 
@@ -379,6 +384,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
         ) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
+            verify(søknadsbehandlingRepoMock).defaultSessionContext()
+            verify(søknadsbehandlingRepoMock).hentForSak(argThat { it shouldBe sakId }, anyOrNull())
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe oppgaveConfig
@@ -409,6 +416,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
     fun `underkjenner behandling`() {
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn innvilgetBehandlingTilAttestering
+            on { hentForSak(any(), anyOrNull()) } doReturn emptyList()
         }
 
         val personServiceMock: PersonService = mock {
@@ -463,6 +471,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
         ) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
+            verify(søknadsbehandlingRepoMock).defaultSessionContext()
+            verify(søknadsbehandlingRepoMock).hentForSak(argThat { it shouldBe sakId }, anyOrNull())
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe oppgaveConfig

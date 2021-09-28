@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadstype
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -48,7 +49,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
     private val saksnummer = Saksnummer(12345)
 
     @Test
-    fun `opprett sakbehandling oppgave`() {
+    fun `opprett sakbehandling oppgave ny periode`() {
         //language=JSON
         val expectedSaksbehandlingRequest =
             """
@@ -61,7 +62,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
                     "oppgavetype": "BEH_SAK",
                     "behandlingstema": "ab0431",
-                    "behandlingstype": "ae0245",
+                    "behandlingstype": "ae0244",
                     "aktivDato": "1970-01-01",
                     "fristFerdigstillelse": "1970-01-31",
                     "prioritet": "NORM",
@@ -85,7 +86,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                                       "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId ",
                                                       "behandlingstema": "ab0431",
                                                       "oppgavetype": "BEH_SAK",
-                                                      "behandlingstype": "ae0245",
+                                                      "behandlingstype": "ae0244",
                                                       "versjon": 1,
                                                       "fristFerdigstillelse": "2020-06-06",
                                                       "aktivDato": "2020-06-06",
@@ -119,11 +120,12 @@ internal class OppgaveHttpClientTest : WiremockBase {
         )
 
         client.opprettOppgave(
-            OppgaveConfig.Saksbehandling(
+            OppgaveConfig.NySøknad(
                 journalpostId,
                 søknadId,
                 AktørId(aktørId),
-                clock = fixedEpochClock
+                clock = fixedEpochClock,
+                søknadstype = Søknadstype.NY_PERIODE,
             ),
         ) shouldBe OppgaveId("111").right()
 
@@ -134,11 +136,12 @@ internal class OppgaveHttpClientTest : WiremockBase {
         verifyNoMoreInteractions(oathMock, tokenoppslagMock)
 
         client.opprettOppgaveMedSystembruker(
-            OppgaveConfig.Saksbehandling(
+            OppgaveConfig.NySøknad(
                 journalpostId,
                 søknadId,
                 AktørId(aktørId),
-                clock = fixedEpochClock
+                clock = fixedEpochClock,
+                søknadstype = Søknadstype.NY_PERIODE,
             ),
         ) shouldBe OppgaveId("111").right()
 
@@ -214,12 +217,13 @@ internal class OppgaveHttpClientTest : WiremockBase {
             clock = fixedEpochClock,
         )
         client.opprettOppgave(
-            OppgaveConfig.Saksbehandling(
+            OppgaveConfig.NySøknad(
                 journalpostId = journalpostId,
                 søknadId = søknadId,
                 aktørId = AktørId(aktørId),
                 tilordnetRessurs = saksbehandler,
-                clock = fixedEpochClock
+                clock = fixedEpochClock,
+                søknadstype = Søknadstype.FØRSTEGANGSSØKNAD,
             ),
         ) shouldBe OppgaveId("111").right()
     }
@@ -290,10 +294,11 @@ internal class OppgaveHttpClientTest : WiremockBase {
             clock = fixedEpochClock,
         )
         client.opprettOppgave(
-            OppgaveConfig.Attestering(
+            OppgaveConfig.AttesterSøknadsbehandling(
                 søknadId = søknadId,
                 aktørId = AktørId(aktørId),
-                clock = fixedEpochClock
+                clock = fixedEpochClock,
+                søknadstype = Søknadstype.FØRSTEGANGSSØKNAD,
             ),
         ) shouldBe OppgaveId("111").right()
     }
@@ -315,11 +320,12 @@ internal class OppgaveHttpClientTest : WiremockBase {
             clock = fixedEpochClock,
         )
         client.opprettOppgave(
-            OppgaveConfig.Saksbehandling(
+            OppgaveConfig.NySøknad(
                 journalpostId,
                 søknadId,
                 AktørId(aktørId),
-                clock = fixedEpochClock
+                clock = fixedEpochClock,
+                søknadstype = Søknadstype.FØRSTEGANGSSØKNAD,
             ),
         ) shouldBe OppgaveFeil.KunneIkkeOppretteOppgave.left()
     }

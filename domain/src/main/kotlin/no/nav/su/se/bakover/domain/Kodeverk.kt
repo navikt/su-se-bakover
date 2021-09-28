@@ -19,6 +19,7 @@ enum class Tema(val value: String) {
  */
 enum class Behandlingstype(val value: String) {
     FØRSTEGANGSSØKNAD("ae0245"),
+    NY_PERIODE("ae0244"),
     REVURDERING("ae0028");
 
     override fun toString() = this.value

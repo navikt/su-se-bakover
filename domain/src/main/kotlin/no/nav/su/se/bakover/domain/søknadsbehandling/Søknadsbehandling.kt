@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.Visitable
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.util.UUID
 
 sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering, Visitable<SøknadsbehandlingVisitor> {
@@ -1315,6 +1316,11 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 }
 
+enum class Søknadstype {
+    FØRSTEGANGSSØKNAD,
+    NY_PERIODE,
+}
+
 enum class BehandlingsStatus {
     OPPRETTET,
     VILKÅRSVURDERT_INNVILGET,
@@ -1337,6 +1343,50 @@ sealed class KunneIkkeIverksette {
     object FantIkkePerson : KunneIkkeIverksette()
     object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeIverksette()
     object KunneIkkeGenerereVedtaksbrev : KunneIkkeIverksette()
+}
+
+private fun List<Søknadsbehandling>.kastHvisDetFinnesEnAnnenÅpenBehandling(behandlingId: UUID) {
+    this
+        .filter { b -> b.id != behandlingId }
+        .filterNot { it.status == BehandlingsStatus.IVERKSATT_INNVILGET || it.status == BehandlingsStatus.IVERKSATT_AVSLAG }
+        .ifNotEmpty {
+            throw IllegalStateException("Det finnes flere behandlinger under behandling")
+        }
+    // TODO jah: Kan på sikt flytte disse valideringene til Sak og/eller database-laget.
+}
+
+private fun List<Søknadsbehandling>.kastHvisDetFinnesEnÅpenBehandling() {
+    this
+        .filterNot { it.status == BehandlingsStatus.IVERKSATT_INNVILGET || it.status == BehandlingsStatus.IVERKSATT_AVSLAG }
+        .ifNotEmpty {
+            throw IllegalStateException("Det finnes flere behandlinger under behandling")
+        }
+    // TODO jah: Kan på sikt flytte disse valideringene til Sak og/eller database-laget.
+}
+
+fun List<Søknadsbehandling>.hentSøknadstypeUtenBehandling(): Søknadstype {
+    this.kastHvisDetFinnesEnÅpenBehandling()
+
+    this
+        .filter { it.status == BehandlingsStatus.IVERKSATT_INNVILGET }
+        .ifNotEmpty {
+            return Søknadstype.NY_PERIODE
+        }
+
+    return Søknadstype.FØRSTEGANGSSØKNAD
+}
+
+fun List<Søknadsbehandling>.hentSøknadstypeFor(behandlingId: UUID): Søknadstype {
+    this.kastHvisDetFinnesEnAnnenÅpenBehandling(behandlingId)
+
+    this
+        .filter { b -> b.id != behandlingId }
+        .filter { it.status == BehandlingsStatus.IVERKSATT_INNVILGET }
+        .ifNotEmpty {
+            return Søknadstype.NY_PERIODE
+        }
+
+    return Søknadstype.FØRSTEGANGSSØKNAD
 }
 
 // Her trikses det litt for å få til at funksjonen returnerer den samme konkrete typen som den kalles på.

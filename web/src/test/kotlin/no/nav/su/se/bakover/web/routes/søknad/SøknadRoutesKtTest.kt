@@ -184,7 +184,7 @@ internal class SøknadRoutesKtTest {
             on { sjekkTilgangTilPerson(any()) } doReturn PersonOppslagStub.sjekkTilgangTilPerson(fnr)
         }
         val oppgaveClient: OppgaveClient = mock {
-            on { opprettOppgave(any<OppgaveConfig.Saksbehandling>()) } doReturn OppgaveId("11").right()
+            on { opprettOppgave(any<OppgaveConfig.NySøknad>()) } doReturn OppgaveId("11").right()
         }
         withMigratedDb { dataSource ->
             val repos = DatabaseBuilder.build(
