@@ -23,7 +23,7 @@ internal class SimuleringRequestBuilderTest {
 
     @Test
     fun `bygger simulering request til bruker uten eksisterende oppdragslinjer`() {
-        val utbetalingsRequest = UtbetalingRequestTest.utbetalingRequestFørstegangsbehandling.oppdragRequest
+        val utbetalingsRequest = UtbetalingRequestTest.utbetalingRequestFørstegangsutbetaling.oppdragRequest
         SimuleringRequestBuilder(utbetalingsRequest).build().request.also {
             it.oppdrag.let { oppdrag ->
                 oppdrag.assert(utbetalingsRequest)

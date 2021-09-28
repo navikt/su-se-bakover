@@ -58,7 +58,7 @@ internal class UtbetalingRequestTest {
             avstemmingsnøkkel = Avstemmingsnøkkel(),
         )
 
-        val utbetalingRequestFørstegangsbehandling = UtbetalingRequest(
+        val utbetalingRequestFørstegangsutbetaling = UtbetalingRequest(
             oppdragRequest = UtbetalingRequest.OppdragRequest(
                 oppdragGjelderId = FNR.toString(),
                 saksbehId = SAKSBEHANDLER,
@@ -135,7 +135,7 @@ internal class UtbetalingRequestTest {
         val utbetalingRequest = toUtbetalingRequest(
             utbetaling = nyUtbetaling.copy(avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())),
         )
-        utbetalingRequest shouldBe utbetalingRequestFørstegangsbehandling
+        utbetalingRequest shouldBe utbetalingRequestFørstegangsutbetaling
     }
 
     @Test
