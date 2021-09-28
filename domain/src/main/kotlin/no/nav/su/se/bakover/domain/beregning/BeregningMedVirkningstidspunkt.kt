@@ -54,10 +54,22 @@ data class BeregningMedVirkningstidspunkt(
 
         val gjeldendeBeregninger = Stack<PeriodisertBeregning>()
         if (gjeldendeMånedsberegningFraTidligere != null) {
-            gjeldendeBeregninger.push(
-                (gjeldendeMånedsberegningFraTidligere as PeriodisertBeregning)
-                    .forskyv(-1),
-            )
+            val periodisert = PeriodisertBeregning(
+                periode = gjeldendeMånedsberegningFraTidligere.periode,
+                sats = gjeldendeMånedsberegningFraTidligere.getSats(),
+                fradrag = gjeldendeMånedsberegningFraTidligere.getFradrag().map {
+                    PeriodisertFradrag(
+                        type = it.fradragstype,
+                        månedsbeløp = it.månedsbeløp,
+                        periode = it.periode,
+                        utenlandskInntekt = it.utenlandskInntekt,
+                        tilhører = it.tilhører,
+                    )
+                },
+                fribeløpForEps = gjeldendeMånedsberegningFraTidligere.getFribeløpForEps(),
+            ).forskyv(-1)
+
+            gjeldendeBeregninger.push(periodisert)
         }
 
         val resultat = Stack<PeriodisertBeregning>()

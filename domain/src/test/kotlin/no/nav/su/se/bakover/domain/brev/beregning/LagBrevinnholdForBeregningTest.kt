@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.objectMapper
@@ -92,7 +93,7 @@ internal class LagBrevinnholdForBeregningTest {
 
         LagBrevinnholdForBeregning(beregning).brevInnhold shouldBe listOf(
             Beregningsperiode(
-                periode = BrevPeriode(fraOgMed = "mai 2020", tilOgMed = "mai 2020"),
+                periode = BrevPeriode(fraOgMed = "mai 2020", tilOgMed = "juni 2020"),
                 ytelsePerMåned = 19946,
                 satsbeløpPerMåned = 20946,
                 epsFribeløp = 0,
@@ -110,7 +111,7 @@ internal class LagBrevinnholdForBeregningTest {
                 ),
             ),
             Beregningsperiode(
-                periode = BrevPeriode(fraOgMed = "juni 2020", tilOgMed = "august 2020"),
+                periode = BrevPeriode(fraOgMed = "juli 2020", tilOgMed = "august 2020"),
                 ytelsePerMåned = 8947,
                 satsbeløpPerMåned = 20946,
                 epsFribeløp = 0,
@@ -177,8 +178,8 @@ internal class LagBrevinnholdForBeregningTest {
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.Kapitalinntekt,
-                    månedsbeløp = 1000.0,
-                    periode = Periode.create(fraOgMed = 1.desember(2020), tilOgMed = 31.desember(2020)),
+                    månedsbeløp = 4000.0,
+                    periode = Periode.create(fraOgMed = 1.desember(2020), tilOgMed = 31.januar(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS
                 ),
@@ -188,7 +189,7 @@ internal class LagBrevinnholdForBeregningTest {
 
         LagBrevinnholdForBeregning(beregning).brevInnhold shouldBe listOf(
             Beregningsperiode(
-                periode = BrevPeriode(fraOgMed = "mai 2020", tilOgMed = "november 2020"),
+                periode = BrevPeriode(fraOgMed = "mai 2020", tilOgMed = "desember 2020"),
                 ytelsePerMåned = 14756,
                 satsbeløpPerMåned = 20946,
                 epsFribeløp = 14810,
@@ -217,8 +218,8 @@ internal class LagBrevinnholdForBeregningTest {
                 ),
             ),
             Beregningsperiode(
-                periode = BrevPeriode(fraOgMed = "desember 2020", tilOgMed = "desember 2020"),
-                ytelsePerMåned = 13756,
+                periode = BrevPeriode(fraOgMed = "januar 2021", tilOgMed = "januar 2021"),
+                ytelsePerMåned = 10756,
                 satsbeløpPerMåned = 20946,
                 epsFribeløp = 14810,
                 fradrag = Fradrag(
@@ -244,7 +245,7 @@ internal class LagBrevinnholdForBeregningTest {
                                 type = Fradragstype.Kapitalinntekt.toReadableTypeName(
                                     utenlandsk = false
                                 ),
-                                beløp = 1000,
+                                beløp = 4000,
                                 utenlandskInntekt = null
                             )
                         ),
@@ -253,7 +254,7 @@ internal class LagBrevinnholdForBeregningTest {
                 ),
             ),
             Beregningsperiode(
-                periode = BrevPeriode(fraOgMed = "januar 2021", tilOgMed = "april 2021"),
+                periode = BrevPeriode(fraOgMed = "februar 2021", tilOgMed = "april 2021"),
                 ytelsePerMåned = 14756,
                 satsbeløpPerMåned = 20946,
                 epsFribeløp = 14810,

@@ -697,9 +697,9 @@ internal class OppdaterRevurderingServiceTest {
                     ),
                     fradragsgrunnlag = listOf(
                         fradragsgrunnlagArbeidsinntekt(
-                            periodeMedEPS,
-                            5000.0,
-                            FradragTilhører.EPS,
+                            periode = periodeMedEPS,
+                            arbeidsinntekt = 25000.0,
+                            tilhører = FradragTilhører.EPS,
                         ),
                     ),
                 ),

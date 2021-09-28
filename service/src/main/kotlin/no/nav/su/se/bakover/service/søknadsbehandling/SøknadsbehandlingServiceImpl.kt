@@ -178,7 +178,7 @@ internal class SøknadsbehandlingServiceImpl(
         return statusovergang(
             søknadsbehandling = søknadsbehandling,
             statusovergang = Statusovergang.TilBeregnet {
-                BeregningStrategyFactory().beregn(
+                BeregningStrategyFactory().beregnSøknadsbehandling(
                     grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
                         grunnlagsdata = søknadsbehandling.grunnlagsdata,
                         vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger,

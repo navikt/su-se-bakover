@@ -14,16 +14,18 @@ object BeregningFactory {
         sats: Sats,
         fradrag: List<Fradrag>,
         fradragStrategy: FradragStrategy,
-        begrunnelse: String? = null
+        begrunnelse: String? = null,
+        månedsberegning: Månedsberegning? = null,
     ): Beregning {
-        return BeregningMedFradragBeregnetMånedsvis(
+        return BeregningMedVirkningstidspunkt(
             id = id,
             opprettet = opprettet,
             periode = periode,
             sats = sats,
             fradrag = fradrag,
             fradragStrategy = fradragStrategy,
-            begrunnelse = begrunnelse
+            begrunnelse = begrunnelse,
+            gjeldendeMånedsberegningFraTidligere = månedsberegning,
         )
     }
 }

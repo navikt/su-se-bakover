@@ -53,4 +53,10 @@ fun oktober(year: Int) = 1.oktober(year).let { Periode.create(it.startOfMonth(),
 fun november(year: Int) = 1.november(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
 fun desember(year: Int) = 1.desember(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
 
-infix fun Int.prosentForskjell(other: Int): Double = (this - other) / (1.0 * other) * 100
+infix fun Int.prosentForskjell(other: Int): Double {
+    return when {
+        this == 0 && other != 0 -> -100.0
+        other == 0 && this != 0 -> 100.0
+        else -> (this - other) / (1.0 * other) * 100
+    }
+}

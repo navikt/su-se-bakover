@@ -49,7 +49,7 @@ fun beregning(
         uføregrunnlag = uføregrunnlag,
         fradragFraSaksbehandler = fradragsgrunnlag,
     ).let {
-        bosituasjon.utledBeregningsstrategi().beregn(
+        bosituasjon.utledBeregningsstrategi().beregnSøknadsbehandling(
             it.getOrHandle {
                 throw IllegalArgumentException("Kunne ikke lage testberegning. Underliggende grunn: $it")
             },

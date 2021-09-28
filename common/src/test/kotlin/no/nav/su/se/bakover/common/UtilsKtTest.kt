@@ -53,6 +53,8 @@ internal class UtilsKtTest {
         900 prosentForskjell 1000 shouldBe -10.0
         20000 prosentForskjell 10000 shouldBe 100.0
         10000 prosentForskjell 20000 shouldBe -50.0
+        0 prosentForskjell 100 shouldBe -100.0
+        100 prosentForskjell 0 shouldBe 100.0
     }
 
     @Test

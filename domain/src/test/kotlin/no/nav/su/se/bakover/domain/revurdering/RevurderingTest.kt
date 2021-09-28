@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -33,6 +34,8 @@ import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import java.util.UUID
@@ -108,7 +111,7 @@ internal class RevurderingTest {
             }
     }
 
-    @Test
+    @Disabled("dette caset er nok ikke mulig etter berenging med virkningstidspunkt")
     fun `beregningen gir ikke opphør dersom beløpet er under minstegrense, men endringen er mindre enn 10 prosent`() {
         val periode = Periode.create(1.januar(2021), 31.desember(2021))
         lagRevurdering(
@@ -186,6 +189,15 @@ internal class RevurderingTest {
                     opprettet = fixedTidspunkt,
                     periode = periode,
                     begrunnelse = null,
+                ),
+            ),
+            fradrag = listOf(
+                lagFradragsgrunnlag(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 17500.0,
+                    periode = periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
                 ),
             ),
         ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(14000, periode)))).orNull()!!.let {
@@ -456,7 +468,6 @@ internal class RevurderingTest {
     }
 
     private fun lagRevurdering(
-        tilRevurdering: Vedtak.EndringIYtelse = mock(),
         vilkårsvurderinger: Vilkårsvurderinger,
         fradrag: List<Grunnlag.Fradragsgrunnlag> = emptyList(),
         bosituasjon: List<Grunnlag.Bosituasjon>,
@@ -465,6 +476,9 @@ internal class RevurderingTest {
             årsak = Revurderingsårsak.Årsak.INFORMASJON_FRA_KONTROLLSAMTALE,
             begrunnelse = Revurderingsårsak.Begrunnelse.create(value = "b"),
         ),
+        tilRevurdering: Vedtak.EndringIYtelse = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(periode, "b"),
+        ).second,
     ) = OpprettetRevurdering(
         id = UUID.randomUUID(),
         periode = periode,

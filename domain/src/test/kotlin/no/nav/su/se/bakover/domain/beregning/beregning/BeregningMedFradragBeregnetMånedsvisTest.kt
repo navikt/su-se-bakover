@@ -24,11 +24,13 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.IkkePeriodisertFradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.PeriodisertFradrag
 import no.nav.su.se.bakover.domain.fixedTidspunkt
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
+@Disabled
 internal class BeregningMedFradragBeregnetMånedsvisTest {
 
     @Test

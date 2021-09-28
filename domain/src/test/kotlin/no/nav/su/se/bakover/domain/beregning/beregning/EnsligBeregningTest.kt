@@ -65,7 +65,7 @@ internal class EnsligBeregningTest {
             ),
         )
 
-        BeregningStrategy.BorAlene.beregn(beregningsgrunnlag).let {
+        BeregningStrategy.BorAlene.beregnSøknadsbehandling(beregningsgrunnlag).let {
             it.getSumYtelse() shouldBe 5028
             it.getSumFradrag() shouldBe (arbeidsinntektPrÅr + folketrygdPrÅr).plusOrMinus(0.5)
             it.getMånedsberegninger().forEach {

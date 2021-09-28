@@ -78,7 +78,7 @@ internal class EpsOver67BeregningTest {
             )
         )
 
-        BeregningStrategy.Eps67EllerEldre.beregn(beregningsgrunnlag).let {
+        BeregningStrategy.Eps67EllerEldre.beregnSøknadsbehandling(beregningsgrunnlag).let {
             it.getSumYtelse() shouldBe 27720
             it.getSumFradrag() shouldBe (arbeidsinntektPrÅr + folketrygdPrÅr + (epsFolketrygdPrÅr - garantipensjon)).plusOrMinus(0.5)
             it.getMånedsberegninger().forEach {

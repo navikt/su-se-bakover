@@ -81,7 +81,7 @@ internal class VurderOmBeløpErForskjelligFraGjeldendeUtbetalingTest {
             nyBeregning = lagBeregning(
                 Periode.create(1.januar(2021), 31.januar(2021)) to 5000,
                 Periode.create(1.februar(2021), 28.februar(2021)) to 2500,
-                Periode.create(1.mars(2021), 31.mars(2021)) to 5000,
+                Periode.create(1.mars(2021), 31.mars(2021)) to 2500,
                 Periode.create(1.april(2021), 30.april(2021)) to 5000,
             ),
         ).resultat shouldBe true
