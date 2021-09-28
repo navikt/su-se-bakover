@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.beregning
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -69,8 +70,70 @@ internal class BeregningMapperTest {
                     "fraOgMed": "2021-01-01",
                     "tilOgMed": "2021-01-31"
                   },
-                "fribeløpForEps": 0.0
-                }
+                  "fribeløpForEps": 0.0,
+                  "merknader": [
+                    {
+                      "type": "EndringGrunnbeløp",
+                      "gammeltGrunnbeløp": {
+                        "dato":"2019-05-01",
+                        "grunnbeløp": 99858
+                      },
+                      "nyttGrunnbeløp": {
+                        "dato":"2020-05-01",
+                        "grunnbeløp": 101351
+                      }
+                    },
+                    {
+                      "type": "ØktYtelse",
+                      "benyttetBeregning": {
+                        "periode": {
+                            "fraOgMed": "2021-01-01",
+                            "tilOgMed": "2021-01-31"
+                        },
+                        "sats": "HØY",
+                        "grunnbeløp": 99858,
+                        "beløp": 8637,
+                        "fradrag": [
+                          {
+                            "periode": {
+                              "fraOgMed": "2021-01-01",
+                              "tilOgMed": "2021-01-31"
+                            },
+                            "fradragstype": "ForventetInntekt",
+                            "månedsbeløp": 12000,
+                            "utenlandskInntekt": null,
+                            "tilhører": "BRUKER"
+                          }  
+                        ],
+                        "satsbeløp": 20637.32,
+                        "fribeløpForEps": 0.0
+                      },
+                      "forkastetBeregning": {
+                        "periode": {
+                            "fraOgMed": "2021-01-01",
+                            "tilOgMed": "2021-01-31"
+                        },
+                        "sats": "HØY",
+                        "grunnbeløp": 99858,
+                        "beløp": 8637,
+                        "fradrag": [
+                          {
+                            "periode": {
+                              "fraOgMed": "2021-01-01",
+                              "tilOgMed": "2021-01-31"
+                            },
+                            "fradragstype": "ForventetInntekt",
+                            "månedsbeløp": 12000,
+                            "utenlandskInntekt": null,
+                            "tilhører": "BRUKER"
+                          }  
+                        ],
+                        "satsbeløp": 20637.32,
+                        "fribeløpForEps": 0.0
+                      }
+                    }
+                 ]
+              }
               ],
               "fradrag": [
                 {
@@ -95,6 +158,7 @@ internal class BeregningMapperTest {
             }
         """.trimIndent()
         JSONAssert.assertEquals(expectedJson, objectMapper.writeValueAsString(TestBeregning.toSnapshot()), true)
+        objectMapper.readValue<PersistertBeregning>(expectedJson) shouldBe TestBeregning.toSnapshot()
     }
 
     @Test
@@ -113,7 +177,9 @@ internal class BeregningMapperTest {
             id = UUID.randomUUID(),
             opprettet = opprettet,
             sats = Sats.HØY,
-            månedsberegninger = listOf(persistertMånedsberegning),
+            månedsberegninger = listOf(
+                persistertMånedsberegning,
+            ),
             fradrag = listOf(
                 PersistertFradrag(
                     fradragstype = Fradragstype.ForventetInntekt,

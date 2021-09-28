@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning.beregning
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
@@ -16,6 +17,7 @@ import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.beregning.BeregningMedVirkningstidspunkt
+import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -264,6 +266,12 @@ internal class BeregningMedVirkningstidspunktTest {
                 (desember(2020) to (10946 to 10000.0)),
             ),
         )
+        beregning.getMerknader().let {
+            it.filterIsInstance<Merknad.EndringGrunnbeløp>() shouldHaveSize 1
+            it.filterIsInstance<Merknad.ØktYtelse>() shouldHaveSize 0
+            it.filterIsInstance<Merknad.RedusertYtelse>() shouldHaveSize 0
+            it.filterIsInstance<Merknad.EndringUnderTiProsent>() shouldHaveSize 12
+        }
     }
 
     @Test
@@ -1038,6 +1046,12 @@ internal class BeregningMedVirkningstidspunktTest {
                 (desember(2020) to (15946 to 5000.0)),
             ),
         )
+        beregning.getMerknader().let {
+            it.filterIsInstance<Merknad.EndringGrunnbeløp>() shouldHaveSize 1
+            it.filterIsInstance<Merknad.ØktYtelse>() shouldHaveSize 1
+            it.filterIsInstance<Merknad.RedusertYtelse>() shouldHaveSize 1
+            it.filterIsInstance<Merknad.EndringUnderTiProsent>() shouldHaveSize 0
+        }
     }
 
     @Test
@@ -1123,6 +1137,12 @@ internal class BeregningMedVirkningstidspunktTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             )
+        beregning.getMerknader().let {
+            it.filterIsInstance<Merknad.EndringGrunnbeløp>() shouldHaveSize 1
+            it.filterIsInstance<Merknad.ØktYtelse>() shouldHaveSize 3
+            it.filterIsInstance<Merknad.RedusertYtelse>() shouldHaveSize 2
+            it.filterIsInstance<Merknad.EndringUnderTiProsent>() shouldHaveSize 0
+        }
     }
 
     private fun List<Månedsberegning>.assertMåneder(expected: Map<Periode, Pair<Int, Double>>) {

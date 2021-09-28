@@ -22,7 +22,8 @@ internal class MånedsberegningJsonTest {
                 "fradrag": [],
                 "satsbeløp": 20637,
                 "epsFribeløp": 100,
-                "epsInputFradrag": []
+                "epsInputFradrag": [],
+                "merknader": []
             }
         """
 

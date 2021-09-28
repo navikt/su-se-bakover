@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.vedtak.snapshot
 
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
@@ -20,6 +21,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
+import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Sats.ORDINÆR
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName.Enslig
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører.BRUKER
@@ -375,6 +377,18 @@ internal class VedtakssnapshotJsonTest {
                         benyttetGrunnbeløp = 66,
                         satsbeløp = 4.1,
                         fribeløpForEps = 0.0,
+                        merknader = listOf(
+                            Merknad.EndringGrunnbeløp(
+                                gammeltGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj(
+                                    dato = 1.mai(2019),
+                                    grunnbeløp = 19000,
+                                ),
+                                nyttGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj(
+                                    dato = 1.mai(2020),
+                                    grunnbeløp = 20000,
+                                ),
+                            ),
+                        ),
                     ),
                 ),
                 fradrag = fradrag,
@@ -382,7 +396,7 @@ internal class VedtakssnapshotJsonTest {
                 sumFradrag = 2.1,
                 periode = periode,
                 fradragStrategyName = Enslig,
-                begrunnelse = "har en begrunnelse for beregning"
+                begrunnelse = "har en begrunnelse for beregning",
             ),
             simulering = Simulering(
                 gjelderId = fnr,
@@ -488,7 +502,20 @@ internal class VedtakssnapshotJsonTest {
                                 "fraOgMed":"2021-01-01",
                                 "tilOgMed":"2021-01-31"
                             },
-                            "fribeløpForEps": 0.0
+                            "fribeløpForEps": 0.0,
+                            "merknader": [
+                              {
+                                "type": "EndringGrunnbeløp",
+                                "gammeltGrunnbeløp": {
+                                  "dato":"2019-05-01",
+                                  "grunnbeløp": 19000,
+                                },
+                                "nyttGrunnbeløp": {
+                                  "dato":"2020-05-01",
+                                  "grunnbeløp": 20000,
+                                }
+                              }
+                            ]
                         }
                     ],
                     "fradrag":[

@@ -8,10 +8,12 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
 import no.nav.su.se.bakover.database.beregning.TestBeregning
+import no.nav.su.se.bakover.database.beregning.TestMånedsberegning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
 import no.nav.su.se.bakover.database.dokument.DokumentPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
@@ -43,6 +45,7 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
+import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -109,6 +112,16 @@ internal val persistertMånedsberegning = PersistertMånedsberegning(
     fradrag = listOf(),
     periode = Periode.create(1.januar(2020), 31.desember(2020)),
     fribeløpForEps = 0.0,
+    merknader = listOf(
+        Merknad.EndringGrunnbeløp(
+            gammeltGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj.forDato(1.mai(2019)),
+            nyttGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj.forDato(1.mai(2020)),
+        ),
+        Merknad.ØktYtelse.from(
+            benyttetBeregning = TestMånedsberegning,
+            forkastetBeregning = TestMånedsberegning,
+        ),
+    ),
 )
 internal val avslåttBeregning: PersistertBeregning = beregning().copy(
     månedsberegninger = listOf(

@@ -15,8 +15,10 @@ internal data class MånedsberegningJson(
     val fradrag: List<FradragJson>,
     val satsbeløp: Int,
     val epsFribeløp: Double,
-    val epsInputFradrag: List<FradragJson>
+    val epsInputFradrag: List<FradragJson>,
+    val merknader: List<MerknadJson>,
 )
+
 internal fun Månedsberegning.toJson(epsFribeløp: Double, epsInputFradrag: List<Fradrag>) = MånedsberegningJson(
     fraOgMed = periode.fraOgMed.format(DateTimeFormatter.ISO_DATE),
     tilOgMed = periode.tilOgMed.format(DateTimeFormatter.ISO_DATE),
@@ -26,5 +28,6 @@ internal fun Månedsberegning.toJson(epsFribeløp: Double, epsInputFradrag: List
     fradrag = getFradrag().toJson(),
     satsbeløp = getSatsbeløp().roundToInt(),
     epsFribeløp = epsFribeløp,
-    epsInputFradrag = epsInputFradrag.toJson()
+    epsInputFradrag = epsInputFradrag.toJson(),
+    merknader = getMerknader().toJson(),
 )

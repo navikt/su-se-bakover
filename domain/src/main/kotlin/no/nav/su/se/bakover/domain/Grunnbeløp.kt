@@ -14,6 +14,8 @@ class Grunnbeløp private constructor(private val multiplier: Double) {
         LocalDate.of(2021, Month.MAY, 1) to 106399,
     ).toMap()
 
+    fun månedsbeløp(dato: LocalDate): Double = påDato(dato) / 12
+
     fun påDato(dato: LocalDate): Double = datoToBeløp.entries
         .sortedByDescending { it.key }
         .first { dato.isAfter(it.key) || dato.isEqual(it.key) }.value * multiplier

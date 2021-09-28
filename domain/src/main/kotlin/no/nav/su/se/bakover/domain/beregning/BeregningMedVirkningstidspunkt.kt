@@ -97,7 +97,15 @@ data class BeregningMedVirkningstidspunkt(
                          * Ved forskyvning vil gjeldende beregning utføres på nytt med grunnbeløp for måneden etter,
                          * noe som fører til at g-regulering implisitt er fritatt for 10% sjekk.
                          */
-                        resultat.push(gjeldendeBeregning.forskyv(1))
+                        gjeldendeBeregning.forskyv(1).let {
+                            it.getMerknader().add(
+                                Merknad.RedusertYtelse.from(
+                                    benyttetBeregning = it,
+                                    forkastetBeregning = inneværendeMåned,
+                                ),
+                            )
+                            resultat.push(it)
+                        }
                         /**
                          * Den ubenyttede beregningen for inneværende måned skal ikke tre i kraft før tidligst påfølgende
                          * måned og settes til ny gjeldende beregning. Påfølgende måned vil sammenlignes mot denne.
@@ -113,6 +121,12 @@ data class BeregningMedVirkningstidspunkt(
                          * spesiell håndtering av g-regulering.
                          */
                         inneværendeMåned.let {
+                            it.getMerknader().add(
+                                Merknad.ØktYtelse.from(
+                                    benyttetBeregning = it,
+                                    forkastetBeregning = it,
+                                ),
+                            )
                             resultat.push(it)
                             gjeldendeBeregninger.push(it)
                         }
@@ -127,6 +141,14 @@ data class BeregningMedVirkningstidspunkt(
                          * noe som fører til at g-regulering implisitt er fritatt for 10% sjekk.
                          */
                         gjeldendeBeregning.forskyv(1).let {
+                            if (it != inneværendeMåned) { // Ikke lag merknad hvis helt like
+                                it.getMerknader().add(
+                                    Merknad.EndringUnderTiProsent.from(
+                                        benyttetBeregning = it,
+                                        forkastetBeregning = inneværendeMåned,
+                                    ),
+                                )
+                            }
                             resultat.push(it)
                             gjeldendeBeregninger.push(it)
                         }

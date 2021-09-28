@@ -1,9 +1,11 @@
 package no.nav.su.se.bakover.database.beregning
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
@@ -35,6 +37,9 @@ internal data class PersistertBeregning(
     override fun getFradragStrategyName(): FradragStrategyName = fradragStrategyName
     override fun getBegrunnelse(): String? = begrunnelse
 
+    @JsonIgnore // Unngå serialisering av merknader på toppnivå
+    override fun getMerknader(): List<Merknad> = månedsberegninger.flatMap { it.getMerknader() }
+
     override fun equals(other: Any?) = (other as? Beregning)?.let { this.equals(other) } ?: false
 
     override fun hashCode(): Int {
@@ -58,6 +63,7 @@ internal data class PersistertMånedsberegning(
     private val fradrag: List<PersistertFradrag>,
     override val periode: Periode,
     private val fribeløpForEps: Double,
+    private val merknader: List<Merknad> = emptyList(),
 ) : Månedsberegning {
     override fun getSumYtelse(): Int = sumYtelse
     override fun getSumFradrag(): Double = sumFradrag
@@ -66,6 +72,7 @@ internal data class PersistertMånedsberegning(
     override fun getSatsbeløp(): Double = satsbeløp
     override fun getFradrag(): List<Fradrag> = fradrag
     override fun getFribeløpForEps(): Double = fribeløpForEps
+    override fun getMerknader(): List<Merknad> = merknader
 
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
 
@@ -104,7 +111,7 @@ internal fun Beregning.toSnapshot() = PersistertBeregning(
     sumFradrag = getSumFradrag(),
     periode = periode,
     fradragStrategyName = getFradragStrategyName(),
-    begrunnelse = getBegrunnelse()
+    begrunnelse = getBegrunnelse(),
 )
 
 internal fun Månedsberegning.toSnapshot() = PersistertMånedsberegning(
@@ -115,7 +122,8 @@ internal fun Månedsberegning.toSnapshot() = PersistertMånedsberegning(
     satsbeløp = getSatsbeløp(),
     fradrag = getFradrag().map { it.toSnapshot() },
     periode = periode,
-    fribeløpForEps = getFribeløpForEps()
+    fribeløpForEps = getFribeløpForEps(),
+    merknader = getMerknader(),
 )
 
 internal fun Fradrag.toSnapshot() = PersistertFradrag(
