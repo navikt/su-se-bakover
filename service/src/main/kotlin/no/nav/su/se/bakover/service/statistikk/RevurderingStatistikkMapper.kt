@@ -41,7 +41,7 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
 
                     copy(
                         resultat = resultatOgBegrunnelse.resultat,
-                        resultatBegrunnelse = ResultatOgBegrunnelseMapper.map(revurdering).begrunnelse,
+                        resultatBegrunnelse = resultatOgBegrunnelse.begrunnelse,
                         beslutter = revurdering.attestering.attestant.navIdent,
                         avsluttet = true
                     )
