@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "stonad",
   "description": "Stønad er informasjon om ytelsen gitt til bruker innenfor en sak i en gitt periode",
   "required": [

@@ -52,7 +52,7 @@ internal class StatistikkSchemaValidatorTest {
             månedsbeløp = listOf(
                 Statistikk.Stønad.Månedsbeløp(
                     måned = "todo",
-                    stonadsklassifisering = Statistikk.Stønad.Stønadsklassifisering.BOR_ALENE,
+                    stonadsklassifisering = Statistikk.Stønadsklassifisering.BOR_ALENE,
                     bruttosats = 10000,
                     nettosats = 5000,
                     inntekter = listOf(Statistikk.Inntekt("Arbeidsinntekt", 5000)),
