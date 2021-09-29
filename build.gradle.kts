@@ -95,6 +95,12 @@ allprojects {
                     require("9.4.43.v20210629")
                 }
             }
+            implementation("org.apache.santuario:xmlsec") {
+                because("org.apache.cxf:cxf-rt-frontend-jaxws:3.4.4 and org.apache.cxf:cxf-rt-ws-security:3.4.4 -> https://app.snyk.io/vuln/SNYK-JAVA-ORGAPACHESANTUARIO-1655558")
+                version {
+                    require("2.2.3")
+                }
+            }
         }
     }
 
