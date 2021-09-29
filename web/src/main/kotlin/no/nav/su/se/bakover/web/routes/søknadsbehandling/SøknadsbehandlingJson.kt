@@ -30,6 +30,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
             simulering = null,
             stønadsperiode = stønadsperiode?.toJson(),
             grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+            fritekstTilBrev = fritekstTilBrev,
         )
         is Søknadsbehandling.Beregnet -> {
             BehandlingJson(
@@ -45,6 +46,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 simulering = null,
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+                fritekstTilBrev = fritekstTilBrev,
             )
         }
         is Søknadsbehandling.Simulert -> {
@@ -61,6 +63,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 simulering = simulering.toJson(),
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+                fritekstTilBrev = fritekstTilBrev,
             )
         }
         is Søknadsbehandling.TilAttestering.Innvilget -> {
@@ -77,6 +80,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 simulering = simulering.toJson(),
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+                fritekstTilBrev = fritekstTilBrev,
             )
         }
         is Søknadsbehandling.TilAttestering.Avslag.MedBeregning -> {
@@ -93,6 +97,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 simulering = null,
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+                fritekstTilBrev = fritekstTilBrev,
             )
         }
         is Søknadsbehandling.TilAttestering.Avslag.UtenBeregning -> {
@@ -109,6 +114,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 simulering = null,
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+                fritekstTilBrev = fritekstTilBrev,
             )
         }
         is Søknadsbehandling.Underkjent.Innvilget -> {
@@ -141,6 +147,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 simulering = simulering.toJson(),
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+                fritekstTilBrev = fritekstTilBrev,
             )
         }
         is Søknadsbehandling.Underkjent.Avslag.UtenBeregning -> {
@@ -157,6 +164,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 simulering = null,
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+                fritekstTilBrev = fritekstTilBrev,
             )
         }
         is Søknadsbehandling.Underkjent.Avslag.MedBeregning -> {
@@ -173,6 +181,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 simulering = null,
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+                fritekstTilBrev = fritekstTilBrev,
             )
         }
         is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
@@ -189,6 +198,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 simulering = null,
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+                fritekstTilBrev = fritekstTilBrev,
             )
         }
         is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
@@ -205,6 +215,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 simulering = null,
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+                fritekstTilBrev = fritekstTilBrev,
             )
         }
         is Søknadsbehandling.Iverksatt.Innvilget -> {
@@ -221,6 +232,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 simulering = simulering.toJson(),
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
+                fritekstTilBrev = fritekstTilBrev,
             )
         }
     }.also {
