@@ -31,7 +31,7 @@ import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
-import no.nav.su.se.bakover.domain.revurdering.IdentifiserSaksbehandlingsutfallSomIkkeStøttes
+import no.nav.su.se.bakover.domain.revurdering.IdentifiserRevurderingsopphørSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpphørVedRevurdering
@@ -639,7 +639,7 @@ internal class RevurderingServiceImpl(
         vilkårsvurderinger: Vilkårsvurderinger,
         tidligereBeregning: Beregning,
         nyBeregning: Beregning,
-    ) = IdentifiserSaksbehandlingsutfallSomIkkeStøttes.MedBeregning(
+    ) = IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
         revurderingsperiode = revurderingsperiode,
         vilkårsvurderinger = vilkårsvurderinger,
         tidligereBeregning = tidligereBeregning,
@@ -649,7 +649,7 @@ internal class RevurderingServiceImpl(
     private fun identifiserUtfallSomIkkeStøttes(
         vilkårsvurderinger: Vilkårsvurderinger,
         periode: Periode,
-    ) = IdentifiserSaksbehandlingsutfallSomIkkeStøttes.UtenBeregning(
+    ) = IdentifiserRevurderingsopphørSomIkkeStøttes.UtenBeregning(
         vilkårsvurderinger = vilkårsvurderinger,
         periode = periode,
     ).resultat
