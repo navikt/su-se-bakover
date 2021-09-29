@@ -16,6 +16,7 @@ internal fun Merknad.toJson(): MerknadJson {
         is Merknad.RedusertYtelse -> this.toJson()
         is Merknad.EndringUnderTiProsent -> this.toJson()
         is Merknad.ØktYtelse -> this.toJson()
+        is Merknad.NyYtelse -> this.toJson()
     }
 }
 
@@ -43,6 +44,10 @@ internal fun Merknad.ØktYtelse.toJson() = MerknadJson.ØktYtelseJson(
 internal fun Merknad.EndringUnderTiProsent.toJson() = MerknadJson.EndringUnderTiProsentJson(
     benyttetBeregning = benyttetBeregning.toJson(),
     forkastetBeregning = forkastetBeregning.toJson(),
+)
+
+internal fun Merknad.NyYtelse.toJson() = MerknadJson.NyYtelseJson(
+    benyttetBeregning = benyttetBeregning.toJson(),
 )
 
 internal fun Merknad.MerknadMånedsberegning.toJson() = MerknadJson.MerknadMånedsberegningJson(
@@ -74,6 +79,7 @@ internal fun Merknad.MerknadFradrag.toJson() = MerknadJson.MerknadFradragJson(
     JsonSubTypes.Type(value = MerknadJson.ØktYtelseJson::class, name = "ØktYtelse"),
     JsonSubTypes.Type(value = MerknadJson.RedusertYtelseJson::class, name = "RedusertYtelse"),
     JsonSubTypes.Type(value = MerknadJson.EndringUnderTiProsentJson::class, name = "EndringUnderTiProsent"),
+    JsonSubTypes.Type(value = MerknadJson.NyYtelseJson::class, name = "NyYtelse"),
 )
 internal sealed class MerknadJson {
 
@@ -101,6 +107,10 @@ internal sealed class MerknadJson {
     data class EndringUnderTiProsentJson(
         val benyttetBeregning: MerknadMånedsberegningJson,
         val forkastetBeregning: MerknadMånedsberegningJson,
+    ) : MerknadJson()
+
+    data class NyYtelseJson(
+        val benyttetBeregning: MerknadMånedsberegningJson,
     ) : MerknadJson()
 
     data class MerknadMånedsberegningJson(

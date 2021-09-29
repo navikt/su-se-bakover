@@ -20,6 +20,7 @@ import java.time.LocalDate
     JsonSubTypes.Type(value = Merknad.ØktYtelse::class, name = "ØktYtelse"),
     JsonSubTypes.Type(value = Merknad.RedusertYtelse::class, name = "RedusertYtelse"),
     JsonSubTypes.Type(value = Merknad.EndringUnderTiProsent::class, name = "EndringUnderTiProsent"),
+    JsonSubTypes.Type(value = Merknad.NyYtelse::class, name = "NyYtelse"),
 )
 sealed class Merknad {
 
@@ -42,6 +43,16 @@ sealed class Merknad {
                     }
                 }
             }
+        }
+    }
+
+    data class NyYtelse(
+        val benyttetBeregning: MerknadMånedsberegning,
+    ) : Merknad() {
+        companion object {
+            fun from(benyttetBeregning: Månedsberegning) = NyYtelse(
+                benyttetBeregning = benyttetBeregning.toMerknadMånedsberegning(),
+            )
         }
     }
 

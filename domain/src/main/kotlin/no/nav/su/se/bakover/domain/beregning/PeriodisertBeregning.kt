@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.limitedUpwardsTo
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.positiveOrZero
 import no.nav.su.se.bakover.domain.Grunnbeløp
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.PeriodisertFradrag
 import kotlin.math.roundToInt
 
@@ -42,13 +43,15 @@ internal data class PeriodisertBeregning(
 
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
 
-    internal fun forskyv(måneder: Int): PeriodisertBeregning {
-        return copy(
-            periode = periode.forskyv(måneder),
-            sats = sats,
-            fradrag = fradrag.map { it.forskyv(måneder) },
-            fribeløpForEps = fribeløpForEps,
-        )
+    internal fun forskyv(måneder: Int, fradragStrategy: FradragStrategy): PeriodisertBeregning {
+        return periode.forskyv(måneder).let { nyPeriode ->
+            copy(
+                periode = nyPeriode,
+                sats = sats,
+                fradrag = fradrag.map { it.forskyv(måneder) },
+                fribeløpForEps = fradragStrategy.getEpsFribeløp(nyPeriode),
+            )
+        }
     }
 
     private fun leggTilMerknadVedEndringIGrunnbeløp() {

@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.PeriodisertBeregning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.IkkePeriodisertFradrag
@@ -203,8 +204,8 @@ internal class PeriodisertBeregningTest {
                     tilhører = FradragTilhører.EPS,
                 ),
             ),
-            fribeløpForEps = 5000.0,
-        ).forskyv(1) shouldBe PeriodisertBeregning(
+            fribeløpForEps = FradragStrategy.Enslig.getEpsFribeløp(januar(2020)),
+        ).forskyv(1, FradragStrategy.Enslig) shouldBe PeriodisertBeregning(
             periode = februar(2021),
             sats = Sats.HØY,
             fradrag = listOf(
@@ -223,7 +224,7 @@ internal class PeriodisertBeregningTest {
                     tilhører = FradragTilhører.EPS,
                 ),
             ),
-            fribeløpForEps = 5000.0,
+            fribeløpForEps = FradragStrategy.Enslig.getEpsFribeløp(februar(2020)),
         )
     }
 

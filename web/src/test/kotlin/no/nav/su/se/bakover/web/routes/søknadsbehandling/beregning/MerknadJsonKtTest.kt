@@ -136,4 +136,58 @@ internal class MerknadJsonKtTest {
             true,
         )
     }
+
+    @Test
+    fun `serialisering og av merknad for ny ytelse`() {
+        //language=json
+        val expected = """
+            {
+              "type": "NyYtelse",
+              "benyttetBeregning": {
+                "fraOgMed": "2021-05-01",
+                "tilOgMed": "2021-05-31",
+                "sats": "HØY",
+                "grunnbeløp": 106399,
+                "beløp": 16989,
+                "fradrag": [
+                  {
+                    "periode": {
+                      "fraOgMed": "2021-05-01",
+                      "tilOgMed": "2021-05-31"
+                    },
+                    "type": "PrivatPensjon",
+                    "beløp": 5000,
+                    "utenlandskInntekt": null,
+                    "tilhører": "BRUKER"
+                  }  
+                ],
+                "satsbeløp": 21989,
+                "fribeløpForEps": 0.0
+              }
+            }
+        """.trimIndent()
+
+        val benyttetBeregning = MånedsberegningFactory.ny(
+            periode = mai(2021),
+            sats = Sats.HØY,
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.PrivatPensjon,
+                    månedsbeløp = 5000.0,
+                    periode = mai(2021),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+            fribeløpForEps = 0.0,
+        )
+
+        val nyYtelse = Merknad.NyYtelse.from(benyttetBeregning)
+
+        JSONAssert.assertEquals(
+            expected,
+            serialize(nyYtelse.toJson()),
+            true,
+        )
+    }
 }

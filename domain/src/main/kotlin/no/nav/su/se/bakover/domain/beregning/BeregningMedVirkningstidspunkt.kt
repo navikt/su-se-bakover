@@ -67,7 +67,7 @@ data class BeregningMedVirkningstidspunkt(
                     )
                 },
                 fribeløpForEps = gjeldendeMånedsberegningFraTidligere.getFribeløpForEps(),
-            ).forskyv(-1)
+            ).forskyv(-1, fradragStrategy)
 
             gjeldendeBeregninger.push(periodisert)
         }
@@ -95,8 +95,15 @@ data class BeregningMedVirkningstidspunkt(
             }
 
             if (gjeldendeBeregninger.isEmpty()) {
-                gjeldendeBeregninger.push(inneværendeMåned)
-                resultat.push(inneværendeMåned)
+                inneværendeMåned.let {
+                    it.getMerknader().add(
+                        Merknad.NyYtelse.from(
+                            inneværendeMåned,
+                        ),
+                    )
+                    gjeldendeBeregninger.push(it)
+                    resultat.push(it)
+                }
             } else {
                 val gjeldendeBeregning = gjeldendeBeregninger.pop()
 
@@ -109,20 +116,20 @@ data class BeregningMedVirkningstidspunkt(
                          * Ved forskyvning vil gjeldende beregning utføres på nytt med grunnbeløp for måneden etter,
                          * noe som fører til at g-regulering implisitt er fritatt for 10% sjekk.
                          */
-                        gjeldendeBeregning.forskyv(1).let {
-                            it.getMerknader().add(
+                        gjeldendeBeregning.forskyv(1, fradragStrategy).let { gjeldendeForskøvet ->
+                            gjeldendeForskøvet.getMerknader().add(
                                 Merknad.RedusertYtelse.from(
-                                    benyttetBeregning = it,
+                                    benyttetBeregning = gjeldendeForskøvet,
                                     forkastetBeregning = inneværendeMåned,
                                 ),
                             )
-                            resultat.push(it)
+                            resultat.push(gjeldendeForskøvet)
+                            /**
+                             * Den ubenyttede beregningen for inneværende måned skal ikke tre i kraft før tidligst påfølgende
+                             * måned og settes til ny gjeldende beregning. Påfølgende måned vil sammenlignes mot denne.
+                             */
+                            gjeldendeBeregninger.push(inneværendeMåned)
                         }
-                        /**
-                         * Den ubenyttede beregningen for inneværende måned skal ikke tre i kraft før tidligst påfølgende
-                         * måned og settes til ny gjeldende beregning. Påfølgende måned vil sammenlignes mot denne.
-                         */
-                        gjeldendeBeregninger.push(inneværendeMåned)
                     }
                     inneværendeMåned.getSumYtelse() prosentForskjell gjeldendeBeregning.getSumYtelse() >= 10.0 -> {
                         /**
@@ -132,15 +139,17 @@ data class BeregningMedVirkningstidspunkt(
                          * Inneværende måned vil være beregnet med korrekt grunnbeløp, og dermed trengs det ikke noen
                          * spesiell håndtering av g-regulering.
                          */
-                        inneværendeMåned.let {
-                            it.getMerknader().add(
-                                Merknad.ØktYtelse.from(
-                                    benyttetBeregning = it,
-                                    forkastetBeregning = it,
-                                ),
-                            )
-                            resultat.push(it)
-                            gjeldendeBeregninger.push(it)
+                        gjeldendeBeregning.forskyv(1, fradragStrategy).let { gjeldendeForskøvet ->
+                            inneværendeMåned.let { inneværende ->
+                                inneværende.getMerknader().add(
+                                    Merknad.ØktYtelse.from(
+                                        benyttetBeregning = inneværende,
+                                        forkastetBeregning = gjeldendeForskøvet,
+                                    ),
+                                )
+                                resultat.push(inneværende)
+                                gjeldendeBeregninger.push(inneværende)
+                            }
                         }
                     }
                     else -> {
@@ -152,17 +161,17 @@ data class BeregningMedVirkningstidspunkt(
                          * Ved forskyvning vil gjeldende beregning utføres på nytt med grunnbeløp for måneden etter,
                          * noe som fører til at g-regulering implisitt er fritatt for 10% sjekk.
                          */
-                        gjeldendeBeregning.forskyv(1).let {
-                            if (it != inneværendeMåned) { // Ikke lag merknad hvis helt like
-                                it.getMerknader().add(
+                        gjeldendeBeregning.forskyv(1, fradragStrategy).let { gjeldendeForskøvet ->
+                            if (gjeldendeForskøvet != inneværendeMåned) { // Ikke lag merknad hvis helt like
+                                gjeldendeForskøvet.getMerknader().add(
                                     Merknad.EndringUnderTiProsent.from(
-                                        benyttetBeregning = it,
+                                        benyttetBeregning = gjeldendeForskøvet,
                                         forkastetBeregning = inneværendeMåned,
                                     ),
                                 )
                             }
-                            resultat.push(it)
-                            gjeldendeBeregninger.push(it)
+                            resultat.push(gjeldendeForskøvet)
+                            gjeldendeBeregninger.push(gjeldendeForskøvet)
                         }
                     }
                 }

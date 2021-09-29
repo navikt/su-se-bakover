@@ -66,6 +66,43 @@ internal class BeregningMedVirkningstidspunktTest {
                 (desember(2020) to (20946 to 0.0)),
             ),
         )
+        beregning.getMerknader() shouldBe listOf(
+            Merknad.NyYtelse(
+                benyttetBeregning = Merknad.MerknadMånedsberegning(
+                    periode = Periode.create(
+                        fraOgMed = 1.januar(2020),
+                        tilOgMed = 31.januar(2020),
+                    ),
+                    sats = Sats.HØY,
+                    grunnbeløp = 99858,
+                    beløp = 20637,
+                    fradrag = listOf(
+                        Merknad.MerknadFradrag(
+                            periode = Periode.create(
+                                fraOgMed = 1.januar(2020),
+                                tilOgMed = 31.januar(2020),
+                            ),
+                            fradragstype = Fradragstype.ForventetInntekt,
+                            månedsbeløp = 0.0,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                    satsbeløp = Sats.HØY.månedsbeløp(1.januar(2020)),
+                    fribeløpForEps = 0.0,
+                ),
+            ),
+            Merknad.EndringGrunnbeløp(
+                gammeltGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj(
+                    dato = 1.mai(2019),
+                    grunnbeløp = 99858,
+                ),
+                nyttGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj(
+                    dato = 1.mai(2020),
+                    grunnbeløp = 101351,
+                ),
+            ),
+        )
     }
 
     @Test
@@ -214,6 +251,71 @@ internal class BeregningMedVirkningstidspunktTest {
                 (desember(2020) to (10946 to 10000.0)),
             ),
         )
+        beregning.getMerknader().let {
+            it.filterIsInstance<Merknad.ØktYtelse>() shouldHaveSize 0
+            it.filterIsInstance<Merknad.RedusertYtelse>() shouldHaveSize 0
+            it.filterIsInstance<Merknad.EndringUnderTiProsent>() shouldHaveSize 12
+            it.filterIsInstance<Merknad.EndringUnderTiProsent>()[0] shouldBe Merknad.EndringUnderTiProsent(
+                benyttetBeregning = Merknad.MerknadMånedsberegning(
+                    periode = Periode.create(
+                        fraOgMed = 1.januar(2020),
+                        tilOgMed = 31.januar(2020),
+                    ),
+                    sats = Sats.HØY,
+                    grunnbeløp = 99858,
+                    beløp = 10637,
+                    fradrag = listOf(
+                        Merknad.MerknadFradrag(
+                            periode = Periode.create(
+                                fraOgMed = 1.januar(2020),
+                                tilOgMed = 31.januar(2020),
+                            ),
+                            fradragstype = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 10000.0,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                    satsbeløp = Sats.HØY.månedsbeløp(1.januar(2020)),
+                    fribeløpForEps = 0.0,
+                ),
+                forkastetBeregning = Merknad.MerknadMånedsberegning(
+                    periode = Periode.create(
+                        fraOgMed = 1.januar(2020),
+                        tilOgMed = 31.januar(2020),
+                    ),
+                    sats = Sats.HØY,
+                    grunnbeløp = 99858,
+                    beløp = 11137,
+                    fradrag = listOf(
+                        Merknad.MerknadFradrag(
+                            periode = Periode.create(
+                                fraOgMed = 1.januar(2020),
+                                tilOgMed = 31.januar(2020),
+                            ),
+                            fradragstype = Fradragstype.ForventetInntekt,
+                            månedsbeløp = 9500.0,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                    satsbeløp = Sats.HØY.månedsbeløp(1.januar(2020)),
+                    fribeløpForEps = 0.0,
+                ),
+            )
+            it.filterIsInstance<Merknad.EndringGrunnbeløp>() shouldBe listOf(
+                Merknad.EndringGrunnbeløp(
+                    gammeltGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj(
+                        dato = 1.mai(2019),
+                        grunnbeløp = 99858,
+                    ),
+                    nyttGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj(
+                        dato = 1.mai(2020),
+                        grunnbeløp = 101351,
+                    ),
+                ),
+            )
+        }
     }
 
     @Test
@@ -271,6 +373,66 @@ internal class BeregningMedVirkningstidspunktTest {
             it.filterIsInstance<Merknad.ØktYtelse>() shouldHaveSize 0
             it.filterIsInstance<Merknad.RedusertYtelse>() shouldHaveSize 0
             it.filterIsInstance<Merknad.EndringUnderTiProsent>() shouldHaveSize 12
+            it.filterIsInstance<Merknad.EndringUnderTiProsent>()[11] shouldBe Merknad.EndringUnderTiProsent(
+                benyttetBeregning = Merknad.MerknadMånedsberegning(
+                    periode = Periode.create(
+                        fraOgMed = 1.desember(2020),
+                        tilOgMed = 31.desember(2020),
+                    ),
+                    sats = Sats.HØY,
+                    grunnbeløp = 101351,
+                    beløp = 10946,
+                    fradrag = listOf(
+                        Merknad.MerknadFradrag(
+                            periode = Periode.create(
+                                fraOgMed = 1.desember(2020),
+                                tilOgMed = 31.desember(2020),
+                            ),
+                            fradragstype = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 10000.0,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                    satsbeløp = Sats.HØY.månedsbeløp(1.desember(2020)),
+                    fribeløpForEps = 0.0,
+                ),
+                forkastetBeregning = Merknad.MerknadMånedsberegning(
+                    periode = Periode.create(
+                        fraOgMed = 1.desember(2020),
+                        tilOgMed = 31.desember(2020),
+                    ),
+                    sats = Sats.HØY,
+                    grunnbeløp = 101351,
+                    beløp = 10446,
+                    fradrag = listOf(
+                        Merknad.MerknadFradrag(
+                            periode = Periode.create(
+                                fraOgMed = 1.desember(2020),
+                                tilOgMed = 31.desember(2020),
+                            ),
+                            fradragstype = Fradragstype.ForventetInntekt,
+                            månedsbeløp = 10500.0,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                    satsbeløp = Sats.HØY.månedsbeløp(1.desember(2020)),
+                    fribeløpForEps = 0.0,
+                ),
+            )
+            it.filterIsInstance<Merknad.EndringGrunnbeløp>() shouldBe listOf(
+                Merknad.EndringGrunnbeløp(
+                    gammeltGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj(
+                        dato = 1.mai(2019),
+                        grunnbeløp = 99858,
+                    ),
+                    nyttGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj(
+                        dato = 1.mai(2020),
+                        grunnbeløp = 101351,
+                    ),
+                ),
+            )
         }
     }
 
@@ -355,7 +517,7 @@ internal class BeregningMedVirkningstidspunktTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            fradragStrategy = FradragStrategy.Enslig,
+            fradragStrategy = FradragStrategy.EpsOver67År,
             gjeldendeMånedsberegningFraTidligere = null,
         )
         beregning.getSumYtelse() shouldBe 250116
@@ -374,6 +536,43 @@ internal class BeregningMedVirkningstidspunktTest {
                 (oktober(2020) to (20946 to 0.0)),
                 (november(2020) to (20946 to 0.0)),
                 (desember(2020) to (20946 to 0.0)),
+            ),
+        )
+        beregning.getMerknader() shouldBe listOf(
+            Merknad.NyYtelse(
+                benyttetBeregning = Merknad.MerknadMånedsberegning(
+                    periode = Periode.create(
+                        fraOgMed = 1.januar(2020),
+                        tilOgMed = 31.januar(2020),
+                    ),
+                    sats = Sats.HØY,
+                    grunnbeløp = 99858,
+                    beløp = 20637,
+                    fradrag = listOf(
+                        Merknad.MerknadFradrag(
+                            periode = Periode.create(
+                                fraOgMed = 1.januar(2020),
+                                tilOgMed = 31.januar(2020),
+                            ),
+                            fradragstype = Fradragstype.ForventetInntekt,
+                            månedsbeløp = 0.0,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                    satsbeløp = Sats.HØY.månedsbeløp(1.januar(2020)),
+                    fribeløpForEps = 14674.916666666666,
+                ),
+            ),
+            Merknad.EndringGrunnbeløp(
+                gammeltGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj(
+                    dato = 1.mai(2019),
+                    grunnbeløp = 99858,
+                ),
+                nyttGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj(
+                    dato = 1.mai(2020),
+                    grunnbeløp = 101351,
+                ),
             ),
         )
     }
@@ -974,7 +1173,7 @@ internal class BeregningMedVirkningstidspunktTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            fradragStrategy = FradragStrategy.Enslig,
+            fradragStrategy = FradragStrategy.EpsOver67År,
             gjeldendeMånedsberegningFraTidligere = null,
         )
 
@@ -994,6 +1193,91 @@ internal class BeregningMedVirkningstidspunktTest {
                 (oktober(2020) to (15946 to 5000.0)),
                 (november(2020) to (15946 to 5000.0)),
                 (desember(2020) to (15946 to 5000.0)),
+            ),
+        )
+        beregning.getMerknader() shouldBe listOf(
+            Merknad.NyYtelse(
+                benyttetBeregning = Merknad.MerknadMånedsberegning(
+                    periode = Periode.create(
+                        fraOgMed = 1.januar(2020),
+                        tilOgMed = 31.januar(2020),
+                    ),
+                    sats = Sats.HØY,
+                    grunnbeløp = 99858,
+                    beløp = 20637,
+                    fradrag = listOf(
+                        Merknad.MerknadFradrag(
+                            periode = Periode.create(
+                                fraOgMed = 1.januar(2020),
+                                tilOgMed = 31.januar(2020),
+                            ),
+                            fradragstype = Fradragstype.ForventetInntekt,
+                            månedsbeløp = 0.0,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                    satsbeløp = Sats.HØY.månedsbeløp(1.januar(2020)),
+                    fribeløpForEps = 14674.916666666666,
+                ),
+            ),
+            Merknad.EndringGrunnbeløp(
+                gammeltGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj(
+                    dato = 1.mai(2019),
+                    grunnbeløp = 99858,
+                ),
+                nyttGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj(
+                    dato = 1.mai(2020),
+                    grunnbeløp = 101351,
+                ),
+            ),
+            Merknad.RedusertYtelse(
+                benyttetBeregning = Merknad.MerknadMånedsberegning(
+                    periode = Periode.create(
+                        fraOgMed = 1.juli(2020),
+                        tilOgMed = 31.juli(2020),
+                    ),
+                    sats = Sats.HØY,
+                    grunnbeløp = 101351,
+                    beløp = 20946,
+                    fradrag = listOf(
+                        Merknad.MerknadFradrag(
+                            periode = Periode.create(
+                                fraOgMed = 1.juli(2020),
+                                tilOgMed = 31.juli(2020),
+                            ),
+                            fradragstype = Fradragstype.ForventetInntekt,
+                            månedsbeløp = 0.0,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                    satsbeløp = Sats.HØY.månedsbeløp(1.juli(2020)),
+                    fribeløpForEps = 14810.333333333334,
+                ),
+                forkastetBeregning = Merknad.MerknadMånedsberegning(
+                    periode = Periode.create(
+                        fraOgMed = 1.juli(2020),
+                        tilOgMed = 31.juli(2020),
+                    ),
+                    sats = Sats.HØY,
+                    grunnbeløp = 101351,
+                    beløp = 15946,
+                    fradrag = listOf(
+                        Merknad.MerknadFradrag(
+                            periode = Periode.create(
+                                fraOgMed = 1.juli(2020),
+                                tilOgMed = 31.juli(2020),
+                            ),
+                            fradragstype = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 5000.0,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                    satsbeløp = Sats.HØY.månedsbeløp(1.juli(2020)),
+                    fribeløpForEps = 14810.333333333334,
+                ),
             ),
         )
     }
@@ -1052,6 +1336,139 @@ internal class BeregningMedVirkningstidspunktTest {
             it.filterIsInstance<Merknad.RedusertYtelse>() shouldHaveSize 1
             it.filterIsInstance<Merknad.EndringUnderTiProsent>() shouldHaveSize 0
         }
+        beregning.getMerknader() shouldBe listOf(
+            Merknad.NyYtelse(
+                benyttetBeregning = Merknad.MerknadMånedsberegning(
+                    periode = Periode.create(
+                        fraOgMed = 1.januar(2020),
+                        tilOgMed = 31.januar(2020),
+                    ),
+                    sats = Sats.HØY,
+                    grunnbeløp = 99858,
+                    beløp = 20637,
+                    fradrag = listOf(
+                        Merknad.MerknadFradrag(
+                            periode = Periode.create(
+                                fraOgMed = 1.januar(2020),
+                                tilOgMed = 31.januar(2020),
+                            ),
+                            fradragstype = Fradragstype.ForventetInntekt,
+                            månedsbeløp = 0.0,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                    satsbeløp = Sats.HØY.månedsbeløp(1.januar(2020)),
+                    fribeløpForEps = 0.0,
+                ),
+            ),
+            Merknad.RedusertYtelse(
+                benyttetBeregning = Merknad.MerknadMånedsberegning(
+                    periode = Periode.create(
+                        fraOgMed = 1.februar(2020),
+                        tilOgMed = 29.februar(2020),
+                    ),
+                    sats = Sats.HØY,
+                    grunnbeløp = 99858,
+                    beløp = 20637,
+                    fradrag = listOf(
+                        Merknad.MerknadFradrag(
+                            periode = Periode.create(
+                                fraOgMed = 1.februar(2020),
+                                tilOgMed = 29.februar(2020),
+                            ),
+                            fradragstype = Fradragstype.ForventetInntekt,
+                            månedsbeløp = 0.0,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                    satsbeløp = Sats.HØY.månedsbeløp(1.februar(2020)),
+                    fribeløpForEps = 0.0,
+                ),
+                forkastetBeregning = Merknad.MerknadMånedsberegning(
+                    periode = Periode.create(
+                        fraOgMed = 1.februar(2020),
+                        tilOgMed = 29.februar(2020),
+                    ),
+                    sats = Sats.HØY,
+                    grunnbeløp = 99858,
+                    beløp = 10637,
+                    fradrag = listOf(
+                        Merknad.MerknadFradrag(
+                            periode = Periode.create(
+                                fraOgMed = 1.februar(2020),
+                                tilOgMed = 29.februar(2020),
+                            ),
+                            fradragstype = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 10000.0,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                    satsbeløp = Sats.HØY.månedsbeløp(1.februar(2020)),
+                    fribeløpForEps = 0.0,
+                ),
+            ),
+            Merknad.EndringGrunnbeløp(
+                gammeltGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj(
+                    dato = 1.mai(2019),
+                    grunnbeløp = 99858,
+                ),
+                nyttGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj(
+                    dato = 1.mai(2020),
+                    grunnbeløp = 101351,
+                ),
+            ),
+            Merknad.ØktYtelse(
+                benyttetBeregning = Merknad.MerknadMånedsberegning(
+                    periode = Periode.create(
+                        fraOgMed = 1.juni(2020),
+                        tilOgMed = 30.juni(2020),
+                    ),
+                    sats = Sats.HØY,
+                    grunnbeløp = 101351,
+                    beløp = 15946,
+                    fradrag = listOf(
+                        Merknad.MerknadFradrag(
+                            periode = Periode.create(
+                                fraOgMed = 1.juni(2020),
+                                tilOgMed = 30.juni(2020),
+                            ),
+                            fradragstype = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 5000.0,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                    satsbeløp = Sats.HØY.månedsbeløp(1.juni(2020)),
+                    fribeløpForEps = 0.0,
+                ),
+                forkastetBeregning = Merknad.MerknadMånedsberegning(
+                    periode = Periode.create(
+                        fraOgMed = 1.juni(2020),
+                        tilOgMed = 30.juni(2020),
+                    ),
+                    sats = Sats.HØY,
+                    grunnbeløp = 101351,
+                    beløp = 10946,
+                    fradrag = listOf(
+                        Merknad.MerknadFradrag(
+                            periode = Periode.create(
+                                fraOgMed = 1.juni(2020),
+                                tilOgMed = 30.juni(2020),
+                            ),
+                            fradragstype = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 10000.0,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                    satsbeløp = Sats.HØY.månedsbeløp(1.juni(2020)),
+                    fribeløpForEps = 0.0,
+                ),
+            ),
+        )
     }
 
     @Test
