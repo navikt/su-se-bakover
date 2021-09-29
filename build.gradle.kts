@@ -101,6 +101,12 @@ allprojects {
                     require("2.2.3")
                 }
             }
+            implementation("io.netty:netty-codec") {
+                because("io.ktor:ktor-server-netty@1.6.3 -> https://app.snyk.io/vuln/SNYK-JAVA-IONETTY-1584063 and https://app.snyk.io/vuln/SNYK-JAVA-IONETTY-1584064")
+                version {
+                    require("4.1.68.Final")
+                }
+            }
         }
     }
 
