@@ -32,17 +32,6 @@ internal class SøknadsbehandlingTest_Søknadstype {
     }
 
     @Test
-    fun `eksisterende åpen og eksisterende innvilget samme som parameter - exception`() {
-        shouldThrow<RuntimeException> {
-            val underBehandling = søknadsbehandlingIverksattInnvilget().second
-            listOf(
-                søknadsbehandlingSimulert().second,
-                underBehandling,
-            ).hentSøknadstypeFor(underBehandling.id)
-        }
-    }
-
-    @Test
     fun `ny åpen - førstegang`() {
         listOf<Søknadsbehandling>().hentSøknadstypeFor(UUID.randomUUID()) shouldBe Søknadstype.FØRSTEGANGSSØKNAD
     }
@@ -82,6 +71,34 @@ internal class SøknadsbehandlingTest_Søknadstype {
     fun `eksisterende innvilget og eksisterende innvilget samme som parameter - førstegang`() {
         val underBehandling = søknadsbehandlingIverksattInnvilget().second
         listOf<Søknadsbehandling>(
+            søknadsbehandlingIverksattInnvilget().second,
+            underBehandling,
+        ).hentSøknadstypeFor(underBehandling.id) shouldBe Søknadstype.NY_PERIODE
+    }
+
+    @Test
+    fun `eksisterende åpen og eksisterende innvilget samme som parameter - førstegang`() {
+        val underBehandling = søknadsbehandlingIverksattInnvilget().second
+        listOf(
+            søknadsbehandlingSimulert().second,
+            underBehandling,
+        ).hentSøknadstypeFor(underBehandling.id) shouldBe Søknadstype.FØRSTEGANGSSØKNAD
+    }
+
+    @Test
+    fun `åpen behandling og senere eksisterende innvilget og eksisterende innvilget samme som parameter - førstegang`() {
+        val underBehandling = søknadsbehandlingIverksattInnvilget().second
+        listOf(
+            søknadsbehandlingSimulert().second,
+            underBehandling,
+            søknadsbehandlingIverksattInnvilget().second,
+        ).hentSøknadstypeFor(underBehandling.id) shouldBe Søknadstype.FØRSTEGANGSSØKNAD
+    }
+
+    @Test
+    fun `eksisterende innvilget og senere eksisterende innvilget samme som parameter - ny periode`() {
+        val underBehandling = søknadsbehandlingIverksattInnvilget().second
+        listOf(
             søknadsbehandlingIverksattInnvilget().second,
             underBehandling,
         ).hentSøknadstypeFor(underBehandling.id) shouldBe Søknadstype.NY_PERIODE

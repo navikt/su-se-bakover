@@ -15,6 +15,9 @@ import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadstype
+import no.nav.su.se.bakover.domain.søknadsbehandling.hentSøknadstypeFor
+import no.nav.su.se.bakover.domain.søknadsbehandling.hentSøknadstypeUtenBehandling
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -95,6 +98,14 @@ data class Sak(
 
     fun harÅpenRevurderingForGjenopptakAvYtelse(): Boolean {
         return revurderinger.filterIsInstance<GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse>().isNotEmpty()
+    }
+
+    fun hentSøknadstypeUtenBehandling(): Søknadstype {
+        return this.søknadsbehandlinger.hentSøknadstypeUtenBehandling()
+    }
+
+    fun hentSøknadstypeFor(behandlingId: UUID): Søknadstype {
+        return this.søknadsbehandlinger.hentSøknadstypeFor(behandlingId)
     }
 }
 
