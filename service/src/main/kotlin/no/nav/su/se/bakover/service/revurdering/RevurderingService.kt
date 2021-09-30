@@ -389,6 +389,8 @@ sealed class KunneIkkeIverksetteStansYtelse {
         val målTilstand: KClass<out StansAvYtelseRevurdering.IverksattStansAvYtelse> =
             StansAvYtelseRevurdering.IverksattStansAvYtelse::class
     }
+
+    object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteStansYtelse()
 }
 
 sealed class GjenopptaYtelseRequest {

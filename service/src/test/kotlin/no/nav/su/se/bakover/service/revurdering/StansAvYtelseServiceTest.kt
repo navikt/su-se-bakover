@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
@@ -28,6 +29,7 @@ import no.nav.su.se.bakover.test.periodeMars2021
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import org.junit.jupiter.api.Test
@@ -377,6 +379,36 @@ class StansAvYtelseServiceTest {
             )
             verify(it.revurderingRepo).hent(eksisterende.id)
             verify(it.revurderingRepo).lagre(response)
+            it.verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `får ikke iverksatt dersom simulering indikerer feilutbetaling`() {
+        val periode = Periode.create(
+            fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
+            tilOgMed = periode2021.tilOgMed,
+        )
+        val eksisterende = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            periode = periode,
+            simulering = simuleringFeilutbetaling(*periode.tilMånedsperioder().toTypedArray()),
+        ).second
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn eksisterende
+        }
+
+        RevurderingServiceMocks(
+            revurderingRepo = revurderingRepoMock,
+        ).let {
+            val response = it.revurderingService.iverksettStansAvYtelse(
+                revurderingId = eksisterende.id,
+                attestant = attestant,
+            )
+
+            response shouldBe KunneIkkeIverksetteStansYtelse.SimuleringIndikererFeilutbetaling.left()
+
+            verify(it.revurderingRepo).hent(eksisterende.id)
             it.verifyNoMoreInteractions()
         }
     }

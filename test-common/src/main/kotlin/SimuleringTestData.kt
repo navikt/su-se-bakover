@@ -118,9 +118,40 @@ fun simulering(
     periodeList = simulertePerioder,
 )
 
+fun simuleringFeilutbetaling(
+    vararg perioder: Periode,
+    simulertePerioder: List<SimulertPeriode> = perioder.map { simulertPeriodeFeilutbetaling(it) },
+): Simulering {
+    return Simulering(
+        gjelderId = fnr,
+        gjelderNavn = "navn",
+        datoBeregnet = LocalDate.now(),
+        nettoBeløp = simulertePerioder.sumOf { it.bruttoYtelse() },
+        periodeList = simulertePerioder,
+    )
+}
+
 fun simulertPeriode(
     periode: Periode,
     simulerteUtbetalinger: List<SimulertUtbetaling> = listOf(simulertUtbetaling(periode)),
+): SimulertPeriode = SimulertPeriode(
+    fraOgMed = periode.fraOgMed,
+    tilOgMed = periode.tilOgMed,
+    utbetaling = simulerteUtbetalinger,
+)
+
+fun simulertPeriodeFeilutbetaling(
+    periode: Periode,
+    simulerteUtbetalinger: List<SimulertUtbetaling> = listOf(
+        simulertUtbetaling(
+            periode = periode,
+            simulertDetaljer = listOf(
+                simulertDetaljFeilutbetaling(periode, 15000),
+                simulertDetaljTilbakeføring(periode, 15000),
+                simulertDetaljOrdinær(periode, 7000),
+            ),
+        ),
+    ),
 ): SimulertPeriode = SimulertPeriode(
     fraOgMed = periode.fraOgMed,
     tilOgMed = periode.tilOgMed,

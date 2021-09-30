@@ -101,10 +101,10 @@ internal class StansAvYtelseService(
             is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
                 val iverksattRevurdering = revurdering.iverksett(
                     Attestering.Iverksatt(
-                        attestant,
-                        Tidspunkt.now(clock),
+                        attestant = attestant,
+                        opprettet = Tidspunkt.now(clock),
                     ),
-                )
+                ).getOrHandle { return KunneIkkeIverksetteStansYtelse.SimuleringIndikererFeilutbetaling.left() }
 
                 val stansUtbetaling = utbetalingService.stansUtbetalinger(
                     sakId = iverksattRevurdering.sakId,

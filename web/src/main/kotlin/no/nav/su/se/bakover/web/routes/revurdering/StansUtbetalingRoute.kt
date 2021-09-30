@@ -169,6 +169,10 @@ private fun KunneIkkeIverksetteStansYtelse.tilResultat(): Resultat {
             "Kan ikke iverksette stans av utbetalinger for revurdering av type: ${this.faktiskTilstand}, eneste gyldige tilstand er ${this.målTilstand}",
             "kunne_ikke_iverksette_stans_ugyldig_tilstand",
         )
+        KunneIkkeIverksetteStansYtelse.SimuleringIndikererFeilutbetaling -> HttpStatusCode.BadRequest.errorJson(
+            "Iverksetting av stans vil føre til feilutbetaling",
+            "kunne_ikke_iverksette_stans_fører_til_feilutbetaling",
+        )
     }
 }
 

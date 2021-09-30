@@ -84,7 +84,10 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
         val revurderingsårsak: Revurderingsårsak,
     ) : StansAvYtelseRevurdering() {
 
-        fun iverksett(attestering: Attestering): IverksattStansAvYtelse {
+        fun iverksett(attestering: Attestering): Either<KunneIkkeIverksetteStansAvYtelse, IverksattStansAvYtelse> {
+            if (simulering.harFeilutbetalinger()) {
+                return KunneIkkeIverksetteStansAvYtelse.SimuleringIndikererFeilutbetaling.left()
+            }
             return IverksattStansAvYtelse(
                 id = id,
                 opprettet = opprettet,
@@ -96,8 +99,12 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
                 simulering = simulering,
                 attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attestering),
                 revurderingsårsak = revurderingsårsak,
-            )
+            ).right()
         }
+    }
+
+    sealed class KunneIkkeIverksetteStansAvYtelse {
+        object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteStansAvYtelse()
     }
 
     data class IverksattStansAvYtelse(
