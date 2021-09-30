@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.mai
@@ -15,6 +16,8 @@ import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
 import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -24,6 +27,7 @@ import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.oversendtStansUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.periodeMars2021
 import no.nav.su.se.bakover.test.revurderingId
@@ -243,6 +247,68 @@ class StansAvYtelseServiceTest {
                 attestant = NavIdentBruker.Attestant(simulertStans.saksbehandler.navIdent),
                 simulering = simulertStans.simulering,
                 stansDato = simulertStans.periode.fraOgMed,
+            )
+            it.verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `happy path for iverksettelse`() {
+        val periode = Periode.create(
+            fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
+            tilOgMed = periode2021.tilOgMed,
+        )
+        val simulertStans = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            periode = periode,
+        ).second
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn simulertStans
+        }
+
+        val utbetaling = oversendtStansUtbetalingUtenKvittering(
+            stansDato = periode.fraOgMed,
+        )
+
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on {
+                stansUtbetalinger(
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            } doReturn utbetaling.right()
+        }
+
+        RevurderingServiceMocks(
+            revurderingRepo = revurderingRepoMock,
+            utbetalingService = utbetalingServiceMock,
+        ).let {
+            val response = it.revurderingService.iverksettStansAvYtelse(
+                revurderingId = revurderingId,
+                attestant = NavIdentBruker.Attestant(simulertStans.saksbehandler.navIdent),
+            ).getOrFail("Feil med oppsett av testdata")
+
+            verify(it.revurderingRepo).hent(simulertStans.id)
+            verify(it.utbetalingService).stansUtbetalinger(
+                sakId = simulertStans.sakId,
+                attestant = NavIdentBruker.Attestant(simulertStans.saksbehandler.navIdent),
+                simulering = simulertStans.simulering,
+                stansDato = simulertStans.periode.fraOgMed,
+            )
+            verify(it.revurderingRepo).lagre(response)
+            verify(it.vedtakService).lagre(
+                argThat { vedtak ->
+                    vedtak.shouldBeEqualToIgnoringFields(
+                        Vedtak.from(
+                            revurdering = response,
+                            utbetalingId = utbetaling.id,
+                            clock = fixedClock,
+                        ),
+                        Vedtak::id,
+                    )
+                },
             )
             it.verifyNoMoreInteractions()
         }

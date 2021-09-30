@@ -82,9 +82,8 @@ internal class RevurderingServiceImpl(
     private val stansAvYtelseService = StansAvYtelseService(
         utbetalingService = utbetalingService,
         revurderingRepo = revurderingRepo,
-        clock = clock,
-        vedtakRepo = vedtakRepo,
         vedtakService = vedtakService,
+        clock = clock,
     )
 
     private val gjenopptakAvYtelseService = GjenopptakAvYtelseService(

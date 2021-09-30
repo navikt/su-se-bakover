@@ -7,7 +7,6 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
-import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
@@ -21,9 +20,8 @@ import java.util.UUID
 internal class StansAvYtelseService(
     private val utbetalingService: UtbetalingService,
     private val revurderingRepo: RevurderingRepo,
-    private val clock: Clock,
-    private val vedtakRepo: VedtakRepo,
     private val vedtakService: VedtakService,
+    private val clock: Clock,
 ) {
     fun stansAvYtelse(
         request: StansYtelseRequest,
@@ -116,7 +114,7 @@ internal class StansAvYtelseService(
                 val vedtak = Vedtak.from(iverksattRevurdering, stansUtbetaling.id, clock)
 
                 revurderingRepo.lagre(iverksattRevurdering)
-                vedtakRepo.lagre(vedtak)
+                vedtakService.lagre(vedtak)
 
                 return iverksattRevurdering.right()
             }
