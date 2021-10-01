@@ -9,9 +9,11 @@ import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import java.time.Clock
@@ -21,38 +23,24 @@ internal class StansAvYtelseService(
     private val utbetalingService: UtbetalingService,
     private val revurderingRepo: RevurderingRepo,
     private val vedtakService: VedtakService,
+    private val sakService: SakService,
     private val clock: Clock,
 ) {
     fun stansAvYtelse(
         request: StansYtelseRequest,
     ): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
 
-        val gjeldendeVedtaksdata: GjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
-            sakId = request.sakId,
-            fraOgMed = request.fraOgMed,
-        ).getOrHandle {
-            log.error("Kunne ikke opprette revurdering for stans av ytelse, årsak: $it")
-            return KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering.left()
-        }.also {
-            if (!it.tidslinjeForVedtakErSammenhengende()) {
-                log.error("Kunne ikke opprette revurdering for stans av ytelse, årsak: tidslinje er ikke sammenhengende.")
-                return KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering.left()
-            }
-        }
-
-        val simulering = utbetalingService.simulerStans(
-            sakId = request.sakId,
-            saksbehandler = request.saksbehandler,
-            stansDato = request.fraOgMed,
-        ).getOrHandle {
-            log.warn("Kunne ikke opprette revurdering for stans av ytelse, årsak: $it")
-            return KunneIkkeStanseYtelse.SimuleringAvStansFeilet(it).left()
-        }
-
         val simulertRevurdering = when (request) {
             is StansYtelseRequest.Oppdater -> {
                 val eksisterende = revurderingRepo.hent(request.revurderingId)
                     ?: return KunneIkkeStanseYtelse.FantIkkeRevurdering.left()
+
+                val gjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(request)
+                    .getOrHandle { return it.left() }
+
+                val simulering = simuler(request)
+                    .getOrHandle { return it.left() }
+
                 when (eksisterende) {
                     is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
                         eksisterende.copy(
@@ -69,6 +57,17 @@ internal class StansAvYtelseService(
                 }
             }
             is StansYtelseRequest.Opprett -> {
+                if (sakService.hentSak(request.sakId)
+                    .getOrHandle { return KunneIkkeStanseYtelse.FantIkkeSak.left() }
+                    .harÅpenRevurderingForStansAvYtelse()
+                ) return KunneIkkeStanseYtelse.SakHarÅpenRevurderingForStansAvYtelse.left()
+
+                val gjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(request)
+                    .getOrHandle { return it.left() }
+
+                val simulering = simuler(request)
+                    .getOrHandle { return it.left() }
+
                 StansAvYtelseRevurdering.SimulertStansAvYtelse(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(clock),
@@ -122,5 +121,31 @@ internal class StansAvYtelseService(
                 faktiskTilstand = revurdering::class,
             ).left()
         }
+    }
+
+    private fun kopierGjeldendeVedtaksdata(request: StansYtelseRequest): Either<KunneIkkeStanseYtelse, GjeldendeVedtaksdata> {
+        return vedtakService.kopierGjeldendeVedtaksdata(
+            sakId = request.sakId,
+            fraOgMed = request.fraOgMed,
+        ).getOrHandle {
+            log.error("Kunne ikke opprette revurdering for stans av ytelse, årsak: $it")
+            return KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering.left()
+        }.also {
+            if (!it.tidslinjeForVedtakErSammenhengende()) {
+                log.error("Kunne ikke opprette revurdering for stans av ytelse, årsak: tidslinje er ikke sammenhengende.")
+                return KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering.left()
+            }
+        }.right()
+    }
+
+    private fun simuler(request: StansYtelseRequest): Either<KunneIkkeStanseYtelse, Utbetaling.SimulertUtbetaling> {
+        return utbetalingService.simulerStans(
+            sakId = request.sakId,
+            saksbehandler = request.saksbehandler,
+            stansDato = request.fraOgMed,
+        ).getOrHandle {
+            log.warn("Kunne ikke opprette revurdering for stans av ytelse, årsak: $it")
+            return KunneIkkeStanseYtelse.SimuleringAvStansFeilet(it).left()
+        }.right()
     }
 }

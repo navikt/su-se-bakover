@@ -375,6 +375,8 @@ sealed class StansYtelseRequest {
 
 sealed class KunneIkkeStanseYtelse {
     object FantIkkeRevurdering : KunneIkkeStanseYtelse()
+    object FantIkkeSak : KunneIkkeStanseYtelse()
+    object SakHarÅpenRevurderingForStansAvYtelse : KunneIkkeStanseYtelse()
     data class SimuleringAvStansFeilet(val feil: SimulerStansFeilet) : KunneIkkeStanseYtelse()
     object KunneIkkeOppretteRevurdering : KunneIkkeStanseYtelse()
     data class UgyldigTypeForOppdatering(val type: KClass<out AbstraktRevurdering>) : KunneIkkeStanseYtelse()
