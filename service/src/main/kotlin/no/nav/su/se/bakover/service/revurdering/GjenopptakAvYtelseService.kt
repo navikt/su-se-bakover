@@ -122,7 +122,7 @@ class GjenopptakAvYtelseService(
                         attestant,
                         Tidspunkt.now(clock),
                     ),
-                )
+                ).getOrHandle { return KunneIkkeIverksetteGjenopptakAvYtelse.SimuleringIndikererFeilutbetaling.left() }
 
                 val stansUtbetaling = utbetalingService.gjenopptaUtbetalinger(
                     sakId = iverksattRevurdering.sakId,

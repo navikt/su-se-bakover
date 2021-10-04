@@ -434,6 +434,8 @@ sealed class KunneIkkeIverksetteGjenopptakAvYtelse {
         val målTilstand: KClass<out GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse> =
             GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse::class
     }
+
+    object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteGjenopptakAvYtelse()
 }
 
 data class LeggTilBosituasjongrunnlagRequest(

@@ -1496,6 +1496,7 @@ internal class RevurderingJsonTest {
         JSONAssert.assertEquals(simulertRevurderingJson, serialize(simulertRevurdering.toJson()), true)
 
         val iverksattRevurdering = simulertRevurdering.iverksett(attesteringIverksatt)
+            .getOrFail("Feil i oppsett av testdata")
 
         val iverksattRevurderingJson =
             //language=JSON

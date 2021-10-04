@@ -135,7 +135,10 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
         val revurderingsårsak: Revurderingsårsak,
     ) : GjenopptaYtelseRevurdering() {
 
-        fun iverksett(attestering: Attestering): IverksattGjenopptakAvYtelse {
+        fun iverksett(attestering: Attestering): Either<KunneIkkeIverksetteGjenopptakAvYtelse, IverksattGjenopptakAvYtelse> {
+            if (simulering.harFeilutbetalinger()) {
+                return KunneIkkeIverksetteGjenopptakAvYtelse.SimuleringIndikererFeilutbetaling.left()
+            }
             return IverksattGjenopptakAvYtelse(
                 id = id,
                 opprettet = opprettet,
@@ -147,8 +150,12 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
                 simulering = simulering,
                 attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attestering),
                 revurderingsårsak = revurderingsårsak,
-            )
+            ).right()
         }
+    }
+
+    sealed class KunneIkkeIverksetteGjenopptakAvYtelse {
+        object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteGjenopptakAvYtelse()
     }
 
     data class IverksattGjenopptakAvYtelse(

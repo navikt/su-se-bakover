@@ -308,7 +308,8 @@ internal class VedtakPostgresRepoTest {
 
             val iverksattRevurdering = simulertRevurdering.iverksett(
                 Attestering.Iverksatt(NavIdentBruker.Attestant("atte"), fixedTidspunkt),
-            )
+            ).getOrFail("Feil i oppsett av testdata")
+
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
             val utbetaling = testDataHelper.nyOversendtUtbetalingMedKvittering().second

@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertGjenopptakUtbetaling
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
@@ -433,6 +434,35 @@ class GjenopptakAvYtelseServiceTest {
             )
             verify(it.revurderingRepo).hent(eksisterende.second.id)
             verify(it.revurderingRepo).lagre(response)
+            it.verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `får ikke iverksatt dersom simulering indikerer feilutbetaling`() {
+        val periode = Periode.create(
+            fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
+            tilOgMed = periode2021.tilOgMed,
+        )
+        val eksisterende = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
+            simulering = simuleringFeilutbetaling(*periode.tilMånedsperioder().toTypedArray()),
+        ).second
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn eksisterende
+        }
+
+        RevurderingServiceMocks(
+            revurderingRepo = revurderingRepoMock,
+        ).let {
+            val response = it.revurderingService.iverksettGjenopptakAvYtelse(
+                revurderingId = eksisterende.id,
+                attestant = attestant,
+            )
+
+            response shouldBe KunneIkkeIverksetteGjenopptakAvYtelse.SimuleringIndikererFeilutbetaling.left()
+
+            verify(it.revurderingRepo).hent(eksisterende.id)
             it.verifyNoMoreInteractions()
         }
     }
