@@ -27,7 +27,7 @@ allprojects {
     }
     val junitJupiterVersion = "5.8.1"
     val kotestVersion = "4.6.3"
-    val jacksonVersion = "2.12.5"
+    val jacksonVersion = "2.13.0"
     val kotlinVersion: String by this
     dependencies {
         api(kotlin("stdlib-jdk8"))
