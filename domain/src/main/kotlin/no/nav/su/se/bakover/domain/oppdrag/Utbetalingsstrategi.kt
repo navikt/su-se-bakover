@@ -75,11 +75,8 @@ sealed class Utbetalingsstrategi {
                 !harOversendteUtbetalingerEtter(stansDato) -> {
                     return Feil.IngenUtbetalingerEtterStansDato.left()
                 }
-                !stansDato.erFørsteDagIMåned() -> {
-                    return Feil.StansDatoErIkkeFørsteINesteMåned.left()
-                }
-                LocalDate.now(clock).plusMonths(1).startOfMonth() != stansDato.startOfMonth() -> {
-                    return Feil.StansDatoErIkkeFørsteINesteMåned.left()
+                !(LocalDate.now(clock).startOfMonth() == stansDato || LocalDate.now(clock).plusMonths(1).startOfMonth() == stansDato) -> {
+                    return Feil.StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned.left()
                 }
                 sisteOversendteUtbetalingslinje is Utbetalingslinje.Endring.Stans -> {
                     return Feil.SisteUtbetalingErEnStans.left()
@@ -115,7 +112,7 @@ sealed class Utbetalingsstrategi {
 
         sealed class Feil {
             object IngenUtbetalingerEtterStansDato : Feil()
-            object StansDatoErIkkeFørsteINesteMåned : Feil()
+            object StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned : Feil()
             object SisteUtbetalingErEnStans : Feil()
             object SisteUtbetalingErOpphør : Feil()
             object KanIkkeStanseOpphørtePerioder : Feil()
