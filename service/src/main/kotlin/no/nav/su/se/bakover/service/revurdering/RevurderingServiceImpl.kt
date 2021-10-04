@@ -95,6 +95,7 @@ internal class RevurderingServiceImpl(
         clock = clock,
         vedtakRepo = vedtakRepo,
         vedtakService = vedtakService,
+        sakService = sakService,
     )
 
     private val observers: MutableList<EventObserver> = mutableListOf()

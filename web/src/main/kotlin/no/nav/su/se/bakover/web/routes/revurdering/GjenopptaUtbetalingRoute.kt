@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
@@ -152,6 +153,13 @@ private fun KunneIkkeGjenopptaYtelse.tilResultat(): Resultat {
             BadRequest.errorJson(
                 message = "Ugyldig tilstand for oppdatering: ${this.type}",
                 code = "ugyldig_tilstand_for_oppdatering",
+            )
+        }
+        KunneIkkeGjenopptaYtelse.FantIkkeSak -> fantIkkeSak
+        KunneIkkeGjenopptaYtelse.SakHarÅpenRevurderingForGjenopptakAvYtelse -> {
+            HttpStatusCode.BadRequest.errorJson(
+                message = "Åpen revurdering for gjenopptak eksisterer allerede",
+                code = "åpen_revurdering_gjenopptak_eksisterer",
             )
         }
     }

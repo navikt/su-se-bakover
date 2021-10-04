@@ -417,6 +417,8 @@ sealed class GjenopptaYtelseRequest {
 sealed class KunneIkkeGjenopptaYtelse {
     object FantIkkeRevurdering : KunneIkkeGjenopptaYtelse()
     object FantIngenVedtak : KunneIkkeGjenopptaYtelse()
+    object FantIkkeSak : KunneIkkeGjenopptaYtelse()
+    object SakHarÅpenRevurderingForGjenopptakAvYtelse : KunneIkkeGjenopptaYtelse()
     data class KunneIkkeSimulere(val feil: SimulerGjenopptakFeil) : KunneIkkeGjenopptaYtelse()
     object KunneIkkeOppretteRevurdering : KunneIkkeGjenopptaYtelse()
     data class UgyldigTypeForOppdatering(val type: KClass<out AbstraktRevurdering>) : KunneIkkeGjenopptaYtelse()
