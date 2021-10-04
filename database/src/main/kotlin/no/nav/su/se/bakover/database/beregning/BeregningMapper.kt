@@ -38,7 +38,7 @@ internal data class PersistertBeregning(
     override fun getBegrunnelse(): String? = begrunnelse
 
     @JsonIgnore // Unngå serialisering av merknader på toppnivå
-    override fun getMerknader(): List<Merknad> = månedsberegninger.flatMap { it.getMerknader() }
+    override fun merknader(): List<Merknad> = månedsberegninger.flatMap { it.getMerknader() }
 
     override fun equals(other: Any?) = (other as? Beregning)?.let { this.equals(other) } ?: false
 

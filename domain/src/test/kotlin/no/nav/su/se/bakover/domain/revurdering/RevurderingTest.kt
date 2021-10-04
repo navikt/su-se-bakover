@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -33,7 +34,10 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.grunnlagsdataOgVilkårsvurderingerForInnvilgetRevurderingUtenFradrag
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -74,40 +78,6 @@ internal class RevurderingTest {
             .let {
                 it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
                 (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.UFØRHET)
-            }
-    }
-
-    @Test
-    fun `beregning gir ikke opphør hvis vilkår er oppfylt`() {
-        val periode = Periode.create(1.januar(2021), 31.desember(2021))
-        lagRevurdering(
-            periode = periode,
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
-                    vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Uføre.create(
-                            id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(),
-                            resultat = Resultat.Innvilget,
-                            grunnlag = null,
-                            periode = periode,
-                            begrunnelse = null,
-                        ),
-                    ),
-                ),
-                formue = innvilgetFormueVilkår(periode),
-            ),
-            bosituasjon = listOf(
-                Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                    id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    periode = periode,
-                    begrunnelse = null,
-                ),
-            ),
-        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(20000, periode)))).orNull()!!
-            .let {
-                it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
             }
     }
 
@@ -207,69 +177,39 @@ internal class RevurderingTest {
 
     @Test
     fun `beregning med beløpsendring mindre enn 10 prosent fører ikke til endring`() {
-        val periode = Periode.create(1.januar(2021), 31.desember(2021))
-        lagRevurdering(
-            periode = periode,
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
-                    vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Uføre.create(
-                            id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(),
-                            resultat = Resultat.Innvilget,
-                            grunnlag = null,
-                            periode = periode,
-                            begrunnelse = null,
-                        ),
-                    ),
-                ),
-                formue = innvilgetFormueVilkår(periode),
-            ),
-            bosituasjon = listOf(
-                Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                    id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    periode = periode,
-                    begrunnelse = null,
+        val søknadsbehandling = vedtakSøknadsbehandlingIverksattInnvilget()
+        val (sak, revurdering) = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderingerForInnvilgetRevurderingUtenFradrag(
+                GrunnlagsdataOgVilkårsvurderinger(
+                    søknadsbehandling.second.behandling.grunnlagsdata,
+                    søknadsbehandling.second.behandling.vilkårsvurderinger,
                 ),
             ),
-        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(20000, periode)))).orNull()!!.let {
+        )
+
+        revurdering.beregn(eksisterendeUtbetalinger = sak.utbetalinger).orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
         }
     }
 
     @Test
     fun `beregning med beløpsendring mindre enn 10 prosent fører til endring - g regulering`() {
-        val periode = Periode.create(1.januar(2021), 31.desember(2021))
-        lagRevurdering(
-            periode = periode,
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
-                    vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Uføre.create(
-                            id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(),
-                            resultat = Resultat.Innvilget,
-                            grunnlag = null,
-                            periode = periode,
-                            begrunnelse = null,
-                        ),
-                    ),
-                ),
-                formue = innvilgetFormueVilkår(periode),
-            ),
-            bosituasjon = listOf(
-                Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                    id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    periode = periode,
-                    begrunnelse = null,
-                ),
-            ),
+        val (_, revurdering) = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
             revurderingsårsak = Revurderingsårsak.create(
                 årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.toString(), begrunnelse = "a",
             ),
-        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(20000, periode)))).orNull()!!.let {
+        )
+
+        revurdering.beregn(
+            eksisterendeUtbetalinger = listOf(
+                lagUtbetaling(
+                    lagUtbetalingslinje(
+                        20946,
+                        revurdering.periode,
+                    ),
+                ),
+            ),
+        ).orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.Innvilget>()
         }
     }

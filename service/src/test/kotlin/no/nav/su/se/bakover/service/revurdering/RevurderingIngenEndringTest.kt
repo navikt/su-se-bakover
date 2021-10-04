@@ -2,9 +2,7 @@ package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.getOrHandle
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
-import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
@@ -16,34 +14,24 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
-import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.person
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.saksbehandler
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.søknadOppgaveId
-import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.beregning.TestBeregningSomGirOpphør
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
-import no.nav.su.se.bakover.service.formueVilkår
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.createRevurderingService
@@ -56,8 +44,9 @@ import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.attesteringUnderkjent
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
@@ -69,79 +58,21 @@ import org.mockito.kotlin.doReturnConsecutively
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-import java.util.UUID
 
 class RevurderingIngenEndringTest {
 
     @Test
     fun `Revurderingen går ikke gjennom hvis endring av utbetaling er under ti prosent`() {
-        val uføregrunnlag = Grunnlag.Uføregrunnlag(
-            periode = periodeNesteMånedOgTreMånederFram,
-            uføregrad = Uføregrad.parse(20),
-            forventetInntekt = 12000,
-            opprettet = fixedTidspunkt,
-        )
-        val tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second
-        val opprettetRevurdering = OpprettetRevurdering(
-            id = revurderingId,
-            periode = periodeNesteMånedOgTreMånederFram,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            oppgaveId = søknadOppgaveId,
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.create(
-                bosituasjon = listOf(
-                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = periodeNesteMånedOgTreMånederFram,
-                        begrunnelse = null,
-                    ),
-                ),
-            ),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
-                    vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Uføre.create(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            resultat = Resultat.Innvilget,
-                            grunnlag = uføregrunnlag,
-                            periode = periodeNesteMånedOgTreMånederFram,
-                            begrunnelse = "ok2k",
-                        ),
-                    ),
-                ),
-                formue = formueVilkår(periodeNesteMånedOgTreMånederFram),
-            ),
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(
-                mapOf(
-                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
-                ),
-            ),
-        )
+        val (sak, revurdering) = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak()
 
         val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn opprettetRevurdering
-        }
-
-        val utbetalingMock = mock<Utbetaling> {
-            on { utbetalingslinjer } doReturn nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
-                    tilOgMed = periodeNesteMånedOgTreMånederFram.tilOgMed,
-                    forrigeUtbetalingslinjeId = null,
-                    beløp = 20000,
-                ),
-            )
+            on { hent(revurderingId) } doReturn revurdering
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { hentUtbetalinger(any()) } doReturn listOf(utbetalingMock)
+            on { hentUtbetalinger(any()) } doReturn sak.utbetalinger
         }
 
         val actual = createRevurderingService(
@@ -150,38 +81,16 @@ class RevurderingIngenEndringTest {
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-        ).orNull()!!.revurdering as BeregnetRevurdering.IngenEndring
-        actual.shouldBeEqualToIgnoringFields(
-            BeregnetRevurdering.IngenEndring(
-                id = revurderingId,
-                periode = periodeNesteMånedOgTreMånederFram,
-                opprettet = fixedTidspunkt,
-                tilRevurdering = tilRevurdering,
-                oppgaveId = søknadOppgaveId,
-                beregning = TestBeregning,
-                saksbehandler = saksbehandler,
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = null,
-                grunnlagsdata = opprettetRevurdering.grunnlagsdata,
-                vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
-                informasjonSomRevurderes = InformasjonSomRevurderes.create(
-                    mapOf(
-                        Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
-                    ),
-                ),
-                attesteringer = Attesteringshistorikk.empty(),
-            ),
-            // beregningstypen er internal i domene modulen
-            BeregnetRevurdering.IngenEndring::beregning,
-            BeregnetRevurdering::grunnlagsdata,
-        )
+        ).getOrFail("Feil i oppsett av testdata")
+
+        actual.revurdering shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
+        actual.feilmeldinger shouldBe emptyList()
 
         inOrder(
             revurderingRepoMock,
         ) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.revurdering })
         }
         verifyNoMoreInteractions(
             revurderingRepoMock,

@@ -16,6 +16,9 @@ data class VurderOmBeløpErForskjelligFraGjeldendeUtbetaling(
             utbetalingslinjer = eksisterendeUtbetalinger,
         )
         resultat = nyBeregning.getMånedsberegninger()
-            .any { it.getSumYtelse() != utbetalingstidslinje.gjeldendeForDato(it.periode.fraOgMed)?.beløp }
+            .any {
+                val gjeldendeUtbetaling = utbetalingstidslinje.gjeldendeForDato(it.periode.fraOgMed) ?: throw IllegalStateException("Kan ikke vurdere revurdering som mangler utbetaling")
+                it.getSumYtelse() != gjeldendeUtbetaling.beløp
+            }
     }
 }

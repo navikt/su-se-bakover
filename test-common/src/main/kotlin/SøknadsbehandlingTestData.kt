@@ -249,7 +249,7 @@ fun søknadsbehandlingTilAttesteringAvslagMedBeregning(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    beregning: Beregning = beregning(),
+    beregning: Beregning = beregningAvslag(stønadsperiode.periode),
 ): Pair<Sak, Søknadsbehandling.TilAttestering.Avslag.MedBeregning> {
     return søknadsbehandlingBeregnetAvslag(
         saksnummer = saksnummer,
@@ -309,6 +309,35 @@ fun søknadsbehandlingUnderkjentInnvilget(
     attestering: Attestering = attesteringUnderkjent,
 ): Pair<Sak, Søknadsbehandling.Underkjent.Innvilget> {
     return søknadsbehandlingTilAttesteringInnvilget(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+        behandlingsinformasjon = behandlingsinformasjon,
+        grunnlagsdata = grunnlagsdata,
+        vilkårsvurderinger = vilkårsvurderinger,
+        beregning = beregning,
+    ).let { (sak, søknadsbehandling) ->
+        val oppdatertSøknadsbehandling = søknadsbehandling.tilUnderkjent(
+            attestering = attestering,
+        )
+        Pair(
+            sak.copy(
+                søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
+            ),
+            oppdatertSøknadsbehandling,
+        )
+    }
+}
+
+fun søknadsbehandlingUnderkjentAvslag(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
+    grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    beregning: Beregning = beregningAvslag(stønadsperiode.periode),
+    attestering: Attestering = attesteringUnderkjent,
+): Pair<Sak, Søknadsbehandling.Underkjent.Avslag> {
+    return søknadsbehandlingTilAttesteringAvslagMedBeregning(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
         behandlingsinformasjon = behandlingsinformasjon,

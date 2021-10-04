@@ -80,7 +80,7 @@ internal class SkalSendeBrevVisitorTest {
     fun `vedtak for revurdering uten endringer sender brev hvis det er valgt`() {
         val skalSendeBrev = Vedtak.from(
             revurdering = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
-                skalFøreTilBrevutsending = true,
+                skalFøreTilBrevutsending = true
             ).second,
             clock = fixedClock,
         )
@@ -96,7 +96,7 @@ internal class SkalSendeBrevVisitorTest {
     fun `vedtak for revurdering uten endringer sender ikke brev hvis det er valgt`() {
         val skalIkkeSendeBrev = Vedtak.from(
             revurdering = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
-                skalFøreTilBrevutsending = false,
+                skalFøreTilBrevutsending = false
             ).second,
             clock = fixedClock,
         )

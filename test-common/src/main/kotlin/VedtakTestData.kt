@@ -45,12 +45,11 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         vilkårsvurderinger = vilkårsvurderinger,
         beregning = beregning,
     ).let { (sak, søknadsbehandling) ->
-        val utbetaling = oversendtUtbetalingMedKvittering(
-            saksnummer = saksnummer,
-            sakId = sakId,
-            fnr = fnr,
-            id = utbetalingId,
+        val utbetaling = oversendtUtbetalingMedKvitteringFraBeregning(
             eksisterendeUtbetalinger = sak.utbetalinger,
+            beregning = beregning,
+        ).copy(
+            id = utbetalingId
         )
         val vedtak = Vedtak.fromSøknadsbehandling(
             søknadsbehandling = søknadsbehandling,
@@ -109,7 +108,7 @@ fun vedtakRevurderingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
     ),
-    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderingerForInnvilgetRevurdering(
+    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderingerForInnvilgetRevurderingMedFradrag(
         periode = stønadsperiode.periode,
         tilRevurdering = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
             revurderingsperiode,

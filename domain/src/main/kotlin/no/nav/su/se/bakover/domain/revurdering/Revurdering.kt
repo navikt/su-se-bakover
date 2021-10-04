@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
-import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
@@ -305,11 +304,15 @@ sealed class Revurdering :
             begrunnelse = null,
             månedsberegning = when (val r = tilRevurdering) {
                 is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> TODO()
-                is Vedtak.EndringIYtelse.InnvilgetRevurdering -> r.beregning.getMånedsberegninger().single { it.periode == Periode.create(periode.fraOgMed, periode.fraOgMed.endOfMonth()) }
-                is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling -> r.beregning.getMånedsberegninger().single { it.periode == Periode.create(periode.fraOgMed, periode.fraOgMed.endOfMonth()) }
-                is Vedtak.EndringIYtelse.OpphørtRevurdering -> r.beregning.getMånedsberegninger().single { it.periode == Periode.create(periode.fraOgMed, periode.fraOgMed.endOfMonth()) }
+                is Vedtak.EndringIYtelse.InnvilgetRevurdering -> r.beregning.getMånedsberegninger()
+                    .single { it.periode == Periode.create(periode.fraOgMed, periode.fraOgMed.endOfMonth()) }
+                is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling -> r.beregning.getMånedsberegninger()
+                    .single { it.periode == Periode.create(periode.fraOgMed, periode.fraOgMed.endOfMonth()) }
+                is Vedtak.EndringIYtelse.OpphørtRevurdering -> r.beregning.getMånedsberegninger()
+                    .single { it.periode == Periode.create(periode.fraOgMed, periode.fraOgMed.endOfMonth()) }
                 is Vedtak.EndringIYtelse.StansAvYtelse -> TODO()
-                is Vedtak.IngenEndringIYtelse -> r.beregning.getMånedsberegninger().single { it.periode == Periode.create(periode.fraOgMed, periode.fraOgMed.endOfMonth()) }
+                is Vedtak.IngenEndringIYtelse -> r.beregning.getMånedsberegninger()
+                    .single { it.periode == Periode.create(periode.fraOgMed, periode.fraOgMed.endOfMonth()) }
             },
         )
 
@@ -370,55 +373,28 @@ sealed class Revurdering :
             return opphør(revurdertBeregning).right()
         }
 
-        return when (revurderingsårsak.årsak) {
-            Revurderingsårsak.Årsak.REGULER_GRUNNBELØP -> {
+        return when (
+            VurderOmBeløpErForskjelligFraGjeldendeUtbetaling(
+                eksisterendeUtbetalinger = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer },
+                nyBeregning = revurdertBeregning,
+            ).resultat
+        ) {
+            true -> {
                 when (
-                    VurderOmBeløpErForskjelligFraGjeldendeUtbetaling(
-                        eksisterendeUtbetalinger = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer },
-                        nyBeregning = revurdertBeregning,
+                    VurderOmBeregningGirOpphørVedRevurdering(
+                        beregning = revurdertBeregning,
+                        clock = Clock.systemUTC(),
                     ).resultat
                 ) {
-                    true -> {
-                        when (
-                            VurderOmBeregningGirOpphørVedRevurdering(
-                                beregning = revurdertBeregning,
-                                clock = Clock.systemUTC(),
-                            ).resultat
-                        ) {
-                            is OpphørVedRevurdering.Ja -> {
-                                opphør(revurdertBeregning)
-                            }
-                            is OpphørVedRevurdering.Nei -> {
-                                innvilget(revurdertBeregning)
-                            }
-                        }
+                    is OpphørVedRevurdering.Ja -> {
+                        opphør(revurdertBeregning)
                     }
-                    false -> ingenEndring(revurdertBeregning)
+                    is OpphørVedRevurdering.Nei -> {
+                        innvilget(revurdertBeregning)
+                    }
                 }
             }
-            else -> {
-                when (
-                    revurdertBeregning.getMerknader().filterIsInstance<Merknad.ØktYtelse>().any() ||
-                        revurdertBeregning.getMerknader().filterIsInstance<Merknad.RedusertYtelse>().any()
-                ) {
-                    true -> {
-                        when (
-                            VurderOmBeregningGirOpphørVedRevurdering(
-                                beregning = revurdertBeregning,
-                                clock = Clock.systemUTC(),
-                            ).resultat
-                        ) {
-                            is OpphørVedRevurdering.Ja -> {
-                                opphør(revurdertBeregning)
-                            }
-                            is OpphørVedRevurdering.Nei -> {
-                                innvilget(revurdertBeregning)
-                            }
-                        }
-                    }
-                    false -> ingenEndring(revurdertBeregning)
-                }
-            }
+            false -> ingenEndring(revurdertBeregning)
         }.right()
     }
 

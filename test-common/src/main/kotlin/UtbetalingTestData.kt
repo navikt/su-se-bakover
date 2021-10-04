@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -23,11 +24,12 @@ val utbetalingsRequest = Utbetalingsrequest("<xml></<xml>")
 
 fun utbetalingslinje(
     periode: Periode = periode2021,
+    beløp: Int = 15000,
 ) = Utbetalingslinje.Ny(
     fraOgMed = periode.fraOgMed,
     tilOgMed = periode.tilOgMed,
     forrigeUtbetalingslinjeId = null,
-    beløp = 15000,
+    beløp = beløp,
 )
 
 @Suppress("unused")
@@ -86,6 +88,40 @@ fun oversendtUtbetalingUtenKvittering(
     utbetalingsrequest = utbetalingsRequest,
 )
 
+fun oversendtUtbetalingUtenKvitteringFraBeregning(
+    id: UUID30 = UUID30.randomUUID(),
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
+    type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
+    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    beregning: Beregning,
+): Utbetaling.OversendtUtbetaling.UtenKvittering {
+    val utbetalingslinjer = Utbetalingsstrategi.Ny(
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        utbetalinger = eksisterendeUtbetalinger,
+        behandler = attestant,
+        beregning = beregning,
+        clock = fixedClock,
+    ).generate().utbetalingslinjer
+    return Utbetaling.OversendtUtbetaling.UtenKvittering(
+        id = id,
+        opprettet = fixedTidspunkt,
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        utbetalingslinjer = utbetalingslinjer,
+        type = type,
+        behandler = attestant,
+        avstemmingsnøkkel = avstemmingsnøkkel,
+        simulering = simuleringNy(fnr = fnr, eksisterendeUtbetalinger = eksisterendeUtbetalinger),
+        utbetalingsrequest = utbetalingsRequest,
+    )
+}
+
 fun simulertUtbetaling(
     id: UUID30 = UUID30.randomUUID(),
     periode: Periode = periode2021,
@@ -124,6 +160,7 @@ fun oversendtUtbetalingMedKvittering(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
 ): Utbetaling.OversendtUtbetaling.MedKvittering {
+
     return oversendtUtbetalingUtenKvittering(
         id = id,
         type = type,
@@ -133,6 +170,27 @@ fun oversendtUtbetalingMedKvittering(
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
     )
         .toKvittertUtbetaling(kvittering(utbetalingsstatus = utbetalingsstatus))
+}
+
+fun oversendtUtbetalingMedKvitteringFraBeregning(
+    id: UUID30 = UUID30.randomUUID(),
+    utbetalingsstatus: Kvittering.Utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
+    type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    beregning: Beregning,
+): Utbetaling.OversendtUtbetaling.MedKvittering {
+    return oversendtUtbetalingUtenKvitteringFraBeregning(
+        id = id,
+        fnr = fnr,
+        sakId = sakId,
+        saksnummer = saksnummer,
+        type = type,
+        eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+        beregning = beregning,
+    ).toKvittertUtbetaling(kvittering(utbetalingsstatus = utbetalingsstatus))
 }
 
 fun stansUtbetalingForSimulering(

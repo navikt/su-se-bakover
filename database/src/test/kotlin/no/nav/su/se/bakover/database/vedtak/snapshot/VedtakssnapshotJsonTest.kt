@@ -793,8 +793,8 @@ internal class VedtakssnapshotJsonTest {
                          {
                             "id" : "${utbetaling.utbetalingslinjer[0].id}",
                             "opprettet" :"${utbetaling.utbetalingslinjer[0].opprettet}",
-                            "fraOgMed" : "2020-01-01",
-                            "tilOgMed" :"2020-12-31",
+                            "fraOgMed" : "2021-01-01",
+                            "tilOgMed" :"2021-12-31",
                             "forrigeUtbetalingslinjeId" : null,
                             "beløp" : 25000
                          }

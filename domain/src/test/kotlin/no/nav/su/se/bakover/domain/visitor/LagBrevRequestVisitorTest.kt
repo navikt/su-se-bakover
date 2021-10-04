@@ -925,7 +925,7 @@ internal class LagBrevRequestVisitorTest {
         val utbetalingId = UUID30.randomUUID()
         val opphørsperiode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
 
-        val revurdering = (
+        val (sak, revurdering) =
             opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
                 revurderingsperiode = opphørsperiode,
                 grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
@@ -944,28 +944,31 @@ internal class LagBrevRequestVisitorTest {
                         periode = opphørsperiode,
                     ),
                 ),
-            ).second
-                .beregn(eksisterendeUtbetalinger = emptyList())
-                .getOrHandle { fail("Skulle gått bra") }
-                .toSimulert(simulering) as SimulertRevurdering.Opphørt
             )
-            .tilAttestering(
-                attesteringsoppgaveId = oppgaveIdRevurdering,
-                saksbehandler = saksbehandler,
-                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                fritekstTilBrev = "FRITEKST REVURDERING",
-            ).getOrHandle { fail("Skulle gått bra") }
-            .tilIverksatt(attestant) { utbetalingId.right() }
+
+        val beregnet = revurdering.beregn(sak.utbetalinger)
             .getOrHandle { fail("Skulle gått bra") }
 
-        val opphørsvedtak = Vedtak.from(revurdering, utbetalingId, fixedClock)
+        val simulert = beregnet.toSimulert(simulering) as SimulertRevurdering.Opphørt
+
+        val attestert = simulert.tilAttestering(
+            attesteringsoppgaveId = oppgaveIdRevurdering,
+            saksbehandler = saksbehandler,
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            fritekstTilBrev = "FRITEKST REVURDERING",
+        ).getOrHandle { fail("Skulle gått bra") }
+
+        val iverksatt = attestert.tilIverksatt(attestant) { utbetalingId.right() }
+            .getOrHandle { fail("Skulle gått bra") }
+
+        val opphørsvedtak = Vedtak.from(iverksatt, utbetalingId, fixedClock)
 
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
             hentNavn = { hentNavn(it) },
             hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = clock,
-        ).apply { revurdering.accept(this) }
+        ).apply { iverksatt.accept(this) }
 
         val brevVedtak = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -977,8 +980,8 @@ internal class LagBrevRequestVisitorTest {
         brevRevurdering.brevRequest shouldBe brevVedtak.brevRequest
         brevRevurdering.brevRequest shouldBe LagBrevRequest.Opphørsvedtak(
             person = person,
-            beregning = revurdering.beregning,
-            harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
+            beregning = iverksatt.beregning,
+            harEktefelle = iverksatt.grunnlagsdata.bosituasjon.harEktefelle(),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             fritekst = "FRITEKST REVURDERING",

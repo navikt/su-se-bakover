@@ -91,7 +91,7 @@ internal val fixedClock: Clock =
     Clock.fixed(1.januar(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
 internal val fixedTidspunkt: Tidspunkt = Tidspunkt.now(fixedClock)
 internal val fixedLocalDate: LocalDate = fixedTidspunkt.toLocalDate(ZoneOffset.UTC)
-internal val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.januar(2021)))
+internal val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))
 internal val tomBehandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
 internal val behandlingsinformasjonMedAlleVilkårOppfylt =
     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
@@ -149,8 +149,8 @@ internal val underkjentAttestering =
 internal val iverksattAttestering = Attestering.Iverksatt(attestant, fixedTidspunkt)
 internal val avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt)
 internal fun utbetalingslinje() = Utbetalingslinje.Ny(
-    fraOgMed = 1.januar(2020),
-    tilOgMed = 31.desember(2020),
+    fraOgMed = stønadsperiode.periode.fraOgMed,
+    tilOgMed = stønadsperiode.periode.tilOgMed,
     forrigeUtbetalingslinjeId = null,
     beløp = 25000,
 )
