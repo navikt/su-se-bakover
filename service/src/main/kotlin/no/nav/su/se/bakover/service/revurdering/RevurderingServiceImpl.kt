@@ -57,6 +57,7 @@ import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -78,13 +79,14 @@ internal class RevurderingServiceImpl(
     private val vilkårsvurderingService: VilkårsvurderingService,
     private val grunnlagService: GrunnlagService,
     private val vedtakService: VedtakService,
+    private val sakService: SakService,
 ) : RevurderingService {
     private val stansAvYtelseService = StansAvYtelseService(
         utbetalingService = utbetalingService,
         revurderingRepo = revurderingRepo,
-        clock = clock,
-        vedtakRepo = vedtakRepo,
         vedtakService = vedtakService,
+        sakService = sakService,
+        clock = clock,
     )
 
     private val gjenopptakAvYtelseService = GjenopptakAvYtelseService(
@@ -93,6 +95,7 @@ internal class RevurderingServiceImpl(
         clock = clock,
         vedtakRepo = vedtakRepo,
         vedtakService = vedtakService,
+        sakService = sakService,
     )
 
     private val observers: MutableList<EventObserver> = mutableListOf()
@@ -603,7 +606,7 @@ internal class RevurderingServiceImpl(
                             sakId = beregnetRevurdering.sakId,
                             saksbehandler = saksbehandler,
                             beregning = beregnetRevurdering.beregning,
-                            uføregrunnlag = beregnetRevurdering.vilkårsvurderinger.uføre.grunnlag
+                            uføregrunnlag = beregnetRevurdering.vilkårsvurderinger.uføre.grunnlag,
                         ).mapLeft {
                             KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it)
                         }.map {

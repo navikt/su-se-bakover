@@ -606,6 +606,10 @@ open class AccessCheckProxy(
                 }
             },
             vedtakService = object : VedtakService {
+                override fun lagre(vedtak: Vedtak) {
+                    kastKanKunKallesFraAnnenService()
+                }
+
                 override fun hentAktiveFnr(fomDato: LocalDate): List<Fnr> {
                     return services.vedtakService.hentAktiveFnr(fomDato)
                 }

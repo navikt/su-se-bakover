@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
@@ -147,6 +148,13 @@ private fun KunneIkkeStanseYtelse.tilResultat(): Resultat {
                 code = "ugyldig_tilstand_for_oppdatering",
             )
         }
+        KunneIkkeStanseYtelse.FantIkkeSak -> fantIkkeSak
+        KunneIkkeStanseYtelse.SakHarÅpenRevurderingForStansAvYtelse -> {
+            HttpStatusCode.BadRequest.errorJson(
+                message = "Åpen revurdering for stans eksisterer allerede",
+                code = "åpen_revurdering_stans_eksisterer",
+            )
+        }
     }
 }
 
@@ -168,6 +176,10 @@ private fun KunneIkkeIverksetteStansYtelse.tilResultat(): Resultat {
         is KunneIkkeIverksetteStansYtelse.UgyldigTilstand -> HttpStatusCode.BadRequest.errorJson(
             "Kan ikke iverksette stans av utbetalinger for revurdering av type: ${this.faktiskTilstand}, eneste gyldige tilstand er ${this.målTilstand}",
             "kunne_ikke_iverksette_stans_ugyldig_tilstand",
+        )
+        KunneIkkeIverksetteStansYtelse.SimuleringIndikererFeilutbetaling -> HttpStatusCode.BadRequest.errorJson(
+            "Iverksetting av stans vil føre til feilutbetaling",
+            "kunne_ikke_iverksette_stans_fører_til_feilutbetaling",
         )
     }
 }

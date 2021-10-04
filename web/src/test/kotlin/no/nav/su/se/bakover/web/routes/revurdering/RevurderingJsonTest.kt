@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.bosituasjon
@@ -1429,7 +1430,7 @@ internal class RevurderingJsonTest {
 
         val iverksattRevurdering = simulertRevurdering.iverksett(
             attestering = attesteringIverksatt,
-        )
+        ).getOrFail("Feil med oppsett av testdata")
 
         val iverksattRevurderingJson =
             //language=JSON
@@ -1495,6 +1496,7 @@ internal class RevurderingJsonTest {
         JSONAssert.assertEquals(simulertRevurderingJson, serialize(simulertRevurdering.toJson()), true)
 
         val iverksattRevurdering = simulertRevurdering.iverksett(attesteringIverksatt)
+            .getOrFail("Feil i oppsett av testdata")
 
         val iverksattRevurderingJson =
             //language=JSON

@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.periodeMai2021
@@ -45,7 +46,7 @@ internal class StansAvYtelsePostgresRepoTest {
 
             val iverksattRevurdering = simulertRevurdering.iverksett(
                 Attestering.Iverksatt(NavIdentBruker.Attestant("atte"), fixedTidspunkt),
-            )
+            ).getOrFail("Feil i oppsett av testdata")
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
             testDataHelper.revurderingRepo.hent(iverksattRevurdering.id) shouldBe iverksattRevurdering

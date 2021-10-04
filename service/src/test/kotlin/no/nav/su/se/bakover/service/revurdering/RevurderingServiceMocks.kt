@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
@@ -26,19 +27,21 @@ internal data class RevurderingServiceMocks(
     val ferdigstillVedtakService: FerdigstillVedtakService = mock(),
     val grunnlagService: GrunnlagService = mock(),
     val vilkårsvurderingService: VilkårsvurderingService = mock(),
+    val sakService: SakService = mock(),
 ) {
     val revurderingService = RevurderingServiceImpl(
-        vedtakService = vedtakService,
         utbetalingService = utbetalingService,
         revurderingRepo = revurderingRepo,
         oppgaveService = oppgaveService,
         personService = personService,
         microsoftGraphApiClient = microsoftGraphApiClient,
         brevService = brevService,
+        clock = fixedClock,
         vedtakRepo = vedtakRepo,
         vilkårsvurderingService = vilkårsvurderingService,
         grunnlagService = grunnlagService,
-        clock = fixedClock,
+        vedtakService = vedtakService,
+        sakService = sakService,
     )
 
     fun all() = listOf(
@@ -53,6 +56,7 @@ internal data class RevurderingServiceMocks(
         ferdigstillVedtakService,
         grunnlagService,
         vilkårsvurderingService,
+        sakService,
     ).toTypedArray()
 
     fun verifyNoMoreInteractions() {
