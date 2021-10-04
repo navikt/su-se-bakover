@@ -35,6 +35,8 @@ import java.util.UUID
 sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering, Visitable<SøknadsbehandlingVisitor> {
     abstract val søknad: Søknad.Journalført.MedOppgave
     abstract val behandlingsinformasjon: Behandlingsinformasjon
+
+    // TODO jah: Denne kan fjernes fra domenet og heller la mappingen ligge i infrastruktur-laget
     abstract val status: BehandlingsStatus
     abstract val stønadsperiode: Stønadsperiode?
     abstract override val grunnlagsdata: Grunnlagsdata
@@ -1345,47 +1347,40 @@ sealed class KunneIkkeIverksette {
     object KunneIkkeGenerereVedtaksbrev : KunneIkkeIverksette()
 }
 
-private fun List<Søknadsbehandling>.kastHvisDetFinnesEnAnnenÅpenBehandling(behandlingId: UUID) {
-    this
-        .filter { b -> b.id != behandlingId }
-        .filterNot { it.status == BehandlingsStatus.IVERKSATT_INNVILGET || it.status == BehandlingsStatus.IVERKSATT_AVSLAG }
-        .ifNotEmpty {
-            throw IllegalStateException("Det finnes flere behandlinger under behandling")
-        }
-    // TODO jah: Kan på sikt flytte disse valideringene til Sak og/eller database-laget.
-}
-
-private fun List<Søknadsbehandling>.kastHvisDetFinnesEnÅpenBehandling() {
-    this
-        .filterNot { it.status == BehandlingsStatus.IVERKSATT_INNVILGET || it.status == BehandlingsStatus.IVERKSATT_AVSLAG }
-        .ifNotEmpty {
-            throw IllegalStateException("Det finnes flere behandlinger under behandling")
-        }
-    // TODO jah: Kan på sikt flytte disse valideringene til Sak og/eller database-laget.
-}
-
 fun List<Søknadsbehandling>.hentSøknadstypeUtenBehandling(): Søknadstype {
-    this.kastHvisDetFinnesEnÅpenBehandling()
-
-    this
-        .filter { it.status == BehandlingsStatus.IVERKSATT_INNVILGET }
-        .ifNotEmpty {
-            return Søknadstype.NY_PERIODE
-        }
-
+    if (any { it is Søknadsbehandling.Iverksatt.Innvilget }) {
+        return Søknadstype.NY_PERIODE
+    }
+    if (this.filterNot { it is Søknadsbehandling.Iverksatt.Avslag }.isNotEmpty()) {
+        // TODO : Legge inn stopp for at vi kan ha fler åpne søknadsbehandlinger og søknader.
+        throw IllegalStateException("Kan ikke avgjøre om det er en førstegangssøknad eller ny periode. Det finnes ingen iverksatt innvilget behandlinger og det finnes en eller fler åpne behandlinger.")
+    }
     return Søknadstype.FØRSTEGANGSSØKNAD
 }
 
 fun List<Søknadsbehandling>.hentSøknadstypeFor(behandlingId: UUID): Søknadstype {
-    this.kastHvisDetFinnesEnAnnenÅpenBehandling(behandlingId)
-
     this
-        .filter { b -> b.id != behandlingId }
-        .filter { it.status == BehandlingsStatus.IVERKSATT_INNVILGET }
+        .filterIsInstance<Søknadsbehandling.Iverksatt.Innvilget>()
+        .sortedBy { it.stønadsperiode }
         .ifNotEmpty {
-            return Søknadstype.NY_PERIODE
+            if (this.first().id == behandlingId) {
+                // Denne behandlingen er den første iverksatt innvilga søknadbehandling, altså en førstegangssøknad.
+                return Søknadstype.FØRSTEGANGSSØKNAD
+            }
         }
-
+    this
+        .filterNot { b -> b.id == behandlingId }
+        .also {
+            if (it.any { b -> b is Søknadsbehandling.Iverksatt.Innvilget }) {
+                // Hvis det finnes en iverksatt innvilget søknadsbehandling som ikke er denne behandlinga, vil denne behandlinga være en ny periode
+                return Søknadstype.NY_PERIODE
+            }
+        }
+        .filterNot { it is Søknadsbehandling.Iverksatt }
+        .ifNotEmpty {
+            // Dette bør ikke skje i praksis, siden det bør være stoppet i et tidligere steg.
+            throw IllegalStateException("Kan ikke avgjøre om det er en førstegangssøknad eller ny periode. Det finnes ingen iverksatt innvilget behandlinger og det finnes en eller fler åpne behandlinger som ikke er denne behandlinga $behandlingId")
+        }
     return Søknadstype.FØRSTEGANGSSØKNAD
 }
 
