@@ -227,10 +227,10 @@ private fun Utbetalingsstrategi.Stans.Feil.tilResultat(): Resultat {
                 code = "utbetaling_allerede_opphørt",
             )
         }
-        Utbetalingsstrategi.Stans.Feil.StansDatoErIkkeFørsteINesteMåned -> {
+        Utbetalingsstrategi.Stans.Feil.StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned -> {
             HttpStatusCode.InternalServerError.errorJson(
-                message = "Utbetalingsstrategi (stans): Stansdato er ikke første dato i neste måned",
-                code = "stansdato_ikke_første_i_neste_måned",
+                message = "Utbetalingsstrategi (stans): Stansdato er ikke første dato i inneværende eller neste måned",
+                code = "stansdato_ikke_første_i_inneværende_eller_neste_måned",
             )
         }
     }

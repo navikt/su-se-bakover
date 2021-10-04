@@ -13,7 +13,9 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.november
+import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -75,32 +77,6 @@ internal class UtbetalingsstrategiStansTest {
             virkningstidspunkt = 1.juli(2020),
             uføregrad = utbetalingslinje.uføregrad,
         )
-    }
-
-    @Test
-    fun `ingen løpende utbetalinger å stanse etter første dato i neste måned`() {
-        val utbetaling = createUtbetaling(
-            nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.mai(2020),
-                    forrigeUtbetalingslinjeId = null,
-                    beløp = 1500,
-                    uføregrad = Uføregrad.parse(50),
-                ),
-            ),
-            type = Utbetaling.UtbetalingsType.NY,
-        )
-
-        Utbetalingsstrategi.Stans(
-            sakId = sakId,
-            saksnummer = saksnummer,
-            fnr = fnr,
-            utbetalinger = listOf(utbetaling),
-            behandler = NavIdentBruker.Saksbehandler("Z123"),
-            stansDato = 1.juli(2020),
-            clock = fixedClock,
-        ).generer() shouldBe Utbetalingsstrategi.Stans.Feil.IngenUtbetalingerEtterStansDato.left()
     }
 
     @Test
@@ -212,16 +188,16 @@ internal class UtbetalingsstrategiStansTest {
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             stansDato = 10.juli(2020),
             clock = fixedClock,
-        ).generer() shouldBe Utbetalingsstrategi.Stans.Feil.StansDatoErIkkeFørsteINesteMåned.left()
+        ).generer() shouldBe Utbetalingsstrategi.Stans.Feil.StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned.left()
     }
 
     @Test
-    fun `stansdato må være den første i neste måned`() {
+    fun `stansdato kan være den første i inneværende eller neste måned`() {
         val utbetaling = createUtbetaling(
             nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.desember(2020),
+                    tilOgMed = 31.desember(2021),
                     forrigeUtbetalingslinjeId = null,
                     beløp = 15000,
                     uføregrad = Uføregrad.parse(50),
@@ -231,6 +207,7 @@ internal class UtbetalingsstrategiStansTest {
         )
 
         listOf(
+            1.juni(2020),
             1.juli(2020),
         ).forEach {
             Utbetalingsstrategi.Stans(
@@ -242,6 +219,26 @@ internal class UtbetalingsstrategiStansTest {
                 stansDato = it,
                 clock = fixedClock,
             ).generer().getOrFail("Skal kunne lage utbetaling for stans")
+        }
+
+        listOf(
+            1.januar(2020),
+            31.mars(2020),
+            15.juni(2020),
+            1.oktober(2020),
+            1.juni(2021),
+            1.juli(2021),
+        ).forEach {
+            Utbetalingsstrategi.Stans(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utbetalinger = listOf(utbetaling),
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                stansDato = it,
+                clock = fixedClock,
+            )
+                .generer() shouldBe Utbetalingsstrategi.Stans.Feil.StansDatoErIkkeFørsteDatoIInneværendeEllerNesteMåned.left()
         }
     }
 
