@@ -11,11 +11,13 @@ import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
+import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import java.time.Clock
@@ -28,6 +30,7 @@ class GjenopptakAvYtelseService(
     private val clock: Clock,
     private val vedtakRepo: VedtakRepo,
     private val vedtakService: VedtakService,
+    private val sakService: SakService,
 ) {
     fun gjenopptaYtelse(request: GjenopptaYtelseRequest): Either<KunneIkkeGjenopptaYtelse, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
         val sisteVedtak = vedtakRepo.hentForSakId(request.sakId)
@@ -43,31 +46,18 @@ class GjenopptakAvYtelseService(
         if (sisteVedtak !is Vedtak.EndringIYtelse.StansAvYtelse) {
             return KunneIkkeGjenopptaYtelse.SisteVedtakErIkkeStans.left()
         } else {
-            val gjeldendeVedtaksdata: GjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
-                sakId = request.sakId,
-                fraOgMed = sisteVedtak.periode.fraOgMed,
-            ).getOrHandle {
-                log.error("Kunne ikke opprette revurdering for gjenopptak av ytelse, årsak: $it")
-                return KunneIkkeGjenopptaYtelse.KunneIkkeOppretteRevurdering.left()
-            }.also {
-                if (!it.tidslinjeForVedtakErSammenhengende()) {
-                    log.error("Kunne ikke opprette revurdering for gjenopptak av ytelse, årsak: tidslinje er ikke sammenhengende.")
-                    return KunneIkkeGjenopptaYtelse.KunneIkkeOppretteRevurdering.left()
-                }
-            }
-
-            val simulering = utbetalingService.simulerGjenopptak(
-                sakId = request.sakId,
-                saksbehandler = request.saksbehandler,
-            ).getOrHandle {
-                log.warn("Kunne ikke opprette revurdering for gjenopptak av ytelse, årsak: $it")
-                return KunneIkkeGjenopptaYtelse.KunneIkkeSimulere(it).left()
-            }
-
             val simulertRevurdering = when (request) {
                 is GjenopptaYtelseRequest.Oppdater -> {
                     val update = revurderingRepo.hent(request.revurderingId)
                         ?: return KunneIkkeGjenopptaYtelse.FantIkkeRevurdering.left()
+
+                    val gjeldendeVedtaksdata: GjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
+                        sakId = request.sakId,
+                        fraOgMed = sisteVedtak.periode.fraOgMed,
+                    ).getOrHandle { return it.left() }
+
+                    val simulering = simuler(request).getOrHandle { return it.left() }
+
                     when (update) {
                         is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> {
                             GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
@@ -86,6 +76,18 @@ class GjenopptakAvYtelseService(
                     }
                 }
                 is GjenopptaYtelseRequest.Opprett -> {
+                    if (sakService.hentSak(request.sakId)
+                        .getOrHandle { return KunneIkkeGjenopptaYtelse.FantIkkeSak.left() }
+                        .harÅpenRevurderingForGjenopptakAvYtelse()
+                    ) return KunneIkkeGjenopptaYtelse.SakHarÅpenRevurderingForGjenopptakAvYtelse.left()
+
+                    val gjeldendeVedtaksdata: GjeldendeVedtaksdata = kopierGjeldendeVedtaksdata(
+                        sakId = request.sakId,
+                        fraOgMed = sisteVedtak.periode.fraOgMed,
+                    ).getOrHandle { return it.left() }
+
+                    val simulering = simuler(request).getOrHandle { return it.left() }
+
                     GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(clock),
@@ -120,7 +122,7 @@ class GjenopptakAvYtelseService(
                         attestant,
                         Tidspunkt.now(clock),
                     ),
-                )
+                ).getOrHandle { return KunneIkkeIverksetteGjenopptakAvYtelse.SimuleringIndikererFeilutbetaling.left() }
 
                 val stansUtbetaling = utbetalingService.gjenopptaUtbetalinger(
                     sakId = iverksattRevurdering.sakId,
@@ -139,5 +141,33 @@ class GjenopptakAvYtelseService(
                 faktiskTilstand = revurdering::class,
             ).left()
         }
+    }
+
+    private fun kopierGjeldendeVedtaksdata(
+        sakId: UUID,
+        fraOgMed: LocalDate,
+    ): Either<KunneIkkeGjenopptaYtelse, GjeldendeVedtaksdata> {
+        return vedtakService.kopierGjeldendeVedtaksdata(
+            sakId = sakId,
+            fraOgMed = fraOgMed,
+        ).getOrHandle {
+            log.error("Kunne ikke opprette revurdering for gjenopptak av ytelse, årsak: $it")
+            return KunneIkkeGjenopptaYtelse.KunneIkkeOppretteRevurdering.left()
+        }.also {
+            if (!it.tidslinjeForVedtakErSammenhengende()) {
+                log.error("Kunne ikke opprette revurdering for gjenopptak av ytelse, årsak: tidslinje er ikke sammenhengende.")
+                return KunneIkkeGjenopptaYtelse.KunneIkkeOppretteRevurdering.left()
+            }
+        }.right()
+    }
+
+    private fun simuler(request: GjenopptaYtelseRequest): Either<KunneIkkeGjenopptaYtelse, Utbetaling.SimulertUtbetaling> {
+        return utbetalingService.simulerGjenopptak(
+            sakId = request.sakId,
+            saksbehandler = request.saksbehandler,
+        ).getOrHandle {
+            log.warn("Kunne ikke opprette revurdering for gjenopptak av ytelse, årsak: $it")
+            return KunneIkkeGjenopptaYtelse.KunneIkkeSimulere(it).left()
+        }.right()
     }
 }

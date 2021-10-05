@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test
@@ -247,5 +248,6 @@ internal class VurderOmBeløpErForskjelligFraGjeldendeUtbetalingTest {
         tilOgMed = periode.tilOgMed,
         forrigeUtbetalingslinjeId = null,
         beløp = månedsbeløp,
+        uføregrad = Uføregrad.parse(100)
     )
 }

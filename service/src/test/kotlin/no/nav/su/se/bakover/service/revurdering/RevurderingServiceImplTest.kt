@@ -182,11 +182,12 @@ internal class RevurderingServiceImplTest {
                     tilOgMed = tilRevurdering.periode.tilOgMed,
                     forrigeUtbetalingslinjeId = null,
                     beløp = 20000,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             )
         }
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerUtbetaling(any(), any(), any()) } doReturn simulertUtbetaling.right()
+            on { simulerUtbetaling(any(), any(), any(), any()) } doReturn simulertUtbetaling.right()
             on { hentUtbetalinger(any()) } doReturn listOf(utbetalingMock)
         }
 
@@ -213,6 +214,7 @@ internal class RevurderingServiceImplTest {
                 sakId = argThat { it shouldBe sakId },
                 saksbehandler = argThat { it shouldBe saksbehandler },
                 beregning = argThat { it shouldBe (actual.revurdering as SimulertRevurdering).beregning },
+                uføregrunnlag = argThat { it shouldBe listOf(uføregrunnlag) },
             )
             verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.revurdering })
         }
@@ -322,11 +324,12 @@ internal class RevurderingServiceImplTest {
                     tilOgMed = tilRevurdering.periode.tilOgMed,
                     forrigeUtbetalingslinjeId = null,
                     beløp = 20000,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             )
         }
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerUtbetaling(any(), any(), any()) } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
+            on { simulerUtbetaling(any(), any(), any(), any()) } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
             on { hentUtbetalinger(any()) } doReturn listOf(utbetalingMock)
         }
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -406,7 +409,7 @@ internal class RevurderingServiceImplTest {
             on { id } doReturn utbetalingId
         }
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { utbetal(any(), any(), any(), any()) } doReturn utbetalingMock.right()
+            on { utbetal(any(), any(), any(), any(), any()) } doReturn utbetalingMock.right()
         }
         val vedtakRepoMock = mock<VedtakRepo>()
         val eventObserver: EventObserver = mock()
@@ -433,6 +436,7 @@ internal class RevurderingServiceImplTest {
                 attestant = argThat { it shouldBe attestant },
                 beregning = argThat { it shouldBe revurderingTilAttestering.beregning },
                 simulering = argThat { it shouldBe revurderingTilAttestering.simulering },
+                uføregrunnlag = argThat { it shouldBe emptyList() },
             )
             verify(utbetalingMock, times(2)).id
             verify(vedtakRepoMock).lagre(
@@ -676,11 +680,12 @@ internal class RevurderingServiceImplTest {
                     tilOgMed = periodeNesteMånedOgTreMånederFram.tilOgMed,
                     forrigeUtbetalingslinjeId = null,
                     beløp = 20000,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             )
         }
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerUtbetaling(any(), any(), any()) } doReturn simulertUtbetaling.right()
+            on { simulerUtbetaling(any(), any(), any(), any()) } doReturn simulertUtbetaling.right()
             on { hentUtbetalinger(any()) } doReturn listOf(utbetalingMock)
         }
 
@@ -706,6 +711,7 @@ internal class RevurderingServiceImplTest {
                 sakId = argThat { it shouldBe sakId },
                 saksbehandler = argThat { it shouldBe saksbehandler },
                 beregning = argThat { it shouldBe (actual.revurdering as SimulertRevurdering).beregning },
+                uføregrunnlag = argThat { it shouldBe listOf(uføregrunnlag) },
             )
             verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.revurdering })
         }
@@ -1613,6 +1619,7 @@ internal class RevurderingServiceImplTest {
                     tilOgMed = periodeNesteMånedOgTreMånederFram.tilOgMed,
                     forrigeUtbetalingslinjeId = null,
                     beløp = 20000,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             )
         }
@@ -1662,6 +1669,7 @@ internal class RevurderingServiceImplTest {
                     tilOgMed = periodeNesteMånedOgTreMånederFram.tilOgMed,
                     forrigeUtbetalingslinjeId = null,
                     beløp = 20000,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             )
         }

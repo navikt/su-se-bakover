@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -41,15 +42,16 @@ internal class SimuleringRequestBuilderValidationTest {
                         fraOgMed = 1.januar(2020),
                         tilOgMed = 31.januar(2020),
                         beløp = 10,
-                        forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid
-                    )
+                        forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid,
+                        uføregrad = Uføregrad.parse(50),
+                    ),
                 ),
                 fnr = Fnr("12345678910"),
                 type = Utbetaling.UtbetalingsType.NY,
 
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
-                avstemmingsnøkkel = Avstemmingsnøkkel()
-            )
+                avstemmingsnøkkel = Avstemmingsnøkkel(),
+            ),
         ).build().request
 
         val skjema = this::class.java.getResource("/simulering/simulerFpServiceServiceTypes.xsd").toURI()

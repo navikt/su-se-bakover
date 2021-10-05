@@ -61,7 +61,7 @@ data class VurderOmVilkårGirOpphørVedRevurdering(
                 vilkårsvurderinger.tidligsteDatoForAvslag()!!,
             )
             Resultat.Innvilget -> OpphørVedRevurdering.Nei
-            Resultat.Uavklart -> throw IllegalStateException("Alle vilkår må vurderes før opphør kan vurderes.")
+            Resultat.Uavklart -> throw IllegalStateException("Et vurdert vilkår i revurdering kan ikke være uavklart. Siden vilkårene brukes på tvers av søknadsbehandling og revurdering, må den støtte at et vurdert vilkår kan være uavklart i søknadsbehandlingsøyemed.")
         }
     }
 }

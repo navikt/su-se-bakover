@@ -458,5 +458,6 @@ internal class RevurderingTest {
         tilOgMed = periode.tilOgMed,
         forrigeUtbetalingslinjeId = null,
         beløp = månedsbeløp,
+        uføregrad = Uføregrad.parse(50),
     )
 }

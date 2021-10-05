@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.database.fixedClock
 import no.nav.su.se.bakover.database.utbetalingslinje
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import org.junit.jupiter.api.Test
@@ -95,6 +96,7 @@ internal class UtbetalingPostgresRepoTest {
                 tilOgMed = 31.desember(2020),
                 forrigeUtbetalingslinjeId = null,
                 beløp = 25000,
+                uføregrad = Uføregrad.parse(50),
             )
 
             val (_, utbetaling) = testDataHelper.nyIverksattInnvilget(
@@ -124,6 +126,7 @@ internal class UtbetalingPostgresRepoTest {
                     forrigeUtbetalingslinjeId = originalUtbetalingslinje.forrigeUtbetalingslinjeId,
                     beløp = originalUtbetalingslinje.beløp,
                     virkningstidspunkt = endretUtbetalingslinje.virkningstidspunkt,
+                    uføregrad = originalUtbetalingslinje.uføregrad
                 ),
             )
             repo.hentUtbetaling(utbetaling.id) shouldNotBe repo.hentUtbetaling(opphør.id)

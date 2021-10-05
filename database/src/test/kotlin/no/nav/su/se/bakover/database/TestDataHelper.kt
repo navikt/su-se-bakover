@@ -153,6 +153,7 @@ internal fun utbetalingslinje() = Utbetalingslinje.Ny(
     tilOgMed = stønadsperiode.periode.tilOgMed,
     forrigeUtbetalingslinjeId = null,
     beløp = 25000,
+    uføregrad = Uføregrad.parse(50),
 )
 
 internal fun oversendtUtbetalingUtenKvittering(

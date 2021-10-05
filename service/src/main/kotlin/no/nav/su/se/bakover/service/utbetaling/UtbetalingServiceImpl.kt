@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -92,11 +93,13 @@ internal class UtbetalingServiceImpl(
         attestant: NavIdentBruker,
         beregning: Beregning,
         simulering: Simulering,
+        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
     ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering> {
         return simulerUtbetaling(
             sakId = sakId,
             saksbehandler = attestant,
             beregning = beregning,
+            uføregrunnlag = uføregrunnlag,
         ).mapLeft {
             UtbetalingFeilet.KunneIkkeSimulere(it)
         }.flatMap { simulertUtbetaling ->
@@ -175,6 +178,7 @@ internal class UtbetalingServiceImpl(
         sakId: UUID,
         saksbehandler: NavIdentBruker,
         beregning: Beregning,
+        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
         val sak: Sak = sakService.hentSak(sakId).orNull()!!
         return simulerUtbetaling(
@@ -185,6 +189,7 @@ internal class UtbetalingServiceImpl(
                 utbetalinger = sak.utbetalinger,
                 behandler = saksbehandler,
                 beregning = beregning,
+                uføregrunnlag = uføregrunnlag,
                 clock = clock,
             ).generate(),
         )

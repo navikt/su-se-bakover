@@ -5,6 +5,8 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
@@ -35,6 +37,15 @@ fun simuleringNy(
         behandler = saksbehandler,
         beregning = beregning,
         clock = fixedClock,
+        uføregrunnlag = listOf(
+            Grunnlag.Uføregrunnlag(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = beregning.periode,
+                uføregrad = Uføregrad.parse(50),
+                forventetInntekt = 0,
+            ),
+        ),
     ).generate().let {
         simulerUtbetaling(it)
     }.orNull()!!
@@ -107,9 +118,40 @@ fun simulering(
     periodeList = simulertePerioder,
 )
 
+fun simuleringFeilutbetaling(
+    vararg perioder: Periode,
+    simulertePerioder: List<SimulertPeriode> = perioder.map { simulertPeriodeFeilutbetaling(it) },
+): Simulering {
+    return Simulering(
+        gjelderId = fnr,
+        gjelderNavn = "navn",
+        datoBeregnet = LocalDate.now(),
+        nettoBeløp = simulertePerioder.sumOf { it.bruttoYtelse() },
+        periodeList = simulertePerioder,
+    )
+}
+
 fun simulertPeriode(
     periode: Periode,
     simulerteUtbetalinger: List<SimulertUtbetaling> = listOf(simulertUtbetaling(periode)),
+): SimulertPeriode = SimulertPeriode(
+    fraOgMed = periode.fraOgMed,
+    tilOgMed = periode.tilOgMed,
+    utbetaling = simulerteUtbetalinger,
+)
+
+fun simulertPeriodeFeilutbetaling(
+    periode: Periode,
+    simulerteUtbetalinger: List<SimulertUtbetaling> = listOf(
+        simulertUtbetaling(
+            periode = periode,
+            simulertDetaljer = listOf(
+                simulertDetaljFeilutbetaling(periode, 15000),
+                simulertDetaljTilbakeføring(periode, 15000),
+                simulertDetaljOrdinær(periode, 7000),
+            ),
+        ),
+    ),
 ): SimulertPeriode = SimulertPeriode(
     fraOgMed = periode.fraOgMed,
     tilOgMed = periode.tilOgMed,

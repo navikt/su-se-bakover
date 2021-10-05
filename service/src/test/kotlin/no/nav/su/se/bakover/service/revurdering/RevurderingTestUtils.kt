@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.fixedClock
@@ -97,9 +98,9 @@ object RevurderingTestUtils {
         vedtakRepo: VedtakRepo = mock(),
         vilkårsvurderingService: VilkårsvurderingService = mock(),
         grunnlagService: GrunnlagService = mock(),
+        sakService: SakService = mock()
     ) =
         RevurderingServiceImpl(
-            vedtakService = vedtakService,
             utbetalingService = utbetalingService,
             revurderingRepo = revurderingRepo,
             oppgaveService = oppgaveService,
@@ -110,6 +111,8 @@ object RevurderingTestUtils {
             vedtakRepo = vedtakRepo,
             vilkårsvurderingService = vilkårsvurderingService,
             grunnlagService = grunnlagService,
+            vedtakService = vedtakService,
+            sakService = sakService,
         )
 
     /**

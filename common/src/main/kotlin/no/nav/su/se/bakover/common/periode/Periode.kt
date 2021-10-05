@@ -15,7 +15,7 @@ import java.time.Period
 data class Periode private constructor(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
-) {
+) : Comparable<Periode> {
     @JsonIgnore
     fun getAntallMåneder() = Period.between(fraOgMed, tilOgMed.plusDays(1)).toTotalMonths().toInt()
     fun tilMånedsperioder(): List<Periode> {
@@ -144,4 +144,6 @@ data class Periode private constructor(
             override fun toString(): String = this.javaClass.simpleName
         }
     }
+
+    override fun compareTo(other: Periode) = fraOgMed.compareTo(other.fraOgMed)
 }

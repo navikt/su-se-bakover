@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -626,10 +627,15 @@ fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
         tilOgMed = periode2021.tilOgMed,
     ),
-): Pair<Sak, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
-    return vedtakSøknadsbehandlingIverksattInnvilget(
+    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         stønadsperiode = Stønadsperiode.create(periode, "whatever"),
-    ).let { (sak, vedtak) ->
+    ),
+    simulering: Simulering = simuleringStans(
+        stansDato = periode.fraOgMed,
+        eksisterendeUtbetalinger = sakOgVedtakSomKanRevurderes.first.utbetalinger,
+    ),
+): Pair<Sak, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
+    return sakOgVedtakSomKanRevurderes.let { (sak, vedtak) ->
         val revurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
             id = revurderingId,
             opprettet = Tidspunkt.now(fixedClock),
@@ -638,10 +644,7 @@ fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
             vilkårsvurderinger = vedtak.behandling.vilkårsvurderinger,
             tilRevurdering = vedtak,
             saksbehandler = saksbehandler,
-            simulering = simuleringStans(
-                stansDato = periode.fraOgMed,
-                eksisterendeUtbetalinger = sak.utbetalinger,
-            ),
+            simulering = simulering,
             revurderingsårsak = Revurderingsårsak.create(
                 årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
                 begrunnelse = "valid",
@@ -666,6 +669,7 @@ fun iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode,
     ).let { (sak, simulert) ->
         val iverksatt = simulert.iverksett(attestering)
+            .getOrFail("Feil ved oppsett av testdata for iverksatt stans av ytelse")
 
         sak.copy(
             // Erstatter den gamle versjonen av samme revurderinger.
@@ -679,32 +683,35 @@ fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
         fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
         tilOgMed = periode2021.tilOgMed,
     ),
+    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakIverksattStansAvYtelse(
+        periode = periodeForStans,
+    ),
+    simulering: Simulering = simuleringGjenopptak(
+        eksisterendeUtbetalinger = sakOgVedtakSomKanRevurderes.first.utbetalinger,
+        fnr = sakOgVedtakSomKanRevurderes.first.fnr,
+        sakId = sakOgVedtakSomKanRevurderes.first.id,
+        saksnummer = sakOgVedtakSomKanRevurderes.first.saksnummer,
+    ),
 ): Pair<Sak, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
-    return vedtakIverksattStansAvYtelse(periodeForStans)
-        .let { (sak, vedtak) ->
-            val revurdering = GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
-                id = revurderingId,
-                opprettet = fixedTidspunkt,
-                periode = vedtak.periode,
-                grunnlagsdata = vedtak.behandling.grunnlagsdata,
-                vilkårsvurderinger = vedtak.behandling.vilkårsvurderinger,
-                tilRevurdering = vedtak,
-                saksbehandler = saksbehandler,
-                simulering = simuleringGjenopptak(
-                    eksisterendeUtbetalinger = sak.utbetalinger,
-                    fnr = sak.fnr,
-                    sakId = sak.id,
-                    saksnummer = sak.saksnummer,
-                ),
-                revurderingsårsak = Revurderingsårsak.create(
-                    årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
-                    begrunnelse = "valid",
-                ),
-            )
-            sak.copy(
-                revurderinger = sak.revurderinger.filterNot { it.id == revurdering.id } + revurdering,
-            ) to revurdering
-        }
+    return sakOgVedtakSomKanRevurderes.let { (sak, vedtak) ->
+        val revurdering = GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
+            id = revurderingId,
+            opprettet = fixedTidspunkt,
+            periode = vedtak.periode,
+            grunnlagsdata = vedtak.behandling.grunnlagsdata,
+            vilkårsvurderinger = vedtak.behandling.vilkårsvurderinger,
+            tilRevurdering = vedtak,
+            saksbehandler = saksbehandler,
+            simulering = simulering,
+            revurderingsårsak = Revurderingsårsak.create(
+                årsak = Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING.toString(),
+                begrunnelse = "valid",
+            ),
+        )
+        sak.copy(
+            revurderinger = sak.revurderinger.filterNot { it.id == revurdering.id } + revurdering,
+        ) to revurdering
+    }
 }
 
 fun iverksattGjenopptakelseAvytelseFraVedtakStansAvYtelse(
@@ -715,6 +722,7 @@ fun iverksattGjenopptakelseAvytelseFraVedtakStansAvYtelse(
         periode,
     ).let { (sak, simulert) ->
         val iverksatt = simulert.iverksett(attestering)
+            .getOrFail("Feil i oppsett for testdata")
         sak.copy(
             revurderinger = sak.revurderinger.filterNot { it.id == iverksatt.id } + iverksatt,
         ) to iverksatt

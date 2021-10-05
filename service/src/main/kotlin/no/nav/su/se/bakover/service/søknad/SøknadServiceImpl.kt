@@ -91,7 +91,7 @@ internal class SøknadServiceImpl(
         )
         // Ved å gjøre increment først, kan vi lage en alert dersom vi får mismatch på dette.
         søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.PERSISTERT)
-        opprettJournalpostOgOppgave(sak.saksnummer, person, søknad)
+        opprettJournalpostOgOppgave(sak, person, søknad)
         observers.forEach {
             observer ->
             observer.handle(
@@ -139,17 +139,22 @@ internal class SøknadServiceImpl(
                 return@map KunneIkkeOppretteOppgave(sak.id, søknad.id, søknad.journalpostId, "Fant ikke person").left()
             }
             opprettOppgave(
+                sak = sak,
                 søknad = søknad,
                 person = person,
-                opprettOppgave = oppgaveService::opprettOppgaveMedSystembruker
+                opprettOppgave = oppgaveService::opprettOppgaveMedSystembruker,
             )
         }
     }
 
-    private fun opprettJournalpostOgOppgave(saksnummer: Saksnummer, person: Person, søknad: Søknad.Ny) {
+    private fun opprettJournalpostOgOppgave(
+        sak: Sak,
+        person: Person,
+        søknad: Søknad.Ny,
+    ) {
         // TODO jah: Burde kanskje innføre en multi-respons-type som responderer med de stegene som er utført og de som ikke er utført.
-        opprettJournalpost(saksnummer, søknad, person).map { journalførtSøknad ->
-            opprettOppgave(journalførtSøknad, person)
+        opprettJournalpost(sak.saksnummer, søknad, person).map { journalførtSøknad ->
+            opprettOppgave(sak, journalførtSøknad, person)
         }
     }
 
@@ -192,17 +197,19 @@ internal class SøknadServiceImpl(
     }
 
     private fun opprettOppgave(
+        sak: Sak,
         søknad: Søknad.Journalført.UtenOppgave,
         person: Person,
-        opprettOppgave: (oppgaveConfig: OppgaveConfig.Saksbehandling) -> Either<no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> = oppgaveService::opprettOppgave
+        opprettOppgave: (oppgaveConfig: OppgaveConfig.NySøknad) -> Either<no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> = oppgaveService::opprettOppgave,
     ): Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave> {
 
         return opprettOppgave(
-            OppgaveConfig.Saksbehandling(
+            OppgaveConfig.NySøknad(
                 journalpostId = søknad.journalpostId,
                 søknadId = søknad.id,
-                aktørId = person.ident.aktørId
-            )
+                aktørId = person.ident.aktørId,
+                søknadstype = sak.hentSøknadstypeUtenBehandling(),
+            ),
         ).mapLeft {
             log.error("Ny søknad: Kunne ikke opprette oppgave. Originalfeil: $it")
             KunneIkkeOppretteOppgave(søknad.sakId, søknad.id, søknad.journalpostId, "Kunne ikke opprette oppgave")

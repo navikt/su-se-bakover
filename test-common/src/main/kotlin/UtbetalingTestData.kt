@@ -8,6 +8,8 @@ import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -30,6 +32,7 @@ fun utbetalingslinje(
     tilOgMed = periode.tilOgMed,
     forrigeUtbetalingslinjeId = null,
     beløp = beløp,
+    uføregrad = Uføregrad.parse(50),
 )
 
 @Suppress("unused")
@@ -97,6 +100,7 @@ fun oversendtUtbetalingUtenKvitteringFraBeregning(
     type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
     beregning: Beregning,
+    uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
 ): Utbetaling.OversendtUtbetaling.UtenKvittering {
     val utbetalingslinjer = Utbetalingsstrategi.Ny(
         sakId = sakId,
@@ -106,6 +110,7 @@ fun oversendtUtbetalingUtenKvitteringFraBeregning(
         behandler = attestant,
         beregning = beregning,
         clock = fixedClock,
+        uføregrunnlag = uføregrunnlag,
     ).generate().utbetalingslinjer
     return Utbetaling.OversendtUtbetaling.UtenKvittering(
         id = id,
@@ -160,7 +165,6 @@ fun oversendtUtbetalingMedKvittering(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
 ): Utbetaling.OversendtUtbetaling.MedKvittering {
-
     return oversendtUtbetalingUtenKvittering(
         id = id,
         type = type,
@@ -181,6 +185,7 @@ fun oversendtUtbetalingMedKvitteringFraBeregning(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
     beregning: Beregning,
+    uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
 ): Utbetaling.OversendtUtbetaling.MedKvittering {
     return oversendtUtbetalingUtenKvitteringFraBeregning(
         id = id,
@@ -190,6 +195,7 @@ fun oversendtUtbetalingMedKvitteringFraBeregning(
         type = type,
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
         beregning = beregning,
+        uføregrunnlag = uføregrunnlag,
     ).toKvittertUtbetaling(kvittering(utbetalingsstatus = utbetalingsstatus))
 }
 

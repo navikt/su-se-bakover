@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -57,6 +58,7 @@ internal class SimuleringResponseMapperTest {
                         tilOgMed = 31.desember(2021),
                         forrigeUtbetalingslinjeId = null,
                         beløp = 5000,
+                        uføregrad = Uføregrad.parse(50),
                     ),
                     virkningstidspunkt = 1.mai(2021),
                     clock = Clock.systemUTC(),

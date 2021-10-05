@@ -2,10 +2,14 @@ package no.nav.su.se.bakover.service.statistikk
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
+import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import java.time.Clock
 
@@ -33,13 +37,11 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
                 is OpprettetRevurdering -> this
                 is RevurderingTilAttestering -> this
                 is IverksattRevurdering -> {
+                    val resultatOgBegrunnelse = ResultatOgBegrunnelseMapper.map(revurdering)
+
                     copy(
-                        resultat = when (revurdering) {
-                            is IverksattRevurdering.Innvilget -> "Innvilget"
-                            is IverksattRevurdering.Opphørt -> "Opphørt"
-                            is IverksattRevurdering.IngenEndring -> "Uendret"
-                        },
-                        resultatBegrunnelse = "Endring i søkers inntekt", // TODO ai: Må støtte flere grunner for revurdering senare
+                        resultat = resultatOgBegrunnelse.resultat,
+                        resultatBegrunnelse = resultatOgBegrunnelse.begrunnelse,
                         beslutter = revurdering.attestering.attestant.navIdent,
                         avsluttet = true
                     )
@@ -53,6 +55,47 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
             }
         }
     }
+
+    internal object ResultatOgBegrunnelseMapper {
+        private const val innvilget = "Innvilget"
+        private const val opphørt = "Opphørt"
+        private const val ingenEndring = "Uendret"
+        private const val ingenEndringBegrunnelse = "Mindre enn 10% endring i inntekt"
+
+        private val stans = "Stans"
+        private val gjenopptak = "Gjenopptak"
+
+        internal data class ResultatOgBegrunnelse(
+            val resultat: String,
+            val begrunnelse: String?,
+        )
+
+        internal fun map(revurdering: Revurdering): ResultatOgBegrunnelse = when (revurdering) {
+            is IverksattRevurdering.Innvilget -> ResultatOgBegrunnelse(innvilget, null)
+            is IverksattRevurdering.Opphørt -> ResultatOgBegrunnelse(opphørt, listUtOpphørsgrunner(revurdering.utledOpphørsgrunner()))
+            is IverksattRevurdering.IngenEndring -> ResultatOgBegrunnelse(ingenEndring, ingenEndringBegrunnelse)
+            else -> throw ManglendeStatistikkMappingException(this, revurdering::class.java)
+        }
+
+        fun map(stansAvYtelse: StansAvYtelseRevurdering.IverksattStansAvYtelse) = ResultatOgBegrunnelse(stans, stansAvYtelse.revurderingsårsak.årsak.hentGyldigStansBegrunnelse())
+        fun map(gjenopptakAvYtelse: GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse) = ResultatOgBegrunnelse(gjenopptak, gjenopptakAvYtelse.revurderingsårsak.årsak.hentGyldigGjenopptakBegrunnelse())
+
+        private fun listUtOpphørsgrunner(opphørsgrunner: List<Opphørsgrunn>): String = opphørsgrunner.joinToString(",")
+        private fun Revurderingsårsak.Årsak.hentGyldigStansBegrunnelse() = when (this) {
+            Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING -> "Manglende kontrollerklæring"
+            else -> throw RuntimeException("$this er ikke en gyldig årsak for stans av ytelse")
+        }
+        private fun Revurderingsårsak.Årsak.hentGyldigGjenopptakBegrunnelse() = when (this) {
+            Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING -> "Mottatt kontrollerklæring"
+            else -> throw RuntimeException("$this er ikke en gyldig årsak for gjenopptak av ytelse")
+        }
+    }
+
+    internal data class ManglendeStatistikkMappingException(
+        private val mapper: Any,
+        private val clazz: Class<*>,
+        val msg: String = "${mapper::class.qualifiedName} støtter ikke mapping for klasse ${clazz.name}",
+    ) : RuntimeException(msg)
 
     internal object BehandlingStatusMapper {
         fun map(revurdering: Revurdering): String =

@@ -11,9 +11,9 @@ internal class SøknadsbehandlingVisitorTest {
         SøknadsbehandlingVisitor::class.declaredFunctions.count() shouldBe findSealedSubclassCount(Søknadsbehandling::class)
     }
 
-    fun findSealedSubclassCount(clazz: KClass<*>): Int {
+    private fun findSealedSubclassCount(clazz: KClass<*>): Int {
         var sum = 0
-        when (clazz.sealedSubclasses.count() == 0) {
+        when (clazz.sealedSubclasses.isEmpty()) {
             true -> sum += 1
             false -> clazz.sealedSubclasses.forEach {
                 sum += findSealedSubclassCount(it)

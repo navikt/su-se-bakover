@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -44,6 +45,7 @@ internal class KontrollerSimuleringTest {
                     tilOgMed = 31.desember(2021),
                     forrigeUtbetalingslinjeId = null,
                     beløp = 5000,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             ),
         )
@@ -80,6 +82,7 @@ internal class KontrollerSimuleringTest {
                     tilOgMed = 31.desember(2021),
                     forrigeUtbetalingslinjeId = null,
                     beløp = 15000,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -104,6 +107,7 @@ internal class KontrollerSimuleringTest {
                     tilOgMed = 31.desember(2021),
                     forrigeUtbetalingslinjeId = null,
                     beløp = 5000,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -132,6 +136,7 @@ internal class KontrollerSimuleringTest {
                     tilOgMed = 31.desember(2021),
                     forrigeUtbetalingslinjeId = null,
                     beløp = 5000,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             ),
         )
@@ -145,6 +150,7 @@ internal class KontrollerSimuleringTest {
                     tilOgMed = periode.tilOgMed,
                     forrigeUtbetalingslinjeId = null,
                     beløp = 15000,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -195,6 +201,7 @@ internal class KontrollerSimuleringTest {
                     tilOgMed = 31.desember(2021),
                     forrigeUtbetalingslinjeId = null,
                     beløp = 5000,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             ),
         )

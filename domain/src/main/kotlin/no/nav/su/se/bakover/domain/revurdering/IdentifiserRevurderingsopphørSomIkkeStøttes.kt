@@ -11,14 +11,14 @@ import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 
-sealed class IdentifiserSaksbehandlingsutfallSomIkkeStøttes {
+sealed class IdentifiserRevurderingsopphørSomIkkeStøttes {
 
     protected abstract fun OpphørVedRevurdering.Ja.opphørsdatoErTidligesteDatoIRevurdering(): Boolean
 
     data class UtenBeregning(
         private val vilkårsvurderinger: Vilkårsvurderinger,
         private val periode: Periode,
-    ) : IdentifiserSaksbehandlingsutfallSomIkkeStøttes() {
+    ) : IdentifiserRevurderingsopphørSomIkkeStøttes() {
         val resultat: Either<Set<RevurderingsutfallSomIkkeStøttes>, Unit> =
             VurderOpphørVedRevurdering.Vilkårsvurderinger(vilkårsvurderinger).resultat.let { opphørVedRevurdering ->
                 val utfall = mutableSetOf<RevurderingsutfallSomIkkeStøttes>()
@@ -46,7 +46,7 @@ sealed class IdentifiserSaksbehandlingsutfallSomIkkeStøttes {
         private val vilkårsvurderinger: Vilkårsvurderinger,
         private val tidligereBeregning: Beregning,
         private val nyBeregning: Beregning,
-    ) : IdentifiserSaksbehandlingsutfallSomIkkeStøttes() {
+    ) : IdentifiserRevurderingsopphørSomIkkeStøttes() {
         val resultat: Either<Set<RevurderingsutfallSomIkkeStøttes>, Unit> =
             VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
                 vilkårsvurderinger,

@@ -97,6 +97,7 @@ internal class UtbetalingPostgresRepo(
             "utbetalingId" to utbetalingId,
             "forrigeUtbetalingslinjeId" to utbetalingslinje.forrigeUtbetalingslinjeId,
             "belop" to utbetalingslinje.beløp,
+            "uforegrad" to utbetalingslinje.uføregrad?.value
         )
 
         val params = when (utbetalingslinje) {
@@ -111,8 +112,8 @@ internal class UtbetalingPostgresRepo(
             is Utbetalingslinje.Ny -> baseParams
         }
         """
-            insert into utbetalingslinje (id, opprettet, fom, tom, utbetalingId, forrigeUtbetalingslinjeId, beløp, status, statusFraOgMed)
-            values (:id, :opprettet, :fom, :tom, :utbetalingId, :forrigeUtbetalingslinjeId, :belop, :status, :statusFraOgMed)
+            insert into utbetalingslinje (id, opprettet, fom, tom, utbetalingId, forrigeUtbetalingslinjeId, beløp, status, statusFraOgMed, uføregrad)
+            values (:id, :opprettet, :fom, :tom, :utbetalingId, :forrigeUtbetalingslinjeId, :belop, :status, :statusFraOgMed, :uforegrad)
         """.insert(params, session)
 
         return utbetalingslinje

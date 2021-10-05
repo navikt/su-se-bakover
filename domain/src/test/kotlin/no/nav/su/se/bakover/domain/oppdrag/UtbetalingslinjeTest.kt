@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.oppdrag
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
@@ -25,6 +26,7 @@ internal class UtbetalingslinjeTest {
         fraOgMed = fraOgMed,
         tilOgMed = tilOgMed,
         forrigeUtbetalingslinjeId = null,
-        beløp = 1000
+        beløp = 1000,
+        uføregrad = Uføregrad.parse(50),
     )
 }

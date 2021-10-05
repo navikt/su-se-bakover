@@ -21,7 +21,7 @@ object OppgavebeskrivelseMapper {
         }
     }
 
-    fun SivilstandTyper.toReadableName() = when (this) {
+    private fun SivilstandTyper.toReadableName() = when (this) {
         SivilstandTyper.UOPPGITT -> "Uppgitt"
         SivilstandTyper.UGIFT -> "Ugift"
         SivilstandTyper.GIFT -> "Gift"

@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.mai
@@ -10,37 +11,50 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
 import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.oversendtStansUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.periodeMars2021
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.simulertUtbetaling
+import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import java.time.LocalDate
+import java.util.UUID
 
 class StansAvYtelseServiceTest {
 
     @Test
     fun `svarer med feil dersom vi ikke får tak i gjeldende grunnlagdata`() {
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(any<UUID>()) } doReturn mock<Sak>().right()
+        }
+
         val vedtakServiceMock = mock<VedtakService> {
             on {
                 kopierGjeldendeVedtaksdata(
@@ -52,6 +66,7 @@ class StansAvYtelseServiceTest {
 
         RevurderingServiceMocks(
             vedtakService = vedtakServiceMock,
+            sakService = sakServiceMock,
         ).let {
             it.revurderingService.stansAvYtelse(
                 StansYtelseRequest.Opprett(
@@ -65,6 +80,7 @@ class StansAvYtelseServiceTest {
                 ),
             ) shouldBe KunneIkkeStanseYtelse.KunneIkkeOppretteRevurdering.left()
 
+            verify(it.sakService).hentSak(sakId)
             verify(it.vedtakService).kopierGjeldendeVedtaksdata(
                 sakId = sakId,
                 fraOgMed = 1.mai(2021),
@@ -79,9 +95,13 @@ class StansAvYtelseServiceTest {
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
             tilOgMed = periode2021.tilOgMed,
         )
-        val expected = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-            periode = periode,
-        ).second
+        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(periode, "b"),
+        )
+
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(any<UUID>()) } doReturn sak.right()
+        }
 
         val vedtakServiceMock = mock<VedtakService> {
             on {
@@ -91,7 +111,7 @@ class StansAvYtelseServiceTest {
                 )
             } doReturn GjeldendeVedtaksdata(
                 periode = periode,
-                vedtakListe = nonEmptyListOf(expected.tilRevurdering),
+                vedtakListe = nonEmptyListOf(vedtak),
                 clock = fixedClock,
             ).right()
         }
@@ -109,6 +129,7 @@ class StansAvYtelseServiceTest {
         RevurderingServiceMocks(
             vedtakService = vedtakServiceMock,
             utbetalingService = utbetalingServiceMock,
+            sakService = sakServiceMock,
         ).let {
             it.revurderingService.stansAvYtelse(
                 StansYtelseRequest.Opprett(
@@ -126,6 +147,7 @@ class StansAvYtelseServiceTest {
                 ),
             ).left()
 
+            verify(it.sakService).hentSak(sakId)
             verify(it.vedtakService).kopierGjeldendeVedtaksdata(
                 sakId = sakId,
                 fraOgMed = 1.mai(2021),
@@ -145,9 +167,13 @@ class StansAvYtelseServiceTest {
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
             tilOgMed = periode2021.tilOgMed,
         )
-        val expected = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
-            periode = periode,
-        ).second
+        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(periode, "b"),
+        )
+
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(any<UUID>()) } doReturn sak.right()
+        }
 
         val vedtakServiceMock = mock<VedtakService> {
             on {
@@ -157,7 +183,7 @@ class StansAvYtelseServiceTest {
                 )
             } doReturn GjeldendeVedtaksdata(
                 periode = periode,
-                vedtakListe = nonEmptyListOf(expected.tilRevurdering),
+                vedtakListe = nonEmptyListOf(vedtak),
                 clock = fixedClock,
             ).right()
         }
@@ -169,6 +195,7 @@ class StansAvYtelseServiceTest {
         RevurderingServiceMocks(
             vedtakService = vedtakServiceMock,
             utbetalingService = utbetalingServiceMock,
+            sakService = sakServiceMock,
         ).let {
             val response = it.revurderingService.stansAvYtelse(
                 StansYtelseRequest.Opprett(
@@ -182,6 +209,7 @@ class StansAvYtelseServiceTest {
                 ),
             ).getOrFail("skulle gått bra")
 
+            verify(it.sakService).hentSak(sakId)
             verify(it.vedtakService).kopierGjeldendeVedtaksdata(
                 sakId = sakId,
                 fraOgMed = 1.mai(2021),
@@ -241,6 +269,68 @@ class StansAvYtelseServiceTest {
                 attestant = NavIdentBruker.Attestant(simulertStans.saksbehandler.navIdent),
                 simulering = simulertStans.simulering,
                 stansDato = simulertStans.periode.fraOgMed,
+            )
+            it.verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `happy path for iverksettelse`() {
+        val periode = Periode.create(
+            fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
+            tilOgMed = periode2021.tilOgMed,
+        )
+        val simulertStans = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            periode = periode,
+        ).second
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn simulertStans
+        }
+
+        val utbetaling = oversendtStansUtbetalingUtenKvittering(
+            stansDato = periode.fraOgMed,
+        )
+
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on {
+                stansUtbetalinger(
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            } doReturn utbetaling.right()
+        }
+
+        RevurderingServiceMocks(
+            revurderingRepo = revurderingRepoMock,
+            utbetalingService = utbetalingServiceMock,
+        ).let {
+            val response = it.revurderingService.iverksettStansAvYtelse(
+                revurderingId = revurderingId,
+                attestant = NavIdentBruker.Attestant(simulertStans.saksbehandler.navIdent),
+            ).getOrFail("Feil med oppsett av testdata")
+
+            verify(it.revurderingRepo).hent(simulertStans.id)
+            verify(it.utbetalingService).stansUtbetalinger(
+                sakId = simulertStans.sakId,
+                attestant = NavIdentBruker.Attestant(simulertStans.saksbehandler.navIdent),
+                simulering = simulertStans.simulering,
+                stansDato = simulertStans.periode.fraOgMed,
+            )
+            verify(it.revurderingRepo).lagre(response)
+            verify(it.vedtakService).lagre(
+                argThat { vedtak ->
+                    vedtak.shouldBeEqualToIgnoringFields(
+                        Vedtak.from(
+                            revurdering = response,
+                            utbetalingId = utbetaling.id,
+                            clock = fixedClock,
+                        ),
+                        Vedtak::id,
+                    )
+                },
             )
             it.verifyNoMoreInteractions()
         }
@@ -377,6 +467,72 @@ class StansAvYtelseServiceTest {
             )
             verify(it.revurderingRepo).hent(eksisterende.id)
             verify(it.revurderingRepo).lagre(response)
+            it.verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `får ikke iverksatt dersom simulering indikerer feilutbetaling`() {
+        val periode = Periode.create(
+            fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
+            tilOgMed = periode2021.tilOgMed,
+        )
+        val eksisterende = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            periode = periode,
+            simulering = simuleringFeilutbetaling(*periode.tilMånedsperioder().toTypedArray()),
+        ).second
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn eksisterende
+        }
+
+        RevurderingServiceMocks(
+            revurderingRepo = revurderingRepoMock,
+        ).let {
+            val response = it.revurderingService.iverksettStansAvYtelse(
+                revurderingId = eksisterende.id,
+                attestant = attestant,
+            )
+
+            response shouldBe KunneIkkeIverksetteStansYtelse.SimuleringIndikererFeilutbetaling.left()
+
+            verify(it.revurderingRepo).hent(eksisterende.id)
+            it.verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `får ikke opprettet ny hvis det allerede eksisterer åpen revurdering for stans`() {
+        val periode = Periode.create(
+            fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
+            tilOgMed = periode2021.tilOgMed,
+        )
+        val eksisterende = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            periode = periode,
+        )
+
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(any<UUID>()) } doReturn eksisterende.first.right()
+        }
+
+        RevurderingServiceMocks(
+            sakService = sakServiceMock,
+        ).let {
+            val response = it.revurderingService.stansAvYtelse(
+                StansYtelseRequest.Opprett(
+                    sakId = sakId,
+                    saksbehandler = NavIdentBruker.Saksbehandler("sverre"),
+                    fraOgMed = 1.desember(2021),
+                    revurderingsårsak = Revurderingsårsak.create(
+                        årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
+                        begrunnelse = "oppdatert",
+                    ),
+                ),
+            )
+
+            response shouldBe KunneIkkeStanseYtelse.SakHarÅpenRevurderingForStansAvYtelse.left()
+
+            verify(sakServiceMock).hentSak(sakId)
             it.verifyNoMoreInteractions()
         }
     }

@@ -48,8 +48,9 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         val utbetaling = oversendtUtbetalingMedKvitteringFraBeregning(
             eksisterendeUtbetalinger = sak.utbetalinger,
             beregning = beregning,
+            uføregrunnlag = vilkårsvurderinger.uføre.grunnlag,
         ).copy(
-            id = utbetalingId
+            id = utbetalingId,
         )
         val vedtak = Vedtak.fromSøknadsbehandling(
             søknadsbehandling = søknadsbehandling,

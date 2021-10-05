@@ -4,6 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -27,6 +28,7 @@ interface UtbetalingService {
         sakId: UUID,
         saksbehandler: NavIdentBruker,
         beregning: Beregning,
+        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 
     fun simulerOpphør(
@@ -40,6 +42,7 @@ interface UtbetalingService {
         attestant: NavIdentBruker,
         beregning: Beregning,
         simulering: Simulering,
+        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
     ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering>
 
     fun simulerStans(

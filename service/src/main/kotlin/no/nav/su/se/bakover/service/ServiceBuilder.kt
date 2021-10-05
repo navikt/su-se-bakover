@@ -36,7 +36,13 @@ object ServiceBuilder {
         unleash: Unleash,
     ): Services {
         val personService = PersonServiceImpl(clients.personOppslag)
-        val statistikkService = StatistikkServiceImpl(clients.kafkaPublisher, personService, databaseRepos.sak, databaseRepos.vedtakRepo, clock)
+        val statistikkService = StatistikkServiceImpl(
+            clients.kafkaPublisher,
+            personService,
+            databaseRepos.sak,
+            databaseRepos.vedtakRepo,
+            clock,
+        )
         val sakService = SakServiceImpl(
             sakRepo = databaseRepos.sak,
         ).apply { observers.add(statistikkService) }
@@ -110,6 +116,7 @@ object ServiceBuilder {
             vilkårsvurderingService = vilkårsvurderingService,
             grunnlagService = grunnlagService,
             vedtakService = vedtakService,
+            sakService = sakService,
         ).apply { addObserver(statistikkService) }
 
         val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)

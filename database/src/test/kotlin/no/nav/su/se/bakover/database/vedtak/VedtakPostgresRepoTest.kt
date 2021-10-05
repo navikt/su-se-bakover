@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.saksbehandler
@@ -269,7 +270,7 @@ internal class VedtakPostgresRepoTest {
 
             val iverksattRevurdering = simulertRevurdering.iverksett(
                 Attestering.Iverksatt(NavIdentBruker.Attestant("atte"), fixedTidspunkt),
-            )
+            ).getOrFail("Feil i oppsett av testdata")
 
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
@@ -307,7 +308,8 @@ internal class VedtakPostgresRepoTest {
 
             val iverksattRevurdering = simulertRevurdering.iverksett(
                 Attestering.Iverksatt(NavIdentBruker.Attestant("atte"), fixedTidspunkt),
-            )
+            ).getOrFail("Feil i oppsett av testdata")
+
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
             val utbetaling = testDataHelper.nyOversendtUtbetalingMedKvittering().second

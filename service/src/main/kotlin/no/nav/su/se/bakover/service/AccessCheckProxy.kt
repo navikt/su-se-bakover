@@ -158,10 +158,11 @@ open class AccessCheckProxy(
                     sakId: UUID,
                     saksbehandler: NavIdentBruker,
                     beregning: Beregning,
+                    uføregrunnlag: List<Grunnlag.Uføregrunnlag>
                 ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
                     assertHarTilgangTilSak(sakId)
 
-                    return services.utbetaling.simulerUtbetaling(sakId, saksbehandler, beregning)
+                    return services.utbetaling.simulerUtbetaling(sakId, saksbehandler, beregning, uføregrunnlag)
                 }
 
                 override fun simulerOpphør(
@@ -179,10 +180,11 @@ open class AccessCheckProxy(
                     attestant: NavIdentBruker,
                     beregning: Beregning,
                     simulering: Simulering,
+                    uføregrunnlag: List<Grunnlag.Uføregrunnlag>
                 ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering> {
                     assertHarTilgangTilSak(sakId)
 
-                    return services.utbetaling.utbetal(sakId, attestant, beregning, simulering)
+                    return services.utbetaling.utbetal(sakId, attestant, beregning, simulering, uføregrunnlag)
                 }
 
                 override fun simulerStans(
@@ -604,6 +606,10 @@ open class AccessCheckProxy(
                 }
             },
             vedtakService = object : VedtakService {
+                override fun lagre(vedtak: Vedtak) {
+                    kastKanKunKallesFraAnnenService()
+                }
+
                 override fun hentAktiveFnr(fomDato: LocalDate): List<Fnr> {
                     return services.vedtakService.hentAktiveFnr(fomDato)
                 }

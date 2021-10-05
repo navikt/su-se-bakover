@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.client.oppdrag.utbetaling.toUtbetalingRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.system.os.entiteter.oppdragskjema.Attestant
 import no.nav.system.os.entiteter.oppdragskjema.Enhet
+import no.nav.system.os.entiteter.oppdragskjema.Grad
 import no.nav.system.os.entiteter.typer.simpletypes.FradragTillegg
 import no.nav.system.os.entiteter.typer.simpletypes.KodeStatusLinje
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdrag
@@ -85,5 +86,13 @@ internal class SimuleringRequestBuilder(
                 attestantId = oppdragslinje.saksbehId
             },
         )
+        oppdragslinje.grad?.let {
+            grad.add(
+                Grad().apply {
+                    grad = it.grad.toBigInteger()
+                    typeGrad = it.typeGrad.value
+                },
+            )
+        }
     }
 }

@@ -27,7 +27,7 @@ allprojects {
     }
     val junitJupiterVersion = "5.8.1"
     val kotestVersion = "4.6.3"
-    val jacksonVersion = "2.12.5"
+    val jacksonVersion = "2.13.0"
     val kotlinVersion: String by this
     dependencies {
         api(kotlin("stdlib-jdk8"))
@@ -93,6 +93,18 @@ allprojects {
                 because("no.nav:kafka-embedded-env@2.8.0 -> https://snyk.io/vuln/SNYK-JAVA-ORGECLIPSEJETTY-1313686")
                 version {
                     require("9.4.43.v20210629")
+                }
+            }
+            implementation("org.apache.santuario:xmlsec") {
+                because("org.apache.cxf:cxf-rt-frontend-jaxws:3.4.4 and org.apache.cxf:cxf-rt-ws-security:3.4.4 -> https://app.snyk.io/vuln/SNYK-JAVA-ORGAPACHESANTUARIO-1655558")
+                version {
+                    require("2.2.3")
+                }
+            }
+            implementation("io.netty:netty-codec") {
+                because("io.ktor:ktor-server-netty@1.6.3 -> https://app.snyk.io/vuln/SNYK-JAVA-IONETTY-1584063 and https://app.snyk.io/vuln/SNYK-JAVA-IONETTY-1584064")
+                version {
+                    require("4.1.68.Final")
                 }
             }
         }

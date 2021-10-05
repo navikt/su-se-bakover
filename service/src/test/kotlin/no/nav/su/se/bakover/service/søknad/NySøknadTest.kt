@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Personopplysninger
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -26,7 +27,9 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadstype
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.fixedTidspunkt
@@ -36,6 +39,7 @@ import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -383,126 +387,107 @@ class NySøknadTest {
 
     @Test
     fun `eksisterende sak med søknad hvor oppgave feiler`() {
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-        val sakServiceMock: SakService = mock {
-            on { hentSak(any<Fnr>()) } doReturn sak.right()
-        }
-        val søknadRepoMock: SøknadRepo = mock()
-        val pdfGeneratorMock: PdfGenerator = mock {
-            on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
-        }
-        val dokArkivMock: DokArkiv = mock {
-            on { opprettJournalpost(any()) } doReturn journalpostId.right()
-        }
 
-        val oppgaveServiceMock: OppgaveService = mock {
-            on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
-        }
+        val (sak, _) = søknadsbehandlingIverksattInnvilget()
+        val person = PersonOppslagStub.person(sak.fnr).orNull()!!
 
-        val søknadService = SøknadServiceImpl(
-            søknadRepo = søknadRepoMock,
-            sakService = sakServiceMock,
-            sakFactory = sakFactory,
-            pdfGenerator = pdfGeneratorMock,
-            dokArkiv = dokArkivMock,
-            personService = personServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            søknadMetrics = mock(),
-            clock = fixedClock,
-        )
-
-        val actual = søknadService.nySøknad(søknadInnhold)
-        inOrder(
-            personServiceMock,
-            sakServiceMock,
-            søknadRepoMock,
-            pdfGeneratorMock,
-            dokArkivMock,
-            oppgaveServiceMock
+        SøknadserviceOgMocks(
+            sakService = mock {
+                on { hentSak(any<Fnr>()) } doReturn sak.right()
+            },
+            pdfGenerator = mock {
+                on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
+            },
+            dokArkiv = mock {
+                on { opprettJournalpost(any()) } doReturn journalpostId.right()
+            },
+            personService = mock {
+                on { hentPerson(any()) } doReturn person.right()
+            },
+            oppgaveService = mock {
+                on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
+            },
         ) {
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-            verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
-            verify(søknadRepoMock).opprettSøknad(
-                argThat {
-                    it shouldBe Søknad.Ny(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        sakId = sakId,
-                        søknadInnhold = søknadInnhold,
-                    )
-                }
-            )
-            verify(pdfGeneratorMock).genererPdf(
-                argThat<SøknadPdfInnhold> {
-                    it shouldBe SøknadPdfInnhold.create(
-                        saksnummer = sak.saksnummer,
-                        søknadsId = it.søknadsId,
-                        navn = person.navn,
-                        søknadOpprettet = actual.orNull()!!.second.opprettet,
-                        søknadInnhold = søknadInnhold,
-                        clock = fixedClock
-                    )
-                }
-            )
-            verify(dokArkivMock).opprettJournalpost(
-                argThat {
-                    it shouldBe Journalpost.Søknadspost.from(
-                        person = person,
-                        saksnummer = saksnummer,
-                        søknadInnhold = søknadInnhold,
-                        pdf = pdf,
-                    )
-                },
-            )
-            verify(søknadRepoMock).oppdaterjournalpostId(
-                argThat {
-                    it.shouldBeEqualToIgnoringFields(
-                        Søknad.Journalført.UtenOppgave(
-                            id = UUID.randomUUID(), // ignored
-                            opprettet = fixedTidspunkt,
-                            sakId = sakId,
+            val søknadInnhold = SøknadInnholdTestdataBuilder.build(personopplysninger = Personopplysninger(sak.fnr))
+            val actual = service.nySøknad(søknadInnhold)
+            inOrder(*allMocks()) {
+                verify(personService).hentPerson(argThat { it shouldBe sak.fnr })
+                verify(sakService).hentSak(argThat<Fnr> { it shouldBe sak.fnr })
+                verify(søknadRepo).opprettSøknad(
+                    argThat {
+                        it shouldBe Søknad.Ny(
+                            id = it.id,
+                            opprettet = it.opprettet,
+                            sakId = sak.id,
                             søknadInnhold = søknadInnhold,
-                            journalpostId = journalpostId,
-                        ),
-                        Søknad.Journalført.UtenOppgave::id
-                    )
-                }
-            )
-            verify(oppgaveServiceMock).opprettOppgave(
-                argThat {
-                    it.shouldBeEqualToIgnoringFields(
-                        OppgaveConfig.Saksbehandling(
-                            journalpostId = journalpostId,
-                            søknadId = UUID.randomUUID(), // ignored
-                            aktørId = person.ident.aktørId
-                        ),
-                        OppgaveConfig.Saksbehandling::søknadId,
-                        OppgaveConfig.Saksbehandling::saksreferanse
-                    )
-                }
-            )
-        }
-        verifyNoMoreInteractions(
-            personServiceMock,
-            søknadRepoMock,
-            sakServiceMock,
-            pdfGeneratorMock,
-            dokArkivMock,
-            oppgaveServiceMock
-        )
-        actual.orNull()!!.apply {
-            first shouldBe sak.saksnummer
-            second.shouldBeEqualToIgnoringFields(
-                Søknad.Ny(
-                    id = UUID.randomUUID(), // ignored
-                    opprettet = fixedTidspunkt,
-                    sakId = UUID.randomUUID(), // ignored
-                    søknadInnhold = søknadInnhold,
-                ),
-                Søknad.Ny::id, Søknad.Ny::sakId
-            )
+                        )
+                    },
+                )
+                verify(søknadMetrics).incrementNyCounter(SøknadMetrics.NyHandlinger.PERSISTERT)
+                verify(pdfGenerator).genererPdf(
+                    argThat<SøknadPdfInnhold> {
+                        it shouldBe SøknadPdfInnhold.create(
+                            saksnummer = sak.saksnummer,
+                            søknadsId = it.søknadsId,
+                            navn = person.navn,
+                            søknadOpprettet = actual.orNull()!!.second.opprettet,
+                            søknadInnhold = søknadInnhold,
+                            clock = fixedClock,
+                        )
+                    },
+                )
+                verify(dokArkiv).opprettJournalpost(
+                    argThat {
+                        it shouldBe Journalpost.Søknadspost.from(
+                            person = person,
+                            saksnummer = sak.saksnummer,
+                            søknadInnhold = søknadInnhold,
+                            pdf = pdf,
+                        )
+                    },
+                )
+                verify(søknadRepo).oppdaterjournalpostId(
+                    argThat {
+                        it.shouldBeEqualToIgnoringFields(
+                            Søknad.Journalført.UtenOppgave(
+                                id = UUID.randomUUID(), // ignored
+                                opprettet = fixedTidspunkt,
+                                sakId = sak.id,
+                                søknadInnhold = søknadInnhold,
+                                journalpostId = journalpostId,
+                            ),
+                            Søknad.Journalført.UtenOppgave::id,
+                        )
+                    },
+                )
+                verify(søknadMetrics).incrementNyCounter(SøknadMetrics.NyHandlinger.JOURNALFØRT)
+                verify(oppgaveService).opprettOppgave(
+                    argThat {
+                        it.shouldBeEqualToIgnoringFields(
+                            OppgaveConfig.NySøknad(
+                                journalpostId = journalpostId,
+                                søknadId = UUID.randomUUID(), // ignored
+                                aktørId = person.ident.aktørId,
+                                søknadstype = Søknadstype.NY_PERIODE,
+                            ),
+                            OppgaveConfig.NySøknad::søknadId,
+                            OppgaveConfig.NySøknad::saksreferanse,
+                        )
+                    },
+                )
+            }
+            actual.orNull()!!.apply {
+                first shouldBe sak.saksnummer
+                second.shouldBeEqualToIgnoringFields(
+                    Søknad.Ny(
+                        id = UUID.randomUUID(), // ignored
+                        opprettet = fixedTidspunkt,
+                        sakId = UUID.randomUUID(), // ignored
+                        søknadInnhold = søknadInnhold,
+                    ),
+                    Søknad.Ny::id, Søknad.Ny::sakId,
+                )
+            }
         }
     }
 
@@ -598,15 +583,16 @@ class NySøknadTest {
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it.shouldBeEqualToIgnoringFields(
-                        OppgaveConfig.Saksbehandling(
+                        OppgaveConfig.NySøknad(
                             journalpostId = journalpostId,
                             søknadId = UUID.randomUUID(), // ignored
                             aktørId = person.ident.aktørId,
+                            søknadstype = Søknadstype.FØRSTEGANGSSØKNAD
                         ),
-                        OppgaveConfig.Saksbehandling::søknadId,
-                        OppgaveConfig.Saksbehandling::saksreferanse,
+                        OppgaveConfig.NySøknad::søknadId,
+                        OppgaveConfig.NySøknad::saksreferanse,
                     )
-                }
+                },
             )
             verify(søknadRepoMock).oppdaterOppgaveId(
                 argThat {

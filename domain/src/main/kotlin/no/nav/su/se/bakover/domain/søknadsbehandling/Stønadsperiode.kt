@@ -10,7 +10,7 @@ import org.jetbrains.annotations.TestOnly
 data class Stønadsperiode private constructor(
     val periode: Periode,
     val begrunnelse: String,
-) {
+) : Comparable<Stønadsperiode> {
 
     infix fun inneholder(periode: Periode) = this.periode.inneholder(periode)
     infix fun inneholder(stønadsperiode: Stønadsperiode) = this.periode.inneholder(stønadsperiode.periode)
@@ -38,4 +38,6 @@ data class Stønadsperiode private constructor(
         object PeriodeKanIkkeVæreLengreEnn12Måneder : UgyldigStønadsperiode()
         object FraOgMedDatoKanIkkeVæreFør2021 : UgyldigStønadsperiode()
     }
+
+    override fun compareTo(other: Stønadsperiode) = periode.compareTo(other.periode)
 }

@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tilResultat
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
@@ -154,6 +155,13 @@ private fun KunneIkkeGjenopptaYtelse.tilResultat(): Resultat {
                 code = "ugyldig_tilstand_for_oppdatering",
             )
         }
+        KunneIkkeGjenopptaYtelse.FantIkkeSak -> fantIkkeSak
+        KunneIkkeGjenopptaYtelse.SakHarÅpenRevurderingForGjenopptakAvYtelse -> {
+            BadRequest.errorJson(
+                message = "Åpen revurdering for gjenopptak eksisterer allerede",
+                code = "åpen_revurdering_gjenopptak_eksisterer",
+            )
+        }
     }
 }
 
@@ -173,9 +181,15 @@ private fun KunneIkkeIverksetteGjenopptakAvYtelse.tilResultat(): Resultat {
             }
         }
         is KunneIkkeIverksetteGjenopptakAvYtelse.UgyldigTilstand -> {
-            HttpStatusCode.BadRequest.errorJson(
-                "Kan ikke iverksette gjenopptak av utbetalinger for revurdering av type: ${this.faktiskTilstand}, eneste gyldige tilstand er ${this.målTilstand}",
-                "kunne_ikke_iverksette_gjenopptak_ugyldig_tilstand",
+            BadRequest.errorJson(
+                message = "Kan ikke iverksette gjenopptak av utbetalinger for revurdering av type: ${this.faktiskTilstand}, eneste gyldige tilstand er ${this.målTilstand}",
+                code = "kunne_ikke_iverksette_gjenopptak_ugyldig_tilstand",
+            )
+        }
+        KunneIkkeIverksetteGjenopptakAvYtelse.SimuleringIndikererFeilutbetaling -> {
+            BadRequest.errorJson(
+                message = "Iverksetting av gjenopptak vil føre til feilutbetaling",
+                code = "kunne_ikke_iverksette_gjenopptak_fører_til_feilutbetaling",
             )
         }
     }

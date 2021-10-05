@@ -25,7 +25,7 @@ class UtbetalingKvitteringConsumer(
 
     companion object {
         val xmlMapper = XmlMapper(JacksonXmlModule().apply { setDefaultUseWrapper(false) }).apply {
-            registerModule(KotlinModule())
+            registerModule(KotlinModule.Builder().build())
             registerModule(JavaTimeModule())
             disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         }

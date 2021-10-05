@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -49,6 +50,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
                     beløp = 1500,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -89,6 +91,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                     forrigeUtbetalingslinjeId = opprinnelig.utbetalingslinjer[0].forrigeUtbetalingslinjeId,
                     beløp = opprinnelig.utbetalingslinjer[0].beløp,
                     virkningstidspunkt = 1.oktober(2020),
+                    uføregrad = opprinnelig.utbetalingslinjer[0].uføregrad,
                 ),
             ),
             type = Utbetaling.UtbetalingsType.GJENOPPTA,
@@ -118,6 +121,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
                     beløp = 1500,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -152,6 +156,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                     tilOgMed = 31.oktober(2021),
                     forrigeUtbetalingslinjeId = førsteGjenopptak.utbetalingslinjer[0].id,
                     beløp = 5100,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -186,6 +191,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 forrigeUtbetalingslinjeId = andre.utbetalingslinjer[0].forrigeUtbetalingslinjeId,
                 beløp = andre.utbetalingslinjer[0].beløp,
                 virkningstidspunkt = 1.mai(2021),
+                uføregrad = andre.utbetalingslinjer[0].uføregrad,
             ),
         )
     }
@@ -199,6 +205,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
                     beløp = 1500,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -223,6 +230,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                     tilOgMed = 31.juli(2020),
                     forrigeUtbetalingslinjeId = null,
                     beløp = 1500,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -267,12 +275,14 @@ internal class UtbetalingsstrategiGjenopptaTest {
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
             beløp = 1500,
+            uføregrad = Uføregrad.parse(50),
         )
         val l2 = Utbetalingslinje.Ny(
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = l1.id,
             beløp = 5100,
+            uføregrad = Uføregrad.parse(50),
         )
         val utbetaling = createOversendtUtbetaling(
             utbetalingslinjer = nonEmptyListOf(l1, l2),
@@ -306,6 +316,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 forrigeUtbetalingslinjeId = utbetaling.sisteUtbetalingslinje().forrigeUtbetalingslinjeId,
                 beløp = utbetaling.sisteUtbetalingslinje().beløp,
                 virkningstidspunkt = 1.april(2020),
+                uføregrad = utbetaling.sisteUtbetalingslinje().uføregrad,
             )
         }
     }

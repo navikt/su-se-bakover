@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.sak.SakService
 import java.time.Clock
@@ -20,6 +21,11 @@ class VedtakServiceImpl(
     private val sakService: SakService,
     private val clock: Clock,
 ) : VedtakService {
+
+    override fun lagre(vedtak: Vedtak) {
+        return vedtakRepo.lagre(vedtak)
+    }
+
     override fun hentAktiveFnr(fomDato: LocalDate): List<Fnr> {
         return vedtakRepo.hentAktive(fomDato).map {
             it.behandling.fnr

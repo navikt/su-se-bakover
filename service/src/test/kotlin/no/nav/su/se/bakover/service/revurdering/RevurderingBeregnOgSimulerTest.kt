@@ -107,6 +107,7 @@ class RevurderingBeregnOgSimulerTest {
                     tilOgMed = tilRevurdering.periode.tilOgMed,
                     forrigeUtbetalingslinjeId = null,
                     beløp = 20000,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             )
         }

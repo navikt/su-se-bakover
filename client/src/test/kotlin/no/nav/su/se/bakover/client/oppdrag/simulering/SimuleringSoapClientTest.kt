@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -200,6 +201,7 @@ internal class SimuleringSoapClientTest {
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
                     beløp = 0,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             ),
             type = Utbetaling.UtbetalingsType.NY,
@@ -232,6 +234,7 @@ internal class SimuleringSoapClientTest {
                 tilOgMed = 31.desember(2020),
                 beløp = 405,
                 forrigeUtbetalingslinjeId = null,
+                uføregrad = Uføregrad.parse(50),
             ),
         ),
         fnr = Fnr("12345678910"),

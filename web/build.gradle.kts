@@ -1,4 +1,4 @@
-val ktorVersion = "1.6.3"
+val ktorVersion = "1.6.4"
 
 plugins {
     /** Det ser ut som disse genererte filene ikke blir ekskludert av ktlint-tasken.

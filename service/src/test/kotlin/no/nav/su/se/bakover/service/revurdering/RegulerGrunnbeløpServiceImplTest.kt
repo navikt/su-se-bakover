@@ -282,6 +282,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     tilOgMed = periode.tilOgMed,
                     forrigeUtbetalingslinjeId = null,
                     beløp = 19637,
+                    uføregrad = Uføregrad.parse(50),
                 ),
             )
         }

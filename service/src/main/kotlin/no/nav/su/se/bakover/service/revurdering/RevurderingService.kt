@@ -375,6 +375,8 @@ sealed class StansYtelseRequest {
 
 sealed class KunneIkkeStanseYtelse {
     object FantIkkeRevurdering : KunneIkkeStanseYtelse()
+    object FantIkkeSak : KunneIkkeStanseYtelse()
+    object SakHarÅpenRevurderingForStansAvYtelse : KunneIkkeStanseYtelse()
     data class SimuleringAvStansFeilet(val feil: SimulerStansFeilet) : KunneIkkeStanseYtelse()
     object KunneIkkeOppretteRevurdering : KunneIkkeStanseYtelse()
     data class UgyldigTypeForOppdatering(val type: KClass<out AbstraktRevurdering>) : KunneIkkeStanseYtelse()
@@ -389,6 +391,8 @@ sealed class KunneIkkeIverksetteStansYtelse {
         val målTilstand: KClass<out StansAvYtelseRevurdering.IverksattStansAvYtelse> =
             StansAvYtelseRevurdering.IverksattStansAvYtelse::class
     }
+
+    object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteStansYtelse()
 }
 
 sealed class GjenopptaYtelseRequest {
@@ -413,6 +417,8 @@ sealed class GjenopptaYtelseRequest {
 sealed class KunneIkkeGjenopptaYtelse {
     object FantIkkeRevurdering : KunneIkkeGjenopptaYtelse()
     object FantIngenVedtak : KunneIkkeGjenopptaYtelse()
+    object FantIkkeSak : KunneIkkeGjenopptaYtelse()
+    object SakHarÅpenRevurderingForGjenopptakAvYtelse : KunneIkkeGjenopptaYtelse()
     data class KunneIkkeSimulere(val feil: SimulerGjenopptakFeil) : KunneIkkeGjenopptaYtelse()
     object KunneIkkeOppretteRevurdering : KunneIkkeGjenopptaYtelse()
     data class UgyldigTypeForOppdatering(val type: KClass<out AbstraktRevurdering>) : KunneIkkeGjenopptaYtelse()
@@ -428,6 +434,8 @@ sealed class KunneIkkeIverksetteGjenopptakAvYtelse {
         val målTilstand: KClass<out GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse> =
             GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse::class
     }
+
+    object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteGjenopptakAvYtelse()
 }
 
 data class LeggTilBosituasjongrunnlagRequest(
