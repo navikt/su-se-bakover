@@ -66,7 +66,7 @@ internal class PersonhendelseConsumerTest {
             producer.send(generatePdlMelding(TOPIC1, index))
         }
         val hendelser = argumentCaptor<Personhendelse.IkkeTilknyttetSak>()
-        verify(personhendelseService, timeout(10000).times(6)).prosesserNyHendelse(hendelser.capture())
+        verify(personhendelseService, timeout(20000).times(6)).prosesserNyHendelse(hendelser.capture())
         hendelser.allValues shouldBe (0..5L).map {
             Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
