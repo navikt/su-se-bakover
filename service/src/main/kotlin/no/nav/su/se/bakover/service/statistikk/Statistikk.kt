@@ -46,7 +46,7 @@ sealed class Statistikk {
         val behandlingTypeBeskrivelse: String?,
         val behandlingStatus: String,
         val behandlingStatusBeskrivelse: String? = null,
-        val behandlingYtelseDetaljer: List<Stønadsklassifisering>? = null,
+        val behandlingYtelseDetaljer: List<BehandlingYtelseDetaljer>? = null,
         val utenlandstilsnitt: String = "NASJONAL",
         val utenlandstilsnittBeskrivelse: String? = null,
         val ansvarligEnhetKode: String = "4815",
@@ -131,6 +131,10 @@ sealed class Statistikk {
     )
 
     data class Aktør(val aktorId: Int, val rolle: String, val rolleBeskrivelse: String)
+
+    data class BehandlingYtelseDetaljer(
+        val satsgrunn: Stønadsklassifisering,
+    )
 
     enum class Stønadsklassifisering(val beskrivelse: String) {
         BOR_ALENE("Bor alene"),

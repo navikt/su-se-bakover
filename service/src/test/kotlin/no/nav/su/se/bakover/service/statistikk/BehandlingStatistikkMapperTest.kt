@@ -212,7 +212,7 @@ internal class BehandlingStatistikkMapperTest {
             behandlingTypeBeskrivelse = "Søknad for SU Uføre",
             behandlingStatus = BehandlingsStatus.IVERKSATT_INNVILGET.toString(),
             behandlingStatusBeskrivelse = "Innvilget søknadsbehandling iverksatt",
-            behandlingYtelseDetaljer = listOf(Statistikk.Stønadsklassifisering.BOR_ALENE),
+            behandlingYtelseDetaljer = listOf(Statistikk.BehandlingYtelseDetaljer(Statistikk.Stønadsklassifisering.BOR_ALENE)),
             utenlandstilsnitt = "NASJONAL",
             utenlandstilsnittBeskrivelse = null,
             ansvarligEnhetKode = "4815",

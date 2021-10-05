@@ -220,7 +220,7 @@ internal class StatistikkServiceImplTest {
             saksbehandler = "Z1595",
             behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
-            behandlingYtelseDetaljer = listOf(Statistikk.Stønadsklassifisering.BOR_ALENE),
+            behandlingYtelseDetaljer = listOf(Statistikk.BehandlingYtelseDetaljer(Statistikk.Stønadsklassifisering.BOR_ALENE)),
             avsluttet = false,
         )
 
@@ -271,7 +271,7 @@ internal class StatistikkServiceImplTest {
             beslutter = "56",
             behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
-            behandlingYtelseDetaljer = listOf(Statistikk.Stønadsklassifisering.BOR_ALENE),
+            behandlingYtelseDetaljer = listOf(Statistikk.BehandlingYtelseDetaljer(Statistikk.Stønadsklassifisering.BOR_ALENE)),
             avsluttet = true,
         )
 
@@ -320,7 +320,7 @@ internal class StatistikkServiceImplTest {
             resultatBegrunnelse = "UFØRHET,UTENLANDSOPPHOLD_OVER_90_DAGER",
             behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
-            behandlingYtelseDetaljer = listOf(Statistikk.Stønadsklassifisering.BOR_ALENE),
+            behandlingYtelseDetaljer = listOf(Statistikk.BehandlingYtelseDetaljer(Statistikk.Stønadsklassifisering.BOR_ALENE)),
             avsluttet = true,
         )
 
@@ -386,7 +386,7 @@ internal class StatistikkServiceImplTest {
             beslutter = "attestant",
             behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
-            behandlingYtelseDetaljer = listOf(Statistikk.Stønadsklassifisering.BOR_ALENE),
+            behandlingYtelseDetaljer = listOf(Statistikk.BehandlingYtelseDetaljer(Statistikk.Stønadsklassifisering.BOR_ALENE)),
             avsluttet = false,
         )
 

@@ -53,20 +53,20 @@ class BehandlingStatistikkMapper(
                         resultat = ResultatOgBegrunnelseMapper.map(søknadsbehandling).resultat,
                         resultatBegrunnelse = ResultatOgBegrunnelseMapper.map(søknadsbehandling).begrunnelse,
                         avsluttet = true,
-                        behandlingYtelseDetaljer = stønadsklassifisering(søknadsbehandling)
+                        behandlingYtelseDetaljer = behandlingYtelseDetaljer(søknadsbehandling)
                     )
                 }
                 is Søknadsbehandling.TilAttestering -> {
                     copy(
                         saksbehandler = søknadsbehandling.saksbehandler.navIdent,
-                        behandlingYtelseDetaljer = stønadsklassifisering(søknadsbehandling)
+                        behandlingYtelseDetaljer = behandlingYtelseDetaljer(søknadsbehandling)
                     )
                 }
                 is Søknadsbehandling.Underkjent -> {
                     copy(
                         saksbehandler = søknadsbehandling.saksbehandler.navIdent,
                         beslutter = søknadsbehandling.attesteringer.hentSisteAttestering().attestant.navIdent,
-                        behandlingYtelseDetaljer = stønadsklassifisering(søknadsbehandling)
+                        behandlingYtelseDetaljer = behandlingYtelseDetaljer(søknadsbehandling)
                     )
                 }
                 else -> throw ManglendeStatistikkMappingException(this, søknadsbehandling::class.java)
@@ -156,7 +156,7 @@ class BehandlingStatistikkMapper(
                         resultatBegrunnelse = resultatOgBegrunnelse.begrunnelse,
                         beslutter = revurdering.attestering.attestant.navIdent,
                         avsluttet = true,
-                        behandlingYtelseDetaljer = stønadsklassifisering(revurdering),
+                        behandlingYtelseDetaljer = behandlingYtelseDetaljer(revurdering),
                     )
                 }
                 is UnderkjentRevurdering -> {
@@ -169,11 +169,11 @@ class BehandlingStatistikkMapper(
         }
     }
 
-    private fun stønadsklassifisering(
+    private fun behandlingYtelseDetaljer(
         behandling: Behandling
-    ): List<Statistikk.Stønadsklassifisering> {
+    ): List<Statistikk.BehandlingYtelseDetaljer> {
         return behandling.grunnlagsdata.bosituasjon.map {
-            it.stønadsklassifisering()
+            Statistikk.BehandlingYtelseDetaljer(satsgrunn = it.stønadsklassifisering())
         }
     }
 

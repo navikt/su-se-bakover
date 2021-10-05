@@ -82,10 +82,13 @@
     },
     "behandlingYtelseDetaljer": {
       "type": "array",
-      "properties": {
-        "satsgrunn": {
-          "type": "string",
-          "description": "Hvorfor søkeren får en gitt sats"
+      "items": {
+        "type": "object",
+        "properties": {
+          "satsgrunn": {
+            "type": "string",
+            "description": "Hvorfor søkeren får en gitt sats"
+          }
         }
       }
     },
