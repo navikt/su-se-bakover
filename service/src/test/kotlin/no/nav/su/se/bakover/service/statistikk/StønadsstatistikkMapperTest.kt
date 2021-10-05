@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.service.statistikk.mappers.StønadsstatistikkMapper
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -72,7 +73,7 @@ internal class StønadsstatistikkMapperTest {
                 månedsbeløp = bruttosats1.map {
                     Statistikk.Stønad.Månedsbeløp(
                         måned = it,
-                        stonadsklassifisering = Statistikk.Stønad.Stønadsklassifisering.BOR_ALENE,
+                        stonadsklassifisering = Statistikk.Stønadsklassifisering.BOR_ALENE,
                         bruttosats = 20945,
                         nettosats = 17946,
                         inntekter = listOf(
@@ -86,7 +87,7 @@ internal class StønadsstatistikkMapperTest {
                 } + bruttosats2.map {
                     Statistikk.Stønad.Månedsbeløp(
                         måned = it,
-                        stonadsklassifisering = Statistikk.Stønad.Stønadsklassifisering.BOR_ALENE,
+                        stonadsklassifisering = Statistikk.Stønadsklassifisering.BOR_ALENE,
                         bruttosats = 21989,
                         nettosats = 18989,
                         inntekter = listOf(

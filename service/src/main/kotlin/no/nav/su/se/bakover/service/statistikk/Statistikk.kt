@@ -4,9 +4,12 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.log
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import java.time.LocalDate
 import java.util.UUID
 
+// TODO: Denne fortjener noe javadoc
 @JsonInclude(JsonInclude.Include.NON_NULL)
 sealed class Statistikk {
     data class Sak(
@@ -43,6 +46,7 @@ sealed class Statistikk {
         val behandlingTypeBeskrivelse: String?,
         val behandlingStatus: String,
         val behandlingStatusBeskrivelse: String? = null,
+        val behandlingYtelseDetaljer: List<BehandlingYtelseDetaljer>? = null,
         val utenlandstilsnitt: String = "NASJONAL",
         val utenlandstilsnittBeskrivelse: String? = null,
         val ansvarligEnhetKode: String = "4815",
@@ -110,13 +114,6 @@ sealed class Statistikk {
             INNVILGET("Innvilget"),
             OPPHØRT("Opphørt"),
         }
-        enum class Stønadsklassifisering(val beskrivelse: String) {
-            BOR_ALENE("Bor alene"),
-            BOR_MED_ANDRE_VOKSNE("Bor med andre voksne"),
-            BOR_MED_EKTEFELLE_UNDER_67_IKKE_UFØR_FLYKTNING("Bor med ektefelle under 67 år, ikke ufør flyktning"),
-            BOR_MED_EKTEFELLE_OVER_67("Bor med ektefelle over 67 år"),
-            BOR_MED_EKTEFELLE_UNDER_67_UFØR_FLYKTNING("Bor med ektefelle under 67 år, ufør flyktning"),
-        }
 
         data class Månedsbeløp(
             val måned: String,
@@ -134,4 +131,30 @@ sealed class Statistikk {
     )
 
     data class Aktør(val aktorId: Int, val rolle: String, val rolleBeskrivelse: String)
+
+    data class BehandlingYtelseDetaljer(
+        val satsgrunn: Stønadsklassifisering,
+    )
+
+    enum class Stønadsklassifisering(val beskrivelse: String) {
+        BOR_ALENE("Bor alene"),
+        BOR_MED_ANDRE_VOKSNE("Bor med andre voksne"),
+        BOR_MED_EKTEFELLE_UNDER_67_IKKE_UFØR_FLYKTNING("Bor med ektefelle under 67 år, ikke ufør flyktning"),
+        BOR_MED_EKTEFELLE_OVER_67("Bor med ektefelle over 67 år"),
+        BOR_MED_EKTEFELLE_UNDER_67_UFØR_FLYKTNING("Bor med ektefelle under 67 år, ufør flyktning"),
+    }
+}
+
+internal fun Grunnlag.Bosituasjon.stønadsklassifisering(): Statistikk.Stønadsklassifisering {
+    return when (this) {
+        is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> Statistikk.Stønadsklassifisering.BOR_MED_ANDRE_VOKSNE
+        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> Statistikk.Stønadsklassifisering.BOR_MED_EKTEFELLE_UNDER_67_IKKE_UFØR_FLYKTNING
+        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> Statistikk.Stønadsklassifisering.BOR_MED_EKTEFELLE_OVER_67
+        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> Statistikk.Stønadsklassifisering.BOR_MED_EKTEFELLE_UNDER_67_UFØR_FLYKTNING
+        is Grunnlag.Bosituasjon.Fullstendig.Enslig -> Statistikk.Stønadsklassifisering.BOR_ALENE
+        else -> {
+            log.error("Fant ikke stønadsklassifisering for bosituasjon $this")
+            throw RuntimeException("Fant ikke stønadsklassifisering for bosituasjon")
+        }
+    }
 }

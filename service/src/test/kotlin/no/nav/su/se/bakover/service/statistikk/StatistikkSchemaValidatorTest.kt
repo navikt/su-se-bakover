@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 
+// TODO: Utvid med tester som validerer fullstendige objekter, og flere tester for negative cases
 internal class StatistikkSchemaValidatorTest {
     companion object {
         val gyldigBehandling: Statistikk.Behandling = Statistikk.Behandling(
@@ -21,6 +22,7 @@ internal class StatistikkSchemaValidatorTest {
             behandlingStatus = BehandlingsStatus.IVERKSATT_AVSLAG.toString(),
             behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
+            behandlingYtelseDetaljer = listOf(Statistikk.BehandlingYtelseDetaljer(Statistikk.Stønadsklassifisering.BOR_ALENE)),
             avsluttet = true,
         )
 
@@ -52,7 +54,7 @@ internal class StatistikkSchemaValidatorTest {
             månedsbeløp = listOf(
                 Statistikk.Stønad.Månedsbeløp(
                     måned = "todo",
-                    stonadsklassifisering = Statistikk.Stønad.Stønadsklassifisering.BOR_ALENE,
+                    stonadsklassifisering = Statistikk.Stønadsklassifisering.BOR_ALENE,
                     bruttosats = 10000,
                     nettosats = 5000,
                     inntekter = listOf(Statistikk.Inntekt("Arbeidsinntekt", 5000)),

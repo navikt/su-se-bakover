@@ -2,11 +2,13 @@ package no.nav.su.se.bakover.service.statistikk
 
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.statistikk.mappers.BehandlingStatistikkMapper
+import no.nav.su.se.bakover.service.statistikk.mappers.SakStatistikkMapper
+import no.nav.su.se.bakover.service.statistikk.mappers.StønadsstatistikkMapper
 import org.slf4j.LoggerFactory
 import java.time.Clock
 
@@ -55,31 +57,19 @@ internal class StatistikkServiceImpl(
                 personService.hentAktørId(sak.fnr).fold(
                     { log.info("Finner ikke person sak med sakid: ${sak.id} i PDL.") },
                     { aktørId ->
-                        publiser(
-                            Statistikk.Sak(
-                                funksjonellTid = sak.opprettet,
-                                tekniskTid = sak.opprettet,
-                                opprettetDato = sak.opprettet.toLocalDate(zoneIdOslo),
-                                sakId = sak.id,
-                                aktorId = aktørId.toString().toLong(),
-                                saksnummer = sak.saksnummer.nummer,
-                                sakStatus = "OPPRETTET",
-                                sakStatusBeskrivelse = "Sak er opprettet men ingen vedtak er fattet.",
-                                versjon = clock.millis()
-                            )
-                        )
+                        publiser(SakStatistikkMapper(clock).map(sak, aktørId))
                     }
                 )
             }
             is Event.Statistikk.SøknadStatistikk.SøknadMottatt ->
-                publiser(SøknadStatistikkMapper(clock).map(event.søknad, event.saksnummer, Statistikk.Behandling.SøknadStatus.SØKNAD_MOTTATT))
+                publiser(BehandlingStatistikkMapper(clock).map(event.søknad, event.saksnummer, Statistikk.Behandling.SøknadStatus.SØKNAD_MOTTATT))
             is Event.Statistikk.SøknadStatistikk.SøknadLukket ->
-                publiser(SøknadStatistikkMapper(clock).map(event.søknad, event.saksnummer, Statistikk.Behandling.SøknadStatus.SØKNAD_LUKKET))
+                publiser(BehandlingStatistikkMapper(clock).map(event.søknad, event.saksnummer, Statistikk.Behandling.SøknadStatus.SØKNAD_LUKKET))
             is Event.Statistikk.SøknadsbehandlingStatistikk -> {
-                publiser(SøknadsbehandlingStatistikkMapper(clock).map(event.søknadsbehandling))
+                publiser(BehandlingStatistikkMapper(clock).map(event.søknadsbehandling))
             }
             is Event.Statistikk.RevurderingStatistikk -> {
-                publiser(RevurderingStatistikkMapper(clock).map(event.revurdering))
+                publiser(BehandlingStatistikkMapper(clock).map(event.revurdering))
             }
             is Event.Statistikk.Vedtaksstatistikk -> {
                 sakRepo.hentSak(event.vedtak.behandling.sakId)!!.let { sak ->
