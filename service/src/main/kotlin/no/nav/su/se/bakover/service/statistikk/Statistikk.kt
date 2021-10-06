@@ -18,8 +18,8 @@ sealed class Statistikk {
      * @param sakId  Nøkkelen til saken i kildesystemet
      * @param aktorId  Aktør IDen til primær mottager av ytelsen om denne blir godkjent
      * @param saksnummer  Saksnummeret tilknyttet saken
-     * @param ytelseType  Stønaden eller ytelsen saken omhandler
-     * @param ytelseTypeBeskrivelse  Beskriver den funksjonelle verdien av koden
+     * @param ytelseType  Stønaden eller ytelsen saken omhandler. F.eks "SUUFORE"
+     * @param ytelseTypeBeskrivelse  Beskriver den funksjonelle verdien av koden. F.eks "Supplerende stønad".
      * @param sakStatus  Kode som angir sakens status. F.eks OPPRETTET.
      * @param sakStatusBeskrivelse  Beskriver den funksjonelle verdien av koden
      * @param avsender  Feltet angir hvem som er avsender av dataene. Primært su-se-bakover.
