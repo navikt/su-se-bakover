@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
-import TikkendeKlokke
+import InkrementerendeKlokke
 import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.right
@@ -215,18 +215,18 @@ class RevurderingBeregnOgSimulerTest {
 
     @Test
     fun `en stanset ytelse kan revurderes som vanlig, selv om det ikke er endring i beløpet`() {
-        val tikkendeKlokke = TikkendeKlokke(fixedClock)
+        val inkrementerendeKlokke = InkrementerendeKlokke(fixedClock)
 
         val (sakFørRevurdering, stans) = vedtakIverksattStansAvYtelse(
             periode = periode2021,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         )
 
         val (sakMedRevurdering, revurdering) = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
             sakOgVedtakSomKanRevurderes = sakFørRevurdering to stans,
             grunnlagsdataOgVilkårsvurderinger = sakFørRevurdering.hentGjeldendeVilkårOgGrunnlag(
                 periode = periode2021,
-                clock = tikkendeKlokke,
+                clock = inkrementerendeKlokke,
             ),
         )
 

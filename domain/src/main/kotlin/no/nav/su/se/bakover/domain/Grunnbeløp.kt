@@ -16,6 +16,8 @@ class Grunnbeløp private constructor(private val multiplier: Double) {
 
     fun månedsbeløp(dato: LocalDate): Double = påDato(dato) / 12
 
+    fun heltallPåDato(dato: LocalDate): Int = påDato(dato).roundToInt()
+
     fun påDato(dato: LocalDate): Double = datoToBeløp.entries
         .sortedByDescending { it.key }
         .first { dato.isAfter(it.key) || dato.isEqual(it.key) }.value * multiplier

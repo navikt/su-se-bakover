@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.domain.beregning.beregning
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
-import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
@@ -15,7 +15,18 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.september
+import no.nav.su.se.bakover.common.periode.april
+import no.nav.su.se.bakover.common.periode.august
+import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.februar
+import no.nav.su.se.bakover.common.periode.januar
+import no.nav.su.se.bakover.common.periode.juli
+import no.nav.su.se.bakover.common.periode.juni
+import no.nav.su.se.bakover.common.periode.mai
+import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.periode.november
+import no.nav.su.se.bakover.common.periode.oktober
+import no.nav.su.se.bakover.common.periode.september
 import no.nav.su.se.bakover.domain.beregning.BeregningMedVirkningstidspunkt
 import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -26,6 +37,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.IkkePeriodisertFradrag
+import no.nav.su.se.bakover.domain.beregning.prosentEndringFra
 import org.junit.jupiter.api.Test
 
 internal class BeregningMedVirkningstidspunktTest {
@@ -739,7 +751,7 @@ internal class BeregningMedVirkningstidspunktTest {
                     satsbeløp = Sats.HØY.månedsbeløp(1.mai(2020)),
                     fribeløpForEps = 0.0,
                 ),
-            )
+            ),
         )
     }
 
@@ -1673,6 +1685,74 @@ internal class BeregningMedVirkningstidspunktTest {
             it.filterIsInstance<Merknad.RedusertYtelse>() shouldHaveSize 2
             it.filterIsInstance<Merknad.EndringUnderTiProsent>() shouldHaveSize 0
         }
+    }
+
+    @Test
+    fun `håndterer at utgangspunkt og ny beregning gir 0 i beløp`() {
+        val periode = Periode.create(1.januar(2020), 31.desember(2020))
+        val beregning = BeregningMedVirkningstidspunkt(
+            periode = periode,
+            sats = Sats.HØY,
+            fradrag = listOf(
+                IkkePeriodisertFradrag(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 45_000.0,
+                    periode = periode,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+            fradragStrategy = FradragStrategy.Enslig,
+            utgangspunkt = MånedsberegningFactory.ny(
+                periode = periode.månedenFør(),
+                sats = Sats.HØY,
+                fradrag = listOf(
+                    FradragFactory.ny(
+                        type = Fradragstype.ForventetInntekt,
+                        månedsbeløp = 45_000.0,
+                        periode = desember(2019),
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+                fribeløpForEps = 0.0,
+            ),
+        )
+
+        beregning.getSumYtelse() shouldBe 0
+        beregning.getSumFradrag() shouldBe 250116.0.plusOrMinus(0.5)
+        beregning.getMånedsberegninger().assertMåneder(
+            expected = mapOf(
+                (januar(2020) to (0 to 20637.32)),
+                (februar(2020) to (0 to 20637.32)),
+                (mars(2020) to (0 to 20637.32)),
+                (april(2020) to (0 to 20637.32)),
+                (mai(2020) to (0 to 20945.873333333333)),
+                (juni(2020) to (0 to 20945.873333333333)),
+                (juli(2020) to (0 to 20945.873333333333)),
+                (august(2020) to (0 to 20945.873333333333)),
+                (september(2020) to (0 to 20945.873333333333)),
+                (oktober(2020) to (0 to 20945.873333333333)),
+                (november(2020) to (0 to 20945.873333333333)),
+                (desember(2020) to (0 to 20945.873333333333)),
+            ),
+        )
+        beregning.merknader().let {
+            it.filterIsInstance<Merknad.EndringGrunnbeløp>() shouldHaveSize 1
+            it.filterIsInstance<Merknad.ØktYtelse>() shouldHaveSize 0
+            it.filterIsInstance<Merknad.RedusertYtelse>() shouldHaveSize 0
+            it.filterIsInstance<Merknad.EndringUnderTiProsent>() shouldHaveSize 0
+        }
+    }
+
+    @Test
+    fun `forskjell i prosent`() {
+        1100 prosentEndringFra 1000 shouldBe 10.0
+        900 prosentEndringFra 1000 shouldBe -10.0
+        20_000 prosentEndringFra 10_000 shouldBe 100.0
+        10_000 prosentEndringFra 20_000 shouldBe -50.0
+        0 prosentEndringFra 100 shouldBe -100.0
+        100 prosentEndringFra 0 shouldBe 100.0
+        100_000 prosentEndringFra 1000 shouldBe 9900
+        0 prosentEndringFra 0 shouldBe 0
     }
 
     private fun List<Månedsberegning>.assertMåneder(expected: Map<Periode, Pair<Int, Double>>) {

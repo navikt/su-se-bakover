@@ -31,7 +31,7 @@ internal data class PeriodisertBeregning(
         .sumOf { it.månedsbeløp }
         .limitedUpwardsTo(getSatsbeløp())
 
-    override fun getBenyttetGrunnbeløp(): Int = Grunnbeløp.`1G`.påDato(periode.fraOgMed).toInt()
+    override fun getBenyttetGrunnbeløp(): Int = Grunnbeløp.`1G`.heltallPåDato(periode.fraOgMed)
     override fun getSats(): Sats = sats
     override fun getSatsbeløp(): Double = sats.periodiser(periode).getValue(periode)
     override fun getFradrag(): List<PeriodisertFradrag> = fradrag

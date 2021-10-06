@@ -38,7 +38,7 @@ sealed class Merknad {
                     Grunnbeløp.`1G`.let {
                         return Detalj(
                             dato = dato,
-                            grunnbeløp = it.påDato(dato).toInt(),
+                            grunnbeløp = it.heltallPåDato(dato),
                         )
                     }
                 }

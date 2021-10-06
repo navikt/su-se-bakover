@@ -5,12 +5,12 @@ import arrow.core.getOrElse
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.prosentForskjell
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.prosentEndringFra
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -166,7 +166,7 @@ internal class RevurderingTest {
 
             beregnetRevurdering shouldBe beOfType<BeregnetRevurdering.Innvilget>()
             beregnetRevurdering.beregning.getMånedsberegninger().none {
-                it.getSumYtelse() prosentForskjell uregulerteUtbetalinger.utbetalingslinjer[0].beløp > abs(10)
+                it.getSumYtelse() prosentEndringFra uregulerteUtbetalinger.utbetalingslinjer[0].beløp > abs(10)
             }
             beregnetRevurdering.beregning.getMånedsberegninger()
                 .filter { it.periode.starterTidligere(periodeEtterGeregulering2021) }

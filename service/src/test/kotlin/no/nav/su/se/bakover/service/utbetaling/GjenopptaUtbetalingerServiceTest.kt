@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.service.utbetaling
 
-import TikkendeKlokke
+import InkrementerendeKlokke
 import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldHaveSize
@@ -56,18 +56,18 @@ import java.util.UUID
 
 internal class GjenopptaUtbetalingerServiceTest {
 
-    val tikkendeKlokke = TikkendeKlokke(fixedClock)
+    val inkrementerendeKlokke = InkrementerendeKlokke(fixedClock)
 
     @Test
     fun `Utbetalinger som er stanset blir startet igjen`() {
         val periode = Periode.create(
-            fraOgMed = LocalDate.now(tikkendeKlokke).plusMonths(1).startOfMonth(),
+            fraOgMed = LocalDate.now(inkrementerendeKlokke).plusMonths(1).startOfMonth(),
             tilOgMed = periode2021.tilOgMed,
         )
 
         val (sak, _) = vedtakIverksattStansAvYtelse(
             periode = periode,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         )
 
         val sakServiceMock = mock<SakService> {
@@ -85,7 +85,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             fnr = sak.fnr,
             sakId = sak.id,
             saksnummer = sak.saksnummer,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         )
 
         val simuleringClientMock = mock<SimuleringClient> {
@@ -97,7 +97,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             utbetalingPublisher = utbetalingPublisherMock,
             sakService = sakServiceMock,
             simuleringClient = simuleringClientMock,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         ).gjenopptaUtbetalinger(
             sakId = sak.id,
             attestant = saksbehandler,
@@ -120,7 +120,7 @@ internal class GjenopptaUtbetalingerServiceTest {
                             Utbetalingslinje.Endring.Reaktivering(
                                 utbetalingslinje = utbetalingslinjeForStans,
                                 virkningstidspunkt = periode.fraOgMed,
-                                clock = tikkendeKlokke,
+                                clock = inkrementerendeKlokke,
                             ),
                             Utbetalingslinje.Endring.Reaktivering::id,
                             Utbetalingslinje.Endring.Reaktivering::opprettet,
@@ -152,7 +152,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             utbetalingPublisher = utbetalingPublisherMock,
             sakService = sakServiceMock,
             simuleringClient = simuleringClientMock,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         )
 
         service.gjenopptaUtbetalinger(
@@ -187,7 +187,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             utbetalingPublisher = utbetalingPublisherMock,
             sakService = sakServiceMock,
             simuleringClient = simuleringClientMock,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         ).gjenopptaUtbetalinger(
             sakId = sak.id,
             attestant = saksbehandler,
@@ -214,7 +214,7 @@ internal class GjenopptaUtbetalingerServiceTest {
     @Test
     fun `Utbetaling feilet`() {
         val (sak, _) = vedtakIverksattStansAvYtelse(
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         )
 
         val sakServiceMock = mock<SakService> {
@@ -241,7 +241,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             utbetalingPublisher = utbetalingPublisherMock,
             sakService = sakServiceMock,
             simuleringClient = simuleringClientMock,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         ).gjenopptaUtbetalinger(
             sakId = sak.id,
             attestant = saksbehandler,
@@ -337,7 +337,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             sakService = sakServiceMock,
             simuleringClient = simuleringClientMock,
             utbetalingPublisher = utbetalingPublisherMock,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         ).gjenopptaUtbetalinger(
             sakId = sak.id,
             attestant = attestant,

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 
 import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory

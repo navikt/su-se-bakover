@@ -6,6 +6,8 @@ import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.februar
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

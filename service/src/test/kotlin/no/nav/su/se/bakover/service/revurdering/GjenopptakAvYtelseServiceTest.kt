@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
-import TikkendeKlokke
+import InkrementerendeKlokke
 import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.nonEmptyListOf
@@ -45,7 +45,7 @@ import java.util.UUID
 
 class GjenopptakAvYtelseServiceTest {
 
-    private val tikkendeKlokke = TikkendeKlokke(fixedClock)
+    private val inkrementerendeKlokke = InkrementerendeKlokke(fixedClock)
 
     @Test
     fun `svarer med feil dersom sak ikke har noen vedtak`() {
@@ -55,7 +55,7 @@ class GjenopptakAvYtelseServiceTest {
 
         RevurderingServiceMocks(
             vedtakRepo = vedtakRepoMock,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         ).let {
             it.revurderingService.gjenopptaYtelse(
                 GjenopptaYtelseRequest.Opprett(
@@ -83,7 +83,7 @@ class GjenopptakAvYtelseServiceTest {
 
         RevurderingServiceMocks(
             vedtakRepo = vedtakRepoMock,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         ).let {
             it.revurderingService.gjenopptaYtelse(
                 GjenopptaYtelseRequest.Opprett(
@@ -106,13 +106,13 @@ class GjenopptakAvYtelseServiceTest {
     @Test
     fun `svarer med feil dersom vi ikke får tak i gjeldende grunnlagdata`() {
         val periode = Periode.create(
-            fraOgMed = LocalDate.now(tikkendeKlokke).plusMonths(1).startOfMonth(),
+            fraOgMed = LocalDate.now(inkrementerendeKlokke).plusMonths(1).startOfMonth(),
             tilOgMed = periode2021.tilOgMed,
         )
 
         val (sak, _) = vedtakIverksattStansAvYtelse(
             periode = periode,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         )
 
         val sakServiceMock = mock<SakService>() {
@@ -135,7 +135,7 @@ class GjenopptakAvYtelseServiceTest {
             vedtakRepo = vedtakRepoMock,
             vedtakService = vedtakServiceMock,
             sakService = sakServiceMock,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         ).let {
             it.revurderingService.gjenopptaYtelse(
                 GjenopptaYtelseRequest.Opprett(
@@ -161,12 +161,12 @@ class GjenopptakAvYtelseServiceTest {
     @Test
     fun `svarer med feil dersom simulering feiler`() {
         val periode = Periode.create(
-            fraOgMed = LocalDate.now(tikkendeKlokke).plusMonths(1).startOfMonth(),
+            fraOgMed = LocalDate.now(inkrementerendeKlokke).plusMonths(1).startOfMonth(),
             tilOgMed = periode2021.tilOgMed,
         )
         val (sak, vedtak) = vedtakIverksattStansAvYtelse(
             periode = periode,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         )
 
         val sakServiceMock = mock<SakService>() {
@@ -186,7 +186,7 @@ class GjenopptakAvYtelseServiceTest {
             } doReturn GjeldendeVedtaksdata(
                 periode = periode,
                 vedtakListe = NonEmptyList.fromListUnsafe(sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()),
-                clock = tikkendeKlokke,
+                clock = inkrementerendeKlokke,
             ).right()
         }
 
@@ -204,7 +204,7 @@ class GjenopptakAvYtelseServiceTest {
             vedtakService = vedtakServiceMock,
             utbetalingService = utbetalingServiceMock,
             sakService = sakServiceMock,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         ).let {
             it.revurderingService.gjenopptaYtelse(
                 GjenopptaYtelseRequest.Opprett(
@@ -238,12 +238,12 @@ class GjenopptakAvYtelseServiceTest {
     @Test
     fun `happy path for opprettelse`() {
         val periode = Periode.create(
-            fraOgMed = LocalDate.now(tikkendeKlokke).plusMonths(1).startOfMonth(),
+            fraOgMed = LocalDate.now(inkrementerendeKlokke).plusMonths(1).startOfMonth(),
             tilOgMed = periode2021.tilOgMed,
         )
         val (sak, vedtak) = vedtakIverksattStansAvYtelse(
             periode = periode,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         )
 
         val sakServiceMock = mock<SakService>() {
@@ -263,7 +263,7 @@ class GjenopptakAvYtelseServiceTest {
             } doReturn GjeldendeVedtaksdata(
                 periode = periode,
                 vedtakListe = nonEmptyListOf(vedtak),
-                clock = tikkendeKlokke,
+                clock = inkrementerendeKlokke,
             ).right()
         }
 
@@ -276,7 +276,7 @@ class GjenopptakAvYtelseServiceTest {
             vedtakService = vedtakServiceMock,
             utbetalingService = utbetalingServiceMock,
             sakService = sakServiceMock,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         ).let {
             val response = it.revurderingService.gjenopptaYtelse(
                 GjenopptaYtelseRequest.Opprett(
@@ -315,12 +315,12 @@ class GjenopptakAvYtelseServiceTest {
     @Test
     fun `svarer med feil dersom oversendelse av gjenopptak til oppdrag feiler`() {
         val periode = Periode.create(
-            fraOgMed = LocalDate.now(tikkendeKlokke).plusMonths(1).startOfMonth(),
+            fraOgMed = LocalDate.now(inkrementerendeKlokke).plusMonths(1).startOfMonth(),
             tilOgMed = periode2021.tilOgMed,
         )
         val revurderingGjenopptak = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
             periodeForStans = periode,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -336,7 +336,7 @@ class GjenopptakAvYtelseServiceTest {
         RevurderingServiceMocks(
             revurderingRepo = revurderingRepoMock,
             utbetalingService = utbetalingServiceMock,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         ).let {
             val response = it.revurderingService.iverksettGjenopptakAvYtelse(
                 revurderingId = revurderingGjenopptak.second.id,
@@ -362,7 +362,7 @@ class GjenopptakAvYtelseServiceTest {
     @Test
     fun `svarer med feil dersom revurdering ikke er av korrekt type`() {
         val enRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
-            clock = tikkendeKlokke
+            clock = inkrementerendeKlokke
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -390,12 +390,12 @@ class GjenopptakAvYtelseServiceTest {
     @Test
     fun `happy path for oppdatering`() {
         val periode = Periode.create(
-            fraOgMed = LocalDate.now(tikkendeKlokke).plusMonths(1).startOfMonth(),
-            tilOgMed = LocalDate.now(tikkendeKlokke).plusMonths(2).endOfMonth(),
+            fraOgMed = LocalDate.now(inkrementerendeKlokke).plusMonths(1).startOfMonth(),
+            tilOgMed = LocalDate.now(inkrementerendeKlokke).plusMonths(2).endOfMonth(),
         )
         val eksisterende = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
             periodeForStans = periode,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         )
 
         val vedtakRepoMock = mock<VedtakRepo> {
@@ -411,7 +411,7 @@ class GjenopptakAvYtelseServiceTest {
             } doReturn GjeldendeVedtaksdata(
                 periode = periode,
                 vedtakListe = nonEmptyListOf(eksisterende.second.tilRevurdering),
-                clock = tikkendeKlokke,
+                clock = inkrementerendeKlokke,
             ).right()
         }
 
@@ -428,7 +428,7 @@ class GjenopptakAvYtelseServiceTest {
             vedtakRepo = vedtakRepoMock,
             vedtakService = vedtakServiceMock,
             utbetalingService = utbetalingServiceMock,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         ).let {
             val response = it.revurderingService.gjenopptaYtelse(
                 GjenopptaYtelseRequest.Oppdater(
@@ -468,12 +468,12 @@ class GjenopptakAvYtelseServiceTest {
     @Test
     fun `får ikke iverksatt dersom simulering indikerer feilutbetaling`() {
         val periode = Periode.create(
-            fraOgMed = LocalDate.now(tikkendeKlokke).plusMonths(1).startOfMonth(),
+            fraOgMed = LocalDate.now(inkrementerendeKlokke).plusMonths(1).startOfMonth(),
             tilOgMed = periode2021.tilOgMed,
         )
         val eksisterende = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
             simulering = simuleringFeilutbetaling(*periode.tilMånedsperioder().toTypedArray()),
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         ).second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -482,7 +482,7 @@ class GjenopptakAvYtelseServiceTest {
 
         RevurderingServiceMocks(
             revurderingRepo = revurderingRepoMock,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         ).let {
             val response = it.revurderingService.iverksettGjenopptakAvYtelse(
                 revurderingId = eksisterende.id,
@@ -499,12 +499,12 @@ class GjenopptakAvYtelseServiceTest {
     @Test
     fun `får ikke opprettet ny hvis det allerede eksisterer åpen revurdering for gjenopptak`() {
         val periode = Periode.create(
-            fraOgMed = LocalDate.now(tikkendeKlokke).plusMonths(1).startOfMonth(),
-            tilOgMed = LocalDate.now(tikkendeKlokke).plusMonths(2).endOfMonth(),
+            fraOgMed = LocalDate.now(inkrementerendeKlokke).plusMonths(1).startOfMonth(),
+            tilOgMed = LocalDate.now(inkrementerendeKlokke).plusMonths(2).endOfMonth(),
         )
         val (sak, _) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
             periodeForStans = periode,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         )
 
         val vedtakRepoMock = mock<VedtakRepo> {
@@ -520,7 +520,7 @@ class GjenopptakAvYtelseServiceTest {
             } doReturn GjeldendeVedtaksdata(
                 periode = periode,
                 vedtakListe = NonEmptyList.fromListUnsafe(@Suppress("UNCHECKED_CAST") (sak.vedtakListe as List<VedtakSomKanRevurderes>)),
-                clock = tikkendeKlokke,
+                clock = inkrementerendeKlokke,
             ).right()
         }
 
@@ -532,7 +532,7 @@ class GjenopptakAvYtelseServiceTest {
             sakService = sakServiceMock,
             vedtakService = vedtakServiceMock,
             vedtakRepo = vedtakRepoMock,
-            clock = tikkendeKlokke,
+            clock = inkrementerendeKlokke,
         ).let {
             val response = it.revurderingService.gjenopptaYtelse(
                 GjenopptaYtelseRequest.Opprett(

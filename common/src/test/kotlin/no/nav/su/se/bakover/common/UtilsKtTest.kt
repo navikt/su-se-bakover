@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.common
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.periode.Periode
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.DateTimeException
@@ -29,32 +28,6 @@ internal class UtilsKtTest {
         assertThrows<DateTimeException> {
             51.juni(2020)
         }
-    }
-
-    @Test
-    fun `perioder for enkeltmåneder`() {
-        januar(2021) shouldBe Periode.create(1.januar(2021), 31.januar(2021))
-        februar(2021) shouldBe Periode.create(1.februar(2021), 28.februar(2021))
-        mars(2021) shouldBe Periode.create(1.mars(2021), 31.mars(2021))
-        april(2021) shouldBe Periode.create(1.april(2021), 30.april(2021))
-        mai(2021) shouldBe Periode.create(1.mai(2021), 31.mai(2021))
-        juni(2021) shouldBe Periode.create(1.juni(2021), 30.juni(2021))
-        juli(2021) shouldBe Periode.create(1.juli(2021), 31.juli(2021))
-        august(2021) shouldBe Periode.create(1.august(2021), 31.august(2021))
-        september(2021) shouldBe Periode.create(1.september(2021), 30.september(2021))
-        oktober(2021) shouldBe Periode.create(1.oktober(2021), 31.oktober(2021))
-        november(2021) shouldBe Periode.create(1.november(2021), 30.november(2021))
-        desember(2021) shouldBe Periode.create(1.desember(2021), 31.desember(2021))
-    }
-
-    @Test
-    fun `forskjell i prosent`() {
-        1100 prosentForskjell 1000 shouldBe 10.0
-        900 prosentForskjell 1000 shouldBe -10.0
-        20000 prosentForskjell 10000 shouldBe 100.0
-        10000 prosentForskjell 20000 shouldBe -50.0
-        0 prosentForskjell 100 shouldBe -100.0
-        100 prosentForskjell 0 shouldBe 100.0
     }
 
     @Test

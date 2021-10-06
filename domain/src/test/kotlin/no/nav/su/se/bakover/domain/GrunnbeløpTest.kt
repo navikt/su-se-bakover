@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.Month
 import java.time.Month.APRIL
 import java.time.Month.JANUARY
 import java.time.Month.MAY
@@ -14,11 +15,13 @@ internal class GrunnbeløpTest {
     @Test
     fun høy2017forJanuar2018() {
         Grunnbeløp.`2,48G`.påDato(LocalDate.of(2018, JANUARY, 1)) shouldBe 2.48 * 93634
+        Grunnbeløp.`2,48G`.heltallPåDato(LocalDate.of(2018, JANUARY, 1)) shouldBe 232_212
     }
 
     @Test
     fun ordinær2017forJanuar2018() {
         Grunnbeløp.`2,28G`.påDato(LocalDate.of(2018, JANUARY, 1)) shouldBe 2.28 * 93634
+        Grunnbeløp.`2,28G`.heltallPåDato(LocalDate.of(2018, JANUARY, 1)) shouldBe 213_486
     }
 
     @Test
@@ -44,11 +47,13 @@ internal class GrunnbeløpTest {
     @Test
     fun høy2021for2021() {
         Grunnbeløp.`2,48G`.påDato(LocalDate.of(2021, MAY, 1)) shouldBe 2.48 * 106399
+        Grunnbeløp.`2,48G`.heltallPåDato(LocalDate.of(2021, MAY, 1)) shouldBe 263_870
     }
 
     @Test
     fun ordinær2021for2021() {
         Grunnbeløp.`2,28G`.påDato(LocalDate.of(2021, MAY, 1)) shouldBe 2.28 * 106399
+        Grunnbeløp.`2,28G`.heltallPåDato(LocalDate.of(2021, MAY, 1)) shouldBe 242_590
     }
 
     @Test
@@ -70,6 +75,15 @@ internal class GrunnbeløpTest {
         Grunnbeløp.`2,48G`.datoForSisteEndringAvGrunnbeløp(
             LocalDate.of(2021, MAY, 1),
         ) shouldBe LocalDate.of(2021, MAY, 1)
+    }
+
+    @Test
+    fun `1g`() {
+        Grunnbeløp.`1G`.heltallPåDato(LocalDate.of(2017, Month.MAY, 1)) shouldBe 93634
+        Grunnbeløp.`1G`.heltallPåDato(LocalDate.of(2018, Month.MAY, 1)) shouldBe 96883
+        Grunnbeløp.`1G`.heltallPåDato(LocalDate.of(2019, Month.MAY, 1)) shouldBe 99858
+        Grunnbeløp.`1G`.heltallPåDato(LocalDate.of(2020, Month.MAY, 1)) shouldBe 101351
+        Grunnbeløp.`1G`.heltallPåDato(LocalDate.of(2021, Month.MAY, 1)) shouldBe 106399
     }
 
     @Test
