@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.visitor
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -879,7 +880,7 @@ internal class LagBrevRequestVisitorTest {
 
         val simulert = revurdering.beregn(
             eksisterendeUtbetalinger = sak.utbetalinger,
-            månedsberegning = sak.hentGjeldendeMånedsberegningForEnkeltmåned(revurdering.periode.førsteMåned()).getOrFail(),
+            utgangspunkt = sak.hentGjeldendeMånedsberegningForEnkeltmåned(revurdering.periode.månedenFør()).getOrElse { null },
         ).getOrFail()
             .toSimulert(simulering) as SimulertRevurdering.Opphørt
 
@@ -949,7 +950,7 @@ internal class LagBrevRequestVisitorTest {
 
         val beregnet = revurdering.beregn(
             eksisterendeUtbetalinger = sak.utbetalinger,
-            månedsberegning = sak.hentGjeldendeMånedsberegningForEnkeltmåned(revurdering.periode.førsteMåned()).getOrFail(),
+            utgangspunkt = sak.hentGjeldendeMånedsberegningForEnkeltmåned(revurdering.periode.månedenFør()).getOrElse { null },
         ).getOrFail()
 
         val simulert = beregnet.toSimulert(simulering) as SimulertRevurdering.Opphørt

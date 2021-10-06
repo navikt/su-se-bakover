@@ -306,18 +306,33 @@ sealed class Revurdering :
 
     open fun beregn(
         eksisterendeUtbetalinger: List<Utbetaling>,
-        månedsberegning: Månedsberegning,
+        utgangspunkt: Månedsberegning?,
     ): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
-        val revurdertBeregning: Beregning = BeregningStrategyFactory().beregnRevurdering(
-            GrunnlagsdataOgVilkårsvurderinger(
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-            ),
-            periode,
-            // kan ikke legge til begrunnelse for inntekt/fradrag
-            begrunnelse = null,
-            månedsberegning = månedsberegning,
-        )
+        val revurdertBeregning = when (utgangspunkt) {
+            null -> {
+                BeregningStrategyFactory().beregnUtenUtgangspunkt(
+                    GrunnlagsdataOgVilkårsvurderinger(
+                        grunnlagsdata = grunnlagsdata,
+                        vilkårsvurderinger = vilkårsvurderinger,
+                    ),
+                    periode,
+                    // kan ikke legge til begrunnelse for inntekt/fradrag
+                    begrunnelse = null,
+                )
+            }
+            else -> {
+                BeregningStrategyFactory().beregnMedUtgangspunktIMånedsberegning(
+                    GrunnlagsdataOgVilkårsvurderinger(
+                        grunnlagsdata = grunnlagsdata,
+                        vilkårsvurderinger = vilkårsvurderinger,
+                    ),
+                    periode,
+                    // kan ikke legge til begrunnelse for inntekt/fradrag
+                    begrunnelse = null,
+                    månedsberegning = utgangspunkt,
+                )
+            }
+        }
 
         fun opphør(revurdertBeregning: Beregning): BeregnetRevurdering.Opphørt = BeregnetRevurdering.Opphørt(
             tilRevurdering = tilRevurdering,
@@ -991,7 +1006,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
     override fun beregn(
         eksisterendeUtbetalinger: List<Utbetaling>,
-        månedsberegning: Månedsberegning,
+        utgangspunkt: Månedsberegning?,
     ): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
     }
@@ -1168,7 +1183,7 @@ sealed class IverksattRevurdering : Revurdering() {
 
     override fun beregn(
         eksisterendeUtbetalinger: List<Utbetaling>,
-        månedsberegning: Månedsberegning,
+        utgangspunkt: Månedsberegning?,
     ) =
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er iverksatt")
 }

@@ -44,7 +44,7 @@ internal class BeregningStrategyTest {
                 ),
             ),
         )
-        BeregningStrategy.BorAlene.beregnSøknadsbehandling(beregningsgrunnlag, "en begrunnelse").let {
+        BeregningStrategy.BorAlene.beregnUtenUtgangspunkt(beregningsgrunnlag, "en begrunnelse").let {
             it.periode.fraOgMed shouldBe periode.fraOgMed
             it.periode.tilOgMed shouldBe periode.tilOgMed
             it.getSats() shouldBe Sats.HØY

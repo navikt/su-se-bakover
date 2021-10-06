@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database
 
 import arrow.core.NonEmptyList
+import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -468,7 +469,7 @@ internal class TestDataHelper(
             epsFnr = null,
         ).beregn(
             eksisterendeUtbetalinger = listOf(vedtak.second),
-            månedsberegning = listOf(vedtak.first).identifiserGjeldendeMånedsberegningForEnkeltmåned(stønadsperiode.periode.førsteMåned()).getOrFail(),
+            utgangspunkt = listOf(vedtak.first).identifiserGjeldendeMånedsberegningForEnkeltmåned(stønadsperiode.periode.månedenFør()).getOrElse { null },
         ).getOrHandle {
             throw java.lang.IllegalStateException("Her skal vi ha en beregnet revurdering")
         }.also {
@@ -483,7 +484,7 @@ internal class TestDataHelper(
             periode = vedtak.first.periode,
         ).beregn(
             eksisterendeUtbetalinger = listOf(vedtak.second),
-            månedsberegning = listOf(vedtak.first).identifiserGjeldendeMånedsberegningForEnkeltmåned(stønadsperiode.periode.førsteMåned()).getOrFail(),
+            utgangspunkt = listOf(vedtak.first).identifiserGjeldendeMånedsberegningForEnkeltmåned(stønadsperiode.periode.månedenFør()).getOrElse { null },
         ).getOrFail("skulle gått bra").also {
             revurderingRepo.lagre(it)
         }

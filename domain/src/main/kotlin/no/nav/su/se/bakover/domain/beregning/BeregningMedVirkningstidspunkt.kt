@@ -20,15 +20,15 @@ data class BeregningMedVirkningstidspunkt(
     private val fradrag: List<Fradrag>,
     private val fradragStrategy: FradragStrategy,
     private val begrunnelse: String? = null,
-    private val gjeldendeMånedsberegningFraTidligere: Månedsberegning?,
+    private val utgangspunkt: Månedsberegning?,
 ) : Beregning {
     private val beregning = beregn()
 
     init {
         require(fradrag.all { periode inneholder it.periode })
         require(
-            if (gjeldendeMånedsberegningFraTidligere != null)
-                gjeldendeMånedsberegningFraTidligere.periode == periode.førsteMåned()
+            if (utgangspunkt != null)
+                utgangspunkt.periode == periode.månedenFør()
             else true,
         )
     }
@@ -53,11 +53,11 @@ data class BeregningMedVirkningstidspunkt(
         val beregnetPeriodisertFradrag = fradragStrategy.beregn(fradrag, periode)
 
         val gjeldendeBeregninger = Stack<PeriodisertBeregning>()
-        if (gjeldendeMånedsberegningFraTidligere != null) {
+        if (utgangspunkt != null) {
             val periodisert = PeriodisertBeregning(
-                periode = gjeldendeMånedsberegningFraTidligere.periode,
-                sats = gjeldendeMånedsberegningFraTidligere.getSats(),
-                fradrag = gjeldendeMånedsberegningFraTidligere.getFradrag().map {
+                periode = utgangspunkt.periode,
+                sats = utgangspunkt.getSats(),
+                fradrag = utgangspunkt.getFradrag().map {
                     PeriodisertFradrag(
                         type = it.fradragstype,
                         månedsbeløp = it.månedsbeløp,
@@ -66,8 +66,8 @@ data class BeregningMedVirkningstidspunkt(
                         tilhører = it.tilhører,
                     )
                 },
-                fribeløpForEps = gjeldendeMånedsberegningFraTidligere.getFribeløpForEps(),
-            ).forskyv(-1, fradragStrategy)
+                fribeløpForEps = utgangspunkt.getFribeløpForEps(),
+            )
 
             gjeldendeBeregninger.push(periodisert)
         }

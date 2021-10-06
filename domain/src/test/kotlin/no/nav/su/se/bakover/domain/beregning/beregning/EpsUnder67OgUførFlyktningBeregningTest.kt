@@ -87,7 +87,7 @@ internal class EpsUnder67OgUførFlyktningBeregningTest {
             )
         )
 
-        BeregningStrategy.EpsUnder67ÅrOgUførFlyktning.beregnSøknadsbehandling(beregningsgrunnlag).let {
+        BeregningStrategy.EpsUnder67ÅrOgUførFlyktning.beregnUtenUtgangspunkt(beregningsgrunnlag).let {
             it.getSumYtelse() shouldBe 86568
             it.getSumFradrag() shouldBe (arbeidsinntektPrÅr + folketrygdPrÅr + (epsFolketrydPrÅr + epsAnnenNorskPrÅr - uføreOrdinærSatsbeløp))
                 .plusOrMinus(0.5)

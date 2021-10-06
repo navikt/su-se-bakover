@@ -46,7 +46,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
-            gjeldendeMånedsberegningFraTidligere = null,
+            utgangspunkt = null,
         )
         beregning.getSumYtelse() shouldBe 250116
         beregning.getSumFradrag() shouldBe 0
@@ -106,7 +106,7 @@ internal class BeregningMedVirkningstidspunktTest {
     }
 
     @Test
-    fun `flytter ikke virkningspunkt hvis første har mer enn 10 prosent økning i forhold til gjeldendeMånedsberegningFraTidligere`() {
+    fun `flytter ikke virkningspunkt dersom det er 10 prosent økning i forhold til utgangspunkt`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
 
         val beregning = BeregningMedVirkningstidspunkt(
@@ -122,14 +122,14 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
-            gjeldendeMånedsberegningFraTidligere = MånedsberegningFactory.ny(
-                periode = januar(2020),
+            utgangspunkt = MånedsberegningFactory.ny(
+                periode = desember(2019),
                 sats = Sats.HØY,
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 15000.0,
-                        periode = januar(2020),
+                        periode = desember(2019),
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
@@ -158,7 +158,7 @@ internal class BeregningMedVirkningstidspunktTest {
     }
 
     @Test
-    fun `flytt virkningspunkt hvis første har mer enn 10 prosent reduksjon i forhold til gjeldendeMånedsberegningFraTidligere`() {
+    fun `flytt virkningspunkt hvis første har mer enn 10 prosent reduksjon i forhold til utgangspunkt`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
 
         val beregning = BeregningMedVirkningstidspunkt(
@@ -174,8 +174,8 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
-            gjeldendeMånedsberegningFraTidligere = MånedsberegningFactory.ny(
-                periode = januar(2020),
+            utgangspunkt = MånedsberegningFactory.ny(
+                periode = desember(2019),
                 sats = Sats.HØY,
                 fradrag = emptyList(),
                 fribeløpForEps = 0.0,
@@ -202,7 +202,7 @@ internal class BeregningMedVirkningstidspunktTest {
     }
 
     @Test
-    fun `bruker gjeldendeMånedsberegningFraTidligere hvis det er mindre enn 10 prosent økning fra første måned`() {
+    fun `bruker utgangspunkt hvis det er mindre enn 10 prosent økning fra første måned`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
 
         val beregning = BeregningMedVirkningstidspunkt(
@@ -218,14 +218,14 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
-            gjeldendeMånedsberegningFraTidligere = MånedsberegningFactory.ny(
-                periode = januar(2020),
+            utgangspunkt = MånedsberegningFactory.ny(
+                periode = desember(2019),
                 sats = Sats.HØY,
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 10000.0,
-                        periode = januar(2020),
+                        periode = desember(2019),
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
@@ -319,7 +319,7 @@ internal class BeregningMedVirkningstidspunktTest {
     }
 
     @Test
-    fun `bruker gjeldendeMånedsberegningFraTidligere hvis det er mindre enn 10 prosent reduksjon fra første måned`() {
+    fun `bruker utgangspunkt hvis det er mindre enn 10 prosent reduksjon fra første måned`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
 
         val beregning = BeregningMedVirkningstidspunkt(
@@ -335,14 +335,14 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
-            gjeldendeMånedsberegningFraTidligere = MånedsberegningFactory.ny(
-                periode = januar(2020),
+            utgangspunkt = MånedsberegningFactory.ny(
+                periode = desember(2019),
                 sats = Sats.HØY,
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 10000.0,
-                        periode = januar(2020),
+                        periode = desember(2019),
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
@@ -437,7 +437,7 @@ internal class BeregningMedVirkningstidspunktTest {
     }
 
     @Test
-    fun `kan ikke sende inn gjeldendeMånedsberegningFraTidligere som ikke er lik første måned som skal beregnes`() {
+    fun `kan ikke sende inn utgangspunkt som ikke er lik måneden før perioden som skal beregnes`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
 
         shouldThrow<IllegalArgumentException> {
@@ -454,8 +454,8 @@ internal class BeregningMedVirkningstidspunktTest {
                     ),
                 ),
                 fradragStrategy = FradragStrategy.Enslig,
-                gjeldendeMånedsberegningFraTidligere = MånedsberegningFactory.ny(
-                    periode = desember(2019),
+                utgangspunkt = MånedsberegningFactory.ny(
+                    periode = januar(2021),
                     sats = Sats.HØY,
                     fradrag = emptyList(),
                     fribeløpForEps = 0.0,
@@ -479,7 +479,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
-            gjeldendeMånedsberegningFraTidligere = null,
+            utgangspunkt = null,
         )
         beregning.getSumYtelse() shouldBe 238116
         beregning.getSumFradrag() shouldBe 12000
@@ -517,7 +517,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.EpsOver67År,
-            gjeldendeMånedsberegningFraTidligere = null,
+            utgangspunkt = null,
         )
         beregning.getSumYtelse() shouldBe 250116
         beregning.getSumFradrag() shouldBe 0
@@ -606,7 +606,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
-            gjeldendeMånedsberegningFraTidligere = null,
+            utgangspunkt = null,
         )
         beregning.getSumYtelse() shouldBe 154116
         beregning.getSumFradrag() shouldBe 96000
@@ -773,7 +773,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
-            gjeldendeMånedsberegningFraTidligere = null,
+            utgangspunkt = null,
         )
         beregning.getSumYtelse() shouldBe 109116
         beregning.getSumFradrag() shouldBe 141000
@@ -825,7 +825,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
-            gjeldendeMånedsberegningFraTidligere = null,
+            utgangspunkt = null,
         )
         beregning.getSumYtelse() shouldBe 106116
         beregning.getSumFradrag() shouldBe 144000
@@ -868,7 +868,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
-            gjeldendeMånedsberegningFraTidligere = null,
+            utgangspunkt = null,
         )
         beregning.getSumYtelse() shouldBe 250116
         beregning.getSumFradrag() shouldBe 0
@@ -911,7 +911,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
-            gjeldendeMånedsberegningFraTidligere = null,
+            utgangspunkt = null,
         )
 
         beregning.getSumYtelse() shouldBe 245116
@@ -979,7 +979,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
-            gjeldendeMånedsberegningFraTidligere = null,
+            utgangspunkt = null,
         )
 
         beregning.getSumYtelse() shouldBe 250116
@@ -1065,7 +1065,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
-            gjeldendeMånedsberegningFraTidligere = null,
+            utgangspunkt = null,
         )
 
         beregning.getSumYtelse() shouldBe 227116
@@ -1151,7 +1151,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
-            gjeldendeMånedsberegningFraTidligere = null,
+            utgangspunkt = null,
         )
 
         beregning.getSumYtelse() shouldBe 218116
@@ -1243,7 +1243,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
-            gjeldendeMånedsberegningFraTidligere = null,
+            utgangspunkt = null,
         )
 
         beregning.getSumYtelse() shouldBe 192116
@@ -1287,7 +1287,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.EpsOver67År,
-            gjeldendeMånedsberegningFraTidligere = null,
+            utgangspunkt = null,
         )
 
         beregning.getSumYtelse() shouldBe 225116
@@ -1422,7 +1422,7 @@ internal class BeregningMedVirkningstidspunktTest {
                 ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
-            gjeldendeMånedsberegningFraTidligere = null,
+            utgangspunkt = null,
         )
 
         beregning.getSumYtelse() shouldBe 185116
@@ -1618,7 +1618,7 @@ internal class BeregningMedVirkningstidspunktTest {
             sats = Sats.HØY,
             fradrag = fradrag,
             fradragStrategy = FradragStrategy.Enslig,
-            gjeldendeMånedsberegningFraTidligere = null,
+            utgangspunkt = null,
         )
 
         beregning.getSumYtelse() shouldBe 228116

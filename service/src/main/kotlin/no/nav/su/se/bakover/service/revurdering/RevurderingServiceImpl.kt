@@ -587,19 +587,20 @@ internal class RevurderingServiceImpl(
                 val eksisterendeUtbetalinger = utbetalingService.hentUtbetalinger(originalRevurdering.sakId)
 
                 val månedsberegning = vedtakRepo.hentForSakId(sakId = originalRevurdering.sakId)
-                    .identifiserGjeldendeMånedsberegningForEnkeltmåned(originalRevurdering.periode.førsteMåned())
-                    .getOrHandle { throw IllegalStateException("Fant ikke gjeldende månedsberegning for første måned i revurdering") }
+                    .identifiserGjeldendeMånedsberegningForEnkeltmåned(originalRevurdering.periode.månedenFør())
 
-                val beregnetRevurdering =
-                    originalRevurdering.beregn(eksisterendeUtbetalinger, månedsberegning).getOrHandle {
-                        return when (it) {
-                            is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
-                            is Revurdering.KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag(
-                                it.reason,
-                            )
-                            Revurdering.KunneIkkeBeregneRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps
-                        }.left()
-                    }
+                val beregnetRevurdering = originalRevurdering.beregn(
+                    eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+                    utgangspunkt = månedsberegning.getOrElse { null },
+                ).getOrHandle {
+                    return when (it) {
+                        is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
+                        is Revurdering.KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag(
+                            it.reason,
+                        )
+                        Revurdering.KunneIkkeBeregneRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps
+                    }.left()
+                }
 
                 when (beregnetRevurdering) {
                     is BeregnetRevurdering.IngenEndring -> {

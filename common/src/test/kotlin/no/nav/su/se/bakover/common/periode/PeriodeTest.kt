@@ -557,4 +557,11 @@ internal class PeriodeTest {
         Periode.create(1.januar(2021), 31.desember(2021)).forskyv(-12) shouldBe
             Periode.create(1.januar(2020), 31.desember(2020))
     }
+
+    @Test
+    fun `måneden før`() {
+        januar(2021).månedenFør() shouldBe desember(2020)
+        desember(2021).månedenFør() shouldBe november(2021)
+        Periode.create(1.april(2021), 31.juli(2021)).månedenFør() shouldBe mars(2021)
+    }
 }

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.test
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -78,10 +79,9 @@ fun opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
         clock = clock,
     ),
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderingerForInnvilgetRevurderingUtenFradrag(
-        // periode = stønadsperiode.periode,
         tilRevurdering = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
-            revurderingsperiode,
-            fixedClock,
+            periode = revurderingsperiode,
+            clock = clock,
         ),
     ),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
@@ -160,8 +160,8 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         val innvilgetBeregnetRevurdering =
             revurdering.beregn(
                 eksisterendeUtbetalinger = sak.utbetalinger,
-                månedsberegning = sak.hentGjeldendeMånedsberegningForEnkeltmåned(revurderingsperiode.førsteMåned())
-                    .getOrFail(),
+                utgangspunkt = sak.hentGjeldendeMånedsberegningForEnkeltmåned(revurderingsperiode.månedenFør())
+                    .getOrElse { null },
             ).orNull() as BeregnetRevurdering.Innvilget
         Pair(
             sak.copy(
@@ -219,8 +219,8 @@ fun beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
     ).let { (sak, revurdering) ->
         val innvilgetBeregnetRevurdering = revurdering.beregn(
             eksisterendeUtbetalinger = sak.utbetalinger,
-            månedsberegning = sak.hentGjeldendeMånedsberegningForEnkeltmåned(revurderingsperiode.førsteMåned())
-                .getOrFail(),
+            utgangspunkt = sak.hentGjeldendeMånedsberegningForEnkeltmåned(revurderingsperiode.månedenFør())
+                .getOrElse { null }
         ).orNull() as BeregnetRevurdering.IngenEndring
         Pair(
             sak.copy(
@@ -274,8 +274,8 @@ fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
     ).let { (sak, revurdering) ->
         val opphørtBeregnetRevurdering = revurdering.beregn(
             eksisterendeUtbetalinger = sak.utbetalinger,
-            månedsberegning = sak.hentGjeldendeMånedsberegningForEnkeltmåned(revurderingsperiode.førsteMåned())
-                .getOrFail(),
+            utgangspunkt = sak.hentGjeldendeMånedsberegningForEnkeltmåned(revurderingsperiode.månedenFør())
+                .getOrElse { null }
         )
             .getOrHandle { throw IllegalStateException("Kunne ikke instansiere testdata. Underliggende feil: $it") } as BeregnetRevurdering.Opphørt
         Pair(
@@ -305,13 +305,12 @@ fun simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderingerForInnvilgetRevurderingMedFradrag(
         periode = stønadsperiode.periode,
         basertPå = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
-            revurderingsperiode,
-            fixedClock,
+            periode = revurderingsperiode,
+            clock = clock,
         ),
     ),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
 ): Pair<Sak, SimulertRevurdering.Innvilget> {
-
     return beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,

@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 
 class BeregningStrategyFactory {
-    fun beregnSøknadsbehandling(
+    fun beregnUtenUtgangspunkt(
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger,
         beregningsPeriode: Periode,
         begrunnelse: String?,
@@ -32,10 +32,10 @@ class BeregningStrategyFactory {
                 is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
                 is Grunnlag.Bosituasjon.Fullstendig.Enslig -> BeregningStrategy.BorAlene
             }
-        return strategy.beregnSøknadsbehandling(beregningsgrunnlag, begrunnelse)
+        return strategy.beregnUtenUtgangspunkt(beregningsgrunnlag, begrunnelse)
     }
 
-    fun beregnRevurdering(
+    fun beregnMedUtgangspunktIMånedsberegning(
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger,
         beregningsPeriode: Periode,
         begrunnelse: String?,
@@ -59,7 +59,7 @@ class BeregningStrategyFactory {
                 is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
                 is Grunnlag.Bosituasjon.Fullstendig.Enslig -> BeregningStrategy.BorAlene
             }
-        return strategy.beregnRevurdering(beregningsgrunnlag, begrunnelse, månedsberegning)
+        return strategy.beregnMedUtgangspunktIMånedsberegning(beregningsgrunnlag, begrunnelse, månedsberegning)
     }
 }
 
@@ -68,7 +68,7 @@ sealed class BeregningStrategy {
     abstract fun sats(): Sats
     abstract fun satsgrunn(): Satsgrunn
 
-    fun beregnSøknadsbehandling(
+    fun beregnUtenUtgangspunkt(
         beregningsgrunnlag: Beregningsgrunnlag,
         begrunnelse: String? = null,
     ): Beregning {
@@ -78,14 +78,14 @@ sealed class BeregningStrategy {
             fradrag = beregningsgrunnlag.fradrag,
             fradragStrategy = fradragStrategy(),
             begrunnelse = begrunnelse,
-            månedsberegning = null,
+            utgangspunkt = null,
         )
     }
 
-    fun beregnRevurdering(
+    fun beregnMedUtgangspunktIMånedsberegning(
         beregningsgrunnlag: Beregningsgrunnlag,
         begrunnelse: String? = null,
-        månedsberegning: Månedsberegning,
+        utgangspunkt: Månedsberegning,
     ): Beregning {
         return BeregningFactory.ny(
             periode = beregningsgrunnlag.beregningsperiode,
@@ -93,7 +93,7 @@ sealed class BeregningStrategy {
             fradrag = beregningsgrunnlag.fradrag,
             fradragStrategy = fradragStrategy(),
             begrunnelse = begrunnelse,
-            månedsberegning = månedsberegning,
+            utgangspunkt = utgangspunkt,
         )
     }
 

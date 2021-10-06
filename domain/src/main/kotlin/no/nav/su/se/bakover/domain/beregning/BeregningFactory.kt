@@ -15,7 +15,7 @@ object BeregningFactory {
         fradrag: List<Fradrag>,
         fradragStrategy: FradragStrategy,
         begrunnelse: String? = null,
-        månedsberegning: Månedsberegning? = null,
+        utgangspunkt: Månedsberegning? = null,
     ): Beregning {
         return BeregningMedVirkningstidspunkt(
             id = id,
@@ -25,7 +25,7 @@ object BeregningFactory {
             fradrag = fradrag,
             fradragStrategy = fradragStrategy,
             begrunnelse = begrunnelse,
-            gjeldendeMånedsberegningFraTidligere = månedsberegning,
+            utgangspunkt = utgangspunkt,
         )
     }
 }

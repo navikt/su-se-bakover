@@ -131,6 +131,13 @@ data class Periode private constructor(
         )
     }
 
+    fun månedenFør(): Periode {
+        return Periode(
+            fraOgMed.minusMonths(1).startOfMonth(),
+            fraOgMed.minusMonths(1).endOfMonth(),
+        )
+    }
+
     sealed class UgyldigPeriode {
         object FraOgMedDatoMåVæreFørsteDagIMåneden : UgyldigPeriode() {
             override fun toString(): String = this.javaClass.simpleName
