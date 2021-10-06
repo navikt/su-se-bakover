@@ -70,5 +70,5 @@ val attesteringUnderkjent = Attestering.Underkjent(
     attestant = attestant,
     grunn = Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER,
     kommentar = "attesteringUnderkjent",
-    opprettet = fixedTidspunkt
+    opprettet = fixedTidspunkt,
 )

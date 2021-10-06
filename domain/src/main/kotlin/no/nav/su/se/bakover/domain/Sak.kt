@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
@@ -19,9 +20,12 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadstype
 import no.nav.su.se.bakover.domain.søknadsbehandling.hentSøknadstypeFor
 import no.nav.su.se.bakover.domain.søknadsbehandling.hentSøknadstypeUtenBehandling
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
+import no.nav.su.se.bakover.domain.vedtak.FantIkkeGjeldendeMånedsberegning
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.identifiserGjeldendeMånedsberegningForEnkeltmåned
+import no.nav.su.se.bakover.domain.vedtak.identifiserGjeldendeMånedsberegningerForPeriode
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -106,6 +110,15 @@ data class Sak(
 
     fun hentSøknadstypeFor(behandlingId: UUID): Søknadstype {
         return this.søknadsbehandlinger.hentSøknadstypeFor(behandlingId)
+    }
+
+    fun hentGjeldendeMånedsberegningerForPeriode(periode: Periode): Either<FantIkkeGjeldendeMånedsberegning, List<Månedsberegning>> {
+        return vedtakListe.identifiserGjeldendeMånedsberegningerForPeriode(periode)
+    }
+
+    fun hentGjeldendeMånedsberegningForEnkeltmåned(periode: Periode): Either<FantIkkeGjeldendeMånedsberegning, Månedsberegning> {
+        check(periode.getAntallMåneder() == 1)
+        return vedtakListe.identifiserGjeldendeMånedsberegningForEnkeltmåned(periode)
     }
 }
 

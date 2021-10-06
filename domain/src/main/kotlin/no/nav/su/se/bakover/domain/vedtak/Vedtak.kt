@@ -1,7 +1,10 @@
 package no.nav.su.se.bakover.domain.vedtak
 
+import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.NonEmptyList
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
@@ -13,6 +16,7 @@ import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.toAvslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
@@ -465,3 +469,26 @@ fun List<VedtakSomKanRevurderes>.lagTidslinje(periode: Periode, clock: Clock): T
             objekter = it,
         )
     }
+
+fun List<Vedtak>.identifiserGjeldendeMånedsberegningerForPeriode(periode: Periode): Either<FantIkkeGjeldendeMånedsberegning, List<Månedsberegning>> {
+    return GjeldendeMånedsberegninger(
+        periode = periode,
+        vedtakListe = this.filterIsInstance<VedtakSomKanRevurderes>(),
+        clock = Clock.systemUTC(),
+    ).let {
+        if (it.månedsberegninger.isNotEmpty()) it.månedsberegninger.right() else FantIkkeGjeldendeMånedsberegning.left()
+    }
+}
+
+fun List<Vedtak>.identifiserGjeldendeMånedsberegningForEnkeltmåned(periode: Periode): Either<FantIkkeGjeldendeMånedsberegning, Månedsberegning> {
+    check(periode.getAntallMåneder() == 1) { "Aksepterer kun perioder på 1 måned" }
+    return GjeldendeMånedsberegninger(
+        periode = periode,
+        vedtakListe = this.filterIsInstance<VedtakSomKanRevurderes>(),
+        clock = Clock.systemUTC(),
+    ).let {
+        it.månedsberegninger.firstOrNull { it.periode == periode }?.right() ?: FantIkkeGjeldendeMånedsberegning.left()
+    }
+}
+
+object FantIkkeGjeldendeMånedsberegning
