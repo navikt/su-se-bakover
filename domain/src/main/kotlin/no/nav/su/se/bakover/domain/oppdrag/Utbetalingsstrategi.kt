@@ -133,6 +133,7 @@ sealed class Utbetalingsstrategi {
         fun generate(): Utbetaling.UtbetalingForSimulering {
             val utbetalingslinjer = createUtbetalingsperioder(beregning, uføregrunnlag).map {
                 Utbetalingslinje.Ny(
+                    opprettet = Tidspunkt.now(clock),
                     fraOgMed = it.fraOgMed,
                     tilOgMed = it.tilOgMed,
                     forrigeUtbetalingslinjeId = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.id,

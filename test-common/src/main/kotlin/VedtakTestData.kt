@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 
 /**
  * Ikke journalført eller distribuert brev.
@@ -44,11 +43,13 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         beregning = beregning,
+        clock = clock,
     ).let { (sak, søknadsbehandling) ->
         val utbetaling = oversendtUtbetalingMedKvitteringFraBeregning(
             eksisterendeUtbetalinger = sak.utbetalinger,
             beregning = beregning,
             uføregrunnlag = vilkårsvurderinger.uføre.grunnlag,
+            clock = clock,
         ).copy(
             id = utbetalingId,
         )
@@ -103,6 +104,7 @@ fun vedtakSøknadsbehandlingIverksattAvslagMedBeregning(
  * Ikke journalført eller distribuert brev
  */
 fun vedtakRevurderingIverksattInnvilget(
+    clock: Clock = fixedClock,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = periode2021,
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
@@ -110,22 +112,22 @@ fun vedtakRevurderingIverksattInnvilget(
         stønadsperiode = stønadsperiode,
     ),
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderingerForInnvilgetRevurderingMedFradrag(
-        periode = stønadsperiode.periode,
-        tilRevurdering = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
-            revurderingsperiode,
-            fixedClock,
+        periode = revurderingsperiode,
+        basertPå = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
+            periode = revurderingsperiode,
+            clock = clock,
         ),
     ),
     utbetalingId: UUID30 = UUID30.randomUUID(),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-    clock: Clock = fixedClock,
-): Pair<Sak, Vedtak.EndringIYtelse> {
+): Pair<Sak, Vedtak.EndringIYtelse.InnvilgetRevurdering> {
     return iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         stønadsperiode = stønadsperiode,
         revurderingsperiode = revurderingsperiode,
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
         revurderingsårsak = revurderingsårsak,
+        clock = clock,
     ).let { (sak, revurdering) ->
         val utbetaling = oversendtUtbetalingMedKvittering(
             saksnummer = saksnummer,
@@ -133,6 +135,7 @@ fun vedtakRevurderingIverksattInnvilget(
             fnr = fnr,
             id = utbetalingId,
             eksisterendeUtbetalinger = sak.utbetalinger,
+            clock = clock,
         )
         val vedtak = Vedtak.from(
             revurdering = revurdering,
@@ -150,8 +153,9 @@ fun vedtakRevurderingIverksattInnvilget(
 }
 
 fun vedtakIverksattStansAvYtelse(
+    clock: Clock = fixedClock,
     periode: Periode = Periode.create(
-        fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
+        fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
         tilOgMed = periode2021.tilOgMed,
     ),
     attestering: Attestering = attesteringIverksatt,
@@ -159,6 +163,7 @@ fun vedtakIverksattStansAvYtelse(
     return iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periode,
         attestering = attestering,
+        clock = clock,
     ).let { (sak, revurdering) ->
         val utbetaling = oversendtStansUtbetalingUtenKvittering(
             stansDato = revurdering.periode.fraOgMed,
@@ -166,11 +171,13 @@ fun vedtakIverksattStansAvYtelse(
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             eksisterendeUtbetalinger = sak.utbetalinger,
+            clock = clock,
         )
 
         val vedtak = Vedtak.from(
-            // Legger til litt tid på opprettet da dette vedtaket umulig kan være det første - først og fremst for periodisering av vedtak.
-            revurdering, utbetaling.id, fixedClock.plus(1, ChronoUnit.DAYS),
+            revurdering = revurdering,
+            utbetalingId = utbetaling.id,
+            clock = clock,
         )
 
         sak.copy(
@@ -181,24 +188,30 @@ fun vedtakIverksattStansAvYtelse(
 }
 
 fun vedtakIverksattGjenopptakAvYtelse(
-    periode: Periode,
+    clock: Clock = fixedClock,
+    periode: Periode = Periode.create(
+        fraOgMed = LocalDate.now(clock).plusMonths(1).startOfMonth(),
+        tilOgMed = periode2021.tilOgMed,
+    ),
     attestering: Attestering = attesteringIverksatt,
 ): Pair<Sak, Vedtak.EndringIYtelse.GjenopptakAvYtelse> {
     return iverksattGjenopptakelseAvytelseFraVedtakStansAvYtelse(
         periode = periode,
         attestering = attestering,
+        clock = clock,
     ).let { (sak, revurdering) ->
         val utbetaling = oversendtGjenopptakUtbetalingUtenKvittering(
             fnr = sak.fnr,
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             eksisterendeUtbetalinger = sak.utbetalinger,
+            clock = clock,
         )
 
         val vedtak = Vedtak.from(
             revurdering = revurdering,
             utbetalingId = utbetaling.id,
-            clock = fixedClock,
+            clock = clock,
         )
 
         sak.copy(

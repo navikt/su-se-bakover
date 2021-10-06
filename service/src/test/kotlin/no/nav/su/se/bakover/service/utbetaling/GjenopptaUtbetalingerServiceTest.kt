@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.utbetaling
 
+import TikkendeKlokke
 import arrow.core.left
 import arrow.core.right
 import io.kotest.assertions.arrow.core.shouldHaveSize
@@ -55,14 +56,19 @@ import java.util.UUID
 
 internal class GjenopptaUtbetalingerServiceTest {
 
+    val tikkendeKlokke = TikkendeKlokke(fixedClock)
+
     @Test
     fun `Utbetalinger som er stanset blir startet igjen`() {
         val periode = Periode.create(
-            fraOgMed = LocalDate.now(no.nav.su.se.bakover.test.fixedClock).plusMonths(1).startOfMonth(),
+            fraOgMed = LocalDate.now(tikkendeKlokke).plusMonths(1).startOfMonth(),
             tilOgMed = periode2021.tilOgMed,
         )
 
-        val (sak, _) = vedtakIverksattStansAvYtelse(periode)
+        val (sak, _) = vedtakIverksattStansAvYtelse(
+            periode = periode,
+            clock = tikkendeKlokke,
+        )
 
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -79,6 +85,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             fnr = sak.fnr,
             sakId = sak.id,
             saksnummer = sak.saksnummer,
+            clock = tikkendeKlokke,
         )
 
         val simuleringClientMock = mock<SimuleringClient> {
@@ -90,12 +97,12 @@ internal class GjenopptaUtbetalingerServiceTest {
             utbetalingPublisher = utbetalingPublisherMock,
             sakService = sakServiceMock,
             simuleringClient = simuleringClientMock,
-            clock = fixedClock,
+            clock = tikkendeKlokke,
         ).gjenopptaUtbetalinger(
             sakId = sak.id,
             attestant = saksbehandler,
             simulering = simulering,
-        ).getOrFail("skulle gått bra").let {
+        ).getOrFail().let {
             inOrder(
                 sakServiceMock,
                 simuleringClientMock,
@@ -113,7 +120,7 @@ internal class GjenopptaUtbetalingerServiceTest {
                             Utbetalingslinje.Endring.Reaktivering(
                                 utbetalingslinje = utbetalingslinjeForStans,
                                 virkningstidspunkt = periode.fraOgMed,
-                                clock = fixedClock,
+                                clock = tikkendeKlokke,
                             ),
                             Utbetalingslinje.Endring.Reaktivering::id,
                             Utbetalingslinje.Endring.Reaktivering::opprettet,
@@ -145,7 +152,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             utbetalingPublisher = utbetalingPublisherMock,
             sakService = sakServiceMock,
             simuleringClient = simuleringClientMock,
-            clock = fixedClock,
+            clock = tikkendeKlokke,
         )
 
         service.gjenopptaUtbetalinger(
@@ -180,7 +187,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             utbetalingPublisher = utbetalingPublisherMock,
             sakService = sakServiceMock,
             simuleringClient = simuleringClientMock,
-            clock = fixedClock,
+            clock = tikkendeKlokke,
         ).gjenopptaUtbetalinger(
             sakId = sak.id,
             attestant = saksbehandler,
@@ -206,7 +213,9 @@ internal class GjenopptaUtbetalingerServiceTest {
 
     @Test
     fun `Utbetaling feilet`() {
-        val (sak, _) = vedtakIverksattStansAvYtelse()
+        val (sak, _) = vedtakIverksattStansAvYtelse(
+            clock = tikkendeKlokke,
+        )
 
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -232,7 +241,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             utbetalingPublisher = utbetalingPublisherMock,
             sakService = sakServiceMock,
             simuleringClient = simuleringClientMock,
-            clock = fixedClock,
+            clock = tikkendeKlokke,
         ).gjenopptaUtbetalinger(
             sakId = sak.id,
             attestant = saksbehandler,
@@ -328,7 +337,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             sakService = sakServiceMock,
             simuleringClient = simuleringClientMock,
             utbetalingPublisher = utbetalingPublisherMock,
-            clock = fixedClock,
+            clock = tikkendeKlokke,
         ).gjenopptaUtbetalinger(
             sakId = sak.id,
             attestant = attestant,

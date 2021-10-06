@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -25,7 +24,6 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
-import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import org.mockito.kotlin.mock
 import java.time.Clock
@@ -77,13 +75,6 @@ object RevurderingTestUtils {
     internal val revurderingsårsakRegulerGrunnbeløp = Revurderingsårsak(
         Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
         Revurderingsårsak.Begrunnelse.create("Nytt Grunnbeløp"),
-    )
-
-    internal val uføregrunnlag = Grunnlag.Uføregrunnlag(
-        periode = periodeNesteMånedOgTreMånederFram,
-        uføregrad = Uføregrad.parse(20),
-        forventetInntekt = 10,
-        opprettet = fixedTidspunkt,
     )
 
     internal fun createRevurderingService(

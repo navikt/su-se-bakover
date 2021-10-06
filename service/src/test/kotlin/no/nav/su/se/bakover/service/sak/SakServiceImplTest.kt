@@ -102,9 +102,9 @@ internal class SakServiceImplTest {
         val saksnr1 = Saksnummer(2021)
         val saksnr2 = Saksnummer(2022)
 
-        val uavklartSøkandsbehandling = søknadsbehandlingVilkårsvurdertUavklart(saksnr1).second
-        val underkjentSøknadsbehandling = søknadsbehandlingUnderkjentInnvilget(saksnr1).second
-        val tilAttesteringSøknadsbehandling = søknadsbehandlingTilAttesteringInnvilget(saksnr2).second
+        val uavklartSøkandsbehandling = søknadsbehandlingVilkårsvurdertUavklart(saksnummer = saksnr1).second
+        val underkjentSøknadsbehandling = søknadsbehandlingUnderkjentInnvilget(saksnummer = saksnr1).second
+        val tilAttesteringSøknadsbehandling = søknadsbehandlingTilAttesteringInnvilget(saksnummer = saksnr2).second
 
         val sakRepo: SakRepo = mock {
             on { hentSakRestanser() } doReturn listOf(
@@ -165,13 +165,13 @@ internal class SakServiceImplTest {
         val saknr1 = Saksnummer(2021)
         val saknr2 = Saksnummer(2022)
 
-        val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(saknr1).second
-        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(saknr1).second
+        val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(saksnummer = saknr1).second
+        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(saksnummer = saknr1).second
 
         val underkjentInnvilgetRevurdering =
-            underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak(saknr2).second
+            underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak(saksnummer = saknr2).second
         val tilAttesteringRevurdering =
-            tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(saknr2).second
+            tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(saksnummer = saknr2).second
 
         val sakRepo: SakRepo = mock {
             on { hentSakRestanser() } doReturn listOf(

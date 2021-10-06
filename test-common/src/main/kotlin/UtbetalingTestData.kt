@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.test
 
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
@@ -18,6 +19,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -25,9 +27,11 @@ val avstemmingsnøkkel = Avstemmingsnøkkel()
 val utbetalingsRequest = Utbetalingsrequest("<xml></<xml>")
 
 fun utbetalingslinje(
+    clock: Clock = fixedClock,
     periode: Periode = periode2021,
     beløp: Int = 15000,
 ) = Utbetalingslinje.Ny(
+    opprettet = Tidspunkt.now(clock),
     fraOgMed = periode.fraOgMed,
     tilOgMed = periode.tilOgMed,
     forrigeUtbetalingslinjeId = null,
@@ -68,18 +72,24 @@ fun oversendtUtbetalingUtenKvittering(
 )
 
 fun oversendtUtbetalingUtenKvittering(
+    clock: Clock = fixedClock,
     id: UUID30 = UUID30.randomUUID(),
     periode: Periode = periode2021,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
-    utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(utbetalingslinje(periode = periode)),
+    utbetalingslinjer: NonEmptyList<Utbetalingslinje> = nonEmptyListOf(
+        utbetalingslinje(
+            periode = periode,
+            clock = clock,
+        ),
+    ),
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
     type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
 ) = Utbetaling.OversendtUtbetaling.UtenKvittering(
     id = id,
-    opprettet = fixedTidspunkt,
+    opprettet = Tidspunkt.now(clock),
     sakId = sakId,
     saksnummer = saksnummer,
     fnr = fnr,
@@ -87,11 +97,12 @@ fun oversendtUtbetalingUtenKvittering(
     type = type,
     behandler = attestant,
     avstemmingsnøkkel = avstemmingsnøkkel,
-    simulering = simuleringNy(fnr = fnr, eksisterendeUtbetalinger = eksisterendeUtbetalinger),
+    simulering = simuleringNy(fnr = fnr, eksisterendeUtbetalinger = eksisterendeUtbetalinger, clock = clock),
     utbetalingsrequest = utbetalingsRequest,
 )
 
 fun oversendtUtbetalingUtenKvitteringFraBeregning(
+    clock: Clock = fixedClock,
     id: UUID30 = UUID30.randomUUID(),
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
@@ -109,12 +120,12 @@ fun oversendtUtbetalingUtenKvitteringFraBeregning(
         utbetalinger = eksisterendeUtbetalinger,
         behandler = attestant,
         beregning = beregning,
-        clock = fixedClock,
+        clock = clock,
         uføregrunnlag = uføregrunnlag,
     ).generate().utbetalingslinjer
     return Utbetaling.OversendtUtbetaling.UtenKvittering(
         id = id,
-        opprettet = fixedTidspunkt,
+        opprettet = Tidspunkt.now(clock),
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
@@ -122,7 +133,11 @@ fun oversendtUtbetalingUtenKvitteringFraBeregning(
         type = type,
         behandler = attestant,
         avstemmingsnøkkel = avstemmingsnøkkel,
-        simulering = simuleringNy(fnr = fnr, eksisterendeUtbetalinger = eksisterendeUtbetalinger),
+        simulering = simuleringNy(
+            fnr = fnr,
+            eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+            clock = clock,
+        ),
         utbetalingsrequest = utbetalingsRequest,
     )
 }
@@ -157,6 +172,7 @@ fun simulertUtbetaling(
  * - type: NY
  */
 fun oversendtUtbetalingMedKvittering(
+    clock: Clock = fixedClock,
     id: UUID30 = UUID30.randomUUID(),
     utbetalingsstatus: Kvittering.Utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
     type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
@@ -172,11 +188,12 @@ fun oversendtUtbetalingMedKvittering(
         saksnummer = saksnummer,
         fnr = fnr,
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
-    )
-        .toKvittertUtbetaling(kvittering(utbetalingsstatus = utbetalingsstatus))
+        clock = clock,
+    ).toKvittertUtbetaling(kvittering(utbetalingsstatus = utbetalingsstatus))
 }
 
 fun oversendtUtbetalingMedKvitteringFraBeregning(
+    clock: Clock = fixedClock,
     id: UUID30 = UUID30.randomUUID(),
     utbetalingsstatus: Kvittering.Utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
     type: Utbetaling.UtbetalingsType = Utbetaling.UtbetalingsType.NY,
@@ -196,6 +213,7 @@ fun oversendtUtbetalingMedKvitteringFraBeregning(
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
         beregning = beregning,
         uføregrunnlag = uføregrunnlag,
+        clock = clock,
     ).toKvittertUtbetaling(kvittering(utbetalingsstatus = utbetalingsstatus))
 }
 
@@ -205,6 +223,7 @@ fun stansUtbetalingForSimulering(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     eksisterendeUtbetalinger: List<Utbetaling> = listOf(oversendtUtbetalingMedKvittering()),
+    clock: Clock = fixedClock,
 ): Utbetaling.UtbetalingForSimulering {
     return Utbetalingsstrategi.Stans(
         sakId = sakId,
@@ -212,9 +231,9 @@ fun stansUtbetalingForSimulering(
         fnr = fnr,
         utbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
-        clock = fixedClock,
+        clock = clock,
         stansDato = stansDato,
-    ).generer().getOrFail("Skal kunne lage utbetaling for stans")
+    ).generer().getOrFail()
 }
 
 fun simulertStansUtbetaling(
@@ -223,6 +242,7 @@ fun simulertStansUtbetaling(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     eksisterendeUtbetalinger: List<Utbetaling> = listOf(oversendtUtbetalingMedKvittering()),
+    clock: Clock = fixedClock,
 ): Utbetaling.SimulertUtbetaling {
     return stansUtbetalingForSimulering(
         stansDato = stansDato,
@@ -230,6 +250,7 @@ fun simulertStansUtbetaling(
         sakId = sakId,
         saksnummer = saksnummer,
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+        clock = clock,
     ).toSimulertUtbetaling(
         simuleringStans(
             stansDato = stansDato,
@@ -237,6 +258,7 @@ fun simulertStansUtbetaling(
             fnr = fnr,
             sakId = sakId,
             saksnummer = saksnummer,
+            clock = clock,
         ),
     )
 }
@@ -247,6 +269,7 @@ fun oversendtStansUtbetalingUtenKvittering(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     eksisterendeUtbetalinger: List<Utbetaling> = listOf(oversendtUtbetalingMedKvittering()),
+    clock: Clock = fixedClock,
 ): Utbetaling.OversendtUtbetaling.UtenKvittering {
     return simulertStansUtbetaling(
         stansDato = stansDato,
@@ -254,6 +277,7 @@ fun oversendtStansUtbetalingUtenKvittering(
         sakId = sakId,
         saksnummer = saksnummer,
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+        clock = clock,
     ).toOversendtUtbetaling(utbetalingsRequest)
 }
 
@@ -266,6 +290,7 @@ fun gjenopptakUtbetalingForSimulering(
             stansDato = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
         ),
     ),
+    clock: Clock = fixedClock,
 ): Utbetaling.UtbetalingForSimulering {
     return Utbetalingsstrategi.Gjenoppta(
         sakId = sakId,
@@ -273,8 +298,8 @@ fun gjenopptakUtbetalingForSimulering(
         fnr = fnr,
         utbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
-        clock = fixedClock,
-    ).generer().getOrFail("Skal kunne generere utbetaling for gjenopptak")
+        clock = clock,
+    ).generer().getOrFail()
 }
 
 fun simulertGjenopptakUtbetaling(
@@ -286,18 +311,21 @@ fun simulertGjenopptakUtbetaling(
             stansDato = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
         ),
     ),
+    clock: Clock = fixedClock,
 ): Utbetaling.SimulertUtbetaling {
     return gjenopptakUtbetalingForSimulering(
         fnr = fnr,
         sakId = sakId,
         saksnummer = saksnummer,
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+        clock = clock,
     ).toSimulertUtbetaling(
         simuleringGjenopptak(
             eksisterendeUtbetalinger = eksisterendeUtbetalinger,
             fnr = fnr,
             sakId = sakId,
             saksnummer = saksnummer,
+            clock = clock,
         ),
     )
 }
@@ -311,12 +339,14 @@ fun oversendtGjenopptakUtbetalingUtenKvittering(
             stansDato = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
         ),
     ),
+    clock: Clock = fixedClock,
 ): Utbetaling.OversendtUtbetaling.UtenKvittering {
     return simulertGjenopptakUtbetaling(
         fnr = fnr,
         sakId = sakId,
         saksnummer = saksnummer,
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+        clock = clock,
     ).toOversendtUtbetaling(utbetalingsRequest)
 }
 

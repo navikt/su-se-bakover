@@ -74,6 +74,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.identifiserGjeldendeMånedsberegningForEnkeltmåned
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -466,7 +467,8 @@ internal class TestDataHelper(
             periode = stønadsperiode.periode,
             epsFnr = null,
         ).beregn(
-            listOf(vedtak.second),
+            eksisterendeUtbetalinger = listOf(vedtak.second),
+            månedsberegning = listOf(vedtak.first).identifiserGjeldendeMånedsberegningForEnkeltmåned(stønadsperiode.periode.førsteMåned()).getOrFail(),
         ).getOrHandle {
             throw java.lang.IllegalStateException("Her skal vi ha en beregnet revurdering")
         }.also {
@@ -477,10 +479,11 @@ internal class TestDataHelper(
     fun beregnetIngenEndring(): BeregnetRevurdering {
         val vedtak = vedtakMedInnvilgetSøknadsbehandling()
         return nyRevurdering(
-            vedtak.first,
-            vedtak.first.periode,
+            innvilget = vedtak.first,
+            periode = vedtak.first.periode,
         ).beregn(
-            listOf(vedtak.second),
+            eksisterendeUtbetalinger = listOf(vedtak.second),
+            månedsberegning = listOf(vedtak.first).identifiserGjeldendeMånedsberegningForEnkeltmåned(stønadsperiode.periode.førsteMåned()).getOrFail(),
         ).getOrFail("skulle gått bra").also {
             revurderingRepo.lagre(it)
         }

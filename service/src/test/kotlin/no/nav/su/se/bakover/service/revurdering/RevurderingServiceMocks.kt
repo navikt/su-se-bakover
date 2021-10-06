@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.fixedClock
 import org.mockito.kotlin.mock
+import java.time.Clock
 
 internal data class RevurderingServiceMocks(
     val vedtakService: VedtakService = mock(),
@@ -28,6 +29,7 @@ internal data class RevurderingServiceMocks(
     val grunnlagService: GrunnlagService = mock(),
     val vilkårsvurderingService: VilkårsvurderingService = mock(),
     val sakService: SakService = mock(),
+    val clock: Clock = fixedClock,
 ) {
     val revurderingService = RevurderingServiceImpl(
         utbetalingService = utbetalingService,
@@ -36,7 +38,7 @@ internal data class RevurderingServiceMocks(
         personService = personService,
         microsoftGraphApiClient = microsoftGraphApiClient,
         brevService = brevService,
-        clock = fixedClock,
+        clock = clock,
         vedtakRepo = vedtakRepo,
         vilkårsvurderingService = vilkårsvurderingService,
         grunnlagService = grunnlagService,

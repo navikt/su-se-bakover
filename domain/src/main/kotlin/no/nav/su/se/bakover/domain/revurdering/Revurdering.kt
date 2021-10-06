@@ -7,7 +7,6 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
@@ -19,6 +18,7 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
+import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -307,6 +306,7 @@ sealed class Revurdering :
 
     open fun beregn(
         eksisterendeUtbetalinger: List<Utbetaling>,
+        månedsberegning: Månedsberegning,
     ): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
         val revurdertBeregning: Beregning = BeregningStrategyFactory().beregnRevurdering(
             GrunnlagsdataOgVilkårsvurderinger(
@@ -316,18 +316,7 @@ sealed class Revurdering :
             periode,
             // kan ikke legge til begrunnelse for inntekt/fradrag
             begrunnelse = null,
-            månedsberegning = when (val r = tilRevurdering) {
-                is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> TODO()
-                is Vedtak.EndringIYtelse.InnvilgetRevurdering -> r.beregning.getMånedsberegninger()
-                    .single { it.periode == Periode.create(periode.fraOgMed, periode.fraOgMed.endOfMonth()) }
-                is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling -> r.beregning.getMånedsberegninger()
-                    .single { it.periode == Periode.create(periode.fraOgMed, periode.fraOgMed.endOfMonth()) }
-                is Vedtak.EndringIYtelse.OpphørtRevurdering -> r.beregning.getMånedsberegninger()
-                    .single { it.periode == Periode.create(periode.fraOgMed, periode.fraOgMed.endOfMonth()) }
-                is Vedtak.EndringIYtelse.StansAvYtelse -> TODO()
-                is Vedtak.IngenEndringIYtelse -> r.beregning.getMånedsberegninger()
-                    .single { it.periode == Periode.create(periode.fraOgMed, periode.fraOgMed.endOfMonth()) }
-            },
+            månedsberegning = månedsberegning,
         )
 
         fun opphør(revurdertBeregning: Beregning): BeregnetRevurdering.Opphørt = BeregnetRevurdering.Opphørt(
@@ -1002,6 +991,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
     override fun beregn(
         eksisterendeUtbetalinger: List<Utbetaling>,
+        månedsberegning: Månedsberegning,
     ): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
     }
@@ -1178,6 +1168,7 @@ sealed class IverksattRevurdering : Revurdering() {
 
     override fun beregn(
         eksisterendeUtbetalinger: List<Utbetaling>,
+        månedsberegning: Månedsberegning,
     ) =
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er iverksatt")
 }

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.test
 
 import arrow.core.nonEmptyListOf
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -13,6 +14,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import java.time.Clock
 import java.util.UUID
 
 val behandlingsinformasjonAlleVilkårUavklart = Behandlingsinformasjon
@@ -31,6 +33,7 @@ val behandlingsinformasjonAlleVilkårAvslått = Behandlingsinformasjon
  * TODO jah: Vi bør kunne gjøre dette via NySøknadsbehandling og en funksjon som tar inn saksnummer og gir oss Søknadsbehandling.Vilkårsvurdert.Uavklart
  */
 fun søknadsbehandlingVilkårsvurdertUavklart(
+    clock: Clock = fixedClock,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
@@ -42,7 +45,7 @@ fun søknadsbehandlingVilkårsvurdertUavklart(
     ).let { (sak, journalførtSøknadMedOppgave) ->
         val søknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
             id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(clock),
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             søknad = journalførtSøknadMedOppgave,
@@ -65,6 +68,7 @@ fun søknadsbehandlingVilkårsvurdertUavklart(
 }
 
 fun søknadsbehandlingVilkårsvurdertInnvilget(
+    clock: Clock = fixedClock,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
@@ -74,6 +78,7 @@ fun søknadsbehandlingVilkårsvurdertInnvilget(
     return søknadsbehandlingVilkårsvurdertUavklart(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
+        clock = clock,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = (
             søknadsbehandling.tilVilkårsvurdert(
@@ -122,6 +127,7 @@ fun søknadsbehandlingVilkårsvurdertAvslag(
 }
 
 fun søknadsbehandlingBeregnetInnvilget(
+    clock: Clock = fixedClock,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
@@ -135,6 +141,7 @@ fun søknadsbehandlingBeregnetInnvilget(
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
+        clock = clock,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling =
             søknadsbehandling.tilBeregnet(beregning) as Søknadsbehandling.Beregnet.Innvilget
@@ -186,6 +193,7 @@ fun søknadsbehandlingBeregnetAvslag(
 }
 
 fun søknadsbehandlingSimulert(
+    clock: Clock = fixedClock,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
@@ -200,9 +208,15 @@ fun søknadsbehandlingSimulert(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         beregning = beregning,
+        clock = clock,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling =
-            søknadsbehandling.tilSimulert(simulering = simuleringNy(eksisterendeUtbetalinger = sak.utbetalinger))
+            søknadsbehandling.tilSimulert(
+                simulering = simuleringNy(
+                    eksisterendeUtbetalinger = sak.utbetalinger,
+                    clock = clock,
+                ),
+            )
         Pair(
             sak.copy(
                 søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
@@ -213,6 +227,7 @@ fun søknadsbehandlingSimulert(
 }
 
 fun søknadsbehandlingTilAttesteringInnvilget(
+    clock: Clock = fixedClock,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
@@ -227,6 +242,7 @@ fun søknadsbehandlingTilAttesteringInnvilget(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         beregning = beregning,
+        clock = clock,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.tilAttestering(
             saksbehandler = saksbehandler,
@@ -356,6 +372,7 @@ fun søknadsbehandlingUnderkjentAvslag(
 }
 
 fun søknadsbehandlingIverksattInnvilget(
+    clock: Clock = fixedClock,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
@@ -370,6 +387,7 @@ fun søknadsbehandlingIverksattInnvilget(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         beregning = beregning,
+        clock = clock,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.tilIverksatt(
             attestering = attesteringIverksatt,

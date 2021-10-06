@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub.simulerUtbetaling
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -15,6 +16,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -23,6 +25,7 @@ import java.util.UUID
  * Ved opphør bruk simuleringOpphørt()
  */
 fun simuleringNy(
+    clock: Clock = fixedClock,
     beregning: Beregning = beregning(),
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
@@ -36,11 +39,11 @@ fun simuleringNy(
         utbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
         beregning = beregning,
-        clock = fixedClock,
+        clock = clock,
         uføregrunnlag = listOf(
             Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
+                opprettet = Tidspunkt.now(clock),
                 periode = beregning.periode,
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 0,
@@ -57,6 +60,7 @@ fun simuleringStans(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    clock: Clock = fixedClock,
 ): Simulering {
     return stansUtbetalingForSimulering(
         stansDato = stansDato,
@@ -64,9 +68,10 @@ fun simuleringStans(
         sakId = sakId,
         saksnummer = saksnummer,
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+        clock = clock,
     ).let {
         simulerUtbetaling(it)
-    }.orNull()!!
+    }.getOrFail()
 }
 
 fun simuleringGjenopptak(
@@ -74,6 +79,7 @@ fun simuleringGjenopptak(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    clock: Clock = fixedClock,
 ): Simulering {
     return Utbetalingsstrategi.Gjenoppta(
         sakId = sakId,
@@ -81,10 +87,10 @@ fun simuleringGjenopptak(
         fnr = fnr,
         utbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
-        clock = fixedClock,
+        clock = clock,
     ).generer().let {
-        simulerUtbetaling(it.getOrFail("Skal kunne lage utbetaling for gjenopptak"))
-    }.orNull()!!
+        simulerUtbetaling(it.getOrFail())
+    }.getOrFail()
 }
 
 fun simuleringOpphørt(

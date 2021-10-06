@@ -48,6 +48,7 @@ import no.nav.su.se.bakover.domain.revurdering.erKlarForAttestering
 import no.nav.su.se.bakover.domain.revurdering.medFritekst
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.identifiserGjeldendeMånedsberegningForEnkeltmåned
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
@@ -585,8 +586,12 @@ internal class RevurderingServiceImpl(
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering, is UnderkjentRevurdering -> {
                 val eksisterendeUtbetalinger = utbetalingService.hentUtbetalinger(originalRevurdering.sakId)
 
+                val månedsberegning = vedtakRepo.hentForSakId(sakId = originalRevurdering.sakId)
+                    .identifiserGjeldendeMånedsberegningForEnkeltmåned(originalRevurdering.periode.førsteMåned())
+                    .getOrHandle { throw IllegalStateException("Fant ikke gjeldende månedsberegning for første måned i revurdering") }
+
                 val beregnetRevurdering =
-                    originalRevurdering.beregn(eksisterendeUtbetalinger).getOrHandle {
+                    originalRevurdering.beregn(eksisterendeUtbetalinger, månedsberegning).getOrHandle {
                         return when (it) {
                             is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
                             is Revurdering.KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag(

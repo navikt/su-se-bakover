@@ -42,12 +42,12 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.attesteringUnderkjent
-import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingId
+import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -58,7 +58,6 @@ import org.mockito.kotlin.doReturnConsecutively
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
-import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 
 class RevurderingIngenEndringTest {
@@ -75,9 +74,14 @@ class RevurderingIngenEndringTest {
             on { hentUtbetalinger(any()) } doReturn sak.utbetalinger
         }
 
+        val vedtakRepoMock = mock<VedtakRepo> {
+            on { hentForSakId(any()) } doReturn sak.vedtakListe
+        }
+
         val actual = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             utbetalingService = utbetalingServiceMock,
+            vedtakRepo = vedtakRepoMock,
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
@@ -88,8 +92,10 @@ class RevurderingIngenEndringTest {
 
         inOrder(
             revurderingRepoMock,
+            vedtakRepoMock,
         ) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+            verify(vedtakRepoMock).hentForSakId(sakId)
             verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.revurdering })
         }
         verifyNoMoreInteractions(
