@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.statistikk.Statistikk
 import no.nav.su.se.bakover.service.statistikk.stønadsklassifisering
@@ -94,5 +95,8 @@ private fun stønadsklassifisering(
         it.periode inneholder månedsberegning.periode
     }
 
-    return bosituasjon.stønadsklassifisering()
+    return when (bosituasjon) {
+        is Grunnlag.Bosituasjon.Fullstendig -> bosituasjon.stønadsklassifisering()
+        is Grunnlag.Bosituasjon.Ufullstendig -> throw RuntimeException("Fant ikke stønadsklassifisering for bosituasjon")
+    }
 }

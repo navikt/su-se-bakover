@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import java.time.LocalDate
 import java.util.UUID
@@ -202,16 +201,12 @@ sealed class Statistikk {
     }
 }
 
-internal fun Grunnlag.Bosituasjon.stønadsklassifisering(): Statistikk.Stønadsklassifisering {
+internal fun Grunnlag.Bosituasjon.Fullstendig.stønadsklassifisering(): Statistikk.Stønadsklassifisering {
     return when (this) {
         is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> Statistikk.Stønadsklassifisering.BOR_MED_ANDRE_VOKSNE
         is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> Statistikk.Stønadsklassifisering.BOR_MED_EKTEFELLE_UNDER_67_IKKE_UFØR_FLYKTNING
         is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> Statistikk.Stønadsklassifisering.BOR_MED_EKTEFELLE_OVER_67
         is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> Statistikk.Stønadsklassifisering.BOR_MED_EKTEFELLE_UNDER_67_UFØR_FLYKTNING
         is Grunnlag.Bosituasjon.Fullstendig.Enslig -> Statistikk.Stønadsklassifisering.BOR_ALENE
-        else -> {
-            log.error("Fant ikke stønadsklassifisering for bosituasjon $this")
-            throw RuntimeException("Fant ikke stønadsklassifisering for bosituasjon")
-        }
     }
 }
