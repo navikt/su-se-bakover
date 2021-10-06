@@ -18,7 +18,7 @@ sealed class Statistikk {
      * @param sakId  Nøkkelen til saken i kildesystemet
      * @param aktorId  Aktør IDen til primær mottager av ytelsen om denne blir godkjent
      * @param saksnummer  Saksnummeret tilknyttet saken
-     * @param ytelseType  Stønaden eller ytelsen det er saken omhandler
+     * @param ytelseType  Stønaden eller ytelsen saken omhandler
      * @param ytelseTypeBeskrivelse  Beskriver den funksjonelle verdien av koden
      * @param sakStatus  Kode som angir sakens status. F.eks OPPRETTET.
      * @param sakStatusBeskrivelse  Beskriver den funksjonelle verdien av koden
