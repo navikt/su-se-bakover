@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Behandling",
   "description": "Behandling er en avgjørelse i en Sak, knyttet til en konkret behandlingstype (eks. søknad, revurdering, endring, klage).",
   "required": [
@@ -79,6 +79,18 @@
     "resultat": {
       "type": "string",
       "description":"Kode som angir resultat av behandling på innværende tidspunkt. Mulige verdier: innvilget (delvis innvilget), avslått, omgjort, feilregistrert, henlagt, trukket, avvist etc."
+    },
+    "behandlingYtelseDetaljer": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "satsgrunn": {
+            "type": "string",
+            "description": "Hvorfor søkeren får en gitt sats"
+          }
+        }
+      }
     },
     "resultatBegrunnelse": {
       "type": "string",

@@ -28,6 +28,6 @@ internal object StatistikkSchemaValidator {
         .toJsonSchema()
 
     private fun String.toJsonSchema() = JsonSchemaFactory
-        .getInstance(SpecVersion.VersionFlag.V4)
+        .getInstance(SpecVersion.VersionFlag.V7)
         .getSchema(objectMapper.readTree(this))
 }

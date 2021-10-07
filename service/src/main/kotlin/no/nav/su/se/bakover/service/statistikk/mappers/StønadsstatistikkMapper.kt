@@ -1,19 +1,20 @@
-package no.nav.su.se.bakover.service.statistikk
+package no.nav.su.se.bakover.service.statistikk.mappers
 
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.service.statistikk.Statistikk
+import no.nav.su.se.bakover.service.statistikk.stønadsklassifisering
 import java.time.Clock
 import java.time.LocalDate
 
-internal class StønadsstatistikkMapper(private val clock: Clock) {
-
+class StønadsstatistikkMapper(
+    private val clock: Clock
+) {
     fun map(vedtak: Vedtak.EndringIYtelse, aktørId: AktørId, ytelseVirkningstidspunkt: LocalDate): Statistikk.Stønad {
         val nå = Tidspunkt.now(clock)
 
@@ -88,20 +89,10 @@ private fun vedtakstype(vedtak: Vedtak.EndringIYtelse) = when (vedtak) {
 private fun stønadsklassifisering(
     behandling: Behandling,
     månedsberegning: Månedsberegning,
-): Statistikk.Stønad.Stønadsklassifisering {
+): Statistikk.Stønadsklassifisering {
     val bosituasjon = behandling.grunnlagsdata.bosituasjon.single {
         it.periode inneholder månedsberegning.periode
     }
 
-    return when (bosituasjon) {
-        is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> Statistikk.Stønad.Stønadsklassifisering.BOR_MED_ANDRE_VOKSNE
-        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> Statistikk.Stønad.Stønadsklassifisering.BOR_MED_EKTEFELLE_UNDER_67_IKKE_UFØR_FLYKTNING
-        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> Statistikk.Stønad.Stønadsklassifisering.BOR_MED_EKTEFELLE_OVER_67
-        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> Statistikk.Stønad.Stønadsklassifisering.BOR_MED_EKTEFELLE_UNDER_67_UFØR_FLYKTNING
-        is Grunnlag.Bosituasjon.Fullstendig.Enslig -> Statistikk.Stønad.Stønadsklassifisering.BOR_ALENE
-        else -> {
-            log.error("Fant ikke stønadsklassifisering for behandling " + behandling.id)
-            throw RuntimeException("Fant ikke stønadsklassifisering for behandling")
-        }
-    }
+    return bosituasjon.stønadsklassifisering()
 }
