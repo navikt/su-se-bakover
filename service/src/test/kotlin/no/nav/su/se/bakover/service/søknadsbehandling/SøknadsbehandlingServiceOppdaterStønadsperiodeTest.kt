@@ -41,7 +41,9 @@ import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
@@ -151,8 +153,8 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
         response shouldBe expected.right()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
-        verify(søknadsbehandlingRepoMock).lagre(argThat { it shouldBe expected })
-        verify(søknadsbehandlingRepoMock).defaultSessionContext()
+        verify(søknadsbehandlingRepoMock, times(2)).defaultSessionContext()
+        verify(søknadsbehandlingRepoMock).lagre(eq(expected), anyOrNull())
         verify(søknadsbehandlingRepoMock).hentForSak(argThat { it shouldBe sakId }, anyOrNull())
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }
@@ -208,12 +210,12 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
         response shouldBe expected.right()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
-        verify(søknadsbehandlingRepoMock).lagre(argThat { it shouldBe expected })
+        verify(søknadsbehandlingRepoMock, times(2)).defaultSessionContext()
+        verify(søknadsbehandlingRepoMock).lagre(eq(expected), anyOrNull())
         verify(vilkårsvurderingServiceMock).lagre(
             argThat { it shouldBe behandlingId },
             argThat { it shouldBe expected.vilkårsvurderinger },
         )
-        verify(søknadsbehandlingRepoMock).defaultSessionContext()
         verify(søknadsbehandlingRepoMock).hentForSak(argThat { it shouldBe sakId }, anyOrNull())
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, vilkårsvurderingServiceMock)
     }

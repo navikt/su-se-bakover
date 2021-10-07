@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
@@ -22,23 +21,27 @@ import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest.Companion.lukk
+import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.service.søknad.SøknadService
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
 internal class LukkSøknadServiceImpl(
-    private val søknadRepo: SøknadRepo,
+    private val søknadService: SøknadService,
     private val sakService: SakService,
     private val brevService: BrevService,
     private val oppgaveService: OppgaveService,
     private val personService: PersonService,
+    private val søknadsbehandlingService: SøknadsbehandlingService,
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     private val clock: Clock,
     private val sessionFactory: SessionFactory,
@@ -63,11 +66,11 @@ internal class LukkSøknadServiceImpl(
             )
             return KunneIkkeLukkeSøknad.UgyldigTrukketDato.left()
         }
-        if (søknadRepo.harSøknadPåbegyntBehandling(søknad.id)) {
-            log.info("Kan ikke lukke søknad ${søknad.id} siden det finnes en behandling")
-            return KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
+        val lukketSøknadbehandling = søknadsbehandlingService.hentForSøknad(søknad.id)?.let { søknadsbehandling ->
+            søknadsbehandling.lukkSøknadsbehandling().getOrHandle {
+                return KunneIkkeLukkeSøknad.BehandlingErIFeilTilstand(it).left()
+            }
         }
-
         return when (søknad) {
             is Søknad.Lukket -> {
                 log.info("Søknad ${søknad.id} er allerede lukket")
@@ -85,7 +88,7 @@ internal class LukkSøknadServiceImpl(
                     }
                 log.info("Lukker journalført søknad ${søknad.id} og tilhørende oppgave ${søknad.oppgaveId}")
 
-                lukkSøknad(person, request, søknad)
+                lukkSøknad(person, request, søknad, lukketSøknadbehandling)
                     .flatMap { lukket ->
                         oppgaveService.lukkOppgave(søknad.oppgaveId)
                             .mapLeft {
@@ -110,13 +113,14 @@ internal class LukkSøknadServiceImpl(
         person: Person,
         request: LukkSøknadRequest,
         søknad: Søknad,
+        lukketSøknadsbehandling: LukketSøknadsbehandling?,
     ): Either<KunneIkkeLukkeSøknad, Søknad.Lukket> {
         return when (request) {
             is LukkSøknadRequest.MedBrev -> {
-                lukkSøknadMedBrev(person, request, søknad)
+                lukkSøknadMedBrev(person, request, søknad, lukketSøknadsbehandling)
             }
             is LukkSøknadRequest.UtenBrev -> {
-                lukkSøknadUtenBrev(request, søknad).right()
+                lukkSøknadUtenBrev(request, søknad, lukketSøknadsbehandling).right()
             }
         }
     }
@@ -165,15 +169,19 @@ internal class LukkSøknadServiceImpl(
     }
 
     private fun hentSøknad(søknadId: UUID): Either<KunneIkkeLukkeSøknad.FantIkkeSøknad, Søknad> {
-        return søknadRepo.hentSøknad(søknadId)?.right() ?: KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
+        return søknadService.hentSøknad(søknadId).mapLeft { KunneIkkeLukkeSøknad.FantIkkeSøknad }
     }
 
     private fun lukkSøknadUtenBrev(
         request: LukkSøknadRequest.UtenBrev,
         søknad: Søknad,
+        lukketSøknadsbehandling: LukketSøknadsbehandling?,
     ): Søknad.Lukket {
         val lukketSøknad = søknad.lukk(request, Tidspunkt.now(clock))
-        søknadRepo.oppdaterSøknad(lukketSøknad)
+        sessionFactory.withTransactionContext { transactionContext ->
+            søknadService.lukkSøknad(lukketSøknad, transactionContext)
+            lukketSøknadsbehandling?.also { søknadsbehandlingService.lukk(it, transactionContext) }
+        }
         return lukketSøknad
     }
 
@@ -181,6 +189,7 @@ internal class LukkSøknadServiceImpl(
         person: Person,
         request: LukkSøknadRequest.MedBrev,
         søknad: Søknad,
+        lukketSøknadsbehandling: LukketSøknadsbehandling?,
     ): Either<KunneIkkeLukkeSøknad, Søknad.Lukket> {
         val dokument = lagBrevRequest(person, søknad, request)
             .tilDokument {
@@ -197,9 +206,10 @@ internal class LukkSøknadServiceImpl(
 
         val lukketSøknad = søknad.lukk(request, Tidspunkt.now(clock))
 
-        sessionFactory.withTransactionContext {
-            søknadRepo.oppdaterSøknad(lukketSøknad, it)
-            brevService.lagreDokument(dokument, it)
+        sessionFactory.withTransactionContext { transactionContext ->
+            søknadService.lukkSøknad(lukketSøknad, transactionContext)
+            brevService.lagreDokument(dokument, transactionContext)
+            lukketSøknadsbehandling?.also { søknadsbehandlingService.lukk(it, transactionContext) }
         }
 
         return lukketSøknad.right()

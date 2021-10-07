@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.AktørId
@@ -42,6 +43,7 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.sak.SakRestans
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
+import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -278,6 +280,10 @@ open class AccessCheckProxy(
                     return services.søknad.nySøknad(søknadInnhold)
                 }
 
+                override fun lukkSøknad(søknad: Søknad.Lukket, sessionContext: SessionContext) {
+                    kastKanKunKallesFraAnnenService()
+                }
+
                 override fun hentSøknad(søknadId: UUID): Either<FantIkkeSøknad, Søknad> {
                     assertHarTilgangTilSøknad(søknadId)
 
@@ -448,6 +454,14 @@ open class AccessCheckProxy(
                 override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.leggTilFradragsgrunnlag(request)
+                }
+
+                override fun hentForSøknad(søknadId: UUID): Søknadsbehandling? {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, sessionContext: SessionContext) {
+                    kastKanKunKallesFraAnnenService()
                 }
             },
             ferdigstillVedtak = object : FerdigstillVedtakService {

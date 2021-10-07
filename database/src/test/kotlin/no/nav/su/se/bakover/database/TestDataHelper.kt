@@ -305,7 +305,7 @@ internal class TestDataHelper(
                 type = Søknad.Lukket.LukketType.TRUKKET,
                 lukketTidspunkt = fixedTidspunkt,
             ).also { lukketSøknad ->
-                søknadRepo.oppdaterSøknad(lukketSøknad)
+                søknadRepo.lukkSøknad(lukketSøknad)
             }
         }
     }

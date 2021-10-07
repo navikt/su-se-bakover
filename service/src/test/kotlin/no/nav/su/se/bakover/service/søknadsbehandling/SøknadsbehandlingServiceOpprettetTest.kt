@@ -5,7 +5,6 @@ import arrow.core.right
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
@@ -121,20 +120,18 @@ internal class SøknadsbehandlingServiceOpprettetTest {
 
     @Test
     fun `svarer med feil dersom søknad har påbegynt behandling`() {
-        val søknad = nySakMedjournalførtSøknadOgOppgave().second
+        val (sak, søknadsbehandling) = søknadsbehandlingBeregnetInnvilget()
+        val søknad = sak.søknader.first() as Søknad.Journalført.MedOppgave
         val søknadServiceMock = mock<SøknadService> {
             on { hentSøknad(any()) } doReturn søknad.right()
         }
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { harSøknadPåbegyntBehandling(any()) } doReturn true
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo>() {
+            on { hentForSøknad(any()) } doReturn søknadsbehandling
         }
 
-        val saksbehandlingRepo = mock<SøknadsbehandlingRepo>()
-
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
-            søknadsbehandlingRepo = saksbehandlingRepo,
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             søknadService = søknadServiceMock,
-            søknadRepo = søknadRepoMock,
         )
 
         serviceAndMocks.søknadsbehandlingService.opprett(
@@ -144,7 +141,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
 
         verify(søknadServiceMock).hentSøknad(søknad.id)
-        verify(søknadRepoMock).harSøknadPåbegyntBehandling(søknad.id)
+        verify(søknadsbehandlingRepoMock).hentForSøknad(søknad.id)
         serviceAndMocks.verifyNoMoreInteractions()
     }
 
@@ -155,9 +152,6 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         val søknadServiceMock = mock<SøknadService> {
             on { hentSøknad(any()) } doReturn søknad.right()
         }
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { harSøknadPåbegyntBehandling(any()) } doReturn false
-        }
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hentForSak(any(), anyOrNull()) } doReturn listOf(eksisterendeSøknadsbehandling)
@@ -166,7 +160,6 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             søknadService = søknadServiceMock,
-            søknadRepo = søknadRepoMock,
         )
 
         serviceAndMocks.søknadsbehandlingService.opprett(
@@ -176,7 +169,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.HarAlleredeÅpenSøknadsbehandling.left()
 
         verify(søknadServiceMock).hentSøknad(søknad.id)
-        verify(søknadRepoMock).harSøknadPåbegyntBehandling(søknad.id)
+        verify(søknadsbehandlingRepoMock).hentForSøknad(søknad.id)
         verify(søknadsbehandlingRepoMock).defaultSessionContext()
         verify(søknadsbehandlingRepoMock).hentForSak(argThat { it shouldBe søknad.sakId }, anyOrNull())
         serviceAndMocks.verifyNoMoreInteractions()
@@ -195,9 +188,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         val søknadService: SøknadService = mock {
             on { hentSøknad(any()) } doReturn søknad.right()
         }
-        val søknadRepo: SøknadRepo = mock {
-            on { harSøknadPåbegyntBehandling(any()) } doReturn false
-        }
+
         val capturedSøknadsbehandling = argumentCaptor<NySøknadsbehandling>()
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hentForSak(any(), anyOrNull()) } doReturn eksisterendeSøknadsbehandlinger
@@ -208,7 +199,6 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             søknadService = søknadService,
-            søknadRepo = søknadRepo,
         )
 
         serviceAndMocks.søknadsbehandlingService.opprett(
@@ -235,7 +225,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             Søknadsbehandling.Vilkårsvurdert.Uavklart::periode,
         )
         verify(søknadService).hentSøknad(argThat { it shouldBe søknad.id })
-        verify(søknadRepo).harSøknadPåbegyntBehandling(argThat { it shouldBe søknad.id })
+        verify(søknadsbehandlingRepoMock).hentForSøknad(argThat { it shouldBe søknad.id })
         verify(søknadsbehandlingRepoMock).defaultSessionContext()
         verify(søknadsbehandlingRepoMock).hentForSak(argThat { it shouldBe søknad.sakId }, anyOrNull())
 

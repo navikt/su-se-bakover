@@ -37,7 +37,9 @@ import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -192,7 +194,8 @@ class SøknadsbehandlingServiceBeregningTest {
 
         inOrder(søknadsbehandlingRepoMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
-            verify(søknadsbehandlingRepoMock).lagre(expected)
+            verify(søknadsbehandlingRepoMock).defaultSessionContext()
+            verify(søknadsbehandlingRepoMock).lagre(eq(expected), anyOrNull())
         }
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }

@@ -47,4 +47,11 @@ class FinnSaksbehandlerVisitor : SøknadsbehandlingVisitor {
     override fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) {
         saksbehandler = søknadsbehandling.saksbehandler
     }
+
+    override fun visit(søknadsbehandling: LukketSøknadsbehandling) {
+        saksbehandler = FinnSaksbehandlerVisitor().let {
+            søknadsbehandling.lukketSøknadsbehandling.accept(it)
+            it.saksbehandler
+        }
+    }
 }

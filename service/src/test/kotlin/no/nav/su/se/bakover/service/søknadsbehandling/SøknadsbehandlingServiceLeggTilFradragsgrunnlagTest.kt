@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
@@ -28,6 +29,7 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
 
 class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
+
     @Test
     fun `lagreFradrag happy case`() {
         val behandling = søknadsbehandlingVilkårsvurdertInnvilget().second
@@ -83,10 +85,12 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             argThat { it shouldBe behandling.id },
             argThat { it shouldBe request.fradragsgrunnlag },
         )
+        verify(søknadsbehandlingRepoMock).defaultSessionContext()
         verify(søknadsbehandlingRepoMock).lagre(
             argThat {
                 it shouldBe behandling.copy(grunnlagsdata = behandling.grunnlagsdata.copy(fradragsgrunnlag = fradragsgrunnlag))
             },
+            anyOrNull()
         )
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, grunnlagServiceMock)
     }

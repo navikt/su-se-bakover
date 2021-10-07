@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.TestDataHelper.Companion.journalførtSøknadMedOppgave
 import no.nav.su.se.bakover.database.antall
 import no.nav.su.se.bakover.database.avslåttBeregning
 import no.nav.su.se.bakover.database.behandlingsinformasjonMedAlleVilkårOppfylt
@@ -22,6 +23,8 @@ import no.nav.su.se.bakover.database.stønadsperiode
 import no.nav.su.se.bakover.database.underkjentAttestering
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.domain.NySak
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -537,6 +540,29 @@ internal class SøknadsbehandlingPostgresRepoTest {
                         ),
                     ),
                 )
+            }
+        }
+    }
+
+    @Test
+    fun `søknad har ikke påbegynt behandling`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val søknadsbehandlingRepo = testDataHelper.søknadsbehandlingRepo
+            val nySak: NySak = testDataHelper.nySakMedNySøknad()
+            søknadsbehandlingRepo.hentForSøknad(nySak.søknad.id) shouldBe null
+        }
+    }
+
+    @Test
+    fun `søknad har påbegynt behandling`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val søknadsbehandlingRepo = testDataHelper.søknadsbehandlingRepo
+            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            val søknad = sak.journalførtSøknadMedOppgave()
+            testDataHelper.nySøknadsbehandling(sak, søknad).let {
+                søknadsbehandlingRepo.hentForSøknad(søknad.id) shouldBe it
             }
         }
     }

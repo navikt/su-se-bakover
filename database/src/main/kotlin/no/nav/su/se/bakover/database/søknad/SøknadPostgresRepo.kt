@@ -40,7 +40,7 @@ internal class SøknadPostgresRepo(
         }
     }
 
-    override fun oppdaterSøknad(søknad: Søknad.Lukket, sessionContext: SessionContext) {
+    override fun lukkSøknad(søknad: Søknad.Lukket, sessionContext: SessionContext) {
         sessionContext.withSession { session ->
             "update søknad set lukket=to_json(:lukket::json) where id=:id".oppdatering(
                 mapOf(
@@ -50,14 +50,6 @@ internal class SøknadPostgresRepo(
                 session,
             )
         }
-    }
-
-    override fun harSøknadPåbegyntBehandling(søknadId: UUID): Boolean {
-        return dataSource.withSession { session ->
-            "select * from behandling where søknadId=:soknadId".hentListe(
-                mapOf("soknadId" to søknadId), session,
-            ) { it.stringOrNull("søknadId") }
-        }.isNotEmpty()
     }
 
     override fun oppdaterjournalpostId(søknad: Søknad.Journalført.UtenOppgave) {

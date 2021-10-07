@@ -16,7 +16,7 @@ internal class PostgresTransactionContextTest {
             withTestContext(dataSource, 1) { spiedDataSource ->
                 val testDataHelper = TestDataHelper(spiedDataSource)
                 testDataHelper.sessionFactory.withTransactionContext { context ->
-                    testDataHelper.søknadRepo.oppdaterSøknad(
+                    testDataHelper.søknadRepo.lukkSøknad(
                         sak.søknad.lukk(
                             lukketAv = NavIdentBruker.Saksbehandler("1"),
                             type = Søknad.Lukket.LukketType.TRUKKET,
@@ -24,7 +24,7 @@ internal class PostgresTransactionContextTest {
                         ),
                         context,
                     )
-                    testDataHelper.søknadRepo.oppdaterSøknad(
+                    testDataHelper.søknadRepo.lukkSøknad(
                         sak.søknad.lukk(
                             lukketAv = NavIdentBruker.Saksbehandler("2"),
                             type = Søknad.Lukket.LukketType.AVVIST,
@@ -50,7 +50,7 @@ internal class PostgresTransactionContextTest {
                 val testDataHelper = TestDataHelper(spiedDataSource)
                 Either.catch {
                     PostgresSessionFactory(spiedDataSource).withTransactionContext { context ->
-                        testDataHelper.søknadRepo.oppdaterSøknad(
+                        testDataHelper.søknadRepo.lukkSøknad(
                             sak.søknad.lukk(
                                 lukketAv = NavIdentBruker.Saksbehandler("1"),
                                 type = Søknad.Lukket.LukketType.TRUKKET,
@@ -58,7 +58,7 @@ internal class PostgresTransactionContextTest {
                             ),
                             context,
                         )
-                        testDataHelper.søknadRepo.oppdaterSøknad(
+                        testDataHelper.søknadRepo.lukkSøknad(
                             sak.søknad.lukk(
                                 lukketAv = NavIdentBruker.Saksbehandler("2"),
                                 type = Søknad.Lukket.LukketType.AVVIST,

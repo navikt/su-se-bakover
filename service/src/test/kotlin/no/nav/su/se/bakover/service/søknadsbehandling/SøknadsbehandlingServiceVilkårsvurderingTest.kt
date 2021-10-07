@@ -33,8 +33,10 @@ import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsin
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doReturnConsecutively
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -129,7 +131,8 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
 
         inOrder(søknadsbehandlingRepoMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
-            verify(søknadsbehandlingRepoMock).lagre(expected)
+            verify(søknadsbehandlingRepoMock).defaultSessionContext()
+            verify(søknadsbehandlingRepoMock).lagre(eq(expected), anyOrNull())
         }
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }
@@ -171,7 +174,8 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
 
         inOrder(søknadsbehandlingRepoMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
-            verify(søknadsbehandlingRepoMock).lagre(expected)
+            verify(søknadsbehandlingRepoMock).defaultSessionContext()
+            verify(søknadsbehandlingRepoMock).lagre(eq(expected), anyOrNull())
         }
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }

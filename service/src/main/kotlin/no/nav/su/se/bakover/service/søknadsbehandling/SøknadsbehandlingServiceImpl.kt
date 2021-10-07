@@ -9,6 +9,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
@@ -29,6 +30,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
+import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -108,8 +110,7 @@ internal class SøknadsbehandlingServiceImpl(
             // TODO Prøv å opprette oppgaven hvis den mangler? (systembruker blir kanskje mest riktig?)
             return SøknadsbehandlingService.KunneIkkeOpprette.SøknadManglerOppgave.left()
         }
-        if (søknadRepo.harSøknadPåbegyntBehandling(søknad.id)) {
-            // Dersom man legger til avslutting av behandlinger, må denne spørringa spesifiseres.
+        if (hentForSøknad(søknad.id) != null) {
             return SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
         }
 
@@ -499,6 +500,10 @@ internal class SøknadsbehandlingServiceImpl(
             ?: SøknadsbehandlingService.FantIkkeBehandling.left()
     }
 
+    override fun hentForSøknad(søknadId: UUID): Søknadsbehandling? {
+        return søknadsbehandlingRepo.hentForSøknad(søknadId)
+    }
+
     override fun oppdaterStønadsperiode(request: SøknadsbehandlingService.OppdaterStønadsperiodeRequest): Either<SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode, Søknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
@@ -740,5 +745,9 @@ internal class SøknadsbehandlingServiceImpl(
         søknadsbehandlingRepo.lagre(oppdatertBehandling)
 
         return oppdatertBehandling.right()
+    }
+
+    override fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, sessionContext: SessionContext) {
+        søknadsbehandlingRepo.lagre(lukketSøknadbehandling, sessionContext)
     }
 }
