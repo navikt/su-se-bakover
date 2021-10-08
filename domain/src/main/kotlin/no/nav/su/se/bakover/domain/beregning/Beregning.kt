@@ -16,7 +16,7 @@ interface Beregning : PeriodisertInformasjon {
     fun getSumFradrag(): Double
     fun getFradragStrategyName(): FradragStrategyName
     fun getBegrunnelse(): String?
-    fun merknader(): List<Merknad> = getMånedsberegninger().flatMap { it.getMerknader() }
+    fun merknader(): List<Merknad> = getMånedsberegninger().flatMap { it.getMerknader().alle() }
 
     /**
      * Sammenligner alle metodene  bortsett fraikke getId(), getOpprettet() og getBegrunnelse().

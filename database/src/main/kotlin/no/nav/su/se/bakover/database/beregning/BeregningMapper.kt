@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Merknad
+import no.nav.su.se.bakover.domain.beregning.Merknader
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
@@ -39,7 +40,7 @@ internal data class PersistertBeregning(
     override fun getBegrunnelse(): String? = begrunnelse
 
     @JsonIgnore // Unngå serialisering av merknader på toppnivå
-    override fun merknader(): List<Merknad> = månedsberegninger.flatMap { it.getMerknader() }
+    override fun merknader(): List<Merknad> = månedsberegninger.flatMap { it.getMerknader().alle() }
 
     override fun equals(other: Any?) = (other as? Beregning)?.let { this.equals(other) } ?: false
 
@@ -74,8 +75,10 @@ internal data class PersistertMånedsberegning(
     override fun getSatsbeløp(): Double = satsbeløp
     override fun getFradrag(): List<Fradrag> = fradrag
     override fun getFribeløpForEps(): Double = fribeløpForEps
+
     @JsonIgnore
-    override fun getMerknader(): List<Merknad> = persisterteMerknader.toDomain()
+    override fun getMerknader(): Merknader =
+        Merknader().apply { leggTil(*persisterteMerknader.toDomain().toTypedArray()) }
 
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
 
@@ -126,7 +129,7 @@ internal fun Månedsberegning.toSnapshot() = PersistertMånedsberegning(
     fradrag = getFradrag().map { it.toSnapshot() },
     periode = periode,
     fribeløpForEps = getFribeløpForEps(),
-    persisterteMerknader = getMerknader().toSnapshot(),
+    persisterteMerknader = getMerknader().alle().toSnapshot(),
 )
 
 internal fun Fradrag.toSnapshot() = PersistertFradrag(

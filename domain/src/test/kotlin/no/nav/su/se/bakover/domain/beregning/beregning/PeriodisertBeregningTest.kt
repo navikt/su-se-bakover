@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.beregning.beregning
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
@@ -238,14 +237,14 @@ internal class PeriodisertBeregningTest {
             sats = Sats.HØY,
             fradrag = listOf(),
             fribeløpForEps = 0.0,
-        ).getMerknader().filterIsInstance<Merknad.EndringGrunnbeløp>() shouldHaveSize 0
+        ).getMerknader().alle().filterIsInstance<Merknad.EndringGrunnbeløp>() shouldHaveSize 0
 
         PeriodisertBeregning(
             periode = mai(2021),
             sats = Sats.HØY,
             fradrag = listOf(),
             fribeløpForEps = 0.0,
-        ).getMerknader().filterIsInstance<Merknad.EndringGrunnbeløp>() shouldBe listOf(
+        ).getMerknader().alle().filterIsInstance<Merknad.EndringGrunnbeløp>() shouldBe listOf(
             Merknad.EndringGrunnbeløp(
                 gammeltGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj(
                     dato = 1.mai(2020),
@@ -263,14 +262,14 @@ internal class PeriodisertBeregningTest {
             sats = Sats.HØY,
             fradrag = listOf(),
             fribeløpForEps = 0.0,
-        ).getMerknader().filterIsInstance<Merknad.EndringGrunnbeløp>() shouldHaveSize 0
+        ).getMerknader().alle().filterIsInstance<Merknad.EndringGrunnbeløp>() shouldHaveSize 0
 
         PeriodisertBeregning(
             periode = mai(2020),
             sats = Sats.HØY,
             fradrag = listOf(),
             fribeløpForEps = 0.0,
-        ).getMerknader().filterIsInstance<Merknad.EndringGrunnbeløp>() shouldBe listOf(
+        ).getMerknader().alle().filterIsInstance<Merknad.EndringGrunnbeløp>() shouldBe listOf(
             Merknad.EndringGrunnbeløp(
                 gammeltGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj(
                     dato = 1.mai(2019),

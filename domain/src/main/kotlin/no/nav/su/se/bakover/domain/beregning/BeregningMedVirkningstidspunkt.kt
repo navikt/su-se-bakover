@@ -92,7 +92,7 @@ data class BeregningMedVirkningstidspunkt(
 
             if (gjeldendeBeregninger.isEmpty()) {
                 inneværendeMåned.let {
-                    it.getMerknader().add(
+                    it.getMerknader().leggTil(
                         Merknad.NyYtelse.from(
                             inneværendeMåned,
                         ),
@@ -113,7 +113,7 @@ data class BeregningMedVirkningstidspunkt(
                          * noe som fører til at g-regulering implisitt er fritatt for 10% sjekk.
                          */
                         gjeldendeBeregning.forskyv(1, fradragStrategy).let { gjeldendeForskøvet ->
-                            gjeldendeForskøvet.getMerknader().add(
+                            gjeldendeForskøvet.getMerknader().leggTil(
                                 Merknad.RedusertYtelse.from(
                                     benyttetBeregning = gjeldendeForskøvet,
                                     forkastetBeregning = inneværendeMåned,
@@ -137,7 +137,7 @@ data class BeregningMedVirkningstidspunkt(
                          */
                         gjeldendeBeregning.forskyv(1, fradragStrategy).let { gjeldendeForskøvet ->
                             inneværendeMåned.let { inneværende ->
-                                inneværende.getMerknader().add(
+                                inneværende.getMerknader().leggTil(
                                     Merknad.ØktYtelse.from(
                                         benyttetBeregning = inneværende,
                                         forkastetBeregning = gjeldendeForskøvet,
@@ -159,7 +159,7 @@ data class BeregningMedVirkningstidspunkt(
                          */
                         gjeldendeBeregning.forskyv(1, fradragStrategy).let { gjeldendeForskøvet ->
                             if (gjeldendeForskøvet != inneværendeMåned) { // Ikke lag merknad hvis helt like
-                                gjeldendeForskøvet.getMerknader().add(
+                                gjeldendeForskøvet.getMerknader().leggTil(
                                     Merknad.EndringUnderTiProsent.from(
                                         benyttetBeregning = gjeldendeForskøvet,
                                         forkastetBeregning = inneværendeMåned,

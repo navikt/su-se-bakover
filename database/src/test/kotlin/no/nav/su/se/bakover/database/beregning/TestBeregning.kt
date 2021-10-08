@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.database.fixedTidspunkt
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Merknad
+import no.nav.su.se.bakover.domain.beregning.Merknader
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
@@ -40,16 +41,18 @@ internal object TestMånedsberegning : Månedsberegning {
     override fun getSatsbeløp(): Double = 20637.32
     override fun getFradrag(): List<Fradrag> = listOf(TestFradrag)
     override fun getFribeløpForEps(): Double = 0.0
-    override fun getMerknader(): List<Merknad> = listOf(
-        Merknad.EndringGrunnbeløp(
-            gammeltGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj.forDato(1.mai(2019)),
-            nyttGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj.forDato(1.mai(2020)),
-        ),
-        Merknad.ØktYtelse.from(
-            benyttetBeregning = TestMånedsberegning,
-            forkastetBeregning = TestMånedsberegning,
-        ),
-    )
+    override fun getMerknader(): Merknader = Merknader().apply {
+        leggTil(
+            Merknad.EndringGrunnbeløp(
+                gammeltGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj.forDato(1.mai(2019)),
+                nyttGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj.forDato(1.mai(2020)),
+            ),
+            Merknad.ØktYtelse.from(
+                benyttetBeregning = TestMånedsberegning,
+                forkastetBeregning = TestMånedsberegning,
+            ),
+        )
+    }
 
     override val periode: Periode = Periode.create(1.januar(2021), 31.januar(2021))
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false

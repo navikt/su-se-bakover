@@ -14,7 +14,7 @@ internal data class PeriodisertBeregning(
     private val fradrag: List<PeriodisertFradrag>,
     private val fribeløpForEps: Double = 0.0,
 ) : Månedsberegning {
-    private val merknader: MutableList<Merknad> = mutableListOf()
+    private val merknader: Merknader = Merknader()
 
     init {
         require(fradrag.all { it.periode == periode }) { "Fradrag må være gjeldende for aktuell måned" }
@@ -37,7 +37,7 @@ internal data class PeriodisertBeregning(
     override fun getFradrag(): List<PeriodisertFradrag> = fradrag
     override fun getFribeløpForEps(): Double = fribeløpForEps
 
-    override fun getMerknader(): MutableList<Merknad> {
+    override fun getMerknader(): Merknader {
         return merknader
     }
 
@@ -57,7 +57,7 @@ internal data class PeriodisertBeregning(
     private fun leggTilMerknadVedEndringIGrunnbeløp() {
         Grunnbeløp.`1G`.let {
             if (periode.fraOgMed == it.datoForSisteEndringAvGrunnbeløp(periode.fraOgMed)) {
-                merknader.add(
+                merknader.leggTil(
                     Merknad.EndringGrunnbeløp(
                         gammeltGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj.forDato(
                             it.datoForSisteEndringAvGrunnbeløp(periode.forskyv(-1).fraOgMed),

@@ -29,5 +29,5 @@ internal fun Månedsberegning.toJson(epsFribeløp: Double, epsInputFradrag: List
     satsbeløp = getSatsbeløp().roundToInt(),
     epsFribeløp = epsFribeløp,
     epsInputFradrag = epsInputFradrag.toJson(),
-    merknader = getMerknader().toJson(),
+    merknader = getMerknader().alle().toJson(),
 )

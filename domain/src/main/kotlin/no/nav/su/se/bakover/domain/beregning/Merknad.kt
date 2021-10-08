@@ -8,6 +8,43 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import java.time.LocalDate
 
+class Merknader {
+    private val merknader: MutableList<Merknad> = mutableListOf()
+
+    fun leggTil(vararg merknad: Merknad) {
+        merknad.forEach { leggTil(it) }
+    }
+
+    fun leggTil(merknad: Merknad) {
+        check(kanLeggesTil(merknad))
+        merknader.add(merknad)
+    }
+
+    fun alle(): List<Merknad> {
+        return merknader
+    }
+
+    private fun kanLeggesTil(merknad: Merknad): Boolean {
+        return when (merknad) {
+            is Merknad.EndringGrunnbeløp -> true
+            is Merknad.EndringUnderTiProsent -> erLovlig()
+            is Merknad.NyYtelse -> erLovlig()
+            is Merknad.RedusertYtelse -> erLovlig()
+            is Merknad.ØktYtelse -> erLovlig()
+        }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other is Merknader && merknader == other.merknader
+    }
+
+    private fun erLovlig() = !harNyYtelse() && !harØkning() && !harReduksjon() && !harEndringUnderTiProsent()
+    private fun harNyYtelse() = merknader.any { it is Merknad.NyYtelse }
+    private fun harØkning() = merknader.any { it is Merknad.ØktYtelse }
+    private fun harReduksjon() = merknader.any { it is Merknad.RedusertYtelse }
+    private fun harEndringUnderTiProsent() = merknader.any { it is Merknad.EndringUnderTiProsent }
+}
+
 sealed class Merknad {
 
     data class EndringGrunnbeløp(
