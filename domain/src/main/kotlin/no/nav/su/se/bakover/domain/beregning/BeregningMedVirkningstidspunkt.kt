@@ -104,7 +104,7 @@ data class BeregningMedVirkningstidspunkt(
                 val gjeldendeBeregning = gjeldendeBeregninger.pop()
 
                 when {
-                    inneværendeMåned.getSumYtelse() prosentEndringFra gjeldendeBeregning.getSumYtelse() <= -10.0 -> {
+                    inneværendeMåned.getSumYtelse() endringFra gjeldendeBeregning.getSumYtelse() == Endring.REDUKSJON_OVER_10_PROSENT -> {
                         /**
                          * Gjeldende beregning videreføres for inneværendene måned. Siden gjeldende beregning er gjort
                          * for forrige måned, må denne forskyves en måned fram.
@@ -127,7 +127,7 @@ data class BeregningMedVirkningstidspunkt(
                             gjeldendeBeregninger.push(inneværendeMåned)
                         }
                     }
-                    inneværendeMåned.getSumYtelse() prosentEndringFra gjeldendeBeregning.getSumYtelse() >= 10.0 -> {
+                    inneværendeMåned.getSumYtelse() endringFra gjeldendeBeregning.getSumYtelse() == Endring.ØKNING_OVER_10_PROSENT -> {
                         /**
                          * Beregningen for inneværende måned skal tre i kraft umiddelbart og legges til sluttresultat
                          * og settes som ny gjeldende beregning.
@@ -196,20 +196,33 @@ data class BeregningMedVirkningstidspunkt(
 }
 
 /**
- * Bestem endring i prosent fra [other] til [this].
+ * Bestem om endring fra [other] til [this] er større enn 10%.
  * Implementasjonen understøtter behovet [BeregningMedVirkningstidspunkt] for å avgjøre om noe har endret seg mer eller
  * mindre enn 10%, og har følgelig tatt seg noen friheter når det kommer til matematikkens lover.
  *
  * Merk spesielt følgende friheter:
- * [this] = 0 og [other] = 0 -> 0% endring (ingen endring i beløpet)
- * [this] = 0 og [other] != 0 -> -100% endring (sørger for at beregningen håndterer dette som en reduksjon på mer enn 10%)
- * [this] != 0 og [other] = 0 -> 100% endring (sørger for at beregningen håndterer dette som en økning på mer enn 10%)
+ * [this] = 0 og [other] = 0 -> [Endring.ENDRING_UNDER_10_PROSENT]
+ * [this] = 0 og [other] != 0 -> [Endring.REDUKSJON_OVER_10_PROSENT]
+ * [this] != 0 og [other] = 0 -> [Endring.ØKNING_OVER_10_PROSENT]
  */
-internal infix fun Int.prosentEndringFra(other: Int): Double {
+internal infix fun Int.endringFra(other: Int): Endring {
     return when {
-        this == 0 && other == 0 -> 0.0
-        this == 0 && other != 0 -> -100.0
-        other == 0 && this != 0 -> 100.0
-        else -> (this - other) / (1.0 * other) * 100
+        this == 0 && other == 0 -> Endring.ENDRING_UNDER_10_PROSENT
+        this == 0 && other != 0 -> Endring.REDUKSJON_OVER_10_PROSENT
+        this != 0 && other == 0 -> Endring.ØKNING_OVER_10_PROSENT
+        else -> {
+            val prosent = (this - other) / (1.0 * other) * 100
+            when {
+                prosent >= 10.0 -> Endring.ØKNING_OVER_10_PROSENT
+                prosent <= -10.0 -> Endring.REDUKSJON_OVER_10_PROSENT
+                else -> Endring.ENDRING_UNDER_10_PROSENT
+            }
+        }
     }
+}
+
+internal enum class Endring {
+    ØKNING_OVER_10_PROSENT,
+    REDUKSJON_OVER_10_PROSENT,
+    ENDRING_UNDER_10_PROSENT,
 }

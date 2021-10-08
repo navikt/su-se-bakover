@@ -8,9 +8,10 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
+import no.nav.su.se.bakover.domain.beregning.Endring
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.endringFra
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.prosentEndringFra
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -31,7 +32,6 @@ import no.nav.su.se.bakover.test.utbetalingsRequest
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.util.UUID
-import kotlin.math.abs
 
 internal class RevurderingTest {
 
@@ -46,7 +46,8 @@ internal class RevurderingTest {
 
         revurdering.beregn(
             eksisterendeUtbetalinger = sak.utbetalinger,
-            utgangspunkt = sak.hentGjeldendeMånedsberegningForEnkeltmåned(revurdering.periode.månedenFør()).getOrElse { null },
+            utgangspunkt = sak.hentGjeldendeMånedsberegningForEnkeltmåned(revurdering.periode.månedenFør())
+                .getOrElse { null },
         ).getOrFail()
             .let {
                 it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
@@ -123,7 +124,8 @@ internal class RevurderingTest {
 
         revurdering.beregn(
             eksisterendeUtbetalinger = sak.utbetalinger,
-            utgangspunkt = sak.hentGjeldendeMånedsberegningForEnkeltmåned(revurdering.periode.månedenFør()).getOrElse { null },
+            utgangspunkt = sak.hentGjeldendeMånedsberegningForEnkeltmåned(revurdering.periode.månedenFør())
+                .getOrElse { null },
         ).getOrFail().let {
             it shouldBe beOfType<BeregnetRevurdering.Innvilget>()
         }
@@ -135,7 +137,8 @@ internal class RevurderingTest {
 
         revurdering.beregn(
             eksisterendeUtbetalinger = sak.utbetalinger,
-            utgangspunkt = sak.hentGjeldendeMånedsberegningForEnkeltmåned(revurdering.periode.månedenFør()).getOrElse { null },
+            utgangspunkt = sak.hentGjeldendeMånedsberegningForEnkeltmåned(revurdering.periode.månedenFør())
+                .getOrElse { null },
         ).getOrFail().let { beregnetRevurdering ->
             beregnetRevurdering shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
             beregnetRevurdering.beregning.getMånedsberegninger()
@@ -160,13 +163,14 @@ internal class RevurderingTest {
 
         revurdering.beregn(
             eksisterendeUtbetalinger = listOf(uregulerteUtbetalinger),
-            utgangspunkt = sak.hentGjeldendeMånedsberegningForEnkeltmåned(revurdering.periode.månedenFør()).getOrElse { null },
+            utgangspunkt = sak.hentGjeldendeMånedsberegningForEnkeltmåned(revurdering.periode.månedenFør())
+                .getOrElse { null },
         ).getOrFail().let { beregnetRevurdering ->
             uregulerteUtbetalinger.utbetalingslinjer.all { it.beløp == 20946 } shouldBe true
 
             beregnetRevurdering shouldBe beOfType<BeregnetRevurdering.Innvilget>()
-            beregnetRevurdering.beregning.getMånedsberegninger().none {
-                it.getSumYtelse() prosentEndringFra uregulerteUtbetalinger.utbetalingslinjer[0].beløp > abs(10)
+            beregnetRevurdering.beregning.getMånedsberegninger().all {
+                it.getSumYtelse() endringFra uregulerteUtbetalinger.utbetalingslinjer[0].beløp == Endring.ENDRING_UNDER_10_PROSENT
             }
             beregnetRevurdering.beregning.getMånedsberegninger()
                 .filter { it.periode.starterTidligere(periodeEtterGeregulering2021) }
@@ -193,7 +197,8 @@ internal class RevurderingTest {
         )
         revurdering.beregn(
             eksisterendeUtbetalinger = sak.utbetalinger,
-            utgangspunkt = sak.hentGjeldendeMånedsberegningForEnkeltmåned(revurdering.periode.månedenFør()).getOrElse { null },
+            utgangspunkt = sak.hentGjeldendeMånedsberegningForEnkeltmåned(revurdering.periode.månedenFør())
+                .getOrElse { null },
         ).getOrFail().let {
             it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
             (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.FOR_HØY_INNTEKT)
@@ -219,7 +224,8 @@ internal class RevurderingTest {
         )
         revurdering.beregn(
             eksisterendeUtbetalinger = sak.utbetalinger,
-            utgangspunkt = sak.hentGjeldendeMånedsberegningForEnkeltmåned(revurdering.periode.månedenFør()).getOrElse { null },
+            utgangspunkt = sak.hentGjeldendeMånedsberegningForEnkeltmåned(revurdering.periode.månedenFør())
+                .getOrElse { null },
         ).getOrFail().let {
             it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
             (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)

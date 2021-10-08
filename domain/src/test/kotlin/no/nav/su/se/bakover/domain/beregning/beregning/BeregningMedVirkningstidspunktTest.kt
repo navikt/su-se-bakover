@@ -28,16 +28,17 @@ import no.nav.su.se.bakover.common.periode.november
 import no.nav.su.se.bakover.common.periode.oktober
 import no.nav.su.se.bakover.common.periode.september
 import no.nav.su.se.bakover.domain.beregning.BeregningMedVirkningstidspunkt
+import no.nav.su.se.bakover.domain.beregning.Endring
 import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.endringFra
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.IkkePeriodisertFradrag
-import no.nav.su.se.bakover.domain.beregning.prosentEndringFra
 import org.junit.jupiter.api.Test
 
 internal class BeregningMedVirkningstidspunktTest {
@@ -1744,15 +1745,17 @@ internal class BeregningMedVirkningstidspunktTest {
     }
 
     @Test
-    fun `forskjell i prosent`() {
-        1100 prosentEndringFra 1000 shouldBe 10.0
-        900 prosentEndringFra 1000 shouldBe -10.0
-        20_000 prosentEndringFra 10_000 shouldBe 100.0
-        10_000 prosentEndringFra 20_000 shouldBe -50.0
-        0 prosentEndringFra 100 shouldBe -100.0
-        100 prosentEndringFra 0 shouldBe 100.0
-        100_000 prosentEndringFra 1000 shouldBe 9900
-        0 prosentEndringFra 0 shouldBe 0
+    fun `endring fra`() {
+        1100 endringFra 1000 shouldBe Endring.ØKNING_OVER_10_PROSENT
+        900 endringFra 1000 shouldBe Endring.REDUKSJON_OVER_10_PROSENT
+        20_000 endringFra 10_000 shouldBe Endring.ØKNING_OVER_10_PROSENT
+        10_000 endringFra 20_000 shouldBe Endring.REDUKSJON_OVER_10_PROSENT
+        0 endringFra 100 shouldBe Endring.REDUKSJON_OVER_10_PROSENT
+        100 endringFra 0 shouldBe Endring.ØKNING_OVER_10_PROSENT
+        100_000 endringFra 1000 shouldBe Endring.ØKNING_OVER_10_PROSENT
+        0 endringFra 0 shouldBe Endring.ENDRING_UNDER_10_PROSENT
+        1050 endringFra 1000 shouldBe Endring.ENDRING_UNDER_10_PROSENT
+        1000 endringFra 1050 shouldBe Endring.ENDRING_UNDER_10_PROSENT
     }
 
     private fun List<Månedsberegning>.assertMåneder(expected: Map<Periode, Pair<Int, Double>>) {
