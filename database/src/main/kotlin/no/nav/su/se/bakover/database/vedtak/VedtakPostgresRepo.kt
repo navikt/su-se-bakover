@@ -7,8 +7,8 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
-import no.nav.su.se.bakover.database.beregning.PersistertBeregning
-import no.nav.su.se.bakover.database.beregning.toSnapshot
+import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
+import no.nav.su.se.bakover.database.beregning.serialiserBeregning
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -135,7 +135,7 @@ internal class VedtakPostgresRepo(
         val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }!!
         val attestant = stringOrNull("attestant")?.let { NavIdentBruker.Attestant(it) }!!
         val utbetalingId = uuid30OrNull("utbetalingId")
-        val beregning = stringOrNull("beregning")?.let { objectMapper.readValue<PersistertBeregning>(it) }
+        val beregning = deserialiserBeregning(stringOrNull("beregning"))
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
 
         return when (VedtakType.valueOf(string("vedtaktype"))) {
@@ -277,11 +277,11 @@ internal class VedtakPostgresRepo(
                             is Vedtak.EndringIYtelse.StansAvYtelse ->
                                 null
                             is Vedtak.EndringIYtelse.InnvilgetRevurdering ->
-                                objectMapper.writeValueAsString(vedtak.beregning.toSnapshot())
+                                serialiserBeregning(vedtak.beregning)
                             is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling ->
-                                objectMapper.writeValueAsString(vedtak.beregning.toSnapshot())
+                                serialiserBeregning(vedtak.beregning)
                             is Vedtak.EndringIYtelse.OpphørtRevurdering ->
-                                objectMapper.writeValueAsString(vedtak.beregning.toSnapshot())
+                                serialiserBeregning(vedtak.beregning)
                         },
                         "vedtaktype" to when (vedtak) {
                             is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> VedtakType.GJENOPPTAK_AV_YTELSE
@@ -336,7 +336,7 @@ internal class VedtakPostgresRepo(
                         "tilOgMed" to vedtak.periode.tilOgMed,
                         "saksbehandler" to vedtak.saksbehandler,
                         "attestant" to vedtak.attestant,
-                        "beregning" to beregning?.let { objectMapper.writeValueAsString(it.toSnapshot()) },
+                        "beregning" to beregning?.let { serialiserBeregning(it) },
                         "vedtaktype" to VedtakType.AVSLAG,
                     ),
                     tx,
@@ -382,7 +382,7 @@ internal class VedtakPostgresRepo(
                         "attestant" to vedtak.attestant,
                         "utbetalingid" to null,
                         "simulering" to null,
-                        "beregning" to objectMapper.writeValueAsString(vedtak.beregning.toSnapshot()),
+                        "beregning" to serialiserBeregning(vedtak.beregning),
                         "vedtaktype" to VedtakType.INGEN_ENDRING,
                     ),
                     tx,
