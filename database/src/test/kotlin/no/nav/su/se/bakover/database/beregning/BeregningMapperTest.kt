@@ -212,6 +212,7 @@ internal fun assertMånedsberegningMapping(mapped: Månedsberegning, original: M
     mapped.getFradrag().forEachIndexed { index, fradrag ->
         assertFradragMapping(fradrag, original.getFradrag()[index])
     }
+    mapped.getMerknader() shouldBe original.getMerknader()
 }
 
 internal fun assertBeregningMapping(mapped: Beregning, original: Beregning) {

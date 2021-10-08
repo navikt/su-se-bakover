@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
+import no.nav.su.se.bakover.database.beregning.PersistertMerknad
 import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
 import no.nav.su.se.bakover.database.beregning.TestBeregning
 import no.nav.su.se.bakover.database.beregning.TestMånedsberegning
@@ -46,8 +47,8 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
-import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.toMerknadMånedsberegning
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -114,14 +115,20 @@ internal val persistertMånedsberegning = PersistertMånedsberegning(
     fradrag = listOf(),
     periode = Periode.create(1.januar(2020), 31.desember(2020)),
     fribeløpForEps = 0.0,
-    merknader = listOf(
-        Merknad.EndringGrunnbeløp(
-            gammeltGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj.forDato(1.mai(2019)),
-            nyttGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj.forDato(1.mai(2020)),
+    persisterteMerknader = listOf(
+        PersistertMerknad.EndringGrunnbeløp(
+            gammeltGrunnbeløp = PersistertMerknad.EndringGrunnbeløp.Detalj(
+                dato = 1.mai(2019),
+                grunnbeløp = 19000,
+            ),
+            nyttGrunnbeløp = PersistertMerknad.EndringGrunnbeløp.Detalj(
+                dato = 1.mai(2020),
+                grunnbeløp = 20000,
+            ),
         ),
-        Merknad.ØktYtelse.from(
-            benyttetBeregning = TestMånedsberegning,
-            forkastetBeregning = TestMånedsberegning,
+        PersistertMerknad.ØktYtelse(
+            benyttetBeregning = TestMånedsberegning.toMerknadMånedsberegning().toSnapshot(),
+            forkastetBeregning = TestMånedsberegning.toMerknadMånedsberegning().toSnapshot(),
         ),
     ),
 )
@@ -469,7 +476,8 @@ internal class TestDataHelper(
             epsFnr = null,
         ).beregn(
             eksisterendeUtbetalinger = listOf(vedtak.second),
-            utgangspunkt = listOf(vedtak.first).identifiserGjeldendeMånedsberegningForEnkeltmåned(stønadsperiode.periode.månedenFør()).getOrElse { null },
+            utgangspunkt = listOf(vedtak.first).identifiserGjeldendeMånedsberegningForEnkeltmåned(stønadsperiode.periode.månedenFør())
+                .getOrElse { null },
         ).getOrHandle {
             throw java.lang.IllegalStateException("Her skal vi ha en beregnet revurdering")
         }.also {
@@ -484,7 +492,8 @@ internal class TestDataHelper(
             periode = vedtak.first.periode,
         ).beregn(
             eksisterendeUtbetalinger = listOf(vedtak.second),
-            utgangspunkt = listOf(vedtak.first).identifiserGjeldendeMånedsberegningForEnkeltmåned(stønadsperiode.periode.månedenFør()).getOrElse { null },
+            utgangspunkt = listOf(vedtak.first).identifiserGjeldendeMånedsberegningForEnkeltmåned(stønadsperiode.periode.månedenFør())
+                .getOrElse { null },
         ).getOrFail("skulle gått bra").also {
             revurderingRepo.lagre(it)
         }

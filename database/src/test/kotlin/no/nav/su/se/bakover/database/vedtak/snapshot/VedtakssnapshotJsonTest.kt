@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.PersistertFradrag
+import no.nav.su.se.bakover.database.beregning.PersistertMerknad
 import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
 import no.nav.su.se.bakover.database.fixedLocalDate
 import no.nav.su.se.bakover.database.fixedTidspunkt
@@ -21,7 +22,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
-import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Sats.ORDINÆR
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName.Enslig
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører.BRUKER
@@ -377,13 +377,13 @@ internal class VedtakssnapshotJsonTest {
                         benyttetGrunnbeløp = 66,
                         satsbeløp = 4.1,
                         fribeløpForEps = 0.0,
-                        merknader = listOf(
-                            Merknad.EndringGrunnbeløp(
-                                gammeltGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj(
+                        persisterteMerknader = listOf(
+                            PersistertMerknad.EndringGrunnbeløp(
+                                gammeltGrunnbeløp = PersistertMerknad.EndringGrunnbeløp.Detalj(
                                     dato = 1.mai(2019),
                                     grunnbeløp = 19000,
                                 ),
-                                nyttGrunnbeløp = Merknad.EndringGrunnbeløp.Detalj(
+                                nyttGrunnbeløp = PersistertMerknad.EndringGrunnbeløp.Detalj(
                                     dato = 1.mai(2020),
                                     grunnbeløp = 20000,
                                 ),

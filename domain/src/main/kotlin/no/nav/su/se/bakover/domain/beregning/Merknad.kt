@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.domain.beregning
 
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
@@ -10,18 +8,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import java.time.LocalDate
 
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = JsonTypeInfo.As.PROPERTY,
-    property = "type",
-)
-@JsonSubTypes(
-    JsonSubTypes.Type(value = Merknad.EndringGrunnbeløp::class, name = "EndringGrunnbeløp"),
-    JsonSubTypes.Type(value = Merknad.ØktYtelse::class, name = "ØktYtelse"),
-    JsonSubTypes.Type(value = Merknad.RedusertYtelse::class, name = "RedusertYtelse"),
-    JsonSubTypes.Type(value = Merknad.EndringUnderTiProsent::class, name = "EndringUnderTiProsent"),
-    JsonSubTypes.Type(value = Merknad.NyYtelse::class, name = "NyYtelse"),
-)
 sealed class Merknad {
 
     data class EndringGrunnbeløp(
@@ -106,7 +92,7 @@ sealed class Merknad {
         val periode: Periode,
         val fradragstype: Fradragstype,
         val månedsbeløp: Double,
-        val utenlandskInntekt: UtenlandskInntekt?, // TODO can we pls do something about this one?
+        val utenlandskInntekt: UtenlandskInntekt?,
         val tilhører: FradragTilhører,
     )
 }

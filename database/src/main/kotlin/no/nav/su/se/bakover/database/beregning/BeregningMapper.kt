@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.beregning
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
@@ -63,7 +64,8 @@ internal data class PersistertMånedsberegning(
     private val fradrag: List<PersistertFradrag>,
     override val periode: Periode,
     private val fribeløpForEps: Double,
-    private val merknader: List<Merknad> = emptyList(),
+    @JsonProperty("merknader")
+    val persisterteMerknader: List<PersistertMerknad> = emptyList(),
 ) : Månedsberegning {
     override fun getSumYtelse(): Int = sumYtelse
     override fun getSumFradrag(): Double = sumFradrag
@@ -72,7 +74,8 @@ internal data class PersistertMånedsberegning(
     override fun getSatsbeløp(): Double = satsbeløp
     override fun getFradrag(): List<Fradrag> = fradrag
     override fun getFribeløpForEps(): Double = fribeløpForEps
-    override fun getMerknader(): List<Merknad> = merknader
+    @JsonIgnore
+    override fun getMerknader(): List<Merknad> = persisterteMerknader.toDomain()
 
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
 
@@ -123,7 +126,7 @@ internal fun Månedsberegning.toSnapshot() = PersistertMånedsberegning(
     fradrag = getFradrag().map { it.toSnapshot() },
     periode = periode,
     fribeløpForEps = getFribeløpForEps(),
-    merknader = getMerknader(),
+    persisterteMerknader = getMerknader().toSnapshot(),
 )
 
 internal fun Fradrag.toSnapshot() = PersistertFradrag(
