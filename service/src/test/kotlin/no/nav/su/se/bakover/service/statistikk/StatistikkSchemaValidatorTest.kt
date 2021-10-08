@@ -159,4 +159,33 @@ internal class StatistikkSchemaValidatorTest {
     fun `gyldig stønad validerer OK`() {
         StatistikkSchemaValidator.validerStønad(objectMapper.writeValueAsString(gyldigStønad)) shouldBe true
     }
+
+    @Test
+    fun `behandling med ugyldig verdier i behandlingYtelseDetaljer-listen feiler`() {
+        StatistikkSchemaValidator.validerBehandling(
+            """
+            {
+            "funksjonellTid" : "2020-12-18T07:00:28.673461Z",
+            "tekniskTid" : "2020-12-18T07:00:28.673461Z",
+            "mottattDato" : "2020-12-18",
+            "registrertDato" : "2020-12-18",
+            "sakId" : "${UUID.randomUUID()}",
+            "saksnummer" : "2021",
+            "behandlingStatus" : "IVERKSATT_AVSLAG",
+            "behandlingType" : "SOKNAD",
+            "behandlingTypeBeskrivelse" : "Beskrivelse av søknaden",
+            "behandlingYtelseDetaljer" : [55, 37, 18, 46],
+            "avsluttet" : true,
+            "utenlandstilsnitt": "NASJONAL",
+            "behandlendeEnhetKode": "4815",
+            "behandlendeEnhetType": "NORG",
+            "ansvarligEnhetKode": "4815",
+            "ansvarligEnhetType": "NORG",
+            "totrinnsbehandling":  true,
+            "avsender": "su-se-bakover",
+            "versjon": 12345678
+            }
+            """.trimIndent()
+        ) shouldBe false
+    }
 }
