@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.Either
 import arrow.core.Nel
+import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -174,8 +175,33 @@ sealed class Vilkår {
                     ) {
                         return UgyldigUførevilkår.OverlappendeVurderingsperioder.left()
                     }
+
                     return Vurdert(vurderingsperioder).right()
                 }
+
+                fun Nel<Vurderingsperiode.Uføre>.slåSammenVurderingsperiode(): Nel<Vurderingsperiode.Uføre> {
+                    val slåttSammen = this.sortedBy { it.periode.fraOgMed }
+                        .fold(mutableListOf<MutableList<Vurderingsperiode.Uføre>>()) { acc, uføre ->
+                            if (acc.isEmpty()) {
+                                acc.add(mutableListOf(uføre))
+                            } else if (acc.last().sisteUføreperiodeErLikOgTilstøtende(uføre)) {
+                                acc.last().add(uføre)
+                            } else {
+                                acc.add(mutableListOf(uføre))
+                            }
+                            acc
+                        }.map {
+                            val periode: Periode = Periode.create(
+                                fraOgMed = it.minOf { it.periode.fraOgMed },
+                                tilOgMed = it.maxOf { it.periode.tilOgMed },
+                            )
+                            it.first().copy(CopyArgs.Tidslinje.NyPeriode(periode = periode))
+                        }
+                    return NonEmptyList.fromListUnsafe(slåttSammen)
+                }
+
+                private fun List<Vurderingsperiode.Uføre>.sisteUføreperiodeErLikOgTilstøtende(other: Vurderingsperiode.Uføre) =
+                    this.last().let { it.tilstøterOgErLik(other) }
             }
 
             sealed class UgyldigUførevilkår {
@@ -280,6 +306,30 @@ sealed class Vilkår {
                     }
                     return Vurdert(vurderingsperioder).right()
                 }
+
+                fun Nel<Vurderingsperiode.Formue>.slåSammenVurderingsperiode(): Nel<Vurderingsperiode.Formue> {
+                    val slåttSammen = this.sortedBy { it.periode.fraOgMed }
+                        .fold(mutableListOf<MutableList<Vurderingsperiode.Formue>>()) { acc, formue ->
+                            if (acc.isEmpty()) {
+                                acc.add(mutableListOf(formue))
+                            } else if (acc.last().sisteFormueperiodeErLikOgTilstøtende(formue)) {
+                                acc.last().add(formue)
+                            } else {
+                                acc.add(mutableListOf(formue))
+                            }
+                            acc
+                        }.map {
+                            val periode: Periode = Periode.create(
+                                fraOgMed = it.minOf { it.periode.fraOgMed },
+                                tilOgMed = it.maxOf { it.periode.tilOgMed },
+                            )
+                            it.first().copy(CopyArgs.Tidslinje.NyPeriode(periode = periode))
+                        }
+                    return NonEmptyList.fromListUnsafe(slåttSammen)
+                }
+
+                private fun List<Vurderingsperiode.Formue>.sisteFormueperiodeErLikOgTilstøtende(other: Vurderingsperiode.Formue) =
+                    this.last().let { it.tilstøterOgErLik(other) }
             }
 
             sealed class UgyldigFormuevilkår {
@@ -327,6 +377,14 @@ sealed class Vurderingsperiode {
                     grunnlag = grunnlag?.copy(args),
                 )
             }
+        }
+
+        /**
+         * Sjekker at periodene tilstøter, og om uføregrad og forventet inntekt er lik
+         */
+        fun tilstøterOgErLik(other: Uføre): Boolean {
+            return this.resultat == other.resultat &&
+                (this.grunnlag == null && other.grunnlag == null || this.grunnlag?.tilstøterOgErLik(other.grunnlag) == true)
         }
 
         companion object {
@@ -401,6 +459,12 @@ sealed class Vurderingsperiode {
                     grunnlag = grunnlag.copy(args),
                 )
             }
+        }
+
+        fun tilstøterOgErLik(other: Formue): Boolean {
+            return this.resultat == other.resultat &&
+                this.periode tilstøter other.periode &&
+                this.grunnlag.tilstøterOgErLik(other.grunnlag)
         }
 
         companion object {

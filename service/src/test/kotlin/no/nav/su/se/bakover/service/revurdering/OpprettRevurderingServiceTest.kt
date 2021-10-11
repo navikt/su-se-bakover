@@ -908,6 +908,12 @@ internal class OpprettRevurderingServiceTest {
                         periode = revurderingsperiode,
                         begrunnelse = null,
                     ),
+                    Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = revurderingsperiode,
+                        begrunnelse = null,
+                    ),
                 ),
             )
             on { vilkårsvurderinger } doReturn Vilkårsvurderinger(

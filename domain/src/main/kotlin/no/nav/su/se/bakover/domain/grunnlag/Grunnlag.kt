@@ -49,6 +49,16 @@ sealed class Grunnlag {
             }
         }
 
+        /**
+         * Sjekker at periodene tilstøter, og om uføregrad og forventet inntekt er lik
+         */
+        fun tilstøterOgErLik(other: Uføregrunnlag?): Boolean {
+            if (other == null) {
+                return false
+            }
+            return this.periode tilstøter other.periode && this.uføregrad == other.uføregrad && this.forventetInntekt == other.forventetInntekt
+        }
+
         companion object {
             fun List<Uføregrunnlag>.slåSammenPeriodeOgUføregrad(): List<Pair<Periode, Uføregrad>> {
                 return this.sortedBy { it.periode.fraOgMed }
@@ -72,9 +82,7 @@ sealed class Grunnlag {
             }
 
             private fun List<Uføregrunnlag>.sisteUføregrunnlagErLikOgTilstøtende(other: Uføregrunnlag) =
-                this.last().let {
-                    it.periode tilstøter other.periode && it.uføregrad == other.uføregrad
-                }
+                this.last().let { it.tilstøterOgErLik(other) }
         }
     }
 
@@ -98,6 +106,14 @@ sealed class Grunnlag {
                     ),
                 )
             }
+        }
+
+        fun erLikOgTilstøtende(other: Fradragsgrunnlag): Boolean {
+            return this.periode tilstøter other.periode &&
+                this.fradrag.fradragstype == other.fradragstype &&
+                this.fradrag.månedsbeløp == other.månedsbeløp &&
+                this.fradrag.utenlandskInntekt == other.utenlandskInntekt &&
+                this.fradrag.tilhører == other.tilhører
         }
 
         override fun copy(args: CopyArgs.Snitt): Fradragsgrunnlag? {
@@ -149,6 +165,34 @@ sealed class Grunnlag {
                     )
             }
 
+            fun List<Fradragsgrunnlag>.slåSammenPeriodeOgFradrag(): List<Fradragsgrunnlag> {
+                return this.sortedBy { it.periode.fraOgMed }
+                    .fold(mutableListOf<MutableList<Fradragsgrunnlag>>()) { acc, fradragsgrunnlag ->
+                        if (acc.isEmpty()) {
+                            acc.add(mutableListOf(fradragsgrunnlag))
+                        } else if (acc.last().sisteFradragsgrunnlagErLikOgTilstøtende(fradragsgrunnlag)) {
+                            acc.last().add(fradragsgrunnlag)
+                        } else {
+                            acc.add(mutableListOf(fradragsgrunnlag))
+                        }
+                        acc
+                    }.map {
+                        val periode: Periode = Periode.create(
+                            fraOgMed = it.minOf { it.periode.fraOgMed },
+                            tilOgMed = it.maxOf { it.periode.tilOgMed },
+                        )
+                        tryCreate(
+                            fradrag = FradragFactory.ny(
+                                type = it.first().fradragstype,
+                                månedsbeløp = it.first().månedsbeløp,
+                                periode = periode,
+                                utenlandskInntekt = it.first().utenlandskInntekt,
+                                tilhører = it.first().tilhører,
+                            ),
+                        ).getOrHandle { throw IllegalStateException(it.toString()) }
+                    }
+            }
+
             /**
              * inntil fradragsgrunnlag har sine egne fradragstyper så må vi sjekke at disse ikke er med
              */
@@ -158,6 +202,9 @@ sealed class Grunnlag {
                     Fradragstype.BeregnetFradragEPS,
                     Fradragstype.UnderMinstenivå,
                 ).contains(fradrag.fradragstype)
+
+            private fun List<Fradragsgrunnlag>.sisteFradragsgrunnlagErLikOgTilstøtende(other: Fradragsgrunnlag) =
+                this.last().let { it.erLikOgTilstøtende(other) }
         }
 
         sealed class UgyldigFradragsgrunnlag {
@@ -189,6 +236,55 @@ sealed class Grunnlag {
             fun List<Bosituasjon>.oppdaterBosituasjonsperiode(oppdatertPeriode: Periode): List<Bosituasjon> {
                 return this.map { it.oppdaterBosituasjonsperiode(oppdatertPeriode) }
             }
+
+            fun List<Bosituasjon>.slåSammenPeriodeOgBosituasjon(): List<Bosituasjon> {
+                return this.sortedBy { it.periode.fraOgMed }
+                    .fold(mutableListOf<MutableList<Bosituasjon>>()) { acc, bosituasjon ->
+                        if (acc.isEmpty()) {
+                            acc.add(mutableListOf(bosituasjon))
+                        } else if (acc.last().sisteBosituasjonsgrunnlagErLikOgTilstøtende(bosituasjon)) {
+                            acc.last().add(bosituasjon)
+                        } else {
+                            acc.add(mutableListOf(bosituasjon))
+                        }
+                        acc
+                    }.map {
+                        val periode: Periode = Periode.create(
+                            fraOgMed = it.minOf { it.periode.fraOgMed },
+                            tilOgMed = it.maxOf { it.periode.tilOgMed },
+                        )
+
+                        when (val bosituasjon = it.first()) {
+                            is Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> bosituasjon.copy(periode = periode)
+                            is Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> bosituasjon.copy(periode = periode)
+                            is Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> bosituasjon.copy(periode = periode)
+                            is Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> bosituasjon.copy(periode = periode)
+                            is Fullstendig.Enslig -> bosituasjon.copy(periode = periode)
+                            is Ufullstendig -> throw java.lang.IllegalStateException("Kan ikke ha ufullstendige bosituasjoner")
+                        }
+                    }
+            }
+
+            private fun List<Bosituasjon>.sisteBosituasjonsgrunnlagErLikOgTilstøtende(other: Bosituasjon) =
+                this.last().let {
+                    it.periode tilstøter other.periode && when (it) {
+                        is Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> other is Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen
+                        is Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> {
+                            other is Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning &&
+                                it.fnr == other.fnr
+                        }
+                        is Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> {
+                            other is Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre &&
+                                it.fnr == other.fnr
+                        }
+                        is Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> {
+                            other is Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning &&
+                                it.fnr == other.fnr
+                        }
+                        is Fullstendig.Enslig -> other is Fullstendig.Enslig
+                        is Ufullstendig -> throw java.lang.IllegalStateException("Kan ikke ha ufullstendige bosituasjoner")
+                    }
+                }
         }
 
         sealed class Fullstendig : Bosituasjon(), Copyable<CopyArgs.Snitt, Fullstendig?> {

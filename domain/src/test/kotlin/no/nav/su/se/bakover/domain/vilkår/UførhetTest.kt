@@ -4,10 +4,16 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.fixedTidspunkt
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.vilkår.Vilkår.Uførhet.Vurdert.Companion.slåSammenVurderingsperiode
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 internal class UførhetTest {
     @Test
@@ -30,5 +36,111 @@ internal class UførhetTest {
                 ),
             ),
         ) shouldBe Vilkår.Uførhet.Vurdert.UgyldigUførevilkår.OverlappendeVurderingsperioder.left()
+    }
+
+    @Test
+    fun `slår sammen tilstøtende og like vurderingsperioder`() {
+        val v1 = Vurderingsperiode.Uføre.create(
+            opprettet = fixedTidspunkt,
+            resultat = Resultat.Innvilget,
+            grunnlag = null,
+            periode = Periode.create(1.januar(2021), 31.januar(2021)),
+            begrunnelse = null,
+        )
+        val v2 = v1.copy(
+            periode = Periode.create(1.februar(2021), 28.februar(2021)),
+        )
+        val v3 = Vurderingsperiode.Uføre.create(
+            opprettet = fixedTidspunkt,
+            resultat = Resultat.Avslag,
+            grunnlag = null,
+            periode = Periode.create(1.mars(2021), 31.mars(2021)),
+            begrunnelse = null,
+        )
+        val actual = nonEmptyListOf(v1, v2, v3).slåSammenVurderingsperiode()
+        actual.size shouldBe 2
+        actual.first() shouldBe Vurderingsperiode.Uføre.create(
+            id = actual.first().id,
+            opprettet = fixedTidspunkt,
+            resultat = Resultat.Innvilget,
+            grunnlag = null,
+            periode = Periode.create(1.januar(2021), 28.februar(2021)),
+            begrunnelse = null,
+        )
+        actual.last() shouldBe Vurderingsperiode.Uføre.create(
+            id = actual.last().id,
+            opprettet = fixedTidspunkt,
+            resultat = Resultat.Avslag,
+            grunnlag = null,
+            periode = Periode.create(1.mars(2021), 31.mars(2021)),
+            begrunnelse = null,
+        )
+    }
+
+    @Test
+    fun `2 uføre-perioder som tilstøter og er lik`() {
+        val v1 = Vurderingsperiode.Uføre.create(
+            opprettet = fixedTidspunkt,
+            resultat = Resultat.Innvilget,
+            grunnlag = null,
+            periode = Periode.create(1.januar(2021), 31.januar(2021)),
+            begrunnelse = null,
+        )
+        val v2 = Vurderingsperiode.Uføre.create(
+            opprettet = fixedTidspunkt,
+            resultat = Resultat.Innvilget,
+            grunnlag = null,
+            periode = Periode.create(1.februar(2021), 28.februar(2021)),
+            begrunnelse = null,
+        )
+
+        v1.tilstøterOgErLik(v2)
+    }
+
+    @Test
+    fun `2 uføre-perioder som ikke tilstøter, men er lik`() {
+        val v1 = Vurderingsperiode.Uføre.create(
+            opprettet = fixedTidspunkt,
+            resultat = Resultat.Innvilget,
+            grunnlag = null,
+            periode = Periode.create(1.januar(2021), 31.januar(2021)),
+            begrunnelse = null,
+        )
+        val v2 = Vurderingsperiode.Uføre.create(
+            opprettet = fixedTidspunkt,
+            resultat = Resultat.Innvilget,
+            grunnlag = null,
+            periode = Periode.create(1.mars(2021), 31.mars(2021)),
+            begrunnelse = null,
+        )
+
+        v1.tilstøterOgErLik(v2) shouldBe true
+    }
+
+    @Test
+    fun `2 uføre-perioder som tilstøter, men grunnlag er ulik`() {
+        val v1 = Vurderingsperiode.Uføre.create(
+            opprettet = fixedTidspunkt,
+            resultat = Resultat.Innvilget,
+            grunnlag = null,
+            periode = Periode.create(1.januar(2021), 31.januar(2021)),
+            begrunnelse = null,
+        )
+        val v2 = Vurderingsperiode.Uføre.create(
+            opprettet = fixedTidspunkt,
+            resultat = Resultat.Innvilget,
+            grunnlag = Grunnlag.Uføregrunnlag(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = Periode.create(1.februar(2021), 28.februar(2021)),
+                uføregrad = Uføregrad.parse(1),
+                forventetInntekt = 0
+
+            ),
+            periode = Periode.create(1.februar(2021), 28.februar(2021)),
+            begrunnelse = null,
+        )
+
+        v1.tilstøterOgErLik(v2) shouldBe false
     }
 }
