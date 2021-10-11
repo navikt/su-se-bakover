@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -172,7 +173,7 @@ class BehandlingStatistikkMapper(
     private fun behandlingYtelseDetaljer(
         behandling: Behandling
     ): List<Statistikk.BehandlingYtelseDetaljer> {
-        return behandling.grunnlagsdata.bosituasjon.map {
+        return behandling.grunnlagsdata.bosituasjon.filterIsInstance<Grunnlag.Bosituasjon.Fullstendig>().map {
             Statistikk.BehandlingYtelseDetaljer(satsgrunn = it.stønadsklassifisering())
         }
     }
