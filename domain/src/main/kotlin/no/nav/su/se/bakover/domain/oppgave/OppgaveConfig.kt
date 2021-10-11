@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Oppgavetype
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadstype
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -33,7 +32,6 @@ sealed class OppgaveConfig {
         override val aktørId: AktørId,
         override val tilordnetRessurs: NavIdentBruker? = null,
         override val clock: Clock = Clock.systemUTC(),
-        val søknadstype: Søknadstype,
     ) : OppgaveConfig() {
         override val saksreferanse = søknadId.toString()
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
@@ -48,7 +46,6 @@ sealed class OppgaveConfig {
         override val aktørId: AktørId,
         override val tilordnetRessurs: NavIdentBruker? = null,
         override val clock: Clock = Clock.systemUTC(),
-        val søknadstype: Søknadstype,
     ) : OppgaveConfig() {
         override val saksreferanse = søknadId.toString()
         override val journalpostId: JournalpostId? = null

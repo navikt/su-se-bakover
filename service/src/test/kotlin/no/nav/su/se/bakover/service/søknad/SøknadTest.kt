@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadstype
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.fixedTidspunkt
@@ -468,7 +467,6 @@ class SøknadTest {
                                 journalpostId = journalpostId,
                                 søknadId = UUID.randomUUID(), // ignored
                                 aktørId = person.ident.aktørId,
-                                søknadstype = Søknadstype.NY_PERIODE,
                             ),
                             OppgaveConfig.Søknad::søknadId,
                             OppgaveConfig.Søknad::saksreferanse,
@@ -586,8 +584,7 @@ class SøknadTest {
                         OppgaveConfig.Søknad(
                             journalpostId = journalpostId,
                             søknadId = UUID.randomUUID(), // ignored
-                            aktørId = person.ident.aktørId,
-                            søknadstype = Søknadstype.FØRSTEGANGSSØKNAD
+                            aktørId = person.ident.aktørId
                         ),
                         OppgaveConfig.Søknad::søknadId,
                         OppgaveConfig.Søknad::saksreferanse,

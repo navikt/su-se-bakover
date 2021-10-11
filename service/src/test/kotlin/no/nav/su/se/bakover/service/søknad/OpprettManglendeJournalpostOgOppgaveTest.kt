@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadstype
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -300,8 +299,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                     it shouldBe OppgaveConfig.Søknad(
                         journalpostId = journalførtSøknad.journalpostId,
                         søknadId = journalførtSøknad.id,
-                        aktørId = person.ident.aktørId,
-                        søknadstype = Søknadstype.FØRSTEGANGSSØKNAD
+                        aktørId = person.ident.aktørId
                     )
                 },
             )
@@ -399,8 +397,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                     it shouldBe OppgaveConfig.Søknad(
                         journalpostId = journalførtSøknad.journalpostId,
                         søknadId = journalførtSøknad.id,
-                        aktørId = person.ident.aktørId,
-                        søknadstype = Søknadstype.FØRSTEGANGSSØKNAD
+                        aktørId = person.ident.aktørId
                     )
                 },
             )

@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadstype
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
@@ -39,7 +38,6 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
-import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
@@ -141,14 +139,11 @@ class SøknadsbehandlingServiceAttesteringTest {
             verify(søknadsbehandlingRepoMock).hent(simulertBehandling.id)
             verify(personServiceMock).hentAktørId(fnr)
             verify(søknadsbehandlingRepoMock).hentEventuellTidligereAttestering(simulertBehandling.id)
-            verify(søknadsbehandlingRepoMock).defaultSessionContext()
-            verify(søknadsbehandlingRepoMock).hentForSak(argThat { it shouldBe sakId }, anyOrNull())
             verify(oppgaveServiceMock).opprettOppgave(
                 config = OppgaveConfig.AttesterSøknadsbehandling(
                     søknadId = søknadId,
                     aktørId = aktørId,
                     tilordnetRessurs = null,
-                    søknadstype = Søknadstype.FØRSTEGANGSSØKNAD,
                 ),
             )
             verify(søknadsbehandlingRepoMock).lagre(expected)
@@ -238,14 +233,11 @@ class SøknadsbehandlingServiceAttesteringTest {
         verify(søknadsbehandlingRepoMock).hent(simulertBehandling.id)
         verify(personServiceMock).hentAktørId(simulertBehandling.fnr)
         verify(søknadsbehandlingRepoMock).hentEventuellTidligereAttestering(simulertBehandling.id)
-        verify(søknadsbehandlingRepoMock).defaultSessionContext()
-        verify(søknadsbehandlingRepoMock).hentForSak(argThat { it shouldBe sakId }, anyOrNull())
         verify(oppgaveServiceMock).opprettOppgave(
             OppgaveConfig.AttesterSøknadsbehandling(
                 søknadId = simulertBehandling.søknad.id,
                 aktørId = aktørId,
                 tilordnetRessurs = null,
-                søknadstype = Søknadstype.FØRSTEGANGSSØKNAD,
             ),
         )
 
@@ -304,14 +296,11 @@ class SøknadsbehandlingServiceAttesteringTest {
             verify(søknadsbehandlingRepoMock).hent(simulertBehandling.id)
             verify(personServiceMock).hentAktørId(fnr)
             verify(søknadsbehandlingRepoMock).hentEventuellTidligereAttestering(simulertBehandling.id)
-            verify(søknadsbehandlingRepoMock).defaultSessionContext()
-            verify(søknadsbehandlingRepoMock).hentForSak(argThat { it shouldBe sakId }, anyOrNull())
             verify(oppgaveServiceMock).opprettOppgave(
                 config = OppgaveConfig.AttesterSøknadsbehandling(
                     søknadId = søknadId,
                     aktørId = aktørId,
                     tilordnetRessurs = null,
-                    søknadstype = Søknadstype.FØRSTEGANGSSØKNAD,
                 ),
             )
             verify(søknadsbehandlingRepoMock).lagre(expected)

@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
@@ -139,7 +140,6 @@ internal class SøknadServiceImpl(
                 return@map KunneIkkeOppretteOppgave(sak.id, søknad.id, søknad.journalpostId, "Fant ikke person").left()
             }
             opprettOppgave(
-                sak = sak,
                 søknad = søknad,
                 person = person,
                 opprettOppgave = oppgaveService::opprettOppgaveMedSystembruker,
@@ -154,7 +154,7 @@ internal class SøknadServiceImpl(
     ) {
         // TODO jah: Burde kanskje innføre en multi-respons-type som responderer med de stegene som er utført og de som ikke er utført.
         opprettJournalpost(sak.saksnummer, søknad, person).map { journalførtSøknad ->
-            opprettOppgave(sak, journalførtSøknad, person)
+            opprettOppgave(journalførtSøknad, person)
         }
     }
 
@@ -197,10 +197,9 @@ internal class SøknadServiceImpl(
     }
 
     private fun opprettOppgave(
-        sak: Sak,
         søknad: Søknad.Journalført.UtenOppgave,
         person: Person,
-        opprettOppgave: (oppgaveConfig: OppgaveConfig.Søknad) -> Either<no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> = oppgaveService::opprettOppgave,
+        opprettOppgave: (oppgaveConfig: OppgaveConfig.Søknad) -> Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> = oppgaveService::opprettOppgave,
     ): Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave> {
 
         return opprettOppgave(
@@ -208,9 +207,6 @@ internal class SøknadServiceImpl(
                 journalpostId = søknad.journalpostId,
                 søknadId = søknad.id,
                 aktørId = person.ident.aktørId,
-                søknadstype = sak.hentSøknadstypeUtenBehandling().getOrHandle {
-                    return KunneIkkeOppretteOppgave(søknad.sakId, søknad.id, søknad.journalpostId, it.toString()).left()
-                },
             ),
         ).mapLeft {
             log.error("Ny søknad: Kunne ikke opprette oppgave. Originalfeil: $it")

@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadstype
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -125,7 +124,6 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 søknadId,
                 AktørId(aktørId),
                 clock = fixedEpochClock,
-                søknadstype = Søknadstype.NY_PERIODE,
             ),
         ) shouldBe OppgaveId("111").right()
 
@@ -141,7 +139,6 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 søknadId,
                 AktørId(aktørId),
                 clock = fixedEpochClock,
-                søknadstype = Søknadstype.NY_PERIODE,
             ),
         ) shouldBe OppgaveId("111").right()
 
@@ -223,7 +220,6 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 aktørId = AktørId(aktørId),
                 tilordnetRessurs = saksbehandler,
                 clock = fixedEpochClock,
-                søknadstype = Søknadstype.FØRSTEGANGSSØKNAD,
             ),
         ) shouldBe OppgaveId("111").right()
     }
@@ -298,7 +294,6 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 søknadId = søknadId,
                 aktørId = AktørId(aktørId),
                 clock = fixedEpochClock,
-                søknadstype = Søknadstype.FØRSTEGANGSSØKNAD,
             ),
         ) shouldBe OppgaveId("111").right()
     }
@@ -325,7 +320,6 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 søknadId,
                 AktørId(aktørId),
                 clock = fixedEpochClock,
-                søknadstype = Søknadstype.FØRSTEGANGSSØKNAD,
             ),
         ) shouldBe OppgaveFeil.KunneIkkeOppretteOppgave.left()
     }

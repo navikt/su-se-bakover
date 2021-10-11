@@ -34,7 +34,6 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadstype
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
@@ -109,7 +108,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
         søknadId = søknadId,
         aktørId = aktørId,
         tilordnetRessurs = saksbehandler,
-        søknadstype = Søknadstype.FØRSTEGANGSSØKNAD,
     )
 
     @Test
@@ -311,8 +309,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
         inOrder(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-            verify(søknadsbehandlingRepoMock).defaultSessionContext()
-            verify(søknadsbehandlingRepoMock).hentForSak(argThat { it shouldBe sakId }, anyOrNull())
             verify(oppgaveServiceMock).opprettOppgave(argThat { it shouldBe oppgaveConfig })
         }
 
@@ -384,8 +380,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
         ) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-            verify(søknadsbehandlingRepoMock).defaultSessionContext()
-            verify(søknadsbehandlingRepoMock).hentForSak(argThat { it shouldBe sakId }, anyOrNull())
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe oppgaveConfig
@@ -471,8 +465,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
         ) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-            verify(søknadsbehandlingRepoMock).defaultSessionContext()
-            verify(søknadsbehandlingRepoMock).hentForSak(argThat { it shouldBe sakId }, anyOrNull())
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe oppgaveConfig
