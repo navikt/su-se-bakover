@@ -78,7 +78,7 @@ internal class UførhetTest {
         val v1 = lagUføreVurderingsperiode(periode = Periode.create(1.januar(2021), 31.januar(2021)))
         val v2 = lagUføreVurderingsperiode(periode = Periode.create(1.mars(2021), 31.mars(2021)))
 
-        v1.tilstøterOgErLik(v2) shouldBe true
+        v1.tilstøterOgErLik(v2) shouldBe false
     }
 
     @Test

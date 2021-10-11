@@ -8,6 +8,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Grunnbeløp.Companion.`0,5G`
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -191,10 +192,7 @@ sealed class Vilkår {
                             }
                             acc
                         }.map {
-                            val periode: Periode = Periode.create(
-                                fraOgMed = it.minOf { it.periode.fraOgMed },
-                                tilOgMed = it.maxOf { it.periode.tilOgMed },
-                            )
+                            val periode = it.map { it.periode }.minAndMaxOf()
                             it.first().copy(CopyArgs.Tidslinje.NyPeriode(periode = periode))
                         }
                     return NonEmptyList.fromListUnsafe(slåttSammen)
@@ -319,10 +317,7 @@ sealed class Vilkår {
                             }
                             acc
                         }.map {
-                            val periode: Periode = Periode.create(
-                                fraOgMed = it.minOf { it.periode.fraOgMed },
-                                tilOgMed = it.maxOf { it.periode.tilOgMed },
-                            )
+                            val periode = it.map { it.periode }.minAndMaxOf()
                             it.first().copy(CopyArgs.Tidslinje.NyPeriode(periode = periode))
                         }
                     return NonEmptyList.fromListUnsafe(slåttSammen)
@@ -346,6 +341,17 @@ sealed class Vurderingsperiode {
     abstract val resultat: Resultat
     abstract val grunnlag: Grunnlag?
     abstract val periode: Periode
+
+    fun tilstøter(other: Vurderingsperiode): Boolean {
+        return this.periode.tilstøter(other.periode)
+    }
+
+    /**
+     * unnlater ID, og opprettet.
+     */
+    abstract fun erLik(other: Vurderingsperiode): Boolean
+
+    fun tilstøterOgErLik(other: Vurderingsperiode) = this.tilstøter(other) && this.erLik(other)
 
     data class Uføre private constructor(
         override val id: UUID = UUID.randomUUID(),
@@ -380,11 +386,21 @@ sealed class Vurderingsperiode {
         }
 
         /**
-         * Sjekker at periodene tilstøter, og om uføregrad og forventet inntekt er lik
+         * Sjekker at uføregrad og forventet inntekt er lik
          */
-        fun tilstøterOgErLik(other: Uføre): Boolean {
-            return this.resultat == other.resultat &&
-                (this.grunnlag == null && other.grunnlag == null || this.grunnlag?.tilstøterOgErLik(other.grunnlag) == true)
+        override fun erLik(other: Vurderingsperiode): Boolean {
+            if (other !is Uføre) {
+                return false
+            }
+            if ((this.grunnlag == null && other.grunnlag != null) || (this.grunnlag != null && other.grunnlag == null)) {
+                return false
+            }
+
+            return this.resultat == other.resultat && (
+                this.grunnlag == null && other.grunnlag == null || this.grunnlag!!.tilstøterOgErLik(
+                    other.grunnlag!!,
+                )
+                )
         }
 
         companion object {
@@ -461,9 +477,11 @@ sealed class Vurderingsperiode {
             }
         }
 
-        fun tilstøterOgErLik(other: Formue): Boolean {
+        override fun erLik(other: Vurderingsperiode): Boolean {
+            if (other !is Formue) {
+                return false
+            }
             return this.resultat == other.resultat &&
-                this.periode tilstøter other.periode &&
                 this.grunnlag.tilstøterOgErLik(other.grunnlag)
         }
 

@@ -127,3 +127,10 @@ data class Periode private constructor(
 
     override fun compareTo(other: Periode) = fraOgMed.compareTo(other.fraOgMed)
 }
+
+fun List<Periode>.minAndMaxOf(): Periode {
+    return Periode.create(
+        fraOgMed = this.minOf { it.fraOgMed },
+        tilOgMed = this.maxOf { it.tilOgMed },
+    )
+}

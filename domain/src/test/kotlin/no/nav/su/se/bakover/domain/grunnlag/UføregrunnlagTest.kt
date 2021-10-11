@@ -64,6 +64,11 @@ internal class UføregrunnlagTest {
     }
 
     @Test
+    fun `tom uføregrunnlag liste gir ut en tom liste tilbake`() {
+        emptyList<Grunnlag.Uføregrunnlag>().slåSammenPeriodeOgUføregrad() shouldBe emptyList()
+    }
+
+    @Test
     fun `liste med 1 uføregrunnlag returnerer sin periode og uføregrad`() {
         val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
         val uføregrad = Uføregrad.parse(20)

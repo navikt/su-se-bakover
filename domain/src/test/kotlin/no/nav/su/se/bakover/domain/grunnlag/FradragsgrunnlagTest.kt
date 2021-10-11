@@ -158,7 +158,7 @@ internal class FradragsgrunnlagTest {
         val f1 = lagFradragsgrunnlag(periode = Periode.create(1.januar(2021), 31.januar(2021)))
         val f2 = lagFradragsgrunnlag(periode = Periode.create(1.februar(2021), 28.februar(2021)))
 
-        f1.erLikOgTilstøtende(f2) shouldBe true
+        f1.tilstøterOgErLik(f2) shouldBe true
     }
 
     @Test
@@ -166,7 +166,7 @@ internal class FradragsgrunnlagTest {
         val f1 = lagFradragsgrunnlag(periode = Periode.create(1.januar(2021), 31.januar(2021)))
         val f2 = lagFradragsgrunnlag(periode = Periode.create(1.mars(2021), 31.mars(2021)))
 
-        f1.erLikOgTilstøtende(f2) shouldBe false
+        f1.tilstøterOgErLik(f2) shouldBe false
     }
 
     @Test
@@ -175,7 +175,7 @@ internal class FradragsgrunnlagTest {
         val f2 = lagFradragsgrunnlag(
             periode = Periode.create(1.februar(2021), 28.februar(2021)), type = Fradragstype.Sosialstønad
         )
-        f1.erLikOgTilstøtende(f2) shouldBe false
+        f1.tilstøterOgErLik(f2) shouldBe false
     }
 
     @Test
@@ -183,7 +183,7 @@ internal class FradragsgrunnlagTest {
         val f1 = lagFradragsgrunnlag(periode = Periode.create(1.januar(2021), 31.januar(2021)))
         val f2 = lagFradragsgrunnlag(periode = Periode.create(1.februar(2021), 28.februar(2021)), månedsbeløp = 300.0)
 
-        f1.erLikOgTilstøtende(f2) shouldBe false
+        f1.tilstøterOgErLik(f2) shouldBe false
     }
 
     @Test
@@ -198,7 +198,7 @@ internal class FradragsgrunnlagTest {
             ),
         )
 
-        f1.erLikOgTilstøtende(f2) shouldBe false
+        f1.tilstøterOgErLik(f2) shouldBe false
     }
 
     @Test
@@ -209,7 +209,7 @@ internal class FradragsgrunnlagTest {
             tilhører = FradragTilhører.EPS,
         )
 
-        f1.erLikOgTilstøtende(f2) shouldBe false
+        f1.tilstøterOgErLik(f2) shouldBe false
     }
 
     @Test
@@ -222,7 +222,7 @@ internal class FradragsgrunnlagTest {
             tilhører = FradragTilhører.EPS,
         )
 
-        f1.erLikOgTilstøtende(f2) shouldBe false
+        f1.tilstøterOgErLik(f2) shouldBe false
     }
 
     @Test
