@@ -27,7 +27,7 @@ sealed class OppgaveConfig {
     /**
      * Denne er knyttet til mottak av søknad (både førstegang og ny periode), men brukes videre av søknadsbehandlinga
      */
-    data class NySøknad(
+    data class Søknad(
         override val journalpostId: JournalpostId,
         val søknadId: UUID,
         override val aktørId: AktørId,
@@ -38,10 +38,7 @@ sealed class OppgaveConfig {
         override val saksreferanse = søknadId.toString()
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
         override val oppgavetype = Oppgavetype.BEHANDLE_SAK
-        override val behandlingstype = when (søknadstype) {
-            Søknadstype.FØRSTEGANGSSØKNAD -> Behandlingstype.FØRSTEGANGSSØKNAD
-            Søknadstype.NY_PERIODE -> Behandlingstype.NY_PERIODE
-        }
+        override val behandlingstype = Behandlingstype.SØKNAD
         override val aktivDato: LocalDate = LocalDate.now(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
     }
@@ -57,10 +54,7 @@ sealed class OppgaveConfig {
         override val journalpostId: JournalpostId? = null
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
         override val oppgavetype = Oppgavetype.ATTESTERING
-        override val behandlingstype = when (søknadstype) {
-            Søknadstype.FØRSTEGANGSSØKNAD -> Behandlingstype.FØRSTEGANGSSØKNAD
-            Søknadstype.NY_PERIODE -> Behandlingstype.NY_PERIODE
-        }
+        override val behandlingstype = Behandlingstype.SØKNAD
         override val aktivDato: LocalDate = LocalDate.now(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
     }

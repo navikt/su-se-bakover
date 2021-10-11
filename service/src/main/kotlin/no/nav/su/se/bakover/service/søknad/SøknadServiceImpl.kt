@@ -200,11 +200,11 @@ internal class SøknadServiceImpl(
         sak: Sak,
         søknad: Søknad.Journalført.UtenOppgave,
         person: Person,
-        opprettOppgave: (oppgaveConfig: OppgaveConfig.NySøknad) -> Either<no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> = oppgaveService::opprettOppgave,
+        opprettOppgave: (oppgaveConfig: OppgaveConfig.Søknad) -> Either<no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> = oppgaveService::opprettOppgave,
     ): Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave> {
 
         return opprettOppgave(
-            OppgaveConfig.NySøknad(
+            OppgaveConfig.Søknad(
                 journalpostId = søknad.journalpostId,
                 søknadId = søknad.id,
                 aktørId = person.ident.aktørId,

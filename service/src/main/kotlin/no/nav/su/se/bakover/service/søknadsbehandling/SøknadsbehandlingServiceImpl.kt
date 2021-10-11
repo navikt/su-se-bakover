@@ -292,7 +292,7 @@ internal class SøknadsbehandlingServiceImpl(
             val søknadstype =
                 søknadsbehandlingRepo.hentForSak(søknadsbehandling.sakId).hentSøknadstypeFor(søknadsbehandling.id)
             val nyOppgaveId = oppgaveService.opprettOppgave(
-                OppgaveConfig.NySøknad(
+                OppgaveConfig.Søknad(
                     journalpostId = journalpostId,
                     søknadId = underkjent.søknad.id,
                     søknadstype = søknadstype.getOrHandle {

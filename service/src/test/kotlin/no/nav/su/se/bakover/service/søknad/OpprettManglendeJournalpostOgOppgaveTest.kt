@@ -297,7 +297,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
                 argThat {
-                    it shouldBe OppgaveConfig.NySøknad(
+                    it shouldBe OppgaveConfig.Søknad(
                         journalpostId = journalførtSøknad.journalpostId,
                         søknadId = journalførtSøknad.id,
                         aktørId = person.ident.aktørId,
@@ -396,7 +396,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
                 argThat {
-                    it shouldBe OppgaveConfig.NySøknad(
+                    it shouldBe OppgaveConfig.Søknad(
                         journalpostId = journalførtSøknad.journalpostId,
                         søknadId = journalførtSøknad.id,
                         aktørId = person.ident.aktørId,

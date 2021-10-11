@@ -104,7 +104,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         attesteringer = Attesteringshistorikk.empty(),
     )
 
-    private val oppgaveConfig = OppgaveConfig.NySøknad(
+    private val oppgaveConfig = OppgaveConfig.Søknad(
         journalpostId = journalpostId,
         søknadId = søknadId,
         aktørId = aktørId,

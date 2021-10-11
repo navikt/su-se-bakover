@@ -62,7 +62,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
                     "oppgavetype": "BEH_SAK",
                     "behandlingstema": "ab0431",
-                    "behandlingstype": "ae0244",
+                    "behandlingstype": "ae0034",
                     "aktivDato": "1970-01-01",
                     "fristFerdigstillelse": "1970-01-31",
                     "prioritet": "NORM",
@@ -86,7 +86,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                                       "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId ",
                                                       "behandlingstema": "ab0431",
                                                       "oppgavetype": "BEH_SAK",
-                                                      "behandlingstype": "ae0244",
+                                                      "behandlingstype": "ae0034",
                                                       "versjon": 1,
                                                       "fristFerdigstillelse": "2020-06-06",
                                                       "aktivDato": "2020-06-06",
@@ -120,7 +120,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         )
 
         client.opprettOppgave(
-            OppgaveConfig.NySøknad(
+            OppgaveConfig.Søknad(
                 journalpostId,
                 søknadId,
                 AktørId(aktørId),
@@ -136,7 +136,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
         verifyNoMoreInteractions(oathMock, tokenoppslagMock)
 
         client.opprettOppgaveMedSystembruker(
-            OppgaveConfig.NySøknad(
+            OppgaveConfig.Søknad(
                 journalpostId,
                 søknadId,
                 AktørId(aktørId),
@@ -163,7 +163,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
                     "oppgavetype": "BEH_SAK",
                     "behandlingstema": "ab0431",
-                    "behandlingstype": "ae0245",
+                    "behandlingstype": "ae0034",
                     "aktivDato": "1970-01-01",
                     "fristFerdigstillelse": "1970-01-31",
                     "prioritet": "NORM",
@@ -188,7 +188,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                                       "behandlingstema": "ab0431",
                                                       "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
                                                       "oppgavetype": "BEH_SAK",
-                                                      "behandlingstype": "ae0245",
+                                                      "behandlingstype": "ae0034",
                                                       "versjon": 1,
                                                       "fristFerdigstillelse": "2020-06-06",
                                                       "aktivDato": "2020-06-06",
@@ -217,7 +217,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             clock = fixedEpochClock,
         )
         client.opprettOppgave(
-            OppgaveConfig.NySøknad(
+            OppgaveConfig.Søknad(
                 journalpostId = journalpostId,
                 søknadId = søknadId,
                 aktørId = AktørId(aktørId),
@@ -242,7 +242,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
                     "oppgavetype": "ATT",
                     "behandlingstema": "ab0431",
-                    "behandlingstype": "ae0245",
+                    "behandlingstype": "ae0034",
                     "aktivDato": "1970-01-01",
                     "fristFerdigstillelse": "1970-01-31",
                     "prioritet": "NORM",
@@ -265,7 +265,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                                       "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId ",
                                                       "behandlingstema": "ab0431",
                                                       "oppgavetype": "ATT",
-                                                      "behandlingstype": "ae0245",
+                                                      "behandlingstype": "ae0034",
                                                       "versjon": 1,
                                                       "fristFerdigstillelse": "2020-06-06",
                                                       "aktivDato": "2020-06-06",
@@ -320,7 +320,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             clock = fixedEpochClock,
         )
         client.opprettOppgave(
-            OppgaveConfig.NySøknad(
+            OppgaveConfig.Søknad(
                 journalpostId,
                 søknadId,
                 AktørId(aktørId),
@@ -355,7 +355,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                       "tilordnetRessurs": "Z123456",
                                       "tema": "SUP",
                                       "oppgavetype": "BEH_SAK",
-                                      "behandlingstype": "ae0245",
+                                      "behandlingstype": "ae0034",
                                       "versjon": $versjon,
                                       "opprettetAv": "supstonad",
                                       "endretAv": "supstonad",
@@ -455,7 +455,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                       "tilordnetRessurs": "Z123456",
                                       "tema": "SUP",
                                       "oppgavetype": "BEH_SAK",
-                                      "behandlingstype": "ae0245",
+                                      "behandlingstype": "ae0034",
                                       "versjon": $versjon,
                                       "opprettetAv": "supstonad",
                                       "endretAv": "supstonad",
@@ -557,7 +557,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                       "beskrivelse": "--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
                                       "tema": "SUP",
                                       "oppgavetype": "BEH_SAK",
-                                      "behandlingstype": "ae0245",
+                                      "behandlingstype": "ae0034",
                                       "versjon": $versjon,
                                       "opprettetAv": "supstonad",
                                       "endretAv": "supstonad",
@@ -856,7 +856,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                       "tilordnetRessurs": "Z123456",
                                       "tema": "SUP",
                                       "oppgavetype": "BEH_SAK",
-                                      "behandlingstype": "ae0245",
+                                      "behandlingstype": "ae0034",
                                       "versjon": $versjon,
                                       "beskrivelse": "Dette er den orginale beskrivelsen",
                                       "opprettetAv": "supstonad",
