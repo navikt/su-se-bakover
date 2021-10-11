@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
-import io.kotest.assertions.throwables.shouldThrow
+import arrow.core.left
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
@@ -13,27 +14,23 @@ internal class SøknadsbehandlingTest_Søknadstype {
 
     @Test
     fun `eksisterende åpen og ny åpen - exception`() {
-        shouldThrow<RuntimeException> {
-            listOf<Søknadsbehandling>(
-                søknadsbehandlingSimulert().second,
-            ).hentSøknadstypeFor(UUID.randomUUID())
-        }
+        listOf<Søknadsbehandling>(
+            søknadsbehandlingSimulert().second,
+        ).hentSøknadstypeFor(UUID.randomUUID()) shouldBe KunneIkkeAvgjøreOmFørstegangEllerNyPeriode.left()
     }
 
     @Test
     fun `eksisterende åpen og eksisterende åpen samme som parameter - exception`() {
-        shouldThrow<RuntimeException> {
-            val underBehandling = søknadsbehandlingSimulert().second
-            listOf<Søknadsbehandling>(
-                søknadsbehandlingSimulert().second,
-                underBehandling,
-            ).hentSøknadstypeFor(underBehandling.id)
-        }
+        val underBehandling = søknadsbehandlingSimulert().second
+        listOf<Søknadsbehandling>(
+            søknadsbehandlingSimulert().second,
+            underBehandling,
+        ).hentSøknadstypeFor(underBehandling.id) shouldBe KunneIkkeAvgjøreOmFørstegangEllerNyPeriode.left()
     }
 
     @Test
     fun `ny åpen - førstegang`() {
-        listOf<Søknadsbehandling>().hentSøknadstypeFor(UUID.randomUUID()) shouldBe Søknadstype.FØRSTEGANGSSØKNAD
+        listOf<Søknadsbehandling>().hentSøknadstypeFor(UUID.randomUUID()) shouldBe Søknadstype.FØRSTEGANGSSØKNAD.right()
     }
 
     @Test
@@ -41,7 +38,7 @@ internal class SøknadsbehandlingTest_Søknadstype {
         listOf<Søknadsbehandling>(
             søknadsbehandlingIverksattAvslagMedBeregning().second,
             søknadsbehandlingIverksattAvslagUtenBeregning().second,
-        ).hentSøknadstypeFor(UUID.randomUUID()) shouldBe Søknadstype.FØRSTEGANGSSØKNAD
+        ).hentSøknadstypeFor(UUID.randomUUID()) shouldBe Søknadstype.FØRSTEGANGSSØKNAD.right()
     }
 
     @Test
@@ -49,14 +46,14 @@ internal class SøknadsbehandlingTest_Søknadstype {
         val underBehandling = søknadsbehandlingSimulert().second
         listOf<Søknadsbehandling>(
             underBehandling,
-        ).hentSøknadstypeFor(underBehandling.id) shouldBe Søknadstype.FØRSTEGANGSSØKNAD
+        ).hentSøknadstypeFor(underBehandling.id) shouldBe Søknadstype.FØRSTEGANGSSØKNAD.right()
     }
 
     @Test
     fun `eksisterende åpen er samme som parameter - førstegang`() {
         søknadsbehandlingSimulert().second.let {
             listOf<Søknadsbehandling>(it).hentSøknadstypeFor(it.id)
-        } shouldBe Søknadstype.FØRSTEGANGSSØKNAD
+        } shouldBe Søknadstype.FØRSTEGANGSSØKNAD.right()
     }
 
     @Test
@@ -64,7 +61,7 @@ internal class SøknadsbehandlingTest_Søknadstype {
         val underBehandling = søknadsbehandlingIverksattInnvilget().second
         listOf<Søknadsbehandling>(
             underBehandling,
-        ).hentSøknadstypeFor(underBehandling.id) shouldBe Søknadstype.FØRSTEGANGSSØKNAD
+        ).hentSøknadstypeFor(underBehandling.id) shouldBe Søknadstype.FØRSTEGANGSSØKNAD.right()
     }
 
     @Test
@@ -73,7 +70,7 @@ internal class SøknadsbehandlingTest_Søknadstype {
         listOf<Søknadsbehandling>(
             søknadsbehandlingIverksattInnvilget().second,
             underBehandling,
-        ).hentSøknadstypeFor(underBehandling.id) shouldBe Søknadstype.NY_PERIODE
+        ).hentSøknadstypeFor(underBehandling.id) shouldBe Søknadstype.NY_PERIODE.right()
     }
 
     @Test
@@ -82,7 +79,7 @@ internal class SøknadsbehandlingTest_Søknadstype {
         listOf(
             søknadsbehandlingSimulert().second,
             underBehandling,
-        ).hentSøknadstypeFor(underBehandling.id) shouldBe Søknadstype.FØRSTEGANGSSØKNAD
+        ).hentSøknadstypeFor(underBehandling.id) shouldBe Søknadstype.FØRSTEGANGSSØKNAD.right()
     }
 
     @Test
@@ -92,7 +89,7 @@ internal class SøknadsbehandlingTest_Søknadstype {
             søknadsbehandlingSimulert().second,
             underBehandling,
             søknadsbehandlingIverksattInnvilget().second,
-        ).hentSøknadstypeFor(underBehandling.id) shouldBe Søknadstype.FØRSTEGANGSSØKNAD
+        ).hentSøknadstypeFor(underBehandling.id) shouldBe Søknadstype.FØRSTEGANGSSØKNAD.right()
     }
 
     @Test
@@ -101,7 +98,7 @@ internal class SøknadsbehandlingTest_Søknadstype {
         listOf(
             søknadsbehandlingIverksattInnvilget().second,
             underBehandling,
-        ).hentSøknadstypeFor(underBehandling.id) shouldBe Søknadstype.NY_PERIODE
+        ).hentSøknadstypeFor(underBehandling.id) shouldBe Søknadstype.NY_PERIODE.right()
     }
 
     @Test
@@ -110,7 +107,7 @@ internal class SøknadsbehandlingTest_Søknadstype {
             søknadsbehandlingIverksattInnvilget().second,
             søknadsbehandlingIverksattAvslagUtenBeregning().second,
             søknadsbehandlingIverksattAvslagMedBeregning().second,
-        ).hentSøknadstypeFor(UUID.randomUUID()) shouldBe Søknadstype.NY_PERIODE
+        ).hentSøknadstypeFor(UUID.randomUUID()) shouldBe Søknadstype.NY_PERIODE.right()
     }
 
     @Test
@@ -121,26 +118,22 @@ internal class SøknadsbehandlingTest_Søknadstype {
             søknadsbehandlingIverksattAvslagUtenBeregning().second,
             søknadsbehandlingIverksattAvslagMedBeregning().second,
             underBehandling,
-        ).hentSøknadstypeFor(underBehandling.id) shouldBe Søknadstype.NY_PERIODE
+        ).hentSøknadstypeFor(underBehandling.id) shouldBe Søknadstype.NY_PERIODE.right()
     }
 
     @Test
     fun `eksisterende åpen - exception`() {
-        shouldThrow<RuntimeException> {
-            listOf<Søknadsbehandling>(
-                søknadsbehandlingSimulert().second,
-            ).hentSøknadstypeUtenBehandling()
-        }
+        listOf<Søknadsbehandling>(
+            søknadsbehandlingSimulert().second,
+        ).hentSøknadstypeUtenBehandling() shouldBe KunneIkkeAvgjøreOmFørstegangEllerNyPeriode.left()
     }
 
     @Test
     fun `flere eksisterende åpen - exception`() {
-        shouldThrow<RuntimeException> {
-            listOf<Søknadsbehandling>(
-                søknadsbehandlingSimulert().second,
-                søknadsbehandlingSimulert().second,
-            ).hentSøknadstypeUtenBehandling()
-        }
+        listOf<Søknadsbehandling>(
+            søknadsbehandlingSimulert().second,
+            søknadsbehandlingSimulert().second,
+        ).hentSøknadstypeUtenBehandling() shouldBe KunneIkkeAvgjøreOmFørstegangEllerNyPeriode.left()
     }
 
     @Test
@@ -148,7 +141,7 @@ internal class SøknadsbehandlingTest_Søknadstype {
         listOf<Søknadsbehandling>(
             søknadsbehandlingIverksattAvslagMedBeregning().second,
             søknadsbehandlingIverksattAvslagUtenBeregning().second,
-        ).hentSøknadstypeUtenBehandling() shouldBe Søknadstype.FØRSTEGANGSSØKNAD
+        ).hentSøknadstypeUtenBehandling() shouldBe Søknadstype.FØRSTEGANGSSØKNAD.right()
     }
 
     @Test
@@ -157,6 +150,6 @@ internal class SøknadsbehandlingTest_Søknadstype {
             søknadsbehandlingIverksattAvslagMedBeregning().second,
             søknadsbehandlingIverksattAvslagUtenBeregning().second,
             søknadsbehandlingIverksattInnvilget().second,
-        ).hentSøknadstypeUtenBehandling() shouldBe Søknadstype.NY_PERIODE
+        ).hentSøknadstypeUtenBehandling() shouldBe Søknadstype.NY_PERIODE.right()
     }
 }

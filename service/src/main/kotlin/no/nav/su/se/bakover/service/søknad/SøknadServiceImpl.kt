@@ -208,7 +208,9 @@ internal class SøknadServiceImpl(
                 journalpostId = søknad.journalpostId,
                 søknadId = søknad.id,
                 aktørId = person.ident.aktørId,
-                søknadstype = sak.hentSøknadstypeUtenBehandling(),
+                søknadstype = sak.hentSøknadstypeUtenBehandling().getOrHandle {
+                    return KunneIkkeOppretteOppgave(søknad.sakId, søknad.id, søknad.journalpostId, it.toString()).left()
+                },
             ),
         ).mapLeft {
             log.error("Ny søknad: Kunne ikke opprette oppgave. Originalfeil: $it")
