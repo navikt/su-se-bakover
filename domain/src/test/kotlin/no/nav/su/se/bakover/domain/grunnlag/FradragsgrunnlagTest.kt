@@ -2,17 +2,21 @@ package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.left
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.fixedTidspunkt
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
 import org.junit.jupiter.api.Test
 
 internal class FradragsgrunnlagTest {
@@ -147,5 +151,125 @@ internal class FradragsgrunnlagTest {
         fradragsgrunnlag.oppdaterFradragsperiode(
             oppdatertPeriode,
         ).orNull()!!.periode shouldBe oppdatertPeriode
+    }
+
+    @Test
+    fun `2 fradragsgrunnlag som tilstøter, og er lik`() {
+        val f1 = lagFradragsgrunnlag(periode = Periode.create(1.januar(2021), 31.januar(2021)))
+        val f2 = lagFradragsgrunnlag(periode = Periode.create(1.februar(2021), 28.februar(2021)))
+
+        f1.tilstøterOgErLik(f2) shouldBe true
+    }
+
+    @Test
+    fun `2 fradragsgrunnlag som ikke tilstøter, men er lik`() {
+        val f1 = lagFradragsgrunnlag(periode = Periode.create(1.januar(2021), 31.januar(2021)))
+        val f2 = lagFradragsgrunnlag(periode = Periode.create(1.mars(2021), 31.mars(2021)))
+
+        f1.tilstøterOgErLik(f2) shouldBe false
+    }
+
+    @Test
+    fun `2 fradragsgrunnlag som tilstøter, men fradragstype er ulik`() {
+        val f1 = lagFradragsgrunnlag(periode = Periode.create(1.januar(2021), 31.januar(2021)))
+        val f2 = lagFradragsgrunnlag(
+            periode = Periode.create(1.februar(2021), 28.februar(2021)), type = Fradragstype.Sosialstønad
+        )
+        f1.tilstøterOgErLik(f2) shouldBe false
+    }
+
+    @Test
+    fun `2 fradragsgrunnlag som tilstøter, men månedsbeløp er ulik`() {
+        val f1 = lagFradragsgrunnlag(periode = Periode.create(1.januar(2021), 31.januar(2021)))
+        val f2 = lagFradragsgrunnlag(periode = Periode.create(1.februar(2021), 28.februar(2021)), månedsbeløp = 300.0)
+
+        f1.tilstøterOgErLik(f2) shouldBe false
+    }
+
+    @Test
+    fun `2 fradragsgrunnlag som tilstøter, men utenlandsinntekt er ulik`() {
+        val f1 = lagFradragsgrunnlag(periode = Periode.create(1.januar(2021), 31.januar(2021)))
+        val f2 = lagFradragsgrunnlag(
+            periode = Periode.create(1.februar(2021), 28.februar(2021)),
+            utenlandskInntekt = UtenlandskInntekt.create(
+                beløpIUtenlandskValuta = 9000,
+                valuta = "its over 9000",
+                kurs = 9001.0,
+            ),
+        )
+
+        f1.tilstøterOgErLik(f2) shouldBe false
+    }
+
+    @Test
+    fun `2 fradragsgrunnlag som tilstøter, men tilhører er ulik`() {
+        val f1 = lagFradragsgrunnlag(periode = Periode.create(1.januar(2021), 31.januar(2021)))
+        val f2 = lagFradragsgrunnlag(
+            periode = Periode.create(1.februar(2021), 28.februar(2021)),
+            tilhører = FradragTilhører.EPS,
+        )
+
+        f1.tilstøterOgErLik(f2) shouldBe false
+    }
+
+    @Test
+    fun `2 fradragsgrunnlag som  ikke tilstøter, og er ulik`() {
+        val f1 = lagFradragsgrunnlag(periode = Periode.create(1.januar(2021), 31.januar(2021)))
+        val f2 = lagFradragsgrunnlag(
+            periode = Periode.create(1.mars(2021), 31.mars(2021)),
+            type = Fradragstype.Sosialstønad,
+            månedsbeløp = 300.0,
+            tilhører = FradragTilhører.EPS,
+        )
+
+        f1.tilstøterOgErLik(f2) shouldBe false
+    }
+
+    @Test
+    fun `slår sammen fradrag som er like og tilstøtende`() {
+        val f1 = lagFradragsgrunnlag(periode = Periode.create(1.januar(2021), 31.januar(2021)))
+        val f2 = lagFradragsgrunnlag(periode = Periode.create(1.februar(2021), 28.februar(2021)))
+        val f3 = lagFradragsgrunnlag(
+            periode = Periode.create(1.mars(2021), 31.mars(2021)),
+            type = Fradragstype.Sosialstønad,
+            månedsbeløp = 300.0,
+        )
+
+        val actual = listOf(f1, f2, f3).slåSammenPeriodeOgFradrag()
+        actual.size shouldBe 2
+        actual.first().fradrag shouldBe FradragFactory.ny(
+            type = Fradragstype.Kontantstøtte,
+            månedsbeløp = 200.0,
+            periode = Periode.create(1.januar(2021), 28.februar(2021)),
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.BRUKER,
+        )
+        actual.last().fradrag shouldBe FradragFactory.ny(
+            type = Fradragstype.Sosialstønad,
+            månedsbeløp = 300.0,
+            periode = Periode.create(1.mars(2021), 31.mars(2021)),
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.BRUKER,
+        )
+    }
+
+    private fun lagFradragsgrunnlag(
+        opprettet: Tidspunkt = fixedTidspunkt,
+        type: Fradragstype = Fradragstype.Kontantstøtte,
+        månedsbeløp: Double = 200.0,
+        periode: Periode,
+        utenlandskInntekt: UtenlandskInntekt? = null,
+        tilhører: FradragTilhører = FradragTilhører.BRUKER,
+    ): Grunnlag.Fradragsgrunnlag {
+        return Grunnlag.Fradragsgrunnlag.create(
+            opprettet = opprettet,
+            fradrag = FradragFactory.ny(
+                type = type,
+                månedsbeløp = månedsbeløp,
+                periode = periode,
+                utenlandskInntekt = utenlandskInntekt,
+                tilhører = tilhører,
+            ),
+        )
     }
 }
