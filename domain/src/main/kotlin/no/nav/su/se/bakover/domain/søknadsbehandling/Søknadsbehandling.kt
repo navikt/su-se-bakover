@@ -30,7 +30,10 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import org.slf4j.LoggerFactory
 import java.util.UUID
+
+private val log = LoggerFactory.getLogger("Søknadsbehandling.kt")
 
 sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering, Visitable<SøknadsbehandlingVisitor> {
     abstract val søknad: Søknad.Journalført.MedOppgave
@@ -1347,25 +1350,27 @@ sealed class KunneIkkeIverksette {
     object KunneIkkeGenerereVedtaksbrev : KunneIkkeIverksette()
 }
 
-fun List<Søknadsbehandling>.hentSøknadstypeUtenBehandling(): Søknadstype {
+object KunneIkkeAvgjøreOmFørstegangEllerNyPeriode
+fun List<Søknadsbehandling>.hentSøknadstypeUtenBehandling(): Either<KunneIkkeAvgjøreOmFørstegangEllerNyPeriode, Søknadstype> {
     if (any { it is Søknadsbehandling.Iverksatt.Innvilget }) {
-        return Søknadstype.NY_PERIODE
+        return Søknadstype.NY_PERIODE.right()
     }
     if (this.filterNot { it is Søknadsbehandling.Iverksatt.Avslag }.isNotEmpty()) {
         // TODO : Legge inn stopp for at vi kan ha fler åpne søknadsbehandlinger og søknader.
-        throw IllegalStateException("Kan ikke avgjøre om det er en førstegangssøknad eller ny periode. Det finnes ingen iverksatt innvilget behandlinger og det finnes en eller fler åpne behandlinger.")
+        log.error("Kan ikke avgjøre om det er en førstegangssøknad eller ny periode. Det finnes ingen iverksatt innvilget behandlinger og det finnes en eller fler åpne behandlinger.")
+        return KunneIkkeAvgjøreOmFørstegangEllerNyPeriode.left()
     }
-    return Søknadstype.FØRSTEGANGSSØKNAD
+    return Søknadstype.FØRSTEGANGSSØKNAD.right()
 }
 
-fun List<Søknadsbehandling>.hentSøknadstypeFor(behandlingId: UUID): Søknadstype {
+fun List<Søknadsbehandling>.hentSøknadstypeFor(behandlingId: UUID): Either<KunneIkkeAvgjøreOmFørstegangEllerNyPeriode, Søknadstype> {
     this
         .filterIsInstance<Søknadsbehandling.Iverksatt.Innvilget>()
         .sortedBy { it.stønadsperiode }
         .ifNotEmpty {
             if (this.first().id == behandlingId) {
                 // Denne behandlingen er den første iverksatt innvilga søknadbehandling, altså en førstegangssøknad.
-                return Søknadstype.FØRSTEGANGSSØKNAD
+                return Søknadstype.FØRSTEGANGSSØKNAD.right()
             }
         }
     this
@@ -1373,15 +1378,16 @@ fun List<Søknadsbehandling>.hentSøknadstypeFor(behandlingId: UUID): Søknadsty
         .also {
             if (it.any { b -> b is Søknadsbehandling.Iverksatt.Innvilget }) {
                 // Hvis det finnes en iverksatt innvilget søknadsbehandling som ikke er denne behandlinga, vil denne behandlinga være en ny periode
-                return Søknadstype.NY_PERIODE
+                return Søknadstype.NY_PERIODE.right()
             }
         }
         .filterNot { it is Søknadsbehandling.Iverksatt }
         .ifNotEmpty {
             // Dette bør ikke skje i praksis, siden det bør være stoppet i et tidligere steg.
-            throw IllegalStateException("Kan ikke avgjøre om det er en førstegangssøknad eller ny periode. Det finnes ingen iverksatt innvilget behandlinger og det finnes en eller fler åpne behandlinger som ikke er denne behandlinga $behandlingId")
+            log.error("Kan ikke avgjøre om det er en førstegangssøknad eller ny periode. Det finnes ingen iverksatt innvilget behandlinger og det finnes en eller fler åpne behandlinger som ikke er denne behandlinga $behandlingId")
+            return KunneIkkeAvgjøreOmFørstegangEllerNyPeriode.left()
         }
-    return Søknadstype.FØRSTEGANGSSØKNAD
+    return Søknadstype.FØRSTEGANGSSØKNAD.right()
 }
 
 // Her trikses det litt for å få til at funksjonen returnerer den samme konkrete typen som den kalles på.
