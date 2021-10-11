@@ -126,7 +126,7 @@ internal class FormueVilkårTest {
         f1.tilstøterOgErLik(f2) shouldBe true
     }
 
-    fun lagFormueVurderingsperiode(
+    private fun lagFormueVurderingsperiode(
         id: UUID = UUID.randomUUID(),
         tidspunkt: Tidspunkt = fixedTidspunkt,
         resultat: Resultat = Resultat.Innvilget,
