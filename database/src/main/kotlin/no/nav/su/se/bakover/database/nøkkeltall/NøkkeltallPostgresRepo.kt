@@ -18,16 +18,16 @@ internal class NøkkeltallPostgresRepo(
                     from søknad s
                              left join behandling b on s.id = b.søknadid),
 
-                behandlingsstatus as (select status, count(*) antal from søknadsinfo group by status)
+                     behandlingsstatus as (select status, count(*) antal from søknadsinfo group by status)
 
                 select count(*) as totalt,
-                       (select antal iverksattAvslag from behandlingsstatus where status = 'IVERKSATT_AVSLAG'),
-                    (select antal iverksattInnvilget from behandlingsstatus where status = 'IVERKSATT_INNVILGET'),
-                    (select antal ikkePåbegynt from behandlingsstatus where status is null),
-                       (select sum(antal) påbegynt from behandlingsstatus where status is not null and status not like '%IVERKSATT%'),
-                       (select count(*) digitalsøknader from søknadsinfo where søknadsinfo.søknadinnhold -> 'forNav' ->> 'type' = 'DigitalSøknad' ),
-                       (select count(*) papirsøknader from søknadsinfo where søknadsinfo.søknadinnhold -> 'forNav' ->> 'type' = 'Papirsøknad' ),
-                       (select count(*) personer from sak)
+                       coalesce((select antal from behandlingsstatus where status = 'IVERKSATT_AVSLAG'), 0) as iverksattAvslag,
+                       coalesce(( select antal from behandlingsstatus where status = 'IVERKSATT_INNVILGET' ), 0) as iverksattInnvilget,
+                       coalesce(( select sum(antal) from behandlingsstatus where status is not null and status not like '%IVERKSATT%'), 0) as påbegynt,
+                       (select count(*) as ikkePåbegynt from søknadsinfo where søknadsinfo.lukket is null and status is null),
+                       (select count(*) as digitalsøknader from søknadsinfo where søknadsinfo.søknadinnhold -> 'forNav' ->> 'type' = 'DigitalSøknad' ),
+                       (select count(*) as papirsøknader from søknadsinfo where søknadsinfo.søknadinnhold -> 'forNav' ->> 'type' = 'Papirsøknad' ),
+                       (select count(*) as personer from sak)
                 from søknadsinfo;
             """.trimIndent().hent(mapOf(), session) { row ->
                 row.toNøkkeltall()

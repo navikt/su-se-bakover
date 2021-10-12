@@ -38,6 +38,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -280,8 +281,8 @@ internal class TestDataHelper(
     internal val dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory)
     internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(dataSource)
 
-    fun nySakMedNySøknad(fnr: Fnr = Fnr.generer()): NySak {
-        return SakFactory(clock = clock).nySakMedNySøknad(fnr, SøknadInnholdTestdataBuilder.build()).also {
+    fun nySakMedNySøknad(fnr: Fnr = Fnr.generer(), søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build()): NySak {
+        return SakFactory(clock = clock).nySakMedNySøknad(fnr, søknadInnhold).also {
             sakRepo.opprettSak(it)
         }
     }
@@ -289,17 +290,17 @@ internal class TestDataHelper(
     /**
      * Ny søknad som _ikke_ er journalført eller har oppgave
      */
-    fun nySøknadForEksisterendeSak(sakId: UUID): Søknad.Ny {
+    fun nySøknadForEksisterendeSak(sakId: UUID, søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build()): Søknad.Ny {
         return Søknad.Ny(
             sakId = sakId,
             id = UUID.randomUUID(),
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+            søknadInnhold = søknadInnhold,
             opprettet = fixedTidspunkt,
         ).also { søknadRepo.opprettSøknad(it) }
     }
 
-    fun nyLukketSøknadForEksisterendeSak(sakId: UUID): Søknad.Journalført.MedOppgave.Lukket {
-        return nySøknadForEksisterendeSak(sakId = sakId)
+    fun nyLukketSøknadForEksisterendeSak(sakId: UUID, søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build()): Søknad.Journalført.MedOppgave.Lukket {
+        return nySøknadForEksisterendeSak(sakId = sakId, søknadInnhold = søknadInnhold)
             .journalfør(journalpostId).also {
                 søknadRepo.oppdaterjournalpostId(it)
             }
