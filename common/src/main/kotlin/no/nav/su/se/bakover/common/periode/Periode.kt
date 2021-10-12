@@ -167,6 +167,13 @@ data class Periode private constructor(
     override fun compareTo(other: Periode) = fraOgMed.compareTo(other.fraOgMed)
 }
 
+fun List<Periode>.minAndMaxOf(): Periode {
+    return Periode.create(
+        fraOgMed = this.minOf { it.fraOgMed },
+        tilOgMed = this.maxOf { it.tilOgMed },
+    )
+}
+
 fun januar(year: Int) = 1.januar(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
 fun februar(year: Int) = 1.februar(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }
 fun mars(year: Int) = 1.mars(year).let { Periode.create(it.startOfMonth(), it.endOfMonth()) }

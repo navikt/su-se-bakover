@@ -623,6 +623,12 @@ internal class OppdaterRevurderingServiceTest {
                         periode = periodeNesteMånedOgTreMånederFram,
                         begrunnelse = null,
                     ),
+                    Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = periodeNesteMånedOgTreMånederFram,
+                        begrunnelse = null,
+                    ),
                 ),
             )
             on { vilkårsvurderinger } doReturn Vilkårsvurderinger(

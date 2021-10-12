@@ -2,11 +2,13 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.Either
 import arrow.core.Nel
+import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Grunnbeløp.Companion.`0,5G`
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -174,8 +176,30 @@ sealed class Vilkår {
                     ) {
                         return UgyldigUførevilkår.OverlappendeVurderingsperioder.left()
                     }
+
                     return Vurdert(vurderingsperioder).right()
                 }
+
+                fun Nel<Vurderingsperiode.Uføre>.slåSammenVurderingsperiode(): Nel<Vurderingsperiode.Uføre> {
+                    val slåttSammen = this.sortedBy { it.periode.fraOgMed }
+                        .fold(mutableListOf<MutableList<Vurderingsperiode.Uføre>>()) { acc, uføre ->
+                            if (acc.isEmpty()) {
+                                acc.add(mutableListOf(uføre))
+                            } else if (acc.last().sisteUføreperiodeErLikOgTilstøtende(uføre)) {
+                                acc.last().add(uføre)
+                            } else {
+                                acc.add(mutableListOf(uføre))
+                            }
+                            acc
+                        }.map {
+                            val periode = it.map { it.periode }.minAndMaxOf()
+                            it.first().copy(CopyArgs.Tidslinje.NyPeriode(periode = periode))
+                        }
+                    return NonEmptyList.fromListUnsafe(slåttSammen)
+                }
+
+                private fun List<Vurderingsperiode.Uføre>.sisteUføreperiodeErLikOgTilstøtende(other: Vurderingsperiode.Uføre) =
+                    this.last().let { it.tilstøterOgErLik(other) }
             }
 
             sealed class UgyldigUførevilkår {
@@ -280,6 +304,27 @@ sealed class Vilkår {
                     }
                     return Vurdert(vurderingsperioder).right()
                 }
+
+                fun Nel<Vurderingsperiode.Formue>.slåSammenVurderingsperiode(): Nel<Vurderingsperiode.Formue> {
+                    val slåttSammen = this.sortedBy { it.periode.fraOgMed }
+                        .fold(mutableListOf<MutableList<Vurderingsperiode.Formue>>()) { acc, formue ->
+                            if (acc.isEmpty()) {
+                                acc.add(mutableListOf(formue))
+                            } else if (acc.last().sisteFormueperiodeErLikOgTilstøtende(formue)) {
+                                acc.last().add(formue)
+                            } else {
+                                acc.add(mutableListOf(formue))
+                            }
+                            acc
+                        }.map {
+                            val periode = it.map { it.periode }.minAndMaxOf()
+                            it.first().copy(CopyArgs.Tidslinje.NyPeriode(periode = periode))
+                        }
+                    return NonEmptyList.fromListUnsafe(slåttSammen)
+                }
+
+                private fun List<Vurderingsperiode.Formue>.sisteFormueperiodeErLikOgTilstøtende(other: Vurderingsperiode.Formue) =
+                    this.last().let { it.tilstøterOgErLik(other) }
             }
 
             sealed class UgyldigFormuevilkår {
@@ -296,6 +341,17 @@ sealed class Vurderingsperiode {
     abstract val resultat: Resultat
     abstract val grunnlag: Grunnlag?
     abstract val periode: Periode
+
+    fun tilstøter(other: Vurderingsperiode): Boolean {
+        return this.periode.tilstøter(other.periode)
+    }
+
+    /**
+     * unnlater ID, og opprettet.
+     */
+    abstract fun erLik(other: Vurderingsperiode): Boolean
+
+    fun tilstøterOgErLik(other: Vurderingsperiode) = this.tilstøter(other) && this.erLik(other)
 
     data class Uføre private constructor(
         override val id: UUID = UUID.randomUUID(),
@@ -327,6 +383,24 @@ sealed class Vurderingsperiode {
                     grunnlag = grunnlag?.copy(args),
                 )
             }
+        }
+
+        /**
+         * Sjekker at uføregrad og forventet inntekt er lik
+         */
+        override fun erLik(other: Vurderingsperiode): Boolean {
+            if (other !is Uføre) {
+                return false
+            }
+            if ((this.grunnlag == null && other.grunnlag != null) || (this.grunnlag != null && other.grunnlag == null)) {
+                return false
+            }
+
+            return this.resultat == other.resultat && (
+                this.grunnlag == null && other.grunnlag == null || this.grunnlag!!.tilstøterOgErLik(
+                    other.grunnlag!!,
+                )
+                )
         }
 
         companion object {
@@ -401,6 +475,14 @@ sealed class Vurderingsperiode {
                     grunnlag = grunnlag.copy(args),
                 )
             }
+        }
+
+        override fun erLik(other: Vurderingsperiode): Boolean {
+            if (other !is Formue) {
+                return false
+            }
+            return this.resultat == other.resultat &&
+                this.grunnlag.tilstøterOgErLik(other.grunnlag)
         }
 
         companion object {

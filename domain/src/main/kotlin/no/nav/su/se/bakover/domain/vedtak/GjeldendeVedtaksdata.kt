@@ -4,9 +4,13 @@ import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.Vilkår.Formue.Vurdert.Companion.slåSammenVurderingsperiode
+import no.nav.su.se.bakover.domain.vilkår.Vilkår.Uførhet.Vurdert.Companion.slåSammenVurderingsperiode
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
 import java.time.LocalDate
@@ -44,14 +48,18 @@ data class GjeldendeVedtaksdata(
         grunnlagsdata = Grunnlagsdata.create(
             fradragsgrunnlag = vedtakPåTidslinje.flatMap {
                 it.grunnlagsdata.fradragsgrunnlag
-            },
+            }.slåSammenPeriodeOgFradrag(),
             bosituasjon = vedtakPåTidslinje.flatMap {
                 it.grunnlagsdata.bosituasjon
-            },
+            }.slåSammenPeriodeOgBosituasjon(),
         )
         vilkårsvurderinger = Vilkårsvurderinger(
-            uføre = uføreGrunnlagOgVilkår,
-            formue = formuevilkårOgGrunnlag,
+            uføre = uføreGrunnlagOgVilkår.copy(
+                vurderingsperioder = uføreGrunnlagOgVilkår.vurderingsperioder.slåSammenVurderingsperiode(),
+            ),
+            formue = formuevilkårOgGrunnlag.copy(
+                vurderingsperioder = formuevilkårOgGrunnlag.vurderingsperioder.slåSammenVurderingsperiode(),
+            ),
         )
     }
 

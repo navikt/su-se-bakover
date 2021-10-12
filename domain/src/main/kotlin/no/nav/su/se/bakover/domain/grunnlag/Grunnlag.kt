@@ -8,6 +8,7 @@ import arrow.core.right
 import arrow.core.sequenceEither
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Copyable
 import no.nav.su.se.bakover.domain.Fnr
@@ -20,6 +21,17 @@ import java.util.UUID
 
 sealed class Grunnlag {
     abstract val id: UUID
+
+    abstract val periode: Periode
+
+    fun tilstøter(other: Grunnlag) = this.periode.tilstøter(other.periode)
+
+    /**
+     * unnlater å sjekke på ID og opprettet
+     */
+    abstract fun erLik(other: Grunnlag): Boolean
+
+    fun tilstøterOgErLik(other: Grunnlag) = this.tilstøter(other) && this.erLik(other)
 
     /**
      * @throws IllegalArgumentException hvis forventetInntekt er negativ
@@ -49,6 +61,17 @@ sealed class Grunnlag {
             }
         }
 
+        /**
+         * Sjekker at periodene tilstøter, og om uføregrad og forventet inntekt er lik
+         */
+        override fun erLik(other: Grunnlag): Boolean {
+            if (other !is Uføregrunnlag) {
+                return false
+            }
+
+            return this.uføregrad == other.uføregrad && this.forventetInntekt == other.forventetInntekt
+        }
+
         companion object {
             fun List<Uføregrunnlag>.slåSammenPeriodeOgUføregrad(): List<Pair<Periode, Uføregrad>> {
                 return this.sortedBy { it.periode.fraOgMed }
@@ -62,19 +85,14 @@ sealed class Grunnlag {
                         }
                         acc
                     }.map {
-                        val periode: Periode = Periode.create(
-                            fraOgMed = it.minOf { it.periode.fraOgMed },
-                            tilOgMed = it.maxOf { it.periode.tilOgMed },
-                        )
+                        val periode = it.map { it.periode }.minAndMaxOf()
 
                         periode to it.first().uføregrad
                     }
             }
 
             private fun List<Uføregrunnlag>.sisteUføregrunnlagErLikOgTilstøtende(other: Uføregrunnlag) =
-                this.last().let {
-                    it.periode tilstøter other.periode && it.uføregrad == other.uføregrad
-                }
+                this.last().let { it.tilstøter(other) && it.erLik(other) }
         }
     }
 
@@ -83,6 +101,7 @@ sealed class Grunnlag {
         val opprettet: Tidspunkt,
         val fradrag: Fradrag,
     ) : Grunnlag(), Fradrag by fradrag {
+        override val periode: Periode = fradrag.periode
 
         fun oppdaterFradragsperiode(
             oppdatertPeriode: Periode,
@@ -98,6 +117,17 @@ sealed class Grunnlag {
                     ),
                 )
             }
+        }
+
+        override fun erLik(other: Grunnlag): Boolean {
+            if (other !is Fradragsgrunnlag) {
+                return false
+            }
+            return this.periode tilstøter other.periode &&
+                this.fradrag.fradragstype == other.fradragstype &&
+                this.fradrag.månedsbeløp == other.månedsbeløp &&
+                this.fradrag.utenlandskInntekt == other.utenlandskInntekt &&
+                this.fradrag.tilhører == other.tilhører
         }
 
         override fun copy(args: CopyArgs.Snitt): Fradragsgrunnlag? {
@@ -149,6 +179,32 @@ sealed class Grunnlag {
                     )
             }
 
+            fun List<Fradragsgrunnlag>.slåSammenPeriodeOgFradrag(): List<Fradragsgrunnlag> {
+                return this.sortedBy { it.periode.fraOgMed }
+                    .fold(mutableListOf<MutableList<Fradragsgrunnlag>>()) { acc, fradragsgrunnlag ->
+                        if (acc.isEmpty()) {
+                            acc.add(mutableListOf(fradragsgrunnlag))
+                        } else if (acc.last().sisteFradragsgrunnlagErLikOgTilstøtende(fradragsgrunnlag)) {
+                            acc.last().add(fradragsgrunnlag)
+                        } else {
+                            acc.add(mutableListOf(fradragsgrunnlag))
+                        }
+                        acc
+                    }.map {
+                        val periode = it.map { it.periode }.minAndMaxOf()
+
+                        tryCreate(
+                            fradrag = FradragFactory.ny(
+                                type = it.first().fradragstype,
+                                månedsbeløp = it.first().månedsbeløp,
+                                periode = periode,
+                                utenlandskInntekt = it.first().utenlandskInntekt,
+                                tilhører = it.first().tilhører,
+                            ),
+                        ).getOrHandle { throw IllegalStateException(it.toString()) }
+                    }
+            }
+
             /**
              * inntil fradragsgrunnlag har sine egne fradragstyper så må vi sjekke at disse ikke er med
              */
@@ -158,6 +214,9 @@ sealed class Grunnlag {
                     Fradragstype.BeregnetFradragEPS,
                     Fradragstype.UnderMinstenivå,
                 ).contains(fradrag.fradragstype)
+
+            private fun List<Fradragsgrunnlag>.sisteFradragsgrunnlagErLikOgTilstøtende(other: Fradragsgrunnlag) =
+                this.last().let { it.tilstøter(other) && it.erLik(other) }
         }
 
         sealed class UgyldigFradragsgrunnlag {
@@ -171,7 +230,6 @@ sealed class Grunnlag {
     sealed class Bosituasjon : Grunnlag() {
         abstract override val id: UUID
         abstract val opprettet: Tidspunkt
-        abstract val periode: Periode
 
         fun oppdaterBosituasjonsperiode(oppdatertPeriode: Periode): Bosituasjon {
             return when (this) {
@@ -189,6 +247,30 @@ sealed class Grunnlag {
             fun List<Bosituasjon>.oppdaterBosituasjonsperiode(oppdatertPeriode: Periode): List<Bosituasjon> {
                 return this.map { it.oppdaterBosituasjonsperiode(oppdatertPeriode) }
             }
+
+            fun List<Bosituasjon>.slåSammenPeriodeOgBosituasjon(): List<Bosituasjon> {
+                return this.sortedBy { it.periode.fraOgMed }
+                    .fold(mutableListOf<MutableList<Bosituasjon>>()) { acc, bosituasjon ->
+                        if (acc.isEmpty()) {
+                            acc.add(mutableListOf(bosituasjon))
+                        } else if (acc.last().sisteBosituasjonsgrunnlagErLikOgTilstøtende(bosituasjon)) {
+                            acc.last().add(bosituasjon)
+                        } else {
+                            acc.add(mutableListOf(bosituasjon))
+                        }
+                        acc
+                    }.map {
+                        val periode = it.map { it.periode }.minAndMaxOf()
+
+                        when (val bosituasjon = it.first()) {
+                            is Fullstendig -> bosituasjon.oppdaterBosituasjonsperiode(periode)
+                            is Ufullstendig -> throw java.lang.IllegalStateException("Kan ikke ha ufullstendige bosituasjoner")
+                        }
+                    }
+            }
+
+            private fun List<Bosituasjon>.sisteBosituasjonsgrunnlagErLikOgTilstøtende(other: Bosituasjon) =
+                this.last().let { it.tilstøter(other) && it.erLik(other) }
         }
 
         sealed class Fullstendig : Bosituasjon(), Copyable<CopyArgs.Snitt, Fullstendig?> {
@@ -205,6 +287,13 @@ sealed class Grunnlag {
                         override val fnr: Fnr,
                         override val begrunnelse: String?,
                     ) : EktefellePartnerSamboer() {
+                        override fun erLik(other: Grunnlag): Boolean {
+                            if (other !is UførFlyktning) {
+                                return false
+                            }
+                            return this.fnr == other.fnr
+                        }
+
                         override fun copy(args: CopyArgs.Snitt): UførFlyktning? {
                             return args.snittFor(periode)?.let { copy(id = UUID.randomUUID(), periode = it) }
                         }
@@ -217,6 +306,13 @@ sealed class Grunnlag {
                         override val fnr: Fnr,
                         override val begrunnelse: String?,
                     ) : EktefellePartnerSamboer() {
+                        override fun erLik(other: Grunnlag): Boolean {
+                            if (other !is IkkeUførFlyktning) {
+                                return false
+                            }
+                            return this.fnr == other.fnr
+                        }
+
                         override fun copy(args: CopyArgs.Snitt): IkkeUførFlyktning? {
                             return args.snittFor(periode)?.let { copy(id = UUID.randomUUID(), periode = it) }
                         }
@@ -230,6 +326,13 @@ sealed class Grunnlag {
                     override val fnr: Fnr,
                     override val begrunnelse: String?,
                 ) : EktefellePartnerSamboer() {
+                    override fun erLik(other: Grunnlag): Boolean {
+                        if (other !is SektiSyvEllerEldre) {
+                            return false
+                        }
+                        return this.fnr == other.fnr
+                    }
+
                     override fun copy(args: CopyArgs.Snitt): SektiSyvEllerEldre? {
                         return args.snittFor(periode)?.let { copy(id = UUID.randomUUID(), periode = it) }
                     }
@@ -243,6 +346,10 @@ sealed class Grunnlag {
                 override val periode: Periode,
                 override val begrunnelse: String?,
             ) : Fullstendig() {
+                override fun erLik(other: Grunnlag): Boolean {
+                    return other is Enslig
+                }
+
                 override fun copy(args: CopyArgs.Snitt): Enslig? {
                     return args.snittFor(periode)?.let { copy(id = UUID.randomUUID(), periode = it) }
                 }
@@ -254,6 +361,10 @@ sealed class Grunnlag {
                 override val periode: Periode,
                 override val begrunnelse: String?,
             ) : Fullstendig() {
+                override fun erLik(other: Grunnlag): Boolean {
+                    return other is DelerBoligMedVoksneBarnEllerAnnenVoksen
+                }
+
                 override fun copy(args: CopyArgs.Snitt): DelerBoligMedVoksneBarnEllerAnnenVoksen? {
                     return args.snittFor(periode)?.let { copy(id = UUID.randomUUID(), periode = it) }
                 }
@@ -267,7 +378,11 @@ sealed class Grunnlag {
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
                 override val periode: Periode,
-            ) : Ufullstendig()
+            ) : Ufullstendig() {
+                override fun erLik(other: Grunnlag): Boolean {
+                    return other is HarIkkeEps
+                }
+            }
 
             /** Dette er en midlertid tilstand hvor det er valgt Eps, men ikke tatt stilling til om eps er ufør flyktning eller ikke
              Data klassen kan godt få et bedre navn... */
@@ -276,7 +391,11 @@ sealed class Grunnlag {
                 override val opprettet: Tidspunkt,
                 override val periode: Periode,
                 val fnr: Fnr,
-            ) : Ufullstendig()
+            ) : Ufullstendig() {
+                override fun erLik(other: Grunnlag): Boolean {
+                    return other is HarEps
+                }
+            }
         }
 
         fun harEktefelle(): Boolean {

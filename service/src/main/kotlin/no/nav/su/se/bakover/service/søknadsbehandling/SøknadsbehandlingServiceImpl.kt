@@ -230,7 +230,9 @@ internal class SøknadsbehandlingServiceImpl(
             søknadsbehandlingRepo.hentEventuellTidligereAttestering(søknadsbehandling.id)?.attestant
 
         val søknadstype =
-            søknadsbehandlingRepo.hentForSak(søknadsbehandling.sakId).hentSøknadstypeFor(søknadsbehandling.id)
+            søknadsbehandlingRepo.hentForSak(søknadsbehandling.sakId).hentSøknadstypeFor(søknadsbehandling.id).getOrHandle {
+                return SøknadsbehandlingService.KunneIkkeSendeTilAttestering.KunneIkkeAvgjøreOmFørstegangEllerNyPeriode.left()
+            }
 
         val nyOppgaveId: OppgaveId = oppgaveService.opprettOppgave(
             OppgaveConfig.AttesterSøknadsbehandling(
@@ -293,7 +295,9 @@ internal class SøknadsbehandlingServiceImpl(
                 OppgaveConfig.NySøknad(
                     journalpostId = journalpostId,
                     søknadId = underkjent.søknad.id,
-                    søknadstype = søknadstype,
+                    søknadstype = søknadstype.getOrHandle {
+                        return SøknadsbehandlingService.KunneIkkeUnderkjenne.KunneIkkeAvgjøreOmFørstegangEllerNyPeriode.left()
+                    },
                     aktørId = aktørId,
                     tilordnetRessurs = underkjent.saksbehandler,
                 ),

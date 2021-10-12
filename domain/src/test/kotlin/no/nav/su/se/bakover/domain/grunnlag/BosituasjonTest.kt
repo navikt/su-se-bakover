@@ -6,11 +6,14 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
+import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 internal class BosituasjonTest {
@@ -109,5 +112,60 @@ internal class BosituasjonTest {
         gjeldendeBosituasjon.oppdaterBosituasjonsperiode(oppdatertPeriode) shouldBe gjeldendeBosituasjon.copy(
             periode = oppdatertPeriode,
         )
+    }
+
+    @Test
+    fun `slår sammen like og tilstøtende bosituasjoner`() {
+        val b1 = Grunnlag.Bosituasjon.Fullstendig.Enslig(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            periode = Periode.create(1.januar(2021), 31.januar(2021)),
+            begrunnelse = null,
+        )
+        val b2 = b1.copy(
+            periode = Periode.create(1.februar(2021), 28.februar(2021)),
+        )
+        val b3 = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            periode = Periode.create(1.mars(2021), 31.mars(2021)),
+            fnr = Fnr.generer(),
+            begrunnelse = null,
+        )
+
+        val actual = listOf(b1, b2, b3).slåSammenPeriodeOgBosituasjon()
+        actual.size shouldBe 2
+        actual.first() shouldBe Grunnlag.Bosituasjon.Fullstendig.Enslig(
+            id = b1.id,
+            opprettet = fixedTidspunkt,
+            periode = Periode.create(1.januar(2021), 28.februar(2021)),
+            begrunnelse = null,
+        )
+        actual.last() shouldBe Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
+            id = b3.id,
+            opprettet = fixedTidspunkt,
+            periode = Periode.create(1.mars(2021), 31.mars(2021)),
+            fnr = b3.fnr,
+            begrunnelse = null,
+        )
+    }
+
+    @Test
+    fun `kaster exception dersom det finnes ufullstendig bostiuasjon når den skal slå sammen`() {
+        val b1 = Grunnlag.Bosituasjon.Fullstendig.Enslig(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            periode = Periode.create(1.januar(2021), 31.januar(2021)),
+            begrunnelse = null,
+        )
+        val b2 = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            periode = Periode.create(1.februar(2021), 28.februar(2021)),
+        )
+
+        assertThrows<IllegalStateException> {
+            listOf(b1, b2).slåSammenPeriodeOgBosituasjon()
+        }
     }
 }

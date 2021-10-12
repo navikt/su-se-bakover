@@ -18,6 +18,17 @@ data class Formuegrunnlag private constructor(
     val søkersFormue: Verdier,
     val begrunnelse: String?,
 ) : Grunnlag(), KanPlasseresPåTidslinje<Formuegrunnlag> {
+
+    override fun erLik(other: Grunnlag): Boolean {
+        if (other !is Formuegrunnlag) {
+            return false
+        }
+
+        return this.søkersFormue == other.søkersFormue &&
+            this.epsFormue == other.epsFormue &&
+            this.begrunnelse == other.begrunnelse
+    }
+
     data class Verdier private constructor(
         val verdiIkkePrimærbolig: Int,
         val verdiEiendommer: Int,
@@ -122,7 +133,7 @@ data class Formuegrunnlag private constructor(
                 opprettet = opprettet,
                 epsFormue = epsFormue,
                 søkersFormue = søkersFormue,
-                begrunnelse = begrunnelse,
+                begrunnelse = if (begrunnelse.isNullOrBlank()) null else begrunnelse,
             )
             SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
                 bosituasjon = listOf(bosituasjon),

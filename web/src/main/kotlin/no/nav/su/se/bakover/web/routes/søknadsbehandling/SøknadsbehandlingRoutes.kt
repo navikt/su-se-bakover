@@ -51,6 +51,7 @@ import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeGenerereBrev
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
+import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeAvgjøreOmFørstegangEllerNyPeriode
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson
@@ -363,6 +364,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                     KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave -> Feilresponser.kunneIkkeOppretteOppgave
                                     KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId -> Feilresponser.fantIkkeAktørId
                                     KunneIkkeSendeTilAttestering.FantIkkeBehandling -> fantIkkeBehandling
+                                    KunneIkkeSendeTilAttestering.KunneIkkeAvgjøreOmFørstegangEllerNyPeriode -> kunneIkkeAvgjøreOmFørstegangEllerNyPeriode
                                 }
                                 call.svar(resultat)
                             },
@@ -450,6 +452,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                         KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantSammeSomSaksbehandler
                                         KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave -> Feilresponser.kunneIkkeOppretteOppgave
                                         KunneIkkeUnderkjenne.FantIkkeAktørId -> Feilresponser.fantIkkeAktørId
+                                        KunneIkkeUnderkjenne.KunneIkkeAvgjøreOmFørstegangEllerNyPeriode -> kunneIkkeAvgjøreOmFørstegangEllerNyPeriode
                                     }
                                     call.svar(resultat)
                                 },
