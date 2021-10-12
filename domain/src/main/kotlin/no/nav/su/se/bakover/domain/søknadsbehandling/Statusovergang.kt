@@ -6,6 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -19,7 +20,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
     fun get(): Either<L, T> = result
 
     class TilVilkårsvurdert(
-        private val behandlingsinformasjon: Behandlingsinformasjon
+        private val behandlingsinformasjon: Behandlingsinformasjon,
     ) : Statusovergang<Nothing, Søknadsbehandling.Vilkårsvurdert>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {
@@ -60,7 +61,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
     }
 
     class TilBeregnet(
-        private val beregn: () -> Beregning
+        private val beregn: () -> Beregning,
     ) : Statusovergang<Nothing, Søknadsbehandling.Beregnet>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {
@@ -89,7 +90,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
     }
 
     class TilSimulert(
-        private val simulering: (beregning: Beregning) -> Either<SimuleringFeilet, Simulering>
+        private val simulering: (beregning: Beregning) -> Either<SimuleringFeilet, Simulering>,
     ) : Statusovergang<SimuleringFeilet, Søknadsbehandling.Simulert>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
@@ -142,7 +143,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
     }
 
     class TilUnderkjent(
-        private val attestering: Attestering
+        private val attestering: Attestering,
     ) : Statusovergang<SaksbehandlerOgAttestantKanIkkeVæreSammePerson, Søknadsbehandling.Underkjent>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning) {
@@ -166,7 +167,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
         private fun saksbehandlerOgAttestantErForskjellig(
             søknadsbehandling: Søknadsbehandling.TilAttestering,
-            attestering: Attestering
+            attestering: Attestering,
         ): Boolean = søknadsbehandling.saksbehandler.navIdent != attestering.attestant.navIdent
     }
 
@@ -174,7 +175,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
     class TilIverksatt(
         private val attestering: Attestering,
-        private val innvilget: (søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) -> Either<KunneIkkeIverksette, UUID30>
+        private val innvilget: (søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) -> Either<KunneIkkeIverksette, UUID30>,
     ) : Statusovergang<KunneIkkeIverksette, Søknadsbehandling.Iverksatt>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning) {
@@ -205,30 +206,31 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
         private fun saksbehandlerOgAttestantErForskjellig(
             søknadsbehandling: Søknadsbehandling.TilAttestering,
-            attestering: Attestering
+            attestering: Attestering,
         ): Boolean = søknadsbehandling.saksbehandler.navIdent != attestering.attestant.navIdent
     }
 
     class OppdaterStønadsperiode(
         private val oppdatertStønadsperiode: Stønadsperiode,
-        private val tidligereSøknadsbehandlinger: List<Søknadsbehandling>
+        private val sak: Sak,
     ) : Statusovergang<OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode, Søknadsbehandling.Vilkårsvurdert>() {
 
         sealed class KunneIkkeOppdatereStønadsperiode {
             data class KunneIkkeOppdatereGrunnlagsdata(val feil: KunneIkkeLageGrunnlagsdata) :
                 KunneIkkeOppdatereStønadsperiode()
 
-            object StønadsperiodeOverlapperMedEksisterendeSøknadsbehandling :
-                KunneIkkeOppdatereStønadsperiode()
+            object StønadsperiodeOverlapperMedEksisterendeStønadsperiode : KunneIkkeOppdatereStønadsperiode()
+            object StønadsperiodeForSenerePeriodeEksisterer : KunneIkkeOppdatereStønadsperiode()
         }
 
         private fun oppdater(søknadsbehandling: Søknadsbehandling): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling.Vilkårsvurdert> {
-            // En foreløpig begrensning er at vi ikke kan starte en ny søknadsbehandling for opphørte måneder.
-            val tidligerePerioder = tidligereSøknadsbehandlinger
-                .filterNot { it is Søknadsbehandling.Iverksatt.Avslag }
-                .mapNotNull { it.stønadsperiode?.periode }
-            if (oppdatertStønadsperiode.periode overlapper tidligerePerioder) {
-                return KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedEksisterendeSøknadsbehandling.left()
+            sak.hentAktiveStønadsperioder().let { stønadsperioder ->
+                if (stønadsperioder.any { it overlapper oppdatertStønadsperiode.periode }) {
+                    return KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedEksisterendeStønadsperiode.left()
+                }
+                if (stønadsperioder.any { it.starterSamtidigEllerSenere(oppdatertStønadsperiode.periode) }) {
+                    return KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer.left()
+                }
             }
             return Søknadsbehandling.Vilkårsvurdert.Uavklart(
                 id = søknadsbehandling.id,
@@ -289,7 +291,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
 fun <T> statusovergang(
     søknadsbehandling: Søknadsbehandling,
-    statusovergang: Statusovergang<Nothing, T>
+    statusovergang: Statusovergang<Nothing, T>,
 ): T {
     // Kan aldri være Either.Left<Nothing>
     return forsøkStatusovergang(søknadsbehandling, statusovergang).orNull()!!
@@ -297,7 +299,7 @@ fun <T> statusovergang(
 
 fun <L, T> forsøkStatusovergang(
     søknadsbehandling: Søknadsbehandling,
-    statusovergang: Statusovergang<L, T>
+    statusovergang: Statusovergang<L, T>,
 ): Either<L, T> {
     søknadsbehandling.accept(statusovergang)
     return statusovergang.get()

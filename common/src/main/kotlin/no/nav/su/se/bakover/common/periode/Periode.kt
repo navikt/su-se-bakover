@@ -74,6 +74,24 @@ data class Periode private constructor(
         ) else null
     }
 
+    /**
+     * Perioder kan slås sammen/reduseres/merges dersom de til sammen utgjør en kontinuerlig og sammenhengende periode.
+     */
+    infix fun kanSlåsSammen(other: Periode): Boolean {
+        return overlapper(other) || tilstøter(other)
+    }
+
+    infix fun slåSammen(other: Periode): Periode {
+        return if (kanSlåsSammen(other)) {
+            create(
+                fraOgMed = minOf(this.fraOgMed, other.fraOgMed),
+                tilOgMed = maxOf(this.tilOgMed, other.tilOgMed),
+            )
+        } else {
+            throw IllegalStateException("Kan ikke slå sammen periodene: $this og $other")
+        }
+    }
+
     infix fun starterSamtidigEllerTidligere(other: Periode) = starterSamtidig(other) || starterTidligere(other)
     infix fun starterSamtidigEllerSenere(other: Periode) = starterSamtidig(other) || starterEtter(other)
     infix fun starterSamtidig(other: Periode) = fraOgMed.isEqual(other.fraOgMed)
@@ -126,4 +144,19 @@ data class Periode private constructor(
     }
 
     override fun compareTo(other: Periode) = fraOgMed.compareTo(other.fraOgMed)
+}
+
+/**
+ * Reduserer en liste med [Periode] ved å slå sammen elementer etter reglene definert av [Periode.kanSlåsSammen]
+ */
+fun List<Periode>.reduser(): List<Periode> {
+    return fold(mutableListOf()) { slåttSammen: MutableList<Periode>, periode: Periode ->
+        val forrige = slåttSammen.lastOrNull()
+        when {
+            forrige == null -> slåttSammen.add(periode)
+            forrige kanSlåsSammen periode -> slåttSammen[slåttSammen.lastIndex] = forrige.slåSammen(periode)
+            else -> slåttSammen.add(periode)
+        }
+        slåttSammen
+    }
 }

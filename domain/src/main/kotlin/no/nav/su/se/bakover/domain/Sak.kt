@@ -2,12 +2,14 @@ package no.nav.su.se.bakover.domain
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
+import arrow.core.flatten
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.reduser
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
@@ -22,6 +24,7 @@ import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -106,6 +109,24 @@ data class Sak(
 
     fun hentSøknadstypeFor(behandlingId: UUID): Søknadstype {
         return this.søknadsbehandlinger.hentSøknadstypeFor(behandlingId)
+    }
+
+    /**
+     * Identifisere alle aktive perioder innenfor en opprinnelig innvilget stønadsperiode.
+     * Aktiv er her definert som ikke opphørt.
+     */
+    fun hentAktiveStønadsperioder(): List<Periode> {
+        return vedtakListe.filterIsInstance<Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling>()
+            .associateWith { innvilgetSøknadsbehandling ->
+                vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+                    .lagTidslinje(
+                        periode = innvilgetSøknadsbehandling.periode,
+                        clock = Clock.systemUTC(),
+                    ).tidslinje
+                    .filterNot { it.originaltVedtak.erOpphør() }
+                    .map { it.periode }
+                    .reduser()
+            }.values.flatten()
     }
 }
 
