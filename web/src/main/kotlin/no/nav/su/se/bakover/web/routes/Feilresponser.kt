@@ -92,6 +92,11 @@ internal object Feilresponser {
         "kunne_ikke_legge_til_fradragsgrunnlag",
     )
 
+    val kunneIkkeAvgjøreOmFørstegangEllerNyPeriode = InternalServerError.errorJson(
+        "Kunne ikke opprette oppgave siden vi ikke kan avgjøre om det er en FØRSTEGANGSSØKNAD eller NY_PERIODE",
+        "kunne_ikke_avgjøre_om_førstegang_eller_ny_periode",
+    )
+
     object Brev {
         val kunneIkkeGenerereBrev = InternalServerError.errorJson(
             "Kunne ikke generere brev",
