@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -19,13 +18,10 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.behandling.withVilkårIkkeVurdert
 import no.nav.su.se.bakover.domain.fixedTidspunkt
-import no.nav.su.se.bakover.domain.fnrUnder67
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.test.attesteringUnderkjent
 import no.nav.su.se.bakover.test.beregning
-import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
@@ -55,9 +51,13 @@ internal class StatusovergangTest {
         ),
     )
 
-    private val opprettet = søknadsbehandlingVilkårsvurdertUavklart(
+    private val sakOgUavklart = søknadsbehandlingVilkårsvurdertUavklart(
         stønadsperiode = stønadsperiode,
-    ).second
+    )
+
+    private val sak = sakOgUavklart.first
+
+    private val opprettet = sakOgUavklart.second
 
     private val simulering = no.nav.su.se.bakover.test.simuleringNy()
 
@@ -779,18 +779,6 @@ internal class StatusovergangTest {
 
     @Nested
     inner class OppdaterStønadsperiode {
-        val sak = Sak(
-            id = sakId,
-            saksnummer = saksnummer,
-            opprettet = no.nav.su.se.bakover.test.fixedTidspunkt,
-            fnr = fnrUnder67(),
-            søknader = listOf(),
-            søknadsbehandlinger = listOf(),
-            utbetalinger = listOf(),
-            revurderinger = listOf(),
-            vedtakListe = listOf(),
-        )
-
         @Test
         fun `lovlige overganger`() {
             listOf(
@@ -815,17 +803,6 @@ internal class StatusovergangTest {
 
         @Test
         fun `ulovlige overganger`() {
-            val sak = Sak(
-                id = sakId,
-                saksnummer = saksnummer,
-                opprettet = no.nav.su.se.bakover.test.fixedTidspunkt,
-                fnr = fnrUnder67(),
-                søknader = listOf(),
-                søknadsbehandlinger = listOf(),
-                utbetalinger = listOf(),
-                revurderinger = listOf(),
-                vedtakListe = listOf(),
-            )
             listOf(
                 tilAttesteringAvslagBeregning,
                 tilAttesteringAvslagVilkår,
@@ -883,7 +860,7 @@ internal class StatusovergangTest {
                     sak = sak,
                 ),
             )
-            actual shouldBe Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedEksisterendeStønadsperiode.left()
+            actual shouldBe Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode.left()
         }
 
         @Test

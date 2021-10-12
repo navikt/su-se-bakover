@@ -168,8 +168,9 @@ internal fun Route.søknadsbehandlingRoutes(
                                                 fantIkkeSak
                                             }
                                             is SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode -> {
-                                                when (error.feil) {
+                                                when (val feil = error.feil) {
                                                     is Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
+                                                        log.error("Feil ved oppdatering av stønadsperiode: ${feil.feil}")
                                                         InternalServerError.errorJson(
                                                             "Feil ved oppdatering av stønadsperiode",
                                                             "oppdatering_av_stønadsperiode",
@@ -181,7 +182,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                                             "senere_stønadsperioder_eksisterer",
                                                         )
                                                     }
-                                                    Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedEksisterendeStønadsperiode -> {
+                                                    Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode -> {
                                                         BadRequest.errorJson(
                                                             "Stønadsperioden overlapper med eksisterende stønadsperiode",
                                                             "stønadsperioden_overlapper_med_eksisterende_søknadsbehandling",

@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.flatten
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonValue
@@ -108,21 +107,21 @@ data class Sak(
     }
 
     /**
-     * Identifisere alle aktive perioder innenfor en opprinnelig innvilget stønadsperiode.
-     * Aktiv er her definert som ikke opphørt.
+     * Identifiser alle perioder hvor ytelsen har vært eller vil være løpende.
      */
-    fun hentAktiveStønadsperioder(): List<Periode> {
+    fun hentPerioderMedLøpendeYtelse(clock: Clock = Clock.systemUTC()): List<Periode> {
         return vedtakListe.filterIsInstance<Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling>()
-            .associateWith { innvilgetSøknadsbehandling ->
+            .map { it.periode }
+            .flatMap { innvilgetStønadsperiode ->
                 vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
                     .lagTidslinje(
-                        periode = innvilgetSøknadsbehandling.periode,
-                        clock = Clock.systemUTC(),
+                        periode = innvilgetStønadsperiode,
+                        clock = clock,
                     ).tidslinje
                     .filterNot { it.originaltVedtak.erOpphør() }
                     .map { it.periode }
                     .reduser()
-            }.values.flatten()
+            }.reduser()
     }
 }
 

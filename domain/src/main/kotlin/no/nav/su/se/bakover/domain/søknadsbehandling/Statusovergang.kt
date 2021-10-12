@@ -219,14 +219,14 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
             data class KunneIkkeOppdatereGrunnlagsdata(val feil: KunneIkkeLageGrunnlagsdata) :
                 KunneIkkeOppdatereStønadsperiode()
 
-            object StønadsperiodeOverlapperMedEksisterendeStønadsperiode : KunneIkkeOppdatereStønadsperiode()
+            object StønadsperiodeOverlapperMedLøpendeStønadsperiode : KunneIkkeOppdatereStønadsperiode()
             object StønadsperiodeForSenerePeriodeEksisterer : KunneIkkeOppdatereStønadsperiode()
         }
 
         private fun oppdater(søknadsbehandling: Søknadsbehandling): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling.Vilkårsvurdert> {
-            sak.hentAktiveStønadsperioder().let { stønadsperioder ->
+            sak.hentPerioderMedLøpendeYtelse().let { stønadsperioder ->
                 if (stønadsperioder.any { it overlapper oppdatertStønadsperiode.periode }) {
-                    return KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedEksisterendeStønadsperiode.left()
+                    return KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode.left()
                 }
                 if (stønadsperioder.any { it.starterSamtidigEllerSenere(oppdatertStønadsperiode.periode) }) {
                     return KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer.left()
