@@ -51,7 +51,7 @@ internal class SøknadsbehandlingPostgresRepo(
 ) : SøknadsbehandlingRepo {
     override fun lagre(søknadsbehandling: Søknadsbehandling, sessionContext: SessionContext) {
         sessionContext.withSession { session ->
-            when (søknadsbehandling) {
+            return@withSession when (søknadsbehandling) {
                 is Søknadsbehandling.Vilkårsvurdert -> lagre(søknadsbehandling, session)
                 is Søknadsbehandling.Beregnet -> lagre(søknadsbehandling, session)
                 is Søknadsbehandling.Simulert -> lagre(søknadsbehandling, session)
@@ -59,7 +59,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 is Søknadsbehandling.Underkjent -> lagre(søknadsbehandling, session)
                 is Søknadsbehandling.Iverksatt -> lagre(søknadsbehandling, session)
                 is LukketSøknadsbehandling -> lagre(søknadsbehandling, session)
-            }.javaClass // Forcing exhaustive when until Kotlin languageVersion 1.6
+            }
         }
     }
 
