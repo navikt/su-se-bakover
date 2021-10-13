@@ -15,6 +15,11 @@ internal object Feilresponser {
         "fant_ikke_behandling",
     )
 
+    val fantIkkeSak = NotFound.errorJson(
+        "Fant ikke sak",
+        "fant_ikke_sak",
+    )
+
     val fantIkkePerson = NotFound.errorJson(
         "Fant ikke person",
         "fant_ikke_person",

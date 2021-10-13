@@ -134,13 +134,12 @@ interface SøknadsbehandlingService {
     )
 
     object FantIkkeBehandling
-    object KunneIkkeHenteAktiveBehandlinger
 
     sealed class KunneIkkeOppdatereStønadsperiode {
         object FantIkkeBehandling : SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
+        object FantIkkeSak : SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
         data class KunneIkkeOppdatereStønadsperiode(val feil: Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode) :
             SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
-        object StønadsperiodeOverlapperMedEksisterendeSøknadsbehandling : SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
     }
 
     data class OppdaterStønadsperiodeRequest(

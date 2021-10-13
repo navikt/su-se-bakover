@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.common.periode
 
 import arrow.core.left
+import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -449,5 +450,76 @@ internal class PeriodeTest {
         val deserialized = objectMapper.readValue<Periode>(serialized)
 
         deserialized shouldBe Periode.create(1.januar(2021), 31.desember(2021))
+    }
+
+    @Test
+    fun `slår sammen perioder hvis mulig`() {
+        Periode.create(1.januar(2021), 31.januar(2021)) slåSammen
+            Periode.create(1.februar(2021), 28.februar(2021)) shouldBe (Periode.create(1.januar(2021), 28.februar(2021))).right()
+
+        Periode.create(1.januar(2021), 31.juli(2021)) slåSammen
+            Periode.create(1.februar(2021), 28.februar(2021)) shouldBe (Periode.create(1.januar(2021), 31.juli(2021))).right()
+
+        Periode.create(1.september(2021), 31.desember(2021)) slåSammen
+            Periode.create(1.mars(2021), 31.oktober(2021)) shouldBe (Periode.create(1.mars(2021), 31.desember(2021))).right()
+
+        Periode.create(1.mars(2021), 31.mars(2021)) slåSammen
+            Periode.create(1.april(2021), 30.april(2021)) shouldBe (Periode.create(1.mars(2021), 30.april(2021))).right()
+
+        Periode.create(1.juni(2021), 31.desember(2021)) slåSammen
+            Periode.create(1.mars(2021), 31.mai(2021)) shouldBe (Periode.create(1.mars(2021), 31.desember(2021))).right()
+
+        Periode.create(1.juni(2021), 31.juli(2021)) slåSammen
+            Periode.create(1.oktober(2021), 31.desember(2021)) shouldBe Periode.PerioderKanIkkeSlåsSammen.left()
+    }
+
+    @Test
+    fun `reduserer perioder`() {
+        listOf(
+            Periode.create(1.januar(2021), 31.januar(2021)),
+            Periode.create(1.februar(2021), 28.februar(2021)),
+            Periode.create(1.mars(2021), 31.mars(2021)),
+            Periode.create(1.april(2021), 30.april(2021)),
+        ).reduser() shouldBe listOf(
+            Periode.create(1.januar(2021), 30.april(2021)),
+        )
+
+        listOf(
+            Periode.create(1.januar(2021), 31.mars(2021)),
+            Periode.create(1.februar(2021), 30.april(2021)),
+        ).reduser() shouldBe listOf(
+            Periode.create(1.januar(2021), 30.april(2021)),
+        )
+
+        listOf(
+            Periode.create(1.januar(2021), 31.mars(2021)),
+            Periode.create(1.mars(2021), 31.desember(2021)),
+        ).reduser() shouldBe listOf(
+            Periode.create(1.januar(2021), 31.desember(2021)),
+        )
+
+        listOf(
+            Periode.create(1.april(2021), 31.juli(2021)),
+            Periode.create(1.februar(2021), 31.mars(2021)),
+            Periode.create(1.februar(2021), 31.desember(2021)),
+        ).reduser() shouldBe listOf(
+            Periode.create(1.februar(2021), 31.desember(2021)),
+        )
+
+        listOf(
+            Periode.create(1.april(2021), 31.juli(2021)),
+            Periode.create(1.februar(2022), 31.mars(2022)),
+        ).reduser() shouldBe listOf(
+            Periode.create(1.april(2021), 31.juli(2021)),
+            Periode.create(1.februar(2022), 31.mars(2022)),
+        )
+
+        listOf(
+            Periode.create(1.april(2021), 31.juli(2021)),
+        ).reduser() shouldBe listOf(
+            Periode.create(1.april(2021), 31.juli(2021))
+        )
+
+        emptyList<Periode>().reduser() shouldBe emptyList()
     }
 }

@@ -74,6 +74,19 @@ data class Periode private constructor(
         ) else null
     }
 
+    infix fun slåSammen(other: Periode): Either<PerioderKanIkkeSlåsSammen, Periode> {
+        return if (overlapper(other) || tilstøter(other)) {
+            create(
+                fraOgMed = minOf(this.fraOgMed, other.fraOgMed),
+                tilOgMed = maxOf(this.tilOgMed, other.tilOgMed),
+            ).right()
+        } else {
+            PerioderKanIkkeSlåsSammen.left()
+        }
+    }
+
+    object PerioderKanIkkeSlåsSammen
+
     infix fun starterSamtidigEllerTidligere(other: Periode) = starterSamtidig(other) || starterTidligere(other)
     infix fun starterSamtidigEllerSenere(other: Periode) = starterSamtidig(other) || starterEtter(other)
     infix fun starterSamtidig(other: Periode) = fraOgMed.isEqual(other.fraOgMed)
@@ -133,4 +146,20 @@ fun List<Periode>.minAndMaxOf(): Periode {
         fraOgMed = this.minOf { it.fraOgMed },
         tilOgMed = this.maxOf { it.tilOgMed },
     )
+}
+
+/**
+ * Reduserer en liste med [Periode] ved å slå sammen elementer etter reglene definert av [Periode.kanSlåsSammen]
+ */
+fun List<Periode>.reduser(): List<Periode> {
+    return fold(mutableListOf()) { slåttSammen: MutableList<Periode>, periode: Periode ->
+        val forrige = slåttSammen.lastOrNull()
+        when {
+            forrige == null -> slåttSammen.add(periode)
+            (forrige slåSammen periode).isRight() -> slåttSammen[slåttSammen.lastIndex] = forrige.slåSammen(periode)
+                .getOrHandle { throw IllegalStateException("Skulle gått bra") }
+            else -> slåttSammen.add(periode)
+        }
+        slåttSammen
+    }
 }

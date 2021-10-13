@@ -53,6 +53,7 @@ import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
@@ -87,6 +88,7 @@ internal class SøknadsbehandlingServiceImpl(
     private val ferdigstillVedtakService: FerdigstillVedtakService,
     private val vilkårsvurderingService: VilkårsvurderingService,
     private val grunnlagService: GrunnlagService,
+    private val sakService: SakService,
 ) : SøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -200,7 +202,12 @@ internal class SøknadsbehandlingServiceImpl(
         return forsøkStatusovergang(
             søknadsbehandling = saksbehandling,
             statusovergang = Statusovergang.TilSimulert { beregning ->
-                utbetalingService.simulerUtbetaling(saksbehandling.sakId, request.saksbehandler, beregning, saksbehandling.vilkårsvurderinger.uføre.grunnlag)
+                utbetalingService.simulerUtbetaling(
+                    saksbehandling.sakId,
+                    request.saksbehandler,
+                    beregning,
+                    saksbehandling.vilkårsvurderinger.uføre.grunnlag,
+                )
                     .map {
                         it.simulering
                     }
@@ -351,7 +358,7 @@ internal class SøknadsbehandlingServiceImpl(
                     attestant = request.attestering.attestant,
                     beregning = it.beregning,
                     simulering = it.simulering,
-                    uføregrunnlag = it.vilkårsvurderinger.uføre.grunnlag
+                    uføregrunnlag = it.vilkårsvurderinger.uføre.grunnlag,
                 ).mapLeft { kunneIkkeUtbetale ->
                     log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $kunneIkkeUtbetale")
                     KunneIkkeIverksette.KunneIkkeUtbetale(kunneIkkeUtbetale)
@@ -508,25 +515,31 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
 
-        val tidligereSøknadsbehandlinger = søknadsbehandlingRepo.hentForSak(søknadsbehandling.sakId)
-            .filter { it.id != søknadsbehandling.id }
+        val sak = sakService.hentSak(søknadsbehandling.sakId)
+            .getOrHandle { return SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeSak.left() }
 
         return forsøkStatusovergang(
             søknadsbehandling = søknadsbehandling,
-            statusovergang = Statusovergang.OppdaterStønadsperiode(request.stønadsperiode, tidligereSøknadsbehandlinger),
+            statusovergang = Statusovergang.OppdaterStønadsperiode(
+                oppdatertStønadsperiode = request.stønadsperiode,
+                sak = sak,
+            ),
         ).mapLeft {
-            when (it) {
-                is Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode(it)
-                Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedEksisterendeSøknadsbehandling -> SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedEksisterendeSøknadsbehandling
-            }
+            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)
             vilkårsvurderingService.lagre(
-                it.id,
-                it.vilkårsvurderinger,
+                behandlingId = it.id,
+                vilkårsvurderinger = it.vilkårsvurderinger,
             )
-            grunnlagService.lagreBosituasjongrunnlag(it.id, it.grunnlagsdata.bosituasjon)
-            grunnlagService.lagreFradragsgrunnlag(it.id, it.grunnlagsdata.fradragsgrunnlag)
+            grunnlagService.lagreBosituasjongrunnlag(
+                behandlingId = it.id,
+                bosituasjongrunnlag = it.grunnlagsdata.bosituasjon,
+            )
+            grunnlagService.lagreFradragsgrunnlag(
+                behandlingId = it.id,
+                fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
+            )
             it
         }
     }
