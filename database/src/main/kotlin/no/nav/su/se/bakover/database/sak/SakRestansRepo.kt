@@ -29,7 +29,7 @@ internal class SakRestansRepo(
                      select sak.sakId, sak.saksnummer, b.id, b.opprettet, b.status as status, 'SØKNADSBEHANDLING' as type
                      from sak
                               join behandling b on b.sakid = sak.sakId
-                     where b.status not like ('IVERKSATT%')
+                     where b.status not like ('IVERKSATT%') and b.lukket = false
                  ),
                  revurderinger as (
                      select sak.sakId, sak.saksnummer, r.id, r.opprettet, r.revurderingstype as status, 'REVURDERING' as type
