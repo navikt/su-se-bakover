@@ -165,6 +165,7 @@ object ServiceBuilder {
                 ferdigstillVedtakService = ferdigstillVedtakService,
                 vilkårsvurderingService = vilkårsvurderingService,
                 grunnlagService = grunnlagService,
+                sakService = sakService,
             ).apply {
                 addObserver(statistikkService)
             },

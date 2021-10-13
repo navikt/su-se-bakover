@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.reduser
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
@@ -22,6 +23,7 @@ import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -102,6 +104,24 @@ data class Sak(
 
     fun hentSøknadstypeUtenBehandling(): Either<KunneIkkeAvgjøreOmFørstegangEllerNyPeriode, Søknadstype> {
         return this.søknadsbehandlinger.hentSøknadstypeUtenBehandling()
+    }
+
+    /**
+     * Identifiser alle perioder hvor ytelsen har vært eller vil være løpende.
+     */
+    fun hentPerioderMedLøpendeYtelse(clock: Clock = Clock.systemUTC()): List<Periode> {
+        return vedtakListe.filterIsInstance<Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling>()
+            .map { it.periode }
+            .flatMap { innvilgetStønadsperiode ->
+                vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+                    .lagTidslinje(
+                        periode = innvilgetStønadsperiode,
+                        clock = clock,
+                    ).tidslinje
+                    .filterNot { it.originaltVedtak.erOpphør() }
+                    .map { it.periode }
+                    .reduser()
+            }.reduser()
     }
 }
 

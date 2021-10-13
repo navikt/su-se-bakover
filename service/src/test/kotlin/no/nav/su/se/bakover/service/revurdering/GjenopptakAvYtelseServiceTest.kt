@@ -32,7 +32,7 @@ import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.simulertGjenopptakUtbetaling
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelse
+import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -105,7 +105,7 @@ class GjenopptakAvYtelseServiceTest {
             tilOgMed = periode2021.tilOgMed,
         )
 
-        val (sak, _) = vedtakIverksattStansAvYtelse(periode)
+        val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode)
 
         val sakServiceMock = mock<SakService>() {
             on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -155,7 +155,7 @@ class GjenopptakAvYtelseServiceTest {
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
             tilOgMed = periode2021.tilOgMed,
         )
-        val (sak, vedtak) = vedtakIverksattStansAvYtelse(periode)
+        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode)
 
         val sakServiceMock = mock<SakService>() {
             on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -228,7 +228,7 @@ class GjenopptakAvYtelseServiceTest {
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
             tilOgMed = periode2021.tilOgMed,
         )
-        val (sak, vedtak) = vedtakIverksattStansAvYtelse(periode)
+        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode)
 
         val sakServiceMock = mock<SakService>() {
             on { hentSak(any<UUID>()) } doReturn sak.right()

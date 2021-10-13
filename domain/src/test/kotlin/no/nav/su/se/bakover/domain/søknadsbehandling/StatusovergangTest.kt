@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -26,6 +27,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt12000
+import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -49,9 +51,13 @@ internal class StatusovergangTest {
         ),
     )
 
-    private val opprettet = søknadsbehandlingVilkårsvurdertUavklart(
+    private val sakOgUavklart = søknadsbehandlingVilkårsvurdertUavklart(
         stønadsperiode = stønadsperiode,
-    ).second
+    )
+
+    private val sak = sakOgUavklart.first
+
+    private val opprettet = sakOgUavklart.second
 
     private val simulering = no.nav.su.se.bakover.test.simuleringNy()
 
@@ -203,7 +209,8 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentInnvilget,
                 Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
-            ) shouldBe vilkårsvurdertInnvilget.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev).copy(attesteringer = Attesteringshistorikk(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())))
+            ) shouldBe vilkårsvurdertInnvilget.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
+                .copy(attesteringer = Attesteringshistorikk(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -211,7 +218,8 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentInnvilget,
                 Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
-            ) shouldBe vilkårsvurdertAvslag.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev).copy(attesteringer = Attesteringshistorikk(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())))
+            ) shouldBe vilkårsvurdertAvslag.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
+                .copy(attesteringer = Attesteringshistorikk(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -219,7 +227,8 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagVilkår,
                 Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
-            ) shouldBe vilkårsvurdertInnvilget.medFritekstTilBrev(underkjentAvslagVilkår.fritekstTilBrev).copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagVilkår.attesteringer.hentSisteAttestering())))
+            ) shouldBe vilkårsvurdertInnvilget.medFritekstTilBrev(underkjentAvslagVilkår.fritekstTilBrev)
+                .copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagVilkår.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -227,7 +236,8 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagVilkår,
                 Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
-            ) shouldBe vilkårsvurdertAvslag.medFritekstTilBrev(underkjentAvslagVilkår.fritekstTilBrev).copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagVilkår.attesteringer.hentSisteAttestering())))
+            ) shouldBe vilkårsvurdertAvslag.medFritekstTilBrev(underkjentAvslagVilkår.fritekstTilBrev)
+                .copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagVilkår.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -235,7 +245,8 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagBeregning,
                 Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
-            ) shouldBe vilkårsvurdertInnvilget.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev).copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
+            ) shouldBe vilkårsvurdertInnvilget.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
+                .copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -243,7 +254,8 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagBeregning,
                 Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
-            ) shouldBe vilkårsvurdertAvslag.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev).copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
+            ) shouldBe vilkårsvurdertAvslag.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
+                .copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -343,7 +355,8 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagBeregning,
                 Statusovergang.TilBeregnet { innvilgetBeregning },
-            ) shouldBe beregnetInnvilget.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev).copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
+            ) shouldBe beregnetInnvilget.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
+                .copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -351,7 +364,8 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagBeregning,
                 Statusovergang.TilBeregnet { avslagBeregning },
-            ) shouldBe beregnetAvslag.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev).copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
+            ) shouldBe beregnetAvslag.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
+                .copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -359,7 +373,8 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentInnvilget,
                 Statusovergang.TilBeregnet { innvilgetBeregning },
-            ) shouldBe beregnetInnvilget.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev).copy(attesteringer = Attesteringshistorikk(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())))
+            ) shouldBe beregnetInnvilget.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
+                .copy(attesteringer = Attesteringshistorikk(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -367,7 +382,8 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentInnvilget,
                 Statusovergang.TilBeregnet { avslagBeregning },
-            ) shouldBe beregnetAvslag.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev).copy(attesteringer = Attesteringshistorikk(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())))
+            ) shouldBe beregnetAvslag.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
+                .copy(attesteringer = Attesteringshistorikk(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())))
         }
 
         @Test
@@ -458,7 +474,11 @@ internal class StatusovergangTest {
                 Statusovergang.TilSimulert {
                     simulering.right()
                 },
-            ) shouldBe simulert.copy(fritekstTilBrev = "Fritekst til brev", attesteringer = Attesteringshistorikk(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering()))).right()
+            ) shouldBe simulert.copy(
+                fritekstTilBrev = "Fritekst til brev",
+                attesteringer = Attesteringshistorikk(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())),
+            )
+                .right()
         }
 
         @Test
@@ -518,7 +538,13 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagVilkår,
                 Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
-            ) shouldBe tilAttesteringAvslagVilkår.copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagVilkår.attesteringer.hentSisteAttestering())))
+            ) shouldBe tilAttesteringAvslagVilkår.copy(
+                attesteringer = Attesteringshistorikk(
+                    listOf(
+                        underkjentAvslagVilkår.attesteringer.hentSisteAttestering(),
+                    ),
+                ),
+            )
         }
 
         @Test
@@ -526,7 +552,13 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentAvslagBeregning,
                 Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
-            ) shouldBe tilAttesteringAvslagBeregning.copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
+            ) shouldBe tilAttesteringAvslagBeregning.copy(
+                attesteringer = Attesteringshistorikk(
+                    listOf(
+                        underkjentAvslagBeregning.attesteringer.hentSisteAttestering(),
+                    ),
+                ),
+            )
         }
 
         @Test
@@ -595,7 +627,7 @@ internal class StatusovergangTest {
                         attestant = NavIdentBruker.Attestant("sneaky"),
                         grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                         kommentar = "",
-                        opprettet = fixedTidspunkt
+                        opprettet = fixedTidspunkt,
                     ),
                 ),
             ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
@@ -610,7 +642,7 @@ internal class StatusovergangTest {
                         attestant = NavIdentBruker.Attestant("sneaky"),
                         grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                         kommentar = "",
-                        opprettet = fixedTidspunkt
+                        opprettet = fixedTidspunkt,
                     ),
                 ),
             ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
@@ -625,7 +657,7 @@ internal class StatusovergangTest {
                         attestant = NavIdentBruker.Attestant("sneaky"),
                         grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                         kommentar = "",
-                        opprettet = fixedTidspunkt
+                        opprettet = fixedTidspunkt,
                     ),
                 ),
             ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
@@ -747,7 +779,6 @@ internal class StatusovergangTest {
 
     @Nested
     inner class OppdaterStønadsperiode {
-
         @Test
         fun `lovlige overganger`() {
             listOf(
@@ -764,7 +795,7 @@ internal class StatusovergangTest {
                 assertDoesNotThrow {
                     forsøkStatusovergang(
                         søknadsbehandling = it,
-                        statusovergang = Statusovergang.OppdaterStønadsperiode(stønadsperiode, emptyList()),
+                        statusovergang = Statusovergang.OppdaterStønadsperiode(stønadsperiode, sak),
                     )
                 }
             }
@@ -783,7 +814,10 @@ internal class StatusovergangTest {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     forsøkStatusovergang(
                         søknadsbehandling = it,
-                        statusovergang = Statusovergang.OppdaterStønadsperiode(stønadsperiode, emptyList()),
+                        statusovergang = Statusovergang.OppdaterStønadsperiode(
+                            oppdatertStønadsperiode = stønadsperiode,
+                            sak = sak,
+                        ),
                     )
                 }
             }
@@ -791,14 +825,14 @@ internal class StatusovergangTest {
 
         @Test
         fun `oppdaterer perioden riktig`() {
-            val opprettetSøknadsbehandling = søknadsbehandlingVilkårsvurdertInnvilget().second
+            val (sak, vilkårsvurdert) = søknadsbehandlingVilkårsvurdertInnvilget()
 
             val nyPeriode = Periode.create(1.februar(2022), 31.mars(2022))
             val actual = forsøkStatusovergang(
-                søknadsbehandling = opprettetSøknadsbehandling,
+                søknadsbehandling = vilkårsvurdert,
                 statusovergang = Statusovergang.OppdaterStønadsperiode(
-                    Stønadsperiode.create(nyPeriode, ""),
-                    tidligereSøknadsbehandlinger = listOf(søknadsbehandlingVilkårsvurdertUavklart().second),
+                    oppdatertStønadsperiode = Stønadsperiode.create(nyPeriode, ""),
+                    sak = sak,
                 ),
             )
             actual.orNull()!!.periode shouldBe nyPeriode
@@ -809,17 +843,62 @@ internal class StatusovergangTest {
 
         @Test
         fun `stønadsperioder skal ikke kunne overlappe`() {
+            val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+                stønadsperiode = Stønadsperiode.create(
+                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                    begrunnelse = "kek",
+                ),
+            )
             val opprettetSøknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().second
 
             val nyPeriode = Periode.create(1.desember(2021), 31.mars(2022))
+
             val actual = forsøkStatusovergang(
                 søknadsbehandling = opprettetSøknadsbehandling,
                 statusovergang = Statusovergang.OppdaterStønadsperiode(
-                    Stønadsperiode.create(nyPeriode, ""),
-                    tidligereSøknadsbehandlinger = listOf(søknadsbehandlingVilkårsvurdertUavklart().second),
+                    oppdatertStønadsperiode = Stønadsperiode.create(nyPeriode, ""),
+                    sak = sak,
                 ),
             )
-            actual shouldBe Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedEksisterendeSøknadsbehandling.left()
+            actual shouldBe Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode.left()
+        }
+
+        @Test
+        fun `stønadsperioder skal ikke kunne legges forut for eksisterende stønadsperioder`() {
+            val (sak, stønadsperiode1) = vedtakSøknadsbehandlingIverksattInnvilget()
+
+            val (_, stønadsperiode2) = vedtakSøknadsbehandlingIverksattInnvilget(
+                stønadsperiode = Stønadsperiode.create(
+                    periode = Periode.create(1.januar(2023), 31.desember(2023)),
+                    begrunnelse = "ny periode da vett",
+                ),
+            )
+
+            val mellomToAndrePerioder = søknadsbehandlingVilkårsvurdertUavklart().second
+
+            val nyPeriode = Stønadsperiode.create(
+                periode = Periode.create(1.januar(2022), 31.desember(2022)),
+                begrunnelse = "ny periode da vett",
+            )
+
+            val sakMedBehandlingOgVedtak = sak.copy(
+                søknadsbehandlinger = listOf(
+                    stønadsperiode1.behandling,
+                    stønadsperiode2.behandling,
+                    mellomToAndrePerioder,
+                ),
+                vedtakListe = listOf(stønadsperiode1, stønadsperiode2),
+            )
+
+            forsøkStatusovergang(
+                søknadsbehandling = mellomToAndrePerioder,
+                statusovergang = Statusovergang.OppdaterStønadsperiode(
+                    oppdatertStønadsperiode = nyPeriode,
+                    sak = sakMedBehandlingOgVedtak,
+                ),
+            ).let {
+                it shouldBe Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer.left()
+            }
         }
     }
 }

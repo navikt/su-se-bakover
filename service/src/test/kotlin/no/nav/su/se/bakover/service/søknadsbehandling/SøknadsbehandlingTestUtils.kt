@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -50,6 +51,7 @@ internal fun createSøknadsbehandlingService(
     ferdigstillVedtakService: FerdigstillVedtakService = mock(),
     vilkårsvurderingService: VilkårsvurderingService = mock(),
     grunnlagService: GrunnlagService = mock(),
+    sakService: SakService = mock(),
 ) = SøknadsbehandlingServiceImpl(
     søknadService,
     søknadRepo,
@@ -66,6 +68,7 @@ internal fun createSøknadsbehandlingService(
     ferdigstillVedtakService,
     vilkårsvurderingService,
     grunnlagService,
+    sakService,
 ).apply { addObserver(observer) }
 
 internal data class SøknadsbehandlingServiceAndMocks(
@@ -85,6 +88,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
     val ferdigstillVedtakService: FerdigstillVedtakService = mock(),
     val vilkårsvurderingService: VilkårsvurderingService = mock(),
     val grunnlagService: GrunnlagService = mock(),
+    val sakService: SakService = mock()
 ) {
     val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
         søknadService = søknadService,
@@ -102,6 +106,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
         ferdigstillVedtakService = ferdigstillVedtakService,
         vilkårsvurderingService = vilkårsvurderingService,
         grunnlagService = grunnlagService,
+        sakService = sakService,
     ).apply { addObserver(observer) }
 
     fun all(): List<Any> {
@@ -121,6 +126,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
             ferdigstillVedtakService,
             vilkårsvurderingService,
             grunnlagService,
+            sakService,
         )
     }
 
@@ -141,6 +147,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
             ferdigstillVedtakService,
             vilkårsvurderingService,
             grunnlagService,
+            sakService,
         )
     }
 }
