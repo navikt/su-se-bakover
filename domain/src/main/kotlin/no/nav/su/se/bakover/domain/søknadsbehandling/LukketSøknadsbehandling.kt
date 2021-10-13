@@ -22,7 +22,8 @@ data class LukketSøknadsbehandling private constructor(
     override val sakId = lukketSøknadsbehandling.sakId
     override val saksnummer = lukketSøknadsbehandling.saksnummer
     override val fnr = lukketSøknadsbehandling.fnr
-    override val periode = lukketSøknadsbehandling.periode
+    // Så vi kan initialiseres uten at periode er satt (typisk ved ny søknadsbehandling)
+    override val periode by lazy { lukketSøknadsbehandling.periode }
 
     companion object {
 
