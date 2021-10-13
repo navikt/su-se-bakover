@@ -257,7 +257,7 @@ internal class SøknadRoutesKtTest {
                     objectMapper.writeValueAsString(
                         LukketJson.TrukketJson(
                             datoSøkerTrakkSøknad = 1.januar(2020),
-                            type = Søknad.Lukket.LukketType.TRUKKET,
+                            type = Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET,
                         ),
                     ),
                 )
@@ -292,7 +292,7 @@ internal class SøknadRoutesKtTest {
                     objectMapper.writeValueAsString(
                         LukketJson.TrukketJson(
                             datoSøkerTrakkSøknad = 1.januar(2020),
-                            type = Søknad.Lukket.LukketType.TRUKKET,
+                            type = Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET,
                         ),
                     ),
                 )
@@ -326,7 +326,7 @@ internal class SøknadRoutesKtTest {
                 setBody(
                     objectMapper.writeValueAsString(
                         LukketJson.AvvistJson(
-                            type = Søknad.Lukket.LukketType.AVVIST,
+                            type = Søknad.Journalført.MedOppgave.Lukket.LukketType.AVVIST,
                             brevConfig = LukketJson.AvvistJson.BrevConfigJson(
                                 brevtype = LukketJson.BrevType.FRITEKST,
                                 null,
@@ -394,7 +394,7 @@ internal class SøknadRoutesKtTest {
                     objectMapper.writeValueAsString(
                         LukketJson.TrukketJson(
                             datoSøkerTrakkSøknad = 1.januar(2020),
-                            type = Søknad.Lukket.LukketType.TRUKKET,
+                            type = Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET,
                         ),
                     ),
                 )

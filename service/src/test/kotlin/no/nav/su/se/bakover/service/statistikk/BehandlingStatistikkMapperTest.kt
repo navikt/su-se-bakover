@@ -103,7 +103,7 @@ internal class BehandlingStatistikkMapperTest {
     @Test
     fun `mapper lukket søknad`() {
         val saksnummer = Saksnummer(2079L)
-        val søknad = Søknad.Lukket(
+        val søknad = Søknad.Journalført.MedOppgave.Lukket(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
             sakId = UUID.randomUUID(),
@@ -112,7 +112,7 @@ internal class BehandlingStatistikkMapperTest {
             oppgaveId = OppgaveId("oppgaveid"),
             lukketTidspunkt = Tidspunkt.now(fixedClock),
             lukketAv = NavIdentBruker.Saksbehandler(navIdent = "Mr Lukker"),
-            lukketType = Søknad.Lukket.LukketType.AVVIST,
+            lukketType = Søknad.Journalført.MedOppgave.Lukket.LukketType.AVVIST,
         )
 
         BehandlingStatistikkMapper(fixedClock).map(søknad, saksnummer, Statistikk.Behandling.SøknadStatus.SØKNAD_LUKKET) shouldBe Statistikk.Behandling(
@@ -588,7 +588,7 @@ internal class BehandlingStatistikkMapperTest {
         }
     }
 
-    private val søknad = Søknad.Journalført.MedOppgave(
+    private val søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(fixedClock),
         sakId = UUID.randomUUID(),

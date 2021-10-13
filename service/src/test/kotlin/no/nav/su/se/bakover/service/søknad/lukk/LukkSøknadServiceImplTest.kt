@@ -13,8 +13,8 @@ import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.Søknad.Lukket.LukketType.AVVIST
-import no.nav.su.se.bakover.domain.Søknad.Lukket.LukketType.TRUKKET
+import no.nav.su.se.bakover.domain.Søknad.Journalført.MedOppgave.Lukket.LukketType.AVVIST
+import no.nav.su.se.bakover.domain.Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET
 import no.nav.su.se.bakover.domain.brev.BrevConfig
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
@@ -39,7 +39,6 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.lukketSøknad
 import no.nav.su.se.bakover.test.nySakMedJournalførtSøknadUtenOppgave
 import no.nav.su.se.bakover.test.nySakMedNySøknad
 import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
@@ -49,6 +48,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingLukket
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
+import no.nav.su.se.bakover.test.trukketSøknad
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -182,7 +182,7 @@ internal class LukkSøknadServiceImplTest {
                 verify(brevServiceMock).lagBrev(expectedRequest)
                 verify(søknadServiceMock).lukkSøknad(
                     søknad = argThat {
-                        it shouldBe Søknad.Lukket(
+                        it shouldBe Søknad.Journalført.MedOppgave.Lukket(
                             id = søknad.id,
                             opprettet = søknad.opprettet,
                             sakId = søknad.sakId,
@@ -216,7 +216,7 @@ internal class LukkSøknadServiceImplTest {
                 verify(serviceAndMocks.lukkSøknadServiceObserver).handle(
                     argThat {
                         it shouldBe Event.Statistikk.SøknadStatistikk.SøknadLukket(
-                            Søknad.Lukket(
+                            Søknad.Journalført.MedOppgave.Lukket(
                                 id = søknad.id,
                                 opprettet = søknad.opprettet,
                                 sakId = søknad.sakId,
@@ -239,7 +239,7 @@ internal class LukkSøknadServiceImplTest {
     @Test
     fun `lukker avvist søknad uten brev`() {
         val (sak, søknadsbehandling) = søknadsbehandlingVilkårsvurdertUavklart()
-        val søknad = sak.søknader.first() as Søknad.Journalført.MedOppgave
+        val søknad = sak.søknader.first() as Søknad.Journalført.MedOppgave.IkkeLukket
         val søknadServiceMock = mock<SøknadService> {
             on { hentSøknad(any()) } doReturn søknad.right()
         }
@@ -303,7 +303,7 @@ internal class LukkSøknadServiceImplTest {
                 verify(serviceAndMocks.lukkSøknadServiceObserver).handle(
                     argThat {
                         it shouldBe Event.Statistikk.SøknadStatistikk.SøknadLukket(
-                            Søknad.Lukket(
+                            Søknad.Journalført.MedOppgave.Lukket(
                                 id = søknad.id,
                                 opprettet = søknad.opprettet,
                                 sakId = søknad.sakId,
@@ -384,7 +384,7 @@ internal class LukkSøknadServiceImplTest {
                 verify(brevServiceMock).lagBrev(expectedRequest)
                 verify(søknadServiceMock).lukkSøknad(
                     argThat {
-                        it shouldBe Søknad.Lukket(
+                        it shouldBe Søknad.Journalført.MedOppgave.Lukket(
                             id = søknad.id,
                             opprettet = søknad.opprettet,
                             sakId = søknad.sakId,
@@ -418,7 +418,7 @@ internal class LukkSøknadServiceImplTest {
                 verify(serviceAndMocks.lukkSøknadServiceObserver).handle(
                     argThat {
                         it shouldBe Event.Statistikk.SøknadStatistikk.SøknadLukket(
-                            Søknad.Lukket(
+                            Søknad.Journalført.MedOppgave.Lukket(
                                 id = søknad.id,
                                 opprettet = søknad.opprettet,
                                 sakId = søknad.sakId,
@@ -552,7 +552,7 @@ internal class LukkSøknadServiceImplTest {
 
     @Test
     fun `en allerede trukket søknad skal ikke bli trukket`() {
-        val trukketSøknad = lukketSøknad.copy()
+        val trukketSøknad = trukketSøknad
         val trekkSøknadRequest = LukkSøknadRequest.MedBrev.TrekkSøknad(
             søknadId = trukketSøknad.id,
             saksbehandler = saksbehandler,
@@ -869,7 +869,7 @@ internal class LukkSøknadServiceImplTest {
                 verify(brevServiceMock).lagBrev(expectedRequest)
                 verify(søknadServiceMock).lukkSøknad(
                     argThat {
-                        it shouldBe Søknad.Lukket(
+                        it shouldBe Søknad.Journalført.MedOppgave.Lukket(
                             id = søknad.id,
                             opprettet = søknad.opprettet,
                             sakId = søknad.sakId,
@@ -903,7 +903,7 @@ internal class LukkSøknadServiceImplTest {
                 verify(serviceAndMocks.lukkSøknadServiceObserver).handle(
                     argThat {
                         it shouldBe Event.Statistikk.SøknadStatistikk.SøknadLukket(
-                            Søknad.Lukket(
+                            Søknad.Journalført.MedOppgave.Lukket(
                                 id = søknad.id,
                                 opprettet = søknad.opprettet,
                                 sakId = søknad.sakId,

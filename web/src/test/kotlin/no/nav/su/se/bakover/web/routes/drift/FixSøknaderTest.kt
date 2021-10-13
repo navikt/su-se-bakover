@@ -95,7 +95,7 @@ internal class FixSøknaderTest {
             opprettet = Tidspunkt.EPOCH,
             søknadInnhold = SøknadInnholdTestdataBuilder.build()
         )
-        val journalførtSøknadMedOppgave = Søknad.Journalført.MedOppgave(
+        val journalførtSøknadMedOppgave = Søknad.Journalført.MedOppgave.IkkeLukket(
             id = UUID.fromString("e38df38a-c3fc-48d1-adca-0a9264024a2e"),
             sakId = sakId,
             journalpostId = JournalpostId("2"),

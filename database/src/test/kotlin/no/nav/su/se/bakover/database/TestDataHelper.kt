@@ -292,21 +292,23 @@ internal class TestDataHelper(
         ).also { søknadRepo.opprettSøknad(it) }
     }
 
-    fun nyLukketSøknadForEksisterendeSak(sakId: UUID): Søknad.Lukket {
+    fun nyLukketSøknadForEksisterendeSak(sakId: UUID): Søknad.Journalført.MedOppgave.Lukket {
         return Søknad.Ny(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             sakId = sakId,
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
         ).let { nySøknad ->
-            søknadRepo.opprettSøknad(nySøknad)
-            nySøknad.lukk(
-                lukketAv = NavIdentBruker.Saksbehandler("saksbehandler"),
-                type = Søknad.Lukket.LukketType.TRUKKET,
-                lukketTidspunkt = fixedTidspunkt,
-            ).also { lukketSøknad ->
-                søknadRepo.lukkSøknad(lukketSøknad)
-            }
+            nySøknad
+                .journalfør(journalpostId)
+                .medOppgave(oppgaveId)
+                .lukk(
+                    lukketAv = NavIdentBruker.Saksbehandler("saksbehandler"),
+                    type = Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET,
+                    lukketTidspunkt = fixedTidspunkt,
+                ).also { lukketSøknad ->
+                    søknadRepo.lukkSøknad(lukketSøknad)
+                }
         }
     }
 
@@ -348,7 +350,7 @@ internal class TestDataHelper(
         sakId: UUID,
         journalpostId: JournalpostId = no.nav.su.se.bakover.database.journalpostId,
         oppgaveId: OppgaveId = no.nav.su.se.bakover.database.oppgaveId,
-    ): Søknad.Journalført.MedOppgave {
+    ): Søknad.Journalført.MedOppgave.IkkeLukket {
         return journalførtSøknadForEksisterendeSak(sakId, journalpostId).medOppgave(oppgaveId).also {
             søknadRepo.oppdaterOppgaveId(it)
         }
@@ -536,7 +538,7 @@ internal class TestDataHelper(
     /* Kaller lagreNySøknadsbehandling (insert) */
     fun nySøknadsbehandling(
         sak: Sak = nySakMedJournalførtSøknadOgOppgave(),
-        søknad: Søknad.Journalført.MedOppgave = sak.journalførtSøknadMedOppgave(),
+        søknad: Søknad.Journalført.MedOppgave.IkkeLukket = sak.journalførtSøknadMedOppgave(),
         behandlingsinformasjon: Behandlingsinformasjon = tomBehandlingsinformasjon,
         stønadsperiode: Stønadsperiode? = no.nav.su.se.bakover.database.stønadsperiode,
     ): Søknadsbehandling.Vilkårsvurdert.Uavklart {
@@ -821,9 +823,9 @@ internal class TestDataHelper(
 
     companion object {
         /** Kaster hvis size != 1 */
-        fun Sak.journalførtSøknadMedOppgave(): Søknad.Journalført.MedOppgave {
+        fun Sak.journalførtSøknadMedOppgave(): Søknad.Journalført.MedOppgave.IkkeLukket {
             kastDersomSøknadErUlikEn()
-            return søknader.first() as Søknad.Journalført.MedOppgave
+            return søknader.first() as Søknad.Journalført.MedOppgave.IkkeLukket
         }
 
         /** Kaster hvis size != 1 */

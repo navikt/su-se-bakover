@@ -82,11 +82,11 @@ class BehandlingStatistikkMapper(
     ): Statistikk.Behandling =
         Statistikk.Behandling(
             funksjonellTid = when (søknad) {
-                is Søknad.Lukket -> søknad.lukketTidspunkt
+                is Søknad.Journalført.MedOppgave.Lukket -> søknad.lukketTidspunkt
                 else -> søknad.opprettet
             },
             tekniskTid = when (søknad) {
-                is Søknad.Lukket -> søknad.lukketTidspunkt
+                is Søknad.Journalført.MedOppgave.Lukket -> søknad.lukketTidspunkt
                 else -> søknad.opprettet
             },
             mottattDato = when (val forNav = søknad.søknadInnhold.forNav) {
@@ -105,7 +105,7 @@ class BehandlingStatistikkMapper(
             totrinnsbehandling = false,
             versjon = clock.millis(),
             resultat = when (søknad) {
-                is Søknad.Lukket -> søknad.lukketType.value
+                is Søknad.Journalført.MedOppgave.Lukket -> søknad.lukketType.value
                 else -> null
             },
             resultatBegrunnelse = null,
@@ -113,7 +113,7 @@ class BehandlingStatistikkMapper(
             resultatBeskrivelse = null,
             beslutter = null,
             saksbehandler = when (søknad) {
-                is Søknad.Lukket -> søknad.lukketAv.toString()
+                is Søknad.Journalført.MedOppgave.Lukket -> søknad.lukketAv.toString()
                 else -> null
             },
             behandlingOpprettetAv = null,
@@ -122,7 +122,7 @@ class BehandlingStatistikkMapper(
             datoForUttak = null,
             datoForUtbetaling = null,
             avsluttet = when (søknad) {
-                is Søknad.Lukket -> true
+                is Søknad.Journalført.MedOppgave.Lukket -> true
                 else -> false
             }
         )

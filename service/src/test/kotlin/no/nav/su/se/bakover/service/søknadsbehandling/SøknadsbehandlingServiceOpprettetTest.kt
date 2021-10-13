@@ -66,10 +66,10 @@ internal class SøknadsbehandlingServiceOpprettetTest {
 
     @Test
     fun `svarer med feil dersom søknad allrede er lukket`() {
-        val lukketSøknad = nySakMedNySøknad().second.lukk(
+        val lukketSøknad = nySakMedjournalførtSøknadOgOppgave().second.lukk(
             lukketTidspunkt = Tidspunkt.now(),
             lukketAv = NavIdentBruker.Saksbehandler("sas"),
-            type = Søknad.Lukket.LukketType.BORTFALT,
+            type = Søknad.Journalført.MedOppgave.Lukket.LukketType.BORTFALT,
         )
 
         val søknadServiceMock = mock<SøknadService> {

@@ -78,7 +78,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             opprettet = Tidspunkt.now(),
             sakId = sakId,
             saksnummer = Saksnummer(2021),
-            søknad = Søknad.Journalført.MedOppgave(
+            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.EPOCH,
                 sakId = sakId,
@@ -117,7 +117,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             opprettet = Tidspunkt.now(),
             sakId = sakId,
             saksnummer = Saksnummer(2021),
-            søknad = Søknad.Journalført.MedOppgave(
+            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.EPOCH,
                 sakId = sakId,
@@ -225,7 +225,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             opprettet = Tidspunkt.now(),
             sakId = sakId,
             saksnummer = Saksnummer(2021),
-            søknad = Søknad.Journalført.MedOppgave(
+            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.EPOCH,
                 sakId = sakId,
@@ -268,7 +268,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             opprettet = Tidspunkt.now(),
             sakId = sakId,
             saksnummer = Saksnummer(2021),
-            søknad = Søknad.Journalført.MedOppgave(
+            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.EPOCH,
                 sakId = sakId,

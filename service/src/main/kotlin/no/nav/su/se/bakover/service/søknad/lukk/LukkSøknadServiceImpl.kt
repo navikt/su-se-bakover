@@ -72,7 +72,7 @@ internal class LukkSøknadServiceImpl(
             }
         }
         return when (søknad) {
-            is Søknad.Lukket -> {
+            is Søknad.Journalført.MedOppgave.Lukket -> {
                 log.info("Søknad ${søknad.id} er allerede lukket")
                 KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
             }
@@ -80,7 +80,7 @@ internal class LukkSøknadServiceImpl(
                 log.warn("Kan ikke lukke søknad ${søknad.id} siden den mangler oppgave. Se drifts-endepunktet /drift/søknader/fix.")
                 KunneIkkeLukkeSøknad.SøknadManglerOppgave.left()
             }
-            is Søknad.Journalført.MedOppgave -> {
+            is Søknad.Journalført.MedOppgave.IkkeLukket -> {
                 val person: Person = personService.hentPerson(søknad.søknadInnhold.personopplysninger.fnr)
                     .getOrElse {
                         log.error("Kan ikke lukke søknad ${søknad.id}. Fant ikke person.")
@@ -112,9 +112,9 @@ internal class LukkSøknadServiceImpl(
     private fun lukkSøknad(
         person: Person,
         request: LukkSøknadRequest,
-        søknad: Søknad,
+        søknad: Søknad.Journalført.MedOppgave.IkkeLukket,
         lukketSøknadsbehandling: LukketSøknadsbehandling?,
-    ): Either<KunneIkkeLukkeSøknad, Søknad.Lukket> {
+    ): Either<KunneIkkeLukkeSøknad, Søknad.Journalført.MedOppgave.Lukket> {
         return when (request) {
             is LukkSøknadRequest.MedBrev -> {
                 lukkSøknadMedBrev(person, request, søknad, lukketSøknadsbehandling)
@@ -174,9 +174,9 @@ internal class LukkSøknadServiceImpl(
 
     private fun lukkSøknadUtenBrev(
         request: LukkSøknadRequest.UtenBrev,
-        søknad: Søknad,
+        søknad: Søknad.Journalført.MedOppgave.IkkeLukket,
         lukketSøknadsbehandling: LukketSøknadsbehandling?,
-    ): Søknad.Lukket {
+    ): Søknad.Journalført.MedOppgave.Lukket {
         val lukketSøknad = søknad.lukk(request, Tidspunkt.now(clock))
         sessionFactory.withTransactionContext { transactionContext ->
             søknadService.lukkSøknad(lukketSøknad, transactionContext)
@@ -188,9 +188,9 @@ internal class LukkSøknadServiceImpl(
     private fun lukkSøknadMedBrev(
         person: Person,
         request: LukkSøknadRequest.MedBrev,
-        søknad: Søknad,
+        søknad: Søknad.Journalført.MedOppgave.IkkeLukket,
         lukketSøknadsbehandling: LukketSøknadsbehandling?,
-    ): Either<KunneIkkeLukkeSøknad, Søknad.Lukket> {
+    ): Either<KunneIkkeLukkeSøknad, Søknad.Journalført.MedOppgave.Lukket> {
         val dokument = lagBrevRequest(person, søknad, request)
             .tilDokument {
                 brevService.lagBrev(it).mapLeft { LagBrevRequest.KunneIkkeGenererePdf }

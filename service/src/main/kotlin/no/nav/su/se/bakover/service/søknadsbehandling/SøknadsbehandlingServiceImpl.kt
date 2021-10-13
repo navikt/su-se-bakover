@@ -103,7 +103,7 @@ internal class SøknadsbehandlingServiceImpl(
         val søknad = søknadService.hentSøknad(request.søknadId).getOrElse {
             return SøknadsbehandlingService.KunneIkkeOpprette.FantIkkeSøknad.left()
         }
-        if (søknad is Søknad.Lukket) {
+        if (søknad is Søknad.Journalført.MedOppgave.Lukket) {
             return SøknadsbehandlingService.KunneIkkeOpprette.SøknadErLukket.left()
         }
         if (søknad !is Søknad.Journalført.MedOppgave) {

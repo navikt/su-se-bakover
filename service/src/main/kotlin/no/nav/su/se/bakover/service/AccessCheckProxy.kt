@@ -280,7 +280,7 @@ open class AccessCheckProxy(
                     return services.søknad.nySøknad(søknadInnhold)
                 }
 
-                override fun lukkSøknad(søknad: Søknad.Lukket, sessionContext: SessionContext) {
+                override fun lukkSøknad(søknad: Søknad.Journalført.MedOppgave.Lukket, sessionContext: SessionContext) {
                     kastKanKunKallesFraAnnenService()
                 }
 

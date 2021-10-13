@@ -45,9 +45,9 @@ fun nySakMedNySøknad(
 }
 
 @Suppress("unused")
-val lukketSøknad = nySakMedNySøknad().second.lukk(
+val trukketSøknad = nySakMedjournalførtSøknadOgOppgave().second.lukk(
     lukketAv = saksbehandler,
-    type = Søknad.Lukket.LukketType.TRUKKET,
+    type = Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET,
     lukketTidspunkt = fixedTidspunkt,
 )
 
@@ -81,7 +81,7 @@ fun nySakMedjournalførtSøknadOgOppgave(
     journalpostId: JournalpostId = journalpostIdSøknad,
     oppgaveId: OppgaveId = oppgaveIdSøknad,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
-): Pair<Sak, Søknad.Journalført.MedOppgave> {
+): Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> {
     return nySakMedJournalførtSøknadUtenOppgave(
         saksnummer = saksnummer,
         sakId = sakId,

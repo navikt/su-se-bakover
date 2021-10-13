@@ -6,10 +6,10 @@ import no.nav.su.se.bakover.domain.Søknad
 data class LukketJson(
     val tidspunkt: Tidspunkt,
     val saksbehandler: String,
-    val type: Søknad.Lukket.LukketType
+    val type: Søknad.Journalført.MedOppgave.Lukket.LukketType
 ) {
     companion object {
-        fun Søknad.Lukket.toLukketJson() = LukketJson(
+        fun Søknad.Journalført.MedOppgave.Lukket.toLukketJson() = LukketJson(
             tidspunkt = this.lukketTidspunkt,
             saksbehandler = this.lukketAv.toString(),
             type = this.lukketType,

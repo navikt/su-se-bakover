@@ -10,7 +10,7 @@ import java.util.UUID
 
 interface SøknadService {
     fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>>
-    fun lukkSøknad(søknad: Søknad.Lukket, sessionContext: SessionContext)
+    fun lukkSøknad(søknad: Søknad.Journalført.MedOppgave.Lukket, sessionContext: SessionContext)
     fun hentSøknad(søknadId: UUID): Either<FantIkkeSøknad, Søknad>
     fun hentSøknadPdf(søknadId: UUID): Either<KunneIkkeLageSøknadPdf, ByteArray>
     fun opprettManglendeJournalpostOgOppgave(): OpprettManglendeJournalpostOgOppgaveResultat

@@ -577,7 +577,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         Søknadsbehandling.TilAttestering.Innvilget(
             id = behandlingId,
             opprettet = opprettet,
-            søknad = Søknad.Journalført.MedOppgave(
+            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
                 id = BehandlingTestUtils.søknadId,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -604,7 +604,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         Søknadsbehandling.TilAttestering.Avslag.MedBeregning(
             id = behandlingId,
             opprettet = opprettet,
-            søknad = Søknad.Journalført.MedOppgave(
+            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
                 id = BehandlingTestUtils.søknadId,
                 opprettet = opprettet,
                 sakId = sakId,

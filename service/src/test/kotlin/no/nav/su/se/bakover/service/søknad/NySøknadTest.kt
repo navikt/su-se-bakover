@@ -597,7 +597,7 @@ class NySøknadTest {
             verify(søknadRepoMock).oppdaterOppgaveId(
                 argThat {
                     it.shouldBeEqualToIgnoringFields(
-                        Søknad.Journalført.MedOppgave(
+                        Søknad.Journalført.MedOppgave.IkkeLukket(
                             id = UUID.randomUUID(), // ignored
                             opprettet = fixedTidspunkt,
                             sakId = sakId,

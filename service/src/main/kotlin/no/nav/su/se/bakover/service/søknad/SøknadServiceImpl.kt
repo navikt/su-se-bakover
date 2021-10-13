@@ -102,7 +102,7 @@ internal class SøknadServiceImpl(
         return Pair(sak.saksnummer, søknad).right()
     }
 
-    override fun lukkSøknad(søknad: Søknad.Lukket, sessionContext: SessionContext) {
+    override fun lukkSøknad(søknad: Søknad.Journalført.MedOppgave.Lukket, sessionContext: SessionContext) {
         søknadRepo.lukkSøknad(søknad, sessionContext)
     }
 

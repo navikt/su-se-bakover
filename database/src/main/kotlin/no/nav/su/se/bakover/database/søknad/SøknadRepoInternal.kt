@@ -38,13 +38,13 @@ internal fun Row.toSøknad(): Søknad {
     val journalpostId: JournalpostId? = stringOrNull("journalpostId")?.let { JournalpostId(it) }
 
     return when {
-        lukket != null -> Søknad.Lukket(
+        lukket != null -> Søknad.Journalført.MedOppgave.Lukket(
             sakId = sakId,
             id = id,
             opprettet = opprettet,
             søknadInnhold = søknadInnhold,
-            journalpostId = journalpostId,
-            oppgaveId = oppgaveId,
+            journalpostId = journalpostId!!,
+            oppgaveId = oppgaveId!!,
             lukketAv = NavIdentBruker.Saksbehandler(lukket.saksbehandler),
             lukketTidspunkt = lukket.tidspunkt,
             lukketType = lukket.type,
@@ -62,7 +62,7 @@ internal fun Row.toSøknad(): Søknad {
             søknadInnhold = søknadInnhold,
             journalpostId = journalpostId,
         )
-        else -> Søknad.Journalført.MedOppgave(
+        else -> Søknad.Journalført.MedOppgave.IkkeLukket(
             sakId = sakId,
             id = id,
             opprettet = opprettet,
