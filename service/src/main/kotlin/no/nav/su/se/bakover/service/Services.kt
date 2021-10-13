@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
+import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
@@ -32,4 +33,5 @@ data class Services(
     val ferdigstillVedtak: FerdigstillVedtakService,
     val revurdering: RevurderingService,
     val vedtakService: VedtakService,
+    val nøkkeltallService: NøkkeltallService
 )

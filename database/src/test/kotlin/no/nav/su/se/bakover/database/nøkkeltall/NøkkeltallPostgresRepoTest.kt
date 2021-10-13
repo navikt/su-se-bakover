@@ -16,14 +16,16 @@ internal class NøkkeltallPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
             nøkkeltallRepo.hentNøkkeltall() shouldBe Nøkkeltall(
-                totalt = 0,
-                iverksattAvslag = 0,
-                iverksattInnvilget = 0,
-                ikkePåbegynt = 0,
-                påbegynt = 0,
-                digitalsøknader = 0,
-                papirsøknader = 0,
-                personer = 0
+                søknader = Nøkkeltall.Søknader(
+                    totaltAntall = 0,
+                    iverksatteAvslag = 0,
+                    iverksatteInnvilget = 0,
+                    ikkePåbegynt = 0,
+                    påbegynt = 0,
+                    digitalsøknader = 0,
+                    papirsøknader = 0,
+                ),
+                antallUnikePersoner = 0
             )
         }
     }
@@ -37,14 +39,16 @@ internal class NøkkeltallPostgresRepoTest {
 
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
             nøkkeltallRepo.hentNøkkeltall() shouldBe Nøkkeltall(
-                totalt = 2,
-                iverksattAvslag = 0,
-                iverksattInnvilget = 0,
-                ikkePåbegynt = 2,
-                påbegynt = 0,
-                digitalsøknader = 2,
-                papirsøknader = 0,
-                personer = 1
+                søknader = Nøkkeltall.Søknader(
+                    totaltAntall = 2,
+                    iverksatteAvslag = 0,
+                    iverksatteInnvilget = 0,
+                    ikkePåbegynt = 2,
+                    påbegynt = 0,
+                    digitalsøknader = 2,
+                    papirsøknader = 0,
+                ),
+                antallUnikePersoner = 1
             )
         }
     }
@@ -57,14 +61,16 @@ internal class NøkkeltallPostgresRepoTest {
             testDataHelper.nyIverksattInnvilget()
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
             nøkkeltallRepo.hentNøkkeltall() shouldBe Nøkkeltall(
-                totalt = 2,
-                iverksattAvslag = 1,
-                iverksattInnvilget = 1,
-                ikkePåbegynt = 0,
-                påbegynt = 0,
-                digitalsøknader = 2,
-                papirsøknader = 0,
-                personer = 2
+                søknader = Nøkkeltall.Søknader(
+                    totaltAntall = 2,
+                    iverksatteAvslag = 1,
+                    iverksatteInnvilget = 1,
+                    ikkePåbegynt = 0,
+                    påbegynt = 0,
+                    digitalsøknader = 2,
+                    papirsøknader = 0,
+                ),
+                antallUnikePersoner = 2
             )
         }
     }
@@ -80,14 +86,16 @@ internal class NøkkeltallPostgresRepoTest {
             testDataHelper.nyLukketSøknadForEksisterendeSak(nySak.id)
 
             nøkkeltallRepo.hentNøkkeltall() shouldBe Nøkkeltall(
-                totalt = 4,
-                iverksattAvslag = 0,
-                iverksattInnvilget = 0,
-                ikkePåbegynt = 1,
-                påbegynt = 0,
-                digitalsøknader = 4,
-                papirsøknader = 0,
-                personer = 1
+                søknader = Nøkkeltall.Søknader(
+                    totaltAntall = 4,
+                    iverksatteAvslag = 0,
+                    iverksatteInnvilget = 0,
+                    ikkePåbegynt = 1,
+                    påbegynt = 0,
+                    digitalsøknader = 4,
+                    papirsøknader = 0,
+                ),
+                antallUnikePersoner = 1
             )
         }
     }
@@ -102,20 +110,22 @@ internal class NøkkeltallPostgresRepoTest {
                     forNav = ForNav.Papirsøknad(
                         mottaksdatoForSøknad = LocalDate.now(),
                         grunnForPapirinnsending = ForNav.Papirsøknad.GrunnForPapirinnsending.MidlertidigUnntakFraOppmøteplikt,
-                        annenGrunn = null
-                    )
-                )
+                        annenGrunn = null,
+                    ),
+                ),
             )
 
             nøkkeltallRepo.hentNøkkeltall() shouldBe Nøkkeltall(
-                totalt = 1,
-                iverksattAvslag = 0,
-                iverksattInnvilget = 0,
-                ikkePåbegynt = 1,
-                påbegynt = 0,
-                digitalsøknader = 0,
-                papirsøknader = 1,
-                personer = 1
+                søknader = Nøkkeltall.Søknader(
+                    totaltAntall = 1,
+                    iverksatteAvslag = 0,
+                    iverksatteInnvilget = 0,
+                    ikkePåbegynt = 1,
+                    påbegynt = 0,
+                    digitalsøknader = 0,
+                    papirsøknader = 1,
+                ),
+                antallUnikePersoner = 1
             )
         }
     }

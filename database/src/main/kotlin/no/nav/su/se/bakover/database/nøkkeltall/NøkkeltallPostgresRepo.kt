@@ -4,12 +4,13 @@ import kotliquery.Row
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
+import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
 import javax.sql.DataSource
 
 internal class NøkkeltallPostgresRepo(
     private val dataSource: DataSource,
 ) : NøkkeltallRepo {
-    override fun hentNøkkeltall(): Nøkkeltall? {
+    override fun hentNøkkeltall(): Nøkkeltall {
         return dataSource.withSession {
             session ->
             """
@@ -32,17 +33,19 @@ internal class NøkkeltallPostgresRepo(
             """.trimIndent().hent(mapOf(), session) { row ->
                 row.toNøkkeltall()
             }
-        }
+        }!!
     }
 
     private fun Row.toNøkkeltall(): Nøkkeltall = Nøkkeltall(
-        totalt = int("totalt"),
-        iverksattAvslag = int("iverksattAvslag"),
-        iverksattInnvilget = int("iverksattInnvilget"),
-        ikkePåbegynt = int("ikkePåbegynt"),
-        påbegynt = int("påbegynt"),
-        digitalsøknader = int("digitalsøknader"),
-        papirsøknader = int("papirsøknader"),
-        personer = int("personer")
+        søknader = Nøkkeltall.Søknader(
+            totaltAntall = int("totalt"),
+            iverksatteAvslag = int("iverksattAvslag"),
+            iverksatteInnvilget = int("iverksattInnvilget"),
+            ikkePåbegynt = int("ikkePåbegynt"),
+            påbegynt = int("påbegynt"),
+            digitalsøknader = int("digitalsøknader"),
+            papirsøknader = int("papirsøknader"),
+        ),
+        antallUnikePersoner = int("personer")
     )
 }
