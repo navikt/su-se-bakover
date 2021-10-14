@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
@@ -36,6 +37,7 @@ interface SøknadsbehandlingService {
     fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling>
     fun hentForSøknad(søknadId: UUID): Søknadsbehandling?
     fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, sessionContext: SessionContext)
+    fun lagre(avslag: AvslagManglendeDokumentasjon)
 
     data class OpprettRequest(
         val søknadId: UUID,

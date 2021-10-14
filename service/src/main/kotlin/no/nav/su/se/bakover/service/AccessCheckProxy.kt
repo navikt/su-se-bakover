@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
@@ -461,6 +462,10 @@ open class AccessCheckProxy(
                 }
 
                 override fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, sessionContext: SessionContext) {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun lagre(avslag: AvslagManglendeDokumentasjon) {
                     kastKanKunKallesFraAnnenService()
                 }
             },

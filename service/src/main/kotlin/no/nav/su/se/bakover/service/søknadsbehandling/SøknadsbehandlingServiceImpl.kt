@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
@@ -762,5 +763,9 @@ internal class SøknadsbehandlingServiceImpl(
 
     override fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, sessionContext: SessionContext) {
         søknadsbehandlingRepo.lagre(lukketSøknadbehandling, sessionContext)
+    }
+
+    override fun lagre(avslag: AvslagManglendeDokumentasjon) {
+        return søknadsbehandlingRepo.lagreAvslagManglendeDokumentasjon(avslag)
     }
 }
