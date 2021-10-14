@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -53,6 +54,7 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
+import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
@@ -160,7 +162,7 @@ open class AccessCheckProxy(
                     sakId: UUID,
                     saksbehandler: NavIdentBruker,
                     beregning: Beregning,
-                    uføregrunnlag: List<Grunnlag.Uføregrunnlag>
+                    uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
                 ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
                     assertHarTilgangTilSak(sakId)
 
@@ -182,7 +184,7 @@ open class AccessCheckProxy(
                     attestant: NavIdentBruker,
                     beregning: Beregning,
                     simulering: Simulering,
-                    uføregrunnlag: List<Grunnlag.Uføregrunnlag>
+                    uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
                 ): Either<UtbetalingFeilet, Utbetaling.OversendtUtbetaling.UtenKvittering> {
                     assertHarTilgangTilSak(sakId)
 
@@ -192,7 +194,7 @@ open class AccessCheckProxy(
                 override fun simulerStans(
                     sakId: UUID,
                     saksbehandler: NavIdentBruker,
-                    stansDato: LocalDate
+                    stansDato: LocalDate,
                 ): Either<SimulerStansFeilet, Utbetaling.SimulertUtbetaling> {
                     kastKanKunKallesFraAnnenService()
                 }
@@ -201,7 +203,7 @@ open class AccessCheckProxy(
                     sakId: UUID,
                     attestant: NavIdentBruker,
                     simulering: Simulering,
-                    stansDato: LocalDate
+                    stansDato: LocalDate,
                 ): Either<UtbetalStansFeil, Utbetaling.OversendtUtbetaling.UtenKvittering> {
                     kastKanKunKallesFraAnnenService()
                 }
@@ -484,7 +486,7 @@ open class AccessCheckProxy(
 
                 override fun iverksettStansAvYtelse(
                     revurderingId: UUID,
-                    attestant: NavIdentBruker.Attestant
+                    attestant: NavIdentBruker.Attestant,
                 ): Either<KunneIkkeIverksetteStansYtelse, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.iverksettStansAvYtelse(revurderingId, attestant)
@@ -497,7 +499,7 @@ open class AccessCheckProxy(
 
                 override fun iverksettGjenopptakAvYtelse(
                     revurderingId: UUID,
-                    attestant: NavIdentBruker.Attestant
+                    attestant: NavIdentBruker.Attestant,
                 ): Either<KunneIkkeIverksetteGjenopptakAvYtelse, GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.iverksettGjenopptakAvYtelse(revurderingId, attestant)
@@ -655,6 +657,11 @@ open class AccessCheckProxy(
                     bosituasjongrunnlag: List<Grunnlag.Bosituasjon>,
                 ) {
                     kastKanKunKallesFraAnnenService()
+                }
+            },
+            nøkkeltallService = object : NøkkeltallService {
+                override fun hentNøkkeltall(): Nøkkeltall {
+                    return services.nøkkeltallService.hentNøkkeltall()
                 }
             },
         )

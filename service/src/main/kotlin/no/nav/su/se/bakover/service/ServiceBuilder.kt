@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagServiceImpl
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingServiceImpl
+import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
@@ -119,6 +120,8 @@ object ServiceBuilder {
             sakService = sakService,
         ).apply { addObserver(statistikkService) }
 
+        val nøkkelTallService = NøkkeltallServiceImpl(databaseRepos.nøkkeltallRepo)
+
         val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)
 
         val toggleService = ToggleServiceImpl(unleash)
@@ -175,6 +178,7 @@ object ServiceBuilder {
             revurdering = revurderingService,
             vedtakService = vedtakService,
             grunnlagService = grunnlagService,
+            nøkkeltallService = nøkkelTallService,
         )
     }
 }
