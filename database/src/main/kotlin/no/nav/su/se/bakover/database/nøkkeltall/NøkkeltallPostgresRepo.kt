@@ -19,12 +19,12 @@ internal class NøkkeltallPostgresRepo(
                     from søknad s
                              left join behandling b on s.id = b.søknadid),
 
-                     behandlingsstatus as (select status, count(*) antal from søknadsinfo group by status)
+                     behandlingsstatus as (select status, count(*) antall from søknadsinfo group by status)
 
                 select count(*) as totalt,
-                       coalesce((select antal from behandlingsstatus where status = 'IVERKSATT_AVSLAG'), 0) as iverksattAvslag,
-                       coalesce(( select antal from behandlingsstatus where status = 'IVERKSATT_INNVILGET' ), 0) as iverksattInnvilget,
-                       coalesce(( select sum(antal) from behandlingsstatus where status is not null and status not like '%IVERKSATT%'), 0) as påbegynt,
+                       coalesce((select antall from behandlingsstatus where status = 'IVERKSATT_AVSLAG'), 0) as iverksattAvslag,
+                       coalesce(( select antall from behandlingsstatus where status = 'IVERKSATT_INNVILGET' ), 0) as iverksattInnvilget,
+                       coalesce(( select sum(antall) from behandlingsstatus where status is not null and status not like '%IVERKSATT%'), 0) as påbegynt,
                        (select count(*) as ikkePåbegynt from søknadsinfo where søknadsinfo.lukket is null and status is null),
                        (select count(*) as digitalsøknader from søknadsinfo where søknadsinfo.søknadinnhold -> 'forNav' ->> 'type' = 'DigitalSøknad' ),
                        (select count(*) as papirsøknader from søknadsinfo where søknadsinfo.søknadinnhold -> 'forNav' ->> 'type' = 'Papirsøknad' ),
