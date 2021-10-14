@@ -15,7 +15,7 @@ internal class NøkkeltallPostgresRepo(
             session ->
             """
                 with søknadsinfo as (
-                    select *
+                    select s.lukket, s.søknadinnhold, b.status
                     from søknad s
                              left join behandling b on s.id = b.søknadid),
 
