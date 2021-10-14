@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -405,5 +406,20 @@ fun søknadsbehandlingIverksattAvslagUtenBeregning(
             ),
             oppdatertSøknadsbehandling,
         )
+    }
+}
+
+/**
+ * En lukket uavklart vilkårsvurdert søknadsbehandling
+ */
+fun søknadsbehandlingLukket(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+): Pair<Sak, LukketSøknadsbehandling> {
+    return søknadsbehandlingVilkårsvurdertUavklart(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+    ).run {
+        Pair(first, second.lukkSøknadsbehandling().orNull()!!)
     }
 }

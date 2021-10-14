@@ -125,7 +125,7 @@ internal class UtbetalingServiceImplTest {
             clock = fixedClock,
         ).hentUtbetaling(UUID30.randomUUID()) shouldBe FantIkkeUtbetaling.left()
 
-        verify(utbetalingRepoMock, Times(1)).hentUtbetaling(any<UUID30>())
+        verify(utbetalingRepoMock).hentUtbetaling(any<UUID30>())
         verifyNoMoreInteractions(
             sakServiceMock,
             simuleringClientMock,
@@ -191,7 +191,7 @@ internal class UtbetalingServiceImplTest {
         ) shouldBe FantIkkeUtbetaling.left()
 
         inOrder(utbetalingRepoMock) {
-            verify(utbetalingRepoMock, Times(1)).hentUtbetaling(avstemmingsnøkkel)
+            verify(utbetalingRepoMock).hentUtbetaling(avstemmingsnøkkel)
             verify(utbetalingRepoMock, Times(0)).oppdaterMedKvittering(any())
         }
         verifyNoMoreInteractions(
@@ -307,7 +307,7 @@ internal class UtbetalingServiceImplTest {
         ) shouldBe utbetaling.right()
 
         inOrder(utbetalingRepoMock) {
-            verify(utbetalingRepoMock, Times(1)).hentUtbetaling(avstemmingsnøkkel)
+            verify(utbetalingRepoMock).hentUtbetaling(avstemmingsnøkkel)
             verify(utbetalingRepoMock, Times(0)).oppdaterMedKvittering(utbetaling)
         }
         verifyNoMoreInteractions(

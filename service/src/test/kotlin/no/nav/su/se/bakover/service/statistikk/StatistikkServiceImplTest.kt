@@ -65,7 +65,7 @@ internal class StatistikkServiceImplTest {
     )
 
     private val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
-    private val søknadMock: Søknad.Journalført.MedOppgave =
+    private val søknadMock: Søknad.Journalført.MedOppgave.IkkeLukket =
         mock {
             on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build()
             on { opprettet } doReturn Tidspunkt.now(clock)
@@ -337,7 +337,7 @@ internal class StatistikkServiceImplTest {
     @Test
     fun `publiserer statistikk for underkjent behandling på kafka`() {
         val kafkaPublisherMock: KafkaPublisher = mock()
-        val søknadMock: Søknad.Journalført.MedOppgave =
+        val søknadMock: Søknad.Journalført.MedOppgave.IkkeLukket =
             mock {
                 on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build()
                 on { opprettet } doReturn Tidspunkt.now(clock)
@@ -637,7 +637,7 @@ internal class StatistikkServiceImplTest {
     fun `publiserer statistikk for lukket søknad på kafka`() {
         val kafkaPublisherMock: KafkaPublisher = mock()
         val saksnummer = Saksnummer(2049L)
-        val søknad = Søknad.Lukket(
+        val søknad = Søknad.Journalført.MedOppgave.Lukket(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
             sakId = UUID.randomUUID(),
@@ -646,7 +646,7 @@ internal class StatistikkServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             lukketTidspunkt = Tidspunkt.now(fixedClock),
             lukketAv = NavIdentBruker.Saksbehandler("Mr Lukker"),
-            lukketType = Søknad.Lukket.LukketType.AVVIST,
+            lukketType = Søknad.Journalført.MedOppgave.Lukket.LukketType.AVVIST,
         )
 
         val expected = Statistikk.Behandling(

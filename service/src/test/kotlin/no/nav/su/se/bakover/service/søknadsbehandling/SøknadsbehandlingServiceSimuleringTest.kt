@@ -150,7 +150,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-        søknad = Søknad.Journalført.MedOppgave(
+        søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.EPOCH,
             sakId = sakId,

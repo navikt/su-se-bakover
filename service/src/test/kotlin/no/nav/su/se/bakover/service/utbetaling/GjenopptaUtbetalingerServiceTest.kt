@@ -41,7 +41,7 @@ import no.nav.su.se.bakover.test.simuleringGjenopptak
 import no.nav.su.se.bakover.test.simulertGjenopptakUtbetaling
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.utbetalingsRequest
-import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelse
+import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -62,7 +62,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             tilOgMed = periode2021.tilOgMed,
         )
 
-        val (sak, _) = vedtakIverksattStansAvYtelse(periode)
+        val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode)
 
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -162,7 +162,7 @@ internal class GjenopptaUtbetalingerServiceTest {
 
     @Test
     fun `Simulering feiler`() {
-        val (sak, _) = vedtakIverksattStansAvYtelse()
+        val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak()
 
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -206,7 +206,7 @@ internal class GjenopptaUtbetalingerServiceTest {
 
     @Test
     fun `Utbetaling feilet`() {
-        val (sak, _) = vedtakIverksattStansAvYtelse()
+        val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak()
 
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()

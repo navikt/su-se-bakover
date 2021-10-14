@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
+import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BrevRequest
@@ -51,6 +52,7 @@ import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeGenerereBrev
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
+import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeAvgjøreOmFørstegangEllerNyPeriode
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -159,15 +161,35 @@ internal fun Route.søknadsbehandlingRoutes(
                                 .mapLeft { error ->
                                     call.svar(
                                         when (error) {
-                                            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> fantIkkeBehandling
-                                            is SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode -> InternalServerError.errorJson(
-                                                message = "Feil ved oppdatering av stønadsperiode",
-                                                code = "oppdatering_av_stønadsperiode",
-                                            )
-                                            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedEksisterendeSøknadsbehandling -> BadRequest.errorJson(
-                                                message = "Stønadsperioden overlapper med eksisterende søknadsbehandling",
-                                                code = "stønadsperioden_overlapper_med_eksisterende_søknadsbehandling",
-                                            )
+                                            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> {
+                                                fantIkkeBehandling
+                                            }
+                                            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeSak -> {
+                                                fantIkkeSak
+                                            }
+                                            is SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode -> {
+                                                when (val feil = error.feil) {
+                                                    is Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
+                                                        log.error("Feil ved oppdatering av stønadsperiode: ${feil.feil}")
+                                                        InternalServerError.errorJson(
+                                                            "Feil ved oppdatering av stønadsperiode",
+                                                            "oppdatering_av_stønadsperiode",
+                                                        )
+                                                    }
+                                                    Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer -> {
+                                                        BadRequest.errorJson(
+                                                            "Kan ikke legge til ny stønadsperiode forut for eksisterende stønadsperioder",
+                                                            "senere_stønadsperioder_eksisterer",
+                                                        )
+                                                    }
+                                                    Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode -> {
+                                                        BadRequest.errorJson(
+                                                            "Stønadsperioden overlapper med eksisterende stønadsperiode",
+                                                            "stønadsperioden_overlapper_med_eksisterende_søknadsbehandling",
+                                                        )
+                                                    }
+                                                }
+                                            }
                                         },
                                     )
                                 }

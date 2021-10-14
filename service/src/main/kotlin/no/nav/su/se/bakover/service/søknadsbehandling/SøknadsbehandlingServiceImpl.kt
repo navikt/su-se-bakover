@@ -9,6 +9,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
@@ -29,6 +30,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
+import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -50,6 +52,7 @@ import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
@@ -84,6 +87,7 @@ internal class SøknadsbehandlingServiceImpl(
     private val ferdigstillVedtakService: FerdigstillVedtakService,
     private val vilkårsvurderingService: VilkårsvurderingService,
     private val grunnlagService: GrunnlagService,
+    private val sakService: SakService,
 ) : SøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -100,15 +104,14 @@ internal class SøknadsbehandlingServiceImpl(
         val søknad = søknadService.hentSøknad(request.søknadId).getOrElse {
             return SøknadsbehandlingService.KunneIkkeOpprette.FantIkkeSøknad.left()
         }
-        if (søknad is Søknad.Lukket) {
+        if (søknad is Søknad.Journalført.MedOppgave.Lukket) {
             return SøknadsbehandlingService.KunneIkkeOpprette.SøknadErLukket.left()
         }
         if (søknad !is Søknad.Journalført.MedOppgave) {
             // TODO Prøv å opprette oppgaven hvis den mangler? (systembruker blir kanskje mest riktig?)
             return SøknadsbehandlingService.KunneIkkeOpprette.SøknadManglerOppgave.left()
         }
-        if (søknadRepo.harSøknadPåbegyntBehandling(søknad.id)) {
-            // Dersom man legger til avslutting av behandlinger, må denne spørringa spesifiseres.
+        if (hentForSøknad(søknad.id) != null) {
             return SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
         }
 
@@ -198,7 +201,12 @@ internal class SøknadsbehandlingServiceImpl(
         return forsøkStatusovergang(
             søknadsbehandling = saksbehandling,
             statusovergang = Statusovergang.TilSimulert { beregning ->
-                utbetalingService.simulerUtbetaling(saksbehandling.sakId, request.saksbehandler, beregning, saksbehandling.vilkårsvurderinger.uføre.grunnlag)
+                utbetalingService.simulerUtbetaling(
+                    saksbehandling.sakId,
+                    request.saksbehandler,
+                    beregning,
+                    saksbehandling.vilkårsvurderinger.uføre.grunnlag,
+                )
                     .map {
                         it.simulering
                     }
@@ -338,7 +346,7 @@ internal class SøknadsbehandlingServiceImpl(
                     attestant = request.attestering.attestant,
                     beregning = it.beregning,
                     simulering = it.simulering,
-                    uføregrunnlag = it.vilkårsvurderinger.uføre.grunnlag
+                    uføregrunnlag = it.vilkårsvurderinger.uføre.grunnlag,
                 ).mapLeft { kunneIkkeUtbetale ->
                     log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $kunneIkkeUtbetale")
                     KunneIkkeIverksette.KunneIkkeUtbetale(kunneIkkeUtbetale)
@@ -487,29 +495,39 @@ internal class SøknadsbehandlingServiceImpl(
             ?: SøknadsbehandlingService.FantIkkeBehandling.left()
     }
 
+    override fun hentForSøknad(søknadId: UUID): Søknadsbehandling? {
+        return søknadsbehandlingRepo.hentForSøknad(søknadId)
+    }
+
     override fun oppdaterStønadsperiode(request: SøknadsbehandlingService.OppdaterStønadsperiodeRequest): Either<SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode, Søknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
 
-        val tidligereSøknadsbehandlinger = søknadsbehandlingRepo.hentForSak(søknadsbehandling.sakId)
-            .filter { it.id != søknadsbehandling.id }
+        val sak = sakService.hentSak(søknadsbehandling.sakId)
+            .getOrHandle { return SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeSak.left() }
 
         return forsøkStatusovergang(
             søknadsbehandling = søknadsbehandling,
-            statusovergang = Statusovergang.OppdaterStønadsperiode(request.stønadsperiode, tidligereSøknadsbehandlinger),
+            statusovergang = Statusovergang.OppdaterStønadsperiode(
+                oppdatertStønadsperiode = request.stønadsperiode,
+                sak = sak,
+            ),
         ).mapLeft {
-            when (it) {
-                is Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode(it)
-                Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedEksisterendeSøknadsbehandling -> SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedEksisterendeSøknadsbehandling
-            }
+            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)
             vilkårsvurderingService.lagre(
-                it.id,
-                it.vilkårsvurderinger,
+                behandlingId = it.id,
+                vilkårsvurderinger = it.vilkårsvurderinger,
             )
-            grunnlagService.lagreBosituasjongrunnlag(it.id, it.grunnlagsdata.bosituasjon)
-            grunnlagService.lagreFradragsgrunnlag(it.id, it.grunnlagsdata.fradragsgrunnlag)
+            grunnlagService.lagreBosituasjongrunnlag(
+                behandlingId = it.id,
+                bosituasjongrunnlag = it.grunnlagsdata.bosituasjon,
+            )
+            grunnlagService.lagreFradragsgrunnlag(
+                behandlingId = it.id,
+                fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
+            )
             it
         }
     }
@@ -728,5 +746,9 @@ internal class SøknadsbehandlingServiceImpl(
         søknadsbehandlingRepo.lagre(oppdatertBehandling)
 
         return oppdatertBehandling.right()
+    }
+
+    override fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, sessionContext: SessionContext) {
+        søknadsbehandlingRepo.lagre(lukketSøknadbehandling, sessionContext)
     }
 }

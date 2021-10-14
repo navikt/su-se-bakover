@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.fnrUnder67
+import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.sakId
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.søknadId
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.søknadInnhold
@@ -183,9 +184,9 @@ internal class SøknadJsonTest {
 
     @Test
     fun `serialiserer og deserialiserer lukket`() {
-        val trukket = søknad.lukk(
+        val trukket = nySakMedjournalførtSøknadOgOppgave().second.lukk(
             lukketAv = saksbehandler,
-            type = Søknad.Lukket.LukketType.TRUKKET,
+            type = Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET,
             lukketTidspunkt = 1.oktober(2020).startOfDay(ZoneOffset.UTC),
         )
         //language=json

@@ -403,7 +403,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             )
             verify(søknadRepoMock).oppdaterOppgaveId(
                 argThat {
-                    it shouldBe Søknad.Journalført.MedOppgave(
+                    it shouldBe Søknad.Journalført.MedOppgave.IkkeLukket(
                         id = journalførtSøknad.id,
                         opprettet = journalførtSøknad.opprettet,
                         sakId = sakId,

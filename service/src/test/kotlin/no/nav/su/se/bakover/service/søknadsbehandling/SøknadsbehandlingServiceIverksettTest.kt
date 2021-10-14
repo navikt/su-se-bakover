@@ -62,8 +62,10 @@ import no.nav.su.se.bakover.test.person
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
@@ -340,7 +342,8 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 simulering = argThat { it shouldBe simulering },
                 uføregrunnlag = argThat { it shouldBe emptyList() },
             )
-            verify(søknadsbehandlingRepoMock).lagre(expected)
+            verify(søknadsbehandlingRepoMock).defaultSessionContext()
+            verify(søknadsbehandlingRepoMock).lagre(eq(expected), anyOrNull())
             verify(vedtakRepoMock).lagre(
                 argThat {
                     it.behandling shouldBe expected
@@ -437,7 +440,8 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     it shouldBe beOfType<LagBrevRequest.AvslagBrevRequest>()
                 },
             )
-            verify(søknadsbehandlingRepoMock).lagre(expectedAvslag)
+            verify(søknadsbehandlingRepoMock).defaultSessionContext()
+            verify(søknadsbehandlingRepoMock).lagre(eq(expectedAvslag), anyOrNull())
             verify(vedtakRepoMock).lagre(argThat { it is Vedtak.Avslag.AvslagBeregning })
             verify(brevServiceMock).lagreDokument(
                 argThat {
@@ -573,7 +577,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         Søknadsbehandling.TilAttestering.Innvilget(
             id = behandlingId,
             opprettet = opprettet,
-            søknad = Søknad.Journalført.MedOppgave(
+            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
                 id = BehandlingTestUtils.søknadId,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -600,7 +604,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         Søknadsbehandling.TilAttestering.Avslag.MedBeregning(
             id = behandlingId,
             opprettet = opprettet,
-            søknad = Søknad.Journalført.MedOppgave(
+            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
                 id = BehandlingTestUtils.søknadId,
                 opprettet = opprettet,
                 sakId = sakId,

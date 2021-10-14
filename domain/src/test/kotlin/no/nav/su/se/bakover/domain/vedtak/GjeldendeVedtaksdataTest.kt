@@ -110,7 +110,7 @@ internal class GjeldendeVedtaksdataTest {
             opprettet = Tidspunkt.now(),
             sakId = UUID.randomUUID(),
             saksnummer = Saksnummer(9999),
-            søknad = Søknad.Journalført.MedOppgave(
+            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
                 sakId = UUID.randomUUID(),

@@ -62,7 +62,7 @@ internal class VedtakssnapshotJsonTest {
             opprettet = fixedTidspunkt,
             sakId = UUID.fromString(sakId),
             saksnummer = Saksnummer(2021),
-            søknad = Søknad.Journalført.MedOppgave(
+            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
                 id = UUID.fromString(søknadId),
                 opprettet = fixedTidspunkt,
                 sakId = UUID.fromString(sakId),
@@ -347,7 +347,7 @@ internal class VedtakssnapshotJsonTest {
             opprettet = fixedTidspunkt,
             sakId = UUID.fromString(sakId),
             saksnummer = Saksnummer(2021),
-            søknad = Søknad.Journalført.MedOppgave(
+            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
                 id = UUID.fromString(søknadId),
                 opprettet = fixedTidspunkt,
                 sakId = UUID.fromString(sakId),

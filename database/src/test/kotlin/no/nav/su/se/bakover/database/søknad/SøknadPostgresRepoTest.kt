@@ -41,7 +41,7 @@ internal class SøknadPostgresRepoTest {
             val søknadRepo = testDataHelper.søknadRepo
             val sak: NySak = testDataHelper.nySakMedNySøknad()
             val nySøknad: Søknad = testDataHelper.nySøknadForEksisterendeSak(sak.id)
-            søknadRepo.hentSøknad(nySøknad.id)!!.shouldNotBeTypeOf<Søknad.Lukket>()
+            søknadRepo.hentSøknad(nySøknad.id)!!.shouldNotBeTypeOf<Søknad.Journalført.MedOppgave.Lukket>()
         }
     }
 
@@ -50,42 +50,20 @@ internal class SøknadPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val nySak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
-            val journalførtSøknadMedOppgave: Søknad.Journalført.MedOppgave = nySak.journalførtSøknadMedOppgave()
+            val journalførtSøknadMedOppgave: Søknad.Journalført.MedOppgave.IkkeLukket = nySak.journalførtSøknadMedOppgave()
             val saksbehandler = Saksbehandler("Z993156")
             val lukketSøknad = journalførtSøknadMedOppgave
                 .lukk(
                     lukketAv = saksbehandler,
-                    type = Søknad.Lukket.LukketType.TRUKKET,
+                    type = Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET,
                     lukketTidspunkt = fixedTidspunkt,
                 )
             withTestContext(dataSource, 2) { spiedDataSource ->
                 val søknadRepo = TestDataHelper(spiedDataSource).søknadRepo
-                søknadRepo.oppdaterSøknad(lukketSøknad)
+                søknadRepo.lukkSøknad(lukketSøknad)
                 val hentetSøknad = søknadRepo.hentSøknad(journalførtSøknadMedOppgave.id)!!
                 hentetSøknad shouldBe lukketSøknad
             }
-        }
-    }
-
-    @Test
-    fun `søknad har ikke påbegynt behandling`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val søknadRepo = testDataHelper.søknadRepo
-            val nySak: NySak = testDataHelper.nySakMedNySøknad()
-            søknadRepo.harSøknadPåbegyntBehandling(nySak.søknad.id) shouldBe false
-        }
-    }
-
-    @Test
-    fun `søknad har påbegynt behandling`() {
-        withMigratedDb { dataSource ->
-            val testDataHelper = TestDataHelper(dataSource)
-            val søknadRepo = testDataHelper.søknadRepo
-            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
-            val søknad = sak.journalførtSøknadMedOppgave()
-            testDataHelper.nySøknadsbehandling(sak, søknad)
-            søknadRepo.harSøknadPåbegyntBehandling(søknad.id) shouldBe true
         }
     }
 
@@ -120,7 +98,7 @@ internal class SøknadPostgresRepoTest {
             val journalførtSøknadMedOppgave = sak.journalførtSøknad().medOppgave(OppgaveId("oppdatertOppgaveId"))
             søknadRepo.oppdaterOppgaveId(journalførtSøknadMedOppgave)
             val hentetSøknad = søknadRepo.hentSøknad(journalførtSøknadMedOppgave.id)!!
-            hentetSøknad.shouldBeTypeOf<Søknad.Journalført.MedOppgave>()
+            hentetSøknad.shouldBeTypeOf<Søknad.Journalført.MedOppgave.IkkeLukket>()
             hentetSøknad shouldBe journalførtSøknadMedOppgave
         }
     }

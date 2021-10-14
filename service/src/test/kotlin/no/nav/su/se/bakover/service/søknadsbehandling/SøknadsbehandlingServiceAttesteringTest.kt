@@ -38,7 +38,9 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -60,7 +62,7 @@ class SøknadsbehandlingServiceAttesteringTest {
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-        søknad = Søknad.Journalført.MedOppgave(
+        søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
             id = søknadId,
             opprettet = Tidspunkt.now(),
             sakId = sakId,
@@ -146,7 +148,8 @@ class SøknadsbehandlingServiceAttesteringTest {
                     tilordnetRessurs = null,
                 ),
             )
-            verify(søknadsbehandlingRepoMock).lagre(expected)
+            verify(søknadsbehandlingRepoMock).defaultSessionContext()
+            verify(søknadsbehandlingRepoMock).lagre(eq(expected), anyOrNull())
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
             verify(eventObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(expected) })
         }
@@ -303,7 +306,8 @@ class SøknadsbehandlingServiceAttesteringTest {
                     tilordnetRessurs = null,
                 ),
             )
-            verify(søknadsbehandlingRepoMock).lagre(expected)
+            verify(søknadsbehandlingRepoMock).defaultSessionContext()
+            verify(søknadsbehandlingRepoMock).lagre(eq(expected), anyOrNull())
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
             verify(eventObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(expected) })
         }

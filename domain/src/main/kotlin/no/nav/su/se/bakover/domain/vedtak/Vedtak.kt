@@ -41,7 +41,18 @@ interface VedtakFelles {
     val periode: Periode
 }
 
-sealed interface VedtakSomKanRevurderes : VedtakFelles
+sealed interface VedtakSomKanRevurderes : VedtakFelles {
+    fun erOpphør(): Boolean {
+        return when (this) {
+            is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> false
+            is Vedtak.EndringIYtelse.InnvilgetRevurdering -> false
+            is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling -> false
+            is Vedtak.EndringIYtelse.OpphørtRevurdering -> true
+            is Vedtak.EndringIYtelse.StansAvYtelse -> false
+            is Vedtak.IngenEndringIYtelse -> false
+        }
+    }
+}
 
 sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
 

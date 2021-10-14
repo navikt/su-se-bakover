@@ -62,8 +62,11 @@ internal class PersonhendelseConsumerTest {
             pollTimeoutDuration = Duration.ofMillis(1000),
         )
         val producer = kafkaProducer(kafkaServer)
-        for (index in 0..5L) {
-            producer.send(generatePdlMelding(TOPIC1, index))
+        (0..5L).map {
+            producer.send(generatePdlMelding(TOPIC1, it))
+        }.forEach {
+            // Venter til alle meldingene er sendt før vi prøver consume
+            it.get()
         }
         val hendelser = argumentCaptor<Personhendelse.IkkeTilknyttetSak>()
         verify(personhendelseService, timeout(20000).times(6)).prosesserNyHendelse(hendelser.capture())

@@ -12,31 +12,32 @@ internal class PostgresTransactionContextTest {
     @Test
     fun `commits transaction and Starts and closes only one connection`() {
         withMigratedDb { dataSource ->
-            val sak = TestDataHelper(dataSource).nySakMedNySøknad()
+            val sak = TestDataHelper(dataSource).nySakMedJournalførtSøknadOgOppgave()
+            val søknad = sak.søknader.first() as Søknad.Journalført.MedOppgave.IkkeLukket
             withTestContext(dataSource, 1) { spiedDataSource ->
                 val testDataHelper = TestDataHelper(spiedDataSource)
                 testDataHelper.sessionFactory.withTransactionContext { context ->
-                    testDataHelper.søknadRepo.oppdaterSøknad(
-                        sak.søknad.lukk(
+                    testDataHelper.søknadRepo.lukkSøknad(
+                        søknad.lukk(
                             lukketAv = NavIdentBruker.Saksbehandler("1"),
-                            type = Søknad.Lukket.LukketType.TRUKKET,
+                            type = Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET,
                             lukketTidspunkt = fixedTidspunkt,
                         ),
                         context,
                     )
-                    testDataHelper.søknadRepo.oppdaterSøknad(
-                        sak.søknad.lukk(
+                    testDataHelper.søknadRepo.lukkSøknad(
+                        søknad.lukk(
                             lukketAv = NavIdentBruker.Saksbehandler("2"),
-                            type = Søknad.Lukket.LukketType.AVVIST,
+                            type = Søknad.Journalført.MedOppgave.Lukket.LukketType.AVVIST,
                             lukketTidspunkt = fixedTidspunkt.plus(1, ChronoUnit.DAYS),
                         ),
                         context,
                     )
                 }
             }
-            TestDataHelper(dataSource).søknadRepo.hentSøknad(sak.søknad.id) shouldBe sak.søknad.lukk(
+            TestDataHelper(dataSource).søknadRepo.hentSøknad(søknad.id) shouldBe søknad.lukk(
                 lukketAv = NavIdentBruker.Saksbehandler("2"),
-                type = Søknad.Lukket.LukketType.AVVIST,
+                type = Søknad.Journalført.MedOppgave.Lukket.LukketType.AVVIST,
                 lukketTidspunkt = fixedTidspunkt.plus(1, ChronoUnit.DAYS),
             )
         }
@@ -45,23 +46,25 @@ internal class PostgresTransactionContextTest {
     @Test
     fun `throw should rollback`() {
         withMigratedDb { dataSource ->
-            val sak = TestDataHelper(dataSource).nySakMedNySøknad()
+            val sak = TestDataHelper(dataSource).nySakMedJournalførtSøknadOgOppgave()
+            val søknad = sak.søknader.first() as Søknad.Journalført.MedOppgave.IkkeLukket
+
             withTestContext(dataSource, 1) { spiedDataSource ->
                 val testDataHelper = TestDataHelper(spiedDataSource)
                 Either.catch {
                     PostgresSessionFactory(spiedDataSource).withTransactionContext { context ->
-                        testDataHelper.søknadRepo.oppdaterSøknad(
-                            sak.søknad.lukk(
+                        testDataHelper.søknadRepo.lukkSøknad(
+                            søknad.lukk(
                                 lukketAv = NavIdentBruker.Saksbehandler("1"),
-                                type = Søknad.Lukket.LukketType.TRUKKET,
+                                type = Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET,
                                 lukketTidspunkt = fixedTidspunkt,
                             ),
                             context,
                         )
-                        testDataHelper.søknadRepo.oppdaterSøknad(
-                            sak.søknad.lukk(
+                        testDataHelper.søknadRepo.lukkSøknad(
+                            søknad.lukk(
                                 lukketAv = NavIdentBruker.Saksbehandler("2"),
-                                type = Søknad.Lukket.LukketType.AVVIST,
+                                type = Søknad.Journalført.MedOppgave.Lukket.LukketType.AVVIST,
                                 lukketTidspunkt = fixedTidspunkt.plus(1, ChronoUnit.DAYS),
                             ),
                             context,
@@ -70,7 +73,7 @@ internal class PostgresTransactionContextTest {
                     }
                 }
             }
-            TestDataHelper(dataSource).søknadRepo.hentSøknad(sak.søknad.id) shouldBe sak.søknad
+            TestDataHelper(dataSource).søknadRepo.hentSøknad(søknad.id) shouldBe søknad
         }
     }
 }

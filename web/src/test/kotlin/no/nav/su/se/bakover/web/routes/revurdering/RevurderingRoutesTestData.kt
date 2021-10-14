@@ -31,8 +31,6 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.createFromGrunnlag
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.simulering
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -54,7 +52,7 @@ object RevurderingRoutesTestData {
             opprettet = Tidspunkt.now(),
             sakId = sakId,
             saksnummer = Saksnummer(2021),
-            søknad = Søknad.Journalført.MedOppgave(
+            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
                 sakId = sakId,

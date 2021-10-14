@@ -1,12 +1,14 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
+import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -32,6 +34,8 @@ interface SøknadsbehandlingService {
     fun leggTilBosituasjonEpsgrunnlag(request: LeggTilBosituasjonEpsRequest): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling>
     fun fullførBosituasjongrunnlag(request: FullførBosituasjonRequest): Either<KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling>
     fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling>
+    fun hentForSøknad(søknadId: UUID): Søknadsbehandling?
+    fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, sessionContext: SessionContext)
 
     data class OpprettRequest(
         val søknadId: UUID,
@@ -130,13 +134,12 @@ interface SøknadsbehandlingService {
     )
 
     object FantIkkeBehandling
-    object KunneIkkeHenteAktiveBehandlinger
 
     sealed class KunneIkkeOppdatereStønadsperiode {
         object FantIkkeBehandling : SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
+        object FantIkkeSak : SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
         data class KunneIkkeOppdatereStønadsperiode(val feil: Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode) :
             SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
-        object StønadsperiodeOverlapperMedEksisterendeSøknadsbehandling : SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
     }
 
     data class OppdaterStønadsperiodeRequest(
