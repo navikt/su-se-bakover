@@ -22,4 +22,5 @@ internal data class BehandlingJson(
     val hendelser: List<HendelseJson>? = emptyList(),
     val stønadsperiode: StønadsperiodeJson?,
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
+    val erLukket: Boolean,
 )

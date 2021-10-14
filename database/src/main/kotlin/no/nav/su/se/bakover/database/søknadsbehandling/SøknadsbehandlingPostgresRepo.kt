@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
+import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -48,15 +49,16 @@ internal class SøknadsbehandlingPostgresRepo(
     private val dbMetrics: DbMetrics,
     private val sessionFactory: PostgresSessionFactory,
 ) : SøknadsbehandlingRepo {
-    override fun lagre(søknadsbehandling: Søknadsbehandling) {
-        dataSource.withSession { session ->
-            when (søknadsbehandling) {
+    override fun lagre(søknadsbehandling: Søknadsbehandling, sessionContext: SessionContext) {
+        sessionContext.withSession { session ->
+            return@withSession when (søknadsbehandling) {
                 is Søknadsbehandling.Vilkårsvurdert -> lagre(søknadsbehandling, session)
                 is Søknadsbehandling.Beregnet -> lagre(søknadsbehandling, session)
                 is Søknadsbehandling.Simulert -> lagre(søknadsbehandling, session)
                 is Søknadsbehandling.TilAttestering -> lagre(søknadsbehandling, session)
                 is Søknadsbehandling.Underkjent -> lagre(søknadsbehandling, session)
                 is Søknadsbehandling.Iverksatt -> lagre(søknadsbehandling, session)
+                is LukketSøknadsbehandling -> lagre(søknadsbehandling, session)
             }
         }
     }
@@ -118,7 +120,7 @@ internal class SøknadsbehandlingPostgresRepo(
             dataSource.withSession { session ->
                 "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
                     .hent(mapOf("id" to id), session) { row ->
-                        row.toSaksbehandling(session)
+                        row.toSøknadsbehandling(session)
                     }
             }
         }
@@ -128,8 +130,16 @@ internal class SøknadsbehandlingPostgresRepo(
         return sessionContext.withSession { session ->
             "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.sakId=:sakId"
                 .hentListe(mapOf("sakId" to sakId), session) {
-                    it.toSaksbehandling(session)
+                    it.toSøknadsbehandling(session)
                 }
+        }
+    }
+
+    override fun hentForSøknad(søknadId: UUID): Søknadsbehandling? {
+        return dataSource.withSession { session ->
+            "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where søknadId=:soknadId".hent(
+                mapOf("soknadId" to søknadId), session,
+            ) { it.toSøknadsbehandling(session) }
         }
     }
 
@@ -140,11 +150,11 @@ internal class SøknadsbehandlingPostgresRepo(
     internal fun hent(id: UUID, session: Session): Søknadsbehandling? {
         return "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
             .hent(mapOf("id" to id), session) { row ->
-                row.toSaksbehandling(session)
+                row.toSøknadsbehandling(session)
             }
     }
 
-    private fun Row.toSaksbehandling(session: Session): Søknadsbehandling {
+    private fun Row.toSøknadsbehandling(session: Session): Søknadsbehandling {
         val behandlingId = uuid("id")
         val søknad = SøknadRepoInternal.hentSøknadInternal(uuid("søknadId"), session)!!
         if (søknad !is Søknad.Journalført.MedOppgave) {
@@ -157,7 +167,7 @@ internal class SøknadsbehandlingPostgresRepo(
         val oppgaveId = OppgaveId(string("oppgaveId"))
         val beregning = stringOrNull("beregning")?.let { objectMapper.readValue<PersistertBeregning>(it) }
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
-        val attesteringer = string("attestering").let { Attesteringshistorikk(objectMapper.readValue(it)) }
+        val attesteringer = Attesteringshistorikk(objectMapper.readValue(string("attestering")))
         val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }
         val saksnummer = Saksnummer(long("saksnummer"))
         val fritekstTilBrev = stringOrNull("fritekstTilBrev") ?: ""
@@ -173,7 +183,7 @@ internal class SøknadsbehandlingPostgresRepo(
             uføre = uføreVilkårsvurderingRepo.hent(behandlingId, session),
         )
 
-        return when (status) {
+        val søknadsbehandling = when (status) {
             BehandlingsStatus.OPPRETTET -> Søknadsbehandling.Vilkårsvurdert.Uavklart(
                 id = behandlingId,
                 opprettet = opprettet,
@@ -432,6 +442,11 @@ internal class SøknadsbehandlingPostgresRepo(
                 }
             }
         }
+
+        if (boolean("lukket")) {
+            return LukketSøknadsbehandling.create(søknadsbehandling)
+        }
+        return søknadsbehandling
     }
 
     private fun lagre(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert, session: Session) {
@@ -538,6 +553,16 @@ internal class SøknadsbehandlingPostgresRepo(
                     )
             }
         }
+    }
+
+    private fun lagre(søknadsbehandling: LukketSøknadsbehandling, session: Session) {
+        """
+            update behandling set lukket = true where id = :id
+        """.trimIndent()
+            .oppdatering(
+                params = mapOf("id" to søknadsbehandling.lukketSøknadsbehandling.id),
+                session = session,
+            )
     }
 
     private fun defaultParams(søknadsbehandling: Søknadsbehandling): Map<String, Any> {

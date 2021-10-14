@@ -97,6 +97,8 @@ internal class StatusovergangTest {
         tilAttesteringAvslagVilkår.tilIverksatt(attestering)
     private val iverksattAvslagBeregning =
         tilAttesteringAvslagBeregning.tilIverksatt(attestering)
+    private val lukketSøknadsbehandling =
+        underkjentInnvilget.lukkSøknadsbehandling().orNull()!!
 
     @Nested
     inner class TilVilkårsvurdert {
@@ -267,6 +269,7 @@ internal class StatusovergangTest {
                 iverksattInnvilget,
                 iverksattAvslagVilkår,
                 iverksattAvslagBeregning,
+                lukketSøknadsbehandling,
             ).forEach {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     statusovergang(
@@ -398,6 +401,7 @@ internal class StatusovergangTest {
                 iverksattAvslagBeregning,
                 iverksattAvslagVilkår,
                 iverksattInnvilget,
+                lukketSøknadsbehandling,
             ).forEach {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     statusovergang(
@@ -496,6 +500,7 @@ internal class StatusovergangTest {
                 iverksattAvslagBeregning,
                 iverksattAvslagVilkår,
                 iverksattInnvilget,
+                lukketSøknadsbehandling,
             ).forEach {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     forsøkStatusovergang(
@@ -581,6 +586,7 @@ internal class StatusovergangTest {
                 iverksattAvslagBeregning,
                 iverksattAvslagVilkår,
                 iverksattInnvilget,
+                lukketSøknadsbehandling,
             ).forEach {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     statusovergang(
@@ -678,6 +684,7 @@ internal class StatusovergangTest {
                 iverksattAvslagBeregning,
                 iverksattAvslagVilkår,
                 iverksattInnvilget,
+                lukketSøknadsbehandling,
             ).forEach {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     forsøkStatusovergang(
@@ -766,6 +773,7 @@ internal class StatusovergangTest {
                 iverksattAvslagBeregning,
                 iverksattAvslagVilkår,
                 iverksattInnvilget,
+                lukketSøknadsbehandling,
             ).forEach {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     forsøkStatusovergang(
@@ -810,6 +818,7 @@ internal class StatusovergangTest {
                 iverksattAvslagBeregning,
                 iverksattAvslagVilkår,
                 iverksattInnvilget,
+                lukketSøknadsbehandling,
             ).forEach {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     forsøkStatusovergang(

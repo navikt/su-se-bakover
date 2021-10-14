@@ -2,6 +2,9 @@ package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
@@ -72,3 +75,19 @@ val attesteringUnderkjent = Attestering.Underkjent(
     kommentar = "attesteringUnderkjent",
     opprettet = fixedTidspunkt
 )
+
+class TestSessionFactory : SessionFactory {
+
+    companion object {
+        // Gjør det enklere å verifisere i testene.
+        val sessionContext = object : SessionContext {
+            override fun isClosed() = false
+        }
+        val transactionContext = object : TransactionContext {
+            override fun isClosed() = false
+        }
+    }
+
+    override fun <T> withSessionContext(action: (SessionContext) -> T) = action(sessionContext)
+    override fun <T> withTransactionContext(action: (TransactionContext) -> T) = action(transactionContext)
+}

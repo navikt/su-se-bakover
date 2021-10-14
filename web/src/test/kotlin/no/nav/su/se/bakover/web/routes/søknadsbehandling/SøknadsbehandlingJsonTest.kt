@@ -151,7 +151,8 @@ internal class SøknadsbehandlingJsonTest {
                 "vurderinger": []
               }
           },
-          "fritekstTilBrev": ""
+          "fritekstTilBrev": "",
+          "erLukket": false
         }
             """.trimIndent()
     }
@@ -233,7 +234,8 @@ internal class SøknadsbehandlingJsonTest {
                 "vurderinger": []
             }
           },
-          "fritekstTilBrev": ""
+          "fritekstTilBrev": "",
+          "erLukket": false
         }
         """
 

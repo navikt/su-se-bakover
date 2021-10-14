@@ -47,8 +47,10 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.verifyZeroInteractions
 import java.util.UUID
@@ -76,7 +78,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-        søknad = Søknad.Journalført.MedOppgave(
+        søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
             id = søknadId,
             opprettet = Tidspunkt.EPOCH,
             sakId = sakId,
@@ -328,6 +330,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
     fun `Underkjenner selvom vi ikke klarer lukke oppgave`() {
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn innvilgetBehandlingTilAttestering
+            on { hentForSak(any(), anyOrNull()) } doReturn listOf(innvilgetBehandlingTilAttestering)
         }
 
         val personServiceMock = mock<PersonService> {
@@ -389,18 +392,23 @@ class SøknadsbehandlingServiceUnderkjennTest {
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe oppgaveConfig
-                }
+                },
             )
             verify(behandlingMetricsMock).incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.OPPRETTET_OPPGAVE)
-
-            verify(søknadsbehandlingRepoMock).lagre(argThat { it shouldBe underkjentMedNyOppgaveIdOgAttestering })
+            verify(søknadsbehandlingRepoMock).defaultSessionContext()
+            verify(søknadsbehandlingRepoMock).lagre(
+                søknadsbehandling = argThat { it shouldBe underkjentMedNyOppgaveIdOgAttestering },
+                sessionContext = anyOrNull(),
+            )
 
             verify(behandlingMetricsMock).incrementUnderkjentCounter(argThat { it shouldBe BehandlingMetrics.UnderkjentHandlinger.PERSISTERT })
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
             verify(observerMock).handle(
                 argThat {
-                    it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingUnderkjent(underkjentMedNyOppgaveIdOgAttestering)
-                }
+                    it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingUnderkjent(
+                        underkjentMedNyOppgaveIdOgAttestering,
+                    )
+                },
             )
         }
 
@@ -479,7 +487,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
                 }
             )
             verify(behandlingMetricsMock).incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.OPPRETTET_OPPGAVE)
-            verify(søknadsbehandlingRepoMock).lagre(underkjentMedNyOppgaveIdOgAttestering)
+            verify(søknadsbehandlingRepoMock).defaultSessionContext()
+            verify(søknadsbehandlingRepoMock).lagre(eq(underkjentMedNyOppgaveIdOgAttestering), anyOrNull())
             verify(behandlingMetricsMock).incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.PERSISTERT)
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
             verify(behandlingMetricsMock).incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.LUKKET_OPPGAVE)

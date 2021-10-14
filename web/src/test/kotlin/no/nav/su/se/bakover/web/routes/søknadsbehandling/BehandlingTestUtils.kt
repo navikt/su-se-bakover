@@ -39,7 +39,7 @@ object BehandlingTestUtils {
     internal val journalpostId = JournalpostId("j")
     internal val stønadsperiode =
         Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)), "begrunnelsen")
-    internal val journalførtSøknadMedOppgave = Søknad.Journalført.MedOppgave(
+    internal val journalførtSøknadMedOppgave = Søknad.Journalført.MedOppgave.IkkeLukket(
         sakId = sakId,
         opprettet = Tidspunkt.EPOCH,
         id = søknadId,

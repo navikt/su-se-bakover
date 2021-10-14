@@ -61,6 +61,10 @@ interface StatusovergangVisitor : SøknadsbehandlingVisitor {
         throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
+    override fun visit(søknadsbehandling: LukketSøknadsbehandling) {
+        throw UgyldigStatusovergangException(søknadsbehandling, this)
+    }
+
     data class UgyldigStatusovergangException(
         private val søknadsbehandling: Any,
         private val statusovergang: Any,

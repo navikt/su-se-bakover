@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.mockito.internal.verification.Times
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doReturnConsecutively
 import org.mockito.kotlin.mock
@@ -77,7 +78,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             opprettet = Tidspunkt.now(),
             sakId = sakId,
             saksnummer = Saksnummer(2021),
-            søknad = Søknad.Journalført.MedOppgave(
+            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.EPOCH,
                 sakId = sakId,
@@ -116,7 +117,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             opprettet = Tidspunkt.now(),
             sakId = sakId,
             saksnummer = Saksnummer(2021),
-            søknad = Søknad.Journalført.MedOppgave(
+            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.EPOCH,
                 sakId = sakId,
@@ -186,7 +187,8 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         verify(søknadsbehandlingRepoMock, Times(2)).hent(argThat { it shouldBe behandlingId })
-        verify(søknadsbehandlingRepoMock).lagre((any())) // Testene til søknadsbehandling vilkårsvurder dekker dette
+        verify(søknadsbehandlingRepoMock).defaultSessionContext()
+        verify(søknadsbehandlingRepoMock).lagre(any(), anyOrNull()) // Testene til søknadsbehandling vilkårsvurder dekker dette
         verify(grunnlagServiceMock).lagreBosituasjongrunnlag(
             argThat { it shouldBe behandlingId },
             argThat { it shouldBe listOf(bosituasjon.copy(id = it.first().id, opprettet = it.first().opprettet)) },
@@ -223,7 +225,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             opprettet = Tidspunkt.now(),
             sakId = sakId,
             saksnummer = Saksnummer(2021),
-            søknad = Søknad.Journalført.MedOppgave(
+            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.EPOCH,
                 sakId = sakId,
@@ -266,7 +268,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             opprettet = Tidspunkt.now(),
             sakId = sakId,
             saksnummer = Saksnummer(2021),
-            søknad = Søknad.Journalført.MedOppgave(
+            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.EPOCH,
                 sakId = sakId,
@@ -349,7 +351,8 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         verify(søknadsbehandlingRepoMock, Times(2)).hent(argThat { it shouldBe behandlingId })
-        verify(søknadsbehandlingRepoMock).lagre((any()))
+        verify(søknadsbehandlingRepoMock).defaultSessionContext()
+        verify(søknadsbehandlingRepoMock).lagre(any(), anyOrNull())
         verify(grunnlagServiceMock).lagreBosituasjongrunnlag(
             argThat { it shouldBe behandlingId },
             argThat { it shouldBe listOf(bosituasjon.copy(id = it.first().id, opprettet = it.first().opprettet)) },

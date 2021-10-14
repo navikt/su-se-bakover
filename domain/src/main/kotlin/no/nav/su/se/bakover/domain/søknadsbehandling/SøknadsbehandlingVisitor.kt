@@ -18,4 +18,5 @@ interface SøknadsbehandlingVisitor : Visitor {
     fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning)
     fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Avslag.MedBeregning)
     fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget)
+    fun visit(søknadsbehandling: LukketSøknadsbehandling)
 }

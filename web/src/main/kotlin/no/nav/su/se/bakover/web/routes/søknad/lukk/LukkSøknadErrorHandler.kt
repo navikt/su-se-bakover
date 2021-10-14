@@ -4,11 +4,11 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad.FantIkkePerson
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad.FantIkkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad.SøknadErAlleredeLukket
-import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad.SøknadHarEnBehandling
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad.UgyldigTrukketDato
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
@@ -20,12 +20,8 @@ internal object LukkSøknadErrorHandler {
         val søknadId = request.søknadId
         return when (error) {
             is SøknadErAlleredeLukket -> BadRequest.errorJson(
-                "Søknad med id $søknadId er allerede trukket",
+                "Søknad med id $søknadId er allerede lukket",
                 "søknad_allerede_lukket"
-            )
-            is SøknadHarEnBehandling -> BadRequest.errorJson(
-                "Søknad med id $søknadId har en aktiv behandling og kan derfor ikke lukkes",
-                "søknad_har_startet_behandling"
             )
             is FantIkkeSøknad -> NotFound.errorJson("Fant ikke søknad med id $søknadId", "fant_ikke_søknad")
             is UgyldigTrukketDato -> BadRequest.errorJson(
@@ -38,6 +34,20 @@ internal object LukkSøknadErrorHandler {
                 "søknad_mangler_oppgave"
             )
             KunneIkkeLukkeSøknad.KunneIkkeGenerereDokument -> feilVedGenereringAvDokument
+            is KunneIkkeLukkeSøknad.BehandlingErIFeilTilstand -> when (error.feil) {
+                Søknadsbehandling.KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnAlleredeLukketSøknadsbehandling -> BadRequest.errorJson(
+                    "Behandlingen tilknyttet søknad med id $søknadId er allerede lukket og kan derfor ikke lukkes",
+                    "kan_ikke_lukke_en_allerede_lukket_søknadsbehandling"
+                )
+                Søknadsbehandling.KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnIverksattSøknadsbehandling -> BadRequest.errorJson(
+                    "Behandlingen tilknyttet søknad med id $søknadId er iverksatt og kan derfor ikke lukkes",
+                    "kan_ikke_lukke_en_iverksatt_søknadsbehandling"
+                )
+                Søknadsbehandling.KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnSøknadsbehandlingTilAttestering -> BadRequest.errorJson(
+                    "Behandlingen tilknyttet søknad med id $søknadId er til attestering og kan derfor ikke lukkes",
+                    "kan_ikke_lukke_en_søknadsbehandling_til_attestering"
+                )
+            }
         }
     }
 }

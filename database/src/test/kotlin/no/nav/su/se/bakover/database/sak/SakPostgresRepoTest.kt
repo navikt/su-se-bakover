@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
 import no.nav.su.se.bakover.domain.sak.SakRestans
+import no.nav.su.se.bakover.test.saksnummer
 import org.junit.jupiter.api.Test
 
 internal class SakPostgresRepoTest {
@@ -79,6 +80,7 @@ internal class SakPostgresRepoTest {
             val repo = testDataHelper.sakRepo
             val sak = testDataHelper.nySakMedNySøknad()
             testDataHelper.nyLukketSøknadForEksisterendeSak(sak.id)
+            testDataHelper.nyLukketSøknadsbehandlingOgSøknadForEksisterendeSak(sak.toSak(saksnummer))
             val søknadsbehandling = testDataHelper.nySøknadsbehandling()
             val underkjent = testDataHelper.nyUnderkjenningMedBeregning()
             val tilAttestering = testDataHelper.nyTilAvslåttAttesteringUtenBeregning()

@@ -67,6 +67,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -283,6 +284,9 @@ internal class TestDataHelper(
         }
     }
 
+    /**
+     * Ny søknad som _ikke_ er journalført eller har oppgave
+     */
     fun nySøknadForEksisterendeSak(sakId: UUID): Søknad.Ny {
         return Søknad.Ny(
             sakId = sakId,
@@ -292,20 +296,32 @@ internal class TestDataHelper(
         ).also { søknadRepo.opprettSøknad(it) }
     }
 
-    fun nyLukketSøknadForEksisterendeSak(sakId: UUID): Søknad.Lukket {
-        return Søknad.Ny(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            sakId = sakId,
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-        ).let { nySøknad ->
-            søknadRepo.opprettSøknad(nySøknad)
-            nySøknad.lukk(
-                lukketAv = NavIdentBruker.Saksbehandler("saksbehandler"),
-                type = Søknad.Lukket.LukketType.TRUKKET,
-                lukketTidspunkt = fixedTidspunkt,
-            ).also { lukketSøknad ->
-                søknadRepo.oppdaterSøknad(lukketSøknad)
+    fun nyLukketSøknadForEksisterendeSak(sakId: UUID): Søknad.Journalført.MedOppgave.Lukket {
+        return nySøknadForEksisterendeSak(sakId = sakId)
+            .journalfør(journalpostId).also {
+                søknadRepo.oppdaterjournalpostId(it)
+            }
+            .medOppgave(oppgaveId).also {
+                søknadRepo.oppdaterOppgaveId(it)
+            }
+            .let {
+                it.lukk(
+                    lukketAv = NavIdentBruker.Saksbehandler("saksbehandler"),
+                    type = Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET,
+                    lukketTidspunkt = fixedTidspunkt,
+                ).also { lukketSøknad ->
+                    søknadRepo.lukkSøknad(lukketSøknad)
+                }
+            }
+    }
+
+    fun nyLukketSøknadsbehandlingOgSøknadForEksisterendeSak(sak: Sak): LukketSøknadsbehandling {
+        return nySøknadsbehandling(
+            sak = sak,
+            søknad = nyLukketSøknadForEksisterendeSak(sakId = sak.id),
+        ).let {
+            it.lukkSøknadsbehandling().orNull()!!.also {
+                søknadsbehandlingRepo.lagre(it)
             }
         }
     }
@@ -348,7 +364,7 @@ internal class TestDataHelper(
         sakId: UUID,
         journalpostId: JournalpostId = no.nav.su.se.bakover.database.journalpostId,
         oppgaveId: OppgaveId = no.nav.su.se.bakover.database.oppgaveId,
-    ): Søknad.Journalført.MedOppgave {
+    ): Søknad.Journalført.MedOppgave.IkkeLukket {
         return journalførtSøknadForEksisterendeSak(sakId, journalpostId).medOppgave(oppgaveId).also {
             søknadRepo.oppdaterOppgaveId(it)
         }
@@ -821,9 +837,9 @@ internal class TestDataHelper(
 
     companion object {
         /** Kaster hvis size != 1 */
-        fun Sak.journalførtSøknadMedOppgave(): Søknad.Journalført.MedOppgave {
+        fun Sak.journalførtSøknadMedOppgave(): Søknad.Journalført.MedOppgave.IkkeLukket {
             kastDersomSøknadErUlikEn()
-            return søknader.first() as Søknad.Journalført.MedOppgave
+            return søknader.first() as Søknad.Journalført.MedOppgave.IkkeLukket
         }
 
         /** Kaster hvis size != 1 */

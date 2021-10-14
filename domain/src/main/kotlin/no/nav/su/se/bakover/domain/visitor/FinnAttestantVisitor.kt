@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingVisitor
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingVisitor
 
@@ -46,6 +47,13 @@ class FinnAttestantVisitor : SøknadsbehandlingVisitor, RevurderingVisitor {
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) {
         attestant = søknadsbehandling.attesteringer.hentSisteAttestering().attestant
+    }
+
+    override fun visit(søknadsbehandling: LukketSøknadsbehandling) {
+        attestant = FinnAttestantVisitor().let {
+            søknadsbehandling.lukketSøknadsbehandling.accept(it)
+            it.attestant
+        }
     }
 
     override fun visit(revurdering: OpprettetRevurdering) {}

@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
@@ -73,7 +74,8 @@ internal class SøknadServiceImpl(
                 val nySak = sakFactory.nySakMedNySøknad(fnr, søknadsinnholdMedNyesteFødselsnummer).also {
                     sakService.opprettSak(it)
                 }
-                val opprettetSak = sakService.hentSak(fnr).getOrElse { throw RuntimeException("Feil ved henting av sak") }
+                val opprettetSak =
+                    sakService.hentSak(fnr).getOrElse { throw RuntimeException("Feil ved henting av sak") }
                 Pair(opprettetSak, nySak.søknad)
             },
             {
@@ -87,24 +89,27 @@ internal class SøknadServiceImpl(
                 søknadRepo.opprettSøknad(søknad)
 
                 Pair(it.copy(søknader = (it.søknader + søknad)), søknad)
-            }
+            },
         )
         // Ved å gjøre increment først, kan vi lage en alert dersom vi får mismatch på dette.
         søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.PERSISTERT)
         opprettJournalpostOgOppgave(sak, person, søknad)
-        observers.forEach {
-            observer ->
+        observers.forEach { observer ->
             observer.handle(
-                Event.Statistikk.SøknadStatistikk.SøknadMottatt(søknad, sak.saksnummer)
+                Event.Statistikk.SøknadStatistikk.SøknadMottatt(søknad, sak.saksnummer),
             )
         }
         return Pair(sak.saksnummer, søknad).right()
     }
 
+    override fun lukkSøknad(søknad: Søknad.Journalført.MedOppgave.Lukket, sessionContext: SessionContext) {
+        søknadRepo.lukkSøknad(søknad, sessionContext)
+    }
+
     override fun opprettManglendeJournalpostOgOppgave(): OpprettManglendeJournalpostOgOppgaveResultat {
         return OpprettManglendeJournalpostOgOppgaveResultat(
             journalpostResultat = opprettManglendeJournalposteringer(),
-            oppgaveResultat = opprettManglendeOppgaver()
+            oppgaveResultat = opprettManglendeOppgaver(),
         )
     }
 

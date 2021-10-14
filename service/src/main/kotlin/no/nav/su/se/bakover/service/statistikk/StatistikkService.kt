@@ -27,7 +27,7 @@ sealed class Event {
             abstract val saksnummer: Saksnummer
 
             data class SøknadMottatt(override val søknad: Søknad, override val saksnummer: Saksnummer) : SøknadStatistikk()
-            data class SøknadLukket(override val søknad: Søknad.Lukket, override val saksnummer: Saksnummer) : SøknadStatistikk()
+            data class SøknadLukket(override val søknad: Søknad.Journalført.MedOppgave.Lukket, override val saksnummer: Saksnummer) : SøknadStatistikk()
         }
 
         sealed class SøknadsbehandlingStatistikk : Statistikk() {

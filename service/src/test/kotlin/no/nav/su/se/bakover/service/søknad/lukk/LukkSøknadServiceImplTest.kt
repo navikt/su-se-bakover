@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.service.søknad.lukk
 
-import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.should
@@ -10,29 +9,21 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.stubs.person.MicrosoftGraphApiClientStub
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.database.søknad.SøknadRepo
-import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Person.Navn
-import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.Søknad.Lukket.LukketType.AVVIST
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.Søknad.Journalført.MedOppgave.Lukket.LukketType.AVVIST
+import no.nav.su.se.bakover.domain.Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET
 import no.nav.su.se.bakover.domain.brev.BrevConfig
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
@@ -41,122 +32,108 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
+import no.nav.su.se.bakover.service.søknad.SøknadService
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.nySakMedJournalførtSøknadUtenOppgave
+import no.nav.su.se.bakover.test.nySakMedNySøknad
+import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
+import no.nav.su.se.bakover.test.person
+import no.nav.su.se.bakover.test.søknadinnhold
+import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.søknadsbehandlingLukket
+import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
+import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
+import no.nav.su.se.bakover.test.trukketSøknad
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
 import org.mockito.kotlin.any
-import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-import org.mockito.kotlin.whenever
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
 internal class LukkSøknadServiceImplTest {
-    private val sakId = UUID.randomUUID()
-    private val saksnummer = Saksnummer(2021)
-    private val saksbehandler = NavIdentBruker.Saksbehandler("Z993156")
-    private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
-    private val journalførtSøknadMedOppgaveJournalpostId = JournalpostId("journalførtSøknadMedOppgaveJournalpostId")
-    private val oppgaveId = OppgaveId("oppgaveId")
-    private val fnr = søknadInnhold.personopplysninger.fnr
-    private val generertPdf = "".toByteArray()
-    private val person = Person(
-        ident = Ident(
-            fnr = fnr,
-            aktørId = AktørId(aktørId = "123"),
-        ),
-        navn = Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
-    )
-    private val sak = Sak(
-        id = sakId,
-        saksnummer = saksnummer,
-        opprettet = fixedTidspunkt,
-        fnr = fnr,
-        søknader = emptyList(),
-        søknadsbehandlinger = emptyList(),
-        utbetalinger = emptyList(),
-    )
-    private val journalførtSøknadMedOppgave = Søknad.Journalført.MedOppgave(
-        sakId = sakId,
-        id = UUID.randomUUID(),
-        opprettet = fixedTidspunkt,
-        søknadInnhold = søknadInnhold,
-        journalpostId = journalførtSøknadMedOppgaveJournalpostId,
-        oppgaveId = oppgaveId,
-    )
-    private val lukketSøknad = Søknad.Lukket(
-        id = journalførtSøknadMedOppgave.id,
-        opprettet = journalførtSøknadMedOppgave.opprettet,
-        sakId = sakId,
-        søknadInnhold = søknadInnhold,
-        journalpostId = journalførtSøknadMedOppgave.journalpostId,
-        oppgaveId = journalførtSøknadMedOppgave.oppgaveId,
-        lukketTidspunkt = fixedTidspunkt,
-        lukketAv = saksbehandler,
-        lukketType = Søknad.Lukket.LukketType.TRUKKET,
-    )
 
-    private val trekkSøknadRequest = LukkSøknadRequest.MedBrev.TrekkSøknad(
-        søknadId = journalførtSøknadMedOppgave.id,
-        saksbehandler = saksbehandler,
-        trukketDato = 1.januar(2021),
-    )
+    private val saksbehandler = NavIdentBruker.Saksbehandler("Z993156")
+    private val generertPdf = "".toByteArray()
 
     @Test
     fun `fant ikke søknad`() {
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn null
+        val søknadServiceMock = mock<SøknadService> {
+            on { hentSøknad(any()) } doReturn FantIkkeSøknad.left()
         }
+        val søknadId = UUID.randomUUID()
         ServiceOgMocks(
-            søknadRepo = søknadRepoMock,
-        ).let {
-            it.lukkSøknadService.lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
-            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            it.verifyNoMoreInteractions()
+            søknadService = søknadServiceMock,
+        ).let { serviceAndMocks ->
+            serviceAndMocks.lukkSøknadService.lukkSøknad(
+                LukkSøknadRequest.MedBrev.TrekkSøknad(
+                    søknadId = søknadId,
+                    saksbehandler = saksbehandler,
+                    trukketDato = 1.januar(2021),
+                ),
+            ) shouldBe KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
+            verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknadId })
+            serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 
     @Test
     fun `fant ikke person`() {
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
-            on { harSøknadPåbegyntBehandling(any()) } doReturn false
+        val (sak, søknadsbehandling) = søknadsbehandlingVilkårsvurdertUavklart()
+        val søknad = sak.søknader.first()
+
+        val søknadServiceMock = mock<SøknadService> {
+            on { hentSøknad(any()) } doReturn søknad.right()
+        }
+        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
+            on { hentForSøknad(any()) } doReturn søknadsbehandling
         }
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
         }
 
         ServiceOgMocks(
-            søknadRepo = søknadRepoMock,
+            søknadService = søknadServiceMock,
             personService = personServiceMock,
-        ).let {
-            it.lukkSøknadService.lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.FantIkkePerson.left()
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+        ).let { serviceAndMocks ->
+            serviceAndMocks.lukkSøknadService.lukkSøknad(
+                LukkSøknadRequest.MedBrev.TrekkSøknad(
+                    søknadId = søknad.id,
+                    saksbehandler = saksbehandler,
+                    trukketDato = 1.januar(2021),
+                ),
+            ) shouldBe KunneIkkeLukkeSøknad.FantIkkePerson.left()
 
             inOrder(
-                søknadRepoMock,
-                personServiceMock,
+                *serviceAndMocks.allMocks,
             ) {
-                verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-                verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-                verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+                verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknad.id })
+                verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(argThat { it shouldBe søknad.id })
+                verify(personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
             }
-            it.verifyNoMoreInteractions()
+            serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 
     @Test
     fun `trekker en søknad uten mangler`() {
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
-            on { harSøknadPåbegyntBehandling(any()) } doReturn false
+        val (sak, søknad) = nySakMedjournalførtSøknadOgOppgave()
+        val søknadServiceMock = mock<SøknadService> {
+            on { hentSøknad(any()) } doReturn søknad.right()
+        }
+        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
+            on { hentForSøknad(any()) } doReturn null
         }
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -167,99 +144,108 @@ internal class LukkSøknadServiceImplTest {
         val oppgaveServiceMock = mock<OppgaveService> {
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
-
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-
-        val observerMock: EventObserver = mock()
-
-        val transactionContext = mock<TransactionContext>()
-
-        val sessionFactoryMock = mock<SessionFactory> {
-            doAnswer { ss ->
-                @Suppress("UNCHECKED_CAST")
-                (ss.arguments[0] as ((TransactionContext) -> Unit))(transactionContext)
-            }.whenever(mock).withTransactionContext(any())
+            on { hentPerson(any()) } doReturn person(sak.fnr).right()
         }
 
         ServiceOgMocks(
-            søknadRepo = søknadRepoMock,
+            søknadService = søknadServiceMock,
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             microsoftGraphApiClient = MicrosoftGraphApiClientStub,
-            sessionFactory = sessionFactoryMock,
-        ).let {
-            val actual = it.lukkSøknadService.apply { addObserver(observerMock) }.lukkSøknad(trekkSøknadRequest)
-                .getOrHandle { fail { "Skulle gått bra" } }
+        ).let { serviceAndMocks ->
+            val actual = serviceAndMocks.lukkSøknadService.lukkSøknad(
+                LukkSøknadRequest.MedBrev.TrekkSøknad(
+                    søknadId = søknad.id,
+                    saksbehandler = saksbehandler,
+                    trukketDato = 1.januar(2021),
+                ),
+            ).getOrFail("Uventet feil")
 
             actual shouldBe sak
 
             inOrder(
-                søknadRepoMock,
-                sakServiceMock,
-                brevServiceMock,
-                oppgaveServiceMock,
-                personServiceMock,
-                it.brevService,
-                observerMock,
-                sessionFactoryMock,
+                *serviceAndMocks.allMocks,
             ) {
-                verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-                verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-                verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+                verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknad.id })
+                verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(argThat { it shouldBe søknad.id })
+                verify(personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
                 val expectedRequest = TrukketSøknadBrevRequest(
-                    person = person,
-                    søknad = journalførtSøknadMedOppgave,
+                    person = person(fnr = sak.fnr),
+                    søknad = søknad,
                     trukketDato = 1.januar(2021),
                     saksbehandlerNavn = "Testbruker, Lokal",
                 )
                 verify(brevServiceMock).lagBrev(expectedRequest)
-                // Under: sjekker at oppdaterSøknad(...) lagreDokument(...) blir kalt
-                verify(sessionFactoryMock).withTransactionContext<Unit>(any())
-                verify(søknadRepoMock).oppdaterSøknad(
-                    søknad = argThat { it shouldBe lukketSøknad },
-                    sessionContext = argThat { it shouldBe transactionContext },
+                verify(søknadServiceMock).lukkSøknad(
+                    søknad = argThat {
+                        it shouldBe Søknad.Journalført.MedOppgave.Lukket(
+                            id = søknad.id,
+                            opprettet = søknad.opprettet,
+                            sakId = søknad.sakId,
+                            søknadInnhold = søknad.søknadInnhold,
+                            journalpostId = søknad.journalpostId,
+                            oppgaveId = søknad.oppgaveId,
+                            lukketAv = saksbehandler,
+                            lukketType = TRUKKET,
+                            lukketTidspunkt = fixedTidspunkt,
+                        )
+                    },
+                    sessionContext = argThat { it shouldBe TestSessionFactory.transactionContext },
                 )
-                verify(it.brevService).lagreDokument(
+                verify(serviceAndMocks.brevService).lagreDokument(
                     argThat { dokument ->
                         dokument should beOfType<Dokument.MedMetadata.Informasjon>()
                         dokument.tittel shouldBe expectedRequest.brevInnhold.brevTemplate.tittel()
                         dokument.generertDokument shouldBe generertPdf
                         dokument.generertDokumentJson shouldBe expectedRequest.brevInnhold.toJson()
                         dokument.metadata shouldBe Dokument.Metadata(
-                            sakId = sakId,
-                            søknadId = journalførtSøknadMedOppgave.id,
+                            sakId = sak.id,
+                            søknadId = søknad.id,
                             vedtakId = null,
                             bestillBrev = true,
                         )
                     },
-                    argThat { it shouldBe transactionContext },
+                    argThat { it shouldBe TestSessionFactory.transactionContext },
                 )
-                verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
-                verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
-                verify(observerMock).handle(
+                verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe søknad.oppgaveId })
+                verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe søknad.sakId })
+                verify(serviceAndMocks.lukkSøknadServiceObserver).handle(
                     argThat {
                         it shouldBe Event.Statistikk.SøknadStatistikk.SøknadLukket(
-                            lukketSøknad,
+                            Søknad.Journalført.MedOppgave.Lukket(
+                                id = søknad.id,
+                                opprettet = søknad.opprettet,
+                                sakId = søknad.sakId,
+                                søknadInnhold = søknad.søknadInnhold,
+                                journalpostId = søknad.journalpostId,
+                                oppgaveId = søknad.oppgaveId,
+                                lukketAv = saksbehandler,
+                                lukketType = TRUKKET,
+                                lukketTidspunkt = fixedTidspunkt,
+                            ),
                             sak.saksnummer,
                         )
                     },
                 )
             }
-            it.verifyNoMoreInteractions()
+            serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 
     @Test
     fun `lukker avvist søknad uten brev`() {
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
-            on { harSøknadPåbegyntBehandling(any()) } doReturn false
+        val (sak, søknadsbehandling) = søknadsbehandlingVilkårsvurdertUavklart()
+        val søknad = sak.søknader.first() as Søknad.Journalført.MedOppgave.IkkeLukket
+        val søknadServiceMock = mock<SøknadService> {
+            on { hentSøknad(any()) } doReturn søknad.right()
         }
-
+        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
+            on { hentForSøknad(any()) } doReturn søknadsbehandling
+        }
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
@@ -269,54 +255,82 @@ internal class LukkSøknadServiceImplTest {
         }
 
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
+            on { hentPerson(any()) } doReturn person(sak.fnr).right()
         }
 
         ServiceOgMocks(
-            søknadRepo = søknadRepoMock,
+            søknadService = søknadServiceMock,
             sakService = sakServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-        ).let {
-            val resultat = it.lukkSøknadService.lukkSøknad(
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+        ).let { serviceAndMocks ->
+            val resultat = serviceAndMocks.lukkSøknadService.lukkSøknad(
                 LukkSøknadRequest.UtenBrev.AvvistSøknad(
-                    søknadId = journalførtSøknadMedOppgave.id,
+                    søknadId = søknad.id,
                     saksbehandler = saksbehandler,
                 ),
-            ).getOrHandle { fail { "Skulle gått bra" } }
+            ).getOrFail("Uventet feil")
 
             resultat shouldBe sak
 
             inOrder(
-                søknadRepoMock,
-                sakServiceMock,
-                oppgaveServiceMock,
-                personServiceMock,
+                *serviceAndMocks.allMocks,
             ) {
-                verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-                verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-                verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-                verify(søknadRepoMock).defaultSessionContext()
-                verify(søknadRepoMock).oppdaterSøknad(
+                verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknad.id })
+                verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(argThat { it shouldBe søknad.id })
+                verify(personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
+                verify(søknadServiceMock).lukkSøknad(
                     argThat {
-                        it shouldBe lukketSøknad.copy(
-                            lukketType = AVVIST,
+                        it shouldBe søknad.lukk(
+                            lukketAv = saksbehandler,
+                            type = AVVIST,
+                            lukketTidspunkt = fixedTidspunkt,
                         )
                     },
-                    anyOrNull(),
+                    argThat { it shouldBe TestSessionFactory.transactionContext },
                 )
-                verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
-                verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
-                it.verifyNoMoreInteractions()
+                verify(søknadsbehandlingServiceMock).lukk(
+                    argThat {
+                        it shouldBe LukketSøknadsbehandling.create(
+                            lukketSøknadsbehandling = søknadsbehandling,
+                        )
+                    },
+                    argThat { it shouldBe TestSessionFactory.transactionContext },
+                )
+                verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe søknad.oppgaveId })
+                verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe søknad.sakId })
+                verify(serviceAndMocks.lukkSøknadServiceObserver).handle(
+                    argThat {
+                        it shouldBe Event.Statistikk.SøknadStatistikk.SøknadLukket(
+                            Søknad.Journalført.MedOppgave.Lukket(
+                                id = søknad.id,
+                                opprettet = søknad.opprettet,
+                                sakId = søknad.sakId,
+                                søknadInnhold = søknad.søknadInnhold,
+                                journalpostId = søknad.journalpostId,
+                                oppgaveId = søknad.oppgaveId,
+                                lukketAv = saksbehandler,
+                                lukketType = AVVIST,
+                                lukketTidspunkt = fixedTidspunkt,
+                            ),
+                            sak.saksnummer,
+                        )
+                    }
+                )
+                serviceAndMocks.verifyNoMoreInteractions()
             }
         }
     }
 
     @Test
     fun `lukker avvist søknad med brev`() {
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
-            on { harSøknadPåbegyntBehandling(any()) } doReturn false
+        val (sak, søknad) = nySakMedjournalførtSøknadOgOppgave()
+        val søknadServiceMock = mock<SøknadService> {
+            on { hentSøknad(any()) } doReturn søknad.right()
+        }
+        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
+            on { hentForSøknad(any()) } doReturn null
         }
 
         val sakServiceMock = mock<SakService> {
@@ -332,111 +346,114 @@ internal class LukkSøknadServiceImplTest {
         }
 
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-
-        val transactionContext = mock<TransactionContext>()
-
-        val sessionFactoryMock = mock<SessionFactory> {
-            doAnswer { ss ->
-                @Suppress("UNCHECKED_CAST")
-                (ss.arguments[0] as ((TransactionContext) -> Unit))(transactionContext)
-            }.whenever(mock).withTransactionContext(any())
+            on { hentPerson(any()) } doReturn person(sak.fnr).right()
         }
 
         ServiceOgMocks(
-            søknadRepo = søknadRepoMock,
+            søknadService = søknadServiceMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             microsoftGraphApiClient = MicrosoftGraphApiClientStub,
-            sessionFactory = sessionFactoryMock,
-        ).let {
-            val actual = it.lukkSøknadService.lukkSøknad(
+            søknadsbehandlingService = søknadsbehandlingServiceMock
+        ).let { serviceAndMocks ->
+            val actual = serviceAndMocks.lukkSøknadService.lukkSøknad(
                 LukkSøknadRequest.MedBrev.AvvistSøknad(
-                    søknadId = journalførtSøknadMedOppgave.id,
+                    søknadId = søknad.id,
                     saksbehandler = saksbehandler,
                     brevConfig = BrevConfig.Fritekst("Fritekst"),
                 ),
-            ).getOrHandle { fail { "Skulle gått bra" } }
+            ).getOrFail("Uventet feil")
 
             actual shouldBe sak
 
             inOrder(
-                søknadRepoMock,
-                sakServiceMock,
-                oppgaveServiceMock,
-                brevServiceMock,
-                personServiceMock,
-                it.brevService,
+                *serviceAndMocks.allMocks,
             ) {
-                verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-                verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-                verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+                verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknad.id })
+                verify(søknadsbehandlingServiceMock).hentForSøknad(argThat { it shouldBe søknad.id })
+                verify(personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
                 val expectedRequest = AvvistSøknadBrevRequest(
-                    person = person,
+                    person = person(fnr = sak.fnr),
                     brevConfig = BrevConfig.Fritekst(
                         fritekst = "Fritekst",
                     ),
                     saksbehandlerNavn = "Testbruker, Lokal",
                 )
                 verify(brevServiceMock).lagBrev(expectedRequest)
-                verify(søknadRepoMock).oppdaterSøknad(
+                verify(søknadServiceMock).lukkSøknad(
                     argThat {
-                        it shouldBe lukketSøknad.copy(
-                            journalpostId = journalførtSøknadMedOppgaveJournalpostId,
-                            oppgaveId = oppgaveId,
+                        it shouldBe Søknad.Journalført.MedOppgave.Lukket(
+                            id = søknad.id,
+                            opprettet = søknad.opprettet,
+                            sakId = søknad.sakId,
+                            søknadInnhold = søknad.søknadInnhold,
+                            journalpostId = søknad.journalpostId,
+                            oppgaveId = søknad.oppgaveId,
+                            lukketAv = saksbehandler,
                             lukketType = AVVIST,
+                            lukketTidspunkt = fixedTidspunkt,
                         )
                     },
-                    argThat { it shouldBe transactionContext },
+                    argThat { it shouldBe TestSessionFactory.transactionContext },
                 )
-                verify(it.brevService).lagreDokument(
+                verify(serviceAndMocks.brevService).lagreDokument(
                     argThat { dokument ->
                         dokument should beOfType<Dokument.MedMetadata.Informasjon>()
                         dokument.tittel shouldBe expectedRequest.brevInnhold.brevTemplate.tittel()
                         dokument.generertDokument shouldBe generertPdf
                         dokument.generertDokumentJson shouldBe expectedRequest.brevInnhold.toJson()
                         dokument.metadata shouldBe Dokument.Metadata(
-                            sakId = sakId,
-                            søknadId = journalførtSøknadMedOppgave.id,
+                            sakId = sak.id,
+                            søknadId = søknad.id,
                             vedtakId = null,
                             bestillBrev = true,
                         )
                     },
-                    argThat { it shouldBe transactionContext },
+                    argThat { it shouldBe TestSessionFactory.transactionContext },
                 )
-                verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
-                verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
+                verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe søknad.oppgaveId })
+                verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe søknad.sakId })
+                verify(serviceAndMocks.lukkSøknadServiceObserver).handle(
+                    argThat {
+                        it shouldBe Event.Statistikk.SøknadStatistikk.SøknadLukket(
+                            Søknad.Journalført.MedOppgave.Lukket(
+                                id = søknad.id,
+                                opprettet = søknad.opprettet,
+                                sakId = søknad.sakId,
+                                søknadInnhold = søknad.søknadInnhold,
+                                journalpostId = søknad.journalpostId,
+                                oppgaveId = søknad.oppgaveId,
+                                lukketAv = saksbehandler,
+                                lukketType = AVVIST,
+                                lukketTidspunkt = fixedTidspunkt,
+                            ),
+                            sak.saksnummer,
+                        )
+                    },
+                )
             }
-            verifyNoMoreInteractions(
-                søknadRepoMock,
-                sakServiceMock,
-                brevServiceMock,
-                oppgaveServiceMock,
-                personServiceMock,
-            )
+            serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 
     @Test
-    fun `kan ikke sette lukketDato tidligere enn da søknadeden var opprettet`() {
+    fun `kan ikke sette lukketDato tidligere enn da søknaden var opprettet`() {
         val treDagerGammelSøknad = Søknad.Ny(
-            sakId = sakId,
+            sakId = UUID.randomUUID(),
             id = UUID.randomUUID(),
             opprettet = LocalDateTime.now().minusDays(3).toTidspunkt(zoneIdOslo),
-            søknadInnhold = søknadInnhold,
+            søknadInnhold = søknadinnhold(),
         )
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn treDagerGammelSøknad
-            on { harSøknadPåbegyntBehandling(any()) } doReturn true
+        val søknadServiceMock = mock<SøknadService> {
+            on { hentSøknad(any()) } doReturn treDagerGammelSøknad.right()
         }
 
         ServiceOgMocks(
-            søknadRepo = søknadRepoMock,
-        ).let {
-            it.lukkSøknadService.lukkSøknad(
+            søknadService = søknadServiceMock,
+        ).let { serviceAndMocks ->
+            serviceAndMocks.lukkSøknadService.lukkSøknad(
                 LukkSøknadRequest.MedBrev.TrekkSøknad(
                     søknadId = treDagerGammelSøknad.id,
                     saksbehandler = saksbehandler,
@@ -444,268 +461,364 @@ internal class LukkSøknadServiceImplTest {
                 ),
             ) shouldBe KunneIkkeLukkeSøknad.UgyldigTrukketDato.left()
 
-            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe treDagerGammelSøknad.id })
-            it.verifyNoMoreInteractions()
+            verify(søknadServiceMock).hentSøknad(argThat { it shouldBe treDagerGammelSøknad.id })
+            serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 
     @Test
-    fun `en søknad med behandling skal ikke bli trukket`() {
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
-            on { harSøknadPåbegyntBehandling(any()) } doReturn true
+    fun `en søknad med søknadsbehandling til attestering skal ikke bli lukket`() {
+        val (sak, søknadsbehandling) = søknadsbehandlingTilAttesteringInnvilget()
+        val søknad = sak.søknader.first()
+        val søknadServiceMock = mock<SøknadService> {
+            on { hentSøknad(any()) } doReturn søknad.right()
+        }
+        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
+            on { hentForSøknad(any()) } doReturn søknadsbehandling
         }
         ServiceOgMocks(
-            søknadRepo = søknadRepoMock,
-        ).let {
-            it.lukkSøknadService.lukkSøknad(
+            søknadService = søknadServiceMock,
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+        ).let { serviceAndMocks ->
+            serviceAndMocks.lukkSøknadService.lukkSøknad(
                 LukkSøknadRequest.UtenBrev.BortfaltSøknad(
-                    søknadId = journalførtSøknadMedOppgave.id,
+                    søknadId = søknad.id,
                     saksbehandler = saksbehandler,
                 ),
-            ) shouldBe KunneIkkeLukkeSøknad.SøknadHarEnBehandling.left()
+            ) shouldBe KunneIkkeLukkeSøknad.BehandlingErIFeilTilstand(Søknadsbehandling.KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnSøknadsbehandlingTilAttestering)
+                .left()
 
-            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            it.verifyNoMoreInteractions()
+            verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknad.id })
+            verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(argThat { it shouldBe søknad.id })
+            serviceAndMocks.verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `en søknad med iverksatt søknadsbehandling skal ikke bli lukket`() {
+        val (sak, søknadsbehandling) = søknadsbehandlingIverksattInnvilget()
+        val søknad = sak.søknader.first()
+        val søknadServiceMock = mock<SøknadService> {
+            on { hentSøknad(any()) } doReturn søknad.right()
+        }
+        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
+            on { hentForSøknad(any()) } doReturn søknadsbehandling
+        }
+        ServiceOgMocks(
+            søknadService = søknadServiceMock,
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+        ).let { serviceAndMocks ->
+            serviceAndMocks.lukkSøknadService.lukkSøknad(
+                LukkSøknadRequest.UtenBrev.BortfaltSøknad(
+                    søknadId = søknad.id,
+                    saksbehandler = saksbehandler,
+                ),
+            ) shouldBe KunneIkkeLukkeSøknad.BehandlingErIFeilTilstand(Søknadsbehandling.KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnIverksattSøknadsbehandling)
+                .left()
+
+            verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknad.id })
+            verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(argThat { it shouldBe søknad.id })
+            serviceAndMocks.verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `en søknad med lukket søknadsbehandling skal ikke kunne bli lukket igjen`() {
+        val (sak, søknadsbehandling) = søknadsbehandlingLukket()
+        val søknad = sak.søknader.first() as Søknad.Journalført.MedOppgave
+        val søknadServiceMock = mock<SøknadService> {
+            on { hentSøknad(any()) } doReturn søknad.right()
+        }
+        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
+            on { hentForSøknad(any()) } doReturn søknadsbehandling
+        }
+        ServiceOgMocks(
+            søknadService = søknadServiceMock,
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+        ).let { serviceAndMocks ->
+            serviceAndMocks.lukkSøknadService.lukkSøknad(
+                LukkSøknadRequest.UtenBrev.BortfaltSøknad(
+                    søknadId = søknad.id,
+                    saksbehandler = saksbehandler,
+                ),
+            ) shouldBe KunneIkkeLukkeSøknad.BehandlingErIFeilTilstand(Søknadsbehandling.KunneIkkeLukkeSøknadsbehandling.KanIkkeLukkeEnAlleredeLukketSøknadsbehandling)
+                .left()
+
+            verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknad.id })
+            verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(argThat { it shouldBe søknad.id })
+            serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 
     @Test
     fun `en allerede trukket søknad skal ikke bli trukket`() {
-        val trukketSøknad = lukketSøknad.copy()
-        val trekkSøknadRequest = trekkSøknadRequest.copy(
+        val trukketSøknad = trukketSøknad
+        val trekkSøknadRequest = LukkSøknadRequest.MedBrev.TrekkSøknad(
             søknadId = trukketSøknad.id,
+            saksbehandler = saksbehandler,
+            trukketDato = 1.januar(2021),
         )
-
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn trukketSøknad
-            on { harSøknadPåbegyntBehandling(any()) } doReturn false
+        val søknadServiceMock = mock<SøknadService> {
+            on { hentSøknad(any()) } doReturn trukketSøknad.right()
         }
-
+        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
+            on { hentForSøknad(any()) } doReturn null
+        }
         ServiceOgMocks(
-            søknadRepo = søknadRepoMock,
-        ).let {
-            it.lukkSøknadService.lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
+            søknadService = søknadServiceMock,
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+        ).let { serviceAndMocks ->
+            serviceAndMocks.lukkSøknadService.lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
 
-            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe trukketSøknad.id })
-            verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe trukketSøknad.id })
-            it.verifyNoMoreInteractions()
+            verify(søknadServiceMock).hentSøknad(argThat { it shouldBe trukketSøknad.id })
+            verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(argThat { it shouldBe trukketSøknad.id })
+            serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 
     @Test
     fun `lager brevutkast`() {
+        val (sak, søknad) = nySakMedjournalførtSøknadOgOppgave()
         val pdf = "".toByteArray()
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
+        val søknadServiceMock = mock<SøknadService> {
+            on { hentSøknad(any()) } doReturn søknad.right()
         }
         val brevServiceMock = mock<BrevService> {
             on { lagBrev(any()) } doReturn pdf.right()
         }
 
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
+            on { hentPerson(any()) } doReturn person(sak.fnr).right()
         }
 
         ServiceOgMocks(
-            søknadRepo = søknadRepoMock,
+            søknadService = søknadServiceMock,
             brevService = brevServiceMock,
             personService = personServiceMock,
-        ).let {
-            it.lukkSøknadService.lagBrevutkast(trekkSøknadRequest) shouldBe pdf.right()
+        ).let { serviceAndMocks ->
+            serviceAndMocks.lukkSøknadService.lagBrevutkast(
+                LukkSøknadRequest.MedBrev.TrekkSøknad(
+                    søknadId = søknad.id,
+                    saksbehandler = saksbehandler,
+                    trukketDato = 1.januar(2021),
+                ),
+            ) shouldBe pdf.right()
 
             inOrder(
-                søknadRepoMock,
-                brevServiceMock,
-                personServiceMock,
+                *serviceAndMocks.allMocks,
             ) {
-                verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-                verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+                verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknad.id })
+                verify(personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
                 verify(brevServiceMock).lagBrev(
                     argThat {
                         it shouldBe TrukketSøknadBrevRequest(
-                            person,
-                            journalførtSøknadMedOppgave,
+                            person(fnr = sak.fnr),
+                            søknad,
                             1.januar(2021),
                             "Testbruker, Lokal",
                         )
                     },
                 )
-                it.verifyNoMoreInteractions()
+                serviceAndMocks.verifyNoMoreInteractions()
             }
         }
     }
 
     @Test
     fun `lager brevutkast finner ikke person`() {
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
+        val (sak, søknad) = nySakMedjournalførtSøknadOgOppgave()
+        val søknadServiceMock = mock<SøknadService> {
+            on { hentSøknad(any()) } doReturn søknad.right()
         }
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
         }
 
         ServiceOgMocks(
-            søknadRepo = søknadRepoMock,
+            søknadService = søknadServiceMock,
             personService = personServiceMock,
-        ).let {
-            it.lukkSøknadService.lagBrevutkast(trekkSøknadRequest) shouldBe KunneIkkeLageBrevutkast.FantIkkePerson.left()
+        ).let { serviceAndMocks ->
+            serviceAndMocks.lukkSøknadService.lagBrevutkast(
+                LukkSøknadRequest.MedBrev.TrekkSøknad(
+                    søknadId = søknad.id,
+                    saksbehandler = saksbehandler,
+                    trukketDato = 1.januar(2021),
+                ),
+            ) shouldBe KunneIkkeLageBrevutkast.FantIkkePerson.left()
 
             inOrder(
-                søknadRepoMock,
+                søknadServiceMock,
                 personServiceMock,
             ) {
-                verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-                verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-                it.verifyNoMoreInteractions()
+                verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknad.id })
+                verify(personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
+                serviceAndMocks.verifyNoMoreInteractions()
             }
         }
     }
 
     @Test
     fun `lager brevutkast finner ikke søknad`() {
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn null
+        val søknadServiceMock = mock<SøknadService> {
+            on { hentSøknad(any()) } doReturn FantIkkeSøknad.left()
         }
         ServiceOgMocks(
-            søknadRepo = søknadRepoMock,
-        ).let {
-            it.lukkSøknadService.lagBrevutkast(trekkSøknadRequest) shouldBe KunneIkkeLageBrevutkast.FantIkkeSøknad.left()
+            søknadService = søknadServiceMock,
+        ).let { serviceAndMocks ->
+            val søknadId = UUID.randomUUID()
+            serviceAndMocks.lukkSøknadService.lagBrevutkast(
+                LukkSøknadRequest.MedBrev.TrekkSøknad(
+                    søknadId = søknadId,
+                    saksbehandler = saksbehandler,
+                    trukketDato = 1.januar(2021),
+                ),
+            ) shouldBe KunneIkkeLageBrevutkast.FantIkkeSøknad.left()
 
-            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-            it.verifyNoMoreInteractions()
+            verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknadId })
+            serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 
     @Test
     fun `lager brevutkast klarer ikke lage brev`() {
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
+        val (sak, søknad) = nySakMedjournalførtSøknadOgOppgave()
+        val søknadServiceMock = mock<SøknadService> {
+            on { hentSøknad(any()) } doReturn søknad.right()
         }
         val brevServiceMock = mock<BrevService> {
             on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
         }
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
+            on { hentPerson(any()) } doReturn person(sak.fnr).right()
         }
         ServiceOgMocks(
-            søknadRepo = søknadRepoMock,
+            søknadService = søknadServiceMock,
             brevService = brevServiceMock,
             personService = personServiceMock,
-        ).let {
-            it.lukkSøknadService.lagBrevutkast(trekkSøknadRequest) shouldBe KunneIkkeLageBrevutkast.KunneIkkeLageBrev.left()
+        ).let { serviceAndMocks ->
+            serviceAndMocks.lukkSøknadService.lagBrevutkast(
+                LukkSøknadRequest.MedBrev.TrekkSøknad(
+                    søknadId = søknad.id,
+                    saksbehandler = saksbehandler,
+                    trukketDato = 1.januar(2021),
+                ),
+            ) shouldBe KunneIkkeLageBrevutkast.KunneIkkeLageBrev.left()
 
             inOrder(
-                søknadRepoMock,
-                brevServiceMock,
-                personServiceMock,
+                *serviceAndMocks.allMocks,
             ) {
-                verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-                verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+                verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknad.id })
+                verify(personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
                 verify(brevServiceMock).lagBrev(
                     argThat {
                         it shouldBe TrukketSøknadBrevRequest(
-                            person,
-                            journalførtSøknadMedOppgave,
+                            person(sak.fnr),
+                            søknad,
                             1.januar(2021),
                             "Testbruker, Lokal",
                         )
                     },
                 )
-                it.verifyNoMoreInteractions()
+                serviceAndMocks.verifyNoMoreInteractions()
             }
         }
     }
 
     @Test
     fun `svarer med ukjentBrevType når det ikke skal lages brev`() {
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
+        val (sak, søknad) = nySakMedjournalførtSøknadOgOppgave()
+        val søknadServiceMock = mock<SøknadService> {
+            on { hentSøknad(any()) } doReturn søknad.right()
         }
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
+            on { hentPerson(any()) } doReturn person(sak.fnr).right()
         }
 
         ServiceOgMocks(
-            søknadRepo = søknadRepoMock,
+            søknadService = søknadServiceMock,
             personService = personServiceMock,
-        ).let {
-            it.lukkSøknadService.lagBrevutkast(
+        ).let { serviceAndMocks ->
+            serviceAndMocks.lukkSøknadService.lagBrevutkast(
                 LukkSøknadRequest.UtenBrev.BortfaltSøknad(
-                    søknadId = journalførtSøknadMedOppgave.id,
+                    søknadId = søknad.id,
                     saksbehandler = saksbehandler,
                 ),
             ) shouldBe KunneIkkeLageBrevutkast.UkjentBrevtype.left()
 
             inOrder(
-                søknadRepoMock,
+                søknadServiceMock,
                 personServiceMock,
             ) {
-                verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-                verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-                it.verifyNoMoreInteractions()
+                verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknad.id })
+                verify(personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
+                serviceAndMocks.verifyNoMoreInteractions()
             }
         }
     }
 
     @Test
     fun `skal ikke kunne lukke journalført søknad uten oppgave`() {
-        val søknad = Søknad.Journalført.UtenOppgave(
-            sakId = journalførtSøknadMedOppgave.sakId,
-            id = journalførtSøknadMedOppgave.id,
-            opprettet = journalførtSøknadMedOppgave.opprettet,
-            søknadInnhold = journalførtSøknadMedOppgave.søknadInnhold,
-            journalpostId = journalførtSøknadMedOppgaveJournalpostId,
-        )
+        val søknad = nySakMedJournalførtSøknadUtenOppgave().second
 
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn søknad
-            on { harSøknadPåbegyntBehandling(any()) } doReturn false
+        val søknadServiceMock = mock<SøknadService> {
+            on { hentSøknad(any()) } doReturn søknad.right()
+        }
+        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
+            on { hentForSøknad(any()) } doReturn null
         }
         ServiceOgMocks(
-            søknadRepo = søknadRepoMock,
-        ).let {
-            it.lukkSøknadService.lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.SøknadManglerOppgave.left()
+            søknadService = søknadServiceMock,
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+        ).let { serviceAndMocks ->
+            serviceAndMocks.lukkSøknadService.lukkSøknad(
+                LukkSøknadRequest.MedBrev.TrekkSøknad(
+                    søknadId = søknad.id,
+                    saksbehandler = saksbehandler,
+                    trukketDato = 1.januar(2021),
+                ),
+            ) shouldBe KunneIkkeLukkeSøknad.SøknadManglerOppgave.left()
 
-            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe søknad.id })
-            verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe søknad.id })
-            it.verifyNoMoreInteractions()
+            verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknad.id })
+            verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(argThat { it shouldBe søknad.id })
+            serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 
     @Test
     fun `skal ikke kunne lukke søknad som mangler journalpost og oppgave`() {
-        val nySøknad = Søknad.Ny(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            sakId = sakId,
-            søknadInnhold = søknadInnhold,
-        )
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn nySøknad
-            on { harSøknadPåbegyntBehandling(any()) } doReturn false
+        val nySøknad = nySakMedNySøknad().second
+        val søknadServiceMock = mock<SøknadService> {
+            on { hentSøknad(any()) } doReturn nySøknad.right()
+        }
+        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
+            on { hentForSøknad(any()) } doReturn null
         }
         ServiceOgMocks(
-            søknadRepo = søknadRepoMock,
-        ).let {
-            it.lukkSøknadService.lukkSøknad(
-                trekkSøknadRequest.copy(
+            søknadService = søknadServiceMock,
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+        ).let { serviceAndMocks ->
+            serviceAndMocks.lukkSøknadService.lukkSøknad(
+                LukkSøknadRequest.MedBrev.TrekkSøknad(
                     søknadId = nySøknad.id,
+                    saksbehandler = saksbehandler,
+                    trukketDato = 1.januar(2021),
                 ),
             ) shouldBe KunneIkkeLukkeSøknad.SøknadManglerOppgave.left()
 
-            verify(søknadRepoMock).hentSøknad(argThat { it shouldBe nySøknad.id })
-            verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe nySøknad.id })
-            it.verifyNoMoreInteractions()
+            verify(søknadServiceMock).hentSøknad(argThat { it shouldBe nySøknad.id })
+            verify(søknadsbehandlingServiceMock).hentForSøknad(argThat { it shouldBe nySøknad.id })
+            serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 
     @Test
-    fun `Kan ikke lukke oppgave`() {
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
-            on { harSøknadPåbegyntBehandling(any()) } doReturn false
+    fun `Lukker søknad selvom vi ikke klarte lukke oppgaven`() {
+        val (sak, søknad) = nySakMedjournalførtSøknadOgOppgave()
+        val søknadServiceMock = mock<SøknadService> {
+            on { hentSøknad(any()) } doReturn søknad.right()
+        }
+        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
+            on { hentForSøknad(any()) } doReturn null
         }
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -717,138 +830,165 @@ internal class LukkSøknadServiceImplTest {
             on { lukkOppgave(any()) } doReturn KunneIkkeLukkeOppgave.left()
         }
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-
-        val transactionContext = mock<TransactionContext>()
-
-        val sessionFactoryMock = mock<SessionFactory> {
-            doAnswer { ss ->
-                @Suppress("UNCHECKED_CAST")
-                (ss.arguments[0] as ((TransactionContext) -> Unit))(transactionContext)
-            }.whenever(mock).withTransactionContext(any())
+            on { hentPerson(any()) } doReturn person(sak.fnr).right()
         }
 
         ServiceOgMocks(
-            søknadRepo = søknadRepoMock,
+            søknadService = søknadServiceMock,
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             microsoftGraphApiClient = MicrosoftGraphApiClientStub,
-            sessionFactory = sessionFactoryMock,
-        ).let {
-            val actual = it.lukkSøknadService.lukkSøknad(trekkSøknadRequest)
-                .getOrHandle { fail { "Skulle gått bra" } }
+        ).let { serviceAndMocks ->
+            val actual = serviceAndMocks.lukkSøknadService.lukkSøknad(
+                LukkSøknadRequest.MedBrev.TrekkSøknad(
+                    søknadId = søknad.id,
+                    saksbehandler = saksbehandler,
+                    trukketDato = 1.januar(2021),
+                ),
+            )
+                .getOrFail("Ukjent feil")
 
             actual shouldBe sak
 
             inOrder(
-                søknadRepoMock,
-                sakServiceMock,
-                brevServiceMock,
-                oppgaveServiceMock,
-                personServiceMock,
-                it.brevService,
-                sessionFactoryMock,
+                *serviceAndMocks.allMocks,
             ) {
-                verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-                verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-                verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+                verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknad.id })
+                verify(søknadsbehandlingServiceMock).hentForSøknad(argThat { it shouldBe søknad.id })
+
+                verify(personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
                 val expectedRequest = TrukketSøknadBrevRequest(
-                    person = person,
-                    søknad = journalførtSøknadMedOppgave,
+                    person = person(fnr = sak.fnr),
+                    søknad = søknad,
                     trukketDato = 1.januar(2021),
                     saksbehandlerNavn = "Testbruker, Lokal",
                 )
                 verify(brevServiceMock).lagBrev(expectedRequest)
-                // Under: sjekker at oppdaterSøknad(...) lagreDokument(...) blir kalt
-                verify(sessionFactoryMock).withTransactionContext<Unit>(any())
-                verify(søknadRepoMock).oppdaterSøknad(
+                verify(søknadServiceMock).lukkSøknad(
                     argThat {
-                        it shouldBe lukketSøknad.copy(
-                            oppgaveId = oppgaveId,
-                            journalpostId = journalførtSøknadMedOppgaveJournalpostId,
+                        it shouldBe Søknad.Journalført.MedOppgave.Lukket(
+                            id = søknad.id,
+                            opprettet = søknad.opprettet,
+                            sakId = søknad.sakId,
+                            søknadInnhold = søknad.søknadInnhold,
+                            journalpostId = søknad.journalpostId,
+                            oppgaveId = søknad.oppgaveId,
+                            lukketAv = saksbehandler,
+                            lukketType = TRUKKET,
+                            lukketTidspunkt = fixedTidspunkt,
                         )
                     },
-                    argThat { it shouldBe transactionContext },
+                    argThat { it shouldBe TestSessionFactory.transactionContext },
                 )
-                verify(it.brevService).lagreDokument(
+                verify(serviceAndMocks.brevService).lagreDokument(
                     argThat { dokument ->
                         dokument should beOfType<Dokument.MedMetadata.Informasjon>()
                         dokument.tittel shouldBe expectedRequest.brevInnhold.brevTemplate.tittel()
                         dokument.generertDokument shouldBe generertPdf
                         dokument.generertDokumentJson shouldBe expectedRequest.brevInnhold.toJson()
                         dokument.metadata shouldBe Dokument.Metadata(
-                            sakId = sakId,
-                            søknadId = journalførtSøknadMedOppgave.id,
+                            sakId = sak.id,
+                            søknadId = søknad.id,
                             vedtakId = null,
                             bestillBrev = true,
                         )
                     },
-                    argThat { it shouldBe transactionContext },
+                    argThat { it shouldBe TestSessionFactory.transactionContext },
                 )
-                verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
-                verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
+                verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe søknad.oppgaveId })
+                verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe søknad.sakId })
+                verify(serviceAndMocks.lukkSøknadServiceObserver).handle(
+                    argThat {
+                        it shouldBe Event.Statistikk.SøknadStatistikk.SøknadLukket(
+                            Søknad.Journalført.MedOppgave.Lukket(
+                                id = søknad.id,
+                                opprettet = søknad.opprettet,
+                                sakId = søknad.sakId,
+                                søknadInnhold = søknad.søknadInnhold,
+                                journalpostId = søknad.journalpostId,
+                                oppgaveId = søknad.oppgaveId,
+                                lukketAv = saksbehandler,
+                                lukketType = TRUKKET,
+                                lukketTidspunkt = fixedTidspunkt,
+                            ),
+                            sak.saksnummer,
+                        )
+                    },
+                )
             }
-            it.verifyNoMoreInteractions()
+            serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 
     @Test
     fun `Feil ved generering av brev ved lukking`() {
-        val søknadRepoMock = mock<SøknadRepo> {
-            on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
-            on { harSøknadPåbegyntBehandling(any()) } doReturn false
+        val (sak, søknadsbehandling) = søknadsbehandlingVilkårsvurdertUavklart()
+        val søknad = sak.søknader.first()
+        val søknadServiceMock = mock<SøknadService> {
+            on { hentSøknad(any()) } doReturn søknad.right()
         }
         val brevServiceMock = mock<BrevService> {
             on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
         }
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
+            on { hentPerson(any()) } doReturn person(sak.fnr).right()
+        }
+        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
+            on { hentForSøknad(any()) } doReturn søknadsbehandling
         }
 
         ServiceOgMocks(
-            søknadRepo = søknadRepoMock,
+            søknadService = søknadServiceMock,
             brevService = brevServiceMock,
             personService = personServiceMock,
             microsoftGraphApiClient = MicrosoftGraphApiClientStub,
-        ).let {
-            it.lukkSøknadService.lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.KunneIkkeGenerereDokument.left()
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+        ).let { serviceAndMocks ->
+            serviceAndMocks.lukkSøknadService.lukkSøknad(
+                LukkSøknadRequest.MedBrev.TrekkSøknad(
+                    søknadId = søknad.id,
+                    saksbehandler = saksbehandler,
+                    trukketDato = 1.januar(2021),
+                ),
+            ) shouldBe KunneIkkeLukkeSøknad.KunneIkkeGenerereDokument.left()
 
             inOrder(
-                søknadRepoMock,
-                brevServiceMock,
-                personServiceMock,
+                *serviceAndMocks.allMocks,
             ) {
-                verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-                verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
-                verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+                verify(søknadServiceMock).hentSøknad(argThat { it shouldBe søknad.id })
+                verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(argThat { it shouldBe søknad.id })
+
+                verify(personServiceMock).hentPerson(argThat { it shouldBe sak.fnr })
                 verify(brevServiceMock).lagBrev(
                     TrukketSøknadBrevRequest(
-                        person = person,
-                        søknad = journalførtSøknadMedOppgave,
+                        person = person(fnr = sak.fnr),
+                        søknad = søknad,
                         trukketDato = 1.januar(2021),
                         saksbehandlerNavn = "Testbruker, Lokal",
                     ),
                 )
-                it.verifyNoMoreInteractions()
+                serviceAndMocks.verifyNoMoreInteractions()
             }
         }
     }
 
     private class ServiceOgMocks(
-        val søknadRepo: SøknadRepo = mock(),
+        val søknadService: SøknadService = mock(),
         val sakService: SakService = mock(),
         val brevService: BrevService = mock(),
         val oppgaveService: OppgaveService = mock(),
         val personService: PersonService = mock(),
+        val søknadsbehandlingService: SøknadsbehandlingService = mock(),
         val microsoftGraphApiClient: MicrosoftGraphApiOppslag = MicrosoftGraphApiClientStub,
         clock: Clock = fixedClock,
-        val sessionFactory: SessionFactory = mock(),
+        val sessionFactory: SessionFactory = TestSessionFactory(),
+        val lukkSøknadServiceObserver: EventObserver = mock(),
     ) {
         val lukkSøknadService = LukkSøknadServiceImpl(
-            søknadRepo = søknadRepo,
+            søknadService = søknadService,
             sakService = sakService,
             brevService = brevService,
             oppgaveService = oppgaveService,
@@ -856,17 +996,21 @@ internal class LukkSøknadServiceImplTest {
             microsoftGraphApiClient = microsoftGraphApiClient,
             clock = clock,
             sessionFactory = sessionFactory,
-        )
+            søknadsbehandlingService = søknadsbehandlingService,
+        ).apply { addObserver(lukkSøknadServiceObserver) }
+
+        val allMocks = listOf(
+            søknadService,
+            sakService,
+            brevService,
+            oppgaveService,
+            personService,
+            søknadsbehandlingService,
+            lukkSøknadServiceObserver,
+        ).toTypedArray()
 
         fun verifyNoMoreInteractions() {
-            verifyNoMoreInteractions(
-                søknadRepo,
-                sakService,
-                brevService,
-                oppgaveService,
-                personService,
-                sessionFactory,
-            )
+            verifyNoMoreInteractions(*allMocks)
         }
     }
 }

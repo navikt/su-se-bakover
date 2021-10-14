@@ -13,14 +13,14 @@ sealed class LukkSøknadRequest {
     abstract val saksbehandler: NavIdentBruker.Saksbehandler
 
     companion object {
-        fun Søknad.lukk(request: LukkSøknadRequest, lukketTidspunkt: Tidspunkt): Søknad.Lukket {
+        fun Søknad.Journalført.MedOppgave.IkkeLukket.lukk(request: LukkSøknadRequest, lukketTidspunkt: Tidspunkt): Søknad.Journalført.MedOppgave.Lukket {
             return lukk(
                 lukketAv = request.saksbehandler,
                 type = when (request) {
-                    is MedBrev.TrekkSøknad -> Søknad.Lukket.LukketType.TRUKKET
-                    is MedBrev.AvvistSøknad -> Søknad.Lukket.LukketType.AVVIST
-                    is UtenBrev.BortfaltSøknad -> Søknad.Lukket.LukketType.BORTFALT
-                    is UtenBrev.AvvistSøknad -> Søknad.Lukket.LukketType.AVVIST
+                    is MedBrev.TrekkSøknad -> Søknad.Journalført.MedOppgave.Lukket.LukketType.TRUKKET
+                    is MedBrev.AvvistSøknad -> Søknad.Journalført.MedOppgave.Lukket.LukketType.AVVIST
+                    is UtenBrev.BortfaltSøknad -> Søknad.Journalført.MedOppgave.Lukket.LukketType.BORTFALT
+                    is UtenBrev.AvvistSøknad -> Søknad.Journalført.MedOppgave.Lukket.LukketType.AVVIST
                 },
                 lukketTidspunkt = lukketTidspunkt,
             )

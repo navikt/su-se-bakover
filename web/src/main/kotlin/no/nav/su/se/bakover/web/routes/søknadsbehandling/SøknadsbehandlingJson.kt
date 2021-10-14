@@ -4,6 +4,7 @@ import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.grunnlag.throwIfMultiple
+import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson.Companion.create
@@ -31,6 +32,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
             stønadsperiode = stønadsperiode?.toJson(),
             grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
             fritekstTilBrev = fritekstTilBrev,
+            erLukket = false,
         )
         is Søknadsbehandling.Beregnet -> {
             BehandlingJson(
@@ -47,6 +49,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
+                erLukket = false,
             )
         }
         is Søknadsbehandling.Simulert -> {
@@ -64,6 +67,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
+                erLukket = false,
             )
         }
         is Søknadsbehandling.TilAttestering.Innvilget -> {
@@ -81,6 +85,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
+                erLukket = false,
             )
         }
         is Søknadsbehandling.TilAttestering.Avslag.MedBeregning -> {
@@ -98,6 +103,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
+                erLukket = false,
             )
         }
         is Søknadsbehandling.TilAttestering.Avslag.UtenBeregning -> {
@@ -115,6 +121,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
+                erLukket = false,
             )
         }
         is Søknadsbehandling.Underkjent.Innvilget -> {
@@ -148,6 +155,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
+                erLukket = false,
             )
         }
         is Søknadsbehandling.Underkjent.Avslag.UtenBeregning -> {
@@ -165,6 +173,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
+                erLukket = false,
             )
         }
         is Søknadsbehandling.Underkjent.Avslag.MedBeregning -> {
@@ -182,6 +191,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
+                erLukket = false,
             )
         }
         is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
@@ -199,6 +209,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
+                erLukket = false,
             )
         }
         is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
@@ -216,6 +227,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
+                erLukket = false,
             )
         }
         is Søknadsbehandling.Iverksatt.Innvilget -> {
@@ -233,11 +245,15 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 stønadsperiode = stønadsperiode.toJson(),
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
                 fritekstTilBrev = fritekstTilBrev,
+                erLukket = false,
             )
         }
+        is LukketSøknadsbehandling -> {
+            lukketSøknadsbehandling.toJson().copy(erLukket = true)
+        }
     }.also {
-        // TODO jah: Vi skal ikke pre-utfylle Bosituasjon for revurdering med mer enn ett element.
-        //  vi ønsker å gjøre denne sjekken backend for å ha bedre kontroll + oversikt (logger)
+        // TODO jah: Vi garanterer frontend maks 1 bosituasjon.
+        //  Vi ønsker å gjøre denne sjekken backend for å ha bedre kontroll + oversikt (logger)
         grunnlagsdata.bosituasjon.throwIfMultiple()
     }
 }

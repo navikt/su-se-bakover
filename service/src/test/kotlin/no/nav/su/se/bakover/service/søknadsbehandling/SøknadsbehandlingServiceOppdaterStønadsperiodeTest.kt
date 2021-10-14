@@ -25,6 +25,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import java.util.UUID
 
@@ -136,11 +137,13 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
 
             verify(it.søknadsbehandlingRepo).hent(uavklart.id)
             verify(it.sakService).hentSak(sak.id)
+            verify(it.søknadsbehandlingRepo).defaultSessionContext()
             verify(it.søknadsbehandlingRepo).lagre(
                 argThat {
                     it shouldBe response
                     it.stønadsperiode shouldBe nyStønadsperiode
                 },
+                anyOrNull(),
             )
             verify(it.vilkårsvurderingService).lagre(
                 argThat { it shouldBe uavklart.id },

@@ -51,6 +51,16 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     val erIverksatt: Boolean by lazy { this is Iverksatt.Avslag || this is Iverksatt.Innvilget }
 
+    sealed class KunneIkkeLukkeSøknadsbehandling {
+        object KanIkkeLukkeEnAlleredeLukketSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling()
+        object KanIkkeLukkeEnIverksattSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling()
+        object KanIkkeLukkeEnSøknadsbehandlingTilAttestering : KunneIkkeLukkeSøknadsbehandling()
+    }
+
+    fun lukkSøknadsbehandling(): Either<KunneIkkeLukkeSøknadsbehandling, LukketSøknadsbehandling> {
+        return LukketSøknadsbehandling.tryCreate(this)
+    }
+
     sealed class KunneIkkeLeggeTilFradragsgrunnlag {
         object IkkeLovÅLeggeTilFradragIDenneStatusen : KunneIkkeLeggeTilFradragsgrunnlag()
         object GrunnlagetMåVæreInneforBehandlingsperioden : KunneIkkeLeggeTilFradragsgrunnlag()
@@ -202,6 +212,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         ) : Vilkårsvurdert() {
 
             override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
+
             override val periode: Periode = stønadsperiode.periode
 
             override fun accept(visitor: SøknadsbehandlingVisitor) {
@@ -1413,6 +1424,7 @@ fun <T : Søknadsbehandling> T.medFritekstTilBrev(fritekstTilBrev: String): T =
             is Søknadsbehandling.Vilkårsvurdert.Avslag -> x.copy(fritekstTilBrev = fritekstTilBrev)
             is Søknadsbehandling.Vilkårsvurdert.Innvilget -> x.copy(fritekstTilBrev = fritekstTilBrev)
             is Søknadsbehandling.Vilkårsvurdert.Uavklart -> x.copy(fritekstTilBrev = fritekstTilBrev)
+            is LukketSøknadsbehandling -> throw IllegalArgumentException("Det støttes ikke å endre fritekstTilBrev på en lukket søknadsbehandling.")
         }
         // ... og så caster vi tilbake til T for at Kotlin skal henge med i svingene
         ) as T

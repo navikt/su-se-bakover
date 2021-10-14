@@ -8,10 +8,12 @@ import java.util.UUID
 
 interface SøknadsbehandlingRepo {
     fun lagreNySøknadsbehandling(søknadsbehandling: NySøknadsbehandling)
-    fun lagre(søknadsbehandling: Søknadsbehandling)
+    fun lagre(søknadsbehandling: Søknadsbehandling, sessionContext: SessionContext = defaultSessionContext())
     fun hent(id: UUID): Søknadsbehandling?
     fun hentEventuellTidligereAttestering(id: UUID): Attestering?
     fun hentForSak(sakId: UUID, sessionContext: SessionContext = defaultSessionContext()): List<Søknadsbehandling>
 
+    /** En søknad kan kun være knyttet til 0 eller 1 søknadsbehandling. */
+    fun hentForSøknad(søknadId: UUID): Søknadsbehandling?
     fun defaultSessionContext(): SessionContext
 }
