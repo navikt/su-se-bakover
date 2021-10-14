@@ -18,8 +18,7 @@ enum class Tema(val value: String) {
  * https://github.com/navikt/kodeverksmapper/blob/master/web/src/main/resources/underkategori.csv
  */
 enum class Behandlingstype(val value: String) {
-    FØRSTEGANGSSØKNAD("ae0245"),
-    NY_PERIODE("ae0244"),
+    SØKNAD("ae0034"),
     REVURDERING("ae0028");
 
     override fun toString() = this.value

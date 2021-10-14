@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.test
 
 import arrow.core.nonEmptyListOf
-import arrow.core.orNull
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering

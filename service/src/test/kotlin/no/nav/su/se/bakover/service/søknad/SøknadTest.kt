@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadstype
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.fixedTidspunkt
@@ -50,7 +49,7 @@ import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.verifyZeroInteractions
 import java.util.UUID
 
-class NySøknadTest {
+class SøknadTest {
 
     private val søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build()
     private val fnr = søknadInnhold.personopplysninger.fnr
@@ -464,14 +463,13 @@ class NySøknadTest {
                 verify(oppgaveService).opprettOppgave(
                     argThat {
                         it.shouldBeEqualToIgnoringFields(
-                            OppgaveConfig.NySøknad(
+                            OppgaveConfig.Søknad(
                                 journalpostId = journalpostId,
                                 søknadId = UUID.randomUUID(), // ignored
                                 aktørId = person.ident.aktørId,
-                                søknadstype = Søknadstype.NY_PERIODE,
                             ),
-                            OppgaveConfig.NySøknad::søknadId,
-                            OppgaveConfig.NySøknad::saksreferanse,
+                            OppgaveConfig.Søknad::søknadId,
+                            OppgaveConfig.Søknad::saksreferanse,
                         )
                     },
                 )
@@ -583,14 +581,13 @@ class NySøknadTest {
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it.shouldBeEqualToIgnoringFields(
-                        OppgaveConfig.NySøknad(
+                        OppgaveConfig.Søknad(
                             journalpostId = journalpostId,
                             søknadId = UUID.randomUUID(), // ignored
-                            aktørId = person.ident.aktørId,
-                            søknadstype = Søknadstype.FØRSTEGANGSSØKNAD
+                            aktørId = person.ident.aktørId
                         ),
-                        OppgaveConfig.NySøknad::søknadId,
-                        OppgaveConfig.NySøknad::saksreferanse,
+                        OppgaveConfig.Søknad::søknadId,
+                        OppgaveConfig.Søknad::saksreferanse,
                     )
                 },
             )
