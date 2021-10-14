@@ -49,6 +49,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     abstract val fritekstTilBrev: String
 
     val erIverksatt: Boolean by lazy { this is Iverksatt.Avslag || this is Iverksatt.Innvilget }
+    val erLukket: Boolean by lazy { this is LukketSøknadsbehandling }
 
     sealed class KunneIkkeLukkeSøknadsbehandling {
         object KanIkkeLukkeEnAlleredeLukketSøknadsbehandling : KunneIkkeLukkeSøknadsbehandling()

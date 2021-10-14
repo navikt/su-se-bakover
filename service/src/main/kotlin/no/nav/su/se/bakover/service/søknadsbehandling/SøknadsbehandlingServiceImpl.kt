@@ -115,7 +115,8 @@ internal class SøknadsbehandlingServiceImpl(
             return SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
         }
 
-        val åpneSøknadsbehandlinger = søknadsbehandlingRepo.hentForSak(søknad.sakId).filterNot { it.erIverksatt }
+        val åpneSøknadsbehandlinger =
+            søknadsbehandlingRepo.hentForSak(søknad.sakId).filterNot { it.erIverksatt }.filterNot { it.erLukket }
         if (åpneSøknadsbehandlinger.isNotEmpty()) {
             return SøknadsbehandlingService.KunneIkkeOpprette.HarAlleredeÅpenSøknadsbehandling.left()
         }
