@@ -24,6 +24,9 @@ import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
+import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
+import no.nav.su.se.bakover.service.søknad.AvslåSøknadService
+import no.nav.su.se.bakover.service.søknad.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BrevRequest
@@ -41,6 +44,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.VilkårsvurderRequest
+import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
@@ -56,6 +60,7 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeAvgjøreOmFørstegangEllerNyPeriode
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.søknad.søknadPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
@@ -63,6 +68,7 @@ import no.nav.su.se.bakover.web.toUUID
 import no.nav.su.se.bakover.web.withBehandlingId
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withSakId
+import no.nav.su.se.bakover.web.withSøknadId
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -70,6 +76,7 @@ internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 
 internal fun Route.søknadsbehandlingRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
+    vedtakService: VedtakService,
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
@@ -84,6 +91,42 @@ internal fun Route.søknadsbehandlingRoutes(
         "Attestant og saksbehandler kan ikke være samme person",
         "attestant_samme_som_saksbehandler",
     )
+
+    authorize(Brukerrolle.Saksbehandler) {
+        get("$søknadPath/{søknadId}/avslag") {
+            call.withSøknadId { søknadId ->
+                call.withBody<WithFritekstBody> { body ->
+                    AvslåSøknadService(
+                        søknadsbehandlingService = søknadsbehandlingService,
+                        vedtakService = vedtakService,
+                    ).avslå(
+                        AvslåManglendeDokumentasjonRequest(
+                            søknadId = søknadId,
+                            saksbehandler = Saksbehandler(call.suUserContext.navIdent),
+                            fritekstTilBrev = body.fritekst,
+                        ),
+                    ).mapLeft {
+                        call.svar(
+                            when (it) {
+                                KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling ->
+                                    InternalServerError.errorJson(
+                                        "Kunne ikke opprette søknadsbehandling",
+                                        "kunne_ikke_opprette_søknadsbehandling",
+                                    )
+                                KunneIkkeAvslåSøknad.SøknadsbehandlingIUgyldigTilstandForAvslag ->
+                                    InternalServerError.errorJson(
+                                        "Behandlingen er i ugyldig tilstand for avslag",
+                                        "behandling_i_ugyldig_tilstand_for_avslag",
+                                    )
+                            },
+                        )
+                    }.map {
+                        call.svar(Resultat.json(OK, it.toString())) // Her må vi vel mekke en ordentlig json...
+                    }
+                }
+            }
+        }
+    }
 
     authorize(Brukerrolle.Saksbehandler) {
         post("$sakPath/{sakId}/behandlinger") {
