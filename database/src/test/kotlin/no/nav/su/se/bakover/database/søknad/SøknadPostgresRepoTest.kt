@@ -6,7 +6,6 @@ import io.kotest.matchers.types.shouldNotBeTypeOf
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.TestDataHelper.Companion.journalførtSøknad
 import no.nav.su.se.bakover.database.TestDataHelper.Companion.journalførtSøknadMedOppgave
-import no.nav.su.se.bakover.database.fixedTidspunkt
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
@@ -17,6 +16,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 
 internal class SøknadPostgresRepoTest {

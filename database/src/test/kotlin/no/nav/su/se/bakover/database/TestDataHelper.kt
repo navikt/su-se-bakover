@@ -4,7 +4,6 @@ import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -79,18 +78,14 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.getOrFail
 import java.time.Clock
-import java.time.LocalDate
-import java.time.ZoneOffset
 import java.util.UUID
 import javax.sql.DataSource
 
-internal val fixedClock: Clock =
-    Clock.fixed(1.januar(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
-internal val fixedTidspunkt: Tidspunkt = Tidspunkt.now(fixedClock)
-internal val fixedLocalDate: LocalDate = fixedTidspunkt.toLocalDate(ZoneOffset.UTC)
 internal val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.januar(2021)))
 internal val tomBehandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
 internal val behandlingsinformasjonMedAlleVilkårOppfylt =
@@ -279,7 +274,7 @@ internal class TestDataHelper(
     )
     internal val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource = dataSource)
     internal val dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory)
-    internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(dataSource)
+    internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(dataSource, fixedClock)
 
     fun nySakMedNySøknad(fnr: Fnr = Fnr.generer(), søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build()): NySak {
         return SakFactory(clock = clock).nySakMedNySøknad(fnr, søknadInnhold).also {
@@ -480,19 +475,7 @@ internal class TestDataHelper(
         }
     }
 
-    fun beregnetIngenEndring(): BeregnetRevurdering {
-        val vedtak = vedtakMedInnvilgetSøknadsbehandling()
-        return nyRevurdering(
-            vedtak.first,
-            vedtak.first.periode,
-        ).beregn(
-            listOf(vedtak.second),
-        ).getOrFail("skulle gått bra").also {
-            revurderingRepo.lagre(it)
-        }
-    }
-
-    fun simulertOpphørtRevurdering(): SimulertRevurdering {
+    private fun simulertOpphørtRevurdering(): SimulertRevurdering {
         return beregnetOpphørtRevurdering().toSimulert(simulering(Fnr.generer())).also {
             revurderingRepo.lagre(it)
         }

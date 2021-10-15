@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import java.util.UUID
 
-object BeregningFactory {
+object BeregningFactory { // TODO jah: Gjør om til class som tar inn Clock
     fun ny(
         id: UUID = UUID.randomUUID(),
         opprettet: Tidspunkt = Tidspunkt.now(),

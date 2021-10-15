@@ -9,30 +9,25 @@ import no.nav.person.pdl.leesah.Endringstype
 import no.nav.person.pdl.leesah.doedsfall.Doedsfall
 import no.nav.person.pdl.leesah.sivilstand.Sivilstand
 import no.nav.person.pdl.leesah.utflytting.UtflyttingFraNorge
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.junit.jupiter.api.Test
-import java.time.Clock
 import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneOffset
 import no.nav.person.pdl.leesah.Personhendelse as EksternPersonhendelse
 
 internal class PersonhendelseMapperTest {
     private val TOPIC = "topic"
     private val PARTITION = 0
     private val OFFSET = 0L
-    private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
 
     private val aktørId = "1234567890000"
     private val fnr = Fnr.generer().toString()
     private val opprettet = Instant.now(fixedClock)
-    private val tidspunkt = LocalDate.now(fixedClock)
 
     @Test
     fun `mapper fra ekstern dødsfalltype til intern`() {
@@ -44,7 +39,7 @@ internal class PersonhendelseMapperTest {
             "DOEDSFALL_V1",
             Endringstype.OPPRETTET,
             null,
-            Doedsfall(tidspunkt),
+            Doedsfall(fixedLocalDate),
             null,
             null,
         )
@@ -53,7 +48,7 @@ internal class PersonhendelseMapperTest {
 
         actual shouldBe Personhendelse.IkkeTilknyttetSak(
             endringstype = Personhendelse.Endringstype.OPPRETTET,
-            hendelse = Personhendelse.Hendelse.Dødsfall(tidspunkt),
+            hendelse = Personhendelse.Hendelse.Dødsfall(fixedLocalDate),
             metadata = Personhendelse.Metadata(
                 personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
                 hendelseId = "hendelseId",
@@ -110,14 +105,14 @@ internal class PersonhendelseMapperTest {
             null,
             null,
             null,
-            UtflyttingFraNorge("Sverige", "Stockholm", tidspunkt),
+            UtflyttingFraNorge("Sverige", "Stockholm", fixedLocalDate),
         )
         val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
         val actual = PersonhendelseMapper.map(message).getOrElse { throw RuntimeException("Feil skjedde i test") }
 
         actual shouldBe Personhendelse.IkkeTilknyttetSak(
             endringstype = Personhendelse.Endringstype.OPPRETTET,
-            hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(tidspunkt),
+            hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(fixedLocalDate),
             metadata = Personhendelse.Metadata(
                 personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
                 hendelseId = "hendelseId",
@@ -238,14 +233,14 @@ internal class PersonhendelseMapperTest {
             null,
             null,
             null,
-            UtflyttingFraNorge("Sverige", "Stockholm", tidspunkt),
+            UtflyttingFraNorge("Sverige", "Stockholm", fixedLocalDate),
         )
         val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, "\u0000$aktørId", personhendelse)
         val actual = PersonhendelseMapper.map(message)
 
         actual shouldBe Personhendelse.IkkeTilknyttetSak(
             endringstype = Personhendelse.Endringstype.OPPRETTET,
-            hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(tidspunkt),
+            hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(fixedLocalDate),
             metadata = Personhendelse.Metadata(
                 hendelseId = "hendelseId",
                 personidenter = NonEmptyList.fromListUnsafe(personhendelse.getPersonidenter()),
@@ -270,7 +265,7 @@ internal class PersonhendelseMapperTest {
             null,
             null,
             null,
-            UtflyttingFraNorge("Sverige", "Stockholm", tidspunkt),
+            UtflyttingFraNorge("Sverige", "Stockholm", fixedLocalDate),
         )
         val message = ConsumerRecord(TOPIC, PARTITION, OFFSET, aktørId, personhendelse)
         val actual = PersonhendelseMapper.map(message)

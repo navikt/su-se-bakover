@@ -54,7 +54,7 @@ data class Saksnummer(@JsonValue val nummer: Long) {
 data class Sak(
     val id: UUID = UUID.randomUUID(),
     val saksnummer: Saksnummer,
-    val opprettet: Tidspunkt = Tidspunkt.now(),
+    val opprettet: Tidspunkt,
     val fnr: Fnr,
     val søknader: List<Søknad> = emptyList(),
     val søknadsbehandlinger: List<Søknadsbehandling> = emptyList(),
@@ -120,7 +120,7 @@ data class Sak(
 
 data class NySak(
     val id: UUID = UUID.randomUUID(),
-    val opprettet: Tidspunkt = Tidspunkt.now(),
+    val opprettet: Tidspunkt,
     val fnr: Fnr,
     val søknad: Søknad.Ny,
 ) {

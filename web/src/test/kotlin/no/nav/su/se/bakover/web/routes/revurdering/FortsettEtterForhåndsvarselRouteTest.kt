@@ -7,7 +7,6 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
@@ -24,6 +23,8 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
 import no.nav.su.se.bakover.web.testSusebakover
@@ -32,7 +33,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
-import java.time.LocalDate
 import java.util.UUID
 
 internal class FortsettEtterForhåndsvarselRouteTest {
@@ -70,14 +70,14 @@ internal class FortsettEtterForhåndsvarselRouteTest {
         val simulertRevurdering = SimulertRevurdering.Innvilget(
             id = UUID.randomUUID(),
             periode = RevurderingRoutesTestData.periode,
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             tilRevurdering = RevurderingRoutesTestData.vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678901"),
                 gjelderNavn = "navn",
-                datoBeregnet = LocalDate.now(),
+                datoBeregnet = fixedLocalDate,
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
@@ -141,14 +141,14 @@ internal class FortsettEtterForhåndsvarselRouteTest {
         val simulertRevurdering = SimulertRevurdering.Innvilget(
             id = UUID.randomUUID(),
             periode = RevurderingRoutesTestData.periode,
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             tilRevurdering = RevurderingRoutesTestData.vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678901"),
                 gjelderNavn = "navn",
-                datoBeregnet = LocalDate.now(),
+                datoBeregnet = fixedLocalDate,
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
@@ -211,14 +211,14 @@ internal class FortsettEtterForhåndsvarselRouteTest {
         val simulertRevurdering = SimulertRevurdering.Innvilget(
             id = UUID.randomUUID(),
             periode = RevurderingRoutesTestData.periode,
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             tilRevurdering = RevurderingRoutesTestData.vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678901"),
                 gjelderNavn = "navn",
-                datoBeregnet = LocalDate.now(),
+                datoBeregnet = fixedLocalDate,
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),

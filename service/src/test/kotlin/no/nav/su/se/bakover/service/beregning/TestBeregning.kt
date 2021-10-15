@@ -12,11 +12,12 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import java.util.UUID
 
 internal object TestBeregning : Beregning {
     private val id = UUID.randomUUID()
-    private val tidspunkt = Tidspunkt.now()
+    private val tidspunkt = fixedTidspunkt
     override fun getId(): UUID = id
     override fun getOpprettet(): Tidspunkt = tidspunkt
     override fun getSats(): Sats = Sats.HØY
@@ -44,7 +45,7 @@ internal object TestMånedsberegning : Månedsberegning {
 
 internal object TestBeregningSomGirOpphør : Beregning {
     private val id = UUID.randomUUID()
-    private val tidspunkt = Tidspunkt.now()
+    private val tidspunkt = fixedTidspunkt
     override fun getId(): UUID = id
     override fun getOpprettet(): Tidspunkt = tidspunkt
     override fun getSats(): Sats = Sats.HØY

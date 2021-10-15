@@ -83,7 +83,7 @@ internal class KodeverkHttpClientTest : WiremockBase {
     }
 
     // language=JSON
-    val resultatKommuneJson =
+    private val resultatKommuneJson =
         """
         {
         "betydninger": {
@@ -117,7 +117,7 @@ internal class KodeverkHttpClientTest : WiremockBase {
         """.trimIndent()
 
     // language=JSON
-    val resultatPoststedJson =
+    private val resultatPoststedJson =
         """
             {
               "betydninger": {

@@ -1,12 +1,10 @@
 package no.nav.su.se.bakover.service.statistikk
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.ForNav
@@ -34,6 +32,8 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.statistikk.mappers.BehandlingStatistikkMapper
 import no.nav.su.se.bakover.service.statistikk.mappers.ManglendeStatistikkMappingException
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import org.junit.jupiter.api.Nested
@@ -41,12 +41,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import java.time.Clock
 import java.util.UUID
 
 internal class BehandlingStatistikkMapperTest {
 
-    private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, zoneIdOslo)
     private val revurderingsårsak = Revurderingsårsak(
         Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
         Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
@@ -57,9 +55,9 @@ internal class BehandlingStatistikkMapperTest {
         val saksnummer = Saksnummer(2079L)
         val søknad = Søknad.Ny(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(fixedClock),
+            opprettet = fixedTidspunkt,
             sakId = UUID.randomUUID(),
-            søknadInnhold = SøknadInnholdTestdataBuilder.build()
+            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
         )
 
         BehandlingStatistikkMapper(fixedClock).map(søknad, saksnummer, Statistikk.Behandling.SøknadStatus.SØKNAD_MOTTATT) shouldBe Statistikk.Behandling(
@@ -105,12 +103,12 @@ internal class BehandlingStatistikkMapperTest {
         val saksnummer = Saksnummer(2079L)
         val søknad = Søknad.Journalført.MedOppgave.Lukket(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(fixedClock),
+            opprettet = fixedTidspunkt,
             sakId = UUID.randomUUID(),
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
             journalpostId = JournalpostId("journalpostid"),
             oppgaveId = OppgaveId("oppgaveid"),
-            lukketTidspunkt = Tidspunkt.now(fixedClock),
+            lukketTidspunkt = fixedTidspunkt,
             lukketAv = NavIdentBruker.Saksbehandler(navIdent = "Mr Lukker"),
             lukketType = Søknad.Journalført.MedOppgave.Lukket.LukketType.AVVIST,
         )
@@ -158,7 +156,7 @@ internal class BehandlingStatistikkMapperTest {
     fun `mapper opprettet behandling`() {
         BehandlingStatistikkMapper(fixedClock).map(uavklartSøknadsbehandling) shouldBe Statistikk.Behandling(
             funksjonellTid = uavklartSøknadsbehandling.opprettet,
-            tekniskTid = Tidspunkt.now(fixedClock),
+            tekniskTid = fixedTidspunkt,
             mottattDato = uavklartSøknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
             registrertDato = uavklartSøknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
             behandlingId = uavklartSøknadsbehandling.id,
@@ -199,8 +197,8 @@ internal class BehandlingStatistikkMapperTest {
     @Test
     fun `mapper iverksatt behandling`() {
         BehandlingStatistikkMapper(fixedClock).map(iverksattSøknadsbehandling) shouldBe Statistikk.Behandling(
-            funksjonellTid = iverksattSøknadsbehandling.periode.fraOgMed.startOfDay(zoneIdOslo),
-            tekniskTid = Tidspunkt.now(fixedClock),
+            funksjonellTid = fixedTidspunkt,
+            tekniskTid = fixedTidspunkt,
             mottattDato = iverksattSøknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
             registrertDato = iverksattSøknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
             behandlingId = iverksattSøknadsbehandling.id,
@@ -255,7 +253,7 @@ internal class BehandlingStatistikkMapperTest {
         val opprettetRevurdering = OpprettetRevurdering(
             id = UUID.randomUUID(),
             periode = Periode.create(1.januar(2021), 31.januar(2021)),
-            opprettet = Tidspunkt.now(fixedClock),
+            opprettet = fixedTidspunkt,
             tilRevurdering = mock {
                 on { behandling } doReturn behandlingMock
                 on { id } doReturn UUID.randomUUID()
@@ -272,7 +270,7 @@ internal class BehandlingStatistikkMapperTest {
 
         BehandlingStatistikkMapper(fixedClock).map(opprettetRevurdering) shouldBe Statistikk.Behandling(
             funksjonellTid = opprettetRevurdering.opprettet,
-            tekniskTid = Tidspunkt.now(fixedClock),
+            tekniskTid = fixedTidspunkt,
             mottattDato = opprettetRevurdering.opprettet.toLocalDate(zoneIdOslo),
             registrertDato = opprettetRevurdering.opprettet.toLocalDate(zoneIdOslo),
             behandlingId = opprettetRevurdering.id,
@@ -321,7 +319,7 @@ internal class BehandlingStatistikkMapperTest {
         val iverksattRevurdering = IverksattRevurdering.Innvilget(
             id = UUID.randomUUID(),
             periode = periode,
-            opprettet = Tidspunkt.now(fixedClock),
+            opprettet = fixedTidspunkt,
             tilRevurdering = mock {
                 on { behandling } doReturn behandlingMock
                 on { id } doReturn UUID.randomUUID()
@@ -337,7 +335,7 @@ internal class BehandlingStatistikkMapperTest {
                 .leggTilNyAttestering(
                     Attestering.Iverksatt(
                         NavIdentBruker.Attestant(navIdent = "2"),
-                        Tidspunkt.now(fixedClock),
+                        fixedTidspunkt,
                     ),
                 ),
             fritekstTilBrev = "",
@@ -348,7 +346,7 @@ internal class BehandlingStatistikkMapperTest {
         )
         BehandlingStatistikkMapper(fixedClock).map(iverksattRevurdering) shouldBe Statistikk.Behandling(
             funksjonellTid = iverksattRevurdering.opprettet,
-            tekniskTid = Tidspunkt.now(fixedClock),
+            tekniskTid = fixedTidspunkt,
             mottattDato = iverksattRevurdering.opprettet.toLocalDate(zoneIdOslo),
             registrertDato = iverksattRevurdering.opprettet.toLocalDate(zoneIdOslo),
             behandlingId = iverksattRevurdering.id,
@@ -398,7 +396,7 @@ internal class BehandlingStatistikkMapperTest {
         val iverksattRevurdering = IverksattRevurdering.IngenEndring(
             id = UUID.randomUUID(),
             periode = periode,
-            opprettet = Tidspunkt.now(fixedClock),
+            opprettet = fixedTidspunkt,
             tilRevurdering = mock {
                 on { behandling } doReturn behandlingMock
                 on { id } doReturn UUID.randomUUID()
@@ -412,7 +410,7 @@ internal class BehandlingStatistikkMapperTest {
                 .leggTilNyAttestering(
                     Attestering.Iverksatt(
                         NavIdentBruker.Attestant(navIdent = "2"),
-                        Tidspunkt.now(fixedClock),
+                        fixedTidspunkt,
                     ),
                 ),
             fritekstTilBrev = "",
@@ -425,7 +423,7 @@ internal class BehandlingStatistikkMapperTest {
         )
         BehandlingStatistikkMapper(fixedClock).map(iverksattRevurdering) shouldBe Statistikk.Behandling(
             funksjonellTid = iverksattRevurdering.opprettet,
-            tekniskTid = Tidspunkt.now(fixedClock),
+            tekniskTid = fixedTidspunkt,
             mottattDato = iverksattRevurdering.opprettet.toLocalDate(zoneIdOslo),
             registrertDato = iverksattRevurdering.opprettet.toLocalDate(zoneIdOslo),
             behandlingId = iverksattRevurdering.id,
@@ -590,7 +588,7 @@ internal class BehandlingStatistikkMapperTest {
 
     private val søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
         id = UUID.randomUUID(),
-        opprettet = Tidspunkt.now(fixedClock),
+        opprettet = fixedTidspunkt,
         sakId = UUID.randomUUID(),
         søknadInnhold = SøknadInnholdTestdataBuilder.build(),
         journalpostId = JournalpostId(""),
@@ -600,7 +598,7 @@ internal class BehandlingStatistikkMapperTest {
     val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))
     private val uavklartSøknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
         id = UUID.randomUUID(),
-        opprettet = Tidspunkt.now(fixedClock),
+        opprettet = fixedTidspunkt,
         sakId = UUID.randomUUID(),
         saksnummer = Saksnummer(2021),
         søknad = søknad,
@@ -622,7 +620,7 @@ internal class BehandlingStatistikkMapperTest {
     private val iverksattSøknadsbehandling = tilAttesteringSøknadsbehandling.tilIverksatt(
         Attestering.Iverksatt(
             NavIdentBruker.Attestant("att"),
-            Tidspunkt.now(fixedClock)
+            fixedTidspunkt,
         ),
     )
 }

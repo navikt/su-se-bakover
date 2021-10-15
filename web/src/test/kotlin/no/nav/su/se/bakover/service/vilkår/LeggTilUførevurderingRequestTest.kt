@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.web.fixedClock
+import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Test
 import java.util.UUID
 

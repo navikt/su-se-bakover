@@ -1,30 +1,25 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserializeList
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import java.time.Clock
-import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
 internal class AttesteringshistorikkTest {
-    private val fixedClock = Clock.fixed(1.januar(2021).startOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
 
     @Test
     fun `attesteringer er sortert etter tidspunkt`() {
         val attestering1 = Attestering.Iverksatt(
             NavIdentBruker.Attestant("Attestant1"),
-            Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS)
+            fixedTidspunkt.plus(1, ChronoUnit.DAYS),
         )
         val attestering2 = Attestering.Iverksatt(
             NavIdentBruker.Attestant("Attestant2"),
-            Tidspunkt.now(fixedClock).plus(2, ChronoUnit.DAYS)
+            fixedTidspunkt.plus(2, ChronoUnit.DAYS),
         )
 
         Attesteringshistorikk(mutableListOf(attestering2, attestering1)).hentAttesteringer() shouldBe listOf(attestering1, attestering2)
@@ -32,7 +27,7 @@ internal class AttesteringshistorikkTest {
 
     @Test
     fun `serializerer riktig`() {
-        val opprettet = Tidspunkt.now(fixedClock)
+        val opprettet = fixedTidspunkt
         val attestering1 = Attestering.Iverksatt(NavIdentBruker.Attestant("Attestant1"), opprettet)
         val attestering2 = Attestering.Underkjent(
             NavIdentBruker.Attestant("Attestant2"),
@@ -72,7 +67,7 @@ internal class AttesteringshistorikkTest {
 
     @Test
     fun `deserializerer riktig`() {
-        val opprettet = Tidspunkt.now(fixedClock)
+        val opprettet = fixedTidspunkt
         val attestering1 = Attestering.Iverksatt(NavIdentBruker.Attestant("Attestant1"), opprettet)
         val attestering2 = Attestering.Underkjent(
             NavIdentBruker.Attestant("Attestant2"),
@@ -104,10 +99,10 @@ internal class AttesteringshistorikkTest {
 
     @Test
     fun `legger till attestering i sluttet av listen`() {
-        val opprettet = Tidspunkt.now(fixedClock)
+        val opprettet = fixedTidspunkt
         val attestering1 = Attestering.Underkjent(
             NavIdentBruker.Attestant("Attestant2"),
-            opprettet.plus(1, ChronoUnit.DAYS), Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL, "kommentar"
+            opprettet.plus(1, ChronoUnit.DAYS), Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL, "kommentar",
         )
         val attestering2 = Attestering.Underkjent(
             NavIdentBruker.Attestant("Attestant2"),

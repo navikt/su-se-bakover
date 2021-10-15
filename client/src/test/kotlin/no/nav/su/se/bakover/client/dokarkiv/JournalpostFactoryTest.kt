@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -19,7 +20,7 @@ import kotlin.random.Random
 
 internal class JournalpostFactoryTest {
 
-    private val personMock = mock<Person>() {
+    private val personMock = mock<Person> {
         on { ident } doReturn Ident(Fnr("12345678910"), AktørId("12345"))
         on { navn } doReturn Person.Navn("fornavn", "mellomnavn", "etternavn")
     }
@@ -53,7 +54,7 @@ internal class JournalpostFactoryTest {
 
     @Test
     fun `lager journalpost for en trukket søknad`() {
-        val brevdata = mock<BrevInnhold>() {
+        val brevdata = mock<BrevInnhold> {
             on { brevTemplate } doReturn BrevTemplate.TrukketSøknad
             on { toJson() } doReturn ""
         }
@@ -65,7 +66,7 @@ internal class JournalpostFactoryTest {
 
     @Test
     fun `lager journalpost for en avvist søknad med vedtak`() {
-        val brevdata = mock<BrevInnhold>() {
+        val brevdata = mock<BrevInnhold> {
             on { brevTemplate } doReturn BrevTemplate.AvvistSøknadVedtak
             on { toJson() } doReturn ""
         }
@@ -77,7 +78,7 @@ internal class JournalpostFactoryTest {
 
     @Test
     fun `lager journalpost for en avvist søknad med fritekst`() {
-        val brevdata = mock<BrevInnhold>() {
+        val brevdata = mock<BrevInnhold> {
             on { brevTemplate } doReturn BrevTemplate.AvvistSøknadFritekst
             on { toJson() } doReturn ""
         }
@@ -90,7 +91,7 @@ internal class JournalpostFactoryTest {
 
     @Test
     fun `lager vedtakspost for revurdering av inntekt`() {
-        val brevdata = mock<BrevInnhold>() {
+        val brevdata = mock<BrevInnhold> {
             on { brevTemplate } doReturn BrevTemplate.Revurdering.Inntekt
             on { toJson() } doReturn ""
         }
@@ -103,7 +104,7 @@ internal class JournalpostFactoryTest {
 
     @Test
     fun `lager vedtakspost for opphørsvedtak`() {
-        val brevdata = mock<BrevInnhold>() {
+        val brevdata = mock<BrevInnhold> {
             on { brevTemplate } doReturn BrevTemplate.Opphørsvedtak
             on { toJson() } doReturn ""
         }
@@ -116,7 +117,7 @@ internal class JournalpostFactoryTest {
 
     @Test
     fun `lager vedtakspost for vedtak ingen endring`() {
-        val brevdata = mock<BrevInnhold>() {
+        val brevdata = mock<BrevInnhold> {
             on { brevTemplate } doReturn BrevTemplate.VedtakIngenEndring
             on { toJson() } doReturn ""
         }
@@ -130,6 +131,8 @@ internal class JournalpostFactoryTest {
     @Test
     fun `lager vedtakspost for vedtak dokumentkategori vedtak`() {
         val dokument = Dokument.MedMetadata.Vedtak(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
             tittel = "tittel",
             generertDokument = "".toByteArray(),
             generertDokumentJson = """{"k":"v"}""",
@@ -148,6 +151,8 @@ internal class JournalpostFactoryTest {
     @Test
     fun `lager infopost for dokumentkategori informasjon`() {
         val dokument = Dokument.MedMetadata.Informasjon(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
             tittel = "tittel",
             generertDokument = "".toByteArray(),
             generertDokumentJson = """{"k":"v"}""",

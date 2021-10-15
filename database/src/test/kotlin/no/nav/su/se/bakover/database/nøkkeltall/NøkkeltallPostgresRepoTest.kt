@@ -6,8 +6,8 @@ import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.ForNav
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
+import no.nav.su.se.bakover.test.fixedLocalDate
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 
 internal class NøkkeltallPostgresRepoTest {
     @Test
@@ -108,7 +108,7 @@ internal class NøkkeltallPostgresRepoTest {
             testDataHelper.nySakMedNySøknad(
                 søknadInnhold = SøknadInnholdTestdataBuilder.build(
                     forNav = ForNav.Papirsøknad(
-                        mottaksdatoForSøknad = LocalDate.now(),
+                        mottaksdatoForSøknad = fixedLocalDate,
                         grunnForPapirinnsending = ForNav.Papirsøknad.GrunnForPapirinnsending.MidlertidigUnntakFraOppmøteplikt,
                         annenGrunn = null,
                     ),

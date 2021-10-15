@@ -165,7 +165,7 @@ class AvstemmingPublisherTest {
                 kvittering = Kvittering(
                     utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                     originalKvittering = "hallo",
-                    mottattTidspunkt = Tidspunkt.now(),
+                    mottattTidspunkt = fixedTidspunkt,
                 ),
                 type = Utbetaling.UtbetalingsType.NY,
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
@@ -191,7 +191,7 @@ class AvstemmingPublisherTest {
         avstemmingXmlRequest = null,
     )
 
-    class MqPublisherMock(val response: Either<MqPublisher.CouldNotPublish, Unit>) : MqPublisher {
+    class MqPublisherMock(private val response: Either<MqPublisher.CouldNotPublish, Unit>) : MqPublisher {
         var count = 0
         var publishedMessages = mutableListOf<String>()
 

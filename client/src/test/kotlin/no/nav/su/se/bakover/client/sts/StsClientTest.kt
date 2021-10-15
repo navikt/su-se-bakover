@@ -10,11 +10,11 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 internal class StsClientTest : WiremockBase {
-    val username = "srvsupstonad"
-    val password = "supersecret"
+    private val username = "srvsupstonad"
+    private val password = "supersecret"
 
     @Test
-    fun `stsClientTest`() {
+    fun stsClientTest() {
         val client = StsClient(wireMockServer.baseUrl(), username, password)
         client.token() shouldBe "token"
     }

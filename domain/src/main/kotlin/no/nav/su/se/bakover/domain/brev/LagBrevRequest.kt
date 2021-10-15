@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.Person
@@ -17,10 +18,12 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import java.util.UUID
 
 interface LagBrevRequest {
     val person: Person
     val brevInnhold: BrevInnhold
+    val dagensDato: LocalDate
 
     fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata>
 
@@ -43,6 +46,7 @@ interface LagBrevRequest {
         private val saksbehandlerNavn: String,
         private val attestantNavn: String,
         private val fritekst: String,
+        override val dagensDato: LocalDate,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.InnvilgetVedtak(
             personalia = lagPersonalia(),
@@ -66,6 +70,8 @@ interface LagBrevRequest {
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
             return genererDokument(genererPdf).map {
                 Dokument.UtenMetadata.Vedtak(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
                     tittel = it.first,
                     generertDokument = it.second,
                     generertDokumentJson = it.third,
@@ -81,6 +87,7 @@ interface LagBrevRequest {
         private val attestantNavn: String,
         private val fritekst: String,
         private val forventetInntektStørreEnn0: Boolean,
+        override val dagensDato: LocalDate,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.AvslagsBrevInnhold(
             personalia = lagPersonalia(),
@@ -101,6 +108,8 @@ interface LagBrevRequest {
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
             return genererDokument(genererPdf).map {
                 Dokument.UtenMetadata.Vedtak(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
                     tittel = it.first,
                     generertDokument = it.second,
                     generertDokumentJson = it.third,
@@ -118,6 +127,7 @@ interface LagBrevRequest {
         private val attestantNavn: String,
         private val fritekst: String,
         private val opphørsgrunner: List<Opphørsgrunn>,
+        override val dagensDato: LocalDate,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.Opphørsvedtak(
             personalia = lagPersonalia(),
@@ -142,6 +152,8 @@ interface LagBrevRequest {
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
             return genererDokument(genererPdf).map {
                 Dokument.UtenMetadata.Vedtak(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
                     tittel = it.first,
                     generertDokument = it.second,
                     generertDokumentJson = it.third,
@@ -159,6 +171,7 @@ interface LagBrevRequest {
         private val harEktefelle: Boolean,
         private val forventetInntektStørreEnn0: Boolean,
         private val gjeldendeMånedsutbetaling: Int,
+        override val dagensDato: LocalDate,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.VedtakIngenEndring(
             personalia = lagPersonalia(),
@@ -177,6 +190,8 @@ interface LagBrevRequest {
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
             return genererDokument(genererPdf).map {
                 Dokument.UtenMetadata.Vedtak(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
                     tittel = it.first,
                     generertDokument = it.second,
                     generertDokumentJson = it.third,
@@ -189,6 +204,7 @@ interface LagBrevRequest {
         override val person: Person,
         private val saksbehandlerNavn: String,
         private val fritekst: String,
+        override val dagensDato: LocalDate,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.Forhåndsvarsel(
             personalia = lagPersonalia(),
@@ -199,6 +215,8 @@ interface LagBrevRequest {
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
             return genererDokument(genererPdf).map {
                 Dokument.UtenMetadata.Informasjon(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
                     tittel = it.first,
                     generertDokument = it.second,
                     generertDokumentJson = it.third,
@@ -216,6 +234,7 @@ interface LagBrevRequest {
             private val fritekst: String,
             private val harEktefelle: Boolean,
             private val forventetInntektStørreEnn0: Boolean,
+            override val dagensDato: LocalDate,
         ) : Revurdering() {
             override val brevInnhold = BrevInnhold.RevurderingAvInntekt(
                 personalia = lagPersonalia(),
@@ -234,6 +253,8 @@ interface LagBrevRequest {
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Vedtak> {
             return genererDokument(genererPdf).map {
                 Dokument.UtenMetadata.Vedtak(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
                     tittel = it.first,
                     generertDokument = it.second,
                     generertDokumentJson = it.third,
@@ -245,7 +266,7 @@ interface LagBrevRequest {
 
 fun LagBrevRequest.lagPersonalia() = this.person.let {
     BrevInnhold.Personalia(
-        dato = LocalDate.now().ddMMyyyy(),
+        dato = dagensDato.ddMMyyyy(),
         fødselsnummer = it.ident.fnr,
         fornavn = it.navn.fornavn,
         etternavn = it.navn.etternavn,

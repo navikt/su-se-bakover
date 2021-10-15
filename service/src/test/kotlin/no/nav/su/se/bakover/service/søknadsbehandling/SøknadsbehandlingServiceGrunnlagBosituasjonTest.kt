@@ -23,14 +23,14 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
-import no.nav.su.se.bakover.service.fixedClock
-import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.mockito.internal.verification.Times
@@ -75,7 +75,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
     fun `ufullstendig gir error hvis behandling er i ugyldig tilstand`() {
         val tilAttestering = Søknadsbehandling.Vilkårsvurdert.Avslag(
             id = behandlingId,
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             sakId = sakId,
             saksnummer = Saksnummer(2021),
             søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
@@ -114,7 +114,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
     fun `ufullstendig happy case`() {
         val uavklart = Søknadsbehandling.Vilkårsvurdert.Uavklart(
             id = behandlingId,
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             sakId = sakId,
             saksnummer = Saksnummer(2021),
             søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
@@ -222,7 +222,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
     fun `fullfør gir error hvis behandling er i ugyldig tilstand`() {
         val tilAttestering = Søknadsbehandling.Vilkårsvurdert.Avslag(
             id = behandlingId,
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             sakId = sakId,
             saksnummer = Saksnummer(2021),
             søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
@@ -265,7 +265,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
     fun `fullfør happy case`() {
         val uavklart = Søknadsbehandling.Vilkårsvurdert.Uavklart(
             id = behandlingId,
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             sakId = sakId,
             saksnummer = Saksnummer(2021),
             søknad = Søknad.Journalført.MedOppgave.IkkeLukket(

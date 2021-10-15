@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.client.oppdrag.avstemming
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
@@ -24,6 +23,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -87,7 +87,7 @@ internal class GrensesnittavstemmingDataBuilderTest {
         GrensesnittavstemmingDataBuilder(
             Avstemming.Grensesnittavstemming(
                 id = avstemmingId,
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 fraOgMed = 1.mars(2020).atStartOfDay(zoneIdOslo).toTidspunkt(),
                 tilOgMed = 2.mars(2020).atStartOfDay(zoneIdOslo).toTidspunkt(),
                 utbetalinger = alleUtbetalinger(),
@@ -140,7 +140,7 @@ internal fun lagUtbetaling(
         kvittering = Kvittering(
             utbetalingsstatus = status,
             originalKvittering = "hallo",
-            mottattTidspunkt = Tidspunkt.now(),
+            mottattTidspunkt = fixedTidspunkt,
         ),
         utbetalingsrequest = oppdragsmelding,
         utbetalingslinjer = linjer,

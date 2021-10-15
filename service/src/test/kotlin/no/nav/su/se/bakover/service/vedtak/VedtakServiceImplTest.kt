@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
@@ -134,7 +135,7 @@ internal class VedtakServiceImplTest {
             on { hentSak(any<UUID>()) } doReturn Sak(
                 id = UUID.randomUUID(),
                 saksnummer = Saksnummer(nummer = 9999),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 fnr = Fnr.generer(),
                 søknader = listOf(),
                 søknadsbehandlinger = listOf(),
@@ -160,7 +161,7 @@ internal class VedtakServiceImplTest {
             on { hentSak(any<UUID>()) } doReturn Sak(
                 id = UUID.randomUUID(),
                 saksnummer = Saksnummer(nummer = 9999),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 fnr = Fnr.generer(),
                 søknader = listOf(),
                 søknadsbehandlinger = listOf(),
@@ -267,7 +268,7 @@ internal class VedtakServiceImplTest {
         Vedtak.fromSøknadsbehandling(
             Søknadsbehandling.Iverksatt.Innvilget(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 sakId = UUID.randomUUID(),
                 saksnummer = Saksnummer(2021),
                 søknad = Søknad.Journalført.MedOppgave.IkkeLukket(

@@ -30,8 +30,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.tidspunkt
-import no.nav.su.se.bakover.service.fixedTidspunkt
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.stønadsperiode2021
@@ -52,7 +51,7 @@ class SøknadsbehandlingServiceBeregningTest {
     private val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))
     private val vilkårsvurdertBehandling = Søknadsbehandling.Vilkårsvurdert.Innvilget(
         id = UUID.randomUUID(),
-        opprettet = tidspunkt,
+        opprettet = fixedTidspunkt,
         sakId = sakId,
         saksnummer = Saksnummer(2021),
         søknad = Søknad.Journalført.MedOppgave.IkkeLukket(

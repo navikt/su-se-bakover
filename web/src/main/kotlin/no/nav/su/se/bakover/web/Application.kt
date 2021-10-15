@@ -104,6 +104,7 @@ internal fun Application.susebakover(
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(
         databaseConfig = applicationConfig.database,
         dbMetrics = DbMicrometerMetrics(),
+        clock = clock,
     ),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
     clients: Clients =
@@ -246,8 +247,8 @@ internal fun Application.susebakover(
                         accessProtectedServices.søknad,
                         accessProtectedServices.lukkSøknad,
                     )
-                    overordnetSøknadsbehandligRoutes(accessProtectedServices.søknadsbehandling)
-                    avstemmingRoutes(accessProtectedServices.avstemming)
+                    overordnetSøknadsbehandligRoutes(accessProtectedServices.søknadsbehandling, clock)
+                    avstemmingRoutes(accessProtectedServices.avstemming, clock)
                     driftRoutes(accessProtectedServices.søknad)
                     revurderingRoutes(accessProtectedServices.revurdering, accessProtectedServices.vedtakService, clock)
                     dokumentRoutes(accessProtectedServices.brev)

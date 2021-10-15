@@ -108,6 +108,8 @@ sealed class Grunnlag {
         ): Either<UgyldigFradragsgrunnlag, Fradragsgrunnlag> {
             return this.copyInternal(CopyArgs.Snitt(oppdatertPeriode)).flatMap {
                 it?.right() ?: tryCreate(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
                     fradrag = FradragFactory.ny(
                         type = this.fradrag.fradragstype,
                         månedsbeløp = this.fradrag.månedsbeløp,
@@ -148,13 +150,13 @@ sealed class Grunnlag {
             @TestOnly
             fun create(
                 id: UUID = UUID.randomUUID(),
-                opprettet: Tidspunkt = Tidspunkt.now(),
+                opprettet: Tidspunkt,
                 fradrag: Fradrag,
             ) = tryCreate(id, opprettet, fradrag).getOrHandle { throw IllegalArgumentException(it.toString()) }
 
             fun tryCreate(
                 id: UUID = UUID.randomUUID(),
-                opprettet: Tidspunkt = Tidspunkt.now(),
+                opprettet: Tidspunkt,
                 fradrag: Fradrag,
             ): Either<UgyldigFradragsgrunnlag, Fradragsgrunnlag> {
                 if (harUgyldigFradragsType(fradrag)) {
@@ -194,6 +196,8 @@ sealed class Grunnlag {
                         val periode = it.map { it.periode }.minAndMaxOf()
 
                         tryCreate(
+                            id = UUID.randomUUID(),
+                            opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
                             fradrag = FradragFactory.ny(
                                 type = it.first().fradragstype,
                                 månedsbeløp = it.first().månedsbeløp,

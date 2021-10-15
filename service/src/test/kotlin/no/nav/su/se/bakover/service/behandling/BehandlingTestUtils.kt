@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.service.behandling
 
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
@@ -25,13 +24,10 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Uførhet
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.test.generer
 import java.util.UUID
 
 object BehandlingTestUtils {
-
-    internal val tidspunkt = Tidspunkt.now(fixedClock)
 
     internal val sakId: UUID = UUID.fromString("268e62fb-3079-4e8d-ab32-ff9fb9eac2ec")
     internal val saksnummer = Saksnummer(999999)
@@ -49,7 +45,7 @@ object BehandlingTestUtils {
         ),
         navn = Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
     )
-    internal val ektefelle = Ektefelle(
+    private val ektefelle = Ektefelle(
         fnr = Fnr("17087524256"),
         navn = Navn("fornavn", null, "etternavn"),
         kjønn = null,

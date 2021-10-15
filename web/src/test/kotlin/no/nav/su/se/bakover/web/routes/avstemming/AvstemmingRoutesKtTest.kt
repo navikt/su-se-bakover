@@ -19,11 +19,13 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.dbMetricsStub
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
@@ -35,6 +37,7 @@ internal class AvstemmingRoutesKtTest {
     private fun repos(dataSource: DataSource) = DatabaseBuilder.build(
         embeddedDatasource = dataSource,
         dbMetrics = dbMetricsStub,
+        clock = fixedClock,
     )
 
     private fun services(databaseRepos: DatabaseRepos) = ServiceBuilder.build(
@@ -48,9 +51,9 @@ internal class AvstemmingRoutesKtTest {
 
     private val dummyAvstemming = Avstemming.Grensesnittavstemming(
         id = UUID30.randomUUID(),
-        opprettet = Tidspunkt.now(),
-        fraOgMed = Tidspunkt.now(),
-        tilOgMed = Tidspunkt.now(),
+        opprettet = fixedTidspunkt,
+        fraOgMed = fixedTidspunkt,
+        tilOgMed = fixedTidspunkt,
         utbetalinger = listOf(),
         avstemmingXmlRequest = null,
     )
@@ -72,7 +75,7 @@ internal class AvstemmingRoutesKtTest {
         ): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming.Ny> {
             return Avstemming.Konsistensavstemming.Ny(
                 id = UUID30.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 løpendeFraOgMed = løpendeFraOgMed.startOfDay(),
                 opprettetTilOgMed = løpendeFraOgMed.endOfDay(),
                 utbetalinger = listOf(),
@@ -221,7 +224,7 @@ internal class AvstemmingRoutesKtTest {
             ) {
                 listOf(
                     "/avstemming/grensesnitt?fraOgMed=2020-11-11&tilOgMed=${
-                    LocalDate.now().plusDays(1).format(DateTimeFormatter.ISO_DATE)
+                    fixedLocalDate.plusDays(1).format(DateTimeFormatter.ISO_DATE)
                     }",
                 ).forEach {
                     defaultRequest(

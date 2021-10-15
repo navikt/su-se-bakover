@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.client.oppdrag.simulering
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.XmlMapper
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
@@ -25,10 +24,11 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
+import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
 import org.junit.jupiter.api.Test
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse as GrensesnittResponse
 
@@ -45,7 +45,7 @@ internal class SimuleringResponseMapperTest {
     fun `mapper utbetaling og simuleringsperiode til simulering`() {
         val utbetaling = Utbetaling.UtbetalingForSimulering(
             id = UUID30.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             sakId = UUID.randomUUID(),
             saksnummer = Saksnummer(9999),
             fnr = fnr,
@@ -53,7 +53,7 @@ internal class SimuleringResponseMapperTest {
                 Utbetalingslinje.Endring.Opphør(
                     utbetalingslinje = Utbetalingslinje.Ny(
                         id = UUID30.randomUUID(),
-                        opprettet = Tidspunkt.now(),
+                        opprettet = fixedTidspunkt,
                         fraOgMed = 1.januar(2021),
                         tilOgMed = 31.desember(2021),
                         forrigeUtbetalingslinjeId = null,
@@ -76,7 +76,7 @@ internal class SimuleringResponseMapperTest {
         SimuleringResponseMapper(utbetaling, simuleringsperiode).simulering shouldBe Simulering(
             gjelderId = fnr,
             gjelderNavn = fnr.toString(),
-            datoBeregnet = LocalDate.now(),
+            datoBeregnet = fixedLocalDate,
             nettoBeløp = 0,
             periodeList = listOf(
                 SimulertPeriode(

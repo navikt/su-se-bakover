@@ -9,13 +9,13 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.fixedClock
 import no.nav.su.se.bakover.database.utbetalingslinje
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Test
 
 internal class UtbetalingPostgresRepoTest {

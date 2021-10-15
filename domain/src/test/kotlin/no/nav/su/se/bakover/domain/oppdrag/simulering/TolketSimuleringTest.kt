@@ -8,9 +8,9 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.test.fixedLocalDate
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.time.LocalDate
 
 internal class TolketSimuleringTest {
 
@@ -838,7 +838,7 @@ internal class TolketSimuleringTest {
             Simulering(
                 gjelderId = fnr,
                 gjelderNavn = fnr.toString(), // Usually returned by response, which in this case is empty.
-                datoBeregnet = LocalDate.now(),
+                datoBeregnet = fixedLocalDate,
                 nettoBeløp = 0,
                 periodeList = listOf(
                     SimulertPeriode(

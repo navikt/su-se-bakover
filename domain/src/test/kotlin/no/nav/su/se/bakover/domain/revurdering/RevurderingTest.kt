@@ -4,7 +4,6 @@ import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -17,7 +16,6 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -31,6 +29,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import org.junit.jupiter.api.Test
@@ -49,7 +48,7 @@ internal class RevurderingTest {
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(),
+                            opprettet = fixedTidspunkt,
                             resultat = Resultat.Avslag,
                             grunnlag = null,
                             periode = periode,
@@ -84,7 +83,7 @@ internal class RevurderingTest {
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(),
+                            opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
                             grunnlag = null,
                             periode = periode,
@@ -118,7 +117,7 @@ internal class RevurderingTest {
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(),
+                            opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
                             grunnlag = null,
                             periode = periode,
@@ -170,7 +169,7 @@ internal class RevurderingTest {
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(),
+                            opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
                             grunnlag = null,
                             periode = periode,
@@ -203,7 +202,7 @@ internal class RevurderingTest {
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(),
+                            opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
                             grunnlag = null,
                             periode = periode,
@@ -236,7 +235,7 @@ internal class RevurderingTest {
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(),
+                            opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
                             grunnlag = null,
                             periode = periode,
@@ -272,7 +271,7 @@ internal class RevurderingTest {
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(),
+                            opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
                             grunnlag = null,
                             periode = periode,
@@ -313,7 +312,7 @@ internal class RevurderingTest {
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(),
+                            opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
                             grunnlag = null,
                             periode = periode,
@@ -367,7 +366,7 @@ internal class RevurderingTest {
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(),
+                            opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
                             grunnlag = uføregrunnlag,
                             periode = periode,
@@ -415,7 +414,7 @@ internal class RevurderingTest {
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(),
+                            opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
                             grunnlag = uføregrunnlag,
                             periode = periode,
@@ -468,7 +467,7 @@ internal class RevurderingTest {
     ) = OpprettetRevurdering(
         id = UUID.randomUUID(),
         periode = periode,
-        opprettet = Tidspunkt.now(),
+        opprettet = fixedTidspunkt,
         tilRevurdering = tilRevurdering,
         saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
         oppgaveId = OppgaveId(value = "oppgaveId"),

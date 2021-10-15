@@ -22,7 +22,7 @@ internal class UtbetalingslinjeTest {
         }
     }
 
-    fun createUtbetalingslinje(fraOgMed: LocalDate, tilOgMed: LocalDate) = Utbetalingslinje.Ny(
+    private fun createUtbetalingslinje(fraOgMed: LocalDate, tilOgMed: LocalDate) = Utbetalingslinje.Ny(
         fraOgMed = fraOgMed,
         tilOgMed = tilOgMed,
         forrigeUtbetalingslinjeId = null,

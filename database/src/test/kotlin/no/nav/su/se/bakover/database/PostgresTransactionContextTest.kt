@@ -4,6 +4,7 @@ import arrow.core.Either
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
 

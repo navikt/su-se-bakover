@@ -1,11 +1,8 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
 import arrow.core.nonEmptyListOf
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -13,19 +10,16 @@ import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import java.time.Clock
 import java.time.LocalDate
-import java.time.ZoneOffset
 import java.util.UUID
 
 internal class FormuevilkårJsonTest {
 
     @Test
     fun `serialize formuevilkårjson`() {
-        val fixedClock = Clock.fixed(1.januar(2021).startOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
-        val fixedTidspunkt = Tidspunkt.now(fixedClock)
         val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
             id = UUID.fromString("5441d6ef-08c7-4a4f-8e4c-d17e1ab95789"),
             opprettet = fixedTidspunkt,
@@ -124,7 +118,7 @@ internal class FormuevilkårJsonTest {
    "vurderinger":[
       {
          "id":"2e9a75ea-20ca-47e9-8c31-0c091bb4e316",
-         "opprettet":"2021-01-01T00:00:00Z",
+         "opprettet":"2021-01-01T01:02:03.456789Z",
          "resultat":"VilkårOppfylt",
          "grunnlag":{
             "epsFormue":{
@@ -156,7 +150,7 @@ internal class FormuevilkårJsonTest {
       },
       {
          "id":"2403e105-b3fc-435a-a38b-e0a76ef9a73c",
-         "opprettet":"2021-01-01T00:00:00Z",
+         "opprettet":"2021-01-01T01:02:03.456789Z",
          "resultat":"VilkårOppfylt",
          "grunnlag":{
             "epsFormue":null,

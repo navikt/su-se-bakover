@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
+import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerBeregningFeilUnderBehandling
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
 import no.nav.system.os.entiteter.beregningskjema.Beregning
@@ -35,7 +36,6 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import java.net.SocketException
 import java.time.Clock
-import java.time.LocalDate
 import javax.net.ssl.SSLException
 import javax.xml.ws.WebServiceException
 
@@ -90,7 +90,7 @@ internal class SimuleringSoapClientTest {
             gjelderId = FNR,
             gjelderNavn = FNR.toString(),
             nettoBeløp = 0,
-            datoBeregnet = LocalDate.now(),
+            datoBeregnet = fixedLocalDate,
             periodeList = listOf(
                 SimulertPeriode(
                     fraOgMed = 1.januar(2018),
@@ -213,7 +213,7 @@ internal class SimuleringSoapClientTest {
             gjelderId = FNR,
             gjelderNavn = FNR.toString(),
             nettoBeløp = 0,
-            datoBeregnet = LocalDate.now(),
+            datoBeregnet = fixedLocalDate,
             periodeList = listOf(
                 SimulertPeriode(
                     fraOgMed = 1.oktober(2020),

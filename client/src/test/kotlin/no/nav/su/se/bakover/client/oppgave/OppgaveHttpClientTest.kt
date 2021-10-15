@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.client.argThat
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -26,6 +25,7 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -34,13 +34,10 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.slf4j.MDC
-import java.time.Clock
-import java.time.Instant
 import java.util.UUID
 
 internal class OppgaveHttpClientTest : WiremockBase {
 
-    private val fixedEpochClock = Clock.fixed(Instant.EPOCH, zoneIdOslo)
     private val saksbehandler = Saksbehandler("Z12345")
     private val aktørId = "333"
     private val journalpostId = JournalpostId("444")
@@ -58,12 +55,12 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "aktoerId": "$aktørId",
                     "tema": "SUP",
                     "behandlesAvApplikasjon": "SUPSTONAD",
-                    "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
+                    "beskrivelse": "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
                     "oppgavetype": "BEH_SAK",
                     "behandlingstema": "ab0431",
                     "behandlingstype": "ae0034",
-                    "aktivDato": "1970-01-01",
-                    "fristFerdigstillelse": "1970-01-31",
+                    "aktivDato": "2021-01-01",
+                    "fristFerdigstillelse": "2021-01-31",
                     "prioritet": "NORM",
                     "tilordnetRessurs": null
                 }""".trimMargin()
@@ -82,7 +79,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                                       "aktoerId": "$aktørId",
                                                       "tema": "SUP",
                                                       "behandlesAvApplikasjon": "SUPSTONAD",
-                                                      "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId ",
+                                                      "beskrivelse": "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId ",
                                                       "behandlingstema": "ab0431",
                                                       "oppgavetype": "BEH_SAK",
                                                       "behandlingstype": "ae0034",
@@ -115,7 +112,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             ),
             exchange = oathMock,
             tokenoppslagForSystembruker = tokenoppslagMock,
-            clock = fixedEpochClock,
+            clock = fixedClock,
         )
 
         client.opprettOppgave(
@@ -123,7 +120,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 journalpostId,
                 søknadId,
                 AktørId(aktørId),
-                clock = fixedEpochClock,
+                clock = fixedClock,
             ),
         ) shouldBe OppgaveId("111").right()
 
@@ -138,7 +135,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 journalpostId,
                 søknadId,
                 AktørId(aktørId),
-                clock = fixedEpochClock,
+                clock = fixedClock,
             ),
         ) shouldBe OppgaveId("111").right()
 
@@ -157,12 +154,12 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "aktoerId": "$aktørId",
                     "tema": "SUP",
                     "behandlesAvApplikasjon": "SUPSTONAD",
-                    "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
+                    "beskrivelse": "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
                     "oppgavetype": "BEH_SAK",
                     "behandlingstema": "ab0431",
                     "behandlingstype": "ae0034",
-                    "aktivDato": "1970-01-01",
-                    "fristFerdigstillelse": "1970-01-31",
+                    "aktivDato": "2021-01-01",
+                    "fristFerdigstillelse": "2021-01-31",
                     "prioritet": "NORM",
                     "tilordnetRessurs": "$saksbehandler"
                 }""".trimMargin()
@@ -183,7 +180,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                                       "tema": "SUP",
                                                       "behandlesAvApplikasjon": "SUPSTONAD",
                                                       "behandlingstema": "ab0431",
-                                                      "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
+                                                      "beskrivelse": "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
                                                       "oppgavetype": "BEH_SAK",
                                                       "behandlingstype": "ae0034",
                                                       "versjon": 1,
@@ -211,7 +208,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             ),
             exchange = oathMock,
             tokenoppslagForSystembruker = mock(),
-            clock = fixedEpochClock,
+            clock = fixedClock,
         )
         client.opprettOppgave(
             OppgaveConfig.Søknad(
@@ -219,7 +216,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 søknadId = søknadId,
                 aktørId = AktørId(aktørId),
                 tilordnetRessurs = saksbehandler,
-                clock = fixedEpochClock,
+                clock = fixedClock,
             ),
         ) shouldBe OppgaveId("111").right()
     }
@@ -235,12 +232,12 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "aktoerId": "$aktørId",
                     "tema": "SUP",
                     "behandlesAvApplikasjon": "SUPSTONAD",
-                    "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
+                    "beskrivelse": "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId",
                     "oppgavetype": "ATT",
                     "behandlingstema": "ab0431",
                     "behandlingstype": "ae0034",
-                    "aktivDato": "1970-01-01",
-                    "fristFerdigstillelse": "1970-01-31",
+                    "aktivDato": "2021-01-01",
+                    "fristFerdigstillelse": "2021-01-31",
                     "prioritet": "NORM",
                     "tilordnetRessurs": null
                 }""".trimMargin()
@@ -258,7 +255,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                                       "aktoerId": "$aktørId",
                                                       "tema": "SUP",
                                                       "behandlesAvApplikasjon": "SUPSTONAD",
-                                                      "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId ",
+                                                      "beskrivelse": "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSøknadId : $søknadId ",
                                                       "behandlingstema": "ab0431",
                                                       "oppgavetype": "ATT",
                                                       "behandlingstype": "ae0034",
@@ -287,13 +284,13 @@ internal class OppgaveHttpClientTest : WiremockBase {
             ),
             exchange = oathMock,
             tokenoppslagForSystembruker = mock(),
-            clock = fixedEpochClock,
+            clock = fixedClock,
         )
         client.opprettOppgave(
             OppgaveConfig.AttesterSøknadsbehandling(
                 søknadId = søknadId,
                 aktørId = AktørId(aktørId),
-                clock = fixedEpochClock,
+                clock = fixedClock,
             ),
         ) shouldBe OppgaveId("111").right()
     }
@@ -312,14 +309,14 @@ internal class OppgaveHttpClientTest : WiremockBase {
             ),
             exchange = oathMock,
             tokenoppslagForSystembruker = mock(),
-            clock = fixedEpochClock,
+            clock = fixedClock,
         )
         client.opprettOppgave(
             OppgaveConfig.Søknad(
                 journalpostId,
                 søknadId,
                 AktørId(aktørId),
-                clock = fixedEpochClock,
+                clock = fixedClock,
             ),
         ) shouldBe OppgaveFeil.KunneIkkeOppretteOppgave.left()
     }
@@ -358,7 +355,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                       "metadata": {},
                                       "fristFerdigstillelse": "2019-01-04",
                                       "aktivDato": "2019-01-04",
-                                      "opprettetTidspunkt": "2019-01-04T09:53:39.329+01:00",
+                                      "opprettetTidspunkt": "2019-01-04T09:53:39.329+02:02",
                                       "endretTidspunkt": "2019-08-25T11:45:38+02:00"
                                     }
                             """.trimIndent()
@@ -381,7 +378,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": ${versjon + 1},
-                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---\nSøknadId : $søknadId",
+                              "beskrivelse": "--- 01.01.2021 02:02 - Lukket av Supplerende Stønad ---\nSøknadId : $søknadId",
                               "status": "FERDIGSTILT"
                             }
                             """.trimIndent()
@@ -400,7 +397,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             ),
             exchange = oathMock,
             tokenoppslagForSystembruker = mock(),
-            clock = fixedEpochClock,
+            clock = fixedClock,
         )
         client.lukkOppgave(OppgaveId(oppgaveId.toString()))
 
@@ -415,7 +412,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": $versjon,
-                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---",
+                              "beskrivelse": "--- 01.01.2021 02:02 - Lukket av Supplerende Stønad ---",
                               "status": "FERDIGSTILT"
                             }
                         """.trimIndent()
@@ -458,7 +455,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                       "metadata": {},
                                       "fristFerdigstillelse": "2019-01-04",
                                       "aktivDato": "2019-01-04",
-                                      "opprettetTidspunkt": "2019-01-04T09:53:39.329+01:00",
+                                      "opprettetTidspunkt": "2019-01-04T09:53:39.329+02:02",
                                       "endretTidspunkt": "2019-08-25T11:45:38+02:00"
                                     }
                             """.trimIndent()
@@ -481,7 +478,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": ${versjon + 1},
-                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---\nSøknadId : $søknadId",
+                              "beskrivelse": "--- 01.01.2021 02:02 - Lukket av Supplerende Stønad ---\nSøknadId : $søknadId",
                               "status": "FERDIGSTILT"
                             }
                             """.trimIndent()
@@ -501,7 +498,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             ),
             exchange = mock(),
             tokenoppslagForSystembruker = tokenoppslagMock,
-            clock = fixedEpochClock,
+            clock = fixedClock,
         )
         client.lukkOppgaveMedSystembruker(OppgaveId(oppgaveId.toString()))
 
@@ -516,7 +513,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": $versjon,
-                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---",
+                              "beskrivelse": "--- 01.01.2021 02:02 - Lukket av Supplerende Stønad ---",
                               "status": "FERDIGSTILT"
                             }
                         """.trimIndent()
@@ -560,7 +557,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                       "metadata": {},
                                       "fristFerdigstillelse": "2019-01-04",
                                       "aktivDato": "2019-01-04",
-                                      "opprettetTidspunkt": "2019-01-04T09:53:39.329+01:00",
+                                      "opprettetTidspunkt": "2019-01-04T09:53:39.329+02:02",
                                       "endretTidspunkt": "2019-08-25T11:45:38+02:00"
                                     }
                             """.trimIndent()
@@ -583,7 +580,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": ${versjon + 1},
-                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---\nSøknadId : $søknadId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
+                              "beskrivelse": "--- 01.01.2021 02:02 - Lukket av Supplerende Stønad ---\nSøknadId : $søknadId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
                               "status": "FERDIGSTILT"
                             }
                             """.trimIndent()
@@ -602,7 +599,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             ),
             exchange = oathMock,
             tokenoppslagForSystembruker = mock(),
-            clock = fixedEpochClock,
+            clock = fixedClock,
         )
         client.lukkOppgave(OppgaveId(oppgaveId.toString()))
 
@@ -617,7 +614,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": $versjon,
-                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
+                              "beskrivelse": "--- 01.01.2021 02:02 - Lukket av Supplerende Stønad ---\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
                               "status": "FERDIGSTILT"
                             }
                         """.trimIndent()
@@ -637,12 +634,12 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "aktoerId": "$aktørId",
                     "tema": "SUP",
                     "behandlesAvApplikasjon": "SUPSTONAD",
-                    "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer",
+                    "beskrivelse": "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer",
                     "oppgavetype": "BEH_SAK",
                     "behandlingstema": "ab0431",
                     "behandlingstype": "ae0028",
-                    "aktivDato": "1970-01-01",
-                    "fristFerdigstillelse": "1970-01-31",
+                    "aktivDato": "2021-01-01",
+                    "fristFerdigstillelse": "2021-01-31",
                     "prioritet": "NORM",
                     "tilordnetRessurs": null
                 }""".trimMargin()
@@ -660,7 +657,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                                       "aktoerId": "$aktørId",
                                                       "tema": "SUP",
                                                       "behandlesAvApplikasjon": "SUPSTONAD",
-                                                      "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer ",
+                                                      "beskrivelse": "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer ",
                                                       "behandlingstema": "ab0431",
                                                       "oppgavetype": "BEH_SAK",
                                                       "behandlingstype": "ae0028",
@@ -693,12 +690,12 @@ internal class OppgaveHttpClientTest : WiremockBase {
             ),
             exchange = oathMock,
             tokenoppslagForSystembruker = tokenoppslagMock,
-            clock = fixedEpochClock,
+            clock = fixedClock,
         )
 
         client.opprettOppgave(
             OppgaveConfig.Revurderingsbehandling(
-                saksnummer = saksnummer, aktørId = AktørId(aktørId), tilordnetRessurs = null, clock = fixedEpochClock
+                saksnummer = saksnummer, aktørId = AktørId(aktørId), tilordnetRessurs = null, clock = fixedClock
             ),
         ) shouldBe OppgaveId("111").right()
 
@@ -710,7 +707,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
 
         client.opprettOppgaveMedSystembruker(
             OppgaveConfig.Revurderingsbehandling(
-                saksnummer = saksnummer, aktørId = AktørId(aktørId), tilordnetRessurs = null, clock = fixedEpochClock
+                saksnummer = saksnummer, aktørId = AktørId(aktørId), tilordnetRessurs = null, clock = fixedClock
             ),
         ) shouldBe OppgaveId("111").right()
 
@@ -729,12 +726,12 @@ internal class OppgaveHttpClientTest : WiremockBase {
                     "aktoerId": "$aktørId",
                     "tema": "SUP",
                     "behandlesAvApplikasjon": "SUPSTONAD",
-                    "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer",
+                    "beskrivelse": "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer",
                     "oppgavetype": "ATT",
                     "behandlingstema": "ab0431",
                     "behandlingstype": "ae0028",
-                    "aktivDato": "1970-01-01",
-                    "fristFerdigstillelse": "1970-01-31",
+                    "aktivDato": "2021-01-01",
+                    "fristFerdigstillelse": "2021-01-31",
                     "prioritet": "NORM",
                     "tilordnetRessurs": null
                 }""".trimMargin()
@@ -752,7 +749,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                                       "aktoerId": "$aktørId",
                                                       "tema": "SUP",
                                                       "behandlesAvApplikasjon": "SUPSTONAD",
-                                                      "beskrivelse": "--- 01.01.1970 01:00 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer",
+                                                      "beskrivelse": "--- 01.01.2021 02:02 - Opprettet av Supplerende Stønad ---\nSaksnummer : $saksnummer",
                                                       "behandlingstema": "ab0431",
                                                       "oppgavetype": "ATT",
                                                       "behandlingstype": "ae0028",
@@ -781,14 +778,14 @@ internal class OppgaveHttpClientTest : WiremockBase {
             ),
             exchange = oathMock,
             tokenoppslagForSystembruker = mock(),
-            clock = fixedEpochClock,
+            clock = fixedClock,
         )
         client.opprettOppgave(
             OppgaveConfig.AttesterRevurdering(
                 saksnummer = saksnummer,
                 aktørId = AktørId(aktørId),
                 tilordnetRessurs = null,
-                clock = fixedEpochClock
+                clock = fixedClock
             ),
         ) shouldBe OppgaveId("111").right()
     }
@@ -813,7 +810,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             ),
             exchange = oathMock,
             tokenoppslagForSystembruker = mock(),
-            clock = fixedEpochClock,
+            clock = fixedClock,
         )
         client.opprettOppgave(
             OppgaveConfig.AttesterRevurdering(
@@ -860,7 +857,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                       "metadata": {},
                                       "fristFerdigstillelse": "2019-01-04",
                                       "aktivDato": "2019-01-04",
-                                      "opprettetTidspunkt": "2019-01-04T09:53:39.329+01:00",
+                                      "opprettetTidspunkt": "2019-01-04T09:53:39.329+02:02",
                                       "endretTidspunkt": "2019-08-25T11:45:38+02:00"
                                     }
                             """.trimIndent()
@@ -879,7 +876,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": ${versjon + 1},
-                              "beskrivelse": "--- 01.01.1970 01:00 - en beskrivelse ---",
+                              "beskrivelse": "--- 01.01.2021 02:02 - en beskrivelse ---",
                               "status": "AAPNET"
                             }
                             """.trimIndent()
@@ -899,7 +896,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             ),
             exchange = oauthMock,
             tokenoppslagForSystembruker = mock(),
-            clock = fixedEpochClock,
+            clock = fixedClock,
         )
 
         client.oppdaterOppgave(oppgaveId = OppgaveId(oppgaveId.toString()), beskrivelse = "en beskrivelse") shouldBe Unit.right()
@@ -909,7 +906,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             {
             "id" : $oppgaveId,
             "versjon" : $versjon,
-            "beskrivelse" : "--- 01.01.1970 01:00 - en beskrivelse ---\n\nDette er den orginale beskrivelsen",
+            "beskrivelse" : "--- 01.01.2021 02:02 - en beskrivelse ---\n\nDette er den orginale beskrivelsen",
             "status" : "AAPNET"
             }
             """.trimIndent()

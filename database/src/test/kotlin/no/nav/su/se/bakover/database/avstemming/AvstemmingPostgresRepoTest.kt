@@ -4,7 +4,6 @@ import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
@@ -17,7 +16,6 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.antall
-import no.nav.su.se.bakover.database.fixedTidspunkt
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
@@ -25,6 +23,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
 
@@ -264,7 +263,7 @@ internal class AvstemmingPostgresRepoTest {
             val repo = AvstemmingPostgresRepo(dataSource)
             val avstemming = Avstemming.Konsistensavstemming.Ny(
                 id = UUID30.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 løpendeFraOgMed = 1.januar(2021).startOfDay(),
                 opprettetTilOgMed = 1.januar(2021).endOfDay(),
                 utbetalinger = emptyList(),

@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.nonEmptyListOf
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -30,9 +29,10 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.createFromGrunnlag
 import no.nav.su.se.bakover.test.empty
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.TestServicesBuilder
-import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.stønadsperiode
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
@@ -49,12 +49,12 @@ object RevurderingRoutesTestData {
     internal val vedtak = Vedtak.fromSøknadsbehandling(
         søknadsbehandling = Søknadsbehandling.Iverksatt.Innvilget(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             sakId = sakId,
             saksnummer = Saksnummer(2021),
             søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 sakId = sakId,
                 søknadInnhold = SøknadInnholdTestdataBuilder.build(),
                 journalpostId = JournalpostId(value = ""),
@@ -76,7 +76,7 @@ object RevurderingRoutesTestData {
             simulering = mock(),
             saksbehandler = NavIdentBruker.Saksbehandler("saks"),
             attesteringer = Attesteringshistorikk.empty()
-                .leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), Tidspunkt.now())),
+                .leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), fixedTidspunkt)),
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
@@ -89,7 +89,7 @@ object RevurderingRoutesTestData {
     internal val opprettetRevurdering = OpprettetRevurdering(
         id = UUID.randomUUID(),
         periode = periode,
-        opprettet = Tidspunkt.now(),
+        opprettet = fixedTidspunkt,
         tilRevurdering = vedtak,
         saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
         oppgaveId = OppgaveId("oppgaveid"),
@@ -115,7 +115,7 @@ object RevurderingRoutesTestData {
                 behandlingsPeriode = periode,
                 bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(),
+                    opprettet = fixedTidspunkt,
                     periode = periode,
                     begrunnelse = null,
                 ),

@@ -199,7 +199,7 @@ sealed class Vilkår {
                 }
 
                 private fun List<Vurderingsperiode.Uføre>.sisteUføreperiodeErLikOgTilstøtende(other: Vurderingsperiode.Uføre) =
-                    this.last().let { it.tilstøterOgErLik(other) }
+                    this.last().tilstøterOgErLik(other)
             }
 
             sealed class UgyldigUførevilkår {
@@ -324,7 +324,7 @@ sealed class Vilkår {
                 }
 
                 private fun List<Vurderingsperiode.Formue>.sisteFormueperiodeErLikOgTilstøtende(other: Vurderingsperiode.Formue) =
-                    this.last().let { it.tilstøterOgErLik(other) }
+                    this.last().tilstøterOgErLik(other)
             }
 
             sealed class UgyldigFormuevilkår {
