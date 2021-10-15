@@ -1,9 +1,12 @@
 package no.nav.su.se.bakover.domain
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import java.time.LocalDate
 import java.util.UUID
 
 sealed class Søknad {
@@ -12,13 +15,15 @@ sealed class Søknad {
     abstract val sakId: UUID
     abstract val søknadInnhold: SøknadInnhold
 
-    /*
-    abstract fun lukk(
-        lukketAv: Saksbehandler,
-        type: Journalført.MedOppgave.Lukket.LukketType,
-        lukketTidspunkt: Tidspunkt,
-    ): Journalført.MedOppgave.Lukket
+    /**
+     * Når Nav mottok søknaden:
+     * * _opprettet_ dersom søknaden er digital.
+     * * _søknadInnhold.forNav.mottaksdatoForSøknad_ dersom det er en papirsøknad.
      */
+    @get:JsonIgnore // TODO jah: La de som serialiserer Søknad ha sin egen DTO. Serialiseres av blant annet Vedtakssnapshot.
+    val mottaksdato: LocalDate by lazy {
+        (søknadInnhold.forNav as? ForNav.Papirsøknad)?.mottaksdatoForSøknad ?: opprettet.toLocalDate(zoneIdOslo)
+    }
 
     data class Ny(
         override val id: UUID,
