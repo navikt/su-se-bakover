@@ -5,6 +5,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -47,6 +49,7 @@ interface VedtakRepo {
     fun hentAktive(dato: LocalDate): List<Vedtak.EndringIYtelse>
     fun lagre(vedtak: Vedtak)
     fun hentForUtbetaling(utbetalingId: UUID30): Vedtak?
+    fun hentAlle(): List<Vedtak>
 }
 
 internal class VedtakPostgresRepo(
@@ -90,6 +93,12 @@ internal class VedtakPostgresRepo(
                 .hent(mapOf("utbetalingId" to utbetalingId), session) {
                     it.toVedtak(session)
                 }
+        }
+    }
+
+    override fun hentAlle(): List<Vedtak> {
+        return dataSource.withSession { session ->
+            """select * from vedtak""".hentListe(emptyMap(), session) { it.toVedtak(session) }
         }
     }
 
@@ -137,6 +146,7 @@ internal class VedtakPostgresRepo(
         val utbetalingId = uuid30OrNull("utbetalingId")
         val beregning = stringOrNull("beregning")?.let { objectMapper.readValue<PersistertBeregning>(it) }
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
+        val avslagsgrunner = stringOrNull("avslagsgrunner")?.let { objectMapper.readValue<List<Avslagsgrunn>>(it) }
 
         return when (VedtakType.valueOf(string("vedtaktype"))) {
             VedtakType.SØKNAD -> {
@@ -189,6 +199,8 @@ internal class VedtakPostgresRepo(
                         saksbehandler = saksbehandler,
                         attestant = attestant,
                         periode = periode,
+                        // TODO fjern henting fra behandling etter migrering
+                        avslagsgrunner = avslagsgrunner ?: behandling.avslagsgrunner,
                     )
                 } else {
                     Vedtak.Avslag.AvslagVilkår(
@@ -199,6 +211,8 @@ internal class VedtakPostgresRepo(
                         saksbehandler = saksbehandler,
                         attestant = attestant,
                         periode = periode,
+                        // TODO fjern henting fra behandling etter migrering
+                        avslagsgrunner = avslagsgrunner ?: behandling.avslagsgrunner,
                     )
                 }
             }
@@ -314,7 +328,8 @@ internal class VedtakPostgresRepo(
                     utbetalingid,
                     simulering,
                     beregning,
-                    vedtaktype
+                    vedtaktype,
+                    avslagsgrunner
                 ) values (
                     :id,
                     :opprettet,
@@ -325,7 +340,8 @@ internal class VedtakPostgresRepo(
                     :utbetalingid,
                     to_json(:simulering::json),
                     to_json(:beregning::json),
-                    :vedtaktype
+                    :vedtaktype,
+                    to_json(:avslagsgrunner::json)
                 )
             """.trimIndent()
                 .insert(
@@ -338,6 +354,7 @@ internal class VedtakPostgresRepo(
                         "attestant" to vedtak.attestant,
                         "beregning" to beregning?.let { objectMapper.writeValueAsString(it.toSnapshot()) },
                         "vedtaktype" to VedtakType.AVSLAG,
+                        "avslagsgrunner" to vedtak.avslagsgrunner.serialize(),
                     ),
                     tx,
                 )

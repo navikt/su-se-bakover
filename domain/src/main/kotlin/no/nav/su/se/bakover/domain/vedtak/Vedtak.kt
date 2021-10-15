@@ -7,11 +7,9 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
+import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.toAvslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -278,6 +276,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     saksbehandler = avslag.saksbehandler,
                     attestant = avslag.attesteringer.hentSisteAttestering().attestant,
                     periode = avslag.periode,
+                    avslagsgrunner = avslag.avslagsgrunner,
                 )
 
             fun fromSøknadsbehandlingUtenBeregning(
@@ -291,7 +290,23 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     saksbehandler = avslag.saksbehandler,
                     attestant = avslag.attesteringer.hentSisteAttestering().attestant,
                     periode = avslag.periode,
+                    avslagsgrunner = avslag.avslagsgrunner,
                 )
+
+            fun fromAvslagManglendeDokumentasjon(
+                avslag: AvslagManglendeDokumentasjon,
+                clock: Clock,
+            ): AvslagVilkår {
+                return AvslagVilkår(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(clock),
+                    behandling = avslag.søknadsbehandling,
+                    saksbehandler = avslag.søknadsbehandling.saksbehandler,
+                    attestant = avslag.søknadsbehandling.attesteringer.hentSisteAttestering().attestant,
+                    periode = avslag.søknadsbehandling.periode,
+                    avslagsgrunner = avslag.avslagsgrunner,
+                )
+            }
         }
 
         data class AvslagVilkår(
@@ -301,9 +316,8 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestant: NavIdentBruker.Attestant,
             override val periode: Periode,
+            override val avslagsgrunner: List<Avslagsgrunn>,
         ) : Avslag() {
-            // TODO jah: I en overgangsfase vil vilkårsvurderingene finnes både i Behandlingsinformasjon og Vilkårsvurderinger, ideelt sett hadde Vilkårsvurderinger eid avslagsgrunnene.
-            override val avslagsgrunner: List<Avslagsgrunn> = behandling.behandlingsinformasjon.utledAvslagsgrunner()
 
             override fun accept(visitor: VedtakVisitor) {
                 visitor.visit(this)
@@ -318,17 +332,8 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             override val attestant: NavIdentBruker.Attestant,
             override val periode: Periode,
             val beregning: Beregning,
+            override val avslagsgrunner: List<Avslagsgrunn>,
         ) : Avslag() {
-            private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
-                when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
-                    is AvslagGrunnetBeregning.Ja -> listOf(vurdering.grunn.toAvslagsgrunn())
-                    is AvslagGrunnetBeregning.Nei -> emptyList()
-                }
-
-            // TODO jm: disse bør sannsynligvis peristeres.
-            // TODO jah: I en overgangsfase vil vilkårsvurderingene finnes både i Behandlingsinformasjon og Vilkårsvurderinger, ideelt sett hadde Vilkårsvurderinger eid avslagsgrunnene.
-            override val avslagsgrunner: List<Avslagsgrunn> =
-                behandling.behandlingsinformasjon.utledAvslagsgrunner() + avslagsgrunnForBeregning
 
             override fun accept(visitor: VedtakVisitor) {
                 visitor.visit(this)

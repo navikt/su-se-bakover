@@ -55,11 +55,10 @@ class AvslåSøknadService(
             clock = clock,
         ).getOrHandle { return KunneIkkeAvslåSøknad.SøknadsbehandlingIUgyldigTilstandForAvslag.left() }
 
-        val vedtak = Vedtak.Avslag.fromSøknadsbehandlingUtenBeregning(
-            avslag = avslag.søknadsbehandling,
+        val vedtak = Vedtak.Avslag.fromAvslagManglendeDokumentasjon(
+            avslag = avslag,
             clock = clock,
         )
-
         // TODO transaksjon
         søknadsbehandlingService.lagre(avslag)
         vedtakService.lagre(vedtak)

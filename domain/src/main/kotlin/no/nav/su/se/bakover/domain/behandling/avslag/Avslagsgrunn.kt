@@ -15,7 +15,8 @@ enum class Avslagsgrunn {
     FOR_HØY_INNTEKT,
     SU_UNDER_MINSTEGRENSE,
     UTENLANDSOPPHOLD_OVER_90_DAGER,
-    INNLAGT_PÅ_INSTITUSJON;
+    INNLAGT_PÅ_INSTITUSJON,
+    MANGLENDE_DOKUMENTASJON;
 
     companion object {
         fun List<Avslagsgrunn>.getDistinkteParagrafer(): List<Int> =
@@ -41,6 +42,7 @@ enum class Avslagsgrunn {
         SU_UNDER_MINSTEGRENSE -> listOf(5, 6, 9)
         UTENLANDSOPPHOLD_OVER_90_DAGER -> listOf(1, 2, 4)
         INNLAGT_PÅ_INSTITUSJON -> listOf(12)
+        MANGLENDE_DOKUMENTASJON -> listOf(18)
     }
 }
 
@@ -55,14 +57,6 @@ enum class Opphørsgrunn {
     FORMUE;
 
     companion object {
-        fun AvslagGrunnetBeregning.Grunn?.toOpphørsgrunn(): Opphørsgrunn? {
-            return when (this) {
-                AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT -> FOR_HØY_INNTEKT
-                AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE -> SU_UNDER_MINSTEGRENSE
-                null -> null
-            }
-        }
-
         fun List<Opphørsgrunn>.getDistinkteParagrafer(): List<Int> =
             this.map { it.getParagrafer() }.flatten().distinct().sorted()
     }

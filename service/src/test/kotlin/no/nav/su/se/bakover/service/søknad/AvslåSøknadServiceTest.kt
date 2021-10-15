@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.argThat
@@ -85,6 +86,7 @@ internal class AvslåSøknadServiceTest {
                         saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
                         attestant = NavIdentBruker.Attestant("saksemannen"),
                         periode = expectedSøknadsbehandling.periode,
+                        avslagsgrunner = listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON)
                     )
                 },
             )
@@ -147,6 +149,7 @@ internal class AvslåSøknadServiceTest {
                         saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
                         attestant = NavIdentBruker.Attestant("saksemannen"),
                         periode = expectedSøknadsbehandling.periode,
+                        avslagsgrunner = listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON)
                     )
                 },
             )

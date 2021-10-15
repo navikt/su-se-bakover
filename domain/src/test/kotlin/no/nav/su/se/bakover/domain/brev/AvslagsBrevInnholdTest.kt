@@ -72,7 +72,8 @@ class AvslagsBrevInnholdTest {
             Avslagsgrunn.FOR_HØY_INNTEKT to listOf(5, 6, 7),
             Avslagsgrunn.SU_UNDER_MINSTEGRENSE to listOf(5, 6, 9),
             Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER to listOf(1, 2, 4),
-            Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON to listOf(12)
+            Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON to listOf(12),
+            Avslagsgrunn.MANGLENDE_DOKUMENTASJON to listOf(18)
         ).forEach { (avslagsgrunn, paragrafer) -> avslagsgrunn.getParagrafer() shouldBe paragrafer }
     }
 

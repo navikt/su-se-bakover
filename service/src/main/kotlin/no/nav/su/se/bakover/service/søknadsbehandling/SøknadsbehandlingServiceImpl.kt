@@ -441,10 +441,16 @@ internal class SøknadsbehandlingServiceImpl(
     private fun opprettAvslagsvedtak(iverksattBehandling: Søknadsbehandling.Iverksatt.Avslag): Vedtak.Avslag =
         when (iverksattBehandling) {
             is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
-                Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(iverksattBehandling, clock)
+                Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(
+                    avslag = iverksattBehandling,
+                    clock = clock,
+                )
             }
             is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
-                Vedtak.Avslag.fromSøknadsbehandlingUtenBeregning(iverksattBehandling, clock)
+                Vedtak.Avslag.fromSøknadsbehandlingUtenBeregning(
+                    avslag = iverksattBehandling,
+                    clock = clock,
+                )
             }
         }
 

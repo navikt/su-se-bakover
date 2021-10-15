@@ -74,7 +74,7 @@ object DatabaseBuilder {
         return buildInternal(embeddedDatasource, dbMetrics)
     }
 
-    private fun buildInternal(
+    internal fun buildInternal(
         dataSource: DataSource,
         dbMetrics: DbMetrics,
     ): DatabaseRepos {
