@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.dokarkiv.JournalpostFactory
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
@@ -20,10 +21,14 @@ import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalføreOgDistribuereBrev
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
+import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.slf4j.LoggerFactory
+import java.time.Clock
 import java.util.UUID
 
 /**
@@ -38,6 +43,9 @@ internal class BrevServiceImpl(
     private val sakService: SakService,
     private val personService: PersonService,
     private val sessionFactory: SessionFactory,
+    private val microsoftGraphApiOppslag: MicrosoftGraphApiOppslag,
+    private val utbetalingService: UtbetalingService,
+    private val clock: Clock,
 ) : BrevService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -183,4 +191,48 @@ internal class BrevServiceImpl(
             .mapLeft { KunneIkkeLageBrev.KunneIkkeGenererePDF }
             .map { it }
     }
+
+    override fun lagDokument(visitable: Visitable<LagBrevRequestVisitor>): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
+        return lagBrevRequest(visitable).mapLeft {
+            when (it) {
+                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling
+                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
+                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> KunneIkkeLageDokument.KunneIkkeHentePerson
+            }
+        }.flatMap { lagBrevRequest ->
+            lagBrevRequest.tilDokument {
+                lagBrev(it).mapLeft {
+                    LagBrevRequest.KunneIkkeGenererePdf
+                }
+            }.mapLeft {
+                KunneIkkeLageDokument.KunneIkkeGenererePDF
+            }
+        }
+    }
+
+    override fun lagBrevRequest(visitable: Visitable<LagBrevRequestVisitor>): Either<LagBrevRequestVisitor.KunneIkkeLageBrevRequest, LagBrevRequest> {
+        return lagBrevRequestVisitor().apply {
+            visitable.accept(this)
+        }.brevRequest
+    }
+
+    private fun lagBrevRequestVisitor() =
+        LagBrevRequestVisitor(
+            hentPerson = { fnr ->
+                personService.hentPerson(fnr)
+                    .mapLeft { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson }
+            },
+            hentNavn = { ident ->
+                microsoftGraphApiOppslag.hentNavnForNavIdent(ident)
+                    .mapLeft { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant }
+            },
+            hentGjeldendeUtbetaling = { sakId, forDato ->
+                utbetalingService.hentGjeldendeUtbetaling(sakId, forDato)
+                    .bimap(
+                        { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling },
+                        { it.beløp },
+                    )
+            },
+            clock = clock,
+        )
 }

@@ -243,7 +243,7 @@ internal fun Application.susebakover(
                     søknadRoutes(
                         søknadService = accessProtectedServices.søknad,
                         lukkSøknadService = accessProtectedServices.lukkSøknad,
-                        avslåSøknadManglendeDokumentasjonService = accessProtectedServices.avslåSøknadManglendeDokumentasjon,
+                        avslåSøknadManglendeDokumentasjonService = accessProtectedServices.avslåSøknadManglendeDokumentasjonService,
                     )
                     overordnetSøknadsbehandligRoutes(
                         søknadsbehandlingService = accessProtectedServices.søknadsbehandling,

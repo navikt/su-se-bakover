@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
-import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjon
+import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
@@ -47,7 +47,7 @@ internal const val søknadPath = "/soknad"
 internal fun Route.søknadRoutes(
     søknadService: SøknadService,
     lukkSøknadService: LukkSøknadService,
-    avslåSøknadManglendeDokumentasjonService: AvslåSøknadManglendeDokumentasjon,
+    avslåSøknadManglendeDokumentasjonService: AvslåSøknadManglendeDokumentasjonService,
 ) {
     authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
         post(søknadPath) {
@@ -94,16 +94,16 @@ internal fun Route.søknadRoutes(
                         val responseMessage = when (it) {
                             KunneIkkeLageSøknadPdf.FantIkkeSøknad -> NotFound.errorJson(
                                 "Fant ikke søknad",
-                                "fant_ikke_søknad"
+                                "fant_ikke_søknad",
                             )
                             KunneIkkeLageSøknadPdf.KunneIkkeLagePdf -> InternalServerError.errorJson(
                                 "Kunne ikke lage PDF",
-                                "kunne_ikke_lage_pdf"
+                                "kunne_ikke_lage_pdf",
                             )
                             KunneIkkeLageSøknadPdf.FantIkkePerson -> Feilresponser.fantIkkePerson
                             KunneIkkeLageSøknadPdf.FantIkkeSak -> NotFound.errorJson(
                                 "Fant ikke sak",
-                                "fant_ikke_sak"
+                                "fant_ikke_sak",
                             )
                         }
                         call.respond(responseMessage)
@@ -164,6 +164,31 @@ internal fun Route.søknadRoutes(
                                         "Behandlingen er i ugyldig tilstand for avslag",
                                         "behandling_i_ugyldig_tilstand_for_avslag",
                                     )
+                                KunneIkkeAvslåSøknad.FantIkkePerson ->
+                                    NotFound.errorJson(
+                                        "Fant ikke person",
+                                        "fant_ikke_person",
+                                    )
+                                KunneIkkeAvslåSøknad.KunneIkkeFinneGjeldendeUtbetaling ->
+                                    NotFound.errorJson(
+                                        "Fant ikke gjeldende utbetaling",
+                                        "fant_ikke_gjeldende_utbetaling",
+                                    )
+                                KunneIkkeAvslåSøknad.KunneIkkeGenererePDF ->
+                                    InternalServerError.errorJson(
+                                        "Kunne ikke generere pdf",
+                                        "kunne_ikke_generere_pdf",
+                                    )
+                                KunneIkkeAvslåSøknad.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant ->
+                                    NotFound.errorJson(
+                                        "Fant ikke saksbehandler eller attestant",
+                                        "fant_ikke_saksbehandler_eller_attestant",
+                                    )
+                                KunneIkkeAvslåSøknad.KunneIkkeHentePerson ->
+                                    NotFound.errorJson(
+                                        "Kunne ikke hente person",
+                                        "kunne_ikke_hente_person",
+                                    )
                             },
                         )
                     }.map {
@@ -195,8 +220,8 @@ internal fun Route.søknadRoutes(
                                     call.svar(
                                         BadRequest.errorJson(
                                             "Kunne ikke lage brev for ukjent brevtype",
-                                            "ukjent_brevtype"
-                                        )
+                                            "ukjent_brevtype",
+                                        ),
                                     )
                                 else ->
                                     call.svar(kunneIkkeLageBrevutkast)

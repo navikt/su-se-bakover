@@ -48,10 +48,13 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
+import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.HentDokumenterForIdType
+import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -91,7 +94,7 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Statistikk
 import no.nav.su.se.bakover.service.statistikk.StatistikkService
 import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
-import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjon
+import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
@@ -330,6 +333,14 @@ open class AccessCheckProxy(
                     }.let {
                         return services.brev.hentDokumenterFor(hentDokumenterForIdType)
                     }
+                }
+
+                override fun lagDokument(visitable: Visitable<LagBrevRequestVisitor>): Either<KunneIkkeLageDokument, Dokument.UtenMetadata> {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun lagBrevRequest(visitable: Visitable<LagBrevRequestVisitor>): Either<LagBrevRequestVisitor.KunneIkkeLageBrevRequest, LagBrevRequest> {
+                    kastKanKunKallesFraAnnenService()
                 }
             },
             lukkSøknad = object : LukkSøknadService {
@@ -665,12 +676,12 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
             },
-            avslåSøknadManglendeDokumentasjon = object : AvslåSøknadManglendeDokumentasjon {
+            avslåSøknadManglendeDokumentasjonService = object : AvslåSøknadManglendeDokumentasjonService {
                 override fun avslå(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeAvslåSøknad, Vedtak.Avslag> {
                     assertHarTilgangTilSøknad(request.søknadId)
-                    return services.avslåSøknadManglendeDokumentasjon.avslå(request)
+                    return services.avslåSøknadManglendeDokumentasjonService.avslå(request)
                 }
-            }
+            },
         )
     }
 

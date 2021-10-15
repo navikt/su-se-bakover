@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
 import no.nav.su.se.bakover.client.dokdistfordeling.KunneIkkeBestilleDistribusjon
 import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.AktørId
@@ -31,12 +32,14 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import java.time.Clock
 import java.util.UUID
 
 internal class BrevServiceImplTest {
@@ -383,6 +386,10 @@ internal class BrevServiceImplTest {
         val sakService: SakService = mock(),
         val personService: PersonService = mock(),
         val sessionFactory: SessionFactory = mock(),
+        val microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = mock(),
+        val utbetalingService: UtbetalingService = mock(),
+        val clock: Clock = mock(),
+
     ) {
         val brevService = BrevServiceImpl(
             pdfGenerator = pdfGenerator,
@@ -392,6 +399,9 @@ internal class BrevServiceImplTest {
             sakService = sakService,
             personService = personService,
             sessionFactory = sessionFactory,
+            microsoftGraphApiOppslag = microsoftGraphApiOppslag,
+            utbetalingService = utbetalingService,
+            clock = clock,
         )
 
         fun verifyNoMoreInteraction() {

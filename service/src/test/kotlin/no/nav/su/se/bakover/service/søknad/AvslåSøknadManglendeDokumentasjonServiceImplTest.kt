@@ -10,10 +10,12 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
@@ -31,8 +33,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import java.time.Clock
 
-internal class AvslåSøknadManglendeDokumentasjonServiceTest {
-
+internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
     @Test
     fun `kan avslå en søknad uten påbegynt behandling`() {
         val (_, uavklart) = søknadsbehandlingVilkårsvurdertUavklart()
@@ -44,9 +45,20 @@ internal class AvslåSøknadManglendeDokumentasjonServiceTest {
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
 
+        val dokument = Dokument.UtenMetadata.Vedtak(
+            tittel = "tittel",
+            generertDokument = "".toByteArray(),
+            generertDokumentJson = "",
+        )
+
+        val brevServiceMock = mock<BrevService>() {
+            on { lagDokument(any()) } doReturn dokument.right()
+        }
+
         AvslåSøknadServiceAndMocks(
             søknadsbehandlingService = søknadsbehandlingServiceMock,
             oppgaveService = oppgaveServiceMock,
+            brevService = brevServiceMock,
             clock = fixedClock,
         ).let {
             val response = it.service.avslå(
@@ -81,23 +93,38 @@ internal class AvslåSøknadManglendeDokumentasjonServiceTest {
                 vilkårsvurderinger = uavklart.vilkårsvurderinger,
             )
 
+            val expectedAvslagVilkår = Vedtak.Avslag.AvslagVilkår(
+                id = response.id,
+                opprettet = response.opprettet,
+                behandling = expectedSøknadsbehandling,
+                saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
+                attestant = NavIdentBruker.Attestant("saksemannen"),
+                periode = expectedSøknadsbehandling.periode,
+                avslagsgrunner = listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON),
+            )
+
             verify(it.søknadsbehandlingService).hentForSøknad(søknadId)
             verify(it.søknadsbehandlingService).opprett(SøknadsbehandlingService.OpprettRequest(søknadId = søknadId))
             verify(it.søknadsbehandlingService).lagre(argThat { it.søknadsbehandling shouldBe expectedSøknadsbehandling })
             verify(it.vedtakService).lagre(
                 argThat {
-                    it shouldBe Vedtak.Avslag.AvslagVilkår(
-                        id = response.id,
-                        opprettet = response.opprettet,
-                        behandling = expectedSøknadsbehandling,
-                        saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
-                        attestant = NavIdentBruker.Attestant("saksemannen"),
-                        periode = expectedSøknadsbehandling.periode,
-                        avslagsgrunner = listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON),
-                    )
+                    it shouldBe expectedAvslagVilkår
                 },
             )
             verify(it.oppgaveService).lukkOppgave(expectedSøknadsbehandling.oppgaveId)
+            verify(it.brevService).lagDokument(argThat { it shouldBe expectedAvslagVilkår })
+            verify(it.brevService).lagreDokument(
+                argThat {
+                    it shouldBe dokument.leggTilMetadata(
+                        metadata = Dokument.Metadata(
+                            sakId = expectedSøknadsbehandling.sakId,
+                            søknadId = expectedSøknadsbehandling.søknad.id,
+                            vedtakId = expectedAvslagVilkår.id,
+                            bestillBrev = true,
+                        ),
+                    )
+                },
+            )
             it.verifyNoMoreInteractions()
         }
     }
@@ -113,9 +140,20 @@ internal class AvslåSøknadManglendeDokumentasjonServiceTest {
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
 
+        val dokument = Dokument.UtenMetadata.Vedtak(
+            tittel = "tittel",
+            generertDokument = "".toByteArray(),
+            generertDokumentJson = "",
+        )
+
+        val brevServiceMock = mock<BrevService>() {
+            on { lagDokument(any()) } doReturn dokument.right()
+        }
+
         AvslåSøknadServiceAndMocks(
             søknadsbehandlingService = søknadsbehandlingServiceMock,
             oppgaveService = oppgaveServiceMock,
+            brevService = brevServiceMock,
             clock = fixedClock,
         ).let {
             val response = it.service.avslå(
@@ -150,22 +188,37 @@ internal class AvslåSøknadManglendeDokumentasjonServiceTest {
                 vilkårsvurderinger = vilkårsvurdertInnvilget.vilkårsvurderinger,
             )
 
+            val expectedAvslagVilkår = Vedtak.Avslag.AvslagVilkår(
+                id = response.id,
+                opprettet = response.opprettet,
+                behandling = expectedSøknadsbehandling,
+                saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
+                attestant = NavIdentBruker.Attestant("saksemannen"),
+                periode = expectedSøknadsbehandling.periode,
+                avslagsgrunner = listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON),
+            )
+
             verify(it.søknadsbehandlingService).hentForSøknad(søknadId)
             verify(it.søknadsbehandlingService).lagre(argThat { it.søknadsbehandling shouldBe expectedSøknadsbehandling })
             verify(it.vedtakService).lagre(
                 argThat {
-                    it shouldBe Vedtak.Avslag.AvslagVilkår(
-                        id = response.id,
-                        opprettet = response.opprettet,
-                        behandling = expectedSøknadsbehandling,
-                        saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
-                        attestant = NavIdentBruker.Attestant("saksemannen"),
-                        periode = expectedSøknadsbehandling.periode,
-                        avslagsgrunner = listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON),
-                    )
+                    it shouldBe expectedAvslagVilkår
                 },
             )
             verify(it.oppgaveService).lukkOppgave(expectedSøknadsbehandling.oppgaveId)
+            verify(it.brevService).lagDokument(argThat { it shouldBe expectedAvslagVilkår })
+            verify(it.brevService).lagreDokument(
+                argThat {
+                    it shouldBe dokument.leggTilMetadata(
+                        metadata = Dokument.Metadata(
+                            sakId = expectedSøknadsbehandling.sakId,
+                            søknadId = expectedSøknadsbehandling.søknad.id,
+                            vedtakId = expectedAvslagVilkår.id,
+                            bestillBrev = true,
+                        ),
+                    )
+                },
+            )
             it.verifyNoMoreInteractions()
         }
     }
@@ -223,9 +276,20 @@ internal class AvslåSøknadManglendeDokumentasjonServiceTest {
             on { lukkOppgave(any()) } doReturn OppgaveFeil.KunneIkkeLukkeOppgave.left()
         }
 
+        val dokument = Dokument.UtenMetadata.Vedtak(
+            tittel = "tittel",
+            generertDokument = "".toByteArray(),
+            generertDokumentJson = "",
+        )
+
+        val brevServiceMock = mock<BrevService>() {
+            on { lagDokument(any()) } doReturn dokument.right()
+        }
+
         AvslåSøknadServiceAndMocks(
             søknadsbehandlingService = søknadsbehandlingServiceMock,
             oppgaveService = oppgaveServiceMock,
+            brevService = brevServiceMock,
             clock = fixedClock,
         ).let {
             val response = it.service.avslå(
@@ -243,6 +307,8 @@ internal class AvslåSøknadManglendeDokumentasjonServiceTest {
             verify(it.søknadsbehandlingService).lagre(any())
             verify(it.vedtakService).lagre(any())
             verify(it.oppgaveService).lukkOppgave(uavklart.oppgaveId)
+            verify(it.brevService).lagDokument(any())
+            verify(it.brevService).lagreDokument(any())
             it.verifyNoMoreInteractions()
         }
     }
@@ -253,23 +319,16 @@ internal class AvslåSøknadManglendeDokumentasjonServiceTest {
         val søknadsbehandlingService: SøknadsbehandlingService = mock(),
         val vedtakService: VedtakService = mock(),
         val oppgaveService: OppgaveService = mock(),
+        val brevService: BrevService = mock(),
         val sessionFactory: SessionFactory = TestSessionFactory(),
     ) {
-        val service = AvslåSøknadManglendeDokumentasjonService(
+        val service = AvslåSøknadManglendeDokumentasjonServiceImpl(
             clock = clock,
             søknadsbehandlingService = søknadsbehandlingService,
             vedtakService = vedtakService,
             oppgaveService = oppgaveService,
+            brevService = brevService,
         )
-
-        fun mocks(): Array<Any> {
-            return listOf(
-                søknadService,
-                søknadsbehandlingService,
-                vedtakService,
-                oppgaveService,
-            ).toTypedArray()
-        }
 
         fun verifyNoMoreInteractions() {
             org.mockito.kotlin.verifyNoMoreInteractions(
@@ -277,6 +336,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceTest {
                 søknadsbehandlingService,
                 vedtakService,
                 oppgaveService,
+                brevService,
             )
         }
     }
