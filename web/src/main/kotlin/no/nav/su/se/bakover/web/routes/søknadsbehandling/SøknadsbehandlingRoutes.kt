@@ -48,6 +48,7 @@ import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
+import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeGenerereBrev
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
@@ -133,6 +134,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                 {
                                     call.sikkerlogg("Opprettet behandling på sak: $sakId og søknadId: $søknadId")
                                     call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
+                                    SuMetrics.behandlingStartet(SuMetrics.Behandlingstype.SØKNAD)
                                     call.svar(Created.jsonBody(it))
                                 },
                             )
@@ -431,6 +433,7 @@ internal fun Route.søknadsbehandlingRoutes(
                     {
                         call.sikkerlogg("Iverksatte behandling med id: $behandlingId")
                         call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                        SuMetrics.vedtakIverksatt(SuMetrics.Behandlingstype.SØKNAD)
                         call.svar(OK.jsonBody(it))
                     },
                 )

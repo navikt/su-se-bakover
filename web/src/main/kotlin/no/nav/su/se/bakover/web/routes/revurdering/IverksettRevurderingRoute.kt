@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
+import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeGenerereBrev
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
@@ -44,6 +45,7 @@ internal fun Route.iverksettRevurderingRoute(
                     ifRight = {
                         call.sikkerlogg("Iverksatt revurdering med id $revurderingId")
                         call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                        SuMetrics.vedtakIverksatt(SuMetrics.Behandlingstype.REVURDERING)
                         call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
                     },
                 )
