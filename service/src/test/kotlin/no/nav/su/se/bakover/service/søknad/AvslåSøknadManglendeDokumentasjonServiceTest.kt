@@ -3,15 +3,18 @@ package no.nav.su.se.bakover.service.søknad
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -28,7 +31,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import java.time.Clock
 
-internal class AvslåSøknadServiceTest {
+internal class AvslåSøknadManglendeDokumentasjonServiceTest {
 
     @Test
     fun `kan avslå en søknad uten påbegynt behandling`() {
@@ -37,9 +40,13 @@ internal class AvslåSøknadServiceTest {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { opprett(any()) } doReturn uavklart.right()
         }
+        val oppgaveServiceMock = mock<OppgaveService>() {
+            on { lukkOppgave(any()) } doReturn Unit.right()
+        }
 
         AvslåSøknadServiceAndMocks(
             søknadsbehandlingService = søknadsbehandlingServiceMock,
+            oppgaveService = oppgaveServiceMock,
             clock = fixedClock,
         ).let {
             val response = it.service.avslå(
@@ -86,10 +93,11 @@ internal class AvslåSøknadServiceTest {
                         saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
                         attestant = NavIdentBruker.Attestant("saksemannen"),
                         periode = expectedSøknadsbehandling.periode,
-                        avslagsgrunner = listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON)
+                        avslagsgrunner = listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON),
                     )
                 },
             )
+            verify(it.oppgaveService).lukkOppgave(expectedSøknadsbehandling.oppgaveId)
             it.verifyNoMoreInteractions()
         }
     }
@@ -101,9 +109,13 @@ internal class AvslåSøknadServiceTest {
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { hentForSøknad(søknadId) } doReturn vilkårsvurdertInnvilget
         }
+        val oppgaveServiceMock = mock<OppgaveService>() {
+            on { lukkOppgave(any()) } doReturn Unit.right()
+        }
 
         AvslåSøknadServiceAndMocks(
             søknadsbehandlingService = søknadsbehandlingServiceMock,
+            oppgaveService = oppgaveServiceMock,
             clock = fixedClock,
         ).let {
             val response = it.service.avslå(
@@ -149,10 +161,11 @@ internal class AvslåSøknadServiceTest {
                         saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
                         attestant = NavIdentBruker.Attestant("saksemannen"),
                         periode = expectedSøknadsbehandling.periode,
-                        avslagsgrunner = listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON)
+                        avslagsgrunner = listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON),
                     )
                 },
             )
+            verify(it.oppgaveService).lukkOppgave(expectedSøknadsbehandling.oppgaveId)
             it.verifyNoMoreInteractions()
         }
     }
@@ -199,17 +212,54 @@ internal class AvslåSøknadServiceTest {
         }
     }
 
+    @Test
+    fun `overlever dersom lukking av oppgave feiler`() {
+        val (_, uavklart) = søknadsbehandlingVilkårsvurdertUavklart()
+
+        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
+            on { opprett(any()) } doReturn uavklart.right()
+        }
+        val oppgaveServiceMock = mock<OppgaveService>() {
+            on { lukkOppgave(any()) } doReturn OppgaveFeil.KunneIkkeLukkeOppgave.left()
+        }
+
+        AvslåSøknadServiceAndMocks(
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+            oppgaveService = oppgaveServiceMock,
+            clock = fixedClock,
+        ).let {
+            val response = it.service.avslå(
+                AvslåManglendeDokumentasjonRequest(
+                    søknadId,
+                    saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
+                    fritekstTilBrev = "finfin tekst",
+                ),
+            ).getOrFail("Feil i testdataoppsett")
+
+            response shouldBe beOfType<Vedtak.Avslag.AvslagVilkår>()
+
+            verify(it.søknadsbehandlingService).hentForSøknad(any())
+            verify(it.søknadsbehandlingService).opprett(any())
+            verify(it.søknadsbehandlingService).lagre(any())
+            verify(it.vedtakService).lagre(any())
+            verify(it.oppgaveService).lukkOppgave(uavklart.oppgaveId)
+            it.verifyNoMoreInteractions()
+        }
+    }
+
     private data class AvslåSøknadServiceAndMocks(
         val clock: Clock = fixedClock,
         val søknadService: SøknadService = mock(),
         val søknadsbehandlingService: SøknadsbehandlingService = mock(),
         val vedtakService: VedtakService = mock(),
+        val oppgaveService: OppgaveService = mock(),
         val sessionFactory: SessionFactory = TestSessionFactory(),
     ) {
-        val service = AvslåSøknadService(
+        val service = AvslåSøknadManglendeDokumentasjonService(
             clock = clock,
             søknadsbehandlingService = søknadsbehandlingService,
             vedtakService = vedtakService,
+            oppgaveService = oppgaveService,
         )
 
         fun mocks(): Array<Any> {
@@ -217,6 +267,7 @@ internal class AvslåSøknadServiceTest {
                 søknadService,
                 søknadsbehandlingService,
                 vedtakService,
+                oppgaveService,
             ).toTypedArray()
         }
 
@@ -225,6 +276,7 @@ internal class AvslåSøknadServiceTest {
                 søknadService,
                 søknadsbehandlingService,
                 vedtakService,
+                oppgaveService,
             )
         }
     }

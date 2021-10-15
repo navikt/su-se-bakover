@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.StatistikkService
+import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjon
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
@@ -32,4 +33,5 @@ data class Services(
     val ferdigstillVedtak: FerdigstillVedtakService,
     val revurdering: RevurderingService,
     val vedtakService: VedtakService,
+    val avslåSøknadManglendeDokumentasjon: AvslåSøknadManglendeDokumentasjon
 )

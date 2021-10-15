@@ -241,12 +241,12 @@ internal fun Application.susebakover(
                     personRoutes(accessProtectedServices.person, clock)
                     sakRoutes(accessProtectedServices.sak)
                     søknadRoutes(
-                        accessProtectedServices.søknad,
-                        accessProtectedServices.lukkSøknad,
+                        søknadService = accessProtectedServices.søknad,
+                        lukkSøknadService = accessProtectedServices.lukkSøknad,
+                        avslåSøknadManglendeDokumentasjonService = accessProtectedServices.avslåSøknadManglendeDokumentasjon,
                     )
                     overordnetSøknadsbehandligRoutes(
-                        accessProtectedServices.søknadsbehandling,
-                        accessProtectedServices.vedtakService,
+                        søknadsbehandlingService = accessProtectedServices.søknadsbehandling,
                     )
                     avstemmingRoutes(accessProtectedServices.avstemming)
                     driftRoutes(accessProtectedServices.søknad)

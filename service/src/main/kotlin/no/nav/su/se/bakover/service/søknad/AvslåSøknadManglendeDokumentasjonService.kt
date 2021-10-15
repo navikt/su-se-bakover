@@ -4,21 +4,28 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import java.time.Clock
 import java.util.UUID
 
-class AvslåSøknadService(
+interface AvslåSøknadManglendeDokumentasjon {
+    fun avslå(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeAvslåSøknad, Vedtak.Avslag>
+}
+
+class AvslåSøknadManglendeDokumentasjonService(
     private val clock: Clock = Clock.systemUTC(),
     private val søknadsbehandlingService: SøknadsbehandlingService,
     private val vedtakService: VedtakService,
-) {
-    fun avslå(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeAvslåSøknad, Vedtak.Avslag> {
+    private val oppgaveService: OppgaveService,
+) : AvslåSøknadManglendeDokumentasjon {
+    override fun avslå(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeAvslåSøknad, Vedtak.Avslag> {
         return søknadsbehandlingService.hentForSøknad(request.søknadId)
             ?.let { harBehandlingFraFør(request, it) }
             ?: opprettNyBehandlingFørst(request)
@@ -63,7 +70,11 @@ class AvslåSøknadService(
         søknadsbehandlingService.lagre(avslag)
         vedtakService.lagre(vedtak)
         // TODO brev + fritekst
-        // TODO oppgave
+
+        oppgaveService.lukkOppgave(avslag.søknadsbehandling.oppgaveId)
+            .mapLeft {
+                log.warn("Klarte ikke å lukke oppgave for søknadsbehandling: ${avslag.søknadsbehandling.id}, feil:$it")
+            }
 
         return vedtak.right()
     }

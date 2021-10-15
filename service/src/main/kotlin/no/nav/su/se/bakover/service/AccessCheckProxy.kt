@@ -90,7 +90,10 @@ import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Statistikk
 import no.nav.su.se.bakover.service.statistikk.StatistikkService
+import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
+import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjon
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
+import no.nav.su.se.bakover.service.søknad.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.OpprettManglendeJournalpostOgOppgaveResultat
@@ -662,6 +665,12 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
             },
+            avslåSøknadManglendeDokumentasjon = object : AvslåSøknadManglendeDokumentasjon {
+                override fun avslå(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeAvslåSøknad, Vedtak.Avslag> {
+                    assertHarTilgangTilSøknad(request.søknadId)
+                    return services.avslåSøknadManglendeDokumentasjon.avslå(request)
+                }
+            }
         )
     }
 
