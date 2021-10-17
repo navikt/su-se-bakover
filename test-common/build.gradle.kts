@@ -8,5 +8,5 @@ dependencies {
 
     implementation("io.kotest:kotest-assertions-core:$kotestVersion")
     // TODO jah: Finn en måte å gjenbruke de versjonene her på.
-    implementation("org.mockito.kotlin:mockito-kotlin:3.2.0")
+    implementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
 }
