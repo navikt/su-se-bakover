@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
@@ -30,6 +31,7 @@ import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.dokument.Dokumentdistribusjon
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
@@ -395,7 +397,7 @@ internal class BrevServiceImplTest {
     }
 
     @Test
-    fun `klarer ikke å finne utbetalingen`() {
+    fun `klarer ikke å finne gjeldende utbetaling`() {
         val (sak, vedtak) = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak()
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn person.right()
@@ -427,6 +429,50 @@ internal class BrevServiceImplTest {
         }
     }
 
+    @Test
+    fun `svarer med feil der som generering av pdf feiler`() {
+        val (sak, vedtak) = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
+        }
+
+        val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
+            on { hentNavnForNavIdent(any()) } doReturnConsecutively listOf(
+                "Kåre Kropp".right(),
+                "Suveren Severin".right(),
+            )
+        }
+
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on { hentGjeldendeUtbetaling(any(), any()) } doReturn UtbetalingslinjePåTidslinje.Ny(
+                kopiertFraId = UUID30.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = vedtak.periode,
+                beløp = 5999,
+            ).right()
+        }
+
+        val pdfGeneratorMock = mock<PdfGenerator>() {
+            on { genererPdf(any<BrevInnhold>()) } doReturn KunneIkkeGenererePdf.left()
+        }
+
+        ServiceOgMocks(
+            personService = personServiceMock,
+            microsoftGraphApiOppslag = microsoftGraphApiOppslagMock,
+            utbetalingService = utbetalingServiceMock,
+            pdfGenerator = pdfGeneratorMock,
+            clock = fixedClock,
+        ).let {
+            it.brevService.lagDokument(vedtak) shouldBe KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
+            verify(it.personService).hentPerson(vedtak.tilRevurdering.behandling.fnr)
+            verify(it.microsoftGraphApiOppslag).hentNavnForNavIdent(vedtak.saksbehandler)
+            verify(it.microsoftGraphApiOppslag).hentNavnForNavIdent(vedtak.attesteringer.hentSisteAttestering().attestant)
+            verify(it.utbetalingService).hentGjeldendeUtbetaling(sak.id, vedtak.opprettet.toLocalDate(zoneIdOslo))
+            verify(it.pdfGenerator).genererPdf(any<BrevInnhold.VedtakIngenEndring>())
+            it.verifyNoMoreInteraction()
+        }
+    }
+
     private fun lagDokument(metadata: Dokument.Metadata): Dokument.MedMetadata.Vedtak {
         val utenMetadata = Dokument.UtenMetadata.Vedtak(
             id = UUID.randomUUID(),
@@ -452,6 +498,7 @@ internal class BrevServiceImplTest {
                 )
             }
         }
+
         override val dagensDato = fixedLocalDate
     }
 
