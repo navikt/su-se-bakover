@@ -95,7 +95,7 @@ val applicationConfig = ApplicationConfig(
     jobConfig = ApplicationConfig.JobConfig(ApplicationConfig.JobConfig.Personhendelse(null))
 )
 
-internal val jwtStub = JwtStub(applicationConfig)
+internal val jwtStub = JwtStub(applicationConfig.azure)
 
 internal val dbMetricsStub: DbMetrics = object : DbMetrics {
     override fun <T> timeQuery(label: String, block: () -> T): T {

@@ -1,4 +1,4 @@
-val ktorVersion = "1.6.4"
+val ktorVersion: String by project
 
 plugins {
     /** Det ser ut som disse genererte filene ikke blir ekskludert av ktlint-tasken.
@@ -32,7 +32,6 @@ dependencies {
     testImplementation(project(":database", "testArchives"))
     testImplementation(project(":test-common"))
     testImplementation("org.xmlunit:xmlunit-matchers:2.8.2")
-
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {
         exclude(group = "junit")
         exclude(group = "org.eclipse.jetty") // conflicts with WireMock
