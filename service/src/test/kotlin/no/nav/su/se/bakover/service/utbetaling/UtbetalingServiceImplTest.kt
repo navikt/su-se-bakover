@@ -4,7 +4,6 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.idag
@@ -31,9 +30,9 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
-import no.nav.su.se.bakover.service.fixedClock
-import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.internal.verification.Times
@@ -53,6 +52,7 @@ internal class UtbetalingServiceImplTest {
     private val sak = Sak(
         id = sakId,
         saksnummer = saksnummer,
+        opprettet = fixedTidspunkt,
         fnr = fnr,
         utbetalinger = emptyList(),
     )
@@ -96,7 +96,7 @@ internal class UtbetalingServiceImplTest {
 
     private val utbetalingForSimulering = Utbetaling.UtbetalingForSimulering(
         id = UUID30.randomUUID(),
-        opprettet = Tidspunkt.now(),
+        opprettet = fixedTidspunkt,
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
@@ -107,8 +107,9 @@ internal class UtbetalingServiceImplTest {
     )
 
     private val kvitteringOK = Kvittering(
-        Kvittering.Utbetalingsstatus.OK,
-        "",
+        utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
+        originalKvittering = "",
+        mottattTidspunkt = fixedTidspunkt,
     )
 
     @Test
@@ -221,8 +222,9 @@ internal class UtbetalingServiceImplTest {
             behandler = NavIdentBruker.Saksbehandler("Z123"),
         )
         val kvittering = Kvittering(
-            Kvittering.Utbetalingsstatus.OK,
-            "",
+            utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
+            originalKvittering = "",
+            mottattTidspunkt = fixedTidspunkt,
         )
         val utbetalingMedKvittering = utbetalingUtenKvittering.toKvittertUtbetaling(kvittering)
 
@@ -279,6 +281,7 @@ internal class UtbetalingServiceImplTest {
             kvittering = Kvittering(
                 utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                 originalKvittering = "",
+                mottattTidspunkt = fixedTidspunkt,
             ),
             behandler = NavIdentBruker.Saksbehandler("Z123"),
         )
@@ -290,6 +293,7 @@ internal class UtbetalingServiceImplTest {
         val nyKvittering = Kvittering(
             utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
             originalKvittering = "",
+            mottattTidspunkt = fixedTidspunkt,
         )
 
         val sakServiceMock = mock<SakService>()
@@ -596,7 +600,7 @@ internal class UtbetalingServiceImplTest {
             val expectedGjeldendeUtbetalingslinje =
                 Utbetalingslinje.Ny(
                     id = UUID30.randomUUID(),
-                    opprettet = Tidspunkt.now(fixedClock),
+                    opprettet = fixedTidspunkt,
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.januar(2020),
                     forrigeUtbetalingslinjeId = null,
@@ -611,7 +615,7 @@ internal class UtbetalingServiceImplTest {
                             expectedGjeldendeUtbetalingslinje,
                             Utbetalingslinje.Ny(
                                 id = UUID30.randomUUID(),
-                                opprettet = Tidspunkt.now(fixedClock),
+                                opprettet = fixedTidspunkt,
                                 fraOgMed = 1.februar(2020),
                                 tilOgMed = 29.februar(2020),
                                 forrigeUtbetalingslinjeId = null,
@@ -620,7 +624,7 @@ internal class UtbetalingServiceImplTest {
                             ),
                             Utbetalingslinje.Ny(
                                 id = UUID30.randomUUID(),
-                                opprettet = Tidspunkt.now(fixedClock),
+                                opprettet = fixedTidspunkt,
                                 fraOgMed = 1.mars(2020),
                                 tilOgMed = 31.mars(2020),
                                 forrigeUtbetalingslinjeId = null,

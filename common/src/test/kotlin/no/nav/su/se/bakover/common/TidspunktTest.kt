@@ -57,7 +57,7 @@ internal class TidspunktTest {
     }
 
     @Test
-    fun `comparison`() {
+    fun comparison() {
         val startOfDayInstant = 1.januar(2020).atStartOfDay().toInstant(ZoneOffset.UTC)
         val endOfDayInstant = 1.januar(2020).plusDays(1).atStartOfDay().minusNanos(1).toInstant(ZoneOffset.UTC)
         val startOfDaytidspunkt = startOfDayInstant.toTidspunkt()
@@ -94,7 +94,7 @@ internal class TidspunktTest {
     }
 
     @Test
-    fun `now`() {
+    fun now() {
         val fixedUTC = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
         val nowUTC = Tidspunkt.now(fixedUTC)
         nowUTC.toString() shouldBe "2020-01-01T23:59:59.999999Z"

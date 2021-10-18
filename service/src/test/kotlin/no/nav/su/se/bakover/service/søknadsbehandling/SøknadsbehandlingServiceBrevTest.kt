@@ -5,7 +5,6 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
@@ -30,9 +29,9 @@ import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
-import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -45,7 +44,7 @@ internal class SøknadsbehandlingServiceBrevTest {
     private val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))
     private val beregnetAvslag = Søknadsbehandling.TilAttestering.Innvilget(
         id = UUID.randomUUID(),
-        opprettet = Tidspunkt.now(),
+        opprettet = fixedTidspunkt,
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
         søknad = mock(),
         sakId = UUID.randomUUID(),
@@ -73,7 +72,7 @@ internal class SøknadsbehandlingServiceBrevTest {
 
     private val vilkårsvurdertUavklartSøknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
         id = UUID.randomUUID(),
-        opprettet = Tidspunkt.now(),
+        opprettet = fixedTidspunkt,
         sakId = UUID.randomUUID(),
         saksnummer = Saksnummer(2021),
         søknad = mock(),

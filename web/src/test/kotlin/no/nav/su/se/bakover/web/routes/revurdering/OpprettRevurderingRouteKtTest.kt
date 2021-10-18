@@ -8,7 +8,6 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -23,6 +22,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.requestPath
@@ -80,7 +80,7 @@ internal class OpprettRevurderingRouteKtTest {
         val opprettetRevurdering = OpprettetRevurdering(
             id = UUID.randomUUID(),
             periode = periode,
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             oppgaveId = OppgaveId("oppgaveid"),

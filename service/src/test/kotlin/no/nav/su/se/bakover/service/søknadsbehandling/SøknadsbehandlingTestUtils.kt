@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.fnr
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -21,6 +20,7 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
+import no.nav.su.se.bakover.test.fixedClock
 import org.mockito.kotlin.mock
 import java.time.Clock
 

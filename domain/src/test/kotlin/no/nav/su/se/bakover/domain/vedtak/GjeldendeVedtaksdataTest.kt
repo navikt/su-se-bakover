@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
@@ -25,8 +24,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.fixedClock
-import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
@@ -46,6 +43,8 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
@@ -107,12 +106,12 @@ internal class GjeldendeVedtaksdataTest {
     private fun førstegangsvedtak(periode: Periode) = Vedtak.fromSøknadsbehandling(
         søknadsbehandling = Søknadsbehandling.Iverksatt.Innvilget(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             sakId = UUID.randomUUID(),
             saksnummer = Saksnummer(9999),
             søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 sakId = UUID.randomUUID(),
                 søknadInnhold = SøknadInnholdTestdataBuilder.build(),
                 journalpostId = JournalpostId(value = "journalpostId"),
@@ -124,7 +123,7 @@ internal class GjeldendeVedtaksdataTest {
             fnr = Fnr.generer(),
             beregning = BeregningFactory.ny(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 periode = periode,
                 sats = Sats.HØY,
                 fradrag = listOf(
@@ -152,7 +151,7 @@ internal class GjeldendeVedtaksdataTest {
                 .leggTilNyAttestering(
                     Attestering.Iverksatt(
                         NavIdentBruker.Attestant("attestant"),
-                        Tidspunkt.now(fixedClock),
+                        fixedTidspunkt,
                     ),
                 ),
             fritekstTilBrev = "",
@@ -175,7 +174,7 @@ internal class GjeldendeVedtaksdataTest {
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(),
+                            opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
                             grunnlag = null,
                             periode = periode,
@@ -194,7 +193,7 @@ internal class GjeldendeVedtaksdataTest {
         revurdering = IverksattRevurdering.Innvilget(
             id = UUID.randomUUID(),
             periode = periode,
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             tilRevurdering = førstegangsvedtak,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             oppgaveId = OppgaveId(value = "oppgaveId"),
@@ -205,7 +204,7 @@ internal class GjeldendeVedtaksdataTest {
             ),
             beregning = BeregningFactory.ny(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 periode = periode,
                 sats = Sats.HØY,
                 fradrag = listOf(
@@ -231,7 +230,7 @@ internal class GjeldendeVedtaksdataTest {
                 .leggTilNyAttestering(
                     Attestering.Iverksatt(
                         attestant = NavIdentBruker.Attestant(navIdent = "attestant"),
-                        Tidspunkt.now(fixedClock),
+                        fixedTidspunkt,
                     ),
                 ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
@@ -251,7 +250,7 @@ internal class GjeldendeVedtaksdataTest {
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(),
+                            opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
                             grunnlag = null,
                             periode = periode,

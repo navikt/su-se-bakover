@@ -38,7 +38,7 @@ internal class StansUtbetalingRouteKtTest {
     @Test
     fun `svarer med 201 ved påbegynt stans av utbetaling`() {
         val enRevurdering = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().second
-        val revurderingServiceMock = mock<RevurderingService>() {
+        val revurderingServiceMock = mock<RevurderingService> {
             on { stansAvYtelse(any()) } doReturn enRevurdering.right()
         }
         withTestApplication(
@@ -74,7 +74,7 @@ internal class StansUtbetalingRouteKtTest {
     @Test
     fun `svarer med 400 ved forsøk å iverksetting av ugyldig revurdering`() {
         val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
-        val revurderingServiceMock = mock<RevurderingService>() {
+        val revurderingServiceMock = mock<RevurderingService> {
             on { iverksettStansAvYtelse(any(), any()) } doReturn KunneIkkeIverksetteStansYtelse.UgyldigTilstand(
                 enRevurdering::class,
             ).left()
@@ -102,7 +102,7 @@ internal class StansUtbetalingRouteKtTest {
     @Test
     fun `svarer med 500 hvis utbetaling feiler`() {
         val enRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
-        val revurderingServiceMock = mock<RevurderingService>() {
+        val revurderingServiceMock = mock<RevurderingService> {
             on { iverksettStansAvYtelse(any(), any()) } doReturn KunneIkkeIverksetteStansYtelse.KunneIkkeUtbetale(
                 UtbetalStansFeil.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil),
             ).left()
@@ -130,7 +130,7 @@ internal class StansUtbetalingRouteKtTest {
     @Test
     fun `svarer med 200 ved oppdatering av eksisterende revurdering`() {
         val eksisterende = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().second
-        val revurderingServiceMock = mock<RevurderingService>() {
+        val revurderingServiceMock = mock<RevurderingService> {
             doAnswer {
                 val args = (it.arguments[0] as StansYtelseRequest.Oppdater)
                 eksisterende.copy(
@@ -174,7 +174,7 @@ internal class StansUtbetalingRouteKtTest {
     @Test
     fun `svarer med 400 ved ugyldig input`() {
         val enRevurdering = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().second
-        val revurderingServiceMock = mock<RevurderingService>() {
+        val revurderingServiceMock = mock<RevurderingService> {
             on { stansAvYtelse(any()) } doReturn enRevurdering.right()
         }
         withTestApplication(
@@ -210,7 +210,7 @@ internal class StansUtbetalingRouteKtTest {
 
     @Test
     fun `svarer med 500 hvis simulering ikke går bra`() {
-        val revurderingServiceMock = mock<RevurderingService>() {
+        val revurderingServiceMock = mock<RevurderingService> {
             on { stansAvYtelse(any()) } doReturn KunneIkkeStanseYtelse.SimuleringAvStansFeilet(
                 SimulerStansFeilet.KunneIkkeSimulere(
                     SimuleringFeilet.OPPDRAGET_FINNES_IKKE,

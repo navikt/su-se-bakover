@@ -10,7 +10,7 @@ sealed class BehandlingHendelse : AbstractHendelse()
 data class UnderkjentAttestering(
     val attestant: String,
     val begrunnelse: String,
-    override val tidspunkt: Tidspunkt = Tidspunkt.now()
+    override val tidspunkt: Tidspunkt
 ) : BehandlingHendelse() {
     override val overskrift: String = "Attestering underkjent"
     override val underoverskrift: String = "$tidspunkt - $attestant"

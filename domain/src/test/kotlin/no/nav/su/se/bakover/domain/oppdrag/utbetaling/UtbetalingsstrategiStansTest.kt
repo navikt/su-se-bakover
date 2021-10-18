@@ -4,7 +4,6 @@ import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
@@ -19,7 +18,6 @@ import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -27,6 +25,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -249,7 +248,7 @@ internal class UtbetalingsstrategiStansTest {
         val første = createUtbetaling(
             nonEmptyListOf(
                 Utbetalingslinje.Ny(
-                    opprettet = Tidspunkt.now(),
+                    opprettet = fixedTidspunkt,
                     fraOgMed = 1.august(2021),
                     tilOgMed = 30.april(2022),
                     forrigeUtbetalingslinjeId = null,
@@ -272,7 +271,7 @@ internal class UtbetalingsstrategiStansTest {
         val andre = createUtbetaling(
             nonEmptyListOf(
                 Utbetalingslinje.Ny(
-                    opprettet = Tidspunkt.now(),
+                    opprettet = fixedTidspunkt,
                     fraOgMed = 1.november(2021),
                     tilOgMed = 30.april(2022),
                     forrigeUtbetalingslinjeId = opphør.sisteUtbetalingslinje().id,
@@ -358,7 +357,7 @@ internal class UtbetalingsstrategiStansTest {
             utbetalingsrequest = Utbetalingsrequest(
                 value = "",
             ),
-            kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, ""),
+            kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, "", mottattTidspunkt = fixedTidspunkt),
             utbetalingslinjer = utbetalingslinjer,
             fnr = fnr,
             type = type,

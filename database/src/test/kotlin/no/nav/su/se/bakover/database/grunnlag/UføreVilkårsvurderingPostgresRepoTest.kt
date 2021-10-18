@@ -2,12 +2,10 @@ package no.nav.su.se.bakover.database.grunnlag
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.fixedClock
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -16,6 +14,7 @@ import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -30,7 +29,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(fixedClock),
+                        opprettet = fixedTidspunkt,
                         resultat = Resultat.Avslag,
                         grunnlag = null,
                         periode = Periode.create(1.januar(2021), 31.desember(2021)),
@@ -54,7 +53,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
             val søknadsbehandling = testDataHelper.nySøknadsbehandling()
             val uføregrunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(fixedClock),
+                opprettet = fixedTidspunkt,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 12000,
@@ -64,7 +63,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(fixedClock),
+                        opprettet = fixedTidspunkt,
                         resultat = Resultat.Avslag,
                         grunnlag = uføregrunnlag,
                         periode = Periode.create(1.januar(2021), 31.desember(2021)),
@@ -88,7 +87,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
             val søknadsbehandling = testDataHelper.nySøknadsbehandling()
             val uføregrunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(fixedClock),
+                opprettet = fixedTidspunkt,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 12000,
@@ -98,7 +97,7 @@ internal class UføreVilkårsvurderingPostgresRepoTest {
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(fixedClock),
+                        opprettet = fixedTidspunkt,
                         resultat = Resultat.Avslag,
                         grunnlag = uføregrunnlag,
                         periode = Periode.create(1.januar(2021), 31.desember(2021)),

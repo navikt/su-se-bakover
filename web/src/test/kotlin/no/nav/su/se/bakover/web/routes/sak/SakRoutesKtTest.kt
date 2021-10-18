@@ -16,10 +16,10 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.dbMetricsStub
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -31,6 +31,7 @@ internal class SakRoutesKtTest {
     private fun repos(datasource: DataSource) = DatabaseBuilder.build(
         embeddedDatasource = datasource,
         dbMetrics = dbMetricsStub,
+        clock = fixedClock,
     )
 
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()

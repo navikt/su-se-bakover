@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
@@ -35,6 +34,7 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -60,11 +60,11 @@ class SøknadsbehandlingServiceAttesteringTest {
     private val stønadsperiode = Stønadsperiode.create(periode, "")
     private val simulertBehandling = Søknadsbehandling.Simulert(
         id = UUID.randomUUID(),
-        opprettet = Tidspunkt.now(),
+        opprettet = fixedTidspunkt,
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
         søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
             id = søknadId,
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             sakId = sakId,
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
             oppgaveId = oppgaveId,

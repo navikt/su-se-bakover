@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.database.vedtak.snapshot
 
 import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.fixedTidspunkt
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.util.UUID
 

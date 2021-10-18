@@ -9,13 +9,13 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Person.Navn
 import no.nav.su.se.bakover.domain.brev.BrevConfig
 import no.nav.su.se.bakover.domain.brev.BrevInnhold.Personalia
+import no.nav.su.se.bakover.test.fixedLocalDate
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 
 internal class AvvistSøknadBrevRequestTest {
 
     private val expectedPersonalia = Personalia(
-        dato = LocalDate.now().ddMMyyyy(),
+        dato = fixedLocalDate.ddMMyyyy(),
         fødselsnummer = Fnr(fnr = "12345678901"),
         fornavn = "Tore",
         etternavn = "Strømøy",
@@ -32,9 +32,10 @@ internal class AvvistSøknadBrevRequestTest {
     @Test
     fun `lager vedtaks-brevdata`() {
         AvvistSøknadBrevRequest(
-            person,
-            BrevConfig.Vedtak(null),
-            "saksbehandler",
+            person = person,
+            brevConfig = BrevConfig.Vedtak(null),
+            saksbehandlerNavn = "saksbehandler",
+            dagensDato = fixedLocalDate,
         ).brevInnhold shouldBe AvvistSøknadVedtakBrevInnhold(
             expectedPersonalia,
             "saksbehandler",
@@ -45,9 +46,10 @@ internal class AvvistSøknadBrevRequestTest {
     @Test
     fun `lager vedtaks-brevdata med fritekst`() {
         AvvistSøknadBrevRequest(
-            person,
-            BrevConfig.Vedtak("jeg er fritekst"),
-            "saksbehandler",
+            person = person,
+            brevConfig = BrevConfig.Vedtak("jeg er fritekst"),
+            saksbehandlerNavn = "saksbehandler",
+            dagensDato = fixedLocalDate,
         ).brevInnhold shouldBe AvvistSøknadVedtakBrevInnhold(
             expectedPersonalia,
             "saksbehandler",
@@ -58,11 +60,12 @@ internal class AvvistSøknadBrevRequestTest {
     @Test
     fun `lager fritekst-brevdata`() {
         AvvistSøknadBrevRequest(
-            person,
-            BrevConfig.Fritekst(
+            person = person,
+            brevConfig = BrevConfig.Fritekst(
                 "jeg er fritekst",
             ),
-            "saksbehandler",
+            saksbehandlerNavn = "saksbehandler",
+            dagensDato = fixedLocalDate,
         ).brevInnhold shouldBe AvvistSøknadFritekstBrevInnhold(
             personalia = expectedPersonalia,
             saksbehandlerNavn = "saksbehandler",

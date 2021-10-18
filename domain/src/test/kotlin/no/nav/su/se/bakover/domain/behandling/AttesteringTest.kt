@@ -2,15 +2,14 @@ package no.nav.su.se.bakover.domain.behandling
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
 internal class AttesteringTest {
     val attestant = NavIdentBruker.Attestant("I1337")
-    val tidspunkt = Tidspunkt.now()
 
     @Test
     fun `should serialize iverksatt`() {
@@ -19,10 +18,10 @@ internal class AttesteringTest {
            {
            "type": "Iverksatt",
            "attestant": "I1337",
-           "opprettet": "$tidspunkt"
+           "opprettet": "$fixedTidspunkt"
            }
         """.trimIndent()
-        val actual = objectMapper.writeValueAsString(Attestering.Iverksatt(attestant, tidspunkt))
+        val actual = objectMapper.writeValueAsString(Attestering.Iverksatt(attestant, fixedTidspunkt))
 
         JSONAssert.assertEquals(expected, actual, true)
     }
@@ -34,11 +33,11 @@ internal class AttesteringTest {
            {
            "type": "Iverksatt",
            "attestant": "I1337",
-           "opprettet": "$tidspunkt"
+           "opprettet": "$fixedTidspunkt"
            }
         """.trimIndent()
         val deserialized: Attestering = objectMapper.readValue(json)
-        val expected = Attestering.Iverksatt(NavIdentBruker.Attestant("I1337"), tidspunkt)
+        val expected = Attestering.Iverksatt(NavIdentBruker.Attestant("I1337"), fixedTidspunkt)
 
         deserialized shouldBe expected
     }
@@ -52,7 +51,7 @@ internal class AttesteringTest {
            "attestant": "I1337", 
            "grunn": "BEREGNINGEN_ER_FEIL", 
            "kommentar": "Kan ikke dele på 0",
-           "opprettet": "$tidspunkt"
+           "opprettet": "$fixedTidspunkt"
            }
         """.trimIndent()
         val actual = objectMapper.writeValueAsString(
@@ -60,7 +59,7 @@ internal class AttesteringTest {
                 attestant = NavIdentBruker.Attestant("I1337"),
                 grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
                 kommentar = "Kan ikke dele på 0",
-                opprettet = tidspunkt
+                opprettet = fixedTidspunkt
             )
         )
 
@@ -76,7 +75,7 @@ internal class AttesteringTest {
            "attestant": "I1337", 
            "grunn": "BEREGNINGEN_ER_FEIL", 
            "kommentar": "Kan ikke dele på 0",
-           "opprettet": "$tidspunkt"
+           "opprettet": "$fixedTidspunkt"
              }
         
         """.trimIndent()
@@ -85,7 +84,7 @@ internal class AttesteringTest {
             attestant = NavIdentBruker.Attestant("I1337"),
             grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
             kommentar = "Kan ikke dele på 0",
-            opprettet = tidspunkt
+            opprettet = fixedTidspunkt
         )
 
         actual shouldBe expected

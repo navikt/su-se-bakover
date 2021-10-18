@@ -17,13 +17,14 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 
-class PersonhendelsePostgresRepo(private val datasource: DataSource) : PersonhendelseRepo {
+class PersonhendelsePostgresRepo(private val datasource: DataSource, private val clock: Clock) : PersonhendelseRepo {
     override fun lagre(personhendelse: Personhendelse.TilknyttetSak.IkkeSendtTilOppgave) {
-        val tidspunkt = Tidspunkt.now()
+        val tidspunkt = Tidspunkt.now(clock)
         datasource.withSession { session ->
             """
                 insert into personhendelse (id, sakId, opprettet, endret, endringstype, hendelse, oppgaveId, type, metadata)
@@ -57,7 +58,7 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource) : Personhen
     }
 
     override fun lagre(personhendelse: Personhendelse.TilknyttetSak.SendtTilOppgave) {
-        val tidspunkt = Tidspunkt.now()
+        val tidspunkt = Tidspunkt.now(clock)
         datasource.withSession { session ->
             """
                 update personhendelse set oppgaveId = :oppgaveId, endret = :endret where id = :id

@@ -3,10 +3,10 @@ package no.nav.su.se.bakover.database.hendelseslogg
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.fixedTidspunkt
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.behandling.UnderkjentAttestering
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 
 internal class HendelsesloggPostgresRepoTest {

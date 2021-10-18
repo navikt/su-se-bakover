@@ -43,13 +43,13 @@ internal class KonsistensavstemmingTest {
     private val andreKlokke = førsteKlokke.plus(1, ChronoUnit.DAYS)
     private val tredjeKlokke = andreKlokke.plus(1, ChronoUnit.DAYS)
     private val fjerdeKlokke = tredjeKlokke.plus(1, ChronoUnit.DAYS)
-    val femteKlokke = fjerdeKlokke.plus(1, ChronoUnit.DAYS)
+    private val femteKlokke = fjerdeKlokke.plus(1, ChronoUnit.DAYS)
 
     @Test
     fun `håndterer tilfeller hvor det ikke eksisterer løpende utbetalinger`() {
         Avstemming.Konsistensavstemming.Ny(
             id = UUID30.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             løpendeFraOgMed = 1.januar(2021).startOfDay(),
             opprettetTilOgMed = 31.desember(2021).endOfDay(),
             utbetalinger = emptyList(),
@@ -763,7 +763,7 @@ internal class KonsistensavstemmingTest {
         id: UUID30 = UUID30.randomUUID(),
         fnr: Fnr,
         saksnummer: Saksnummer,
-        opprettet: Tidspunkt = Tidspunkt.now(),
+        opprettet: Tidspunkt = fixedTidspunkt,
         utbetalingsLinjer: NonEmptyList<Utbetalingslinje>,
         behandler: NavIdentBruker = defaultAttestant,
     ) = Utbetaling.OversendtUtbetaling.UtenKvittering(

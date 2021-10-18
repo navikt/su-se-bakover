@@ -37,17 +37,6 @@ internal data class BehandlingsinformasjonJson(
     }
 }
 
-internal fun BehandlingsinformasjonJson.isValid() =
-    uførhet?.isValid() ?: true &&
-        flyktning?.isValid() ?: true &&
-        lovligOpphold?.isValid() ?: true &&
-        fastOppholdINorge?.isValid() ?: true &&
-        oppholdIUtlandet?.isValid() ?: true &&
-        formue?.isValid() ?: true &&
-        personligOppmøte?.isValid() ?: true &&
-        bosituasjon?.isValid() ?: true &&
-        ektefelle?.isValid() ?: true
-
 internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
     Behandlingsinformasjon(
         uførhet = b.uførhet?.let { u ->
@@ -214,31 +203,6 @@ internal fun Behandlingsinformasjon.EktefellePartnerSamboer.toJson() = when (thi
 
 internal inline fun <reified T : Enum<T>> enumContains(s: String) = enumValues<T>().any { it.name == s }
 
-internal fun UførhetJson.isValid() =
-    enumContains<Behandlingsinformasjon.Uførhet.Status>(status)
-
-internal fun FlyktningJson.isValid() =
-    enumContains<Behandlingsinformasjon.Flyktning.Status>(status)
-
-internal fun LovligOppholdJson.isValid() =
-    enumContains<Behandlingsinformasjon.LovligOpphold.Status>(status)
-
-internal fun BosituasjonJson.isValid() = ektemakeEllerSamboerUførFlyktning != null || delerBolig != null
-
-internal fun PersonligOppmøteJson.isValid() =
-    enumContains<Behandlingsinformasjon.PersonligOppmøte.Status>(status)
-
-internal fun OppholdIUtlandetJson.isValid() =
-    enumContains<Behandlingsinformasjon.OppholdIUtlandet.Status>(status)
-
-internal fun FormueJson.isValid() =
-    enumContains<Behandlingsinformasjon.Formue.Status>(status)
-
-internal fun FastOppholdINorgeJson.isValid() =
-    enumContains<Behandlingsinformasjon.FastOppholdINorge.Status>(status)
-
-internal fun EktefelleJson.isValid() = true
-
 internal data class UførhetJson(
     val status: String,
     val uføregrad: Int?,
@@ -297,18 +261,6 @@ internal data class VerdierJson(
     val kontanter: Int?,
     val depositumskonto: Int?,
 ) {
-    fun erUtfyllt() =
-        listOf(
-            verdiIkkePrimærbolig,
-            verdiEiendommer,
-            verdiKjøretøy,
-            innskudd,
-            verdipapir,
-            pengerSkyldt,
-            kontanter,
-            depositumskonto,
-        ).all { it != null }
-
     fun depositumErMindreEllerLikInnskudd() = if (depositumskonto != null && innskudd != null) depositumskonto <= innskudd else false
 }
 

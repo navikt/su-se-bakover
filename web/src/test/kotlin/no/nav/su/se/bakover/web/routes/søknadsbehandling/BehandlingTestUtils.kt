@@ -36,7 +36,7 @@ object BehandlingTestUtils {
     internal val behandlingId = UUID.randomUUID()
     internal val søknadInnhold = SøknadInnholdTestdataBuilder.build()
     internal val oppgaveId = OppgaveId("o")
-    internal val journalpostId = JournalpostId("j")
+    private val journalpostId = JournalpostId("j")
     internal val stønadsperiode =
         Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)), "begrunnelsen")
     internal val journalførtSøknadMedOppgave = Søknad.Journalført.MedOppgave.IkkeLukket(
@@ -48,7 +48,7 @@ object BehandlingTestUtils {
         journalpostId = journalpostId,
     )
     internal val fnr = Fnr.generer()
-    internal val ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
+    private val ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
         fnr = Fnr("17087524256"),
         navn = Person.Navn("fornavn", null, "etternavn"),
         kjønn = null,

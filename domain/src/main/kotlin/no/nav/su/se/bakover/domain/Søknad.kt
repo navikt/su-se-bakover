@@ -73,7 +73,7 @@ sealed class Søknad {
             }
         }
 
-        sealed class MedOppgave() : Journalført() {
+        sealed class MedOppgave : Journalført() {
             abstract val oppgaveId: OppgaveId
 
             data class IkkeLukket(

@@ -12,7 +12,7 @@ import java.util.UUID
 
 data class BeregningMedFradragBeregnetMånedsvis(
     private val id: UUID = UUID.randomUUID(),
-    private val opprettet: Tidspunkt = Tidspunkt.now(),
+    private val opprettet: Tidspunkt,
     override val periode: Periode,
     private val sats: Sats,
     private val fradrag: List<Fradrag>,

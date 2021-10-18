@@ -12,9 +12,10 @@ import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -32,7 +33,7 @@ internal class PersonhendelsePostgresRepoTest {
 
             val hendelse = Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
-                hendelse = Personhendelse.Hendelse.Dødsfall(LocalDate.now()),
+                hendelse = Personhendelse.Hendelse.Dødsfall(fixedLocalDate),
                 metadata = Personhendelse.Metadata(
                     personidenter = nonEmptyListOf(aktørId, fnr.toString()),
                     hendelseId = hendelseId,
@@ -70,7 +71,7 @@ internal class PersonhendelsePostgresRepoTest {
             val repo = testDataHelper.hendelsePostgresRepo
             val hendelse = Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
-                hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(LocalDate.now()),
+                hendelse = Personhendelse.Hendelse.UtflyttingFraNorge(fixedLocalDate),
                 metadata = Personhendelse.Metadata(
                     hendelseId = hendelseId,
                     personidenter = nonEmptyListOf(aktørId, fnr.toString()),
@@ -111,9 +112,9 @@ internal class PersonhendelsePostgresRepoTest {
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
                 hendelse = Personhendelse.Hendelse.Sivilstand(
                     type = SivilstandTyper.GIFT,
-                    gyldigFraOgMed = LocalDate.now().minusDays(1),
+                    gyldigFraOgMed = fixedLocalDate.minusDays(1),
                     relatertVedSivilstand = Fnr.generer(),
-                    bekreftelsesdato = LocalDate.now().plusDays(1),
+                    bekreftelsesdato = fixedLocalDate.plusDays(1),
                 ),
                 metadata = Personhendelse.Metadata(
                     personidenter = nonEmptyListOf(aktørId, fnr.toString()),
@@ -152,7 +153,7 @@ internal class PersonhendelsePostgresRepoTest {
             val repo = testDataHelper.hendelsePostgresRepo
             val hendelse = Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
-                hendelse = Personhendelse.Hendelse.Dødsfall(LocalDate.now()),
+                hendelse = Personhendelse.Hendelse.Dødsfall(fixedLocalDate),
                 metadata = Personhendelse.Metadata(
                     personidenter = nonEmptyListOf(aktørId, fnr.toString()),
                     hendelseId = hendelseId,
@@ -193,10 +194,10 @@ internal class PersonhendelsePostgresRepoTest {
     fun `Oppdatering av oppgaveId skal lagre ny verdi`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = PersonhendelsePostgresRepo(dataSource)
+            val repo = PersonhendelsePostgresRepo(dataSource, fixedClock)
             val hendelse = Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
-                hendelse = Personhendelse.Hendelse.Dødsfall(LocalDate.now()),
+                hendelse = Personhendelse.Hendelse.Dødsfall(fixedLocalDate),
                 metadata = Personhendelse.Metadata(
                     hendelseId = hendelseId,
                     personidenter = nonEmptyListOf(aktørId, fnr.toString()),
@@ -224,11 +225,11 @@ internal class PersonhendelsePostgresRepoTest {
     fun `Skal kun hente personhendelser uten oppgaveId`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
-            val repo = PersonhendelsePostgresRepo(dataSource)
+            val repo = PersonhendelsePostgresRepo(dataSource, fixedClock)
             val id1 = UUID.randomUUID()
             val hendelse1 = Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
-                hendelse = Personhendelse.Hendelse.Dødsfall(LocalDate.now()),
+                hendelse = Personhendelse.Hendelse.Dødsfall(fixedLocalDate),
                 metadata = Personhendelse.Metadata(
                     personidenter = nonEmptyListOf(aktørId, fnr.toString()),
                     hendelseId = hendelseId,
@@ -242,7 +243,7 @@ internal class PersonhendelsePostgresRepoTest {
             val id2 = UUID.randomUUID()
             val hendelse2 = Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
-                hendelse = Personhendelse.Hendelse.Dødsfall(LocalDate.now()),
+                hendelse = Personhendelse.Hendelse.Dødsfall(fixedLocalDate),
                 metadata = Personhendelse.Metadata(
                     hendelseId = UUID.randomUUID().toString(),
                     personidenter = nonEmptyListOf("aktørId", fnr.toString()),

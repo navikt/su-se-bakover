@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
@@ -9,7 +8,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.web.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.format.DateTimeFormatter
@@ -24,8 +23,8 @@ internal class UføregrunnlagJsonTest {
     }
 
     companion object {
-        internal val uføregrunnlagId = UUID.randomUUID()
-        internal val uføregrunnlagOpprettet = Tidspunkt.now(fixedClock)
+        private val uføregrunnlagId = UUID.randomUUID()
+        private val uføregrunnlagOpprettet = fixedTidspunkt
 
         //language=JSON
         internal val expectedUføregrunnlagJson = """

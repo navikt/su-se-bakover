@@ -15,7 +15,11 @@ import org.slf4j.LoggerFactory
 internal const val dkifPath = "/api/v1/personer/kontaktinformasjon"
 
 // Dokumentasjon: https://dkif.dev.adeo.no/swagger-ui.html
-class DkifClient(val baseUrl: String, val tokenOppslag: TokenOppslag, val consumerId: String) : DigitalKontaktinformasjon {
+class DkifClient(
+    val baseUrl: String,
+    val tokenOppslag: TokenOppslag,
+    private val consumerId: String,
+) : DigitalKontaktinformasjon {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun hentKontaktinformasjon(fnr: Fnr): Either<DigitalKontaktinformasjon.KunneIkkeHenteKontaktinformasjon, Kontaktinformasjon> {

@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -59,8 +60,8 @@ internal class UtbetalingTest {
     }
 
     private fun createUtbetaling(
-        opprettet: Tidspunkt = Tidspunkt.now(),
-        utbetalingsLinjer: NonEmptyList<Utbetalingslinje> = createUtbetalingslinjer()
+        opprettet: Tidspunkt = fixedTidspunkt,
+        utbetalingsLinjer: NonEmptyList<Utbetalingslinje> = createUtbetalingslinjer(),
     ) = Utbetaling.UtbetalingForSimulering(
         sakId = UUID.randomUUID(),
         saksnummer = Saksnummer(2021),

@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 data class Kvittering(
     val utbetalingsstatus: Utbetalingsstatus,
     val originalKvittering: String,
-    val mottattTidspunkt: Tidspunkt = Tidspunkt.now(),
+    val mottattTidspunkt: Tidspunkt,
 ) {
     enum class Utbetalingsstatus {
         OK,

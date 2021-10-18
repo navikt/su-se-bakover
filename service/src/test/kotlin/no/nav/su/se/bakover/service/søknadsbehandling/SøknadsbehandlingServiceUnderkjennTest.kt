@@ -41,6 +41,7 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -49,7 +50,6 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
@@ -70,12 +70,12 @@ class SøknadsbehandlingServiceUnderkjennTest {
         attestant = NavIdentBruker.Attestant("a"),
         grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
         kommentar = "begrunnelse",
-        opprettet = Tidspunkt.now()
+        opprettet = fixedTidspunkt,
     )
 
     private val innvilgetBehandlingTilAttestering = Søknadsbehandling.TilAttestering.Innvilget(
         id = UUID.randomUUID(),
-        opprettet = Tidspunkt.now(),
+        opprettet = fixedTidspunkt,
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
         søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
             id = søknadId,
@@ -83,7 +83,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             sakId = sakId,
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
             oppgaveId = oppgaveId,
-            journalpostId = journalpostId
+            journalpostId = journalpostId,
         ),
         beregning = TestBeregning,
         simulering = Simulering(
@@ -155,8 +155,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
         val behandling: Søknadsbehandling.Iverksatt.Innvilget = innvilgetBehandlingTilAttestering.tilIverksatt(
             Attestering.Iverksatt(
                 NavIdentBruker.Attestant("attestant"),
-                Tidspunkt.now()
-            )
+                fixedTidspunkt,
+            ),
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -221,9 +221,9 @@ class SøknadsbehandlingServiceUnderkjennTest {
                     attestant = attestantSomErLikSaksbehandler,
                     grunn = underkjentAttestering.grunn,
                     kommentar = underkjentAttestering.kommentar,
-                    opprettet = Tidspunkt.now()
-                )
-            )
+                    opprettet = fixedTidspunkt,
+                ),
+            ),
         )
 
         actual shouldBe SøknadsbehandlingService.KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()

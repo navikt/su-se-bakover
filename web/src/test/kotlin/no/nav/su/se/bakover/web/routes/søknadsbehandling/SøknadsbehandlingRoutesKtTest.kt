@@ -61,6 +61,7 @@ import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.web.TestClientsBuilder
@@ -68,7 +69,6 @@ import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.dbMetricsStub
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.jwtStub
 import no.nav.su.se.bakover.web.requestSomAttestant
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -90,6 +90,7 @@ internal class SøknadsbehandlingRoutesKtTest {
     private fun repos(dataSource: DataSource) = DatabaseBuilder.build(
         embeddedDatasource = dataSource,
         dbMetrics = dbMetricsStub,
+        clock = fixedClock,
     )
 
     private fun services(databaseRepos: DatabaseRepos, clients: Clients = TestClientsBuilder.build(applicationConfig)) =

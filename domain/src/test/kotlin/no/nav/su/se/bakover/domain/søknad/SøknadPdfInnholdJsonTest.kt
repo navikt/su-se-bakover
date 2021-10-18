@@ -9,14 +9,13 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.fnrUnder67
+import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import java.time.Clock
-import java.time.ZoneOffset
 import java.util.UUID
 
 class SøknadPdfInnholdJsonTest {
-    private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
+
     private val søknadsId = UUID.randomUUID()
     private val søknadPdfInnhold = SøknadPdfInnhold.create(
         saksnummer = Saksnummer(2021),
@@ -40,7 +39,7 @@ class SøknadPdfInnholdJsonTest {
                     "mellomnavn": "Johnas",
                     "etternavn": "Strømøy"
                   },
-                  "dagensDatoOgTidspunkt": "01.01.2021 00:00",
+                  "dagensDatoOgTidspunkt": "01.01.2021 02:02",
                   "søknadOpprettet": "01.01.2021",
                   "søknadInnhold": {
                       "uførevedtak":{
@@ -214,7 +213,7 @@ class SøknadPdfInnholdJsonTest {
                     "mellomnavn": "Johnas",
                     "etternavn": "Strømøy"
                   },
-                  "dagensDatoOgTidspunkt": "01.01.2021 00:00",
+                  "dagensDatoOgTidspunkt": "01.01.2021 02:02",
                   "søknadOpprettet": "01.01.2021",
                   "søknadInnhold": {
                       "uførevedtak":{
@@ -393,7 +392,7 @@ class SøknadPdfInnholdJsonTest {
                     "mellomnavn": "Johnas",
                     "etternavn": "Strømøy"
                   },
-                  "dagensDatoOgTidspunkt": "01.01.2021 00:00",
+                  "dagensDatoOgTidspunkt": "01.01.2021 02:02",
                   "søknadOpprettet": "01.01.2021",
                   "søknadInnhold": {
                       "uførevedtak":{

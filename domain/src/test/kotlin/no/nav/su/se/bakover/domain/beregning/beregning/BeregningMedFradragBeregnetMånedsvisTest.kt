@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.IkkePeriodisertFradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.PeriodisertFradrag
-import no.nav.su.se.bakover.domain.fixedTidspunkt
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.temporal.ChronoUnit

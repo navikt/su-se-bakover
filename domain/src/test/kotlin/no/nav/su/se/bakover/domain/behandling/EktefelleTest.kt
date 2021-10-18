@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.behandling
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -56,7 +57,7 @@ internal class EktefelleTest {
             Fnr.generer(),
             navn = Person.Navn(fornavn = "fornavn", mellomnavn = null, etternavn = "etternavn"),
             kjønn = null,
-            fødselsdato = LocalDate.now().minusYears(30),
+            fødselsdato = fixedLocalDate.minusYears(30),
             adressebeskyttelse = null,
             skjermet = null,
         )
@@ -70,6 +71,7 @@ internal class EktefelleTest {
             Fnr.generer(),
             navn = Person.Navn(fornavn = "fornavn", mellomnavn = null, etternavn = "etternavn"),
             kjønn = null,
+            // TODO jah: Kan ikke bytte denne til fixedLocalDate før Behandlingsinformasjon's getAlder() tar inn clock eller lignende.
             fødselsdato = LocalDate.now().minusYears(30).plusDays(1),
             adressebeskyttelse = null,
             skjermet = null,

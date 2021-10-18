@@ -34,8 +34,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
-import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -148,7 +148,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
     private val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))
     private val beregnetBehandling = Søknadsbehandling.Beregnet.Innvilget(
         id = UUID.randomUUID(),
-        opprettet = Tidspunkt.now(),
+        opprettet = fixedTidspunkt,
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
         søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
             id = UUID.randomUUID(),

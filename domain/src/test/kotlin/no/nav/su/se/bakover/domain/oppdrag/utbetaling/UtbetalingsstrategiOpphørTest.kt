@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -18,14 +17,13 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.time.Clock
-import java.time.ZoneOffset
 import java.util.UUID
 
 internal class UtbetalingsstrategiOpphørTest {
-    private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
 
     private val fnr = Fnr("12345678910")
     private val sakId = UUID.randomUUID()
@@ -52,7 +50,7 @@ internal class UtbetalingsstrategiOpphørTest {
             nettoBeløp = 0,
             periodeList = listOf(),
         ),
-        kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
+        kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, "", mottattTidspunkt = fixedTidspunkt),
         utbetalingsrequest = Utbetalingsrequest(value = ""),
         utbetalingslinjer = nonEmptyListOf(enUtbetalingslinje),
         fnr = fnr,

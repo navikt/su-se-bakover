@@ -8,7 +8,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
@@ -49,14 +48,14 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.service.fixedClock
-import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.person
 import org.junit.jupiter.api.Test
@@ -84,7 +83,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
     private val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlinger")
     private val utbetalingId = UUID30.randomUUID()
     private val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))
-    val opprettet = Tidspunkt.now(fixedClock)
+    val opprettet = fixedTidspunkt
 
     private val utbetaling = Utbetaling.OversendtUtbetaling.UtenKvittering(
         id = utbetalingId,
@@ -133,7 +132,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val response = serviceAndMocks.søknadsbehandlingService.iverksett(
             SøknadsbehandlingService.IverksettRequest(
                 behandling.id,
-                Attestering.Iverksatt(attestant, Tidspunkt.now()),
+                Attestering.Iverksatt(attestant, fixedTidspunkt),
             ),
         )
 
@@ -167,7 +166,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val response = serviceAndMocks.søknadsbehandlingService.iverksett(
             SøknadsbehandlingService.IverksettRequest(
                 behandling.id,
-                Attestering.Iverksatt(attestant, Tidspunkt.now()),
+                Attestering.Iverksatt(attestant, fixedTidspunkt),
             ),
         )
 
@@ -216,7 +215,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val response = serviceAndMocks.søknadsbehandlingService.iverksett(
             SøknadsbehandlingService.IverksettRequest(
                 behandlingId = behandling.id,
-                attestering = Attestering.Iverksatt(attestant, Tidspunkt.now()),
+                attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
             ),
         )
 
@@ -257,7 +256,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val response = serviceAndMocks.søknadsbehandlingService.iverksett(
             SøknadsbehandlingService.IverksettRequest(
                 behandlingId = behandling.id,
-                attestering = Attestering.Iverksatt(attestant, Tidspunkt.now()),
+                attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
             ),
         )
 
@@ -293,7 +292,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val vedtakRepoMock = mock<VedtakRepo>()
         val statistikkObserver = mock<EventObserver>()
 
-        val attesteringstidspunkt = Tidspunkt.now()
+        val attesteringstidspunkt = fixedTidspunkt
 
         val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
@@ -360,7 +359,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
     @Test
     fun `attesterer og iverksetter avslag hvis alt er ok`() {
         val behandling = avslagTilAttestering()
-        val attesteringstidspunkt = Tidspunkt.now()
+        val attesteringstidspunkt = fixedTidspunkt
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn behandling
@@ -479,7 +478,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val response = serviceAndMocks.søknadsbehandlingService.iverksett(
             SøknadsbehandlingService.IverksettRequest(
                 behandlingId = behandling.id,
-                attestering = Attestering.Iverksatt(attestant, Tidspunkt.now()),
+                attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
             ),
         )
 
@@ -513,7 +512,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val response = serviceAndMocks.søknadsbehandlingService.iverksett(
             SøknadsbehandlingService.IverksettRequest(
                 behandlingId = behandling.id,
-                attestering = Attestering.Iverksatt(attestant, Tidspunkt.now()),
+                attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
             ),
         )
 
@@ -560,7 +559,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             serviceAndMocks.søknadsbehandlingService.iverksett(
                 SøknadsbehandlingService.IverksettRequest(
                     behandlingId = behandling.id,
-                    attestering = Attestering.Iverksatt(attestant, Tidspunkt.now()),
+                    attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
                 ),
             )
 

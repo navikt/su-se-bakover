@@ -31,7 +31,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -42,13 +41,12 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
-import java.time.Clock
-import java.time.Instant
 import java.time.LocalDate
 import java.time.Month
-import java.time.ZoneOffset
 import java.util.UUID
 
 internal class UtbetalingsstrategiNyTest {
@@ -56,8 +54,6 @@ internal class UtbetalingsstrategiNyTest {
     private val saksnummer = Saksnummer(2021)
 
     private val fnr = Fnr("12345678910")
-
-    private val fixedClock = Clock.fixed(Instant.EPOCH, ZoneOffset.UTC)
 
     private object BeregningMedTomMånedsbereninger : Beregning {
         override fun getId(): UUID = mock()
@@ -136,7 +132,7 @@ internal class UtbetalingsstrategiNyTest {
                     nettoBeløp = 0,
                     periodeList = listOf(),
                 ),
-                kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
+                kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, "", mottattTidspunkt = fixedTidspunkt),
                 utbetalingsrequest = Utbetalingsrequest(
                     value = "",
                 ),
@@ -197,7 +193,7 @@ internal class UtbetalingsstrategiNyTest {
             fnr = fnr,
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
-            avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.EPOCH),
+            avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
         )
     }
 
@@ -221,7 +217,7 @@ internal class UtbetalingsstrategiNyTest {
             sakId = sakId,
             saksnummer = saksnummer,
             utbetalingsrequest = Utbetalingsrequest(""),
-            kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
+            kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, "", mottattTidspunkt = fixedTidspunkt),
             utbetalingslinjer = dummyUtbetalingslinjer,
             fnr = fnr,
             simulering = Simulering(
@@ -241,7 +237,7 @@ internal class UtbetalingsstrategiNyTest {
             sakId = sakId,
             saksnummer = saksnummer,
             utbetalingsrequest = Utbetalingsrequest(""),
-            kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""),
+            kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, "", mottattTidspunkt = fixedTidspunkt),
             utbetalingslinjer = dummyUtbetalingslinjer,
             fnr = fnr,
             simulering = Simulering(
@@ -261,7 +257,7 @@ internal class UtbetalingsstrategiNyTest {
             sakId = sakId,
             saksnummer = saksnummer,
             utbetalingsrequest = Utbetalingsrequest(""),
-            kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, ""),
+            kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, "", mottattTidspunkt = fixedTidspunkt),
             utbetalingslinjer = dummyUtbetalingslinjer,
             fnr = fnr,
             simulering = Simulering(
@@ -280,7 +276,7 @@ internal class UtbetalingsstrategiNyTest {
             sakId = sakId,
             saksnummer = saksnummer,
             utbetalingsrequest = Utbetalingsrequest(""),
-            kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, ""),
+            kvittering = Kvittering(Kvittering.Utbetalingsstatus.FEIL, "", mottattTidspunkt = fixedTidspunkt),
             utbetalingslinjer = dummyUtbetalingslinjer,
             fnr = fnr,
             simulering = Simulering(
@@ -346,7 +342,7 @@ internal class UtbetalingsstrategiNyTest {
             fnr = fnr,
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
-            avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.EPOCH),
+            avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
         )
     }
 
@@ -428,7 +424,7 @@ internal class UtbetalingsstrategiNyTest {
             fnr = fnr,
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
-            avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.EPOCH),
+            avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
         )
     }
 
@@ -977,7 +973,7 @@ internal class UtbetalingsstrategiNyTest {
             fnr = fnr,
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
-            avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.EPOCH),
+            avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
         )
     }
 

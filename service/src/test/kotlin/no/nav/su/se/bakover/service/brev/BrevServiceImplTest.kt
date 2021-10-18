@@ -31,6 +31,8 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -363,12 +365,15 @@ internal class BrevServiceImplTest {
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<LagBrevRequest.KunneIkkeGenererePdf, ByteArray>): Either<LagBrevRequest.KunneIkkeGenererePdf, Dokument.UtenMetadata> {
             return genererDokument(genererPdf).map {
                 Dokument.UtenMetadata.Vedtak(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
                     tittel = it.first,
                     generertDokument = it.second,
                     generertDokumentJson = it.third,
                 )
             }
         }
+        override val dagensDato = fixedLocalDate
     }
 
     object DummyBrevInnhold : BrevInnhold() {
@@ -402,7 +407,11 @@ internal class BrevServiceImplTest {
     }
 
     private fun dokumentdistribusjon(): Dokumentdistribusjon = Dokumentdistribusjon(
+        id = UUID.randomUUID(),
+        opprettet = fixedTidspunkt,
         dokument = Dokument.MedMetadata.Vedtak(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
             tittel = "tittel",
             generertDokument = "".toByteArray(),
             generertDokumentJson = "{}",
@@ -417,7 +426,7 @@ internal class BrevServiceImplTest {
     private fun sak(): Sak = Sak(
         id = UUID.randomUUID(),
         saksnummer = Saksnummer(9999),
-        opprettet = Tidspunkt.now(),
+        opprettet = fixedTidspunkt,
         fnr = fnr,
         søknader = listOf(),
         søknadsbehandlinger = listOf(),

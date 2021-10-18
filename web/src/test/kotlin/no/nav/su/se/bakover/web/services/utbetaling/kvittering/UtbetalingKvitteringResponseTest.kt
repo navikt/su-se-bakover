@@ -74,8 +74,8 @@ internal class UtbetalingKvitteringResponseTest {
     }
 
     companion object {
-        val avstemmingsnøkkelIXml: String = "7282171188123456"
-        val avstemmingsnøkkelTidspunktIXml = "2200-10-06-09.19.48.123456"
+        const val avstemmingsnøkkelIXml: String = "7282171188123456"
+        const val avstemmingsnøkkelTidspunktIXml = "2200-10-06-09.19.48.123456"
 
         //language=XML
         fun kvitteringXml(alvorlighetsgrad: UtbetalingKvitteringResponse.Alvorlighetsgrad = UtbetalingKvitteringResponse.Alvorlighetsgrad.ALVORLIG_FEIL) =

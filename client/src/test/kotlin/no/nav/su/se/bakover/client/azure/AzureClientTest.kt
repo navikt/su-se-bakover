@@ -24,7 +24,7 @@ private const val ISSUER = "azure"
 
 internal class AzureClientTest : WiremockBase {
 
-    lateinit var oauth: OAuth
+    private lateinit var oauth: OAuth
 
     @Test
     fun `exchange to on-behalf-of token`() {
@@ -70,7 +70,7 @@ internal class AzureClientTest : WiremockBase {
         return URLEncoder.encode(string, Charset.defaultCharset())
     }
 
-    val okAzureResponse =
+    private val okAzureResponse =
         """
         {
           "token_type": "Bearer",
@@ -82,7 +82,7 @@ internal class AzureClientTest : WiremockBase {
         }
         """.trimIndent()
 
-    val errorAzureResponse =
+    private val errorAzureResponse =
         """
         {
             "error":"interaction_required",

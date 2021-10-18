@@ -3,36 +3,33 @@ package no.nav.su.se.bakover.domain.vilkår
 import arrow.core.left
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
-import java.time.Clock
-import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class VurderingsperiodeTest {
-    private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
 
     @Test
     fun `bevarer korrekte verdier ved kopiering for plassering på tidslinje - full kopi`() {
         val original = Vurderingsperiode.Uføre.create(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(fixedClock),
+            opprettet = fixedTidspunkt,
             resultat = Resultat.Innvilget,
             grunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(fixedClock),
+                opprettet = fixedTidspunkt,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 500,
@@ -62,11 +59,11 @@ internal class VurderingsperiodeTest {
     fun `bevarer korrekte verdier ved kopiering for plassering på tidslinje - ny periode`() {
         val original = Vurderingsperiode.Uføre.create(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(fixedClock),
+            opprettet = fixedTidspunkt,
             resultat = Resultat.Innvilget,
             grunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(fixedClock),
+                opprettet = fixedTidspunkt,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 500,
@@ -95,11 +92,11 @@ internal class VurderingsperiodeTest {
     fun `kan lage tidslinje for vurderingsperioder`() {
         val a = Vurderingsperiode.Uføre.create(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(fixedClock),
+            opprettet = fixedTidspunkt,
             resultat = Resultat.Innvilget,
             grunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(fixedClock),
+                opprettet = fixedTidspunkt,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 500,
@@ -110,11 +107,11 @@ internal class VurderingsperiodeTest {
 
         val b = Vurderingsperiode.Uføre.create(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS),
+            opprettet = fixedTidspunkt.plus(1, ChronoUnit.DAYS),
             resultat = Resultat.Innvilget,
             grunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS),
+                opprettet = fixedTidspunkt.plus(1, ChronoUnit.DAYS),
                 periode = Periode.create(1.mai(2021), 31.desember(2021)),
                 uføregrad = Uføregrad.parse(100),
                 forventetInntekt = 0,
@@ -125,7 +122,7 @@ internal class VurderingsperiodeTest {
 
         val c = Vurderingsperiode.Uføre.create(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(fixedClock).plus(2, ChronoUnit.DAYS),
+            opprettet = fixedTidspunkt.plus(2, ChronoUnit.DAYS),
             resultat = Resultat.Innvilget,
             grunnlag = null,
             periode = Periode.create(1.desember(2021), 31.desember(2021)),
@@ -176,11 +173,11 @@ internal class VurderingsperiodeTest {
     fun `krever samsvar med periode for grunnlag dersom det eksisterer`() {
         Vurderingsperiode.Uføre.tryCreate(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(fixedClock),
+            opprettet = fixedTidspunkt,
             resultat = Resultat.Innvilget,
             grunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(fixedClock),
+                opprettet = fixedTidspunkt,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 500,
@@ -194,7 +191,7 @@ internal class VurderingsperiodeTest {
     fun `kan opprettes selv om grunnlag ikke eksisterer`() {
         Vurderingsperiode.Uføre.tryCreate(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(fixedClock),
+            opprettet = fixedTidspunkt,
             resultat = Resultat.Innvilget,
             grunnlag = null,
             vurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),

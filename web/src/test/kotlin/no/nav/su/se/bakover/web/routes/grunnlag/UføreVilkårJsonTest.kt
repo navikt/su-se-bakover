@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
@@ -13,7 +12,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
-import no.nav.su.se.bakover.web.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJsonTest.Companion.expectedUføregrunnlagJson
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJsonTest.Companion.uføregrunnlag
 import org.junit.jupiter.api.Test
@@ -31,7 +30,7 @@ class UføreVilkårJsonTest {
 
     companion object {
         private val vilkårsvurderingUføreId = UUID.randomUUID()
-        private val vilkårsvurderingUføreOpprettet = Tidspunkt.now(fixedClock)
+        private val vilkårsvurderingUføreOpprettet = fixedTidspunkt
 
         //language=JSON
         internal val expectedVurderingUføreJson = """

@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
@@ -76,7 +77,7 @@ internal class StansUtbetalingServiceTest {
     )
     private val utbetalingForSimulering = Utbetaling.UtbetalingForSimulering(
         id = UUID30.randomUUID(),
-        opprettet = Tidspunkt.now(fixedClock),
+        opprettet = fixedTidspunkt,
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
@@ -89,7 +90,7 @@ internal class StansUtbetalingServiceTest {
         ),
         type = Utbetaling.UtbetalingsType.STANS,
         behandler = NavIdentBruker.Saksbehandler("Z123"),
-        avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(fixedClock)),
+        avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
     )
 
     private val simulertUtbetaling = utbetalingForSimulering.toSimulertUtbetaling(simulering)

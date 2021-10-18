@@ -20,7 +20,7 @@ sealed class Dokument {
 
         data class Vedtak(
             override val id: UUID = UUID.randomUUID(),
-            override val opprettet: Tidspunkt = Tidspunkt.now(),
+            override val opprettet: Tidspunkt,
             override val tittel: String,
             override val generertDokument: ByteArray,
             override val generertDokumentJson: String,
@@ -32,7 +32,7 @@ sealed class Dokument {
 
         data class Informasjon(
             override val id: UUID = UUID.randomUUID(),
-            override val opprettet: Tidspunkt = Tidspunkt.now(),
+            override val opprettet: Tidspunkt,
             override val tittel: String,
             override val generertDokument: ByteArray,
             override val generertDokumentJson: String,
@@ -48,7 +48,7 @@ sealed class Dokument {
 
         data class Vedtak(
             override val id: UUID = UUID.randomUUID(),
-            override val opprettet: Tidspunkt = Tidspunkt.now(),
+            override val opprettet: Tidspunkt,
             override val tittel: String,
             override val generertDokument: ByteArray,
             override val generertDokumentJson: String,
@@ -66,7 +66,7 @@ sealed class Dokument {
 
         data class Informasjon(
             override val id: UUID = UUID.randomUUID(),
-            override val opprettet: Tidspunkt = Tidspunkt.now(),
+            override val opprettet: Tidspunkt,
             override val tittel: String,
             override val generertDokument: ByteArray,
             override val generertDokumentJson: String,

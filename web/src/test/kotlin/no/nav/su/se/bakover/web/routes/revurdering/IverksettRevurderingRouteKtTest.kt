@@ -7,7 +7,6 @@ import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.withTestApplication
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -27,6 +26,8 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.requestPath
@@ -39,7 +40,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
-import java.time.LocalDate
 import java.util.UUID
 
 internal class IverksettRevurderingRouteKtTest {
@@ -77,7 +77,7 @@ internal class IverksettRevurderingRouteKtTest {
         val iverksattRevurdering = IverksattRevurdering.Innvilget(
             id = UUID.randomUUID(),
             periode = periode,
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             oppgaveId = OppgaveId("OppgaveId"),
@@ -85,12 +85,12 @@ internal class IverksettRevurderingRouteKtTest {
             simulering = Simulering(
                 gjelderId = vedtak.behandling.fnr,
                 gjelderNavn = "Test",
-                datoBeregnet = LocalDate.now(),
+                datoBeregnet = fixedLocalDate,
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
             attesteringer = Attesteringshistorikk.empty()
-                .leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), Tidspunkt.now())),
+                .leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), fixedTidspunkt)),
             fritekstTilBrev = "",
             revurderingsårsak = Revurderingsårsak(
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,

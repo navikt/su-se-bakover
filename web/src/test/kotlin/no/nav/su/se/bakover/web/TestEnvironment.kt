@@ -11,9 +11,6 @@ import no.finn.unleash.FakeUnleash
 import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.database.DbMetrics
@@ -22,16 +19,13 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.web.stubs.JwtStub
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import org.mockito.kotlin.mock
 import java.time.Clock
-import java.time.ZoneOffset
 
 const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
-
-internal val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
-internal val fixedTidspunkt = Tidspunkt.now(fixedClock)
 
 val applicationConfig = ApplicationConfig(
     runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Test,
@@ -115,6 +109,7 @@ internal fun Application.testSusebakover(
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(
         embeddedDatasource = migratedDb(),
         dbMetrics = dbMetricsStub,
+        clock = clock,
     ),
     unleash: Unleash = FakeUnleash().apply { enableAll() },
     services: Services = ServiceBuilder.build(

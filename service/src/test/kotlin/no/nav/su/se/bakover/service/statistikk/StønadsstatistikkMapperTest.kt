@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.service.statistikk
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
@@ -13,6 +12,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.service.statistikk.mappers.StønadsstatistikkMapper
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
@@ -55,8 +55,8 @@ internal class StønadsstatistikkMapperTest {
 
         StønadsstatistikkMapper(clock).map(vedtak, aktørId, periode2021.fraOgMed) shouldBe
             Statistikk.Stønad(
-                funksjonellTid = Tidspunkt.now(fixedClock),
-                tekniskTid = Tidspunkt.now(fixedClock),
+                funksjonellTid = fixedTidspunkt,
+                tekniskTid = fixedTidspunkt,
                 stonadstype = Statistikk.Stønad.Stønadstype.SU_UFØR,
                 sakId = sak.id,
                 aktorId = aktørId.toString().toLong(),

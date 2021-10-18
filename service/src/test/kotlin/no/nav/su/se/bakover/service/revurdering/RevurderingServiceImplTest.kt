@@ -18,8 +18,6 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -82,6 +80,8 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
@@ -107,8 +107,6 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 internal class RevurderingServiceImplTest {
@@ -354,12 +352,11 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `iverksett - iverksetter endring av ytelse`() {
-        val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, zoneIdOslo)
 
         val testsimulering = Simulering(
             gjelderId = fnr,
             gjelderNavn = "",
-            datoBeregnet = LocalDate.now(),
+            datoBeregnet = fixedLocalDate,
             nettoBeløp = 0,
             periodeList = listOf(),
         )
@@ -375,7 +372,7 @@ internal class RevurderingServiceImplTest {
             beregning = TestBeregning,
             simulering = testsimulering,
             attesteringer = Attesteringshistorikk.empty()
-                .leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now(fixedClock))),
+                .leggTilNyAttestering(Attestering.Iverksatt(attestant, fixedTidspunkt)),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
@@ -728,14 +725,14 @@ internal class RevurderingServiceImplTest {
         val simulertRevurdering = SimulertRevurdering.Innvilget(
             id = revurderingId,
             periode = periodeNesteMånedOgTreMånederFram,
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             tilRevurdering = vedtakMock,
             saksbehandler = saksbehandler,
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "Mr Test",
-                datoBeregnet = LocalDate.now(),
+                datoBeregnet = fixedLocalDate,
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
@@ -801,6 +798,7 @@ internal class RevurderingServiceImplTest {
                             fritekst = "",
                             harEktefelle = false,
                             forventetInntektStørreEnn0 = false,
+                            dagensDato = fixedLocalDate,
                         )
                 },
             )
@@ -938,7 +936,7 @@ internal class RevurderingServiceImplTest {
         val opprettetRevurdering = OpprettetRevurdering(
             id = UUID.randomUUID(),
             periode = periodeNesteMånedOgTreMånederFram,
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid"),
@@ -971,7 +969,7 @@ internal class RevurderingServiceImplTest {
         val beregnetRevurdering = BeregnetRevurdering.Innvilget(
             id = revurderingId,
             periode = periodeNesteMånedOgTreMånederFram,
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second,
             saksbehandler = saksbehandler,
             beregning = TestBeregning,
@@ -1006,14 +1004,14 @@ internal class RevurderingServiceImplTest {
         val simulertRevurdering = SimulertRevurdering.Innvilget(
             id = revurderingId,
             periode = periodeNesteMånedOgTreMånederFram,
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second,
             saksbehandler = saksbehandler,
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "navn",
-                datoBeregnet = LocalDate.now(),
+                datoBeregnet = fixedLocalDate,
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
@@ -1089,6 +1087,7 @@ internal class RevurderingServiceImplTest {
                     person = person,
                     saksbehandlerNavn = saksbehandlerNavn,
                     fritekst = "",
+                    dagensDato = fixedLocalDate,
                 ),
             )
             verify(revurderingRepoMock).lagre(
@@ -1237,7 +1236,7 @@ internal class RevurderingServiceImplTest {
         val opprettet = OpprettetRevurdering(
             id = revurderingId,
             periode = periodeNesteMånedOgTreMånederFram,
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid"),
@@ -1253,7 +1252,7 @@ internal class RevurderingServiceImplTest {
         val beregnet = BeregnetRevurdering.Innvilget(
             id = revurderingId,
             periode = periodeNesteMånedOgTreMånederFram,
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid"),
@@ -1397,14 +1396,14 @@ internal class RevurderingServiceImplTest {
         val simulertRevurdering = SimulertRevurdering.Innvilget(
             id = revurderingId,
             periode = periodeNesteMånedOgTreMånederFram,
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second,
             saksbehandler = saksbehandler,
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "navn",
-                datoBeregnet = LocalDate.now(),
+                datoBeregnet = fixedLocalDate,
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
@@ -1472,14 +1471,14 @@ internal class RevurderingServiceImplTest {
         val simulertRevurdering = SimulertRevurdering.Innvilget(
             id = revurderingId,
             periode = periodeNesteMånedOgTreMånederFram,
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second,
             saksbehandler = saksbehandler,
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "navn",
-                datoBeregnet = LocalDate.now(),
+                datoBeregnet = fixedLocalDate,
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),

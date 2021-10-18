@@ -153,11 +153,13 @@ internal class LukkSøknadServiceImpl(
                 søknad = søknad,
                 trukketDato = request.trukketDato,
                 saksbehandlerNavn = hentNavnForNavIdent(request.saksbehandler).getOrHandle { "" },
+                dagensDato = LocalDate.now(clock),
             )
             is LukkSøknadRequest.MedBrev.AvvistSøknad -> AvvistSøknadBrevRequest(
                 person = person,
                 brevConfig = request.brevConfig,
                 saksbehandlerNavn = hentNavnForNavIdent(request.saksbehandler).getOrHandle { "" },
+                dagensDato = LocalDate.now(clock),
             )
         }
     }

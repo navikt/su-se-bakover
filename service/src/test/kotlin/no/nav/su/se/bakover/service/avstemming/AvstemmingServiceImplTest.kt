@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.avstemming
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.startOfDay
@@ -12,6 +11,7 @@ import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -47,7 +47,7 @@ internal class AvstemmingServiceImplTest {
 
         konsistensavstemming shouldBe Avstemming.Konsistensavstemming.Ny(
             id = konsistensavstemming.id,
-            opprettet = Tidspunkt.now(fixedClock),
+            opprettet = fixedTidspunkt,
             løpendeFraOgMed = expectedLøpendeFraOgMed.startOfDay(zoneIdOslo),
             opprettetTilOgMed = expectedOpprettetTilOgMed.endOfDay(zoneIdOslo),
             utbetalinger = emptyList(),

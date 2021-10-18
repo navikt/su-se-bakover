@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nySakMedJournalførtSøknadUtenOppgave
@@ -57,7 +58,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.time.Clock
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -178,6 +178,7 @@ internal class LukkSøknadServiceImplTest {
                     søknad = søknad,
                     trukketDato = 1.januar(2021),
                     saksbehandlerNavn = "Testbruker, Lokal",
+                    dagensDato = fixedLocalDate,
                 )
                 verify(brevServiceMock).lagBrev(expectedRequest)
                 verify(søknadServiceMock).lukkSøknad(
@@ -380,6 +381,7 @@ internal class LukkSøknadServiceImplTest {
                         fritekst = "Fritekst",
                     ),
                     saksbehandlerNavn = "Testbruker, Lokal",
+                    dagensDato = fixedLocalDate,
                 )
                 verify(brevServiceMock).lagBrev(expectedRequest)
                 verify(søknadServiceMock).lukkSøknad(
@@ -457,7 +459,7 @@ internal class LukkSøknadServiceImplTest {
                 LukkSøknadRequest.MedBrev.TrekkSøknad(
                     søknadId = treDagerGammelSøknad.id,
                     saksbehandler = saksbehandler,
-                    trukketDato = LocalDate.now().minusDays(4),
+                    trukketDato = fixedLocalDate.minusDays(4),
                 ),
             ) shouldBe KunneIkkeLukkeSøknad.UgyldigTrukketDato.left()
 
@@ -612,10 +614,11 @@ internal class LukkSøknadServiceImplTest {
                 verify(brevServiceMock).lagBrev(
                     argThat {
                         it shouldBe TrukketSøknadBrevRequest(
-                            person(fnr = sak.fnr),
-                            søknad,
-                            1.januar(2021),
-                            "Testbruker, Lokal",
+                            person = person(fnr = sak.fnr),
+                            søknad = søknad,
+                            trukketDato = 1.januar(2021),
+                            saksbehandlerNavn = "Testbruker, Lokal",
+                            dagensDato = fixedLocalDate,
                         )
                     },
                 )
@@ -712,10 +715,11 @@ internal class LukkSøknadServiceImplTest {
                 verify(brevServiceMock).lagBrev(
                     argThat {
                         it shouldBe TrukketSøknadBrevRequest(
-                            person(sak.fnr),
+                            person(fnr = sak.fnr),
                             søknad,
                             1.januar(2021),
                             "Testbruker, Lokal",
+                            dagensDato = fixedLocalDate,
                         )
                     },
                 )
@@ -865,6 +869,7 @@ internal class LukkSøknadServiceImplTest {
                     søknad = søknad,
                     trukketDato = 1.januar(2021),
                     saksbehandlerNavn = "Testbruker, Lokal",
+                    dagensDato = fixedLocalDate,
                 )
                 verify(brevServiceMock).lagBrev(expectedRequest)
                 verify(søknadServiceMock).lukkSøknad(
@@ -968,6 +973,7 @@ internal class LukkSøknadServiceImplTest {
                         søknad = søknad,
                         trukketDato = 1.januar(2021),
                         saksbehandlerNavn = "Testbruker, Lokal",
+                        dagensDato = fixedLocalDate,
                     ),
                 )
                 serviceAndMocks.verifyNoMoreInteractions()
@@ -984,7 +990,7 @@ internal class LukkSøknadServiceImplTest {
         val søknadsbehandlingService: SøknadsbehandlingService = mock(),
         val microsoftGraphApiClient: MicrosoftGraphApiOppslag = MicrosoftGraphApiClientStub,
         clock: Clock = fixedClock,
-        val sessionFactory: SessionFactory = TestSessionFactory(),
+        sessionFactory: SessionFactory = TestSessionFactory(),
         val lukkSøknadServiceObserver: EventObserver = mock(),
     ) {
         val lukkSøknadService = LukkSøknadServiceImpl(

@@ -9,7 +9,6 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -36,9 +35,10 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurd
 import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.fixedTidspunkt
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.formueVilkår
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.requestPath
@@ -53,7 +53,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.skyscreamer.jsonassert.JSONAssert
-import java.time.LocalDate
 import java.util.UUID
 
 internal class BeregnOgSimulerRevurderingRouteKtTest {
@@ -125,7 +124,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
         val beregnetRevurdering = OpprettetRevurdering(
             id = UUID.randomUUID(),
             periode = periode,
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             tilRevurdering = vedtak.copy(beregning = beregning),
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
             oppgaveId = OppgaveId("oppgaveid"),
@@ -139,7 +138,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(),
+                        opprettet = fixedTidspunkt,
                         periode = periode,
                         begrunnelse = null,
                     ),
@@ -169,7 +168,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                     Simulering(
                         gjelderId = vedtak.behandling.fnr,
                         gjelderNavn = "Test",
-                        datoBeregnet = LocalDate.now(),
+                        datoBeregnet = fixedLocalDate,
                         nettoBeløp = 0,
                         periodeList = listOf(),
                     ),
