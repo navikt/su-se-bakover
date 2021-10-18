@@ -14,6 +14,8 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import java.time.Clock
@@ -26,6 +28,12 @@ internal class StansAvYtelseService(
     private val sakService: SakService,
     private val clock: Clock,
 ) {
+    private val observers: MutableList<EventObserver> = mutableListOf()
+
+    fun addObserver(eventObserver: EventObserver) {
+        observers.add(eventObserver)
+    }
+
     fun stansAvYtelse(
         request: StansYtelseRequest,
     ): Either<KunneIkkeStanseYtelse, StansAvYtelseRevurdering.SimulertStansAvYtelse> {
@@ -83,6 +91,7 @@ internal class StansAvYtelseService(
         }
 
         revurderingRepo.lagre(simulertRevurdering)
+        observers.forEach { observer -> observer.handle(Event.Statistikk.RevurderingStatistikk.Stans(simulertRevurdering)) }
 
         return simulertRevurdering.right()
     }
@@ -114,6 +123,7 @@ internal class StansAvYtelseService(
 
                 revurderingRepo.lagre(iverksattRevurdering)
                 vedtakService.lagre(vedtak)
+                observers.forEach { observer -> observer.handle(Event.Statistikk.RevurderingStatistikk.Stans(iverksattRevurdering)) }
 
                 return iverksattRevurdering.right()
             }

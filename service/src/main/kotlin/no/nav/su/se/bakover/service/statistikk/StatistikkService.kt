@@ -3,9 +3,11 @@ package no.nav.su.se.bakover.service.statistikk
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -60,6 +62,9 @@ sealed class Event {
 
             data class RevurderingUnderkjent(override val revurdering: UnderkjentRevurdering) :
                 RevurderingStatistikk()
+
+            data class Stans(val stans: StansAvYtelseRevurdering) : Statistikk()
+            data class Gjenoppta(val gjenoppta: GjenopptaYtelseRevurdering) : Statistikk()
         }
 
         data class Vedtaksstatistikk(val vedtak: Vedtak.EndringIYtelse) : Statistikk()
