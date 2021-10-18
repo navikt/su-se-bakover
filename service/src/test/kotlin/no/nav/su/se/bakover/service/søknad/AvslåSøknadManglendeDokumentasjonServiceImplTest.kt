@@ -127,6 +127,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                         ),
                     )
                 },
+                argThat { TestSessionFactory.transactionContext },
             )
             serviceAndMocks.verifyNoMoreInteractions()
         }
@@ -223,6 +224,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                         ),
                     )
                 },
+                argThat { TestSessionFactory.transactionContext },
             )
             serviceAndMocks.verifyNoMoreInteractions()
         }
@@ -324,9 +326,12 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 any(),
                 argThat { TestSessionFactory.transactionContext },
             )
-            verify(it.oppgaveService).lukkOppgave(uavklart.oppgaveId)
             verify(it.brevService).lagDokument(any())
-            verify(it.brevService).lagreDokument(any())
+            verify(it.brevService).lagreDokument(
+                any(),
+                argThat { TestSessionFactory.transactionContext },
+            )
+            verify(it.oppgaveService).lukkOppgave(uavklart.oppgaveId)
             it.verifyNoMoreInteractions()
         }
     }

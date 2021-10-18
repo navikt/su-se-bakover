@@ -66,36 +66,38 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
             avslag = avslag,
             clock = clock,
         )
+
         sessionFactory.withTransactionContext { tx ->
             søknadsbehandlingService.lagre(avslag, tx)
             vedtakService.lagre(vedtak, tx)
+
+            val dokument = brevService.lagDokument(vedtak).getOrHandle {
+                return@withTransactionContext when (it) {
+                    KunneIkkeLageDokument.FantIkkePerson -> KunneIkkeAvslåSøknad.FantIkkePerson
+                    KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeAvslåSøknad.KunneIkkeFinneGjeldendeUtbetaling
+                    KunneIkkeLageDokument.KunneIkkeGenererePDF -> KunneIkkeAvslåSøknad.KunneIkkeGenererePDF
+                    KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeAvslåSøknad.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
+                    KunneIkkeLageDokument.KunneIkkeHentePerson -> KunneIkkeAvslåSøknad.KunneIkkeHentePerson
+                }.left()
+            }
+
+            brevService.lagreDokument(
+                dokument.leggTilMetadata(
+                    metadata = Dokument.Metadata(
+                        sakId = vedtak.behandling.sakId,
+                        søknadId = vedtak.behandling.søknad.id,
+                        vedtakId = vedtak.id,
+                        bestillBrev = true,
+                    ),
+                ),
+                tx,
+            )
         }
 
         oppgaveService.lukkOppgave(avslag.søknadsbehandling.oppgaveId)
             .mapLeft {
                 log.warn("Klarte ikke å lukke oppgave for søknadsbehandling: ${avslag.søknadsbehandling.id}, feil:$it")
             }
-
-        val dokument = brevService.lagDokument(vedtak).getOrHandle {
-            return when (it) {
-                KunneIkkeLageDokument.FantIkkePerson -> KunneIkkeAvslåSøknad.FantIkkePerson
-                KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeAvslåSøknad.KunneIkkeFinneGjeldendeUtbetaling
-                KunneIkkeLageDokument.KunneIkkeGenererePDF -> KunneIkkeAvslåSøknad.KunneIkkeGenererePDF
-                KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeAvslåSøknad.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
-                KunneIkkeLageDokument.KunneIkkeHentePerson -> KunneIkkeAvslåSøknad.KunneIkkeHentePerson
-            }.left()
-        }
-
-        brevService.lagreDokument(
-            dokument.leggTilMetadata(
-                metadata = Dokument.Metadata(
-                    sakId = vedtak.behandling.sakId,
-                    søknadId = vedtak.behandling.søknad.id,
-                    vedtakId = vedtak.id,
-                    bestillBrev = true,
-                ),
-            ),
-        )
 
         return vedtak.right()
     }
