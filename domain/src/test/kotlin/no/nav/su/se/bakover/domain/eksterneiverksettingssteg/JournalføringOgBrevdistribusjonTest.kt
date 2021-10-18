@@ -15,8 +15,8 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
-import org.mockito.kotlin.verifyZeroInteractions
 
 internal class JournalføringOgBrevdistribusjonTest {
     @Nested
@@ -58,7 +58,7 @@ internal class JournalføringOgBrevdistribusjonTest {
         @Test
         fun `skal ikke kunne distribuera brev når vi ikke har journalført`() {
             IkkeJournalførtEllerDistribuert.distribuerBrev { skalIkkeBliKaltVedBrevDistribusjon } shouldBe KunneIkkeDistribuereBrev.MåJournalføresFørst.left()
-            verifyZeroInteractions(skalIkkeBliKaltVedBrevDistribusjon)
+            verifyNoInteractions(skalIkkeBliKaltVedBrevDistribusjon)
         }
 
         @Test

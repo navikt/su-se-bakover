@@ -45,8 +45,8 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
-import org.mockito.kotlin.verifyZeroInteractions
 import java.util.UUID
 
 class SøknadTest {
@@ -102,7 +102,7 @@ class SøknadTest {
             dokArkivMock,
             oppgaveServiceMock
         )
-        verifyZeroInteractions(observerMock)
+        verifyNoInteractions(observerMock)
     }
 
     @Test

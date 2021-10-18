@@ -23,8 +23,8 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
-import org.mockito.kotlin.verifyZeroInteractions
 import java.util.UUID
 
 internal class SakServiceImplTest {
@@ -64,7 +64,7 @@ internal class SakServiceImplTest {
             sakService.opprettSak(mock())
             verify(sakRepo).opprettSak(any())
             verifyNoMoreInteractions(sakRepo)
-            verifyZeroInteractions(observer)
+            verifyNoInteractions(observer)
         }
     }
 
