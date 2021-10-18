@@ -34,7 +34,6 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadstype
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
@@ -42,6 +41,7 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -50,9 +50,8 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
-import org.mockito.kotlin.verifyZeroInteractions
 import java.util.UUID
 
 class SøknadsbehandlingServiceUnderkjennTest {
@@ -71,12 +70,12 @@ class SøknadsbehandlingServiceUnderkjennTest {
         attestant = NavIdentBruker.Attestant("a"),
         grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
         kommentar = "begrunnelse",
-        opprettet = Tidspunkt.now()
+        opprettet = fixedTidspunkt,
     )
 
     private val innvilgetBehandlingTilAttestering = Søknadsbehandling.TilAttestering.Innvilget(
         id = UUID.randomUUID(),
-        opprettet = Tidspunkt.now(),
+        opprettet = fixedTidspunkt,
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
         søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
             id = søknadId,
@@ -84,7 +83,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             sakId = sakId,
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
             oppgaveId = oppgaveId,
-            journalpostId = journalpostId
+            journalpostId = journalpostId,
         ),
         beregning = TestBeregning,
         simulering = Simulering(
@@ -106,12 +105,11 @@ class SøknadsbehandlingServiceUnderkjennTest {
         attesteringer = Attesteringshistorikk.empty(),
     )
 
-    private val oppgaveConfig = OppgaveConfig.NySøknad(
+    private val oppgaveConfig = OppgaveConfig.Søknad(
         journalpostId = journalpostId,
         søknadId = søknadId,
         aktørId = aktørId,
         tilordnetRessurs = saksbehandler,
-        søknadstype = Søknadstype.FØRSTEGANGSSØKNAD,
     )
 
     @Test
@@ -157,8 +155,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
         val behandling: Søknadsbehandling.Iverksatt.Innvilget = innvilgetBehandlingTilAttestering.tilIverksatt(
             Attestering.Iverksatt(
                 NavIdentBruker.Attestant("attestant"),
-                Tidspunkt.now()
-            )
+                fixedTidspunkt,
+            ),
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -223,9 +221,9 @@ class SøknadsbehandlingServiceUnderkjennTest {
                     attestant = attestantSomErLikSaksbehandler,
                     grunn = underkjentAttestering.grunn,
                     kommentar = underkjentAttestering.kommentar,
-                    opprettet = Tidspunkt.now()
-                )
-            )
+                    opprettet = fixedTidspunkt,
+                ),
+            ),
         )
 
         actual shouldBe SøknadsbehandlingService.KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
@@ -240,7 +238,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             oppgaveServiceMock,
             behandlingMetricsMock,
         )
-        verifyZeroInteractions(observerMock)
+        verifyNoInteractions(observerMock)
     }
 
     @Test
@@ -313,8 +311,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
         inOrder(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-            verify(søknadsbehandlingRepoMock).defaultSessionContext()
-            verify(søknadsbehandlingRepoMock).hentForSak(argThat { it shouldBe sakId }, anyOrNull())
             verify(oppgaveServiceMock).opprettOppgave(argThat { it shouldBe oppgaveConfig })
         }
 
@@ -387,8 +383,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
         ) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-            verify(søknadsbehandlingRepoMock).defaultSessionContext()
-            verify(søknadsbehandlingRepoMock).hentForSak(argThat { it shouldBe sakId }, anyOrNull())
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe oppgaveConfig
@@ -479,8 +473,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
         ) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-            verify(søknadsbehandlingRepoMock).defaultSessionContext()
-            verify(søknadsbehandlingRepoMock).hentForSak(argThat { it shouldBe sakId }, anyOrNull())
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe oppgaveConfig

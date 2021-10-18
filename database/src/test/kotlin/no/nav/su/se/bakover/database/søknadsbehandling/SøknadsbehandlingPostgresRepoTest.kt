@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.database.antall
 import no.nav.su.se.bakover.database.avslåttBeregning
 import no.nav.su.se.bakover.database.behandlingsinformasjonMedAlleVilkårOppfylt
 import no.nav.su.se.bakover.database.beregning
-import no.nav.su.se.bakover.database.fixedClock
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.iverksattAttestering
 import no.nav.su.se.bakover.database.saksbehandler
@@ -43,6 +42,8 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -494,7 +495,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
             val uføregrunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(fixedClock),
+                opprettet = fixedTidspunkt,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 12000,
@@ -504,7 +505,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(fixedClock),
+                        opprettet = fixedTidspunkt,
                         resultat = Resultat.Avslag,
                         grunnlag = uføregrunnlag,
                         periode = Periode.create(1.januar(2021), 31.desember(2021)),
@@ -538,7 +539,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             vurderingsperioder = nonEmptyListOf(
                                 Vurderingsperiode.Uføre.create(
                                     id = vurderingUførhet.vurderingsperioder[0].id,
-                                    opprettet = Tidspunkt.now(fixedClock),
+                                    opprettet = fixedTidspunkt,
                                     resultat = Resultat.Avslag,
                                     grunnlag = uføregrunnlag,
                                     periode = Periode.create(1.januar(2021), 31.desember(2021)),

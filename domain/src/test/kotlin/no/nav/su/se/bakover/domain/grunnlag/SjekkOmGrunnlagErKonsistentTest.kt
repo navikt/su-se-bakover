@@ -3,15 +3,14 @@ package no.nav.su.se.bakover.domain.grunnlag
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import org.junit.jupiter.api.Nested
@@ -36,7 +35,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
         fun `bosituasjon er ufullstendig`() {
             val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 periode = periode,
             )
             SjekkOmGrunnlagErKonsistent.Bosituasjon(listOf(bosituasjon)).resultat shouldBe setOf(Konsistensproblem.Bosituasjon.Ufullstendig).left()
@@ -46,14 +45,14 @@ internal class SjekkOmGrunnlagErKonsistentTest {
         fun `bosituasjon har flere innslag`() {
             val bosituasjon1 = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 periode = periode,
                 fnr = Fnr.generer(),
                 begrunnelse = "",
             )
             val bosituasjon2 = Grunnlag.Bosituasjon.Fullstendig.Enslig(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 periode = periode,
                 begrunnelse = "",
             )
@@ -74,14 +73,14 @@ internal class SjekkOmGrunnlagErKonsistentTest {
         fun `bosituasjon har flere innslag og fradrag har inntekter for eps`() {
             val bosituasjon1 = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 periode = periode,
                 fnr = Fnr.generer(),
                 begrunnelse = "",
             )
             val bosituasjon2 = Grunnlag.Bosituasjon.Fullstendig.Enslig(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 periode = periode,
                 begrunnelse = "",
             )
@@ -104,7 +103,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
         fun `bosituasjon uten eps men fradrag for eps`() {
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 periode = periode,
                 begrunnelse = "",
             )
@@ -130,14 +129,14 @@ internal class SjekkOmGrunnlagErKonsistentTest {
         fun `fullstendig konsistenssjekk`() {
             val bosituasjon1 = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 periode = periode,
                 fnr = Fnr.generer(),
                 begrunnelse = "",
             )
             val bosituasjon2 = Grunnlag.Bosituasjon.Fullstendig.Enslig(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 periode = periode,
                 begrunnelse = "",
             )
@@ -173,7 +172,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
             )
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 periode = periode,
                 fnr = Fnr.generer(),
                 begrunnelse = "",

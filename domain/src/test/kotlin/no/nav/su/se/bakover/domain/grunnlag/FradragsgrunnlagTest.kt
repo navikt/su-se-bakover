@@ -15,9 +15,10 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
-import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 internal class FradragsgrunnlagTest {
 
@@ -85,6 +86,8 @@ internal class FradragsgrunnlagTest {
     fun `fradrag med periode som er lik stønadsperiode, blir oppdatert til å gjelde for hele stønadsperioden`() {
         val oppdatertPeriode = Periode.create(1.januar(2022), 31.desember(2022))
         val fradragsgrunnlag = Grunnlag.Fradragsgrunnlag.create(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
             fradrag = FradragFactory.ny(
                 type = Fradragstype.Kontantstøtte,
                 månedsbeløp = 200.0,
@@ -103,6 +106,8 @@ internal class FradragsgrunnlagTest {
     fun `fraOgMed blir kuttet og satt lik stønadsperiode FOM når oppdatertPeriode er etter fraOgMed `() {
         val oppdatertPeriode = Periode.create(1.mai(2021), 31.desember(2021))
         val fradragsgrunnlag = Grunnlag.Fradragsgrunnlag.create(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
             fradrag = FradragFactory.ny(
                 type = Fradragstype.Kontantstøtte,
                 månedsbeløp = 200.0,
@@ -121,6 +126,8 @@ internal class FradragsgrunnlagTest {
     fun `tilOgMed blir kuttet og satt lik stønadsperiode TOM når oppdatertPeriode er før tilOgMed `() {
         val oppdatertPeriode = Periode.create(1.januar(2021), 31.august(2021))
         val fradragsgrunnlag = Grunnlag.Fradragsgrunnlag.create(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
             fradrag = FradragFactory.ny(
                 type = Fradragstype.Kontantstøtte,
                 månedsbeløp = 200.0,
@@ -139,6 +146,8 @@ internal class FradragsgrunnlagTest {
     fun `fradrag med deler av periode i 2022, oppdaterer periode til å gjelde for 2021, får fradragene til å gjelde for hele 2021`() {
         val oppdatertPeriode = Periode.create(1.januar(2021), 31.desember(2021))
         val fradragsgrunnlag = Grunnlag.Fradragsgrunnlag.create(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
             fradrag = FradragFactory.ny(
                 type = Fradragstype.Kontantstøtte,
                 månedsbeløp = 200.0,

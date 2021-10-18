@@ -702,7 +702,7 @@ fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
     return sakOgVedtakSomKanRevurderes.let { (sak, vedtak) ->
         val revurdering = StansAvYtelseRevurdering.SimulertStansAvYtelse(
             id = revurderingId,
-            opprettet = Tidspunkt.now(fixedClock),
+            opprettet = fixedTidspunkt,
             periode = periode,
             grunnlagsdata = vedtak.behandling.grunnlagsdata,
             vilkårsvurderinger = vedtak.behandling.vilkårsvurderinger,

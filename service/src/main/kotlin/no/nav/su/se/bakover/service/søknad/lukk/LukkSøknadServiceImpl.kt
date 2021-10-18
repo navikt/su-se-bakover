@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
@@ -57,10 +56,9 @@ internal class LukkSøknadServiceImpl(
         val søknad = hentSøknad(request.søknadId).getOrHandle {
             return it.left()
         }
-        val opprettetDato = søknad.opprettet.toLocalDate(zoneIdOslo)
-        if (request is LukkSøknadRequest.MedBrev.TrekkSøknad && !request.erDatoGyldig(opprettetDato, clock)) {
+        if (request is LukkSøknadRequest.MedBrev.TrekkSøknad && !request.erDatoGyldig(søknad.mottaksdato, clock)) {
             log.info(
-                "Kan ikke lukke søknad ${søknad.id}. ${request.trukketDato} må være mellom $opprettetDato og idag (${
+                "Kan ikke lukke søknad ${søknad.id}. ${request.trukketDato} må være mellom ${søknad.mottaksdato} og idag (${
                 LocalDate.now(clock)
                 })",
             )
@@ -155,11 +153,13 @@ internal class LukkSøknadServiceImpl(
                 søknad = søknad,
                 trukketDato = request.trukketDato,
                 saksbehandlerNavn = hentNavnForNavIdent(request.saksbehandler).getOrHandle { "" },
+                dagensDato = LocalDate.now(clock),
             )
             is LukkSøknadRequest.MedBrev.AvvistSøknad -> AvvistSøknadBrevRequest(
                 person = person,
                 brevConfig = request.brevConfig,
                 saksbehandlerNavn = hentNavnForNavIdent(request.saksbehandler).getOrHandle { "" },
+                dagensDato = LocalDate.now(clock),
             )
         }
     }

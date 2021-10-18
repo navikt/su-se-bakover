@@ -3,10 +3,12 @@ package no.nav.su.se.bakover.domain.beregning
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
+import java.util.UUID
 
 /**
  * Fra lovteksten https://lovdata.no/dokument/NL/lov/2005-04-29-21:
@@ -58,6 +60,8 @@ private fun beregnMedVirkningFraOgMedMånedenEtter(
         revurdertBeregning.periode.tilOgMed
     )
     return BeregningMedFradragBeregnetMånedsvis(
+        id = UUID.randomUUID(),
+        opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
         periode = nyPeriode,
         sats = revurdertBeregning.getSats(),
         fradrag = revurdertBeregning.getFradrag()

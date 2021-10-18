@@ -339,6 +339,7 @@ class LagBrevRequestVisitor(
                 fritekst = revurdering.fritekstTilBrev,
                 harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
                 forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
+                dagensDato = LocalDate.now(clock),
             )
         }
 
@@ -360,6 +361,7 @@ class LagBrevRequestVisitor(
                 attestantNavn = it.attestantNavn,
                 forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
                 opphørsgrunner = opphørsgrunner,
+                dagensDato = LocalDate.now(clock),
             )
         }
 
@@ -382,6 +384,7 @@ class LagBrevRequestVisitor(
         attestantNavn = personOgNavn.attestantNavn,
         fritekst = fritekst,
         forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0(),
+        dagensDato = LocalDate.now(clock),
     )
 
     private fun requestForInnvilgelse(
@@ -399,6 +402,7 @@ class LagBrevRequestVisitor(
         attestantNavn = personOgNavn.attestantNavn,
         fritekst = fritekst,
         forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0(),
+        dagensDato = LocalDate.now(clock),
     )
 
     private data class PersonOgNavn(
@@ -447,6 +451,7 @@ class LagBrevRequestVisitor(
                 fritekst = vedtak.behandling.fritekstTilBrev,
                 harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
                 forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
+                dagensDato = LocalDate.now(clock),
             )
         }
 
@@ -465,6 +470,7 @@ class LagBrevRequestVisitor(
                 harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
                 forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
                 opphørsgrunner = vedtak.utledOpphørsgrunner(),
+                dagensDato = LocalDate.now(clock),
             )
         }
 
@@ -547,5 +553,6 @@ class LagBrevRequestVisitor(
         harEktefelle = harEktefelle,
         forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0(),
         gjeldendeMånedsutbetaling = gjeldendeMånedsutbetaling,
+        dagensDato = LocalDate.now(clock),
     )
 }

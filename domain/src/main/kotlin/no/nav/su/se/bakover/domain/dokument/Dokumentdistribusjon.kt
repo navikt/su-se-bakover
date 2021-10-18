@@ -13,7 +13,7 @@ import java.util.UUID
  */
 data class Dokumentdistribusjon(
     val id: UUID = UUID.randomUUID(),
-    val opprettet: Tidspunkt = Tidspunkt.now(),
+    val opprettet: Tidspunkt,
     val endret: Tidspunkt = opprettet,
     val dokument: Dokument.MedMetadata,
     val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,

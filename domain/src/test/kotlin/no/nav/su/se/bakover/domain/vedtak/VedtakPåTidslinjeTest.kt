@@ -4,7 +4,6 @@ import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
@@ -12,12 +11,10 @@ import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -27,16 +24,14 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
-import java.time.Clock
-import java.time.ZoneOffset
 import java.util.UUID
 
 internal class VedtakPåTidslinjeTest {
-    private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
 
     @Test
     fun `bevarer korrekte verdier ved kopiering for plassering på tidslinje - full kopi`() {
@@ -86,7 +81,7 @@ internal class VedtakPåTidslinjeTest {
 
         val formuevilkår = innvilgetFormueVilkår(periode)
         val original = Vedtak.VedtakPåTidslinje(
-            opprettet = Tidspunkt.now(fixedClock),
+            opprettet = fixedTidspunkt,
             periode = periode,
             grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = listOf(f1, f2),
@@ -214,7 +209,7 @@ internal class VedtakPåTidslinjeTest {
 
         val formuevilkår = innvilgetFormueVilkår(periode)
         val original = Vedtak.VedtakPåTidslinje(
-            opprettet = Tidspunkt.now(fixedClock),
+            opprettet = fixedTidspunkt,
             periode = periode,
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(b1, b2),

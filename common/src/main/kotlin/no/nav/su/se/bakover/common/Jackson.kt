@@ -19,7 +19,7 @@ val objectMapper: ObjectMapper = JsonMapper.builder()
     .enable(DeserializationFeature.FAIL_ON_NUMBERS_FOR_ENUMS)
     .build()
 
-inline fun <reified K, reified V> ObjectMapper.readMap(value: String): Map<K, V> = readValue<Map<K, V>>(
+inline fun <reified K, reified V> ObjectMapper.readMap(value: String): Map<K, V> = readValue(
     value,
     typeFactory.constructMapType(
         HashMap::class.java,

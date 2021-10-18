@@ -65,6 +65,7 @@ import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.me.meRoutes
 import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
+import no.nav.su.se.bakover.web.routes.nøkkeltall.nøkkeltallRoutes
 import no.nav.su.se.bakover.web.routes.person.personRoutes
 import no.nav.su.se.bakover.web.routes.revurdering.revurderingRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
@@ -103,6 +104,7 @@ internal fun Application.susebakover(
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(
         databaseConfig = applicationConfig.database,
         dbMetrics = DbMicrometerMetrics(),
+        clock = clock,
     ),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
     clients: Clients =
@@ -216,6 +218,7 @@ internal fun Application.susebakover(
         callIdMdc("X-Correlation-ID")
 
         mdc("Authorization") { it.authHeader() }
+        disableDefaultColors()
     }
 
     install(XForwardedHeaderSupport)
@@ -245,13 +248,12 @@ internal fun Application.susebakover(
                         lukkSøknadService = accessProtectedServices.lukkSøknad,
                         avslåSøknadManglendeDokumentasjonService = accessProtectedServices.avslåSøknadManglendeDokumentasjonService,
                     )
-                    overordnetSøknadsbehandligRoutes(
-                        søknadsbehandlingService = accessProtectedServices.søknadsbehandling,
-                    )
-                    avstemmingRoutes(accessProtectedServices.avstemming)
+                    overordnetSøknadsbehandligRoutes(accessProtectedServices.søknadsbehandling, clock)
+                    avstemmingRoutes(accessProtectedServices.avstemming, clock)
                     driftRoutes(accessProtectedServices.søknad)
                     revurderingRoutes(accessProtectedServices.revurdering, accessProtectedServices.vedtakService, clock)
                     dokumentRoutes(accessProtectedServices.brev)
+                    nøkkeltallRoutes(accessProtectedServices.nøkkeltallService)
                 }
             }
         }

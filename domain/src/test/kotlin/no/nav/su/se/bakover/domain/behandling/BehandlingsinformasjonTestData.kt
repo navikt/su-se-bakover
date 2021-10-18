@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.test.fixedLocalDate
 import java.time.LocalDate
 
 object BehandlingsinformasjonTestData {
@@ -260,9 +261,9 @@ object BehandlingsinformasjonTestData {
             fnr = Fnr(fnr = "12345678901"),
             navn = null,
             kjønn = null,
-            fødselsdato = LocalDate.now(),
+            fødselsdato = fixedLocalDate,
             adressebeskyttelse = null,
-            skjermet = null
+            skjermet = null,
         )
     }
 }

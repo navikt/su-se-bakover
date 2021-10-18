@@ -4,7 +4,6 @@ import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
 import arrow.core.right
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -23,6 +22,7 @@ import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRep
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
+import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -77,18 +78,14 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.getOrFail
 import java.time.Clock
-import java.time.LocalDate
-import java.time.ZoneOffset
 import java.util.UUID
 import javax.sql.DataSource
 
-internal val fixedClock: Clock =
-    Clock.fixed(1.januar(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
-internal val fixedTidspunkt: Tidspunkt = Tidspunkt.now(fixedClock)
-internal val fixedLocalDate: LocalDate = fixedTidspunkt.toLocalDate(ZoneOffset.UTC)
 internal val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.januar(2021)))
 internal val tomBehandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
 internal val behandlingsinformasjonMedAlleVilkårOppfylt =
@@ -276,11 +273,12 @@ internal class TestDataHelper(
         dataSource = dataSource,
         dbMetrics = dbMetrics,
     )
+    internal val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource = dataSource)
     internal val dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory)
-    internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(dataSource)
+    internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(dataSource, fixedClock)
 
-    fun nySakMedNySøknad(fnr: Fnr = Fnr.generer()): NySak {
-        return SakFactory(clock = clock).nySakMedNySøknad(fnr, SøknadInnholdTestdataBuilder.build()).also {
+    fun nySakMedNySøknad(fnr: Fnr = Fnr.generer(), søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build()): NySak {
+        return SakFactory(clock = clock).nySakMedNySøknad(fnr, søknadInnhold).also {
             sakRepo.opprettSak(it)
         }
     }
@@ -288,17 +286,17 @@ internal class TestDataHelper(
     /**
      * Ny søknad som _ikke_ er journalført eller har oppgave
      */
-    fun nySøknadForEksisterendeSak(sakId: UUID): Søknad.Ny {
+    fun nySøknadForEksisterendeSak(sakId: UUID, søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build()): Søknad.Ny {
         return Søknad.Ny(
             sakId = sakId,
             id = UUID.randomUUID(),
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+            søknadInnhold = søknadInnhold,
             opprettet = fixedTidspunkt,
         ).also { søknadRepo.opprettSøknad(it) }
     }
 
-    fun nyLukketSøknadForEksisterendeSak(sakId: UUID): Søknad.Journalført.MedOppgave.Lukket {
-        return nySøknadForEksisterendeSak(sakId = sakId)
+    fun nyLukketSøknadForEksisterendeSak(sakId: UUID, søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build()): Søknad.Journalført.MedOppgave.Lukket {
+        return nySøknadForEksisterendeSak(sakId = sakId, søknadInnhold = søknadInnhold)
             .journalfør(journalpostId).also {
                 søknadRepo.oppdaterjournalpostId(it)
             }
@@ -478,19 +476,7 @@ internal class TestDataHelper(
         }
     }
 
-    fun beregnetIngenEndring(): BeregnetRevurdering {
-        val vedtak = vedtakMedInnvilgetSøknadsbehandling()
-        return nyRevurdering(
-            vedtak.first,
-            vedtak.first.periode,
-        ).beregn(
-            listOf(vedtak.second),
-        ).getOrFail("skulle gått bra").also {
-            revurderingRepo.lagre(it)
-        }
-    }
-
-    fun simulertOpphørtRevurdering(): SimulertRevurdering {
+    private fun simulertOpphørtRevurdering(): SimulertRevurdering {
         return beregnetOpphørtRevurdering().toSimulert(simulering(Fnr.generer())).also {
             revurderingRepo.lagre(it)
         }

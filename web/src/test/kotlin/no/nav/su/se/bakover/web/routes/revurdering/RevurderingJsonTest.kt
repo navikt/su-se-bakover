@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
@@ -31,6 +30,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
@@ -60,7 +60,7 @@ internal class RevurderingJsonTest {
     @Test
     fun `should serialize and deserialize OpprettetRevurdering`() {
         val id = UUID.randomUUID()
-        val opprettet = Tidspunkt.now()
+        val opprettet = fixedTidspunkt
 
         val revurdering = OpprettetRevurdering(
             id = id,
@@ -142,7 +142,7 @@ internal class RevurderingJsonTest {
     @Test
     fun `should serialize and deserialize BeregnetInnvilget`() {
         val id = UUID.randomUUID()
-        val opprettet = Tidspunkt.now()
+        val opprettet = fixedTidspunkt
         val beregning = TestBeregning
 
         val revurdering = BeregnetRevurdering.Innvilget(
@@ -223,7 +223,7 @@ internal class RevurderingJsonTest {
     @Test
     fun `should serialize and deserialize BeregnetOpphørt`() {
         val id = UUID.randomUUID()
-        val opprettet = Tidspunkt.now()
+        val opprettet = fixedTidspunkt
         val beregning = TestBeregning
 
         val revurdering = BeregnetRevurdering.Opphørt(
@@ -304,7 +304,7 @@ internal class RevurderingJsonTest {
     @Test
     fun `should serialize and deserialize BeregnetIngenEndring`() {
         val id = UUID.randomUUID()
-        val opprettet = Tidspunkt.now()
+        val opprettet = fixedTidspunkt
         val beregning = TestBeregning
 
         val revurdering = BeregnetRevurdering.IngenEndring(
@@ -385,7 +385,7 @@ internal class RevurderingJsonTest {
     @Test
     fun `should serialize and deserialize SimulertInnvilget`() {
         val id = UUID.randomUUID()
-        val opprettet = Tidspunkt.now()
+        val opprettet = fixedTidspunkt
         val beregning = TestBeregning
 
         val revurdering = SimulertRevurdering.Innvilget(
@@ -471,7 +471,7 @@ internal class RevurderingJsonTest {
     @Test
     fun `should serialize and deserialize SimulertOpphørt`() {
         val id = UUID.randomUUID()
-        val opprettet = Tidspunkt.now()
+        val opprettet = fixedTidspunkt
         val beregning = TestBeregning
 
         val revurdering = SimulertRevurdering.Opphørt(
@@ -557,7 +557,7 @@ internal class RevurderingJsonTest {
     @Test
     fun `should serialize and deserialize InnvilgetTilAttestering`() {
         val id = UUID.randomUUID()
-        val opprettet = Tidspunkt.now()
+        val opprettet = fixedTidspunkt
         val beregning = TestBeregning
 
         val revurdering = RevurderingTilAttestering.Innvilget(
@@ -644,7 +644,7 @@ internal class RevurderingJsonTest {
     @Test
     fun `should serialize and deserialize OpphørtTilAttestering`() {
         val id = UUID.randomUUID()
-        val opprettet = Tidspunkt.now()
+        val opprettet = fixedTidspunkt
         val beregning = TestBeregning
 
         val revurdering = RevurderingTilAttestering.Opphørt(
@@ -731,7 +731,7 @@ internal class RevurderingJsonTest {
     @Test
     fun `should serialize and deserialize IngenEndringTilAttestering`() {
         val id = UUID.randomUUID()
-        val opprettet = Tidspunkt.now()
+        val opprettet = fixedTidspunkt
         val beregning = TestBeregning
 
         val revurdering = RevurderingTilAttestering.IngenEndring(
@@ -815,9 +815,9 @@ internal class RevurderingJsonTest {
     @Test
     fun `should serialize and deserialize UnderkjentInnvilget`() {
         val id = UUID.randomUUID()
-        val opprettet = Tidspunkt.now()
+        val opprettet = fixedTidspunkt
         val beregning = TestBeregning
-        val attesteringOpprettet = Tidspunkt.now()
+        val attesteringOpprettet = fixedTidspunkt
 
         val revurdering = UnderkjentRevurdering.Innvilget(
             id = id,
@@ -917,9 +917,9 @@ internal class RevurderingJsonTest {
     @Test
     fun `should serialize and deserialize UnderkjentOpphør`() {
         val id = UUID.randomUUID()
-        val opprettet = Tidspunkt.now()
+        val opprettet = fixedTidspunkt
         val beregning = TestBeregning
-        val attesteringOpprettet = Tidspunkt.now()
+        val attesteringOpprettet = fixedTidspunkt
 
         val revurdering = UnderkjentRevurdering.Opphørt(
             id = id,
@@ -1019,9 +1019,9 @@ internal class RevurderingJsonTest {
     @Test
     fun `should serialize and deserialize UnderkjentIngenEndring`() {
         val id = UUID.randomUUID()
-        val opprettet = Tidspunkt.now()
+        val opprettet = fixedTidspunkt
         val beregning = TestBeregning
-        val attesteringOpprettet = Tidspunkt.now()
+        val attesteringOpprettet = fixedTidspunkt
 
         val revurdering = UnderkjentRevurdering.IngenEndring(
             id = id,
@@ -1118,9 +1118,9 @@ internal class RevurderingJsonTest {
     @Test
     fun `should serialize and deserialize IverksattInnvilget`() {
         val id = UUID.randomUUID()
-        val opprettet = Tidspunkt.now()
+        val opprettet = fixedTidspunkt
         val beregning = TestBeregning
-        val attesteringOpprettet = Tidspunkt.now()
+        val attesteringOpprettet = fixedTidspunkt
 
         val revurdering = IverksattRevurdering.Innvilget(
             id = id,
@@ -1212,9 +1212,9 @@ internal class RevurderingJsonTest {
     @Test
     fun `should serialize and deserialize IverksattOpphørt`() {
         val id = UUID.randomUUID()
-        val opprettet = Tidspunkt.now()
+        val opprettet = fixedTidspunkt
         val beregning = TestBeregning
-        val attesteringOpprettet = Tidspunkt.now()
+        val attesteringOpprettet = fixedTidspunkt
 
         val revurdering = IverksattRevurdering.Opphørt(
             id = id,
@@ -1306,9 +1306,9 @@ internal class RevurderingJsonTest {
     @Test
     fun `should serialize and deserialize IverksattIngenEndring`() {
         val id = UUID.randomUUID()
-        val opprettet = Tidspunkt.now()
+        val opprettet = fixedTidspunkt
         val beregning = TestBeregning
-        val attesteringOpprettet = Tidspunkt.now()
+        val attesteringOpprettet = fixedTidspunkt
 
         val revurdering = IverksattRevurdering.IngenEndring(
             id = id,

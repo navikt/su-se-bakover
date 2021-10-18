@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
@@ -22,7 +21,7 @@ internal class BosituasjonTest {
     fun `viser om søker har ektefelle eller ikke`() {
         Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
             fnr = Fnr.generer(),
             begrunnelse = null,
@@ -30,7 +29,7 @@ internal class BosituasjonTest {
 
         Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
             fnr = Fnr.generer(),
             begrunnelse = null,
@@ -38,7 +37,7 @@ internal class BosituasjonTest {
 
         Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
             fnr = Fnr.generer(),
             begrunnelse = null,
@@ -46,27 +45,27 @@ internal class BosituasjonTest {
 
         Grunnlag.Bosituasjon.Fullstendig.Enslig(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
-            begrunnelse = null
+            begrunnelse = null,
         ).harEktefelle() shouldBe false
 
         Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
-            begrunnelse = null
+            begrunnelse = null,
         ).harEktefelle() shouldBe false
 
         Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
-            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021))
+            opprettet = fixedTidspunkt,
+            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
         ).harEktefelle() shouldBe false
 
         Grunnlag.Bosituasjon.Ufullstendig.HarEps(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             fnr = Fnr.generer(),
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
         ).harEktefelle() shouldBe true
@@ -76,7 +75,7 @@ internal class BosituasjonTest {
     fun `returnerer false hvis 2 grunnlag har samme informasjon om ektefelle`() {
         val gjeldendeBosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
             fnr = Fnr.generer(),
         )
@@ -88,14 +87,14 @@ internal class BosituasjonTest {
     fun `returnerer true hvis grunnlag om ektefelle har endret sig`() {
         val gjeldendeBosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
             fnr = Fnr.generer(),
         )
 
         Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.juni(2021)),
         ).harEndretEllerFjernetEktefelle(gjeldendeBosituasjon) shouldBe true
     }

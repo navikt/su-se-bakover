@@ -36,7 +36,7 @@ internal data class SøknadserviceOgMocks(
         personService = personService,
         oppgaveService = oppgaveService,
         søknadMetrics = søknadMetrics,
-        clock = no.nav.su.se.bakover.service.fixedClock,
+        clock = fixedClock,
     )
 
     init {

@@ -22,13 +22,12 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadstype
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -297,11 +296,10 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
                 argThat {
-                    it shouldBe OppgaveConfig.NySøknad(
+                    it shouldBe OppgaveConfig.Søknad(
                         journalpostId = journalførtSøknad.journalpostId,
                         søknadId = journalførtSøknad.id,
-                        aktørId = person.ident.aktørId,
-                        søknadstype = Søknadstype.FØRSTEGANGSSØKNAD
+                        aktørId = person.ident.aktørId
                     )
                 },
             )
@@ -396,11 +394,10 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
                 argThat {
-                    it shouldBe OppgaveConfig.NySøknad(
+                    it shouldBe OppgaveConfig.Søknad(
                         journalpostId = journalførtSøknad.journalpostId,
                         søknadId = journalførtSøknad.id,
-                        aktørId = person.ident.aktørId,
-                        søknadstype = Søknadstype.FØRSTEGANGSSØKNAD
+                        aktørId = person.ident.aktørId
                     )
                 },
             )

@@ -1,21 +1,21 @@
 package no.nav.su.se.bakover.service.statistikk
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
+import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 import java.util.UUID
 
 // TODO: Utvid med tester som validerer fullstendige objekter, og flere tester for negative cases
 internal class StatistikkSchemaValidatorTest {
     companion object {
         val gyldigBehandling: Statistikk.Behandling = Statistikk.Behandling(
-            funksjonellTid = Tidspunkt.now(),
-            tekniskTid = Tidspunkt.now(),
-            mottattDato = LocalDate.now(),
-            registrertDato = LocalDate.now(),
+            funksjonellTid = fixedTidspunkt,
+            tekniskTid = fixedTidspunkt,
+            mottattDato = fixedLocalDate,
+            registrertDato = fixedLocalDate,
             behandlingId = UUID.randomUUID(),
             sakId = UUID.randomUUID(),
             saksnummer = 2021,
@@ -27,30 +27,30 @@ internal class StatistikkSchemaValidatorTest {
         )
 
         val gyldigSak = Statistikk.Sak(
-            funksjonellTid = Tidspunkt.now(),
-            tekniskTid = Tidspunkt.now(),
-            opprettetDato = LocalDate.now(),
+            funksjonellTid = fixedTidspunkt,
+            tekniskTid = fixedTidspunkt,
+            opprettetDato = fixedLocalDate,
             sakId = UUID.randomUUID(),
             aktorId = 1235,
             saksnummer = 2021,
         )
 
         val gyldigStønad = Statistikk.Stønad(
-            funksjonellTid = Tidspunkt.now(),
-            tekniskTid = Tidspunkt.now(),
+            funksjonellTid = fixedTidspunkt,
+            tekniskTid = fixedTidspunkt,
             stonadstype = Statistikk.Stønad.Stønadstype.SU_UFØR,
             sakId = UUID.randomUUID(),
             aktorId = 1234567890,
             sakstype = Statistikk.Stønad.Vedtakstype.SØKNAD,
-            vedtaksdato = LocalDate.now(),
+            vedtaksdato = fixedLocalDate,
             vedtakstype = Statistikk.Stønad.Vedtakstype.SØKNAD,
             vedtaksresultat = Statistikk.Stønad.Vedtaksresultat.INNVILGET,
             behandlendeEnhetKode = "4815",
-            ytelseVirkningstidspunkt = LocalDate.now(),
-            gjeldendeStonadVirkningstidspunkt = LocalDate.now(),
-            gjeldendeStonadStopptidspunkt = LocalDate.now().plusYears(1),
-            gjeldendeStonadUtbetalingsstart = LocalDate.now(),
-            gjeldendeStonadUtbetalingsstopp = LocalDate.now().plusYears(1),
+            ytelseVirkningstidspunkt = fixedLocalDate,
+            gjeldendeStonadVirkningstidspunkt = fixedLocalDate,
+            gjeldendeStonadStopptidspunkt = fixedLocalDate.plusYears(1),
+            gjeldendeStonadUtbetalingsstart = fixedLocalDate,
+            gjeldendeStonadUtbetalingsstopp = fixedLocalDate.plusYears(1),
             månedsbeløp = listOf(
                 Statistikk.Stønad.Månedsbeløp(
                     måned = "todo",
@@ -61,7 +61,7 @@ internal class StatistikkSchemaValidatorTest {
                     fradragSum = 5000,
                 ),
             ),
-            versjon = Tidspunkt.now().toEpochMilli()
+            versjon = fixedTidspunkt.toEpochMilli(),
         )
     }
 
@@ -75,9 +75,9 @@ internal class StatistikkSchemaValidatorTest {
         StatistikkSchemaValidator.validerSak(
             objectMapper.writeValueAsString(
                 Statistikk.Sak(
-                    funksjonellTid = Tidspunkt.now(),
-                    tekniskTid = Tidspunkt.now(),
-                    opprettetDato = LocalDate.now(),
+                    funksjonellTid = fixedTidspunkt,
+                    tekniskTid = fixedTidspunkt,
+                    opprettetDato = fixedLocalDate,
                     sakId = UUID.randomUUID(),
                     aktorId = 2020,
                     saksnummer = 2025,

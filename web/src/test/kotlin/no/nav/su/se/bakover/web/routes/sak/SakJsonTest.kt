@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.sak
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
@@ -17,6 +16,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.UtbetalingJson
 import org.junit.jupiter.api.Nested
@@ -35,12 +35,13 @@ internal class SakJsonTest {
     private val sak = Sak(
         id = sakId,
         saksnummer = Saksnummer(saksnummer),
+        opprettet = fixedTidspunkt,
         fnr = Fnr("12345678910"),
         utbetalinger = emptyList(),
     )
 
     //language=JSON
-    val sakJsonString =
+    private val sakJsonString =
         """
             {
                 "id": "$sakId",
@@ -72,7 +73,7 @@ internal class SakJsonTest {
         fun `mapper opphørte utbetalingslinjer riktig`() {
             val nyUtbetaling = Utbetalingslinje.Ny(
                 id = UUID30.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.desember(2021),
                 forrigeUtbetalingslinjeId = null,

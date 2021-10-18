@@ -162,6 +162,8 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
         val forrigePeriode = Periode.create(1.januar(2021), 31.desember(2021))
         val oppdatertPeriode = Periode.create(1.januar(2021), 31.januar(2021))
         val fradragsgrunnlag = Grunnlag.Fradragsgrunnlag.create(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
             fradrag = FradragFactory.ny(
                 type = Fradragstype.Kontantstøtte,
                 månedsbeløp = 0.0,

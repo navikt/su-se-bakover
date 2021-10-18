@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.behandling.avslag
 
 import arrow.core.left
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.fixedClock
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget

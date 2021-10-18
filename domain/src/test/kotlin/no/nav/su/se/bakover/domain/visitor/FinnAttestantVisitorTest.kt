@@ -4,7 +4,6 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -23,7 +22,6 @@ import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -42,6 +40,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
@@ -148,7 +147,7 @@ internal class FinnAttestantVisitorTest {
 
     private val søknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
         id = UUID.randomUUID(),
-        opprettet = Tidspunkt.now(),
+        opprettet = fixedTidspunkt,
         sakId = UUID.randomUUID(),
         saksnummer = Saksnummer(2021),
         søknad = mock(),
@@ -198,7 +197,7 @@ internal class FinnAttestantVisitorTest {
             attestant = attestant,
             grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
             kommentar = "",
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
         ),
     )
     private val underkjentAvslagSøknadsbehandling = tilAttesteringAvslagSøknadsbehandlng.tilUnderkjent(
@@ -206,13 +205,13 @@ internal class FinnAttestantVisitorTest {
             attestant = attestant,
             grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
             kommentar = "",
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
         ),
     )
     private val iverksattInnvilgetSøknadsbehandling =
-        tilAttesteringInnvilgetSøknadsbehandlng.tilIverksatt(Attestering.Iverksatt(attestant, Tidspunkt.now()))
+        tilAttesteringInnvilgetSøknadsbehandlng.tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
     private val iverksattAvslagSøknadsbehandling =
-        tilAttesteringAvslagSøknadsbehandlng.tilIverksatt(Attestering.Iverksatt(attestant, Tidspunkt.now()))
+        tilAttesteringAvslagSøknadsbehandlng.tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
 
     private val beregningMock = mock<Beregning> {
         on { getMånedsberegninger() } doReturn listOf(
@@ -240,7 +239,7 @@ internal class FinnAttestantVisitorTest {
     private val revurdering = OpprettetRevurdering(
         id = UUID.randomUUID(),
         periode = periode,
-        opprettet = Tidspunkt.now(),
+        opprettet = fixedTidspunkt,
         tilRevurdering = mock<Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling> {
             on { beregning } doReturn beregningMock
         },

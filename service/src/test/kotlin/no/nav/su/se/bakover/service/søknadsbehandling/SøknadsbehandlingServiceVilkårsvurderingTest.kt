@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.attestant
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -52,7 +53,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
     private val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))
     private val opprettetBehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
         id = behandlingId,
-        opprettet = Tidspunkt.now(),
+        opprettet = fixedTidspunkt,
         sakId = sakId,
         saksnummer = Saksnummer(2021),
         søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
@@ -197,7 +198,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             simulering = simulering,
             saksbehandler = saksbehandler,
             attesteringer = Attesteringshistorikk.empty()
-                .leggTilNyAttestering(Attestering.Iverksatt(attestant, Tidspunkt.now())),
+                .leggTilNyAttestering(Attestering.Iverksatt(attestant, fixedTidspunkt)),
             fritekstTilBrev = "",
             stønadsperiode = opprettetBehandling.stønadsperiode!!,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,

@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -38,6 +39,7 @@ internal class AccessCheckProxyTest {
         revurdering = mock(),
         vedtakService = mock(),
         grunnlagService = mock(),
+        nøkkeltallService = mock(),
         avslåSøknadManglendeDokumentasjonService = mock(),
     )
 
@@ -62,6 +64,7 @@ internal class AccessCheckProxyTest {
                             Sak(
                                 id = sakId,
                                 saksnummer = Saksnummer(2021),
+                                opprettet = fixedTidspunkt,
                                 fnr = fnr,
                                 utbetalinger = emptyList(),
                             ),
@@ -201,6 +204,7 @@ internal class AccessCheckProxyTest {
                 } doReturn Either.Right(
                     Sak(
                         id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
                         saksnummer = Saksnummer(2021),
                         fnr = fnr,
                         utbetalinger = emptyList(),

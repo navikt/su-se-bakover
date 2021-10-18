@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
+import java.time.Clock
 
 internal class V107__migrer_avslagsgrunner_for_eksisterende_avslag : BaseJavaMigration() {
     override fun migrate(context: Context?) {
@@ -18,6 +19,7 @@ internal class V107__migrer_avslagsgrunner_for_eksisterende_avslag : BaseJavaMig
                     return block()
                 }
             },
+            clock = Clock.systemUTC(),
         ).vedtakRepo
 
         val ps = context.connection.prepareStatement("update vedtak set avslagsgrunner = to_json(?::json) where id = ?")

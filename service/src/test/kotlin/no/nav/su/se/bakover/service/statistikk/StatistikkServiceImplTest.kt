@@ -42,8 +42,9 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
-import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import org.junit.jupiter.api.Test
@@ -112,7 +113,7 @@ internal class StatistikkServiceImplTest {
         val sak = Sak(
             id = UUID.randomUUID(),
             saksnummer = Saksnummer(nummer = 2021),
-            opprettet = Tidspunkt.now(fixedClock),
+            opprettet = fixedTidspunkt,
             fnr = Fnr.generer(),
             søknader = listOf(),
             søknadsbehandlinger = listOf(),
@@ -148,7 +149,7 @@ internal class StatistikkServiceImplTest {
         val kafkaPublisherMock: KafkaPublisher = mock()
 
         val søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart = mock {
-            on { opprettet } doReturn Tidspunkt.now()
+            on { opprettet } doReturn fixedTidspunkt
             on { søknad } doReturn søknadMock
             on { id } doReturn UUID.randomUUID()
             on { sakId } doReturn UUID.randomUUID()
@@ -194,7 +195,7 @@ internal class StatistikkServiceImplTest {
         val kafkaPublisherMock: KafkaPublisher = mock()
 
         val behandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning = mock {
-            on { opprettet } doReturn Tidspunkt.now()
+            on { opprettet } doReturn fixedTidspunkt
             on { søknad } doReturn søknadMock
             on { id } doReturn UUID.randomUUID()
             on { sakId } doReturn UUID.randomUUID()
@@ -242,7 +243,7 @@ internal class StatistikkServiceImplTest {
         }
 
         val behandling: Søknadsbehandling.Iverksatt.Innvilget = mock {
-            on { opprettet } doReturn Tidspunkt.now()
+            on { opprettet } doReturn fixedTidspunkt
             on { søknad } doReturn søknadMock
             on { id } doReturn UUID.randomUUID()
             on { sakId } doReturn UUID.randomUUID()
@@ -250,7 +251,8 @@ internal class StatistikkServiceImplTest {
             on { status } doReturn BehandlingsStatus.IVERKSATT_INNVILGET
             on { beregning } doReturn beregningMock
             on { saksbehandler } doReturn NavIdentBruker.Saksbehandler("55")
-            on { attesteringer } doReturn Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("56"), Tidspunkt.now()))
+            on { attesteringer } doReturn Attesteringshistorikk.empty()
+                .leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("56"), fixedTidspunkt))
             on { periode } doReturn stønadsperiode
             on { grunnlagsdata } doReturn grunnlagsdataEnsligUtenFradrag(stønadsperiode)
         }
@@ -290,14 +292,15 @@ internal class StatistikkServiceImplTest {
         val kafkaPublisherMock: KafkaPublisher = mock()
 
         val behandling: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning = mock {
-            on { opprettet } doReturn Tidspunkt.now()
+            on { opprettet } doReturn fixedTidspunkt
             on { søknad } doReturn søknadMock
             on { id } doReturn UUID.randomUUID()
             on { sakId } doReturn UUID.randomUUID()
             on { saksnummer } doReturn Saksnummer(5959)
             on { status } doReturn BehandlingsStatus.IVERKSATT_AVSLAG
             on { saksbehandler } doReturn NavIdentBruker.Saksbehandler("55")
-            on { attesteringer } doReturn Attesteringshistorikk.empty().leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("56"), Tidspunkt.now()))
+            on { attesteringer } doReturn Attesteringshistorikk.empty()
+                .leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("56"), fixedTidspunkt))
             on { avslagsgrunner } doReturn listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER)
             on { periode } doReturn stønadsperiode
             on { grunnlagsdata } doReturn grunnlagsdataEnsligUtenFradrag(stønadsperiode)
@@ -644,7 +647,7 @@ internal class StatistikkServiceImplTest {
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
             journalpostId = JournalpostId("journalpostid"),
             oppgaveId = OppgaveId("oppgaveid"),
-            lukketTidspunkt = Tidspunkt.now(fixedClock),
+            lukketTidspunkt = fixedTidspunkt,
             lukketAv = NavIdentBruker.Saksbehandler("Mr Lukker"),
             lukketType = Søknad.Journalført.MedOppgave.Lukket.LukketType.AVVIST,
         )

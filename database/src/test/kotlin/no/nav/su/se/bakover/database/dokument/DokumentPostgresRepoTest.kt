@@ -5,13 +5,13 @@ import arrow.core.right
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import java.util.UUID
@@ -30,7 +30,7 @@ internal class DokumentPostgresRepoTest {
 
             val original = Dokument.MedMetadata.Vedtak(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 tittel = "tittel",
                 generertDokument = "".toByteArray(),
                 generertDokumentJson = """{"some":"json"}""",
@@ -68,7 +68,7 @@ internal class DokumentPostgresRepoTest {
             val sak = testDataHelper.nySakMedNySøknad()
             val original = Dokument.MedMetadata.Informasjon(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = fixedTidspunkt,
                 tittel = "tittel",
                 generertDokument = "".toByteArray(),
                 generertDokumentJson = """{"some":"json"}""",

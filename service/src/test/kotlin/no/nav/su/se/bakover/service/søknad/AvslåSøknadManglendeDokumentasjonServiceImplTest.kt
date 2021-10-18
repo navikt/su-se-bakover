@@ -51,6 +51,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         }
 
         val dokument = Dokument.UtenMetadata.Vedtak(
+            opprettet = fixedTidspunkt,
             tittel = "tittel",
             generertDokument = "".toByteArray(),
             generertDokumentJson = "",
@@ -163,6 +164,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         }
 
         val dokument = Dokument.UtenMetadata.Vedtak(
+            opprettet = fixedTidspunkt,
             tittel = "tittel",
             generertDokument = "".toByteArray(),
             generertDokumentJson = "",
@@ -331,6 +333,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         }
 
         val dokument = Dokument.UtenMetadata.Vedtak(
+            opprettet = fixedTidspunkt,
             tittel = "tittel",
             generertDokument = "".toByteArray(),
             generertDokumentJson = "",

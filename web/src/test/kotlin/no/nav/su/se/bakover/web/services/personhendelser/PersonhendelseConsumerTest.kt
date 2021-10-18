@@ -13,10 +13,11 @@ import no.nav.person.pdl.leesah.Endringstype
 import no.nav.person.pdl.leesah.doedsfall.Doedsfall
 import no.nav.person.pdl.leesah.sivilstand.Sivilstand
 import no.nav.person.pdl.leesah.utflytting.UtflyttingFraNorge
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.service.personhendelser.PersonhendelseService
+import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -35,7 +36,6 @@ import org.mockito.kotlin.timeout
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.time.Duration
-import java.time.LocalDate
 import no.nav.person.pdl.leesah.Personhendelse as EksternPersonhendelse
 
 // Hver test har sin egen topic
@@ -73,7 +73,7 @@ internal class PersonhendelseConsumerTest {
         hendelser.allValues shouldBe (0..5L).map {
             Personhendelse.IkkeTilknyttetSak(
                 endringstype = Personhendelse.Endringstype.OPPRETTET,
-                hendelse = Personhendelse.Hendelse.Dødsfall(LocalDate.now()),
+                hendelse = Personhendelse.Hendelse.Dødsfall(fixedLocalDate),
                 metadata = Personhendelse.Metadata(
                     personidenter = nonEmptyListOf(ident, fnr.toString()),
                     hendelseId = it.toString(),
@@ -117,21 +117,21 @@ internal class PersonhendelseConsumerTest {
             offset.toString(), // hendelseId (UUID)
             personIdenter, // personIdenter (liste med mix av fnr(11 siffer), ident(13 siffer), ++?)
             "FREG", // master (f.eks. FREG)
-            Tidspunkt.now().instant, // opprettet(f.eks. 2021-08-02T09:03:34.900Z)
+            fixedTidspunkt.instant, // opprettet(f.eks. 2021-08-02T09:03:34.900Z)
             "DOEDSFALL_V1", // opplysningstype (DOEDSFALL_V1,UTFLYTTING_FRA_NORGE,SIVILSTAND_V1)
             Endringstype.OPPRETTET, // endringstype (OPPRETTET,KORRIGERT,ANNULLERT,OPPHOERT)
             null, // tidligereHendelseId (Peker til tidligere hendelse ved korrigering og annullering.)
-            Doedsfall(LocalDate.now()), // doedsfall (https://navikt.github.io/pdl/#_d%C3%B8dsfall)
+            Doedsfall(fixedLocalDate), // doedsfall (https://navikt.github.io/pdl/#_d%C3%B8dsfall)
             Sivilstand(
                 "GIFT",
-                LocalDate.now(),
+                fixedLocalDate,
                 "12345678910",
                 null,
             ), // sivilstand (https://navikt.github.io/pdl/#_sivilstand)
             UtflyttingFraNorge(
                 "ESP",
                 "Barcelona",
-                LocalDate.now(),
+                fixedLocalDate,
             ), // utflyttingFraNorge (https://navikt.github.io/pdl/#_utflytting)
         )
         // Emulerer at PDL-kafka legger på 6 ukjente karakterer før de appender key

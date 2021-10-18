@@ -65,6 +65,7 @@ import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 internal class RevurderingServiceImpl(
@@ -79,7 +80,7 @@ internal class RevurderingServiceImpl(
     private val vilkårsvurderingService: VilkårsvurderingService,
     private val grunnlagService: GrunnlagService,
     private val vedtakService: VedtakService,
-    private val sakService: SakService,
+    sakService: SakService,
 ) : RevurderingService {
     private val stansAvYtelseService = StansAvYtelseService(
         utbetalingService = utbetalingService,
@@ -382,9 +383,8 @@ internal class RevurderingServiceImpl(
     }
 
     private fun identifiserFeilOgLagResponse(revurdering: Revurdering): RevurderingOgFeilmeldingerResponse {
-        val tilRevurdering = revurdering.tilRevurdering
 
-        val tidligereBeregning = when (tilRevurdering) {
+        val tidligereBeregning = when (val tilRevurdering = revurdering.tilRevurdering) {
             is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> {
                 return RevurderingOgFeilmeldingerResponse(
                     revurdering = revurdering,
@@ -723,6 +723,7 @@ internal class RevurderingServiceImpl(
             person = person,
             fritekst = fritekst,
             saksbehandlerNavn = saksbehandlerNavn,
+            dagensDato = LocalDate.now(clock),
         )
 
         return brevService.lagBrev(brevRequest)
@@ -823,9 +824,8 @@ internal class RevurderingServiceImpl(
     }
 
     private fun kanSendesTilAttestering(revurdering: Revurdering): Either<KunneIkkeSendeRevurderingTilAttestering, Unit> {
-        val tilRevurdering = revurdering.tilRevurdering
 
-        val tidligereBeregning = when (tilRevurdering) {
+        val tidligereBeregning = when (val tilRevurdering = revurdering.tilRevurdering) {
             is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> {
                 return identifiserUtfallSomIkkeStøttes(
                     revurdering.vilkårsvurderinger,
@@ -1219,6 +1219,7 @@ internal class RevurderingServiceImpl(
             person = person,
             saksbehandlerNavn = saksbehandlerNavn,
             fritekst = fritekst,
+            dagensDato = LocalDate.now(clock),
         ).tilDokument {
             brevService.lagBrev(it).mapLeft { LagBrevRequest.KunneIkkeGenererePdf }
         }.map {

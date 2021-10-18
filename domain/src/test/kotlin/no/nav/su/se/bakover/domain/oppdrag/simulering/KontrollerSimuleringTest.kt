@@ -5,7 +5,6 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -18,7 +17,9 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.simulering
 import no.nav.su.se.bakover.test.simulertDetaljFeilutbetaling
 import no.nav.su.se.bakover.test.simulertDetaljOrdinær
@@ -28,6 +29,7 @@ import no.nav.su.se.bakover.test.simulertPeriode
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import org.junit.jupiter.api.Test
 import java.time.Clock
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class KontrollerSimuleringTest {
@@ -40,7 +42,7 @@ internal class KontrollerSimuleringTest {
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     id = UUID30.randomUUID(),
-                    opprettet = Tidspunkt.now(),
+                    opprettet = fixedTidspunkt,
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.desember(2021),
                     forrigeUtbetalingslinjeId = null,
@@ -77,7 +79,7 @@ internal class KontrollerSimuleringTest {
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     id = UUID30.randomUUID(),
-                    opprettet = Tidspunkt.now(),
+                    opprettet = fixedTidspunkt,
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.desember(2021),
                     forrigeUtbetalingslinjeId = null,
@@ -102,7 +104,7 @@ internal class KontrollerSimuleringTest {
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     id = UUID30.randomUUID(),
-                    opprettet = Tidspunkt.now(),
+                    opprettet = fixedTidspunkt,
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.desember(2021),
                     forrigeUtbetalingslinjeId = null,
@@ -126,12 +128,12 @@ internal class KontrollerSimuleringTest {
         val periode = Periode.create(1.januar(2021), 31.januar(2021))
 
         val eksisterendeUtetaling = eksisterendeUtbetaling(
-            periode = Periode.create(1.januar(2021), 31.januar(2021)),
+            periode = periode,
             type = Utbetaling.UtbetalingsType.NY,
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     id = UUID30.randomUUID(),
-                    opprettet = Tidspunkt.now(),
+                    opprettet = fixedTidspunkt,
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.desember(2021),
                     forrigeUtbetalingslinjeId = null,
@@ -145,7 +147,7 @@ internal class KontrollerSimuleringTest {
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     id = UUID30.randomUUID(),
-                    opprettet = Tidspunkt.now(),
+                    opprettet = fixedTidspunkt.plus(1, ChronoUnit.SECONDS),
                     fraOgMed = periode.fraOgMed,
                     tilOgMed = periode.tilOgMed,
                     forrigeUtbetalingslinjeId = null,
@@ -182,7 +184,7 @@ internal class KontrollerSimuleringTest {
         KontrollerSimulering(
             simulertUtbetaling = simulertUtbetaling,
             eksisterendeUtbetalinger = listOf(eksisterendeUtetaling),
-            clock = fixedClock,
+            clock = fixedClock.plus(2, ChronoUnit.SECONDS),
         ).resultat shouldBe simulertUtbetaling.right()
     }
 
@@ -196,7 +198,7 @@ internal class KontrollerSimuleringTest {
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     id = UUID30.randomUUID(),
-                    opprettet = Tidspunkt.now(),
+                    opprettet = fixedTidspunkt,
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.desember(2021),
                     forrigeUtbetalingslinjeId = null,
@@ -257,14 +259,14 @@ internal class KontrollerSimuleringTest {
         simulering: Simulering,
     ): Utbetaling.SimulertUtbetaling = Utbetaling.SimulertUtbetaling(
         id = UUID30.randomUUID(),
-        opprettet = Tidspunkt.now(),
+        opprettet = fixedTidspunkt,
         sakId = UUID.randomUUID(),
         saksnummer = Saksnummer(9999),
         fnr = fnr,
         utbetalingslinjer = utbetalingslinjer,
         type = type,
         behandler = NavIdentBruker.Saksbehandler("saksa"),
-        avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now()),
+        avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt),
         simulering = simulering,
     )
 

@@ -29,16 +29,15 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadstype
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.fixedClock
-import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -46,11 +45,11 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
-import org.mockito.kotlin.verifyZeroInteractions
 import java.util.UUID
 
-class NySøknadTest {
+class SøknadTest {
 
     private val søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build()
     private val fnr = søknadInnhold.personopplysninger.fnr
@@ -103,7 +102,7 @@ class NySøknadTest {
             dokArkivMock,
             oppgaveServiceMock
         )
-        verifyZeroInteractions(observerMock)
+        verifyNoInteractions(observerMock)
     }
 
     @Test
@@ -464,14 +463,13 @@ class NySøknadTest {
                 verify(oppgaveService).opprettOppgave(
                     argThat {
                         it.shouldBeEqualToIgnoringFields(
-                            OppgaveConfig.NySøknad(
+                            OppgaveConfig.Søknad(
                                 journalpostId = journalpostId,
                                 søknadId = UUID.randomUUID(), // ignored
                                 aktørId = person.ident.aktørId,
-                                søknadstype = Søknadstype.NY_PERIODE,
                             ),
-                            OppgaveConfig.NySøknad::søknadId,
-                            OppgaveConfig.NySøknad::saksreferanse,
+                            OppgaveConfig.Søknad::søknadId,
+                            OppgaveConfig.Søknad::saksreferanse,
                         )
                     },
                 )
@@ -583,14 +581,13 @@ class NySøknadTest {
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it.shouldBeEqualToIgnoringFields(
-                        OppgaveConfig.NySøknad(
+                        OppgaveConfig.Søknad(
                             journalpostId = journalpostId,
                             søknadId = UUID.randomUUID(), // ignored
-                            aktørId = person.ident.aktørId,
-                            søknadstype = Søknadstype.FØRSTEGANGSSØKNAD
+                            aktørId = person.ident.aktørId
                         ),
-                        OppgaveConfig.NySøknad::søknadId,
-                        OppgaveConfig.NySøknad::saksreferanse,
+                        OppgaveConfig.Søknad::søknadId,
+                        OppgaveConfig.Søknad::saksreferanse,
                     )
                 },
             )

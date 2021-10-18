@@ -39,7 +39,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIk
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler
 import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
-import no.nav.su.se.bakover.domain.søknadsbehandling.hentSøknadstypeFor
 import no.nav.su.se.bakover.domain.søknadsbehandling.medFritekstTilBrev
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -117,7 +116,8 @@ internal class SøknadsbehandlingServiceImpl(
             return SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
         }
 
-        val åpneSøknadsbehandlinger = søknadsbehandlingRepo.hentForSak(søknad.sakId).filterNot { it.erIverksatt }
+        val åpneSøknadsbehandlinger =
+            søknadsbehandlingRepo.hentForSak(søknad.sakId).filterNot { it.erIverksatt }.filterNot { it.erLukket }
         if (åpneSøknadsbehandlinger.isNotEmpty()) {
             return SøknadsbehandlingService.KunneIkkeOpprette.HarAlleredeÅpenSøknadsbehandling.left()
         }
@@ -238,17 +238,10 @@ internal class SøknadsbehandlingServiceImpl(
         val tilordnetRessurs: NavIdentBruker.Attestant? =
             søknadsbehandlingRepo.hentEventuellTidligereAttestering(søknadsbehandling.id)?.attestant
 
-        val søknadstype =
-            søknadsbehandlingRepo.hentForSak(søknadsbehandling.sakId).hentSøknadstypeFor(søknadsbehandling.id).getOrHandle {
-                return SøknadsbehandlingService.KunneIkkeSendeTilAttestering.KunneIkkeAvgjøreOmFørstegangEllerNyPeriode.left()
-            }
-
         val nyOppgaveId: OppgaveId = oppgaveService.opprettOppgave(
             OppgaveConfig.AttesterSøknadsbehandling(
                 søknadId = søknadsbehandling.søknad.id,
                 aktørId = aktørId,
-                søknadstype = søknadstype,
-                // Første gang den sendes til attestering er attestant null, de påfølgende gangene vil den være attestanten som har underkjent.
                 tilordnetRessurs = tilordnetRessurs,
             ),
         ).getOrElse {
@@ -298,15 +291,11 @@ internal class SøknadsbehandlingServiceImpl(
 
             val journalpostId: JournalpostId = underkjent.søknad.journalpostId
             val eksisterendeOppgaveId = underkjent.oppgaveId
-            val søknadstype =
-                søknadsbehandlingRepo.hentForSak(søknadsbehandling.sakId).hentSøknadstypeFor(søknadsbehandling.id)
+
             val nyOppgaveId = oppgaveService.opprettOppgave(
-                OppgaveConfig.NySøknad(
+                OppgaveConfig.Søknad(
                     journalpostId = journalpostId,
                     søknadId = underkjent.søknad.id,
-                    søknadstype = søknadstype.getOrHandle {
-                        return SøknadsbehandlingService.KunneIkkeUnderkjenne.KunneIkkeAvgjøreOmFørstegangEllerNyPeriode.left()
-                    },
                     aktørId = aktørId,
                     tilordnetRessurs = underkjent.saksbehandler,
                 ),

@@ -338,7 +338,7 @@ internal class PeriodeTest {
     }
 
     @Test
-    fun `før`() {
+    fun før() {
         Periode.create(1.januar(2021), 31.juli(2021)) før
             Periode.create(1.desember(2021), 31.desember(2021)) shouldBe true
 
@@ -350,7 +350,7 @@ internal class PeriodeTest {
     }
 
     @Test
-    fun `etter`() {
+    fun etter() {
         Periode.create(1.januar(2021), 31.juli(2021)) etter
             Periode.create(1.desember(2021), 31.desember(2021)) shouldBe false
 

@@ -53,7 +53,7 @@ internal sealed class LukketJson {
 }
 
 internal object LukkSøknadInputHandler {
-    suspend fun handle(
+    fun handle(
         body: String?,
         søknadId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler

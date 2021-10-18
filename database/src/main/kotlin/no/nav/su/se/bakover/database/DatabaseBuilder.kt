@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.hendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
+import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
@@ -38,13 +39,16 @@ import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotRepo
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
+import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
 import org.jetbrains.annotations.TestOnly
+import java.time.Clock
 import javax.sql.DataSource
 
 object DatabaseBuilder {
     fun build(
         databaseConfig: ApplicationConfig.DatabaseConfig,
         dbMetrics: DbMetrics,
+        clock: Clock,
     ): DatabaseRepos {
         val abstractDatasource = Postgres(databaseConfig = databaseConfig).build()
 
@@ -62,21 +66,23 @@ object DatabaseBuilder {
         }.migrate()
 
         val userDatastore = abstractDatasource.getDatasource(Postgres.Role.User)
-        return buildInternal(userDatastore, dbMetrics)
+        return buildInternal(userDatastore, dbMetrics, clock)
     }
 
     @TestOnly
     fun build(
         embeddedDatasource: DataSource,
         dbMetrics: DbMetrics,
+        clock: Clock,
     ): DatabaseRepos {
         // I testene ønsker vi ikke noe herjing med rolle; embedded-oppsettet sørger for at vi har riktige tilganger og er ferdigmigrert her.
-        return buildInternal(embeddedDatasource, dbMetrics)
+        return buildInternal(embeddedDatasource, dbMetrics, clock)
     }
 
     internal fun buildInternal(
         dataSource: DataSource,
         dbMetrics: DbMetrics,
+        clock: Clock,
     ): DatabaseRepos {
         val sessionFactory = PostgresSessionFactory(dataSource)
 
@@ -134,7 +140,8 @@ object DatabaseBuilder {
             dbMetrics = dbMetrics,
             sessionFactory = sessionFactory,
         )
-        val hendelseRepo = PersonhendelsePostgresRepo(dataSource)
+        val hendelseRepo = PersonhendelsePostgresRepo(dataSource, clock)
+        val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource)
 
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(dataSource),
@@ -168,6 +175,7 @@ object DatabaseBuilder {
             formueVilkårsvurderingRepo = formueVilkårsvurderingRepo,
             dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory),
             personhendelseRepo = hendelseRepo,
+            nøkkeltallRepo = nøkkeltallRepo,
             sessionFactory = sessionFactory,
         )
     }
@@ -189,5 +197,6 @@ data class DatabaseRepos(
     val formueVilkårsvurderingRepo: FormueVilkårsvurderingRepo,
     val personhendelseRepo: PersonhendelseRepo,
     val dokumentRepo: DokumentRepo,
+    val nøkkeltallRepo: NøkkeltallRepo,
     val sessionFactory: SessionFactory,
 )

@@ -152,7 +152,7 @@ sealed class Utbetaling {
          * TODO jah: Ved initialisering e.l. gjør en faktisk verifikasjon på at ref-verdier på utbetalingslinjene har riktig rekkefølge
          */
         fun List<Utbetaling>.hentOversendteUtbetalingerUtenFeil(): List<Utbetaling> =
-            this.filter { it is Utbetaling.OversendtUtbetaling.UtenKvittering || it is OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk() }
+            this.filter { it is OversendtUtbetaling.UtenKvittering || it is OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk() }
                 .sortedBy { it.opprettet.instant } // TODO potentially fix sorting
     }
 }

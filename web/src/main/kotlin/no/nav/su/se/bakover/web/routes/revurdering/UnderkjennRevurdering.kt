@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
-import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeAktørId
 import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigBody
@@ -62,7 +61,7 @@ internal fun Route.underkjennRevurdering(
                 Either.catch { deserialize<UnderkjennBody>(call) }.fold(
                     ifLeft = {
                         log.info("Ugyldig body: ", it)
-                        call.svar(Feilresponser.ugyldigBody)
+                        call.svar(ugyldigBody)
                     },
                     ifRight = { body ->
                         body.toDomain(navIdent).fold(

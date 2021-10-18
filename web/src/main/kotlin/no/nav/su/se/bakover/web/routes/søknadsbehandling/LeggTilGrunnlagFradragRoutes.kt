@@ -9,6 +9,7 @@ import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
 import io.ktor.routing.post
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -31,21 +32,25 @@ import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBehandlingId
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withSakId
+import java.time.Clock
 import java.util.UUID
 import kotlin.reflect.KClass
 
 internal fun Route.leggTilGrunnlagFradrag(
     behandlingService: SøknadsbehandlingService,
+    clock: Clock,
 ) {
 
     data class Body(
         val fradrag: List<FradragsgrunnlagJson>,
     ) {
-        fun toCommand(behandlingId: UUID): Either<Resultat, LeggTilFradragsgrunnlagRequest> =
+        fun toCommand(behandlingId: UUID, clock: Clock): Either<Resultat, LeggTilFradragsgrunnlagRequest> =
             LeggTilFradragsgrunnlagRequest(
                 behandlingId = behandlingId,
                 fradragsgrunnlag = fradrag.map { fradrag ->
                     Grunnlag.Fradragsgrunnlag.tryCreate(
+                        id = UUID.randomUUID(),
+                        opprettet = Tidspunkt.now(clock),
                         fradrag = FradragFactory.ny(
                             periode = fradrag.periode.toPeriode().getOrHandle { feilResultat ->
                                 return feilResultat.left()
@@ -77,7 +82,7 @@ internal fun Route.leggTilGrunnlagFradrag(
                 call.withBehandlingId { behandlingId ->
                     call.withBody<Body> { body ->
                         call.svar(
-                            body.toCommand(behandlingId).flatMap { command ->
+                            body.toCommand(behandlingId, clock).flatMap { command ->
                                 behandlingService.leggTilFradragsgrunnlag(command)
                                     .mapLeft {
                                         when (it) {

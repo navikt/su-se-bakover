@@ -48,6 +48,7 @@ import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.web.TestClientsBuilder
@@ -56,7 +57,6 @@ import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.dbMetricsStub
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.routes.sak.SakJson
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -97,6 +97,7 @@ internal class SøknadRoutesKtTest {
     private fun databaseRepos(dataSource: DataSource) = DatabaseBuilder.build(
         embeddedDatasource = dataSource,
         dbMetrics = dbMetricsStub,
+        clock = fixedClock,
     )
 
     private val trekkSøknadRequest = LukkSøknadRequest.MedBrev.TrekkSøknad(
@@ -189,12 +190,13 @@ internal class SøknadRoutesKtTest {
             on { sjekkTilgangTilPerson(any()) } doReturn PersonOppslagStub.sjekkTilgangTilPerson(fnr)
         }
         val oppgaveClient: OppgaveClient = mock {
-            on { opprettOppgave(any<OppgaveConfig.NySøknad>()) } doReturn OppgaveId("11").right()
+            on { opprettOppgave(any<OppgaveConfig.Søknad>()) } doReturn OppgaveId("11").right()
         }
         withMigratedDb { dataSource ->
             val repos = DatabaseBuilder.build(
                 embeddedDatasource = dataSource,
                 dbMetrics = dbMetricsStub,
+                clock = fixedClock,
             )
 
             val clients = TestClientsBuilder.build(applicationConfig).copy(

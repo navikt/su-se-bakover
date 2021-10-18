@@ -12,13 +12,12 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
-import no.nav.su.se.bakover.common.endOfDay
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
@@ -27,12 +26,9 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
-import java.time.Clock
-import java.time.ZoneOffset
 
 internal class PersonRoutesKtTest {
 
-    private val fixedClock: Clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
     private val testIdent = "12345678910"
     private val person = PersonOppslagStub.nyTestPerson(Fnr(testIdent))
 
@@ -101,7 +97,7 @@ internal class PersonRoutesKtTest {
                     "statsborgerskap": "NOR",
                     "kjønn": "MANN",
                     "fødselsdato": "1990-01-01",
-                    "alder": 30,
+                    "alder": 31,
                     "adressebeskyttelse": null,
                     "skjermet": false,
                     "kontaktinfo": {

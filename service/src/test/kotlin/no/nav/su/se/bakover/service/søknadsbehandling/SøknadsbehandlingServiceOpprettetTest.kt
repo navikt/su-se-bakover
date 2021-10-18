@@ -4,7 +4,6 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
@@ -18,6 +17,7 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.nySakMedNySøknad
 import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.saksnummer
@@ -67,7 +67,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
     @Test
     fun `svarer med feil dersom søknad allrede er lukket`() {
         val lukketSøknad = nySakMedjournalførtSøknadOgOppgave().second.lukk(
-            lukketTidspunkt = Tidspunkt.now(),
+            lukketTidspunkt = fixedTidspunkt,
             lukketAv = NavIdentBruker.Saksbehandler("sas"),
             type = Søknad.Journalført.MedOppgave.Lukket.LukketType.BORTFALT,
         )
