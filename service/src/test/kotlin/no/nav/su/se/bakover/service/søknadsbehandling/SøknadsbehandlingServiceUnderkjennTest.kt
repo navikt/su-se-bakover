@@ -50,8 +50,8 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.verifyNoMoreInteractions
-import org.mockito.kotlin.verifyZeroInteractions
 import java.util.UUID
 
 class SøknadsbehandlingServiceUnderkjennTest {
@@ -238,7 +238,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             oppgaveServiceMock,
             behandlingMetricsMock,
         )
-        verifyZeroInteractions(observerMock)
+        verifyNoInteractions(observerMock)
     }
 
     @Test
