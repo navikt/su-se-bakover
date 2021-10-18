@@ -11,8 +11,10 @@ import no.nav.su.se.bakover.client.dokdistfordeling.KunneIkkeBestilleDistribusjo
 import no.nav.su.se.bakover.client.pdf.KunneIkkeGenererePdf
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
@@ -32,12 +34,17 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.utbetaling.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattAvslagMedBeregning
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doReturnConsecutively
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
@@ -351,6 +358,75 @@ internal class BrevServiceImplTest {
         service.hentDokumenterFor(HentDokumenterForIdType.Revurdering(randomId)) shouldBe emptyList()
     }
 
+    @Test
+    fun `personservice finner ikke personen`() {
+        val vedtak = vedtakSøknadsbehandlingIverksattAvslagMedBeregning().second
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+        }
+
+        ServiceOgMocks(
+            personService = personServiceMock,
+        ).let {
+            it.brevService.lagDokument(vedtak) shouldBe KunneIkkeLageDokument.KunneIkkeHentePerson.left()
+        }
+    }
+
+    @Test
+    fun `microsoftGraphApiOppslag klarer ikke hente navnet`() {
+        val vedtak = vedtakSøknadsbehandlingIverksattAvslagMedBeregning().second
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
+        }
+
+        val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
+            on { hentNavnForNavIdent(any()) } doReturn MicrosoftGraphApiOppslagFeil.KallTilMicrosoftGraphApiFeilet.left()
+        }
+
+        ServiceOgMocks(
+            personService = personServiceMock,
+            microsoftGraphApiOppslag = microsoftGraphApiOppslagMock,
+        ).let {
+            it.brevService.lagDokument(vedtak) shouldBe KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
+            verify(it.personService).hentPerson(vedtak.behandling.fnr)
+            verify(it.microsoftGraphApiOppslag).hentNavnForNavIdent(vedtak.behandling.saksbehandler)
+            it.verifyNoMoreInteraction()
+        }
+    }
+
+    @Test
+    fun `klarer ikke å finne utbetalingen`() {
+        val (sak, vedtak) = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak()
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
+        }
+
+        val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
+            on { hentNavnForNavIdent(any()) } doReturnConsecutively listOf(
+                "Kåre Kropp".right(),
+                "Suveren Severin".right(),
+            )
+        }
+
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on { hentGjeldendeUtbetaling(any(), any()) } doReturn FantIkkeGjeldendeUtbetaling.left()
+        }
+
+        ServiceOgMocks(
+            personService = personServiceMock,
+            microsoftGraphApiOppslag = microsoftGraphApiOppslagMock,
+            utbetalingService = utbetalingServiceMock,
+            clock = fixedClock,
+        ).let {
+            it.brevService.lagDokument(vedtak) shouldBe KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling.left()
+            verify(it.personService).hentPerson(vedtak.tilRevurdering.behandling.fnr)
+            verify(it.microsoftGraphApiOppslag).hentNavnForNavIdent(vedtak.saksbehandler)
+            verify(it.microsoftGraphApiOppslag).hentNavnForNavIdent(vedtak.attesteringer.hentSisteAttestering().attestant)
+            verify(it.utbetalingService).hentGjeldendeUtbetaling(sak.id, vedtak.opprettet.toLocalDate(zoneIdOslo))
+            it.verifyNoMoreInteraction()
+        }
+    }
+
     private fun lagDokument(metadata: Dokument.Metadata): Dokument.MedMetadata.Vedtak {
         val utenMetadata = Dokument.UtenMetadata.Vedtak(
             id = UUID.randomUUID(),
@@ -411,7 +487,15 @@ internal class BrevServiceImplTest {
 
         fun verifyNoMoreInteraction() {
             verifyNoMoreInteractions(
-                pdfGenerator, dokArkiv, dokDistFordeling, dokumentRepo, sakService, personService,
+                pdfGenerator,
+                dokArkiv,
+                dokDistFordeling,
+                dokumentRepo,
+                sakService,
+                personService,
+                sessionFactory,
+                microsoftGraphApiOppslag,
+                utbetalingService,
             )
         }
     }
