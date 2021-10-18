@@ -69,31 +69,26 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
             clock = clock,
         )
 
+        val dokument = brevService.lagDokument(vedtak).getOrHandle {
+            return when (it) {
+                KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeAvslåSøknad.KunneIkkeFinneGjeldendeUtbetaling
+                KunneIkkeLageDokument.KunneIkkeGenererePDF -> KunneIkkeAvslåSøknad.KunneIkkeGenererePDF
+                KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeAvslåSøknad.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
+                KunneIkkeLageDokument.KunneIkkeHentePerson -> KunneIkkeAvslåSøknad.KunneIkkeHentePerson
+            }.left()
+        }.leggTilMetadata(
+            metadata = Dokument.Metadata(
+                sakId = vedtak.behandling.sakId,
+                søknadId = vedtak.behandling.søknad.id,
+                vedtakId = vedtak.id,
+                bestillBrev = true,
+            ),
+        )
+
         sessionFactory.withTransactionContext { tx ->
             søknadsbehandlingService.lagre(avslag, tx)
             vedtakService.lagre(vedtak, tx)
-
-            val dokument = brevService.lagDokument(vedtak).getOrHandle {
-                return@withTransactionContext when (it) {
-                    KunneIkkeLageDokument.FantIkkePerson -> KunneIkkeAvslåSøknad.FantIkkePerson
-                    KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeAvslåSøknad.KunneIkkeFinneGjeldendeUtbetaling
-                    KunneIkkeLageDokument.KunneIkkeGenererePDF -> KunneIkkeAvslåSøknad.KunneIkkeGenererePDF
-                    KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeAvslåSøknad.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
-                    KunneIkkeLageDokument.KunneIkkeHentePerson -> KunneIkkeAvslåSøknad.KunneIkkeHentePerson
-                }.left()
-            }
-
-            brevService.lagreDokument(
-                dokument.leggTilMetadata(
-                    metadata = Dokument.Metadata(
-                        sakId = vedtak.behandling.sakId,
-                        søknadId = vedtak.behandling.søknad.id,
-                        vedtakId = vedtak.id,
-                        bestillBrev = true,
-                    ),
-                ),
-                tx,
-            )
+            brevService.lagreDokument(dokument, tx)
         }
 
         oppgaveService.lukkOppgave(avslag.søknadsbehandling.oppgaveId)

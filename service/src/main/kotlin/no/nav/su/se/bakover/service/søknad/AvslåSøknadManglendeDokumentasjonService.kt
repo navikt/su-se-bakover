@@ -15,7 +15,6 @@ sealed class KunneIkkeAvslåSøknad {
     object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeAvslåSøknad()
     object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeAvslåSøknad()
     object KunneIkkeHentePerson : KunneIkkeAvslåSøknad()
-    object FantIkkePerson : KunneIkkeAvslåSøknad()
     object KunneIkkeGenererePDF : KunneIkkeAvslåSøknad()
     object FantIkkeSak : KunneIkkeAvslåSøknad()
 }

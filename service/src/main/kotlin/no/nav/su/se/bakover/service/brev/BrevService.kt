@@ -38,7 +38,6 @@ sealed class KunneIkkeLageDokument {
     object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeLageDokument()
     object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeLageDokument()
     object KunneIkkeHentePerson : KunneIkkeLageDokument()
-    object FantIkkePerson : KunneIkkeLageDokument()
     object KunneIkkeGenererePDF : KunneIkkeLageDokument()
 }
 

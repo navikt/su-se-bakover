@@ -164,11 +164,6 @@ internal fun Route.søknadRoutes(
                                         "Behandlingen er i ugyldig tilstand for avslag",
                                         "behandling_i_ugyldig_tilstand_for_avslag",
                                     )
-                                KunneIkkeAvslåSøknad.FantIkkePerson ->
-                                    NotFound.errorJson(
-                                        "Fant ikke person",
-                                        "fant_ikke_person",
-                                    )
                                 KunneIkkeAvslåSøknad.KunneIkkeFinneGjeldendeUtbetaling ->
                                     NotFound.errorJson(
                                         "Fant ikke gjeldende utbetaling",

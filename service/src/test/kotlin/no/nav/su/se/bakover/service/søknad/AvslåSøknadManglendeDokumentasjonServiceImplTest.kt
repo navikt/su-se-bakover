@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
@@ -376,6 +377,42 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             verify(it.oppgaveService).lukkOppgave(uavklart.oppgaveId)
             verify(it.sakService).hentSak(sak.id)
             it.verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `svarer med feil dersom opprettesle av dokument feiler`() {
+        val (_, uavklart) = søknadsbehandlingVilkårsvurdertUavklart()
+
+        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
+            on { opprett(any()) } doReturn uavklart.right()
+        }
+        val oppgaveServiceMock = mock<OppgaveService>() {
+            on { lukkOppgave(any()) } doReturn Unit.right()
+        }
+
+        val brevServiceMock = mock<BrevService>() {
+            on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
+        }
+
+        AvslåSøknadServiceAndMocks(
+            søknadsbehandlingService = søknadsbehandlingServiceMock,
+            oppgaveService = oppgaveServiceMock,
+            brevService = brevServiceMock,
+            clock = fixedClock,
+        ).let { serviceAndMocks ->
+            serviceAndMocks.service.avslå(
+                AvslåManglendeDokumentasjonRequest(
+                    søknadId,
+                    saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
+                    fritekstTilBrev = "finfin tekst",
+                ),
+            ) shouldBe KunneIkkeAvslåSøknad.KunneIkkeGenererePDF.left()
+
+            verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(søknadId)
+            verify(serviceAndMocks.søknadsbehandlingService).opprett(SøknadsbehandlingService.OpprettRequest(søknadId = søknadId))
+            verify(serviceAndMocks.brevService).lagDokument(any())
+            serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 
