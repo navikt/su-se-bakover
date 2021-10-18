@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.ForNav
 import no.nav.su.se.bakover.domain.Personopplysninger
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
@@ -17,8 +18,12 @@ val søknadId: UUID = UUID.randomUUID()
 val journalpostIdSøknad = JournalpostId("journalpostIdSøknad")
 val oppgaveIdSøknad = OppgaveId("oppgaveIdSøknad")
 
-fun søknadinnhold(fnr: Fnr = no.nav.su.se.bakover.test.fnr) = SøknadInnholdTestdataBuilder.build(
+fun søknadinnhold(
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    forNav: ForNav = SøknadInnholdTestdataBuilder.build().forNav,
+) = SøknadInnholdTestdataBuilder.build(
     personopplysninger = Personopplysninger(fnr),
+    forNav = forNav,
 )
 
 /** NySak med Søknad.Ny som ikke er journalført eller laget oppgave for enda*/
