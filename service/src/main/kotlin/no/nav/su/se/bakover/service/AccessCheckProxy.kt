@@ -681,7 +681,7 @@ open class AccessCheckProxy(
                 }
             },
             avslåSøknadManglendeDokumentasjonService = object : AvslåSøknadManglendeDokumentasjonService {
-                override fun avslå(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeAvslåSøknad, Vedtak.Avslag> {
+                override fun avslå(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeAvslåSøknad, Sak> {
                     assertHarTilgangTilSøknad(request.søknadId)
                     return services.avslåSøknadManglendeDokumentasjonService.avslå(request)
                 }

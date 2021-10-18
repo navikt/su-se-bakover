@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.service.søknad
 import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.persistence.SessionFactory
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
+import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import java.time.Clock
@@ -24,8 +25,9 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
     private val oppgaveService: OppgaveService,
     private val brevService: BrevService,
     private val sessionFactory: SessionFactory,
+    private val sakService: SakService,
 ) : AvslåSøknadManglendeDokumentasjonService {
-    override fun avslå(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeAvslåSøknad, Vedtak.Avslag> {
+    override fun avslå(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeAvslåSøknad, Sak> {
         return søknadsbehandlingService.hentForSøknad(request.søknadId)
             ?.let { harBehandlingFraFør(request, it) }
             ?: opprettNyBehandlingFørst(request)
@@ -34,13 +36,13 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
     private fun harBehandlingFraFør(
         request: AvslåManglendeDokumentasjonRequest,
         søknadsbehandling: Søknadsbehandling,
-    ): Either<KunneIkkeAvslåSøknad, Vedtak.Avslag> {
+    ): Either<KunneIkkeAvslåSøknad, Sak> {
         return avslå(request, søknadsbehandling)
     }
 
     private fun opprettNyBehandlingFørst(
         request: AvslåManglendeDokumentasjonRequest,
-    ): Either<KunneIkkeAvslåSøknad, Vedtak.Avslag> {
+    ): Either<KunneIkkeAvslåSøknad, Sak> {
         val søknadsbehandling = søknadsbehandlingService.opprett(
             request = SøknadsbehandlingService.OpprettRequest(
                 søknadId = request.søknadId,
@@ -53,7 +55,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
     private fun avslå(
         request: AvslåManglendeDokumentasjonRequest,
         søknadsbehandling: Søknadsbehandling,
-    ): Either<KunneIkkeAvslåSøknad, Vedtak.Avslag> {
+    ): Either<KunneIkkeAvslåSøknad, Sak> {
 
         val avslag = AvslagManglendeDokumentasjon.tryCreate(
             søknadsbehandling = søknadsbehandling,
@@ -99,6 +101,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
                 log.warn("Klarte ikke å lukke oppgave for søknadsbehandling: ${avslag.søknadsbehandling.id}, feil:$it")
             }
 
-        return vedtak.right()
+        return sakService.hentSak(vedtak.behandling.sakId)
+            .mapLeft { KunneIkkeAvslåSøknad.FantIkkeSak }
     }
 }

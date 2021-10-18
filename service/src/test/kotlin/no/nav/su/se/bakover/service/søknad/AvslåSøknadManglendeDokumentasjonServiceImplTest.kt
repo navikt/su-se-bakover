@@ -2,8 +2,8 @@ package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.left
 import arrow.core.right
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -17,10 +17,12 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
+import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.søknadId
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
@@ -28,16 +30,18 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.time.Clock
+import java.util.UUID
 
 internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
     @Test
     fun `kan avslå en søknad uten påbegynt behandling`() {
-        val (_, uavklart) = søknadsbehandlingVilkårsvurdertUavklart()
+        val (sak, uavklart) = søknadsbehandlingVilkårsvurdertUavklart()
 
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { opprett(any()) } doReturn uavklart.right()
@@ -56,13 +60,18 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             on { lagDokument(any()) } doReturn dokument.right()
         }
 
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(any<UUID>()) } doReturn sak.right()
+        }
+
         AvslåSøknadServiceAndMocks(
             søknadsbehandlingService = søknadsbehandlingServiceMock,
             oppgaveService = oppgaveServiceMock,
             brevService = brevServiceMock,
+            sakService = sakServiceMock,
             clock = fixedClock,
         ).let { serviceAndMocks ->
-            val response = serviceAndMocks.service.avslå(
+            serviceAndMocks.service.avslå(
                 AvslåManglendeDokumentasjonRequest(
                     søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
@@ -95,8 +104,8 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             )
 
             val expectedAvslagVilkår = Vedtak.Avslag.AvslagVilkår(
-                id = response.id,
-                opprettet = response.opprettet,
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
                 behandling = expectedSøknadsbehandling,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
                 attestant = NavIdentBruker.Attestant("saksemannen"),
@@ -110,32 +119,41 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 argThat { it.søknadsbehandling shouldBe expectedSøknadsbehandling },
                 argThat { TestSessionFactory.transactionContext },
             )
+            val actualVedtak = argumentCaptor<Vedtak>()
             verify(serviceAndMocks.vedtakService).lagre(
-                argThat { it shouldBe expectedAvslagVilkår },
+                actualVedtak.capture(),
                 argThat { TestSessionFactory.transactionContext },
-            )
+            ).also {
+                actualVedtak.firstValue.shouldBeEqualToIgnoringFields(
+                    expectedAvslagVilkår,
+                    Vedtak::id,
+                )
+            }
             verify(serviceAndMocks.oppgaveService).lukkOppgave(expectedSøknadsbehandling.oppgaveId)
-            verify(serviceAndMocks.brevService).lagDokument(argThat { it shouldBe expectedAvslagVilkår })
+            verify(serviceAndMocks.brevService).lagDokument(
+                argThat { it shouldBe actualVedtak.firstValue },
+            )
             verify(serviceAndMocks.brevService).lagreDokument(
                 argThat {
                     it shouldBe dokument.leggTilMetadata(
                         metadata = Dokument.Metadata(
                             sakId = expectedSøknadsbehandling.sakId,
                             søknadId = expectedSøknadsbehandling.søknad.id,
-                            vedtakId = expectedAvslagVilkår.id,
+                            vedtakId = actualVedtak.firstValue.id,
                             bestillBrev = true,
                         ),
                     )
                 },
                 argThat { TestSessionFactory.transactionContext },
             )
+            verify(serviceAndMocks.sakService).hentSak(expectedSøknadsbehandling.sakId)
             serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 
     @Test
     fun `kan avslå en søknad med påbegynt behandling`() {
-        val (_, vilkårsvurdertInnvilget) = søknadsbehandlingVilkårsvurdertInnvilget()
+        val (sak, vilkårsvurdertInnvilget) = søknadsbehandlingVilkårsvurdertInnvilget()
 
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { hentForSøknad(søknadId) } doReturn vilkårsvurdertInnvilget
@@ -154,13 +172,18 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             on { lagDokument(any()) } doReturn dokument.right()
         }
 
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(any<UUID>()) } doReturn sak.right()
+        }
+
         AvslåSøknadServiceAndMocks(
             søknadsbehandlingService = søknadsbehandlingServiceMock,
             oppgaveService = oppgaveServiceMock,
             brevService = brevServiceMock,
+            sakService = sakServiceMock,
             clock = fixedClock,
         ).let { serviceAndMocks ->
-            val response = serviceAndMocks.service.avslå(
+            serviceAndMocks.service.avslå(
                 AvslåManglendeDokumentasjonRequest(
                     søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
@@ -193,8 +216,8 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             )
 
             val expectedAvslagVilkår = Vedtak.Avslag.AvslagVilkår(
-                id = response.id,
-                opprettet = response.opprettet,
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
                 behandling = expectedSøknadsbehandling,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
                 attestant = NavIdentBruker.Attestant("saksemannen"),
@@ -207,25 +230,39 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 argThat { it.søknadsbehandling shouldBe expectedSøknadsbehandling },
                 argThat { TestSessionFactory.transactionContext },
             )
+            val actualVedtak = argumentCaptor<Vedtak>()
             verify(serviceAndMocks.vedtakService).lagre(
-                argThat { it shouldBe expectedAvslagVilkår },
+                actualVedtak.capture(),
                 argThat { TestSessionFactory.transactionContext },
-            )
+            ).also {
+                actualVedtak.firstValue.shouldBeEqualToIgnoringFields(
+                    expectedAvslagVilkår,
+                    Vedtak::id,
+                )
+            }
             verify(serviceAndMocks.oppgaveService).lukkOppgave(expectedSøknadsbehandling.oppgaveId)
-            verify(serviceAndMocks.brevService).lagDokument(argThat { it shouldBe expectedAvslagVilkår })
+            verify(serviceAndMocks.brevService).lagDokument(
+                argThat {
+                    it.shouldBeEqualToIgnoringFields(
+                        expectedAvslagVilkår,
+                        Vedtak::id,
+                    )
+                },
+            )
             verify(serviceAndMocks.brevService).lagreDokument(
                 argThat {
                     it shouldBe dokument.leggTilMetadata(
                         metadata = Dokument.Metadata(
                             sakId = expectedSøknadsbehandling.sakId,
                             søknadId = expectedSøknadsbehandling.søknad.id,
-                            vedtakId = expectedAvslagVilkår.id,
+                            vedtakId = actualVedtak.firstValue.id,
                             bestillBrev = true,
                         ),
                     )
                 },
                 argThat { TestSessionFactory.transactionContext },
             )
+            verify(serviceAndMocks.sakService).hentSak(expectedSøknadsbehandling.sakId)
             serviceAndMocks.verifyNoMoreInteractions()
         }
     }
@@ -281,13 +318,16 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
 
     @Test
     fun `overlever dersom lukking av oppgave feiler`() {
-        val (_, uavklart) = søknadsbehandlingVilkårsvurdertUavklart()
+        val (sak, uavklart) = søknadsbehandlingVilkårsvurdertUavklart()
 
         val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { opprett(any()) } doReturn uavklart.right()
         }
         val oppgaveServiceMock = mock<OppgaveService>() {
             on { lukkOppgave(any()) } doReturn OppgaveFeil.KunneIkkeLukkeOppgave.left()
+        }
+        val sakServiceMock = mock<SakService>() {
+            on { hentSak(any<UUID>()) } doReturn sak.right()
         }
 
         val dokument = Dokument.UtenMetadata.Vedtak(
@@ -304,17 +344,16 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             søknadsbehandlingService = søknadsbehandlingServiceMock,
             oppgaveService = oppgaveServiceMock,
             brevService = brevServiceMock,
+            sakService = sakServiceMock,
             clock = fixedClock,
         ).let {
-            val response = it.service.avslå(
+            it.service.avslå(
                 AvslåManglendeDokumentasjonRequest(
                     søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
                     fritekstTilBrev = "finfin tekst",
                 ),
             ).getOrFail("Feil i testdataoppsett")
-
-            response shouldBe beOfType<Vedtak.Avslag.AvslagVilkår>()
 
             verify(it.søknadsbehandlingService).hentForSøknad(any())
             verify(it.søknadsbehandlingService).opprett(any())
@@ -332,6 +371,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 argThat { TestSessionFactory.transactionContext },
             )
             verify(it.oppgaveService).lukkOppgave(uavklart.oppgaveId)
+            verify(it.sakService).hentSak(sak.id)
             it.verifyNoMoreInteractions()
         }
     }
@@ -343,6 +383,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
         val vedtakService: VedtakService = mock(),
         val oppgaveService: OppgaveService = mock(),
         val brevService: BrevService = mock(),
+        val sakService: SakService = mock(),
         val sessionFactory: SessionFactory = TestSessionFactory(),
     ) {
         val service = AvslåSøknadManglendeDokumentasjonServiceImpl(
@@ -352,6 +393,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             oppgaveService = oppgaveService,
             brevService = brevService,
             sessionFactory = sessionFactory,
+            sakService = sakService,
         )
 
         fun verifyNoMoreInteractions() {

@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -43,9 +44,12 @@ import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.service.ServiceBuilder
+import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
+import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.applicationConfig
@@ -54,6 +58,7 @@ import no.nav.su.se.bakover.web.dbMetricsStub
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.routes.sak.SakJson
+import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toSøknadInnholdJson
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukketJson
@@ -403,6 +408,47 @@ internal class SøknadRoutesKtTest {
                 verify(lukkSøknadServiceMock).lagBrevutkast(
                     argThat { it shouldBe trekkSøknadRequest },
                 )
+            }
+        }
+    }
+
+    @Test
+    fun `kan avslå søknad pga manglende dokumentasjon`() {
+        val (sak, _) = søknadsbehandlingIverksattAvslagUtenBeregning()
+        val service = mock<AvslåSøknadManglendeDokumentasjonService> {
+            on { avslå(any()) } doReturn sak.right()
+        }
+        withTestApplication(
+            {
+                testSusebakover(services = mockServices.copy(avslåSøknadManglendeDokumentasjonService = service))
+            },
+        ) {
+            defaultRequest(
+                method = Post,
+                uri = "$søknadPath/$søknadId/avslag",
+                roller = listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody(
+                    """
+                    {
+                        "fritekst" : "coco jambo"
+                    }
+                    """.trimIndent(),
+                )
+            }.apply {
+                response.status() shouldBe OK
+
+                verify(service).avslå(
+                    argThat {
+                        it shouldBe AvslåManglendeDokumentasjonRequest(
+                            søknadId = søknadId,
+                            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "Z990Lokal"),
+                            fritekstTilBrev = "coco jambo",
+                        )
+                    },
+                )
+
+                response.content shouldBe serialize(sak.toJson())
             }
         }
     }

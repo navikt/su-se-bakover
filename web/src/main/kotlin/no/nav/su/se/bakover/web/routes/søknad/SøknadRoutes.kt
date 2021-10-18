@@ -142,7 +142,7 @@ internal fun Route.søknadRoutes(
     data class WithFritekstBody(val fritekst: String)
 
     authorize(Brukerrolle.Saksbehandler) {
-        get("$søknadPath/{søknadId}/avslag") {
+        post("$søknadPath/{søknadId}/avslag") {
             call.withSøknadId { søknadId ->
                 call.withBody<WithFritekstBody> { body ->
                     avslåSøknadManglendeDokumentasjonService.avslå(
@@ -189,10 +189,16 @@ internal fun Route.søknadRoutes(
                                         "Kunne ikke hente person",
                                         "kunne_ikke_hente_person",
                                     )
+                                KunneIkkeAvslåSøknad.FantIkkeSak -> {
+                                    NotFound.errorJson(
+                                        "Kunne ikke finne sak",
+                                        "fant_ikke_sak",
+                                    )
+                                }
                             },
                         )
                     }.map {
-                        call.svar(Resultat.json(OK, it.toString())) // Her må vi vel mekke en ordentlig json...
+                        call.svar(Resultat.json(OK, serialize(it.toJson())))
                     }
                 }
             }

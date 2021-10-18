@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.service.søknad
 
 import arrow.core.Either
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.Sak
 import java.util.UUID
 
 interface AvslåSøknadManglendeDokumentasjonService {
-    fun avslå(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeAvslåSøknad, Vedtak.Avslag>
+    fun avslå(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeAvslåSøknad, Sak>
 }
 
 sealed class KunneIkkeAvslåSøknad {
@@ -17,6 +17,7 @@ sealed class KunneIkkeAvslåSøknad {
     object KunneIkkeHentePerson : KunneIkkeAvslåSøknad()
     object FantIkkePerson : KunneIkkeAvslåSøknad()
     object KunneIkkeGenererePDF : KunneIkkeAvslåSøknad()
+    object FantIkkeSak : KunneIkkeAvslåSøknad()
 }
 
 data class AvslåManglendeDokumentasjonRequest(
