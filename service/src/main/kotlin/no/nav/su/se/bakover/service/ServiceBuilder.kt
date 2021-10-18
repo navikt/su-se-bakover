@@ -185,6 +185,7 @@ object ServiceBuilder {
                 vedtakService = vedtakService,
                 oppgaveService = oppgaveService,
                 brevService = brevService,
+                sessionFactory = databaseRepos.sessionFactory,
             ),
         )
     }

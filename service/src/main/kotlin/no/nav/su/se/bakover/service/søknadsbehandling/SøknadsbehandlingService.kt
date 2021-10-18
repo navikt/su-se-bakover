@@ -37,7 +37,7 @@ interface SøknadsbehandlingService {
     fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling>
     fun hentForSøknad(søknadId: UUID): Søknadsbehandling?
     fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, sessionContext: SessionContext)
-    fun lagre(avslag: AvslagManglendeDokumentasjon)
+    fun lagre(avslag: AvslagManglendeDokumentasjon, sessionContext: SessionContext)
 
     data class OpprettRequest(
         val søknadId: UUID,

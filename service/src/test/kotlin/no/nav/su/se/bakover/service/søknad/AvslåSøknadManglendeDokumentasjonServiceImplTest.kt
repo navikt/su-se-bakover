@@ -31,6 +31,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import java.time.Clock
 
 internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
@@ -60,14 +61,14 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             oppgaveService = oppgaveServiceMock,
             brevService = brevServiceMock,
             clock = fixedClock,
-        ).let {
-            val response = it.service.avslå(
+        ).let { serviceAndMocks ->
+            val response = serviceAndMocks.service.avslå(
                 AvslåManglendeDokumentasjonRequest(
                     søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
                     fritekstTilBrev = "finfin tekst",
                 ),
-            ).getOrFail("$it")
+            ).getOrFail("$serviceAndMocks")
 
             val expectedSøknadsbehandling = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
                 id = uavklart.id,
@@ -103,17 +104,20 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 avslagsgrunner = listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON),
             )
 
-            verify(it.søknadsbehandlingService).hentForSøknad(søknadId)
-            verify(it.søknadsbehandlingService).opprett(SøknadsbehandlingService.OpprettRequest(søknadId = søknadId))
-            verify(it.søknadsbehandlingService).lagre(argThat { it.søknadsbehandling shouldBe expectedSøknadsbehandling })
-            verify(it.vedtakService).lagre(
+            verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(søknadId)
+            verify(serviceAndMocks.søknadsbehandlingService).opprett(SøknadsbehandlingService.OpprettRequest(søknadId = søknadId))
+            verify(serviceAndMocks.søknadsbehandlingService).lagre(
+                argThat { it.søknadsbehandling shouldBe expectedSøknadsbehandling },
+                argThat { TestSessionFactory.transactionContext },
+            )
+            verify(serviceAndMocks.vedtakService).lagre(
                 argThat {
                     it shouldBe expectedAvslagVilkår
                 },
             )
-            verify(it.oppgaveService).lukkOppgave(expectedSøknadsbehandling.oppgaveId)
-            verify(it.brevService).lagDokument(argThat { it shouldBe expectedAvslagVilkår })
-            verify(it.brevService).lagreDokument(
+            verify(serviceAndMocks.oppgaveService).lukkOppgave(expectedSøknadsbehandling.oppgaveId)
+            verify(serviceAndMocks.brevService).lagDokument(argThat { it shouldBe expectedAvslagVilkår })
+            verify(serviceAndMocks.brevService).lagreDokument(
                 argThat {
                     it shouldBe dokument.leggTilMetadata(
                         metadata = Dokument.Metadata(
@@ -125,7 +129,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     )
                 },
             )
-            it.verifyNoMoreInteractions()
+            serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 
@@ -155,14 +159,14 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             oppgaveService = oppgaveServiceMock,
             brevService = brevServiceMock,
             clock = fixedClock,
-        ).let {
-            val response = it.service.avslå(
+        ).let { serviceAndMocks ->
+            val response = serviceAndMocks.service.avslå(
                 AvslåManglendeDokumentasjonRequest(
                     søknadId,
                     saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
                     fritekstTilBrev = "finfin tekst",
                 ),
-            ).getOrFail("$it")
+            ).getOrFail("$serviceAndMocks")
 
             val expectedSøknadsbehandling = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
                 id = vilkårsvurdertInnvilget.id,
@@ -198,16 +202,19 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 avslagsgrunner = listOf(Avslagsgrunn.MANGLENDE_DOKUMENTASJON),
             )
 
-            verify(it.søknadsbehandlingService).hentForSøknad(søknadId)
-            verify(it.søknadsbehandlingService).lagre(argThat { it.søknadsbehandling shouldBe expectedSøknadsbehandling })
-            verify(it.vedtakService).lagre(
+            verify(serviceAndMocks.søknadsbehandlingService).hentForSøknad(søknadId)
+            verify(serviceAndMocks.søknadsbehandlingService).lagre(
+                argThat { it.søknadsbehandling shouldBe expectedSøknadsbehandling },
+                argThat { TestSessionFactory.transactionContext },
+            )
+            verify(serviceAndMocks.vedtakService).lagre(
                 argThat {
                     it shouldBe expectedAvslagVilkår
                 },
             )
-            verify(it.oppgaveService).lukkOppgave(expectedSøknadsbehandling.oppgaveId)
-            verify(it.brevService).lagDokument(argThat { it shouldBe expectedAvslagVilkår })
-            verify(it.brevService).lagreDokument(
+            verify(serviceAndMocks.oppgaveService).lukkOppgave(expectedSøknadsbehandling.oppgaveId)
+            verify(serviceAndMocks.brevService).lagDokument(argThat { it shouldBe expectedAvslagVilkår })
+            verify(serviceAndMocks.brevService).lagreDokument(
                 argThat {
                     it shouldBe dokument.leggTilMetadata(
                         metadata = Dokument.Metadata(
@@ -219,7 +226,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     )
                 },
             )
-            it.verifyNoMoreInteractions()
+            serviceAndMocks.verifyNoMoreInteractions()
         }
     }
 
@@ -242,6 +249,9 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     fritekstTilBrev = "finfin tekst",
                 ),
             ) shouldBe KunneIkkeAvslåSøknad.SøknadsbehandlingIUgyldigTilstandForAvslag.left()
+
+            verify(søknadsbehandlingServiceMock).hentForSøknad(søknadId)
+            it.verifyNoMoreInteractions()
         }
     }
 
@@ -262,6 +272,10 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     fritekstTilBrev = "finfin tekst",
                 ),
             ) shouldBe KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.left()
+
+            verify(søknadsbehandlingServiceMock).hentForSøknad(any())
+            verify(søknadsbehandlingServiceMock).opprett(any())
+            it.verifyNoMoreInteractions()
         }
     }
 
@@ -304,7 +318,10 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
 
             verify(it.søknadsbehandlingService).hentForSøknad(any())
             verify(it.søknadsbehandlingService).opprett(any())
-            verify(it.søknadsbehandlingService).lagre(any())
+            verify(it.søknadsbehandlingService).lagre(
+                any(),
+                argThat { TestSessionFactory.transactionContext },
+            )
             verify(it.vedtakService).lagre(any())
             verify(it.oppgaveService).lukkOppgave(uavklart.oppgaveId)
             verify(it.brevService).lagDokument(any())
@@ -328,10 +345,11 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
             vedtakService = vedtakService,
             oppgaveService = oppgaveService,
             brevService = brevService,
+            sessionFactory = sessionFactory,
         )
 
         fun verifyNoMoreInteractions() {
-            org.mockito.kotlin.verifyNoMoreInteractions(
+            verifyNoMoreInteractions(
                 søknadService,
                 søknadsbehandlingService,
                 vedtakService,

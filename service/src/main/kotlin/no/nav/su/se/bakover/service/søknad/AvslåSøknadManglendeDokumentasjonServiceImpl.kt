@@ -5,6 +5,7 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.log
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -22,6 +23,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
     private val vedtakService: VedtakService,
     private val oppgaveService: OppgaveService,
     private val brevService: BrevService,
+    private val sessionFactory: SessionFactory,
 ) : AvslåSøknadManglendeDokumentasjonService {
     override fun avslå(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeAvslåSøknad, Vedtak.Avslag> {
         return søknadsbehandlingService.hentForSøknad(request.søknadId)
@@ -64,8 +66,9 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
             avslag = avslag,
             clock = clock,
         )
-        // TODO transaksjon
-        søknadsbehandlingService.lagre(avslag)
+        sessionFactory.withTransactionContext { tx ->
+            søknadsbehandlingService.lagre(avslag, tx)
+        }
         vedtakService.lagre(vedtak)
 
         oppgaveService.lukkOppgave(avslag.søknadsbehandling.oppgaveId)

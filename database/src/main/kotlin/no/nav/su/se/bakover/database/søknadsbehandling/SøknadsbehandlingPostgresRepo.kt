@@ -103,8 +103,8 @@ internal class SøknadsbehandlingPostgresRepo(
         }
     }
 
-    override fun lagreAvslagManglendeDokumentasjon(avslag: AvslagManglendeDokumentasjon) {
-        dataSource.withSession { session ->
+    override fun lagreAvslagManglendeDokumentasjon(avslag: AvslagManglendeDokumentasjon, sessionContext: SessionContext) {
+        sessionContext.withSession { session ->
             (
                 """
                     update behandling set

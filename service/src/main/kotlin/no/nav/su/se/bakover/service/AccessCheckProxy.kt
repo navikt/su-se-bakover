@@ -479,7 +479,7 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun lagre(avslag: AvslagManglendeDokumentasjon) {
+                override fun lagre(avslag: AvslagManglendeDokumentasjon, sessionContext: SessionContext) {
                     kastKanKunKallesFraAnnenService()
                 }
             },

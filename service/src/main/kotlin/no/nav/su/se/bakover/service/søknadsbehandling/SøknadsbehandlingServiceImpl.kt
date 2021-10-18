@@ -771,7 +771,7 @@ internal class SøknadsbehandlingServiceImpl(
         søknadsbehandlingRepo.lagre(lukketSøknadbehandling, sessionContext)
     }
 
-    override fun lagre(avslag: AvslagManglendeDokumentasjon) {
-        return søknadsbehandlingRepo.lagreAvslagManglendeDokumentasjon(avslag)
+    override fun lagre(avslag: AvslagManglendeDokumentasjon, sessionContext: SessionContext) {
+        return søknadsbehandlingRepo.lagreAvslagManglendeDokumentasjon(avslag, sessionContext)
     }
 }

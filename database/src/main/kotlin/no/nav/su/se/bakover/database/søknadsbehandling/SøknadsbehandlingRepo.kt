@@ -13,7 +13,7 @@ interface SøknadsbehandlingRepo {
     fun hent(id: UUID): Søknadsbehandling?
     fun hentEventuellTidligereAttestering(id: UUID): Attestering?
     fun hentForSak(sakId: UUID, sessionContext: SessionContext = defaultSessionContext()): List<Søknadsbehandling>
-    fun lagreAvslagManglendeDokumentasjon(avslag: AvslagManglendeDokumentasjon)
+    fun lagreAvslagManglendeDokumentasjon(avslag: AvslagManglendeDokumentasjon, sessionContext: SessionContext = defaultSessionContext())
 
     /** En søknad kan kun være knyttet til 0 eller 1 søknadsbehandling. */
     fun hentForSøknad(søknadId: UUID): Søknadsbehandling?
