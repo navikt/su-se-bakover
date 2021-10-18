@@ -132,6 +132,7 @@ object DatabaseBuilder {
             søknadsbehandlingRepo = saksbehandlingRepo,
             revurderingRepo = revurderingRepo,
             dbMetrics = dbMetrics,
+            sessionFactory = sessionFactory,
         )
         val hendelseRepo = PersonhendelsePostgresRepo(dataSource)
 

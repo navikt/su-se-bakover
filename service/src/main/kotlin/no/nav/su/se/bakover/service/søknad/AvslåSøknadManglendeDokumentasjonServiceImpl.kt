@@ -68,8 +68,8 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
         )
         sessionFactory.withTransactionContext { tx ->
             søknadsbehandlingService.lagre(avslag, tx)
+            vedtakService.lagre(vedtak, tx)
         }
-        vedtakService.lagre(vedtak)
 
         oppgaveService.lukkOppgave(avslag.søknadsbehandling.oppgaveId)
             .mapLeft {

@@ -5,8 +5,11 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DbMetrics
+import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
+import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
@@ -19,7 +22,6 @@ import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.uuid30OrNull
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -48,6 +50,7 @@ interface VedtakRepo {
     fun hentForSakId(sakId: UUID): List<Vedtak>
     fun hentAktive(dato: LocalDate): List<Vedtak.EndringIYtelse>
     fun lagre(vedtak: Vedtak)
+    fun lagre(vedtak: Vedtak, sessionContext: TransactionContext)
     fun hentForUtbetaling(utbetalingId: UUID30): Vedtak?
     fun hentAlle(): List<Vedtak>
 }
@@ -57,6 +60,7 @@ internal class VedtakPostgresRepo(
     private val søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
     private val revurderingRepo: RevurderingPostgresRepo,
     private val dbMetrics: DbMetrics,
+    private val sessionFactory: PostgresSessionFactory,
 ) : VedtakRepo {
 
     override fun hentForSakId(sakId: UUID): List<Vedtak> {
@@ -77,11 +81,19 @@ internal class VedtakPostgresRepo(
             }
 
     override fun lagre(vedtak: Vedtak) =
-        when (vedtak) {
-            is Vedtak.EndringIYtelse -> lagre(vedtak)
-            is Vedtak.Avslag -> lagre(vedtak)
-            is Vedtak.IngenEndringIYtelse -> lagre(vedtak)
+        sessionFactory.withTransactionContext { tx ->
+            lagre(vedtak, tx)
         }
+
+    override fun lagre(vedtak: Vedtak, sessionContext: TransactionContext) {
+        return sessionContext.withSession { tx ->
+            when (vedtak) {
+                is Vedtak.EndringIYtelse -> lagreInternt(vedtak, tx)
+                is Vedtak.Avslag -> lagreInternt(vedtak, tx)
+                is Vedtak.IngenEndringIYtelse -> lagreInternt(vedtak, tx)
+            }
+        }
+    }
 
     override fun hentForUtbetaling(utbetalingId: UUID30): Vedtak? {
         return dataSource.withSession { session ->
@@ -248,9 +260,8 @@ internal class VedtakPostgresRepo(
         }
     }
 
-    private fun lagre(vedtak: Vedtak.EndringIYtelse) {
-        dataSource.withTransaction { tx ->
-            """
+    private fun lagreInternt(vedtak: Vedtak.EndringIYtelse, session: Session) {
+        """
                 INSERT INTO vedtak(
                     id,
                     opprettet,
@@ -274,50 +285,48 @@ internal class VedtakPostgresRepo(
                     to_json(:beregning::json),
                     :vedtaktype
                 )
-            """.trimIndent()
-                .insert(
-                    mapOf(
-                        "id" to vedtak.id,
-                        "opprettet" to vedtak.opprettet,
-                        "fraOgMed" to vedtak.periode.fraOgMed,
-                        "tilOgMed" to vedtak.periode.tilOgMed,
-                        "saksbehandler" to vedtak.saksbehandler,
-                        "attestant" to vedtak.attestant,
-                        "utbetalingid" to vedtak.utbetalingId,
-                        "simulering" to objectMapper.writeValueAsString(vedtak.simulering),
-                        "beregning" to when (vedtak) {
-                            is Vedtak.EndringIYtelse.GjenopptakAvYtelse ->
-                                null
-                            is Vedtak.EndringIYtelse.StansAvYtelse ->
-                                null
-                            is Vedtak.EndringIYtelse.InnvilgetRevurdering ->
-                                objectMapper.writeValueAsString(vedtak.beregning.toSnapshot())
-                            is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling ->
-                                objectMapper.writeValueAsString(vedtak.beregning.toSnapshot())
-                            is Vedtak.EndringIYtelse.OpphørtRevurdering ->
-                                objectMapper.writeValueAsString(vedtak.beregning.toSnapshot())
-                        },
-                        "vedtaktype" to when (vedtak) {
-                            is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> VedtakType.GJENOPPTAK_AV_YTELSE
-                            is Vedtak.EndringIYtelse.InnvilgetRevurdering -> VedtakType.ENDRING
-                            is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling -> VedtakType.SØKNAD
-                            is Vedtak.EndringIYtelse.OpphørtRevurdering -> VedtakType.OPPHØR
-                            is Vedtak.EndringIYtelse.StansAvYtelse -> VedtakType.STANS_AV_YTELSE
-                        },
-                    ),
-                    tx,
-                )
-            lagreBehandlingVedtakKnytning(vedtak, tx)
-        }
+        """.trimIndent()
+            .insert(
+                mapOf(
+                    "id" to vedtak.id,
+                    "opprettet" to vedtak.opprettet,
+                    "fraOgMed" to vedtak.periode.fraOgMed,
+                    "tilOgMed" to vedtak.periode.tilOgMed,
+                    "saksbehandler" to vedtak.saksbehandler,
+                    "attestant" to vedtak.attestant,
+                    "utbetalingid" to vedtak.utbetalingId,
+                    "simulering" to objectMapper.writeValueAsString(vedtak.simulering),
+                    "beregning" to when (vedtak) {
+                        is Vedtak.EndringIYtelse.GjenopptakAvYtelse ->
+                            null
+                        is Vedtak.EndringIYtelse.StansAvYtelse ->
+                            null
+                        is Vedtak.EndringIYtelse.InnvilgetRevurdering ->
+                            objectMapper.writeValueAsString(vedtak.beregning.toSnapshot())
+                        is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling ->
+                            objectMapper.writeValueAsString(vedtak.beregning.toSnapshot())
+                        is Vedtak.EndringIYtelse.OpphørtRevurdering ->
+                            objectMapper.writeValueAsString(vedtak.beregning.toSnapshot())
+                    },
+                    "vedtaktype" to when (vedtak) {
+                        is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> VedtakType.GJENOPPTAK_AV_YTELSE
+                        is Vedtak.EndringIYtelse.InnvilgetRevurdering -> VedtakType.ENDRING
+                        is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling -> VedtakType.SØKNAD
+                        is Vedtak.EndringIYtelse.OpphørtRevurdering -> VedtakType.OPPHØR
+                        is Vedtak.EndringIYtelse.StansAvYtelse -> VedtakType.STANS_AV_YTELSE
+                    },
+                ),
+                session,
+            )
+        lagreBehandlingVedtakKnytning(vedtak, session)
     }
 
-    private fun lagre(vedtak: Vedtak.Avslag) {
+    private fun lagreInternt(vedtak: Vedtak.Avslag, session: Session) {
         val beregning = when (vedtak) {
             is Vedtak.Avslag.AvslagBeregning -> vedtak.beregning
             is Vedtak.Avslag.AvslagVilkår -> null
         }
-        dataSource.withTransaction { tx ->
-            """
+        """
                 insert into vedtak(
                     id,
                     opprettet,
@@ -343,28 +352,26 @@ internal class VedtakPostgresRepo(
                     :vedtaktype,
                     to_json(:avslagsgrunner::json)
                 )
-            """.trimIndent()
-                .insert(
-                    mapOf(
-                        "id" to vedtak.id,
-                        "opprettet" to vedtak.opprettet,
-                        "fraOgMed" to vedtak.periode.fraOgMed,
-                        "tilOgMed" to vedtak.periode.tilOgMed,
-                        "saksbehandler" to vedtak.saksbehandler,
-                        "attestant" to vedtak.attestant,
-                        "beregning" to beregning?.let { objectMapper.writeValueAsString(it.toSnapshot()) },
-                        "vedtaktype" to VedtakType.AVSLAG,
-                        "avslagsgrunner" to vedtak.avslagsgrunner.serialize(),
-                    ),
-                    tx,
-                )
-            lagreBehandlingVedtakKnytning(vedtak, tx)
-        }
+        """.trimIndent()
+            .insert(
+                mapOf(
+                    "id" to vedtak.id,
+                    "opprettet" to vedtak.opprettet,
+                    "fraOgMed" to vedtak.periode.fraOgMed,
+                    "tilOgMed" to vedtak.periode.tilOgMed,
+                    "saksbehandler" to vedtak.saksbehandler,
+                    "attestant" to vedtak.attestant,
+                    "beregning" to beregning?.let { objectMapper.writeValueAsString(it.toSnapshot()) },
+                    "vedtaktype" to VedtakType.AVSLAG,
+                    "avslagsgrunner" to vedtak.avslagsgrunner.serialize(),
+                ),
+                session,
+            )
+        lagreBehandlingVedtakKnytning(vedtak, session)
     }
 
-    private fun lagre(vedtak: Vedtak.IngenEndringIYtelse) {
-        dataSource.withTransaction { tx ->
-            """
+    private fun lagreInternt(vedtak: Vedtak.IngenEndringIYtelse, session: Session) {
+        """
                 INSERT INTO vedtak(
                     id,
                     opprettet,
@@ -388,63 +395,63 @@ internal class VedtakPostgresRepo(
                     to_json(:beregning::json),
                     :vedtaktype
                 )
-            """.trimIndent()
-                .insert(
-                    mapOf(
-                        "id" to vedtak.id,
-                        "opprettet" to vedtak.opprettet,
-                        "fraOgMed" to vedtak.periode.fraOgMed,
-                        "tilOgMed" to vedtak.periode.tilOgMed,
-                        "saksbehandler" to vedtak.saksbehandler,
-                        "attestant" to vedtak.attestant,
-                        "utbetalingid" to null,
-                        "simulering" to null,
-                        "beregning" to objectMapper.writeValueAsString(vedtak.beregning.toSnapshot()),
-                        "vedtaktype" to VedtakType.INGEN_ENDRING,
-                    ),
-                    tx,
-                )
-            lagreBehandlingVedtakKnytning(vedtak, tx)
-        }
+        """.trimIndent()
+            .insert(
+                mapOf(
+                    "id" to vedtak.id,
+                    "opprettet" to vedtak.opprettet,
+                    "fraOgMed" to vedtak.periode.fraOgMed,
+                    "tilOgMed" to vedtak.periode.tilOgMed,
+                    "saksbehandler" to vedtak.saksbehandler,
+                    "attestant" to vedtak.attestant,
+                    "utbetalingid" to null,
+                    "simulering" to null,
+                    "beregning" to objectMapper.writeValueAsString(vedtak.beregning.toSnapshot()),
+                    "vedtaktype" to VedtakType.INGEN_ENDRING,
+                ),
+                session,
+            )
+        lagreBehandlingVedtakKnytning(vedtak, session)
+    }
+}
+
+private fun lagreBehandlingVedtakKnytning(vedtak: Vedtak, session: Session) {
+    val knytning = when (vedtak.behandling) {
+        is AbstraktRevurdering ->
+            BehandlingVedtakKnytning.ForRevurdering(
+                vedtakId = vedtak.id,
+                sakId = vedtak.behandling.sakId,
+                revurderingId = vedtak.behandling.id,
+            )
+        is Søknadsbehandling ->
+            BehandlingVedtakKnytning.ForSøknadsbehandling(
+                vedtakId = vedtak.id,
+                sakId = vedtak.behandling.sakId,
+                søknadsbehandlingId = vedtak.behandling.id,
+            )
+        else ->
+            throw IllegalArgumentException("vedtak.behandling er av ukjent type. Den må være en revurdering eller en søknadsbehandling.")
     }
 
-    private fun lagreBehandlingVedtakKnytning(vedtak: Vedtak, session: Session) {
-        val knytning = when (vedtak.behandling) {
-            is AbstraktRevurdering ->
-                BehandlingVedtakKnytning.ForRevurdering(
-                    vedtakId = vedtak.id,
-                    sakId = vedtak.behandling.sakId,
-                    revurderingId = vedtak.behandling.id,
+    val map = mapOf(
+        "id" to knytning.id,
+        "vedtakId" to knytning.vedtakId,
+        "sakId" to knytning.sakId,
+    ).plus(
+        when (knytning) {
+            is BehandlingVedtakKnytning.ForSøknadsbehandling ->
+                mapOf(
+                    "soknadsbehandlingId" to knytning.søknadsbehandlingId,
+                    "revurderingId" to null,
                 )
-            is Søknadsbehandling ->
-                BehandlingVedtakKnytning.ForSøknadsbehandling(
-                    vedtakId = vedtak.id,
-                    sakId = vedtak.behandling.sakId,
-                    søknadsbehandlingId = vedtak.behandling.id,
+            is BehandlingVedtakKnytning.ForRevurdering ->
+                mapOf(
+                    "soknadsbehandlingId" to null,
+                    "revurderingId" to knytning.revurderingId,
                 )
-            else ->
-                throw IllegalArgumentException("vedtak.behandling er av ukjent type. Den må være en revurdering eller en søknadsbehandling.")
-        }
-
-        val map = mapOf(
-            "id" to knytning.id,
-            "vedtakId" to knytning.vedtakId,
-            "sakId" to knytning.sakId,
-        ).plus(
-            when (knytning) {
-                is BehandlingVedtakKnytning.ForSøknadsbehandling ->
-                    mapOf(
-                        "soknadsbehandlingId" to knytning.søknadsbehandlingId,
-                        "revurderingId" to null,
-                    )
-                is BehandlingVedtakKnytning.ForRevurdering ->
-                    mapOf(
-                        "soknadsbehandlingId" to null,
-                        "revurderingId" to knytning.revurderingId,
-                    )
-            },
-        )
-        """
+        },
+    )
+    """
                 INSERT INTO behandling_vedtak
                 (
                     id,
@@ -459,71 +466,70 @@ internal class VedtakPostgresRepo(
                     :soknadsbehandlingId,
                     :revurderingId
                 ) ON CONFLICT ON CONSTRAINT unique_vedtakid DO NOTHING
-        """.trimIndent()
-            .insert(
-                map,
-                session,
-            )
-    }
+    """.trimIndent()
+        .insert(
+            map,
+            session,
+        )
+}
 
-    private fun hentBehandlingVedtakKnytning(vedtakId: UUID, session: Session): BehandlingVedtakKnytning? =
-        """
+private fun hentBehandlingVedtakKnytning(vedtakId: UUID, session: Session): BehandlingVedtakKnytning? =
+    """
             SELECT *
             FROM behandling_vedtak
             WHERE vedtakId = :vedtakId
-        """.trimIndent()
-            .hent(
-                mapOf("vedtakId" to vedtakId),
-                session,
-            ) {
-                val id = it.uuid("id")
-                val vedtakId2 = it.uuid("vedtakId")
-                val sakId = it.uuid("sakId")
-                val søknadsbehandlingId = it.stringOrNull("søknadsbehandlingId")
-                val revurderingId = it.stringOrNull("revurderingId")
+    """.trimIndent()
+        .hent(
+            mapOf("vedtakId" to vedtakId),
+            session,
+        ) {
+            val id = it.uuid("id")
+            val vedtakId2 = it.uuid("vedtakId")
+            val sakId = it.uuid("sakId")
+            val søknadsbehandlingId = it.stringOrNull("søknadsbehandlingId")
+            val revurderingId = it.stringOrNull("revurderingId")
 
-                when {
-                    revurderingId == null && søknadsbehandlingId != null -> {
-                        BehandlingVedtakKnytning.ForSøknadsbehandling(
-                            id = id,
-                            vedtakId = vedtakId2,
-                            sakId = sakId,
-                            søknadsbehandlingId = UUID.fromString(søknadsbehandlingId),
-                        )
-                    }
-                    revurderingId != null && søknadsbehandlingId == null -> {
-                        BehandlingVedtakKnytning.ForRevurdering(
-                            id = id,
-                            vedtakId = vedtakId2,
-                            sakId = sakId,
-                            revurderingId = UUID.fromString(revurderingId),
-                        )
-                    }
-                    else -> {
-                        throw IllegalStateException(
-                            "Fant ugyldig behandling-vedtak-knytning. søknadsbehandlingId=$søknadsbehandlingId, revurderingId=$revurderingId. Èn og nøyaktig èn av dem må være satt.",
-                        )
-                    }
+            when {
+                revurderingId == null && søknadsbehandlingId != null -> {
+                    BehandlingVedtakKnytning.ForSøknadsbehandling(
+                        id = id,
+                        vedtakId = vedtakId2,
+                        sakId = sakId,
+                        søknadsbehandlingId = UUID.fromString(søknadsbehandlingId),
+                    )
+                }
+                revurderingId != null && søknadsbehandlingId == null -> {
+                    BehandlingVedtakKnytning.ForRevurdering(
+                        id = id,
+                        vedtakId = vedtakId2,
+                        sakId = sakId,
+                        revurderingId = UUID.fromString(revurderingId),
+                    )
+                }
+                else -> {
+                    throw IllegalStateException(
+                        "Fant ugyldig behandling-vedtak-knytning. søknadsbehandlingId=$søknadsbehandlingId, revurderingId=$revurderingId. Èn og nøyaktig èn av dem må være satt.",
+                    )
                 }
             }
+        }
 
-    private sealed class BehandlingVedtakKnytning {
-        abstract val id: UUID
-        abstract val vedtakId: UUID
-        abstract val sakId: UUID
+private sealed class BehandlingVedtakKnytning {
+    abstract val id: UUID
+    abstract val vedtakId: UUID
+    abstract val sakId: UUID
 
-        data class ForSøknadsbehandling(
-            override val id: UUID = UUID.randomUUID(),
-            override val vedtakId: UUID,
-            override val sakId: UUID,
-            val søknadsbehandlingId: UUID,
-        ) : BehandlingVedtakKnytning()
+    data class ForSøknadsbehandling(
+        override val id: UUID = UUID.randomUUID(),
+        override val vedtakId: UUID,
+        override val sakId: UUID,
+        val søknadsbehandlingId: UUID,
+    ) : BehandlingVedtakKnytning()
 
-        data class ForRevurdering(
-            override val id: UUID = UUID.randomUUID(),
-            override val vedtakId: UUID,
-            override val sakId: UUID,
-            val revurderingId: UUID,
-        ) : BehandlingVedtakKnytning()
-    }
+    data class ForRevurdering(
+        override val id: UUID = UUID.randomUUID(),
+        override val vedtakId: UUID,
+        override val sakId: UUID,
+        val revurderingId: UUID,
+    ) : BehandlingVedtakKnytning()
 }

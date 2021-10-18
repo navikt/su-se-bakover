@@ -111,9 +111,8 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 argThat { TestSessionFactory.transactionContext },
             )
             verify(serviceAndMocks.vedtakService).lagre(
-                argThat {
-                    it shouldBe expectedAvslagVilkår
-                },
+                argThat { it shouldBe expectedAvslagVilkår },
+                argThat { TestSessionFactory.transactionContext },
             )
             verify(serviceAndMocks.oppgaveService).lukkOppgave(expectedSøknadsbehandling.oppgaveId)
             verify(serviceAndMocks.brevService).lagDokument(argThat { it shouldBe expectedAvslagVilkår })
@@ -208,9 +207,8 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 argThat { TestSessionFactory.transactionContext },
             )
             verify(serviceAndMocks.vedtakService).lagre(
-                argThat {
-                    it shouldBe expectedAvslagVilkår
-                },
+                argThat { it shouldBe expectedAvslagVilkår },
+                argThat { TestSessionFactory.transactionContext },
             )
             verify(serviceAndMocks.oppgaveService).lukkOppgave(expectedSøknadsbehandling.oppgaveId)
             verify(serviceAndMocks.brevService).lagDokument(argThat { it shouldBe expectedAvslagVilkår })
@@ -322,7 +320,10 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 any(),
                 argThat { TestSessionFactory.transactionContext },
             )
-            verify(it.vedtakService).lagre(any())
+            verify(it.vedtakService).lagre(
+                any(),
+                argThat { TestSessionFactory.transactionContext },
+            )
             verify(it.oppgaveService).lukkOppgave(uavklart.oppgaveId)
             verify(it.brevService).lagDokument(any())
             verify(it.brevService).lagreDokument(any())
