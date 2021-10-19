@@ -97,9 +97,10 @@ data class Sak(
         return GjeldendeVedtaksdata(
             periode = månedsperiode,
             vedtakListe = NonEmptyList.fromListUnsafe(
-                vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().filterNot { it is Vedtak.EndringIYtelse.GjenopptakAvYtelse || it is Vedtak.EndringIYtelse.StansAvYtelse }.ifEmpty {
-                    return null
-                },
+                vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+                    .filterNot { it is Vedtak.EndringIYtelse.GjenopptakAvYtelse || it is Vedtak.EndringIYtelse.StansAvYtelse || it is Vedtak.IngenEndringIYtelse }.ifEmpty {
+                        return null
+                    },
             ),
             clock = clock,
         ).gjeldendeVedtakPåDato(månedsperiode.fraOgMed)?.let {
@@ -107,7 +108,7 @@ data class Sak(
                 is Vedtak.EndringIYtelse.InnvilgetRevurdering -> it.beregning
                 is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling -> it.beregning
                 is Vedtak.EndringIYtelse.OpphørtRevurdering -> it.beregning
-                is Vedtak.IngenEndringIYtelse -> it.beregning
+                is Vedtak.IngenEndringIYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.IngenEndring")
                 is Vedtak.EndringIYtelse.StansAvYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.StansAvYtelse")
                 is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.GjenopptakAvYtelse")
             }
