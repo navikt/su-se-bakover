@@ -10,7 +10,6 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
@@ -21,7 +20,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -62,8 +60,8 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.person
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.beregning.TestBeregningSomGirOpphør
-import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
+import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.formueVilkår
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
@@ -79,6 +77,7 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.attestant
+import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
@@ -92,6 +91,7 @@ import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksbehandlerNavn
 import no.nav.su.se.bakover.test.saksnummer
+import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgInnvilgetFormue
@@ -101,6 +101,7 @@ import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doReturnConsecutively
+import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
@@ -108,6 +109,7 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
+import no.nav.su.se.bakover.service.brev.BrevService as BrevService1
 
 internal class RevurderingServiceImplTest {
 
@@ -720,215 +722,109 @@ internal class RevurderingServiceImplTest {
     fun `lagBrevutkast - kan lage brev`() {
         val brevPdf = "".toByteArray()
 
-        val vedtakMock = vedtakSøknadsbehandlingIverksattInnvilget().second
+        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
 
-        val simulertRevurdering = SimulertRevurdering.Innvilget(
-            id = revurderingId,
-            periode = periodeNesteMånedOgTreMånederFram,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = vedtakMock,
-            saksbehandler = saksbehandler,
-            beregning = TestBeregning,
-            simulering = Simulering(
-                gjelderId = fnr,
-                gjelderNavn = "Mr Test",
-                datoBeregnet = fixedLocalDate,
-                nettoBeløp = 0,
-                periodeList = listOf(),
-            ),
-            oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.create(
-                bosituasjon = listOf(
-                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = periodeNesteMånedOgTreMånederFram,
-                        begrunnelse = null,
-                    ),
-                ),
-            ),
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty(),
-        )
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(revurderingId) } doReturn simulertRevurdering
+            },
+            brevService = mock {
+                on { lagDokument(any()) } doReturn Dokument.UtenMetadata.Vedtak(
+                    opprettet = fixedTidspunkt,
+                    tittel = "tittel1",
+                    generertDokument = brevPdf,
+                    generertDokumentJson = "brev",
+                ).right()
+            },
+        ).let {
+            it.revurderingService.lagBrevutkast(
+                revurderingId = revurderingId,
+                fritekst = "",
+            ) shouldBe brevPdf.right()
 
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn simulertRevurdering
+            inOrder(
+                *it.all(),
+            ) {
+                verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
+                verify(it.brevService).lagDokument(argThat { it shouldBe simulertRevurdering })
+                it.verifyNoMoreInteractions()
+            }
         }
-
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-
-        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
-        }
-
-        val brevServiceMock = mock<BrevService> {
-            on { lagBrev(any()) } doReturn brevPdf.right()
-        }
-
-        val actual = createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = microsoftGraphApiClientMock,
-            brevService = brevServiceMock,
-        ).lagBrevutkast(
-            revurderingId = revurderingId,
-            fritekst = "",
-        )
-
-        actual shouldBe brevPdf.right()
-
-        inOrder(revurderingRepoMock, personServiceMock, microsoftGraphApiClientMock, brevServiceMock) {
-            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-            verify(microsoftGraphApiClientMock).hentNavnForNavIdent(argThat { "$it" shouldBe saksbehandler.navIdent })
-            verify(brevServiceMock).lagBrev(
-                argThat {
-                    it shouldBe
-                        LagBrevRequest.Revurdering.Inntekt(
-                            person = person,
-                            saksbehandlerNavn = saksbehandler.navIdent,
-                            attestantNavn = "-",
-                            revurdertBeregning = simulertRevurdering.beregning,
-                            fritekst = "",
-                            harEktefelle = false,
-                            forventetInntektStørreEnn0 = false,
-                            dagensDato = fixedLocalDate,
-                        )
-                },
-            )
-        }
-
-        verifyNoMoreInteractions(
-            revurderingRepoMock,
-            personServiceMock,
-            personServiceMock,
-            microsoftGraphApiClientMock,
-            brevServiceMock,
-        )
     }
 
     @Test
     fun `lagBrevutkast - får feil når vi ikke kan hente person`() {
-        val simulertRevurdering = simulertRevurderingInnvilget
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(revurderingId) } doReturn simulertRevurderingInnvilget
+            },
+            brevService = mock {
+                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeHentePerson.left()
+            },
+        ).let {
+            it.revurderingService.lagBrevutkast(
+                revurderingId = revurderingId,
+                fritekst = "",
+            ) shouldBe KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson.left()
 
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn simulertRevurdering
+            inOrder(
+                *it.all(),
+            ) {
+                verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
+                verify(it.brevService).lagDokument(argThat { it shouldBe simulertRevurderingInnvilget })
+                it.verifyNoMoreInteractions()
+            }
         }
-
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
-        }
-
-        val actual = createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-            personService = personServiceMock,
-        ).lagBrevutkast(
-            revurderingId = revurderingId,
-            fritekst = "",
-        )
-
-        actual shouldBe KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson.left()
-
-        inOrder(revurderingRepoMock, personServiceMock) {
-            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
-        }
-
-        verifyNoMoreInteractions(
-            revurderingRepoMock,
-        )
     }
 
     @Test
     fun `får feil når vi ikke kan hente saksbehandler navn`() {
-        val person = mock<Person>()
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(revurderingId) } doReturn simulertRevurderingInnvilget
+            },
+            brevService = mock {
+                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
+            },
+        ).let {
+            it.revurderingService.lagBrevutkast(
+                revurderingId = revurderingId,
+                fritekst = "",
+            ) shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
 
-        val simulertRevurdering = simulertRevurderingInnvilget
-
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn simulertRevurdering
+            inOrder(
+                *it.all(),
+            ) {
+                verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
+                verify(it.brevService).lagDokument(argThat { it shouldBe simulertRevurderingInnvilget })
+                it.verifyNoMoreInteractions()
+            }
         }
-
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-
-        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturn MicrosoftGraphApiOppslagFeil.FantIkkeBrukerForNavIdent.left()
-        }
-
-        val actual = createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = microsoftGraphApiClientMock,
-        ).lagBrevutkast(
-            revurderingId = revurderingId,
-            fritekst = "",
-        )
-
-        actual shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
-
-        inOrder(revurderingRepoMock, personServiceMock, microsoftGraphApiClientMock) {
-            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-        }
-
-        verifyNoMoreInteractions(
-            revurderingRepoMock,
-            personServiceMock,
-            personServiceMock,
-        )
     }
 
     @Test
     fun `får feil når vi ikke kan lage brev`() {
-        val simulertRevurdering = simulertRevurderingInnvilget
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(revurderingId) } doReturn simulertRevurderingInnvilget
+            },
+            brevService = mock {
+                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
+            },
+        ).let {
+            it.revurderingService.lagBrevutkast(
+                revurderingId = revurderingId,
+                fritekst = "",
+            ) shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast.left()
 
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn simulertRevurdering
+            inOrder(
+                *it.all(),
+            ) {
+                verify(it.revurderingRepo).hent(argThat { it shouldBe revurderingId })
+                verify(it.brevService).lagDokument(argThat { it shouldBe simulertRevurderingInnvilget })
+                it.verifyNoMoreInteractions()
+            }
         }
-
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-
-        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
-        }
-
-        val brevServiceMock = mock<BrevService> {
-            on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
-        }
-
-        val actual = createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = microsoftGraphApiClientMock,
-            brevService = brevServiceMock,
-        ).lagBrevutkast(
-            revurderingId = revurderingId,
-            fritekst = "",
-        )
-
-        actual shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast.left()
-
-        inOrder(revurderingRepoMock, personServiceMock, microsoftGraphApiClientMock) {
-            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-            verify(microsoftGraphApiClientMock).hentNavnForNavIdent(argThat { "$it" shouldBe saksbehandler.navIdent })
-        }
-
-        verifyNoMoreInteractions(
-            revurderingRepoMock,
-            personServiceMock,
-            personServiceMock,
-            microsoftGraphApiClientMock,
-        )
     }
 
     @Test
@@ -947,56 +843,46 @@ internal class RevurderingServiceImplTest {
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn opprettetRevurdering
-        }
 
         assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
-            createRevurderingService(
-                revurderingRepo = revurderingRepoMock,
-            ).lagBrevutkast(
-                revurderingId = revurderingId,
-                fritekst = "",
-            )
-        }
+            RevurderingServiceMocks(
+                revurderingRepo = mock {
+                    on { hent(any()) } doReturn opprettetRevurdering
+                },
+                brevService = mock {
+                    on { lagDokument(any()) } doThrow LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(
+                        opprettetRevurdering::class,
+                    )
+                },
+            ).let {
+                it.revurderingService.lagBrevutkast(
+                    revurderingId = revurderingId,
+                    fritekst = "",
+                )
 
-        verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
-        verifyNoMoreInteractions(revurderingRepoMock)
+                verify(it.revurderingRepo).hent(argThat { it shouldBe opprettetRevurdering.id })
+                it.verifyNoMoreInteractions()
+            }
+        }
     }
 
     @Test
     fun `kan ikke lage brev med status beregnet`() {
-        val beregnetRevurdering = BeregnetRevurdering.Innvilget(
-            id = revurderingId,
-            periode = periodeNesteMånedOgTreMånederFram,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second,
-            saksbehandler = saksbehandler,
-            beregning = TestBeregning,
-            oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty(),
-        )
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn beregnetRevurdering
-        }
+        val beregnget = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
 
         assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
-            createRevurderingService(
-                revurderingRepo = revurderingRepoMock,
-            ).lagBrevutkast(
+            RevurderingServiceMocks(
+                revurderingRepo = mock {
+                    on { hent(any()) } doReturn beregnget
+                },
+                brevService = mock {
+                    on { lagDokument(any()) } doThrow LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(beregnget::class)
+                }
+            ).revurderingService.lagBrevutkast(
                 revurderingId = revurderingId,
                 fritekst = "",
             )
         }
-
-        verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
-        verifyNoMoreInteractions(revurderingRepoMock)
     }
 
     @Test
@@ -1047,7 +933,7 @@ internal class RevurderingServiceImplTest {
             on { hentPerson(any()) } doReturn person.right()
         }
 
-        val brevServiceMock = mock<BrevService> {
+        val brevServiceMock = mock<BrevService1> {
             on { lagBrev(any()) } doReturn "pdf".toByteArray().right()
         }
 
@@ -1151,7 +1037,7 @@ internal class RevurderingServiceImplTest {
             on { hentPerson(any()) } doReturn person.right()
         }
 
-        val brevServiceMock = mock<BrevService> {
+        val brevServiceMock = mock<BrevService1> {
             on { lagBrev(any()) } doReturn "pdf".toByteArray().right()
         }
 
@@ -1309,7 +1195,7 @@ internal class RevurderingServiceImplTest {
             on { hentPerson(any()) } doReturn person.right()
         }
 
-        val brevServiceMock = mock<BrevService> {
+        val brevServiceMock = mock<BrevService1> {
             on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
         }
 
@@ -1347,7 +1233,7 @@ internal class RevurderingServiceImplTest {
             on { hentPerson(any()) } doReturn person.right()
         }
 
-        val brevServiceMock = mock<BrevService> {
+        val brevServiceMock = mock<BrevService1> {
             on { lagBrev(any()) } doReturn "pdf".toByteArray().right()
         }
 
@@ -1577,7 +1463,7 @@ internal class RevurderingServiceImplTest {
             on { hentPerson(any()) } doReturn person.right()
         }
 
-        val brevServiceMock = mock<BrevService> {
+        val brevServiceMock = mock<BrevService1> {
             on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
         }
 
@@ -1873,6 +1759,7 @@ internal class RevurderingServiceImplTest {
 
         revurderingService.leggTilFradragsgrunnlag(
             request,
-        ) shouldBe KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(KunneIkkeLageGrunnlagsdata.FradragManglerBosituasjon).left()
+        ) shouldBe KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(KunneIkkeLageGrunnlagsdata.FradragManglerBosituasjon)
+            .left()
     }
 }

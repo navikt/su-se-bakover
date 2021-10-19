@@ -49,9 +49,8 @@ import no.nav.su.se.bakover.domain.revurdering.medFritekst
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
-import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
@@ -936,41 +935,18 @@ internal class RevurderingServiceImpl(
             revurdering
         }
 
-        return lagBrevRequest(revurderingMedPotensiellFritekst)
+        return brevService.lagDokument(revurderingMedPotensiellFritekst)
             .mapLeft {
                 when (it) {
-                    LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
-                    LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson
-                    LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeFinneGjeldendeUtbetaling
+                    KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeFinneGjeldendeUtbetaling
+                    KunneIkkeLageDokument.KunneIkkeGenererePDF -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast
+                    KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
+                    KunneIkkeLageDokument.KunneIkkeHentePerson -> KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson
                 }
-            }.flatMap {
-                brevService.lagBrev(it)
-                    .mapLeft { KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast }
             }
-    }
-
-    private fun lagBrevRequest(visitable: Visitable<LagBrevRequestVisitor>): Either<LagBrevRequestVisitor.KunneIkkeLageBrevRequest, LagBrevRequest> {
-        return LagBrevRequestVisitor(
-            hentPerson = { fnr ->
-                personService.hentPerson(fnr)
-                    .mapLeft { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson }
-            },
-            hentNavn = { ident ->
-                microsoftGraphApiClient.hentNavnForNavIdent(ident)
-                    .mapLeft { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant }
-            },
-            hentGjeldendeUtbetaling = { sakId, forDato ->
-                utbetalingService.hentGjeldendeUtbetaling(sakId, forDato)
-                    .bimap(
-                        { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling },
-                        { it.beløp },
-                    )
-            },
-            clock = clock,
-        ).let { visitor ->
-            visitable.accept(visitor)
-            visitor.brevRequest
-        }
+            .map {
+                it.generertDokument
+            }
     }
 
     // TODO ai: Extraher ut logikk till funskjoner for å forenkle flyten
@@ -992,27 +968,23 @@ internal class RevurderingServiceImpl(
                             .map { iverksattRevurdering ->
                                 val vedtakIngenEndring = Vedtak.from(iverksattRevurdering, clock)
                                 if (vedtakIngenEndring.skalSendeBrev()) {
-                                    val brevRequest = lagBrevRequest(vedtakIngenEndring)
+                                    val dokument = brevService.lagDokument(vedtakIngenEndring)
                                         .getOrHandle {
                                             return when (it) {
-                                                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeIverksetteRevurdering.KunneIkkeFinneGjeldendeUtbetaling
-                                                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeIverksetteRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
-                                                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> KunneIkkeIverksetteRevurdering.FantIkkePerson
+                                                KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeIverksetteRevurdering.KunneIkkeFinneGjeldendeUtbetaling
+                                                KunneIkkeLageDokument.KunneIkkeGenererePDF -> KunneIkkeIverksetteRevurdering.KunneIkkeGenerereBrev
+                                                KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeIverksetteRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
+                                                KunneIkkeLageDokument.KunneIkkeHentePerson -> KunneIkkeIverksetteRevurdering.FantIkkePerson
                                             }.left()
                                         }
+                                        .leggTilMetadata(
+                                            Dokument.Metadata(
+                                                sakId = vedtakIngenEndring.behandling.sakId,
+                                                vedtakId = vedtakIngenEndring.id,
+                                                bestillBrev = true,
+                                            ),
+                                        )
 
-                                    val dokument = brevRequest.tilDokument {
-                                        brevService.lagBrev(it)
-                                            .mapLeft { LagBrevRequest.KunneIkkeGenererePdf }
-                                    }.getOrHandle {
-                                        return KunneIkkeIverksetteRevurdering.KunneIkkeGenerereBrev.left()
-                                    }.leggTilMetadata(
-                                        Dokument.Metadata(
-                                            sakId = vedtakIngenEndring.behandling.sakId,
-                                            vedtakId = vedtakIngenEndring.id,
-                                            bestillBrev = true,
-                                        ),
-                                    )
                                     vedtakRepo.lagre(vedtakIngenEndring)
                                     brevService.lagreDokument(dokument)
                                 } else {

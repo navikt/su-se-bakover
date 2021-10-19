@@ -170,8 +170,8 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            grunnlagService = grunnlagServiceMock,
             clock = fixedClock,
+            grunnlagService = grunnlagServiceMock,
         ).leggTilBosituasjonEpsgrunnlag(
             LeggTilBosituasjonEpsRequest(behandlingId = behandlingId, epsFnr = null),
         ).orNull()!!
@@ -330,8 +330,8 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            grunnlagService = grunnlagServiceMock,
             clock = fixedClock,
+            grunnlagService = grunnlagServiceMock,
         ).fullførBosituasjongrunnlag(
             FullførBosituasjonRequest(
                 behandlingId = behandlingId,
