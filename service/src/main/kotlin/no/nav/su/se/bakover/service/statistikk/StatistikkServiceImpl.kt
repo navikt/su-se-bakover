@@ -80,7 +80,7 @@ internal class StatistikkServiceImpl(
                                 .filterIsInstance<Vedtak.EndringIYtelse>()
                                 .minOf { it.periode.fraOgMed }
 
-                            publiser(StønadsstatistikkMapper(clock).map(event.vedtak, aktørId, ytelseVirkningstidspunkt))
+                            publiser(StønadsstatistikkMapper(clock).map(event.vedtak, aktørId, ytelseVirkningstidspunkt, sak))
                         }
                     )
                 }

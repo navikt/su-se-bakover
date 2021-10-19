@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.statistikk.mappers
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -16,7 +17,13 @@ import java.time.LocalDate
 class StønadsstatistikkMapper(
     private val clock: Clock
 ) {
-    fun map(vedtak: Vedtak.EndringIYtelse, aktørId: AktørId, ytelseVirkningstidspunkt: LocalDate): Statistikk.Stønad {
+    fun map(
+        vedtak: Vedtak.EndringIYtelse,
+        aktørId: AktørId,
+        ytelseVirkningstidspunkt: LocalDate,
+        sak: Sak,
+    ): Statistikk.Stønad {
+
         val nå = Tidspunkt.now(clock)
 
         return Statistikk.Stønad(
@@ -42,11 +49,11 @@ class StønadsstatistikkMapper(
             gjeldendeStonadUtbetalingsstart = vedtak.behandling.periode.fraOgMed,
             gjeldendeStonadUtbetalingsstopp = vedtak.behandling.periode.tilOgMed,
             månedsbeløp = when (vedtak) {
-                is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> TODO("Ikke implementert for ${vedtak::class}")
                 is Vedtak.EndringIYtelse.InnvilgetRevurdering -> mapBeregning(vedtak, vedtak.beregning)
                 is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling -> mapBeregning(vedtak, vedtak.beregning)
                 is Vedtak.EndringIYtelse.OpphørtRevurdering -> mapBeregning(vedtak, vedtak.beregning)
-                is Vedtak.EndringIYtelse.StansAvYtelse -> TODO("Ikke implementert for ${vedtak::class}")
+                is Vedtak.EndringIYtelse.StansAvYtelse -> mapBeregning(vedtak)
+                is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> mapBeregning(vedtak, sak, clock)
             },
             versjon = nå.toEpochMilli(),
             opphorsgrunn = when (vedtak) {
@@ -61,16 +68,31 @@ class StønadsstatistikkMapper(
     }
 }
 
-/*
-private fun mapBeregningFraGjeldendeMånedsberegninger(sak: Sak, periode: Periode) {
-    sak.vedtakListe.identifiserGjeldendeMånedsberegningerForPeriode(periode).map {
-        tilMånedsbeløp(it, )
-    }
-}
- */
-
 private fun mapBeregning(vedtak: Vedtak.EndringIYtelse, beregning: Beregning): List<Statistikk.Stønad.Månedsbeløp> =
     beregning.getMånedsberegninger().map {
+        tilMånedsbeløp(it, vedtak)
+    }
+
+private fun mapBeregning(vedtak: Vedtak.EndringIYtelse.StansAvYtelse): List<Statistikk.Stønad.Månedsbeløp> =
+    vedtak.periode.tilMånedsperioder().map {
+        Statistikk.Stønad.Månedsbeløp(
+            måned = it.fraOgMed.toString(),
+            stonadsklassifisering = null,
+            bruttosats = 0,
+            nettosats = 0,
+            inntekter = emptyList(),
+            fradragSum = 0,
+        )
+    }
+
+private fun mapBeregning(
+    vedtak: Vedtak.EndringIYtelse.GjenopptakAvYtelse,
+    sak: Sak,
+    clock: Clock,
+): List<Statistikk.Stønad.Månedsbeløp> =
+    vedtak.periode.tilMånedsperioder().map {
+        sak.hentGjeldendeBeregningForMåned(it, clock)!!
+    }.map {
         tilMånedsbeløp(it, vedtak)
     }
 

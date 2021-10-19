@@ -53,7 +53,7 @@ internal class StønadsstatistikkMapperTest {
             ),
         )
 
-        StønadsstatistikkMapper(clock).map(vedtak, aktørId, periode2021.fraOgMed) shouldBe
+        StønadsstatistikkMapper(clock).map(vedtak, aktørId, periode2021.fraOgMed, sak) shouldBe
             Statistikk.Stønad(
                 funksjonellTid = fixedTidspunkt,
                 tekniskTid = fixedTidspunkt,
@@ -126,9 +126,10 @@ internal class StønadsstatistikkMapperTest {
         )
         val actual = objectMapper.writeValueAsString(
             StønadsstatistikkMapper(clock).map(
-                vedtak,
-                aktørId,
-                vedtak.periode.fraOgMed,
+                vedtak = vedtak,
+                aktørId = aktørId,
+                ytelseVirkningstidspunkt = vedtak.periode.fraOgMed,
+                sak = sak,
             ),
         )
         val expected = """
