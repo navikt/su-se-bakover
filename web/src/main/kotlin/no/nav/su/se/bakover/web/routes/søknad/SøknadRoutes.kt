@@ -154,33 +154,17 @@ internal fun Route.søknadRoutes(
                     ).mapLeft {
                         call.svar(
                             when (it) {
-                                KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling ->
-                                    InternalServerError.errorJson(
-                                        "Kunne ikke opprette søknadsbehandling",
-                                        "kunne_ikke_opprette_søknadsbehandling",
-                                    )
-                                KunneIkkeAvslåSøknad.SøknadsbehandlingIUgyldigTilstandForAvslag ->
-                                    InternalServerError.errorJson(
-                                        "Behandlingen er i ugyldig tilstand for avslag",
-                                        "behandling_i_ugyldig_tilstand_for_avslag",
-                                    )
-                                KunneIkkeAvslåSøknad.KunneIkkeFinneGjeldendeUtbetaling ->
-                                    NotFound.errorJson(
-                                        "Fant ikke gjeldende utbetaling",
-                                        "fant_ikke_gjeldende_utbetaling",
-                                    )
-                                KunneIkkeAvslåSøknad.KunneIkkeGenererePDF ->
-                                    InternalServerError.errorJson(
-                                        "Kunne ikke generere pdf",
-                                        "kunne_ikke_generere_pdf",
-                                    )
-                                KunneIkkeAvslåSøknad.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant ->
-                                    NotFound.errorJson(
-                                        "Fant ikke saksbehandler eller attestant",
-                                        "fant_ikke_saksbehandler_eller_attestant",
-                                    )
+                                KunneIkkeAvslåSøknad.SøknadsbehandlingIUgyldigTilstandForAvslag -> Feilresponser.behandlingErIUgyldigTilstand
+                                KunneIkkeAvslåSøknad.KunneIkkeFinneGjeldendeUtbetaling -> Feilresponser.fantIkkeGjeldendeUtbetaling
+                                KunneIkkeAvslåSøknad.KunneIkkeGenererePDF -> Feilresponser.kunneIkkeGenererePdf
+                                KunneIkkeAvslåSøknad.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> Feilresponser.fantIkkeSaksbehandlerEllerAttestant
                                 KunneIkkeAvslåSøknad.KunneIkkeHentePerson -> Feilresponser.fantIkkePerson
                                 KunneIkkeAvslåSøknad.FantIkkeSak -> Feilresponser.fantIkkeSak
+                                KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad -> Feilresponser.fantIkkeSøknad
+                                KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.HarAlleredeÅpenSøknadsbehandling -> Feilresponser.harAlleredeÅpenBehandling
+                                KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.SøknadErLukket -> Feilresponser.søknadErLukket
+                                KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.SøknadHarAlleredeBehandling -> Feilresponser.søknadHarBehandlingFraFør
+                                KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave -> Feilresponser.søknadManglerOppgave
                             },
                         )
                     }.map {

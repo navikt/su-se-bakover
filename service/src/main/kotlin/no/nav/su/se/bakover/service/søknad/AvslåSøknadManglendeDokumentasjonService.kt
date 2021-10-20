@@ -10,7 +10,14 @@ interface AvslåSøknadManglendeDokumentasjonService {
 }
 
 sealed class KunneIkkeAvslåSøknad {
-    object KunneIkkeOppretteSøknadsbehandling : KunneIkkeAvslåSøknad()
+    sealed class KunneIkkeOppretteSøknadsbehandling : KunneIkkeAvslåSøknad() {
+        object HarAlleredeÅpenSøknadsbehandling : KunneIkkeOppretteSøknadsbehandling()
+        object FantIkkeSøknad : KunneIkkeOppretteSøknadsbehandling()
+        object SøknadErLukket : KunneIkkeOppretteSøknadsbehandling()
+        object SøknadHarAlleredeBehandling : KunneIkkeOppretteSøknadsbehandling()
+        object SøknadManglerOppgave : KunneIkkeOppretteSøknadsbehandling()
+    }
+
     object SøknadsbehandlingIUgyldigTilstandForAvslag : KunneIkkeAvslåSøknad()
     object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeAvslåSøknad()
     object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeAvslåSøknad()

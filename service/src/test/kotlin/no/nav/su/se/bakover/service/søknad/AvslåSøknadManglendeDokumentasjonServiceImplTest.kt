@@ -311,7 +311,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                     saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
                     fritekstTilBrev = "finfin tekst",
                 ),
-            ) shouldBe KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.left()
+            ) shouldBe KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.SøknadHarAlleredeBehandling.left()
 
             verify(søknadsbehandlingServiceMock).hentForSøknad(any())
             verify(søknadsbehandlingServiceMock).opprett(any())

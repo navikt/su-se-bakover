@@ -42,15 +42,22 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
 
     private fun opprettNyBehandlingFørst(
         request: AvslåManglendeDokumentasjonRequest,
-    ): Either<KunneIkkeAvslåSøknad, Sak> {
-        val søknadsbehandling = søknadsbehandlingService.opprett(
+    ): Either<KunneIkkeAvslåSøknad, Sak> =
+        søknadsbehandlingService.opprett(
             request = SøknadsbehandlingService.OpprettRequest(
                 søknadId = request.søknadId,
             ),
-        ).getOrHandle { return KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.left() }
-
-        return avslå(request, søknadsbehandling)
-    }
+        ).mapLeft {
+            when (it) {
+                SøknadsbehandlingService.KunneIkkeOpprette.FantIkkeSøknad -> KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad
+                SøknadsbehandlingService.KunneIkkeOpprette.HarAlleredeÅpenSøknadsbehandling -> KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.HarAlleredeÅpenSøknadsbehandling
+                SøknadsbehandlingService.KunneIkkeOpprette.SøknadErLukket -> KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.SøknadErLukket
+                SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling -> KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.SøknadHarAlleredeBehandling
+                SøknadsbehandlingService.KunneIkkeOpprette.SøknadManglerOppgave -> KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave
+            }
+        }.map {
+            return avslå(request, it)
+        }
 
     private fun avslå(
         request: AvslåManglendeDokumentasjonRequest,
