@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.service.vedtak.VedtakService
 import java.time.Clock
 
 internal class AvslåSøknadManglendeDokumentasjonServiceImpl(
-    private val clock: Clock = Clock.systemUTC(),
+    private val clock: Clock,
     private val søknadsbehandlingService: SøknadsbehandlingService,
     private val vedtakService: VedtakService,
     private val oppgaveService: OppgaveService,

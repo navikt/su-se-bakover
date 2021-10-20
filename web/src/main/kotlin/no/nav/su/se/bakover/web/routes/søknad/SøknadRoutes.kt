@@ -179,17 +179,8 @@ internal fun Route.søknadRoutes(
                                         "Fant ikke saksbehandler eller attestant",
                                         "fant_ikke_saksbehandler_eller_attestant",
                                     )
-                                KunneIkkeAvslåSøknad.KunneIkkeHentePerson ->
-                                    NotFound.errorJson(
-                                        "Kunne ikke hente person",
-                                        "kunne_ikke_hente_person",
-                                    )
-                                KunneIkkeAvslåSøknad.FantIkkeSak -> {
-                                    NotFound.errorJson(
-                                        "Kunne ikke finne sak",
-                                        "fant_ikke_sak",
-                                    )
-                                }
+                                KunneIkkeAvslåSøknad.KunneIkkeHentePerson -> Feilresponser.fantIkkePerson
+                                KunneIkkeAvslåSøknad.FantIkkeSak -> Feilresponser.fantIkkeSak
                             },
                         )
                     }.map {

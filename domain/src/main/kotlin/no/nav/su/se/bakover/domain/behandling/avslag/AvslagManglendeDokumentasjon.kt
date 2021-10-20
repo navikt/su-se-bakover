@@ -26,7 +26,7 @@ data class AvslagManglendeDokumentasjon private constructor(
             søknadsbehandling: Søknadsbehandling,
             saksbehandler: NavIdentBruker.Saksbehandler,
             fritekstTilBrev: String = "",
-            clock: Clock = Clock.systemUTC(),
+            clock: Clock,
         ): Either<SøknadsbehandlingErIUgyldigTilstand, AvslagManglendeDokumentasjon> {
             return when (søknadsbehandling) {
                 is Søknadsbehandling.Iverksatt,
