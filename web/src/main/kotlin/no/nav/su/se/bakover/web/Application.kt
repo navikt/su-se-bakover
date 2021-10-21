@@ -133,15 +133,15 @@ internal fun Application.susebakover(
                 is KunneIkkeHentePerson.IkkeTilgangTilPerson -> {
                     call.sikkerlogg("slo opp person hen ikke har tilgang til")
                     log.warn("[Tilgangssjekk] Ikke tilgang til person.", it)
-                    call.respond(Feilresponser.ikkeTilgangTilPerson)
+                    call.svar(Feilresponser.ikkeTilgangTilPerson)
                 }
                 is KunneIkkeHentePerson.FantIkkePerson -> {
                     log.warn("[Tilgangssjekk] Fant ikke person", it)
-                    call.respond(Feilresponser.fantIkkePerson)
+                    call.svar(Feilresponser.fantIkkePerson)
                 }
                 is KunneIkkeHentePerson.Ukjent -> {
                     log.warn("[Tilgangssjekk] Feil ved oppslag på person", it)
-                    call.respond(Feilresponser.feilVedOppslagPåPerson)
+                    call.svar(Feilresponser.feilVedOppslagPåPerson)
                 }
             }
         }

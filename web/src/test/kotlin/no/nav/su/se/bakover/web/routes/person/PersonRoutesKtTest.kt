@@ -16,11 +16,14 @@ import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
+import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -145,14 +148,20 @@ internal class PersonRoutesKtTest {
 
     @Test
     fun `skal svare med 500 hvis ukjent feil`() {
-        val personServiceMock =
-            mock<PersonService> { on { hentPerson(any()) } doReturn KunneIkkeHentePerson.Ukjent.left() }
-        val accessCheckProxyMock =
-            mock<AccessCheckProxy> { on { proxy() } doReturn services.copy(person = personServiceMock) }
+        val clients = TestClientsBuilder.build(applicationConfig).copy(
+            personOppslag = object : PersonOppslag {
+                override fun person(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+                override fun personMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+                override fun aktørId(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+                override fun aktørIdMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+
+                override fun sjekkTilgangTilPerson(fnr: Fnr) = KunneIkkeHentePerson.Ukjent.left()
+            },
+        )
 
         withTestApplication(
             {
-                testSusebakover(accessCheckProxy = accessCheckProxyMock)
+                testSusebakover(clients = clients)
             },
         ) {
             defaultRequest(HttpMethod.Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
@@ -176,14 +185,20 @@ internal class PersonRoutesKtTest {
 
     @Test
     fun `skal svare med 404 hvis person ikke funnet`() {
-        val personServiceMock =
-            mock<PersonService> { on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left() }
-        val accessCheckProxyMock =
-            mock<AccessCheckProxy> { on { proxy() } doReturn services.copy(person = personServiceMock) }
+        val clients = TestClientsBuilder.build(applicationConfig).copy(
+            personOppslag = object : PersonOppslag {
+                override fun person(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+                override fun personMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+                override fun aktørId(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+                override fun aktørIdMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+
+                override fun sjekkTilgangTilPerson(fnr: Fnr) = KunneIkkeHentePerson.FantIkkePerson.left()
+            },
+        )
 
         withTestApplication(
             {
-                testSusebakover(accessCheckProxy = accessCheckProxyMock)
+                testSusebakover(clients = clients)
             },
         ) {
             defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
@@ -192,7 +207,7 @@ internal class PersonRoutesKtTest {
                     {
                     "fnr": $testIdent
                     }
-                    """.trimIndent()
+                    """.trimIndent(),
                 )
             }
         }.apply {
@@ -212,14 +227,22 @@ internal class PersonRoutesKtTest {
 
     @Test
     fun `skal gi 403 når man ikke har tilgang til person`() {
-        val personServiceMock =
-            mock<PersonService> { on { hentPerson(any()) } doReturn KunneIkkeHentePerson.IkkeTilgangTilPerson.left() }
-        val accessCheckProxyMock =
-            mock<AccessCheckProxy> { on { proxy() } doReturn services.copy(person = personServiceMock) }
+        val clients = TestClientsBuilder.build(applicationConfig).copy(
+            personOppslag = object : PersonOppslag {
+                override fun person(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+                override fun personMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+                override fun aktørId(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+                override fun aktørIdMedSystembruker(fnr: Fnr) = throw RuntimeException("Skal ikke kalles på")
+
+                override fun sjekkTilgangTilPerson(fnr: Fnr) = KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
+            },
+        )
 
         withTestApplication(
             {
-                testSusebakover(accessCheckProxy = accessCheckProxyMock)
+                testSusebakover(
+                    clients = clients,
+                )
             },
         ) {
             defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
