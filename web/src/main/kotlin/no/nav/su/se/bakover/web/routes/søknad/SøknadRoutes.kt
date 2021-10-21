@@ -15,6 +15,7 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.ForNav
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
@@ -28,6 +29,7 @@ import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
+import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.receiveTextUTF8
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeLageBrevutkast
@@ -63,6 +65,12 @@ internal fun Route.søknadRoutes(
                         { (saksnummer, søknad) ->
                             call.audit(søknad.søknadInnhold.personopplysninger.fnr, AuditLogEvent.Action.CREATE, null)
                             call.sikkerlogg("Lagrer søknad ${søknad.id} på sak ${søknad.sakId}")
+                            SuMetrics.søknadMottatt(
+                                if (søknad.søknadInnhold.forNav is ForNav.Papirsøknad)
+                                    SuMetrics.Søknadstype.PAPIR
+                                else
+                                    SuMetrics.Søknadstype.DIGITAL,
+                            )
                             call.svar(
                                 Resultat.json(
                                     Created,
@@ -89,16 +97,16 @@ internal fun Route.søknadRoutes(
                         val responseMessage = when (it) {
                             KunneIkkeLageSøknadPdf.FantIkkeSøknad -> NotFound.errorJson(
                                 "Fant ikke søknad",
-                                "fant_ikke_søknad"
+                                "fant_ikke_søknad",
                             )
                             KunneIkkeLageSøknadPdf.KunneIkkeLagePdf -> InternalServerError.errorJson(
                                 "Kunne ikke lage PDF",
-                                "kunne_ikke_lage_pdf"
+                                "kunne_ikke_lage_pdf",
                             )
                             KunneIkkeLageSøknadPdf.FantIkkePerson -> Feilresponser.fantIkkePerson
                             KunneIkkeLageSøknadPdf.FantIkkeSak -> NotFound.errorJson(
                                 "Fant ikke sak",
-                                "fant_ikke_sak"
+                                "fant_ikke_sak",
                             )
                         }
                         call.respond(responseMessage)
@@ -155,8 +163,8 @@ internal fun Route.søknadRoutes(
                                     call.svar(
                                         BadRequest.errorJson(
                                             "Kunne ikke lage brev for ukjent brevtype",
-                                            "ukjent_brevtype"
-                                        )
+                                            "ukjent_brevtype",
+                                        ),
                                     )
                                 else ->
                                     call.svar(kunneIkkeLageBrevutkast)
