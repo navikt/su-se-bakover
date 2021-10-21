@@ -58,6 +58,7 @@ import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.DbMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.metrics.SøknadMicrometerMetrics
+import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.dokument.dokumentRoutes
 import no.nav.su.se.bakover.web.routes.drift.driftRoutes
@@ -132,15 +133,15 @@ internal fun Application.susebakover(
                 is KunneIkkeHentePerson.IkkeTilgangTilPerson -> {
                     call.sikkerlogg("slo opp person hen ikke har tilgang til")
                     log.warn("[Tilgangssjekk] Ikke tilgang til person.", it)
-                    call.respond(HttpStatusCode.Forbidden, ErrorJson("Ikke tilgang til å se person"))
+                    call.respond(Feilresponser.ikkeTilgangTilPerson)
                 }
                 is KunneIkkeHentePerson.FantIkkePerson -> {
                     log.warn("[Tilgangssjekk] Fant ikke person", it)
-                    call.respond(HttpStatusCode.NotFound, ErrorJson("Fant ikke person"))
+                    call.respond(Feilresponser.fantIkkePerson)
                 }
                 is KunneIkkeHentePerson.Ukjent -> {
                     log.warn("[Tilgangssjekk] Feil ved oppslag på person", it)
-                    call.respond(HttpStatusCode.InternalServerError, ErrorJson("Feil ved oppslag på person"))
+                    call.respond(Feilresponser.feilVedOppslagPåPerson)
                 }
             }
         }

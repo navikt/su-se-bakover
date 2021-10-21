@@ -4,8 +4,9 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod
-import io.ktor.http.HttpMethod.Companion.Get
+import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.testing.handleRequest
@@ -18,6 +19,7 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
@@ -36,9 +38,11 @@ internal class PersonRoutesKtTest {
 
     @Test
     fun `får ikke hente persondata uten å være innlogget`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
+        withTestApplication(
+            {
+                testSusebakover()
+            },
+        ) {
             handleRequest(HttpMethod.Post, "$personPath/søk") {
                 setBody("""{"fnr":"$testIdent"}""")
             }
@@ -49,21 +53,34 @@ internal class PersonRoutesKtTest {
 
     @Test
     fun `bad request ved ugyldig fnr`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
+        withTestApplication(
+            {
+                testSusebakover()
+            },
+        ) {
             defaultRequest(HttpMethod.Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"qwertyuiopå"}""")
             }
         }.apply {
             response.status() shouldBe HttpStatusCode.BadRequest
+            JSONAssert.assertEquals(
+                """
+                  {
+                  "message": "Inneholder ikke et gyldig fødselsnummer",
+                  "code": "ikke_gyldig_fødselsnummer" 
+                  }
+                """.trimIndent(),
+                response.content,
+                true,
+            )
         }
     }
 
     @Test
     fun `kan hente data gjennom PersonOppslag`() {
         val personServiceMock = mock<PersonService> { on { hentPerson(any()) } doReturn person.right() }
-        val accessCheckProxyMock = mock<AccessCheckProxy> { on { proxy() } doReturn services.copy(person = personServiceMock) }
+        val accessCheckProxyMock =
+            mock<AccessCheckProxy> { on { proxy() } doReturn services.copy(person = personServiceMock) }
 
         //language=JSON
         val expectedResponseJson =
@@ -112,9 +129,11 @@ internal class PersonRoutesKtTest {
                 }
             """.trimIndent()
 
-        withTestApplication({
-            testSusebakover(accessCheckProxy = accessCheckProxyMock, clock = fixedClock)
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(accessCheckProxy = accessCheckProxyMock, clock = fixedClock)
+            },
+        ) {
             defaultRequest(HttpMethod.Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"$testIdent"}""")
             }
@@ -126,31 +145,104 @@ internal class PersonRoutesKtTest {
 
     @Test
     fun `skal svare med 500 hvis ukjent feil`() {
-        val personServiceMock = mock<PersonService> { on { hentPerson(any()) } doReturn KunneIkkeHentePerson.Ukjent.left() }
-        val accessCheckProxyMock = mock<AccessCheckProxy> { on { proxy() } doReturn services.copy(person = personServiceMock) }
+        val personServiceMock =
+            mock<PersonService> { on { hentPerson(any()) } doReturn KunneIkkeHentePerson.Ukjent.left() }
+        val accessCheckProxyMock =
+            mock<AccessCheckProxy> { on { proxy() } doReturn services.copy(person = personServiceMock) }
 
-        withTestApplication({
-            testSusebakover(accessCheckProxy = accessCheckProxyMock)
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(accessCheckProxy = accessCheckProxyMock)
+            },
+        ) {
             defaultRequest(HttpMethod.Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
                 setBody("""{"fnr":"$testIdent"}""")
             }
         }.apply {
             response.status() shouldBe HttpStatusCode.InternalServerError
+            response.content
+            JSONAssert.assertEquals(
+                """
+                  {
+                  "message": "Feil ved oppslag på person",
+                  "code": "feil_ved_oppslag_person" 
+                  }
+                """.trimIndent(),
+                response.content,
+                true,
+            )
         }
     }
 
     @Test
     fun `skal svare med 404 hvis person ikke funnet`() {
-        val personServiceMock = mock<PersonService> { on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left() }
-        val accessCheckProxyMock = mock<AccessCheckProxy> { on { proxy() } doReturn services.copy(person = personServiceMock) }
+        val personServiceMock =
+            mock<PersonService> { on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left() }
+        val accessCheckProxyMock =
+            mock<AccessCheckProxy> { on { proxy() } doReturn services.copy(person = personServiceMock) }
 
-        withTestApplication({
-            testSusebakover(accessCheckProxy = accessCheckProxyMock)
-        }) {
-            defaultRequest(Get, "$personPath/$testIdent", listOf(Brukerrolle.Veileder))
+        withTestApplication(
+            {
+                testSusebakover(accessCheckProxy = accessCheckProxyMock)
+            },
+        ) {
+            defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
+                setBody(
+                    """
+                    {
+                    "fnr": $testIdent
+                    }
+                    """.trimIndent()
+                )
+            }
         }.apply {
             response.status() shouldBe NotFound
+            JSONAssert.assertEquals(
+                """
+                  {
+                  "message": "Fant ikke person",
+                  "code": "fant_ikke_person" 
+                  }
+                """.trimIndent(),
+                response.content,
+                true,
+            )
+        }
+    }
+
+    @Test
+    fun `skal gi 403 når man ikke har tilgang til person`() {
+        val personServiceMock =
+            mock<PersonService> { on { hentPerson(any()) } doReturn KunneIkkeHentePerson.IkkeTilgangTilPerson.left() }
+        val accessCheckProxyMock =
+            mock<AccessCheckProxy> { on { proxy() } doReturn services.copy(person = personServiceMock) }
+
+        withTestApplication(
+            {
+                testSusebakover(accessCheckProxy = accessCheckProxyMock)
+            },
+        ) {
+            defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
+                setBody(
+                    """
+                        {
+                          "fnr": "${Fnr.generer()}"
+                        }
+                    """.trimIndent(),
+                )
+            }
+        }.apply {
+            response.status() shouldBe Forbidden
+            response.content
+            JSONAssert.assertEquals(
+                """
+                {
+                  "message": "Ikke tilgang til å se person",
+                  "code": "ikke_tilgang_til_person"
+                }
+                """.trimIndent(),
+                response.content, true,
+            )
         }
     }
 }
