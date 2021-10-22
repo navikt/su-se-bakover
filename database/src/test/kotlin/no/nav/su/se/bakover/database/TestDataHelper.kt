@@ -260,6 +260,7 @@ internal class TestDataHelper(
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         revurderingRepo = revurderingRepo,
         dbMetrics = dbMetrics,
+        sessionFactory = sessionFactory,
     )
     internal val sakRepo = SakPostgresRepo(
         sessionFactory = sessionFactory,

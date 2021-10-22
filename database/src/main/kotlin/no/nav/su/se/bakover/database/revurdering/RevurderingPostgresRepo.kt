@@ -6,9 +6,9 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DbMetrics
+import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
@@ -88,9 +88,9 @@ internal class RevurderingPostgresRepo(
     private val formueVilkårsvurderingRepo: FormueVilkårsvurderingPostgresRepo,
     søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
     private val dbMetrics: DbMetrics,
-    private val sessionFactory: SessionFactory,
+    private val sessionFactory: PostgresSessionFactory,
 ) : RevurderingRepo {
-    private val vedtakRepo = VedtakPostgresRepo(dataSource, søknadsbehandlingRepo, this, dbMetrics)
+    private val vedtakRepo = VedtakPostgresRepo(dataSource, søknadsbehandlingRepo, this, dbMetrics, sessionFactory)
 
     private val stansAvYtelseRepo = StansAvYtelsePostgresRepo(
         fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,

@@ -4,6 +4,8 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
+import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
 
 interface BrevService {
@@ -11,6 +13,8 @@ interface BrevService {
     fun lagreDokument(dokument: Dokument.MedMetadata)
     fun lagreDokument(dokument: Dokument.MedMetadata, transactionContext: TransactionContext)
     fun hentDokumenterFor(hentDokumenterForIdType: HentDokumenterForIdType): List<Dokument>
+    fun lagDokument(visitable: Visitable<LagBrevRequestVisitor>): Either<KunneIkkeLageDokument, Dokument.UtenMetadata>
+    fun lagBrevRequest(visitable: Visitable<LagBrevRequestVisitor>): Either<LagBrevRequestVisitor.KunneIkkeLageBrevRequest, LagBrevRequest>
 
     /** Journalfører og distribuerer utgående dokumenter som ikke har blitt journalført / distribuert.
      * Denne er i utgangspunktet ment å kalles av en kron-jobb. */
@@ -28,6 +32,13 @@ sealed class HentDokumenterForIdType {
     data class Søknad(override val id: UUID) : HentDokumenterForIdType()
     data class Revurdering(override val id: UUID) : HentDokumenterForIdType()
     data class Vedtak(override val id: UUID) : HentDokumenterForIdType()
+}
+
+sealed class KunneIkkeLageDokument {
+    object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeLageDokument()
+    object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeLageDokument()
+    object KunneIkkeHentePerson : KunneIkkeLageDokument()
+    object KunneIkkeGenererePDF : KunneIkkeLageDokument()
 }
 
 sealed class KunneIkkeLageBrev {

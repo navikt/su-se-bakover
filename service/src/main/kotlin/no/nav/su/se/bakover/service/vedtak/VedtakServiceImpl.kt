@@ -6,6 +6,7 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -24,6 +25,10 @@ class VedtakServiceImpl(
 
     override fun lagre(vedtak: Vedtak) {
         return vedtakRepo.lagre(vedtak)
+    }
+
+    override fun lagre(vedtak: Vedtak, sessionContext: TransactionContext) {
+        return vedtakRepo.lagre(vedtak, sessionContext)
     }
 
     override fun hentAktiveFnr(fomDato: LocalDate): List<Fnr> {

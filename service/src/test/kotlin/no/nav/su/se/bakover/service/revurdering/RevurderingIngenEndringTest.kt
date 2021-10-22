@@ -8,13 +8,11 @@ import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -22,7 +20,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -36,20 +33,17 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.person
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.saksbehandler
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.søknadOppgaveId
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.beregning.TestBeregningSomGirOpphør
-import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
+import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.formueVilkår
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.createRevurderingService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.periodeNesteMånedOgTreMånederFram
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingsårsak
-import no.nav.su.se.bakover.service.utbetaling.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.attestant
@@ -65,7 +59,6 @@ import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.doReturnConsecutively
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
@@ -394,74 +387,53 @@ class RevurderingIngenEndringTest {
         val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant, fixedClock).orNull()!!
         val vedtak = Vedtak.from(iverksattRevurdering, fixedClock)
 
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn revurderingTilAttestering
-        }
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn revurderingTilAttestering
+            },
+            brevService = mock {
+                on { lagDokument(any()) } doReturn Dokument.UtenMetadata.Vedtak(
+                    opprettet = fixedTidspunkt,
+                    tittel = "tittel1",
+                    generertDokument = "brev".toByteArray(),
+                    generertDokumentJson = "brev",
+                ).right()
+            },
+            utbetalingService = mock {
+                on {
+                    hentGjeldendeUtbetaling(
+                        any(),
+                        any(),
+                    )
+                } doReturn sak.utbetalingstidslinje(revurderingTilAttestering.periode)
+                    .gjeldendeForDato(revurderingTilAttestering.periode.fraOgMed)!!.right()
+            },
+        ).let {
+            it.revurderingService.iverksett(
+                revurderingId = revurderingId,
+                attestant = attestant,
+            ) shouldBe iverksattRevurdering.right()
 
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-
-        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturnConsecutively listOf(
-                saksbehandler.navIdent.right(),
-                attestant.navIdent.right(),
-            )
-        }
-
-        val brevServiceMock = mock<BrevService> {
-            on { lagBrev(any()) } doReturn "brev".toByteArray().right()
-        }
-
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on {
-                hentGjeldendeUtbetaling(
-                    any(),
-                    any(),
+            inOrder(
+                *it.all(),
+            ) {
+                verify(it.revurderingRepo).hent(revurderingTilAttestering.id)
+                verify(it.brevService).lagDokument(argThat { it shouldBe beOfType<Vedtak.IngenEndringIYtelse>() })
+                verify(it.vedtakRepo).lagre(argThat { it shouldBe vedtak.copy(id = it.id) })
+                verify(it.brevService).lagreDokument(
+                    argThat {
+                        it shouldBe beOfType<Dokument.MedMetadata.Vedtak>()
+                        it.generertDokument shouldNotBe null
+                        it.generertDokumentJson shouldNotBe null
+                        it.metadata.sakId shouldBe sak.id
+                        it.metadata.vedtakId shouldNotBe null
+                        it.metadata.bestillBrev shouldBe true
+                    },
                 )
-            } doReturn sak.utbetalingstidslinje(revurderingTilAttestering.periode)
-                .gjeldendeForDato(revurderingTilAttestering.periode.fraOgMed)!!.right()
-        }
+                verify(it.revurderingRepo).lagre(iverksattRevurdering)
 
-        val serviceAndMocks = RevurderingServiceMocks(
-            revurderingRepo = revurderingRepoMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = microsoftGraphApiClientMock,
-            brevService = brevServiceMock,
-            utbetalingService = utbetalingServiceMock,
-        )
-
-        serviceAndMocks.revurderingService.iverksett(
-            revurderingId = revurderingId,
-            attestant = attestant,
-        ) shouldBe iverksattRevurdering.right()
-
-        inOrder(
-            *serviceAndMocks.all(),
-        ) {
-            verify(revurderingRepoMock).hent(revurderingTilAttestering.id)
-            verify(personServiceMock).hentPerson(fnr)
-            verify(microsoftGraphApiClientMock).hentNavnForNavIdent(no.nav.su.se.bakover.test.saksbehandler)
-            verify(microsoftGraphApiClientMock).hentNavnForNavIdent(attestant)
-            verify(utbetalingServiceMock).hentGjeldendeUtbetaling(
-                revurderingTilAttestering.sakId,
-                revurderingTilAttestering.periode.fraOgMed,
-            )
-            verify(brevServiceMock).lagBrev(argThat { it shouldBe beOfType<LagBrevRequest.VedtakIngenEndring>() })
-            verify(serviceAndMocks.vedtakRepo).lagre(argThat { it shouldBe vedtak.copy(id = it.id) })
-            verify(brevServiceMock).lagreDokument(
-                argThat {
-                    it shouldBe beOfType<Dokument.MedMetadata.Vedtak>()
-                    it.generertDokument shouldNotBe null
-                    it.generertDokumentJson shouldNotBe null
-                    it.metadata.sakId shouldBe sak.id
-                    it.metadata.vedtakId shouldNotBe null
-                    it.metadata.bestillBrev shouldBe true
-                },
-            )
-            verify(revurderingRepoMock).lagre(iverksattRevurdering)
-
-            serviceAndMocks.verifyNoMoreInteractions()
+                it.verifyNoMoreInteractions()
+            }
         }
     }
 
@@ -503,36 +475,27 @@ class RevurderingIngenEndringTest {
             skalFøreTilBrevutsending = true,
         )
 
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn revurderingTilAttestering
-        }
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn revurderingTilAttestering
+            },
+            brevService = mock {
+                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeHentePerson.left()
+            },
+        ).let {
 
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
-        }
+            it.revurderingService.iverksett(
+                revurderingId,
+                attestant,
+            ) shouldBe KunneIkkeIverksetteRevurdering.FantIkkePerson.left()
 
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on { hentGjeldendeUtbetaling(any(), any()) } doReturn FantIkkeGjeldendeUtbetaling.left()
-        }
-
-        val serviceAndMocks = RevurderingServiceMocks(
-            revurderingRepo = revurderingRepoMock,
-            personService = personServiceMock,
-            utbetalingService = utbetalingServiceMock,
-        )
-
-        serviceAndMocks.revurderingService.iverksett(
-            revurderingId,
-            attestant,
-        ) shouldBe KunneIkkeIverksetteRevurdering.FantIkkePerson.left()
-
-        inOrder(
-            *serviceAndMocks.all(),
-        ) {
-            verify(revurderingRepoMock).hent(revurderingTilAttestering.id)
-            verify(personServiceMock).hentPerson(any())
-            verify(utbetalingServiceMock).hentGjeldendeUtbetaling(any(), any())
-            verifyNoMoreInteractions()
+            inOrder(
+                *it.all(),
+            ) {
+                verify(it.revurderingRepo).hent(revurderingTilAttestering.id)
+                verify(it.brevService).lagDokument(any())
+                verifyNoMoreInteractions()
+            }
         }
     }
 
@@ -542,44 +505,26 @@ class RevurderingIngenEndringTest {
             skalFøreTilBrevutsending = true,
         )
 
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn revurderingTilAttestering
-        }
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn revurderingTilAttestering
+            },
+            brevService = mock {
+                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling.left()
+            },
+        ).let {
+            it.revurderingService.iverksett(
+                revurderingId,
+                attestant,
+            ) shouldBe KunneIkkeIverksetteRevurdering.KunneIkkeFinneGjeldendeUtbetaling.left()
 
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-
-        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturnConsecutively listOf(
-                saksbehandler.navIdent.right(),
-                attestant.navIdent.right(),
-            )
-        }
-
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on { hentGjeldendeUtbetaling(any(), any()) } doReturn FantIkkeGjeldendeUtbetaling.left()
-        }
-
-        val serviceAndMocks = RevurderingServiceMocks(
-            revurderingRepo = revurderingRepoMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = microsoftGraphApiClientMock,
-            utbetalingService = utbetalingServiceMock,
-        )
-
-        serviceAndMocks.revurderingService.iverksett(
-            revurderingId,
-            attestant,
-        ) shouldBe KunneIkkeIverksetteRevurdering.KunneIkkeFinneGjeldendeUtbetaling.left()
-
-        inOrder(
-            *serviceAndMocks.all(),
-        ) {
-            verify(revurderingRepoMock).hent(revurderingTilAttestering.id)
-            verify(personServiceMock).hentPerson(any())
-            verify(utbetalingServiceMock).hentGjeldendeUtbetaling(any(), any())
-            verifyNoMoreInteractions()
+            inOrder(
+                *it.all(),
+            ) {
+                verify(it.revurderingRepo).hent(revurderingTilAttestering.id)
+                verify(it.brevService).lagDokument(argThat { it shouldBe beOfType<Vedtak.IngenEndringIYtelse>() })
+                verifyNoMoreInteractions()
+            }
         }
     }
 
@@ -589,50 +534,26 @@ class RevurderingIngenEndringTest {
             skalFøreTilBrevutsending = true,
         )
 
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn revurderingTilAttestering
-        }
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn revurderingTilAttestering
+            },
+            brevService = mock {
+                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
+            },
+        ).let {
+            it.revurderingService.iverksett(
+                revurderingId,
+                attestant,
+            ) shouldBe KunneIkkeIverksetteRevurdering.KunneIkkeGenerereBrev.left()
 
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-
-        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturnConsecutively listOf(
-                saksbehandler.navIdent.right(),
-                attestant.navIdent.right(),
-            )
-        }
-
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on { hentGjeldendeUtbetaling(any(), any()) } doReturn FantIkkeGjeldendeUtbetaling.left()
-        }
-
-        val brevServiceMock = mock<BrevService> {
-            on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
-        }
-
-        val serviceAndMocks = RevurderingServiceMocks(
-            revurderingRepo = revurderingRepoMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = microsoftGraphApiClientMock,
-            utbetalingService = utbetalingServiceMock,
-            brevService = brevServiceMock,
-        )
-
-        serviceAndMocks.revurderingService.iverksett(
-            revurderingId,
-            attestant,
-        ) shouldBe KunneIkkeIverksetteRevurdering.KunneIkkeFinneGjeldendeUtbetaling.left()
-
-        inOrder(
-            *serviceAndMocks.all(),
-        ) {
-            verify(revurderingRepoMock).hent(revurderingTilAttestering.id)
-            verify(personServiceMock).hentPerson(any())
-            verify(microsoftGraphApiClientMock, times(2)).hentNavnForNavIdent(any())
-            verify(utbetalingServiceMock).hentGjeldendeUtbetaling(any(), any())
-            verifyNoMoreInteractions()
+            inOrder(
+                *it.all(),
+            ) {
+                verify(it.revurderingRepo).hent(revurderingTilAttestering.id)
+                verify(it.brevService).lagDokument(argThat { it shouldBe beOfType<Vedtak.IngenEndringIYtelse>() })
+                verifyNoMoreInteractions()
+            }
         }
     }
 }

@@ -79,7 +79,7 @@ object DatabaseBuilder {
         return buildInternal(embeddedDatasource, dbMetrics, clock)
     }
 
-    private fun buildInternal(
+    internal fun buildInternal(
         dataSource: DataSource,
         dbMetrics: DbMetrics,
         clock: Clock,
@@ -138,6 +138,7 @@ object DatabaseBuilder {
             søknadsbehandlingRepo = saksbehandlingRepo,
             revurderingRepo = revurderingRepo,
             dbMetrics = dbMetrics,
+            sessionFactory = sessionFactory,
         )
         val hendelseRepo = PersonhendelsePostgresRepo(dataSource, clock)
         val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource)

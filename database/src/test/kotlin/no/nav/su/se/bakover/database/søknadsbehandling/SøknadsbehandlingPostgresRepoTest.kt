@@ -4,9 +4,12 @@ import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeTypeOf
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.TestDataHelper.Companion.journalførtSøknadMedOppgave
 import no.nav.su.se.bakover.database.antall
@@ -21,23 +24,30 @@ import no.nav.su.se.bakover.database.stønadsperiode
 import no.nav.su.se.bakover.database.underkjentAttestering
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.util.UUID
 
 internal class SøknadsbehandlingPostgresRepoTest {
@@ -563,6 +573,53 @@ internal class SøknadsbehandlingPostgresRepoTest {
             testDataHelper.nySøknadsbehandling(sak, søknad).let {
                 søknadsbehandlingRepo.hentForSøknad(søknad.id) shouldBe it
             }
+        }
+    }
+
+    @Test
+    fun `kan lagre og hente avslag manglende dokumentasjon`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val opprettet = testDataHelper.nyInnvilgetVilkårsvurdering()
+
+            testDataHelper.søknadsbehandlingRepo.lagreAvslagManglendeDokumentasjon(
+                avslag = AvslagManglendeDokumentasjon.tryCreate(
+                    søknadsbehandling = opprettet,
+                    saksbehandler = saksbehandler,
+                    fritekstTilBrev = "hshshshs",
+                    clock = fixedClock,
+                ).getOrFail("Feil i oppsett"),
+            )
+
+            testDataHelper.søknadsbehandlingRepo.hent(opprettet.id) shouldBe Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
+                id = opprettet.id,
+                opprettet = opprettet.opprettet,
+                sakId = opprettet.sakId,
+                saksnummer = opprettet.saksnummer,
+                søknad = opprettet.søknad,
+                oppgaveId = opprettet.oppgaveId,
+                behandlingsinformasjon = opprettet.behandlingsinformasjon,
+                fnr = opprettet.fnr,
+                saksbehandler = saksbehandler,
+                attesteringer = Attesteringshistorikk(
+                    attesteringer = listOf(
+                        Attestering.Iverksatt(
+                            attestant = NavIdentBruker.Attestant(saksbehandler.navIdent),
+                            opprettet = Tidspunkt.now(no.nav.su.se.bakover.test.fixedClock),
+                        ),
+                    ),
+                ),
+                fritekstTilBrev = "hshshshs",
+                stønadsperiode = Stønadsperiode.create(
+                    periode = Periode.create(
+                        fraOgMed = LocalDate.now(no.nav.su.se.bakover.test.fixedClock).startOfMonth(),
+                        tilOgMed = LocalDate.now(no.nav.su.se.bakover.test.fixedClock).endOfMonth(),
+                    ),
+                    begrunnelse = "",
+                ),
+                grunnlagsdata = opprettet.grunnlagsdata,
+                vilkårsvurderinger = opprettet.vilkårsvurderinger,
+            )
         }
     }
 }

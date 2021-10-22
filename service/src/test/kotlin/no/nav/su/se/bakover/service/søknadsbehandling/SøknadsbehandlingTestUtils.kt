@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
@@ -39,11 +37,9 @@ internal fun createSøknadsbehandlingService(
     utbetalingService: UtbetalingService = mock(),
     oppgaveService: OppgaveService = mock(),
     søknadService: SøknadService = mock(),
-    søknadRepo: SøknadRepo = mock(),
     personService: PersonService = mock(),
     behandlingMetrics: BehandlingMetrics = mock(),
     observer: EventObserver = mock(),
-    microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = mock(),
     brevService: BrevService = mock(),
     opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
     clock: Clock = Clock.systemUTC(),
@@ -54,13 +50,11 @@ internal fun createSøknadsbehandlingService(
     sakService: SakService = mock(),
 ) = SøknadsbehandlingServiceImpl(
     søknadService,
-    søknadRepo,
     søknadsbehandlingRepo,
     utbetalingService,
     personService,
     oppgaveService,
     behandlingMetrics,
-    microsoftGraphApiOppslag,
     brevService,
     opprettVedtakssnapshotService,
     clock,
@@ -76,14 +70,12 @@ internal data class SøknadsbehandlingServiceAndMocks(
     val utbetalingService: UtbetalingService = mock(),
     val oppgaveService: OppgaveService = mock(),
     val søknadService: SøknadService = mock(),
-    val søknadRepo: SøknadRepo = mock(),
     val personService: PersonService = mock(),
     val behandlingMetrics: BehandlingMetrics = mock(),
     val observer: EventObserver = mock(),
-    val microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = mock(),
     val brevService: BrevService = mock(),
     val opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
-    val clock: Clock = no.nav.su.se.bakover.test.fixedClock,
+    val clock: Clock = fixedClock,
     val vedtakRepo: VedtakRepo = mock(),
     val ferdigstillVedtakService: FerdigstillVedtakService = mock(),
     val vilkårsvurderingService: VilkårsvurderingService = mock(),
@@ -92,13 +84,11 @@ internal data class SøknadsbehandlingServiceAndMocks(
 ) {
     val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
         søknadService = søknadService,
-        søknadRepo = søknadRepo,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         utbetalingService = utbetalingService,
         personService = personService,
         oppgaveService = oppgaveService,
         behandlingMetrics = behandlingMetrics,
-        microsoftGraphApiClient = microsoftGraphApiOppslag,
         brevService = brevService,
         opprettVedtakssnapshotService = opprettVedtakssnapshotService,
         clock = clock,
@@ -109,17 +99,15 @@ internal data class SøknadsbehandlingServiceAndMocks(
         sakService = sakService,
     ).apply { addObserver(observer) }
 
-    fun all(): List<Any> {
+    fun allMocks(): Array<Any> {
         return listOf(
             søknadsbehandlingRepo,
             utbetalingService,
             oppgaveService,
             søknadService,
-            søknadRepo,
             personService,
             behandlingMetrics,
             observer,
-            microsoftGraphApiOppslag,
             brevService,
             opprettVedtakssnapshotService,
             vedtakRepo,
@@ -127,7 +115,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
             vilkårsvurderingService,
             grunnlagService,
             sakService,
-        )
+        ).toTypedArray()
     }
 
     fun verifyNoMoreInteractions() {
@@ -136,11 +124,9 @@ internal data class SøknadsbehandlingServiceAndMocks(
             utbetalingService,
             oppgaveService,
             søknadService,
-            søknadRepo,
             personService,
             behandlingMetrics,
             observer,
-            microsoftGraphApiOppslag,
             brevService,
             opprettVedtakssnapshotService,
             vedtakRepo,

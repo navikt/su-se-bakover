@@ -17,6 +17,9 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.ForNav
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
+import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
+import no.nav.su.se.bakover.service.søknad.KunneIkkeAvslåSøknad
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
@@ -38,6 +41,7 @@ import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadErrorHandler
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
+import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withSøknadId
 
 internal const val søknadPath = "/soknad"
@@ -45,6 +49,7 @@ internal const val søknadPath = "/soknad"
 internal fun Route.søknadRoutes(
     søknadService: SøknadService,
     lukkSøknadService: LukkSøknadService,
+    avslåSøknadManglendeDokumentasjonService: AvslåSøknadManglendeDokumentasjonService,
 ) {
     authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
         post(søknadPath) {
@@ -137,6 +142,42 @@ internal fun Route.søknadRoutes(
                             call.svar(Resultat.json(OK, serialize(it.toJson())))
                         },
                     )
+                }
+            }
+        }
+    }
+
+    data class WithFritekstBody(val fritekst: String)
+
+    authorize(Brukerrolle.Saksbehandler) {
+        post("$søknadPath/{søknadId}/avslag") {
+            call.withSøknadId { søknadId ->
+                call.withBody<WithFritekstBody> { body ->
+                    avslåSøknadManglendeDokumentasjonService.avslå(
+                        AvslåManglendeDokumentasjonRequest(
+                            søknadId = søknadId,
+                            saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                            fritekstTilBrev = body.fritekst,
+                        ),
+                    ).mapLeft {
+                        call.svar(
+                            when (it) {
+                                KunneIkkeAvslåSøknad.SøknadsbehandlingIUgyldigTilstandForAvslag -> Feilresponser.behandlingErIUgyldigTilstand
+                                KunneIkkeAvslåSøknad.KunneIkkeFinneGjeldendeUtbetaling -> Feilresponser.fantIkkeGjeldendeUtbetaling
+                                KunneIkkeAvslåSøknad.KunneIkkeGenererePDF -> Feilresponser.kunneIkkeGenererePdf
+                                KunneIkkeAvslåSøknad.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> Feilresponser.fantIkkeSaksbehandlerEllerAttestant
+                                KunneIkkeAvslåSøknad.KunneIkkeHentePerson -> Feilresponser.fantIkkePerson
+                                KunneIkkeAvslåSøknad.FantIkkeSak -> Feilresponser.fantIkkeSak
+                                KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad -> Feilresponser.fantIkkeSøknad
+                                KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.HarAlleredeÅpenSøknadsbehandling -> Feilresponser.harAlleredeÅpenBehandling
+                                KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.SøknadErLukket -> Feilresponser.søknadErLukket
+                                KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.SøknadHarAlleredeBehandling -> Feilresponser.søknadHarBehandlingFraFør
+                                KunneIkkeAvslåSøknad.KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave -> Feilresponser.søknadManglerOppgave
+                            },
+                        )
+                    }.map {
+                        call.svar(Resultat.json(OK, serialize(it.toJson())))
+                    }
                 }
             }
         }

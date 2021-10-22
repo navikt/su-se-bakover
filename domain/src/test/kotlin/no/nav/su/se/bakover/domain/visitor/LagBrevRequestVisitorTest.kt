@@ -666,7 +666,10 @@ internal class LagBrevRequestVisitorTest {
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(Attestering.Iverksatt(attestant, fixedTidspunkt))
 
-        val avslåttVedtak = Vedtak.Avslag.fromSøknadsbehandlingUtenBeregning(søknadsbehandling, fixedClock)
+        val avslåttVedtak = Vedtak.Avslag.fromSøknadsbehandlingUtenBeregning(
+            avslag = søknadsbehandling,
+            clock = fixedClock,
+        )
 
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },

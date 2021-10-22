@@ -1,16 +1,12 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
-import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionContext
-import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -18,8 +14,8 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -45,8 +41,8 @@ import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
@@ -73,13 +69,11 @@ import java.util.UUID
 
 internal class SøknadsbehandlingServiceImpl(
     private val søknadService: SøknadService,
-    private val søknadRepo: SøknadRepo,
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
     private val utbetalingService: UtbetalingService,
     private val personService: PersonService,
     private val oppgaveService: OppgaveService,
     private val behandlingMetrics: BehandlingMetrics,
-    private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     private val brevService: BrevService,
     private val opprettVedtakssnapshotService: OpprettVedtakssnapshotService,
     private val clock: Clock,
@@ -387,8 +381,17 @@ internal class SøknadsbehandlingServiceImpl(
                 is Søknadsbehandling.Iverksatt.Avslag -> {
                     val vedtak = opprettAvslagsvedtak(iverksattBehandling)
 
-                    val dokument = lagDokumentForDistribusjon(vedtak)
-                        .getOrHandle { return it.left() }
+                    val dokument = brevService.lagDokument(vedtak)
+                        .getOrHandle { return KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev.left() }
+                        .leggTilMetadata(
+                            Dokument.Metadata(
+                                sakId = vedtak.behandling.sakId,
+                                søknadId = null,
+                                vedtakId = vedtak.id,
+                                revurderingId = null,
+                                bestillBrev = true,
+                            ),
+                        )
 
                     // TODO jm: skriker etter en transaksjon
                     // TODO jm: sjekk om vi allerede har distribuert?
@@ -429,66 +432,39 @@ internal class SøknadsbehandlingServiceImpl(
     private fun opprettAvslagsvedtak(iverksattBehandling: Søknadsbehandling.Iverksatt.Avslag): Vedtak.Avslag =
         when (iverksattBehandling) {
             is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
-                Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(iverksattBehandling, clock)
+                Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(
+                    avslag = iverksattBehandling,
+                    clock = clock,
+                )
             }
             is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
-                Vedtak.Avslag.fromSøknadsbehandlingUtenBeregning(iverksattBehandling, clock)
+                Vedtak.Avslag.fromSøknadsbehandlingUtenBeregning(
+                    avslag = iverksattBehandling,
+                    clock = clock,
+                )
             }
         }
-
-    private fun lagBrevRequestVisitor() =
-        LagBrevRequestVisitor(
-            hentPerson = { fnr ->
-                personService.hentPerson(fnr)
-                    .mapLeft { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson }
-            },
-            hentNavn = { ident ->
-                hentNavnForNavIdent(ident)
-                    .mapLeft { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant }
-            },
-            hentGjeldendeUtbetaling = { sakId, forDato ->
-                utbetalingService.hentGjeldendeUtbetaling(sakId, forDato)
-                    .bimap(
-                        { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling },
-                        { it.beløp },
-                    )
-            },
-            clock = clock,
-        )
 
     override fun brev(request: SøknadsbehandlingService.BrevRequest): Either<SøknadsbehandlingService.KunneIkkeLageBrev, ByteArray> {
-        val visitor = lagBrevRequestVisitor().apply {
-            val behandling = when (request) {
-                is SøknadsbehandlingService.BrevRequest.MedFritekst ->
-                    request.behandling.medFritekstTilBrev(request.fritekst)
-                is SøknadsbehandlingService.BrevRequest.UtenFritekst ->
-                    request.behandling
-            }
-
-            behandling.accept(this)
+        val behandling = when (request) {
+            is SøknadsbehandlingService.BrevRequest.MedFritekst ->
+                request.behandling.medFritekstTilBrev(request.fritekst)
+            is SøknadsbehandlingService.BrevRequest.UtenFritekst ->
+                request.behandling
         }
 
-        return visitor.brevRequest
+        return brevService.lagDokument(behandling)
             .mapLeft {
                 when (it) {
-                    LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> {
-                        SøknadsbehandlingService.KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant
-                    }
-                    LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> {
-                        SøknadsbehandlingService.KunneIkkeLageBrev.FantIkkePerson
-                    }
-                    LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling -> {
-                        SøknadsbehandlingService.KunneIkkeLageBrev.KunneIkkeFinneGjeldendeUtbetaling
-                    }
+                    KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> SøknadsbehandlingService.KunneIkkeLageBrev.KunneIkkeFinneGjeldendeUtbetaling
+                    KunneIkkeLageDokument.KunneIkkeGenererePDF -> SøknadsbehandlingService.KunneIkkeLageBrev.KunneIkkeLagePDF
+                    KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> SøknadsbehandlingService.KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant
+                    KunneIkkeLageDokument.KunneIkkeHentePerson -> SøknadsbehandlingService.KunneIkkeLageBrev.FantIkkePerson
                 }
-            }.flatMap {
-                brevService.lagBrev(it)
-                    .mapLeft { SøknadsbehandlingService.KunneIkkeLageBrev.KunneIkkeLagePDF }
             }
-    }
-
-    private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, String> {
-        return microsoftGraphApiClient.hentNavnForNavIdent(navIdent)
+            .map {
+                it.generertDokument
+            }
     }
 
     override fun hent(request: SøknadsbehandlingService.HentRequest): Either<SøknadsbehandlingService.FantIkkeBehandling, Søknadsbehandling> {
@@ -700,31 +676,6 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    private fun lagDokumentForDistribusjon(vedtak: Vedtak): Either<KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev, Dokument.MedMetadata> =
-        lagBrevRequestVisitor()
-            .let { visitor ->
-                vedtak.accept(visitor)
-                visitor.brevRequest
-            }
-            .mapLeft { KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev }
-            .flatMap { req ->
-                req.tilDokument {
-                    brevService.lagBrev(req)
-                        .mapLeft { LagBrevRequest.KunneIkkeGenererePdf }
-                }.mapLeft { KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev }
-            }
-            .map {
-                it.leggTilMetadata(
-                    Dokument.Metadata(
-                        sakId = vedtak.behandling.sakId,
-                        søknadId = null,
-                        vedtakId = vedtak.id,
-                        revurderingId = null,
-                        bestillBrev = true,
-                    ),
-                )
-            }
-
     override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling> {
         val behandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
@@ -751,5 +702,9 @@ internal class SøknadsbehandlingServiceImpl(
 
     override fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, sessionContext: SessionContext) {
         søknadsbehandlingRepo.lagre(lukketSøknadbehandling, sessionContext)
+    }
+
+    override fun lagre(avslag: AvslagManglendeDokumentasjon, sessionContext: SessionContext) {
+        return søknadsbehandlingRepo.lagreAvslagManglendeDokumentasjon(avslag, sessionContext)
     }
 }

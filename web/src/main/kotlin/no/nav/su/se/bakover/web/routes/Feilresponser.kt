@@ -34,6 +34,21 @@ internal object Feilresponser {
         "Feil ved oppslag på person", "feil_ved_oppslag_person"
     )
 
+    val fantIkkeSøknad = NotFound.errorJson(
+        "Fant ikke søknad",
+        "fant_ikke_søknad",
+    )
+
+    val harAlleredeÅpenBehandling = BadRequest.errorJson(
+        "Har allerede en aktiv behandling",
+        "har_allerede_en_aktiv_behandling",
+    )
+
+    val søknadHarBehandlingFraFør = BadRequest.errorJson(
+        "Søknad har en behandling fra før",
+        "søknad_har_behandling_fra_før",
+    )
+
     val fantIkkeAktørId = NotFound.errorJson(
         "Fant ikke aktør id",
         "fant_ikke_aktør_id",
@@ -44,9 +59,19 @@ internal object Feilresponser {
         "kunne_ikke_opprette_oppgave",
     )
 
+    val søknadManglerOppgave = InternalServerError.errorJson(
+        "Søknad mangler oppgave",
+        "søknad_mangler_oppgave",
+    )
+
     val overlappendeVurderingsperioder = BadRequest.errorJson(
         "Vurderingperioder kan ikke overlappe",
         "overlappende_vurderingsperioder",
+    )
+
+    val søknadErLukket = BadRequest.errorJson(
+        "Søknad er allerede lukket",
+        "søknad_er_allerede_lukket",
     )
 
     val utenforBehandlingsperioden = BadRequest.errorJson(
@@ -67,6 +92,25 @@ internal object Feilresponser {
     val feilVedGenereringAvDokument = InternalServerError.errorJson(
         "Feil ved generering av dokument",
         "feil_ved_generering_av_dokument",
+    )
+
+    val behandlingErIUgyldigTilstand = InternalServerError.errorJson(
+        "Behandlingen er i ugyldig tilstand for avslag",
+        "behandling_i_ugyldig_tilstand_for_avslag",
+    )
+
+    val kunneIkkeGenererePdf = InternalServerError.errorJson(
+        "Kunne ikke generere pdf",
+        "kunne_ikke_generere_pdf",
+    )
+
+    val fantIkkeSaksbehandlerEllerAttestant = NotFound.errorJson(
+        "Fant ikke saksbehandler eller attestant",
+        "fant_ikke_saksbehandler_eller_attestant",
+    )
+    val fantIkkeGjeldendeUtbetaling = NotFound.errorJson(
+        "Fant ikke gjeldende utbetaling",
+        "fant_ikke_gjeldende_utbetaling",
     )
 
     fun ugyldigTilstand(fra: KClass<*>, til: KClass<*>): Resultat {

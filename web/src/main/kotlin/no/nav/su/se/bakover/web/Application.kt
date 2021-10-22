@@ -245,8 +245,9 @@ internal fun Application.susebakover(
                     personRoutes(accessProtectedServices.person, clock)
                     sakRoutes(accessProtectedServices.sak)
                     søknadRoutes(
-                        accessProtectedServices.søknad,
-                        accessProtectedServices.lukkSøknad,
+                        søknadService = accessProtectedServices.søknad,
+                        lukkSøknadService = accessProtectedServices.lukkSøknad,
+                        avslåSøknadManglendeDokumentasjonService = accessProtectedServices.avslåSøknadManglendeDokumentasjonService,
                     )
                     overordnetSøknadsbehandligRoutes(accessProtectedServices.søknadsbehandling, clock)
                     avstemmingRoutes(accessProtectedServices.avstemming, clock)

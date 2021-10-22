@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.service.person.PersonServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.statistikk.StatistikkServiceImpl
+import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
@@ -62,6 +63,9 @@ object ServiceBuilder {
             sakService = sakService,
             personService = personService,
             sessionFactory = databaseRepos.sessionFactory,
+            microsoftGraphApiOppslag = clients.microsoftGraphApiClient,
+            utbetalingService = utbetalingService,
+            clock = clock,
         )
         val oppgaveService = OppgaveServiceImpl(
             oppgaveClient = clients.oppgaveClient,
@@ -83,10 +87,6 @@ object ServiceBuilder {
             brevService = brevService,
             oppgaveService = oppgaveService,
             vedtakRepo = databaseRepos.vedtakRepo,
-            personService = personService,
-            utbetalingService = utbetalingService,
-            microsoftGraphApiOppslag = clients.microsoftGraphApiClient,
-            clock = clock,
             behandlingMetrics = behandlingMetrics,
         )
 
@@ -128,13 +128,11 @@ object ServiceBuilder {
 
         val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
             søknadService = søknadService,
-            søknadRepo = databaseRepos.søknad,
             søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
             utbetalingService = utbetalingService,
             personService = personService,
             oppgaveService = oppgaveService,
             behandlingMetrics = behandlingMetrics,
-            microsoftGraphApiClient = clients.microsoftGraphApiClient,
             brevService = brevService,
             opprettVedtakssnapshotService = opprettVedtakssnapshotService,
             clock = clock,
@@ -179,6 +177,15 @@ object ServiceBuilder {
             vedtakService = vedtakService,
             grunnlagService = grunnlagService,
             nøkkeltallService = nøkkelTallService,
+            avslåSøknadManglendeDokumentasjonService = AvslåSøknadManglendeDokumentasjonServiceImpl(
+                clock = clock,
+                søknadsbehandlingService = søknadsbehandlingService,
+                vedtakService = vedtakService,
+                oppgaveService = oppgaveService,
+                brevService = brevService,
+                sessionFactory = databaseRepos.sessionFactory,
+                sakService = sakService,
+            ),
         )
     }
 }
