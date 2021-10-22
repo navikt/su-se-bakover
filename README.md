@@ -10,7 +10,8 @@ Lokal database startes med `./docker-compose up`
 Hvis man ønsker å resette hele databasen og starte fra scratch er det enkleste å slette volumet ved å kjøre `./resetdb.sh`
 
 #### Starte applikasjon lokalt
-Kan startes lokalt fra web/src/main/kotlin/.../Application.kt sin `fun main(...)`
+Kan startes lokalt fra web/src/main/kotlin/.../Application.kt sin `fun main(...)`. Krever at `start-dev.sh` skriptet
+i [su-se-fremover](https://github.com/navikt/su-se-framover#kj%C3%B8re-lokalt) kjører
 
 #### Autentisering
 su-se-framover tar seg av autentisering (backend for frontend (BFF)) og kaller su-se-bakover med on-behalf-of tokens (per bruker).

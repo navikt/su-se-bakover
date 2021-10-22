@@ -51,12 +51,8 @@ internal fun Route.personRoutes(
                                 call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
                                 when (it) {
                                     FantIkkePerson -> Feilresponser.fantIkkePerson
-                                    IkkeTilgangTilPerson -> HttpStatusCode.Forbidden.errorJson(
-                                        "Ikke tilgang til å se person", "ikke_tilgang_til_person",
-                                    )
-                                    Ukjent -> HttpStatusCode.InternalServerError.errorJson(
-                                        "Feil ved oppslag på person", "feil_ved_oppslag_person"
-                                    )
+                                    IkkeTilgangTilPerson -> Feilresponser.ikkeTilgangTilPerson
+                                    Ukjent -> Feilresponser.feilVedOppslagPåPerson
                                 }
                             },
                             {

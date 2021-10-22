@@ -15,6 +15,7 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.ForNav
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.service.søknad.AvslåManglendeDokumentasjonRequest
 import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonService
@@ -31,6 +32,7 @@ import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
+import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.receiveTextUTF8
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeLageBrevutkast
@@ -68,6 +70,12 @@ internal fun Route.søknadRoutes(
                         { (saksnummer, søknad) ->
                             call.audit(søknad.søknadInnhold.personopplysninger.fnr, AuditLogEvent.Action.CREATE, null)
                             call.sikkerlogg("Lagrer søknad ${søknad.id} på sak ${søknad.sakId}")
+                            SuMetrics.søknadMottatt(
+                                if (søknad.søknadInnhold.forNav is ForNav.Papirsøknad)
+                                    SuMetrics.Søknadstype.PAPIR
+                                else
+                                    SuMetrics.Søknadstype.DIGITAL,
+                            )
                             call.svar(
                                 Resultat.json(
                                     Created,

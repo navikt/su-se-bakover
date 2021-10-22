@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
+import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeAktørId
 import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.begrunnelseKanIkkeVæreTom
@@ -72,6 +73,7 @@ internal fun Route.opprettRevurderingRoute(
                         ifRight = {
                             call.sikkerlogg("Opprettet en ny revurdering på sak med id $sakId")
                             call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
+                            SuMetrics.behandlingStartet(SuMetrics.Behandlingstype.REVURDERING)
                             call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson())))
                         },
                     )

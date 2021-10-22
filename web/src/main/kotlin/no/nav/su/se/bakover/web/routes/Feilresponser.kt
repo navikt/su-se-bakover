@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes
 
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -20,9 +21,17 @@ internal object Feilresponser {
         "fant_ikke_sak",
     )
 
+    val ikkeTilgangTilPerson = Forbidden.errorJson(
+        "Ikke tilgang til å se person", "ikke_tilgang_til_person",
+    )
+
     val fantIkkePerson = NotFound.errorJson(
         "Fant ikke person",
         "fant_ikke_person",
+    )
+
+    val feilVedOppslagPåPerson = InternalServerError.errorJson(
+        "Feil ved oppslag på person", "feil_ved_oppslag_person"
     )
 
     val fantIkkeSøknad = NotFound.errorJson(
