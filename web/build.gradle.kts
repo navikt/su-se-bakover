@@ -31,7 +31,7 @@ dependencies {
 
     testImplementation(project(":database", "testArchives"))
     testImplementation(project(":test-common"))
-    testImplementation("org.xmlunit:xmlunit-matchers:2.8.2")
+    testImplementation("org.xmlunit:xmlunit-matchers:2.8.3")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {
         exclude(group = "junit")
         exclude(group = "org.eclipse.jetty") // conflicts with WireMock

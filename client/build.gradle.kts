@@ -27,7 +27,7 @@ dependencies {
     testImplementation("com.github.tomakehurst:wiremock-jre8:2.31.0") {
         exclude(group = "junit")
     }
-    testImplementation("org.xmlunit:xmlunit-matchers:2.8.2")
+    testImplementation("org.xmlunit:xmlunit-matchers:2.8.3")
 }
 
 configure<SourceSetContainer> {
