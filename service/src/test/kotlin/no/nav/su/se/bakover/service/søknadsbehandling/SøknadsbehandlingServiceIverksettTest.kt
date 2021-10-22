@@ -7,7 +7,6 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
@@ -25,7 +24,7 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -36,7 +35,6 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -47,17 +45,16 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.beregning.TestBeregning
-import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
-import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.person
+import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagMedBeregning
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -170,10 +167,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
             ),
         )
 
-        response shouldBe KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL)).left()
+        response shouldBe KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL))
+            .left()
 
         inOrder(
-            *serviceAndMocks.all().toTypedArray(),
+            *serviceAndMocks.allMocks(),
         ) {
             verify(søknadsbehandlingRepoMock).hent(behandling.id)
             verify(utbetalingServiceMock).utbetal(
@@ -219,10 +217,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
             ),
         )
 
-        response shouldBe KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte).left()
+        response shouldBe KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte)
+            .left()
 
         inOrder(
-            *serviceAndMocks.all().toTypedArray(),
+            *serviceAndMocks.allMocks(),
         ) {
             verify(søknadsbehandlingRepoMock).hent(behandling.id)
             verify(utbetalingServiceMock).utbetal(
@@ -263,7 +262,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         response shouldBe KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
 
         inOrder(
-            *serviceAndMocks.all().toTypedArray(),
+            *serviceAndMocks.allMocks(),
         ) {
             verify(søknadsbehandlingRepoMock).hent(behandling.id)
             verify(utbetalingServiceMock).utbetal(
@@ -331,7 +330,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         response shouldBe expected.right()
 
         inOrder(
-            *serviceAndMocks.all().toTypedArray(),
+            *serviceAndMocks.allMocks(),
         ) {
             verify(søknadsbehandlingRepoMock).hent(behandling.id)
             verify(utbetalingServiceMock).utbetal(
@@ -358,172 +357,113 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
     @Test
     fun `attesterer og iverksetter avslag hvis alt er ok`() {
-        val behandling = avslagTilAttestering()
-        val attesteringstidspunkt = fixedTidspunkt
+        val attestering = Attestering.Iverksatt(attestant, fixedTidspunkt)
 
-        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn behandling
-        }
+        val expectedAvslag = avslagTilAttestering.tilIverksatt(attestering)
 
-        val ferdigstillVedtakService = mock<FerdigstillVedtakService>() { mock ->
-            doAnswer {
-                (it.arguments[0] as Vedtak.Avslag.AvslagBeregning).right()
-            }.whenever(mock).lukkOppgaveMedBruker(any())
-        }
+        SøknadsbehandlingServiceAndMocks(
+            søknadsbehandlingRepo = mock {
+                on { hent(any()) } doReturn avslagTilAttestering
+            },
+            ferdigstillVedtakService = mock() { mock ->
+                doAnswer {
+                    (it.arguments[0] as Vedtak.Avslag.AvslagBeregning).right()
+                }.whenever(mock).lukkOppgaveMedBruker(any())
+            },
+            brevService = mock {
+                on { lagDokument(any()) } doReturn Dokument.UtenMetadata.Vedtak(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    tittel = "tittel1",
+                    generertDokument = "".toByteArray(),
+                    generertDokumentJson = "",
+                ).right()
+            },
+        ).let {
+            it.søknadsbehandlingService.iverksett(
+                SøknadsbehandlingService.IverksettRequest(
+                    behandlingId = avslagTilAttestering.id,
+                    attestering = attestering,
+                ),
+            ) shouldBe expectedAvslag.right()
 
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-        val msGraphApiMock = mock<MicrosoftGraphApiOppslag>() {
-            on { hentNavnForNavIdent(any()) } doReturn "Saks, Behandlder".right()
-        }
-        val brevServiceMock = mock<BrevService>() {
-            on { lagBrev(any()) } doReturn "".toByteArray().right()
-        }
-
-        val vedtakRepoMock = mock<VedtakRepo>()
-        val opprettVedtakssnapshotService = mock<OpprettVedtakssnapshotService>()
-
-        val expectedAvslag = Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
-            id = behandling.id,
-            opprettet = behandling.opprettet,
-            sakId = behandling.sakId,
-            saksnummer = behandling.saksnummer,
-            søknad = behandling.søknad,
-            oppgaveId = behandling.oppgaveId,
-            behandlingsinformasjon = behandling.behandlingsinformasjon,
-            fnr = behandling.fnr,
-            beregning = behandling.beregning,
-            saksbehandler = behandling.saksbehandler,
-            attesteringer = Attesteringshistorikk.empty()
-                .leggTilNyAttestering(Attestering.Iverksatt(attestant, attesteringstidspunkt)),
-            fritekstTilBrev = "",
-            stønadsperiode = behandling.stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-        )
-
-        val behandlingMetricsMock = mock<BehandlingMetrics>()
-        val statistikkObserver = mock<EventObserver>()
-
-        val servicesAndMocks = SøknadsbehandlingServiceAndMocks(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            behandlingMetrics = behandlingMetricsMock,
-            observer = statistikkObserver,
-            vedtakRepo = vedtakRepoMock,
-            ferdigstillVedtakService = ferdigstillVedtakService,
-            opprettVedtakssnapshotService = opprettVedtakssnapshotService,
-            personService = personServiceMock,
-            microsoftGraphApiOppslag = msGraphApiMock,
-            brevService = brevServiceMock,
-        )
-
-        val response = servicesAndMocks.søknadsbehandlingService.iverksett(
-            SøknadsbehandlingService.IverksettRequest(
-                behandlingId = behandling.id,
-                attestering = Attestering.Iverksatt(attestant, attesteringstidspunkt),
-            ),
-        )
-
-        response shouldBe expectedAvslag.right()
-
-        inOrder(
-            *servicesAndMocks.all().toTypedArray(),
-        ) {
-            verify(søknadsbehandlingRepoMock).hent(behandling.id)
-            verify(personServiceMock).hentPerson(fnr)
-            verify(msGraphApiMock).hentNavnForNavIdent(saksbehandler)
-            verify(msGraphApiMock).hentNavnForNavIdent(attestant)
-            verify(brevServiceMock).lagBrev(
-                argThat {
-                    it shouldBe beOfType<LagBrevRequest.AvslagBrevRequest>()
-                },
-            )
-            verify(søknadsbehandlingRepoMock).defaultSessionContext()
-            verify(søknadsbehandlingRepoMock).lagre(eq(expectedAvslag), anyOrNull())
-            verify(vedtakRepoMock).lagre(argThat { it is Vedtak.Avslag.AvslagBeregning })
-            verify(brevServiceMock).lagreDokument(
-                argThat {
-                    it.metadata.sakId shouldBe sakId
-                    it.metadata.vedtakId shouldNotBe null
-                    it.metadata.bestillBrev shouldBe true
-                },
-            )
-            verify(opprettVedtakssnapshotService).opprettVedtak(any())
-            verify(behandlingMetricsMock).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
-            verify(ferdigstillVedtakService).lukkOppgaveMedBruker(any())
-            verify(statistikkObserver).handle(
-                argThat {
-                    it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(expectedAvslag)
-                },
-            )
-            servicesAndMocks.verifyNoMoreInteractions()
+            inOrder(
+                *it.allMocks(),
+            ) {
+                verify(it.søknadsbehandlingRepo).hent(avslagTilAttestering.id)
+                verify(it.brevService).lagDokument(argThat { it shouldBe beOfType<Vedtak.Avslag.AvslagBeregning>() })
+                verify(it.søknadsbehandlingRepo).defaultSessionContext()
+                verify(it.søknadsbehandlingRepo).lagre(eq(expectedAvslag), anyOrNull())
+                verify(it.vedtakRepo).lagre(argThat { it is Vedtak.Avslag.AvslagBeregning })
+                verify(it.brevService).lagreDokument(
+                    argThat {
+                        it.metadata.sakId shouldBe avslagTilAttestering.sakId
+                        it.metadata.vedtakId shouldNotBe null
+                        it.metadata.bestillBrev shouldBe true
+                    },
+                )
+                verify(it.opprettVedtakssnapshotService).opprettVedtak(any())
+                verify(it.behandlingMetrics).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
+                verify(it.ferdigstillVedtakService).lukkOppgaveMedBruker(any())
+                verify(it.observer).handle(
+                    argThat {
+                        it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(
+                            expectedAvslag,
+                        )
+                    },
+                )
+                it.verifyNoMoreInteractions()
+            }
         }
     }
 
     @Test
     fun `iverksett behandling attesterer og saksbehandler kan ikke være samme person`() {
-        val behandling = avslagTilAttestering().copy(
-            saksbehandler = NavIdentBruker.Saksbehandler(attestant.navIdent),
-        )
+        SøknadsbehandlingServiceAndMocks(
+            søknadsbehandlingRepo = mock {
+                on { hent(any()) } doReturn avslagTilAttestering
+            },
+        ).let {
+            it.søknadsbehandlingService.iverksett(
+                SøknadsbehandlingService.IverksettRequest(
+                    behandlingId = avslagTilAttestering.id,
+                    attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(avslagTilAttestering.saksbehandler.navIdent), fixedTidspunkt),
+                ),
+            ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
 
-        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn behandling
-        }
-
-        val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        )
-
-        val response = serviceAndMocks.søknadsbehandlingService.iverksett(
-            SøknadsbehandlingService.IverksettRequest(
-                behandlingId = behandling.id,
-                attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
-            ),
-        )
-
-        response shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
-
-        inOrder(
-            *serviceAndMocks.all().toTypedArray(),
-        ) {
-            verify(søknadsbehandlingRepoMock).hent(behandling.id)
-            serviceAndMocks.verifyNoMoreInteractions()
+            inOrder(
+                *it.allMocks(),
+            ) {
+                verify(it.søknadsbehandlingRepo).hent(avslagTilAttestering.id)
+                it.verifyNoMoreInteractions()
+            }
         }
     }
 
     @Test
     fun `svarer med feil dersom generering av vedtaksbrev feiler`() {
-        val behandling = avslagTilAttestering()
+        SøknadsbehandlingServiceAndMocks(
+            søknadsbehandlingRepo = mock {
+                on { hent(any()) } doReturn avslagTilAttestering
+            },
+            brevService = mock {
+                on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeHentePerson.left()
+            },
+        ).let {
+            it.søknadsbehandlingService.iverksett(
+                SøknadsbehandlingService.IverksettRequest(
+                    behandlingId = avslagTilAttestering.id,
+                    attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                ),
+            ) shouldBe KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev.left()
 
-        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn behandling
-        }
-
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
-        }
-
-        val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            personService = personServiceMock,
-        )
-
-        val response = serviceAndMocks.søknadsbehandlingService.iverksett(
-            SøknadsbehandlingService.IverksettRequest(
-                behandlingId = behandling.id,
-                attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
-            ),
-        )
-
-        response shouldBe KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev.left()
-
-        inOrder(
-            *serviceAndMocks.all().toTypedArray(),
-        ) {
-            verify(søknadsbehandlingRepoMock).hent(behandling.id)
-            verify(personServiceMock).hentPerson(fnr)
-            serviceAndMocks.verifyNoMoreInteractions()
+            inOrder(
+                *it.allMocks(),
+            ) {
+                verify(it.søknadsbehandlingRepo).hent(avslagTilAttestering.id)
+                verify(it.brevService).lagDokument(any())
+                it.verifyNoMoreInteractions()
+            }
         }
     }
 
@@ -564,7 +504,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             )
 
             inOrder(
-                *serviceAndMocks.all().toTypedArray(),
+                *serviceAndMocks.allMocks(),
             ) {
                 verify(søknadsbehandlingRepoMock).hent(behandling.id)
                 serviceAndMocks.verifyNoMoreInteractions()
@@ -624,6 +564,8 @@ internal class SøknadsbehandlingServiceIverksettTest {
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
         )
+
+    private val avslagTilAttestering = søknadsbehandlingTilAttesteringAvslagMedBeregning().second
 
     private val beregning = TestBeregning
 

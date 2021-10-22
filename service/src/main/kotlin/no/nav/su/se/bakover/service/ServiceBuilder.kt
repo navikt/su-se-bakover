@@ -87,10 +87,6 @@ object ServiceBuilder {
             brevService = brevService,
             oppgaveService = oppgaveService,
             vedtakRepo = databaseRepos.vedtakRepo,
-            personService = personService,
-            utbetalingService = utbetalingService,
-            microsoftGraphApiOppslag = clients.microsoftGraphApiClient,
-            clock = clock,
             behandlingMetrics = behandlingMetrics,
         )
 
@@ -132,13 +128,11 @@ object ServiceBuilder {
 
         val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
             søknadService = søknadService,
-            søknadRepo = databaseRepos.søknad,
             søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
             utbetalingService = utbetalingService,
             personService = personService,
             oppgaveService = oppgaveService,
             behandlingMetrics = behandlingMetrics,
-            microsoftGraphApiClient = clients.microsoftGraphApiClient,
             brevService = brevService,
             opprettVedtakssnapshotService = opprettVedtakssnapshotService,
             clock = clock,
