@@ -189,7 +189,6 @@ sealed class KunneIkkeOppretteRevurdering {
     object FantIkkeAktørId : KunneIkkeOppretteRevurdering()
     object KunneIkkeOppretteOppgave : KunneIkkeOppretteRevurdering()
     object BosituasjonMedFlerePerioderMåRevurderes : KunneIkkeOppretteRevurdering()
-    object EpsInntektMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppretteRevurdering()
     object FormueSomFørerTilOpphørMåRevurderes : KunneIkkeOppretteRevurdering()
     object EpsFormueMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppretteRevurdering()
 }
@@ -208,8 +207,8 @@ sealed class KunneIkkeOppdatereRevurdering {
     object FantIkkeRevurdering : KunneIkkeOppdatereRevurdering()
     object KanIkkeOppdatereRevurderingSomErForhåndsvarslet : KunneIkkeOppdatereRevurdering()
     object BosituasjonMedFlerePerioderMåRevurderes : KunneIkkeOppdatereRevurdering()
-    object EpsInntektMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppdatereRevurdering()
     object FormueSomFørerTilOpphørMåRevurderes : KunneIkkeOppdatereRevurdering()
+    object EpsFormueMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppdatereRevurdering()
 }
 
 sealed class KunneIkkeBeregneOgSimulereRevurdering {

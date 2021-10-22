@@ -743,7 +743,7 @@ internal class OppdaterRevurderingServiceTest {
             ),
         )
 
-        actual shouldBe KunneIkkeOppretteRevurdering.EpsInntektMedFlereBosituasjonsperioderMåRevurderes.left()
+        actual shouldBe KunneIkkeOppretteRevurdering.BosituasjonMedFlerePerioderMåRevurderes.left()
         verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(
             vedtattRevurdering.first.id,
             vedtattSøknadsbehandling.second.periode.fraOgMed,
