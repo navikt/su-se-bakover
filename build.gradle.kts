@@ -165,6 +165,7 @@ configure(
         project(":service"),
         project(":web"),
         project(":database"),
+        project(":web-regresjonstest"),
     ),
 ) {
     tasks.withType<Test> {

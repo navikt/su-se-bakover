@@ -10,8 +10,8 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.Date
 
-internal class JwtStub(
-    private val applicationConfig: ApplicationConfig
+class JwtStub(
+    private val azureConfig: ApplicationConfig.AzureConfig,
 ) {
     @TestOnly
     fun createJwtToken(
@@ -19,9 +19,9 @@ internal class JwtStub(
         roller: List<Brukerrolle> = listOf(Brukerrolle.Saksbehandler, Brukerrolle.Attestant, Brukerrolle.Veileder),
         navIdent: String? = "Z990Lokal",
         navn: String? = "Brukerens navn",
-        audience: String = applicationConfig.azure.clientId,
+        audience: String = azureConfig.clientId,
         expiresAt: Date = Date.from(Instant.now().plus(1L, ChronoUnit.DAYS)),
-        issuer: String = AuthStubCommonConfig.issuer
+        issuer: String = AuthStubCommonConfig.issuer,
     ): String {
         return JWT.create()
             .withIssuer(issuer)
@@ -39,10 +39,10 @@ internal class JwtStub(
 
     private fun toAzureTestGroup(rolle: Brukerrolle) =
         when (rolle) {
-            Brukerrolle.Attestant -> applicationConfig.azure.groups.attestant
-            Brukerrolle.Saksbehandler -> applicationConfig.azure.groups.saksbehandler
-            Brukerrolle.Veileder -> applicationConfig.azure.groups.veileder
-            Brukerrolle.Drift -> applicationConfig.azure.groups.drift
+            Brukerrolle.Attestant -> azureConfig.groups.attestant
+            Brukerrolle.Saksbehandler -> azureConfig.groups.saksbehandler
+            Brukerrolle.Veileder -> azureConfig.groups.veileder
+            Brukerrolle.Drift -> azureConfig.groups.drift
         }
 }
 @TestOnly
