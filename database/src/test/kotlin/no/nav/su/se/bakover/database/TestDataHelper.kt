@@ -109,11 +109,7 @@ internal val persistertMånedsberegning = PersistertMånedsberegning(
     periode = Periode.create(1.januar(2020), 31.desember(2020)),
     fribeløpForEps = 0.0,
 )
-internal val avslåttBeregning: PersistertBeregning = beregning().copy(
-    månedsberegninger = listOf(
-        persistertMånedsberegning,
-    ),
-)
+internal val avslåttBeregning: PersistertBeregning = beregningAvslag().toSnapshot()
 
 internal fun simulering(fnr: Fnr) = Simulering(
     gjelderId = fnr,
