@@ -170,8 +170,9 @@ internal class RevurderingServiceImpl(
                 !informasjonSomRevurderes.harValgtBosituasjon() && it.contains(Konsistensproblem.Bosituasjon.Flere) -> {
                     return KunneIkkeOppretteRevurdering.BosituasjonMedFlerePerioderMåRevurderes.left()
                 }
-                !informasjonSomRevurderes.harValgtInntekt() && it.contains(Konsistensproblem.BosituasjonOgFradrag.FlereBosituasjonerOgFradragForEPS) -> {
-                    return KunneIkkeOppretteRevurdering.EpsInntektMedFlereBosituasjonsperioderMåRevurderes.left()
+                !informasjonSomRevurderes.harValgtInntekt() && it.contains(Konsistensproblem.Bosituasjon.Flere) -> {
+                    // Ref: fjernBosituasjonOgFradragHvisIkkeEntydig(...), vi sletter alle fradragene/inntektene dersom vi har flere enn 1 bosituasjon.
+                    return KunneIkkeOppretteRevurdering.BosituasjonMedFlerePerioderMåRevurderes.left()
                 }
                 !informasjonSomRevurderes.harValgtFormue() && it.contains(Konsistensproblem.BosituasjonOgFormue.FlereBosituasjonerOgFormueForEPS) -> {
                     return KunneIkkeOppretteRevurdering.EpsFormueMedFlereBosituasjonsperioderMåRevurderes.left()
@@ -504,8 +505,12 @@ internal class RevurderingServiceImpl(
                 !informasjonSomRevurderes.harValgtBosituasjon() && it.contains(Konsistensproblem.Bosituasjon.Flere) -> {
                     return KunneIkkeOppdatereRevurdering.BosituasjonMedFlerePerioderMåRevurderes.left()
                 }
-                !informasjonSomRevurderes.harValgtInntekt() && it.contains(Konsistensproblem.BosituasjonOgFradrag.FlereBosituasjonerOgFradragForEPS) -> {
-                    return KunneIkkeOppdatereRevurdering.EpsInntektMedFlereBosituasjonsperioderMåRevurderes.left()
+                !informasjonSomRevurderes.harValgtInntekt() && it.contains(Konsistensproblem.Bosituasjon.Flere) -> {
+                    // Ref: fjernBosituasjonOgFradragHvisIkkeEntydig(...), vi sletter alle fradragene/inntektene dersom vi har flere enn 1 bosituasjon.
+                    return KunneIkkeOppdatereRevurdering.BosituasjonMedFlerePerioderMåRevurderes.left()
+                }
+                !informasjonSomRevurderes.harValgtFormue() && it.contains(Konsistensproblem.BosituasjonOgFormue.FlereBosituasjonerOgFormueForEPS) -> {
+                    return KunneIkkeOppdatereRevurdering.EpsFormueMedFlereBosituasjonsperioderMåRevurderes.left()
                 }
             }
         }

@@ -202,22 +202,8 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
             expectedStatusCode = HttpStatusCode.BadRequest,
             expectedJsonResponse = """
                 {
-                    "message":"Bosituasjon må revurderes siden det finnes bosituasjonsperioder",
+                    "message":"Bosituasjon og inntekt må revurderes siden det finnes flere bosituasjonsperioder",
                     "code":"bosituasjon_med_flere_perioder_må_revurderes"
-                }
-            """.trimIndent(),
-        )
-    }
-
-    @Test
-    fun `feilmelding hvis flere bosituasjoner og eps har inntekter`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeOppdatereRevurdering.EpsInntektMedFlereBosituasjonsperioderMåRevurderes,
-            expectedStatusCode = HttpStatusCode.BadRequest,
-            expectedJsonResponse = """
-                {
-                    "message":"Inntekt må revurderes siden det finnes EPS inntekt og flere bosituasjonsperioder",
-                    "code":"eps_inntekt_med_flere_perioder_må_revurderes"
                 }
             """.trimIndent(),
         )
