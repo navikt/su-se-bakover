@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -39,6 +38,8 @@ import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.test.beregning
+import no.nav.su.se.bakover.test.beregningAvslag
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
@@ -172,16 +173,8 @@ internal class FinnAttestantVisitorTest {
         behandlingsinformasjonMedAlleVilkårOppfylt,
     )
 
-    private val månedsberegningAvslagMock = mock<Månedsberegning> { on { getSumYtelse() } doReturn 0 }
-    private val månedsberegningInnvilgetMock = mock<Månedsberegning> { on { getSumYtelse() } doReturn 15000 }
-
-    private val avslagBeregningMock = mock<Beregning> {
-        on { getMånedsberegninger() } doReturn listOf(månedsberegningAvslagMock)
-    }
-
-    private val innvilgetBeregningMock = mock<Beregning> {
-        on { getMånedsberegninger() } doReturn listOf(månedsberegningInnvilgetMock)
-    }
+    private val avslagBeregningMock = beregningAvslag()
+    private val innvilgetBeregningMock = beregning()
 
     private val beregnetAvslagSøknadbehandling =
         vilkårsvurdertInnvilgetSøknadsbehandling.tilBeregnet(avslagBeregningMock)
