@@ -24,7 +24,7 @@ internal class NøkkeltallPostgresRepo(
                 select count(*) as totalt,
                        coalesce((select antall from behandlingsstatus where status = 'IVERKSATT_AVSLAG'), 0) as iverksattAvslag,
                        coalesce(( select antall from behandlingsstatus where status = 'IVERKSATT_INNVILGET' ), 0) as iverksattInnvilget,
-                       coalesce(( select sum(antall) from behandlingsstatus where status is not null and status not like '%IVERKSATT%'), 0) as påbegynt,
+                       (select count(*) as påbegynt from søknadsinfo where søknadsinfo.lukket is null and status is not null and status not like '%IVERKSATT%' ) as påbegynt,
                        (select count(*) as ikkePåbegynt from søknadsinfo where søknadsinfo.lukket is null and status is null),
                        (select count(*) as digitalsøknader from søknadsinfo where søknadsinfo.søknadinnhold -> 'forNav' ->> 'type' = 'DigitalSøknad' ),
                        (select count(*) as papirsøknader from søknadsinfo where søknadsinfo.søknadinnhold -> 'forNav' ->> 'type' = 'Papirsøknad' ),

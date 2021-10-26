@@ -129,4 +129,29 @@ internal class NøkkeltallPostgresRepoTest {
             )
         }
     }
+
+    @Test
+    fun `en behandling som ble påbegynt og lukket, telles ikke som påbegynt`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
+            val sakId = testDataHelper.nySakMedNySøknad().id
+            val sak = testDataHelper.sakRepo.hentSak(sakId)!!
+
+            testDataHelper.nyLukketSøknadsbehandlingOgSøknadForEksisterendeSak(sak)
+
+            nøkkeltallRepo.hentNøkkeltall() shouldBe Nøkkeltall(
+                søknader = Nøkkeltall.Søknader(
+                    totaltAntall = 2,
+                    iverksatteAvslag = 0,
+                    iverksatteInnvilget = 0,
+                    ikkePåbegynt = 1,
+                    påbegynt = 0,
+                    digitalsøknader = 2,
+                    papirsøknader = 0,
+                ),
+                antallUnikePersoner = 1
+            )
+        }
+    }
 }
