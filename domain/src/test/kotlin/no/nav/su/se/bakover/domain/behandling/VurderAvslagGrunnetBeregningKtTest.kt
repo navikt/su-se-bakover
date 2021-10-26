@@ -129,6 +129,27 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Nei
     }
 
+    @Test
+    fun `ikke avslag dersom beløp er under minstegresen pågrunn av EPS sosialstønad`() {
+        val januar = lagFradrag(2500.0, 1.januar(2021))
+        val juni = lagFradrag(21900.0, 1.juni(2021), Fradragstype.Sosialstønad, FradragTilhører.EPS)
+        val desember = lagFradrag(2500.0, 1.desember(2021))
+
+        val beregning = lagBeregningMedFradrag(januar, juni, desember)
+        vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Nei
+    }
+
+    @Test
+    fun `ikke avslag dersom beløp er under minstegresen pågrunn av EPS og brukers sosialstønad`() {
+        val januar = lagFradrag(2500.0, 1.januar(2021))
+        val juni = lagFradrag(10950.0, 1.juni(2021), Fradragstype.Sosialstønad, FradragTilhører.BRUKER)
+        val juniEPS = lagFradrag(10950.0, 1.juni(2021), Fradragstype.Sosialstønad, FradragTilhører.EPS)
+        val desember = lagFradrag(2500.0, 1.desember(2021))
+
+        val beregning = lagBeregningMedFradrag(januar, juni, juniEPS, desember)
+        vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Nei
+    }
+
     private fun lagBeregningMedFradrag(vararg fradrag: Fradrag): Beregning {
         val periode = Periode.create(fradrag.minOf { it.periode.fraOgMed }, fradrag.maxOf { it.periode.tilOgMed })
         return BeregningFactory.ny(
@@ -149,11 +170,11 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         )
     }
 
-    private fun lagFradrag(beløp: Double, localDate: LocalDate, fradragstype: Fradragstype? = null) = FradragFactory.ny(
+    private fun lagFradrag(beløp: Double, localDate: LocalDate, fradragstype: Fradragstype? = null, tilhører: FradragTilhører? = null) = FradragFactory.ny(
         type = fradragstype ?: Fradragstype.Kapitalinntekt,
         månedsbeløp = beløp,
         periode = Periode.create(localDate.startOfMonth(), localDate.endOfMonth()),
         utenlandskInntekt = null,
-        tilhører = FradragTilhører.BRUKER,
+        tilhører = tilhører ?: FradragTilhører.BRUKER,
     )
 }
