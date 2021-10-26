@@ -364,7 +364,7 @@ internal class BrevServiceImplTest {
     fun `personservice finner ikke personen`() {
         val vedtak = vedtakSøknadsbehandlingIverksattAvslagMedBeregning().second
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+            on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
         }
 
         ServiceOgMocks(
@@ -378,7 +378,7 @@ internal class BrevServiceImplTest {
     fun `microsoftGraphApiOppslag klarer ikke hente navnet`() {
         val vedtak = vedtakSøknadsbehandlingIverksattAvslagMedBeregning().second
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
+            on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
 
         val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
@@ -390,7 +390,7 @@ internal class BrevServiceImplTest {
             microsoftGraphApiOppslag = microsoftGraphApiOppslagMock,
         ).let {
             it.brevService.lagDokument(vedtak) shouldBe KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
-            verify(it.personService).hentPerson(vedtak.behandling.fnr)
+            verify(it.personService).hentPersonMedSystembruker(vedtak.behandling.fnr)
             verify(it.microsoftGraphApiOppslag).hentNavnForNavIdent(vedtak.behandling.saksbehandler)
             it.verifyNoMoreInteraction()
         }
@@ -400,7 +400,7 @@ internal class BrevServiceImplTest {
     fun `klarer ikke å finne gjeldende utbetaling`() {
         val (sak, vedtak) = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak()
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
+            on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
 
         val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
@@ -421,7 +421,7 @@ internal class BrevServiceImplTest {
             clock = fixedClock,
         ).let {
             it.brevService.lagDokument(vedtak) shouldBe KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling.left()
-            verify(it.personService).hentPerson(vedtak.tilRevurdering.behandling.fnr)
+            verify(it.personService).hentPersonMedSystembruker(vedtak.tilRevurdering.behandling.fnr)
             verify(it.microsoftGraphApiOppslag).hentNavnForNavIdent(vedtak.saksbehandler)
             verify(it.microsoftGraphApiOppslag).hentNavnForNavIdent(vedtak.attesteringer.hentSisteAttestering().attestant)
             verify(it.utbetalingService).hentGjeldendeUtbetaling(sak.id, vedtak.opprettet.toLocalDate(zoneIdOslo))
@@ -433,7 +433,7 @@ internal class BrevServiceImplTest {
     fun `svarer med feil der som generering av pdf feiler`() {
         val (sak, vedtak) = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak()
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
+            on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
 
         val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
@@ -464,7 +464,7 @@ internal class BrevServiceImplTest {
             clock = fixedClock,
         ).let {
             it.brevService.lagDokument(vedtak) shouldBe KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
-            verify(it.personService).hentPerson(vedtak.tilRevurdering.behandling.fnr)
+            verify(it.personService).hentPersonMedSystembruker(vedtak.tilRevurdering.behandling.fnr)
             verify(it.microsoftGraphApiOppslag).hentNavnForNavIdent(vedtak.saksbehandler)
             verify(it.microsoftGraphApiOppslag).hentNavnForNavIdent(vedtak.attesteringer.hentSisteAttestering().attestant)
             verify(it.utbetalingService).hentGjeldendeUtbetaling(sak.id, vedtak.opprettet.toLocalDate(zoneIdOslo))
