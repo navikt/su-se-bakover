@@ -131,7 +131,7 @@ internal class NøkkeltallPostgresRepoTest {
     }
 
     @Test
-    fun `en behandling som ble påbegynt men lukket, tells ikke som påbegynt`() {
+    fun `en behandling som ble påbegynt og lukket, telles ikke som påbegynt`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val nøkkeltallRepo = testDataHelper.nøkkeltallRepo
