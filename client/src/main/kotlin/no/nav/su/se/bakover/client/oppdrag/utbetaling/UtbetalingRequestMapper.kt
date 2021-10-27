@@ -29,7 +29,7 @@ internal fun toUtbetalingRequest(
             oppdragGjelderId = utbetaling.fnr.toString(),
             saksbehId = OppdragDefaults.SAKSBEHANDLER_ID,
             datoOppdragGjelderFom = OppdragDefaults.datoOppdragGjelderFom,
-            oppdragsEnheter = OppdragDefaults.oppdragsenheter,
+            oppdragsEnheter = listOf(OppdragDefaults.oppdragsenhet),
             avstemming = UtbetalingRequest.Avstemming(
                 // Avstemming brukes ikke av simulering
                 nokkelAvstemming = utbetaling.avstemmingsnøkkel.toString(),

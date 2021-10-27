@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingClient
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.person.PersonOppslag
@@ -37,4 +38,5 @@ data class Clients(
     val digitalKontaktinformasjon: DigitalKontaktinformasjon,
     val leaderPodLookup: LeaderPodLookup,
     val kafkaPublisher: KafkaPublisher,
+    val tilbakekrevingClient: TilbakekrevingClient,
 )

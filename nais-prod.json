@@ -17,6 +17,7 @@
     "OPPGAVE_CLIENT_ID": "50346823-61a0-49e7-ad89-ea2b1a0e90f8",
     "DOKDIST_URL": "http://dokdistfordeling.teamdokumenthandtering.svc.nais.local",
     "SIMULERING_URL": "https://wasapp.adeo.no/cics/services/simulerFpServiceWSBinding",
+    "TILBAKEKREVING_URL": "https://cics.adeo.no/oppdrag/K231CW80",
     "STS_URL_SOAP": "https://sts.adeo.no/SecurityTokenServiceProvider/",
     "SKJERMING_URL": "https://skjermede-personer-pip.nais.adeo.no",
     "MQ_QUEUE_MANAGER": "MPLS02",

@@ -110,7 +110,10 @@ enum class KlasseType {
     SKAT,
     FEIL,
     @Deprecated("Filtreres ut av klient") // TODO flytt dette lenger ut
-    MOTP,
+    MOTP;
+
+    fun erFeil() = this == FEIL
+    fun erYtelse() = this == YTEL
 }
 
 enum class KlasseKode {

@@ -78,6 +78,7 @@ import no.nav.su.se.bakover.web.services.avstemming.AvstemmingJob
 import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
+import no.nav.su.se.bakover.web.services.tilbakekreving.TilbakekrevingIbmMqConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringService
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
@@ -272,6 +273,12 @@ fun Application.susebakover(
             globalJmsContext = jmsConfig.jmsContext,
             kvitteringConsumer = utbetalingKvitteringConsumer,
         )
+        TilbakekrevingIbmMqConsumer(
+            queueName = applicationConfig.oppdrag.tilbakekreving.mqReplyTo,
+            globalJmsContext = jmsConfig.jmsContext,
+            tilbakekrevingService = services.tilbakekrevingService,
+            clock = clock,
+        )
         AvstemmingJob(
             avstemmingService = services.avstemming,
             leaderPodLookup = clients.leaderPodLookup,
@@ -279,9 +286,8 @@ fun Application.susebakover(
         PersonhendelseConsumer(
             consumer = KafkaConsumer(applicationConfig.kafkaConfig.consumerCfg.kafkaConfig),
             personhendelseService = personhendelseService,
-            maxBatchSize = applicationConfig.kafkaConfig.consumerCfg.kafkaConfig[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] as? Int
+            maxBatchSize = applicationConfig.kafkaConfig.consumerCfg.kafkaConfig[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] as? Int,
         )
-
         DistribuerDokumentJob(
             brevService = services.brev,
             leaderPodLookup = clients.leaderPodLookup,

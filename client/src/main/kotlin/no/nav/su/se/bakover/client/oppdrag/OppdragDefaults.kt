@@ -12,13 +12,12 @@ object OppdragDefaults {
     const val KODE_KOMPONENT = "SU"
     val utbetalingsfrekvens = UtbetalingRequest.Utbetalingsfrekvens.MND
     val datoOppdragGjelderFom = LocalDate.EPOCH.toOppdragDate()
-    val oppdragsenheter = listOf(
+    val oppdragsenhet =
         UtbetalingRequest.OppdragsEnhet(
             enhet = "8020",
             typeEnhet = "BOS",
-            datoEnhetFom = LocalDate.EPOCH.toOppdragDate()
+            datoEnhetFom = LocalDate.EPOCH.toOppdragDate(),
         )
-    )
 }
 
 object OppdragslinjeDefaults {

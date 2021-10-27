@@ -50,6 +50,10 @@ internal class ApplicationConfigTest {
                 url = "simuleringUrl",
                 stsSoapUrl = "stsSoapUrl",
             ),
+            tilbakekreving = ApplicationConfig.OppdragConfig.TilbakekrevingConfig(
+                mq = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Mq("tilbakekrevingMqReplyTo"),
+                soap = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Soap("tilbakekrevingSoapClientUrl"),
+            ),
         ),
         database = ApplicationConfig.DatabaseConfig.RotatingCredentials(
             databaseName = "databaseName",
@@ -127,7 +131,7 @@ internal class ApplicationConfigTest {
             )
         ),
         unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover"),
-        jobConfig = ApplicationConfig.JobConfig(ApplicationConfig.JobConfig.Personhendelse(ApplicationConfig.NaisCluster.Prod))
+        jobConfig = ApplicationConfig.JobConfig(ApplicationConfig.JobConfig.Personhendelse(ApplicationConfig.NaisCluster.Prod)),
     )
 
     @Test
@@ -210,6 +214,10 @@ internal class ApplicationConfigTest {
                         url = "unused",
                         stsSoapUrl = "unused",
                     ),
+                    tilbakekreving = ApplicationConfig.OppdragConfig.TilbakekrevingConfig(
+                        mq = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Mq("unused"),
+                        soap = ApplicationConfig.OppdragConfig.TilbakekrevingConfig.Soap("unused"),
+                    ),
                 ),
                 database = ApplicationConfig.DatabaseConfig.StaticCredentials(
                     jdbcUrl = "jdbc:postgresql://localhost:5432/supstonad-db-local",
@@ -237,7 +245,7 @@ internal class ApplicationConfigTest {
                     consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(emptyMap()),
                 ),
                 unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover"),
-                jobConfig = ApplicationConfig.JobConfig(ApplicationConfig.JobConfig.Personhendelse(null))
+                jobConfig = ApplicationConfig.JobConfig(ApplicationConfig.JobConfig.Personhendelse(null)),
             )
         }
     }

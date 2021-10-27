@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
+import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.domain.Fnr
@@ -276,6 +277,7 @@ internal class TestDataHelper(
     internal val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource = dataSource)
     internal val dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory)
     internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(dataSource, fixedClock)
+    internal val tilbakekrevingRepo = TilbakekrevingPostgresRepo(sessionFactory = sessionFactory)
 
     fun nySakMedNySøknad(
         fnr: Fnr = Fnr.generer(),

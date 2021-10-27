@@ -173,8 +173,9 @@ data class ApplicationConfig(
         val utbetaling: UtbetalingConfig,
         val avstemming: AvstemmingConfig,
         val simulering: SimuleringConfig,
+        val tilbakekreving: TilbakekrevingConfig,
     ) {
-        data class UtbetalingConfig constructor(
+        data class UtbetalingConfig(
             val mqSendQueue: String,
             val mqReplyTo: String,
         ) {
@@ -186,7 +187,7 @@ data class ApplicationConfig(
             }
         }
 
-        data class AvstemmingConfig constructor(
+        data class AvstemmingConfig(
             val mqSendQueue: String,
         ) {
             companion object {
@@ -196,7 +197,7 @@ data class ApplicationConfig(
             }
         }
 
-        data class SimuleringConfig constructor(
+        data class SimuleringConfig(
             val url: String,
             val stsSoapUrl: String,
         ) {
@@ -205,6 +206,38 @@ data class ApplicationConfig(
                     url = getEnvironmentVariableOrThrow("SIMULERING_URL"),
                     stsSoapUrl = getEnvironmentVariableOrThrow("STS_URL_SOAP"),
                 )
+            }
+        }
+
+        data class TilbakekrevingConfig(
+            val mq: Mq,
+            val soap: Soap,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = TilbakekrevingConfig(
+                    mq = Mq.createFromEnvironmentVariables(),
+                    soap = Soap.createFromEnvironmentVariables(),
+                )
+            }
+
+            data class Mq(
+                val mqReplyTo: String,
+            ) {
+                companion object {
+                    fun createFromEnvironmentVariables() = Mq(
+                        mqReplyTo = getEnvironmentVariableOrThrow("MQ_KRAVGRUNNLAG_REPLY_TO"),
+                    )
+                }
+            }
+
+            data class Soap(
+                val url: String,
+            ) {
+                companion object {
+                    fun createFromEnvironmentVariables() = Soap(
+                        url = getEnvironmentVariableOrThrow("TODO jah"),
+                    )
+                }
             }
         }
 
@@ -217,6 +250,7 @@ data class ApplicationConfig(
                 utbetaling = UtbetalingConfig.createFromEnvironmentVariables(),
                 avstemming = AvstemmingConfig.createFromEnvironmentVariables(),
                 simulering = SimuleringConfig.createFromEnvironmentVariables(),
+                tilbakekreving = TilbakekrevingConfig.createFromEnvironmentVariables(),
             )
 
             fun createLocalConfig() = OppdragConfig(
@@ -232,6 +266,10 @@ data class ApplicationConfig(
                 simulering = SimuleringConfig(
                     url = "unused",
                     stsSoapUrl = "unused",
+                ),
+                tilbakekreving = TilbakekrevingConfig(
+                    mq = TilbakekrevingConfig.Mq("unused"),
+                    soap = TilbakekrevingConfig.Soap("unused"),
                 ),
             )
         }

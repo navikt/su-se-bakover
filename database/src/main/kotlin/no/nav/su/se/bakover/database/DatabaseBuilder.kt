@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.database.tilbakekreving.TilbakekrevingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
@@ -40,6 +41,7 @@ import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotRepo
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.TilbakekrevingRepo
 import org.jetbrains.annotations.TestOnly
 import java.time.Clock
 import javax.sql.DataSource
@@ -177,6 +179,9 @@ object DatabaseBuilder {
             personhendelseRepo = hendelseRepo,
             nøkkeltallRepo = nøkkeltallRepo,
             sessionFactory = sessionFactory,
+            tilbakekrevingRepo = TilbakekrevingPostgresRepo(
+                sessionFactory = sessionFactory
+            )
         )
     }
 }
@@ -199,4 +204,5 @@ data class DatabaseRepos(
     val dokumentRepo: DokumentRepo,
     val nøkkeltallRepo: NøkkeltallRepo,
     val sessionFactory: SessionFactory,
+    val tilbakekrevingRepo: TilbakekrevingRepo,
 )

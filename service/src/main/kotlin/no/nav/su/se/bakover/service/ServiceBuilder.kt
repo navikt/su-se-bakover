@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.service.søknad.AvslåSøknadManglendeDokumentasjonS
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingServiceImpl
 import no.nav.su.se.bakover.service.toggles.ToggleServiceImpl
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakServiceImpl
@@ -186,6 +187,10 @@ object ServiceBuilder {
                 brevService = brevService,
                 sessionFactory = databaseRepos.sessionFactory,
                 sakService = sakService,
+            ),
+            tilbakekrevingService = TilbakekrevingServiceImpl(
+                tilbakekrevingRepo = databaseRepos.tilbakekrevingRepo,
+                tilbakekrevingClient = clients.tilbakekrevingClient
             ),
         )
     }

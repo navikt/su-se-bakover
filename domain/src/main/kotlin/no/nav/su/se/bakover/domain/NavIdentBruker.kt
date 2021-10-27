@@ -6,6 +6,12 @@ sealed class NavIdentBruker {
     @get:JsonValue
     abstract val navIdent: String
 
+    override fun toString(): String = navIdent
+
+    override fun equals(other: Any?) = other is NavIdentBruker && navIdent == other.navIdent
+
+    override fun hashCode() = navIdent.hashCode()
+
     protected fun validate() {
         if (navIdent.isBlank()) {
             throw IllegalArgumentException("navIdent kan ikke være en blank streng.")

@@ -32,6 +32,8 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.Kravgrunnlag
+import no.nav.su.se.bakover.domain.oppdrag.tilbakekreving.RåttKravgrunnlag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -107,6 +109,7 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.service.tilbakekreving.TilbakekrevingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
@@ -698,6 +701,12 @@ open class AccessCheckProxy(
                     assertHarTilgangTilSøknad(request.søknadId)
                     return services.avslåSøknadManglendeDokumentasjonService.avslå(request)
                 }
+            },
+            tilbakekrevingService = object : TilbakekrevingService {
+                override fun lagreKravgrunnlag(kravgrunnlag: RåttKravgrunnlag) = kastKanKunKallesFraAnnenService()
+                override fun sendTilbakekrevinger(
+                    mapper: (RåttKravgrunnlag) -> Kravgrunnlag,
+                ) = kastKanKunKallesFraAnnenService()
             },
         )
     }
