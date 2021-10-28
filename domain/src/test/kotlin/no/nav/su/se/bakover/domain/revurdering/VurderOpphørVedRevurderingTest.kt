@@ -12,9 +12,16 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.Månedsberegning
+import no.nav.su.se.bakover.domain.beregning.BeregningFactory
+import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.doReturn
@@ -34,11 +41,11 @@ internal class VurderOpphørVedRevurderingTest {
             on { utledOpphørsgrunner() } doReturn listOf(Opphørsgrunn.UFØRHET)
             on { tidligsteDatoForAvslag() } doReturn 1.juni(2021)
         }
-        val beregningMock = mock<Beregning>()
+        val beregning = lagBeregningMedFradrag()
 
         VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
             vilkårsvurderinger = vilkårsvurderingerMock,
-            beregning = beregningMock,
+            beregning = beregning,
             clock = fixedClock,
         ).resultat shouldBe OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.UFØRHET), 1.juni(2021))
     }
@@ -48,19 +55,49 @@ internal class VurderOpphørVedRevurderingTest {
         val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
             on { resultat } doReturn Resultat.Innvilget
         }
-        val månedsberegningMock = mock<Månedsberegning> {
-            on { periode } doReturn Periode.create(1.desember(2021), 31.desember(2021))
-            on { erSumYtelseUnderMinstebeløp() } doReturn true
-        }
-        val beregningMock = mock<Beregning> {
-            on { getMånedsberegninger() } doReturn listOf(månedsberegningMock)
-        }
+
+        val dato = 1.desember(2021)
+        val beregning = lagBeregningMedFradrag(lagFradrag(beløpUnderMinstebeløp(dato), dato))
 
         VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
             vilkårsvurderinger = vilkårsvurderingerMock,
-            beregning = beregningMock,
+            beregning = beregning,
             clock = fixedClock,
         ).resultat shouldBe OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE), 1.desember(2021))
+    }
+
+    @Test
+    fun `en fremtidig måned under minstebeløp pågrunn av sosialstønad gir ikke opphør `() {
+        val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
+            on { resultat } doReturn Resultat.Innvilget
+        }
+
+        val dato = 1.desember(2021)
+        val beregning = lagBeregningMedFradrag(lagFradrag(beløpUnderMinstebeløp(dato), dato, Fradragstype.Sosialstønad))
+
+        VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
+            vilkårsvurderinger = vilkårsvurderingerMock,
+            beregning = beregning,
+            clock = fixedClock,
+        ).resultat shouldBe OpphørVedRevurdering.Nei
+    }
+
+    @Test
+    fun `en fremtidig måned under minstebeløp pågrunn av sosialstønad fra ektefelle gir ikke opphør `() {
+        val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
+            on { resultat } doReturn Resultat.Innvilget
+        }
+
+        val dato = 1.desember(2021)
+        val beregning = lagBeregningMedFradrag(
+            lagFradrag(beløpUnderMinstebeløp(dato), dato, Fradragstype.Sosialstønad, FradragTilhører.EPS),
+        )
+
+        VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
+            vilkårsvurderinger = vilkårsvurderingerMock,
+            beregning = beregning,
+            clock = fixedClock,
+        ).resultat shouldBe OpphørVedRevurdering.Nei
     }
 
     @Test
@@ -68,21 +105,15 @@ internal class VurderOpphørVedRevurderingTest {
         val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
             on { resultat } doReturn Resultat.Innvilget
         }
-        val månedsberegningMock1 = mock<Månedsberegning> {
-            on { periode } doReturn Periode.create(1.november(2021), 30.november(2021))
-            on { erSumYtelseUnderMinstebeløp() } doReturn true
-        }
-        val månedsberegningMock2 = mock<Månedsberegning> {
-            on { periode } doReturn Periode.create(1.desember(2021), 31.desember(2021))
-            on { erSumYtelseUnderMinstebeløp() } doReturn true
-        }
-        val beregningMock = mock<Beregning> {
-            on { getMånedsberegninger() } doReturn listOf(månedsberegningMock1, månedsberegningMock2)
-        }
+
+        val beregning = lagBeregningMedFradrag(
+            lagFradrag(beløpUnderMinstebeløp(1.november(2021)), 1.november(2021)),
+            lagFradrag(1000.0, 1.desember(2021)),
+        )
 
         VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
             vilkårsvurderinger = vilkårsvurderingerMock,
-            beregning = beregningMock,
+            beregning = beregning,
             clock = fixedClock,
         ).resultat shouldBe OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE), 1.november(2021))
     }
@@ -92,19 +123,17 @@ internal class VurderOpphørVedRevurderingTest {
         val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
             on { resultat } doReturn Resultat.Innvilget
         }
-        val månedsberegningMock = mock<Månedsberegning> {
-            on { periode } doReturn Periode.create(LocalDate.now(fixedClock).startOfMonth(), LocalDate.now(fixedClock).endOfMonth())
-            on { erSumYtelseUnderMinstebeløp() } doReturn true
-        }
-        val beregningMock = mock<Beregning> {
-            on { getMånedsberegninger() } doReturn listOf(månedsberegningMock)
-        }
+        val now = LocalDate.now(fixedClock)
+        val beregning = lagBeregningMedFradrag(lagFradrag(beløpUnderMinstebeløp(now), now))
 
         VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
             vilkårsvurderinger = vilkårsvurderingerMock,
-            beregning = beregningMock,
+            beregning = beregning,
             clock = fixedClock,
-        ).resultat shouldBe OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE), LocalDate.now(fixedClock).startOfMonth())
+        ).resultat shouldBe OpphørVedRevurdering.Ja(
+            listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE),
+            LocalDate.now(fixedClock).startOfMonth(),
+        )
     }
 
     @Test
@@ -112,20 +141,48 @@ internal class VurderOpphørVedRevurderingTest {
         val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
             on { resultat } doReturn Resultat.Innvilget
         }
-        val månedsberegningMock = mock<Månedsberegning> {
-            on { periode } doReturn Periode.create(1.desember(2021), 31.desember(2021))
-            on { erSumYtelseUnderMinstebeløp() } doReturn false
-            on { getSumYtelse() } doReturn 0
-        }
-        val beregningMock = mock<Beregning> {
-            on { getMånedsberegninger() } doReturn listOf(månedsberegningMock)
-        }
+        val beregning = lagBeregningMedFradrag(lagFradrag(100000.0, 1.desember(2021)))
 
         VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
             vilkårsvurderinger = vilkårsvurderingerMock,
-            beregning = beregningMock,
+            beregning = beregning,
             clock = fixedClock,
         ).resultat shouldBe OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.FOR_HØY_INNTEKT), 1.desember(2021))
+    }
+
+    @Test
+    fun `en fremtidig måned med beløp lik 0 fra sosialstønad gir ikke opphør`() {
+        val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
+            on { resultat } doReturn Resultat.Innvilget
+        }
+        val beregning = lagBeregningMedFradrag(lagFradrag(100000.0, 1.desember(2021), Fradragstype.Sosialstønad))
+
+        VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
+            vilkårsvurderinger = vilkårsvurderingerMock,
+            beregning = beregning,
+            clock = fixedClock,
+        ).resultat shouldBe OpphørVedRevurdering.Nei
+    }
+
+    @Test
+    fun `en fremtidig måned med beløp lik 0 fra EPS sosialstønad gir ikke opphør`() {
+        val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
+            on { resultat } doReturn Resultat.Innvilget
+        }
+        val beregning = lagBeregningMedFradrag(
+            lagFradrag(
+                100000.0,
+                1.desember(2021),
+                Fradragstype.Sosialstønad,
+                FradragTilhører.EPS,
+            ),
+        )
+
+        VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
+            vilkårsvurderinger = vilkårsvurderingerMock,
+            beregning = beregning,
+            clock = fixedClock,
+        ).resultat shouldBe OpphørVedRevurdering.Nei
     }
 
     @Test
@@ -133,22 +190,14 @@ internal class VurderOpphørVedRevurderingTest {
         val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
             on { resultat } doReturn Resultat.Innvilget
         }
-        val månedsberegningMock1 = mock<Månedsberegning> {
-            on { periode } doReturn Periode.create(1.januar(2021), 31.januar(2021))
-            on { erSumYtelseUnderMinstebeløp() } doReturn true
-        }
-        val månedsberegningMock2 = mock<Månedsberegning> {
-            on { periode } doReturn Periode.create(1.februar(2021), 28.februar(2021))
-            on { erSumYtelseUnderMinstebeløp() } doReturn false
-            on { getSumYtelse() } doReturn 5000
-        }
-        val beregningMock = mock<Beregning> {
-            on { getMånedsberegninger() } doReturn listOf(månedsberegningMock1, månedsberegningMock2)
-        }
+        val beregning = lagBeregningMedFradrag(
+            lagFradrag(beløpUnderMinstebeløp(1.januar(2021)), 1.januar(2021)),
+            lagFradrag(1.0, 1.februar(2021)),
+        )
 
         VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
             vilkårsvurderinger = vilkårsvurderingerMock,
-            beregning = beregningMock,
+            beregning = beregning,
             clock = fixedClock,
         ).resultat shouldBe OpphørVedRevurdering.Nei
     }
@@ -158,23 +207,14 @@ internal class VurderOpphørVedRevurderingTest {
         val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
             on { resultat } doReturn Resultat.Innvilget
         }
-        val månedsberegningMock1 = mock<Månedsberegning> {
-            on { periode } doReturn Periode.create(1.januar(2021), 31.januar(2021))
-            on { erSumYtelseUnderMinstebeløp() } doReturn false
-            on { getSumYtelse() } doReturn 0
-        }
-        val månedsberegningMock2 = mock<Månedsberegning> {
-            on { periode } doReturn Periode.create(1.februar(2021), 28.februar(2021))
-            on { erSumYtelseUnderMinstebeløp() } doReturn false
-            on { getSumYtelse() } doReturn 5000
-        }
-        val beregningMock = mock<Beregning> {
-            on { getMånedsberegninger() } doReturn listOf(månedsberegningMock1, månedsberegningMock2)
-        }
+        val beregning = lagBeregningMedFradrag(
+            lagFradrag(1000000.0, 1.januar(2021)),
+            lagFradrag(1.0, 1.februar(2021)),
+        )
 
         VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
             vilkårsvurderinger = vilkårsvurderingerMock,
-            beregning = beregningMock,
+            beregning = beregning,
             clock = fixedClock,
         ).resultat shouldBe OpphørVedRevurdering.Nei
     }
@@ -184,25 +224,14 @@ internal class VurderOpphørVedRevurderingTest {
         val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
             on { resultat } doReturn Resultat.Innvilget
         }
-        val månedsberegningMock1 = mock<Månedsberegning> {
-            on { periode } doReturn Periode.create(1.januar(2021), 31.januar(2021))
-            on { erSumYtelseUnderMinstebeløp() } doReturn false
-            on { getSumYtelse() } doReturn 0
-        }
-        val månedsberegningMock2 = mock<Månedsberegning> {
-            on { periode } doReturn Periode.create(1.februar(2021), 28.februar(2021))
-            on { erSumYtelseUnderMinstebeløp() } doReturn false
-            on { getSumYtelse() } doReturn 0
-        }
-        val beregningMock = mock<Beregning> {
-            on { getMånedsberegninger() } doReturn listOf(månedsberegningMock1, månedsberegningMock2)
-            on { alleMånederErUnderMinstebeløp() } doReturn false
-            on { alleMånederHarBeløpLik0() } doReturn true
-        }
+        val beregning = lagBeregningMedFradrag(
+            lagFradrag(1000000.0, 1.januar(2021)),
+            lagFradrag(1000000.0, 1.februar(2021)),
+        )
 
         VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
             vilkårsvurderinger = vilkårsvurderingerMock,
-            beregning = beregningMock,
+            beregning = beregning,
             clock = fixedClock,
         ).resultat shouldBe OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.FOR_HØY_INNTEKT), 1.januar(2021))
     }
@@ -212,25 +241,14 @@ internal class VurderOpphørVedRevurderingTest {
         val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
             on { resultat } doReturn Resultat.Innvilget
         }
-        val månedsberegningMock1 = mock<Månedsberegning> {
-            on { periode } doReturn Periode.create(1.januar(2021), 31.januar(2021))
-            on { erSumYtelseUnderMinstebeløp() } doReturn true
-            on { getSumYtelse() } doReturn 0
-        }
-        val månedsberegningMock2 = mock<Månedsberegning> {
-            on { periode } doReturn Periode.create(1.februar(2021), 28.februar(2021))
-            on { erSumYtelseUnderMinstebeløp() } doReturn true
-            on { getSumYtelse() } doReturn 0
-        }
-        val beregningMock = mock<Beregning> {
-            on { getMånedsberegninger() } doReturn listOf(månedsberegningMock1, månedsberegningMock2)
-            on { alleMånederErUnderMinstebeløp() } doReturn true
-            on { alleMånederHarBeløpLik0() } doReturn true
-        }
+        val beregning = lagBeregningMedFradrag(
+            lagFradrag(beløpUnderMinstebeløp(1.januar(2021)), 1.januar(2021)),
+            lagFradrag(beløpUnderMinstebeløp(1.februar(2021)), 1.februar(2021)),
+        )
 
         VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
             vilkårsvurderinger = vilkårsvurderingerMock,
-            beregning = beregningMock,
+            beregning = beregning,
             clock = fixedClock,
         ).resultat shouldBe OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE), 1.januar(2021))
     }
@@ -256,26 +274,58 @@ internal class VurderOpphørVedRevurderingTest {
             on { utledOpphørsgrunner() } doReturn listOf(Opphørsgrunn.UFØRHET)
             on { tidligsteDatoForAvslag() } doReturn LocalDate.EPOCH
         }
-        val månedsberegningMock1 = mock<Månedsberegning> {
-            on { periode } doReturn Periode.create(1.januar(2021), 31.januar(2021))
-            on { erSumYtelseUnderMinstebeløp() } doReturn true
-            on { getSumYtelse() } doReturn 0
-        }
-        val månedsberegningMock2 = mock<Månedsberegning> {
-            on { periode } doReturn Periode.create(1.februar(2021), 28.februar(2021))
-            on { erSumYtelseUnderMinstebeløp() } doReturn true
-            on { getSumYtelse() } doReturn 0
-        }
-        val beregningMock = mock<Beregning> {
-            on { getMånedsberegninger() } doReturn listOf(månedsberegningMock1, månedsberegningMock2)
-            on { alleMånederErUnderMinstebeløp() } doReturn true
-            on { alleMånederHarBeløpLik0() } doReturn true
-        }
+        val beregning = lagBeregningMedFradrag(
+            lagFradrag(1000000.0, 1.januar(2021)),
+            lagFradrag(1000000.0, 1.februar(2021)),
+        )
 
         VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
             vilkårsvurderinger = vilkårsvurderingerMock,
-            beregning = beregningMock,
+            beregning = beregning,
             clock = fixedClock,
         ).resultat shouldBe OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.UFØRHET), LocalDate.EPOCH)
     }
+
+    private fun lagBeregningMedFradrag(vararg fradrag: Fradrag): Beregning {
+        val periode = if (fradrag.isEmpty()) periode2021 else Periode.create(
+            fradrag.minOf { it.periode.fraOgMed },
+            fradrag.maxOf { it.periode.tilOgMed },
+        )
+        return BeregningFactory.ny(
+            periode = periode,
+            sats = Sats.HØY,
+            fradrag = listOf(
+                *fradrag,
+                FradragFactory.ny(
+                    Fradragstype.ForventetInntekt,
+                    månedsbeløp = 0.0,
+                    periode = periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+            fradragStrategy = FradragStrategy.Enslig,
+            begrunnelse = null,
+        )
+    }
+
+    private fun lagFradrag(
+        beløp: Double,
+        localDate: LocalDate,
+        fradragstype: Fradragstype? = null,
+        tilhører: FradragTilhører? = null,
+    ) = FradragFactory.ny(
+        type = fradragstype ?: Fradragstype.Kapitalinntekt,
+        månedsbeløp = beløp,
+        periode = Periode.create(localDate.startOfMonth(), localDate.endOfMonth()),
+        utenlandskInntekt = null,
+        tilhører = tilhører ?: FradragTilhører.BRUKER,
+    )
+
+    private fun beløpUnderMinstebeløp(dato: LocalDate): Double {
+        val minstebeløp = Sats.toProsentAvHøy(månedsperiode(dato))
+        return Sats.HØY.månedsbeløp(dato) - minstebeløp + 1
+    }
+
+    private fun månedsperiode(localDate: LocalDate) = Periode.create(localDate.startOfMonth(), localDate.endOfMonth())
 }

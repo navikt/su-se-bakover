@@ -3,7 +3,9 @@ package no.nav.su.se.bakover.domain.beregning
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import java.util.UUID
 
 interface Beregning : PeriodisertInformasjon {
@@ -43,3 +45,12 @@ interface Beregning : PeriodisertInformasjon {
     fun alleMånederErUnderMinstebeløp(): Boolean = getMånedsberegninger().all { it.erSumYtelseUnderMinstebeløp() }
     fun alleMånederHarBeløpLik0(): Boolean = getMånedsberegninger().all { it.getSumYtelse() == 0 }
 }
+
+/* Sosialstønad skal ikke kunne føre til avslag eller under minste grense for utbetaling */
+fun Beregning.utenSosialstønad(): Beregning = BeregningFactory.ny(
+    periode = periode,
+    sats = getSats(),
+    fradrag = getFradrag().filterNot { it.fradragstype == Fradragstype.Sosialstønad },
+    fradragStrategy = FradragStrategy.fromName(getFradragStrategyName()),
+    begrunnelse = getBegrunnelse()
+)
