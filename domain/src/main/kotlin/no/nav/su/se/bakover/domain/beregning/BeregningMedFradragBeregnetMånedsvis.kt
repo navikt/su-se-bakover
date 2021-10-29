@@ -51,9 +51,6 @@ data class BeregningMedFradragBeregnetMånedsvis(
             ).let { månedsberegning ->
                 when (
                     størreEnn0MenMindreEnnToProsentAvHøySats(
-                        månedsberegning.getSumYtelse(),
-                        månedsberegning.periode,
-                    ) && størreEnn0MenMindreEnnToProsentAvHøySats(
                         månedsberegning.sumYtelseUtenSosialstønad(),
                         månedsberegning.periode,
                     )

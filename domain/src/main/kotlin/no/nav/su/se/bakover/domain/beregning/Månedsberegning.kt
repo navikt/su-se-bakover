@@ -18,7 +18,9 @@ interface Månedsberegning : PeriodisertInformasjon {
         getFradrag().any { it.fradragstype == Fradragstype.BeregnetFradragEPS }
 
     fun erSumYtelseUnderMinstebeløp() =
-        getSumYtelse() == 0 && getFradrag().any { it.fradragstype == Fradragstype.UnderMinstenivå }
+        (getSumYtelse() == 0 && getFradrag().any { it.fradragstype == Fradragstype.UnderMinstenivå }) || getSumYtelse().let {
+            it != 0 && it < Sats.toProsentAvHøy(periode)
+        }
 
     /**
      * Sammenligner alle metodene.

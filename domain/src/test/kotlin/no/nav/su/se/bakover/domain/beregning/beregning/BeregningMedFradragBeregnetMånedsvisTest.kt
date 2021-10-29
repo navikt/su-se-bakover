@@ -414,6 +414,72 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         (a === b) shouldBe false
     }
 
+    @Test
+    fun `fradragsbeløp som gir beløp under minstenivå leder til 0-beløp`() {
+        val periode = Periode.create(1.juni(2021), 31.desember(2021))
+        val beregning = BeregningFactory.ny(
+            periode = periode,
+            sats = Sats.HØY,
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 0.0,
+                    periode = periode, utenlandskInntekt = null, tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Kapitalinntekt,
+                    månedsbeløp = Sats.HØY.månedsbeløp(periode.fraOgMed) - 100,
+                    periode = periode,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+            fradragStrategy = FradragStrategy.Enslig,
+        )
+
+        beregning.alleMånederErUnderMinstebeløp() shouldBe true
+        beregning.alleMånederHarBeløpLik0() shouldBe true
+        beregning.getMånedsberegninger().map { månedsberegning ->
+            månedsberegning
+                .getFradrag()
+                .first { fradrag -> fradrag.fradragstype == Fradragstype.UnderMinstenivå }
+                .let {
+                    it.månedsbeløp shouldBe 100
+                    it.periode shouldBe månedsberegning.periode
+                }
+        }
+    }
+
+    @Test
+    fun `sosialstønad som gir beløp under minstenivå leder ikke til 0-beløp`() {
+        val periode = Periode.create(1.juni(2021), 31.desember(2021))
+        val beregning = BeregningFactory.ny(
+            periode = periode,
+            sats = Sats.HØY,
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 0.0,
+                    periode = periode, utenlandskInntekt = null, tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Sosialstønad,
+                    månedsbeløp = Sats.HØY.månedsbeløp(periode.fraOgMed) - 100,
+                    periode = periode,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+            fradragStrategy = FradragStrategy.Enslig,
+        )
+
+        beregning.alleMånederErUnderMinstebeløp() shouldBe true
+        beregning.alleMånederHarBeløpLik0() shouldBe false
+        beregning.getMånedsberegninger().map { månedsberegning ->
+            månedsberegning
+                .getFradrag()
+                .filter { fradrag -> fradrag.fradragstype == Fradragstype.UnderMinstenivå }.size shouldBe 0
+        }
+    }
+
     private fun createBeregning(opprettet: Tidspunkt = fixedTidspunkt, begrunnelse: String = "begrunnelse") =
         BeregningMedFradragBeregnetMånedsvis(
             id = UUID.randomUUID(),
