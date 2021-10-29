@@ -40,6 +40,7 @@ internal class DokumentPostgresRepoTest {
                     vedtakId = etVedtak.id,
                     revurderingId = enRevurdering.id,
                     bestillBrev = false,
+
                 ),
             )
             dokumentRepo.lagre(original, testDataHelper.sessionFactory.newTransactionContext())

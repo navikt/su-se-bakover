@@ -80,10 +80,10 @@ internal class DokumentPostgresRepo(
     override fun hentForSak(id: UUID): List<Dokument.MedMetadata> {
         return dataSource.withSession { session ->
             """
-                select * from dokument where sakId = :id
+                select d.*, journalpostid, brevbestillingid from dokument d left join dokument_distribusjon dd on dd.dokumentid = d.id where sakId = :id
             """.trimIndent()
                 .hentListe(mapOf("id" to id), session) {
-                    it.toDokument()
+                    it.toDokumentMedStatus()
                 }
         }
     }
@@ -204,7 +204,7 @@ internal class DokumentPostgresRepo(
                 it.toDokument()
             }
 
-    private fun Row.toDokument(): Dokument.MedMetadata {
+    private fun Row.toDokumentMedStatus(hentStatus: Boolean = true): Dokument.MedMetadata {
         val type = DokumentKategori.valueOf(string("type"))
         val id = uuid("id")
         val opprettet = tidspunkt("opprettet")
@@ -229,6 +229,8 @@ internal class DokumentPostgresRepo(
                     vedtakId = vedtakId,
                     revurderingId = revurderingId,
                     bestillBrev = bestillbrev,
+                    brevbestillingId = if (hentStatus) stringOrNull("brevbestillingid") else null,
+                    journalpostId = if (hentStatus) stringOrNull("journalpostid") else null,
                 ),
             )
             DokumentKategori.VEDTAK -> Dokument.MedMetadata.Vedtak(
@@ -247,6 +249,8 @@ internal class DokumentPostgresRepo(
             )
         }
     }
+
+    private fun Row.toDokument(): Dokument.MedMetadata = this.toDokumentMedStatus(false)
 
     private enum class DokumentKategori {
         INFORMASJON,
