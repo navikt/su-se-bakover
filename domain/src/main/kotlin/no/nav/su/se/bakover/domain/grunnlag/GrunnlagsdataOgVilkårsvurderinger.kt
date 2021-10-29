@@ -9,7 +9,7 @@ data class GrunnlagsdataOgVilkårsvurderinger(
     companion object {
         val IkkeVurdert = GrunnlagsdataOgVilkårsvurderinger(
             Grunnlagsdata.IkkeVurdert,
-            Vilkårsvurderinger.IkkeVurdert,
+            Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
         )
     }
 

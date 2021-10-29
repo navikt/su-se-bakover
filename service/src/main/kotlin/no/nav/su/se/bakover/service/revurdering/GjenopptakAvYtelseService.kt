@@ -40,7 +40,6 @@ class GjenopptakAvYtelseService(
                     fraOgMed = LocalDate.MIN,
                     tilOgMed = LocalDate.MAX,
                 ),
-                clock = clock,
             ).tidslinje.lastOrNull()?.originaltVedtak ?: return KunneIkkeGjenopptaYtelse.FantIngenVedtak.left()
 
         if (sisteVedtak !is Vedtak.EndringIYtelse.StansAvYtelse) {
@@ -65,7 +64,7 @@ class GjenopptakAvYtelseService(
                                 opprettet = update.opprettet,
                                 periode = gjeldendeVedtaksdata.periode,
                                 grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
-                                vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
+                                vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),
                                 tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(sisteVedtak.periode.fraOgMed)!!,
                                 saksbehandler = request.saksbehandler,
                                 simulering = simulering.simulering,
@@ -93,7 +92,7 @@ class GjenopptakAvYtelseService(
                         opprettet = Tidspunkt.now(clock),
                         periode = gjeldendeVedtaksdata.periode,
                         grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
-                        vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
+                        vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger.tilVilkårsvurderingerRevurdering(),
                         tilRevurdering = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(sisteVedtak.periode.fraOgMed)!!,
                         saksbehandler = request.saksbehandler,
                         simulering = simulering.simulering,

@@ -144,8 +144,8 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             resultat = Resultat.Innvilget,
@@ -156,7 +156,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                         ),
                     ),
                 ),
-                formue = formueVilkår(periode),
+                formueVilkår(periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),

@@ -80,7 +80,7 @@ object RevurderingRoutesTestData {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
         ),
         utbetalingId = UUID30.randomUUID(),
         clock = fixedClock,
@@ -100,7 +100,7 @@ object RevurderingRoutesTestData {
         ),
         forhåndsvarsel = null,
         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+        vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         attesteringer = Attesteringshistorikk.empty(),
     )

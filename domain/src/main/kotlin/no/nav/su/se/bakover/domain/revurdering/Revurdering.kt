@@ -77,7 +77,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
         override val opprettet: Tidspunkt,
         override val periode: Periode,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val tilRevurdering: VedtakSomKanRevurderes,
         val saksbehandler: Saksbehandler,
         val simulering: Simulering,
@@ -112,7 +112,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
         override val opprettet: Tidspunkt,
         override val periode: Periode,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val tilRevurdering: VedtakSomKanRevurderes,
         val saksbehandler: Saksbehandler,
         val simulering: Simulering,
@@ -128,7 +128,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
         override val opprettet: Tidspunkt,
         override val periode: Periode,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val tilRevurdering: VedtakSomKanRevurderes,
         val saksbehandler: Saksbehandler,
         val simulering: Simulering,
@@ -163,7 +163,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
         override val opprettet: Tidspunkt,
         override val periode: Periode,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val tilRevurdering: VedtakSomKanRevurderes,
         val saksbehandler: Saksbehandler,
         val simulering: Simulering,
@@ -219,18 +219,14 @@ sealed class Revurdering :
         uføre: Vilkår.Uførhet.Vurdert,
     ): Either<UgyldigTilstand, OpprettetRevurdering> {
         return oppdaterVilkårsvurderinger(
-            vilkårsvurderinger = vilkårsvurderinger.copy(
-                uføre = uføre,
-            ),
+            vilkårsvurderinger = vilkårsvurderinger.leggTil(uføre) as Vilkårsvurderinger.Revurdering,
             informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Uførhet),
         ).right()
     }
 
     protected fun oppdaterFormueOgMarkerSomVurdertInternal(formue: Vilkår.Formue.Vurdert) =
         oppdaterVilkårsvurderinger(
-            vilkårsvurderinger = vilkårsvurderinger.copy(
-                formue = formue,
-            ),
+            vilkårsvurderinger = vilkårsvurderinger.leggTil(formue) as Vilkårsvurderinger.Revurdering,
             informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Formue),
         ).right()
 
@@ -262,7 +258,7 @@ sealed class Revurdering :
     }
 
     protected fun oppdaterVilkårsvurderinger(
-        vilkårsvurderinger: Vilkårsvurderinger,
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes,
     ): OpprettetRevurdering {
         return OpprettetRevurdering(
@@ -297,7 +293,7 @@ sealed class Revurdering :
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = forhåndsvarsel,
             grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
+            vilkårsvurderinger = vilkårsvurderinger as Vilkårsvurderinger.Revurdering,
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer,
         )
@@ -328,7 +324,7 @@ sealed class Revurdering :
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = forhåndsvarsel,
             grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
+            vilkårsvurderinger = vilkårsvurderinger as Vilkårsvurderinger.Revurdering,
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer,
         )
@@ -345,7 +341,7 @@ sealed class Revurdering :
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = forhåndsvarsel,
             grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
+            vilkårsvurderinger = vilkårsvurderinger as Vilkårsvurderinger.Revurdering,
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer,
         )
@@ -363,7 +359,7 @@ sealed class Revurdering :
                 revurderingsårsak = revurderingsårsak,
                 forhåndsvarsel = forhåndsvarsel,
                 grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
+                vilkårsvurderinger = vilkårsvurderinger as Vilkårsvurderinger.Revurdering,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = attesteringer,
             )
@@ -449,7 +445,7 @@ data class OpprettetRevurdering(
     override val revurderingsårsak: Revurderingsårsak,
     override val forhåndsvarsel: Forhåndsvarsel?,
     override val grunnlagsdata: Grunnlagsdata,
-    override val vilkårsvurderinger: Vilkårsvurderinger,
+    override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
     override val informasjonSomRevurderes: InformasjonSomRevurderes,
     override val attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
 ) : Revurdering() {
@@ -475,7 +471,7 @@ data class OpprettetRevurdering(
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
         grunnlagsdata: Grunnlagsdata,
-        vilkårsvurderinger: Vilkårsvurderinger,
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes,
         tilRevurdering: VedtakSomKanRevurderes,
     ): OpprettetRevurdering = this.copy(
@@ -511,7 +507,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
         grunnlagsdata: Grunnlagsdata,
-        vilkårsvurderinger: Vilkårsvurderinger,
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes,
         tilRevurdering: VedtakSomKanRevurderes,
     ) = OpprettetRevurdering(
@@ -542,7 +538,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val revurderingsårsak: Revurderingsårsak,
         override val forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
     ) : BeregnetRevurdering() {
@@ -581,7 +577,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val revurderingsårsak: Revurderingsårsak,
         override val forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
     ) : BeregnetRevurdering() {
@@ -630,7 +626,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val revurderingsårsak: Revurderingsårsak,
         override val forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
     ) : BeregnetRevurdering() {
@@ -707,7 +703,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val simulering: Simulering,
         override var forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
     ) : SimulertRevurdering() {
@@ -752,7 +748,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val simulering: Simulering,
         override var forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
     ) : SimulertRevurdering() {
@@ -806,7 +802,7 @@ sealed class SimulertRevurdering : Revurdering() {
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
         grunnlagsdata: Grunnlagsdata,
-        vilkårsvurderinger: Vilkårsvurderinger,
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes,
         tilRevurdering: VedtakSomKanRevurderes,
     ) = OpprettetRevurdering(
@@ -845,7 +841,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         val simulering: Simulering,
         override val forhåndsvarsel: Forhåndsvarsel,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
     ) : RevurderingTilAttestering() {
@@ -903,7 +899,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         val simulering: Simulering,
         override val forhåndsvarsel: Forhåndsvarsel,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
     ) : RevurderingTilAttestering() {
@@ -973,7 +969,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         val skalFøreTilBrevutsending: Boolean,
         override val forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
     ) : RevurderingTilAttestering() {
@@ -1114,7 +1110,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val forhåndsvarsel: Forhåndsvarsel,
         val simulering: Simulering,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
     ) : IverksattRevurdering() {
@@ -1137,7 +1133,7 @@ sealed class IverksattRevurdering : Revurdering() {
         val simulering: Simulering,
         override val forhåndsvarsel: Forhåndsvarsel,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
     ) : IverksattRevurdering() {
@@ -1181,7 +1177,7 @@ sealed class IverksattRevurdering : Revurdering() {
         val skalFøreTilBrevutsending: Boolean,
         override val forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
     ) : IverksattRevurdering() {
@@ -1233,7 +1229,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val forhåndsvarsel: Forhåndsvarsel,
         val simulering: Simulering,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
     ) : UnderkjentRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
@@ -1278,7 +1274,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val forhåndsvarsel: Forhåndsvarsel,
         val simulering: Simulering,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
     ) : UnderkjentRevurdering() {
@@ -1342,7 +1338,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         val skalFøreTilBrevutsending: Boolean,
         override val forhåndsvarsel: Forhåndsvarsel?,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
     ) : UnderkjentRevurdering() {
@@ -1379,7 +1375,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
         grunnlagsdata: Grunnlagsdata,
-        vilkårsvurderinger: Vilkårsvurderinger,
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes,
         tilRevurdering: VedtakSomKanRevurderes,
     ) = OpprettetRevurdering(

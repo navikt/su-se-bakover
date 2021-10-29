@@ -3,13 +3,24 @@ package no.nav.su.se.bakover.test
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
+import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
+import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
+import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import java.time.Clock
 import java.util.UUID
 
 val uføregrunnlagId: UUID = UUID.randomUUID()
@@ -239,6 +250,75 @@ fun formuevilkårUtenEps0Innvilget(
     )
 }
 
+fun fastOppholdINorgeVilkårInnvilget(
+    clock: Clock,
+    periode: Periode = periode2021,
+): FastOppholdINorgeVilkår {
+    return FastOppholdINorgeVilkår.tryCreate(
+        periode = periode,
+        fastOpphold = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt().fastOppholdINorge!!,
+        clock = clock,
+    )
+}
+
+fun flyktningVilkårInnvilget(
+    clock: Clock,
+    periode: Periode = periode2021,
+): FlyktningVilkår {
+    return FlyktningVilkår.tryCreate(
+        periode = periode,
+        flyktning = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt().flyktning!!,
+        clock = clock,
+    )
+}
+
+fun institisjonsoppholdVilkårInnvilget(
+    clock: Clock,
+    periode: Periode = periode2021,
+): InstitusjonsoppholdVilkår {
+    return InstitusjonsoppholdVilkår.tryCreate(
+        periode = periode,
+        institusjonsopphold = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
+            .withAlleVilkårOppfylt().institusjonsopphold!!,
+        clock = clock,
+    )
+}
+
+fun lovligOppholdVilkårInnvilget(
+    clock: Clock,
+    periode: Periode = periode2021,
+): LovligOppholdVilkår {
+    return LovligOppholdVilkår.tryCreate(
+        periode = periode,
+        lovligOpphold = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt().lovligOpphold!!,
+        clock = clock,
+    )
+}
+
+fun oppholdIUtlandetVilkårInnvilget(
+    clock: Clock,
+    periode: Periode = periode2021,
+): OppholdIUtlandetVilkår {
+    return OppholdIUtlandetVilkår.tryCreate(
+        periode = periode,
+        oppholdIUtlandet = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
+            .withAlleVilkårOppfylt().oppholdIUtlandet!!,
+        clock = clock,
+    )
+}
+
+fun personligOppmøteVilkårInnvilget(
+    clock: Clock,
+    periode: Periode = periode2021,
+): PersonligOppmøteVilkår {
+    return PersonligOppmøteVilkår.tryCreate(
+        periode = periode,
+        personligOppmøte = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
+            .withAlleVilkårOppfylt().personligOppmøte!!,
+        clock = clock,
+    )
+}
+
 fun formuevilkårAvslåttPgrBrukersformue(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = periode2021,
@@ -266,12 +346,47 @@ fun vilkårsvurderingerInnvilget(
     periode: Periode = periode2021,
     uføre: Vilkår.Uførhet = innvilgetUførevilkårForventetInntekt0(periode = periode),
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode),
-    formue: Vilkår.Formue = formuevilkårUtenEps0Innvilget(periode = periode, bosituasjon = bosituasjon),
-): Vilkårsvurderinger {
-    return Vilkårsvurderinger(
+    behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget
+): Vilkårsvurderinger.Søknadsbehandling {
+    return Vilkårsvurderinger.Søknadsbehandling(
         uføre = uføre,
-        formue = formue,
+    ).oppdater(
+        stønadsperiode = Stønadsperiode.create(periode = periode, begrunnelse = ""),
+        behandlingsinformasjon = behandlingsinformasjon,
+        grunnlagsdata = Grunnlagsdata.tryCreate(
+            fradragsgrunnlag = emptyList(),
+            bosituasjon = listOf(bosituasjon),
+        ).getOrFail(),
+        clock = fixedClock,
     )
+}
+
+fun vilkårsvurderingerInnvilgetRevurdering(
+    periode: Periode = periode2021,
+    uføre: Vilkår.Uførhet = innvilgetUførevilkårForventetInntekt0(periode = periode),
+    bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode),
+    formue: Vilkår.Formue = formuevilkårUtenEps0Innvilget(periode = periode, bosituasjon = bosituasjon),
+): Vilkårsvurderinger.Revurdering {
+    return vilkårsvurderingerInnvilget(
+        periode,
+        uføre,
+        bosituasjon,
+    ).tilVilkårsvurderingerRevurdering()
+        .copy(formue = formue)
+}
+
+fun vilkårsvurderingerAvslåttAlleRevurdering(
+    periode: Periode = periode2021,
+    uføre: Vilkår.Uførhet = avslåttUførevilkårUtenGrunnlag(periode = periode),
+    bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode),
+    formue: Vilkår.Formue = formuevilkårAvslåttPgrBrukersformue(periode = periode, bosituasjon = bosituasjon),
+): Vilkårsvurderinger.Revurdering {
+    return vilkårsvurderingerInnvilget(
+        periode,
+        uføre,
+        bosituasjon,
+    ).tilVilkårsvurderingerRevurdering()
+        .copy(formue = formue)
 }
 
 /**
@@ -287,15 +402,22 @@ fun vilkårsvurderingerInnvilget(
 fun vilkårsvurderingerAvslåttAlle(
     periode: Periode = periode2021,
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode),
-): Vilkårsvurderinger {
-    return Vilkårsvurderinger(
+): Vilkårsvurderinger.Søknadsbehandling {
+    return Vilkårsvurderinger.Søknadsbehandling(
         uføre = avslåttUførevilkårUtenGrunnlag(
             periode = periode,
         ),
-        formue = formuevilkårAvslåttPgrBrukersformue(
+    ).oppdater(
+        stønadsperiode = Stønadsperiode.create(
             periode = periode,
-            bosituasjon = bosituasjon,
+            begrunnelse = "",
         ),
+        behandlingsinformasjon = behandlingsinformasjonAlleVilkårAvslått,
+        grunnlagsdata = Grunnlagsdata.tryCreate(
+            fradragsgrunnlag = listOf(),
+            bosituasjon = listOf(bosituasjon),
+        ).getOrFail(),
+        clock = fixedClock,
     )
 }
 
@@ -311,12 +433,12 @@ fun vilkårsvurderingerAvslåttAlle(
 fun vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(
     periode: Periode = periode2021,
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode),
-): Vilkårsvurderinger {
-    return Vilkårsvurderinger(
-        uføre = avslåttUførevilkårUtenGrunnlag(
+): Vilkårsvurderinger.Revurdering {
+    return Vilkårsvurderinger.Revurdering(
+        avslåttUførevilkårUtenGrunnlag(
             periode = periode,
         ),
-        formue = formuevilkårUtenEps0Innvilget(
+        formuevilkårUtenEps0Innvilget(
             periode = periode,
             bosituasjon = bosituasjon,
         ),

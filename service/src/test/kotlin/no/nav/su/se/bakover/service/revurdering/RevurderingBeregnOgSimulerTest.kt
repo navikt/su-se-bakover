@@ -66,7 +66,7 @@ class RevurderingBeregnOgSimulerTest {
                         periode = tilRevurdering.periode,
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
-                    )
+                    ),
                 ),
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -77,8 +77,8 @@ class RevurderingBeregnOgSimulerTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),

@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 
 class BeregningStrategyFactory {
     fun beregn(
@@ -18,7 +19,10 @@ class BeregningStrategyFactory {
 
         val beregningsgrunnlag = Beregningsgrunnlag.tryCreate(
             beregningsperiode = beregningsPeriode,
-            uføregrunnlag = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger.uføre.grunnlag,
+            uføregrunnlag = when (val vilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger) {
+                is Vilkårsvurderinger.Revurdering -> vilkårsvurderinger.uføre.grunnlag
+                is Vilkårsvurderinger.Søknadsbehandling -> vilkårsvurderinger.uføre.grunnlag
+            },
             fradragFraSaksbehandler = grunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag,
         ).getOrHandle {
             // TODO jah: Kan vurdere å legge på en left her (KanIkkeBeregne.UgyldigBeregningsgrunnlag

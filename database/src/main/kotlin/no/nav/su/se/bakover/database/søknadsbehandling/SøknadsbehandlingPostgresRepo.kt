@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import java.time.Clock
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -214,9 +215,18 @@ internal class SøknadsbehandlingPostgresRepo(
             bosituasjon = bosituasjongrunnlagRepo.hentBosituasjongrunnlag(behandlingId, session),
         )
 
-        val vilkårsvurderinger = Vilkårsvurderinger(
+        val vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
             uføre = uføreVilkårsvurderingRepo.hent(behandlingId, session),
-        )
+        ).let { vv ->
+            stønadsperiode?.let {
+                vv.oppdater(
+                    stønadsperiode = stønadsperiode,
+                    behandlingsinformasjon = behandlingsinformasjon,
+                    grunnlagsdata = grunnlagsdata,
+                    clock = Clock.systemUTC(),
+                )
+            } ?: vv
+        }
 
         val søknadsbehandling = when (status) {
             BehandlingsStatus.OPPRETTET -> Søknadsbehandling.Vilkårsvurdert.Uavklart(

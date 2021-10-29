@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
@@ -15,14 +16,19 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
+import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
 import no.nav.su.se.bakover.domain.behandling.withVilkårIkkeVurdert
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.attesteringUnderkjent
 import no.nav.su.se.bakover.test.beregning
+import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.stønadsperiode2021
+import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt
@@ -67,13 +73,10 @@ internal class StatusovergangTest {
     private val fritekstTilBrev: String = "Fritekst til brev"
 
     private val vilkårsvurdertInnvilget: Søknadsbehandling.Vilkårsvurdert.Innvilget =
-        opprettet.tilVilkårsvurdert(
-            Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-        ) as Søknadsbehandling.Vilkårsvurdert.Innvilget
+        søknadsbehandlingVilkårsvurdertInnvilget().second
     private val vilkårsvurdertAvslag: Søknadsbehandling.Vilkårsvurdert.Avslag =
-        opprettet.tilVilkårsvurdert(
-            Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått(),
-        ) as Søknadsbehandling.Vilkårsvurdert.Avslag
+        søknadsbehandlingVilkårsvurdertAvslag().second
+
     private val beregnetInnvilget: Søknadsbehandling.Beregnet.Innvilget =
         vilkårsvurdertInnvilget.tilBeregnet(innvilgetBeregning) as Søknadsbehandling.Beregnet.Innvilget
     private val beregnetAvslag: Søknadsbehandling.Beregnet.Avslag =
@@ -105,17 +108,23 @@ internal class StatusovergangTest {
         @Test
         fun `opprettet til vilkårsvurdert innvilget`() {
             statusovergang(
-                opprettet,
+                opprettet.copy(
+                    grunnlagsdata = vilkårsvurdertInnvilget.grunnlagsdata,
+                    vilkårsvurderinger = vilkårsvurdertInnvilget.vilkårsvurderinger,
+                ),
                 Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
-            ) shouldBe vilkårsvurdertInnvilget
+            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
 
         @Test
         fun `opprettet til vilkårsvurdert avslag`() {
             statusovergang(
-                opprettet,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
-            ) shouldBe vilkårsvurdertAvslag
+                opprettet.copy(
+                    grunnlagsdata = vilkårsvurdertInnvilget.grunnlagsdata,
+                    vilkårsvurderinger = vilkårsvurdertInnvilget.vilkårsvurderinger,
+                ),
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAvslåttFlyktning()),
+            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
 
         @Test
@@ -131,31 +140,36 @@ internal class StatusovergangTest {
             statusovergang(
                 vilkårsvurdertInnvilget,
                 Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
-            ) shouldBe vilkårsvurdertInnvilget
+            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
 
         @Test
         fun `vilkårsvurdert innvilget til vilkårsvurdert avslag`() {
             statusovergang(
                 vilkårsvurdertInnvilget,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
-            ) shouldBe vilkårsvurdertAvslag
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAvslåttFlyktning()),
+            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
 
         @Test
         fun `vilkårsvurdert avslag til vilkårsvurdert innvilget`() {
             statusovergang(
-                vilkårsvurdertAvslag,
+                vilkårsvurdertAvslag.copy(
+                    grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
+                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                        uføre = innvilgetUførevilkår(),
+                    ),
+                ),
                 Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
-            ) shouldBe vilkårsvurdertInnvilget
+            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
 
         @Test
         fun `vilkårsvurdert avslag til vilkårsvurdert avslag`() {
             statusovergang(
                 vilkårsvurdertAvslag,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
-            ) shouldBe vilkårsvurdertAvslag
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAvslåttFlyktning()),
+            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
 
         @Test
@@ -163,15 +177,15 @@ internal class StatusovergangTest {
             statusovergang(
                 beregnetInnvilget,
                 Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
-            ) shouldBe vilkårsvurdertInnvilget
+            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
 
         @Test
         fun `beregnet innvilget til vilkårsvurdert avslag`() {
             statusovergang(
                 beregnetInnvilget,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
-            ) shouldBe vilkårsvurdertAvslag
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAvslåttFlyktning()),
+            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
 
         @Test
@@ -179,15 +193,15 @@ internal class StatusovergangTest {
             statusovergang(
                 beregnetAvslag,
                 Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
-            ) shouldBe vilkårsvurdertInnvilget
+            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
 
         @Test
         fun `beregnet avslag til vilkårsvurdert avslag`() {
             statusovergang(
                 beregnetAvslag,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
-            ) shouldBe vilkårsvurdertAvslag
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAvslåttFlyktning()),
+            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
 
         @Test
@@ -195,15 +209,15 @@ internal class StatusovergangTest {
             statusovergang(
                 simulert,
                 Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
-            ) shouldBe vilkårsvurdertInnvilget
+            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
 
         @Test
         fun `simulert til vilkårsvurdert avslag`() {
             statusovergang(
                 simulert,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
-            ) shouldBe vilkårsvurdertAvslag
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAvslåttFlyktning()),
+            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
 
         @Test
@@ -211,53 +225,62 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentInnvilget,
                 Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
-            ) shouldBe vilkårsvurdertInnvilget.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
-                .copy(attesteringer = Attesteringshistorikk(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())))
+            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
 
         @Test
         fun `underkjent innvilget til vilkårsvurdert avslag`() {
             statusovergang(
                 underkjentInnvilget,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
-            ) shouldBe vilkårsvurdertAvslag.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
-                .copy(attesteringer = Attesteringshistorikk(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())))
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAvslåttFlyktning()),
+            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
 
         @Test
         fun `underkjent avslag vilkår til vilkårsvurdert innvilget`() {
             statusovergang(
-                underkjentAvslagVilkår,
+                underkjentAvslagVilkår.copy(
+                    grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
+                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                        uføre = innvilgetUførevilkår(),
+                    ),
+                ),
                 Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
-            ) shouldBe vilkårsvurdertInnvilget.medFritekstTilBrev(underkjentAvslagVilkår.fritekstTilBrev)
-                .copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagVilkår.attesteringer.hentSisteAttestering())))
+            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
 
         @Test
         fun `underkjent avslag vilkår til vilkårsvurdert avslag`() {
             statusovergang(
                 underkjentAvslagVilkår,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
-            ) shouldBe vilkårsvurdertAvslag.medFritekstTilBrev(underkjentAvslagVilkår.fritekstTilBrev)
-                .copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagVilkår.attesteringer.hentSisteAttestering())))
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAvslåttFlyktning()),
+            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
 
         @Test
         fun `underkjent avslag beregning til vilkårsvurdert innvilget`() {
             statusovergang(
-                underkjentAvslagBeregning,
+                underkjentAvslagBeregning.copy(
+                    grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
+                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                        uføre = innvilgetUførevilkår(),
+                    ),
+                ),
                 Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
-            ) shouldBe vilkårsvurdertInnvilget.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
-                .copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
+            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
 
         @Test
         fun `underkjent avslag beregning til vilkårsvurdert avslag`() {
             statusovergang(
-                underkjentAvslagBeregning,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
-            ) shouldBe vilkårsvurdertAvslag.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
-                .copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
+                underkjentAvslagBeregning.copy(
+                    grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
+                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                        uføre = innvilgetUførevilkår(),
+                    ),
+                ),
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAvslåttFlyktning()),
+            ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
 
         @Test
@@ -280,7 +303,7 @@ internal class StatusovergangTest {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     statusovergang(
                         it,
-                        Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
+                        Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAvslåttFlyktning()),
                     )
                 }
             }

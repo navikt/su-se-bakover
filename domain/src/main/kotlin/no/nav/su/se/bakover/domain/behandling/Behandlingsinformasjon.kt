@@ -11,14 +11,19 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
+import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
+import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
+import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
+import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import java.time.Clock
@@ -38,7 +43,8 @@ data class Behandlingsinformasjon(
     val bosituasjon: Bosituasjon? = null,
     val ektefelle: EktefellePartnerSamboer? = null,
 ) {
-    private val vilkår = listOf(
+    @JsonIgnore
+    val vilkår = listOf(
         uførhet,
         flyktning,
         lovligOpphold,
@@ -67,22 +73,6 @@ data class Behandlingsinformasjon(
         bosituasjon = b.bosituasjon ?: this.bosituasjon,
         ektefelle = b.ektefelle ?: this.ektefelle,
     )
-
-    fun erInnvilget(): Boolean = allBehandlingsinformasjon.all { it !== null && it.erVilkårOppfylt() }
-    fun utledAvslagsgrunner(): List<Avslagsgrunn> = allBehandlingsinformasjon.mapNotNull { it?.avslagsgrunn() }
-    fun erAvslag(): Boolean {
-        return uførhetOgFlyktningsstatusErVurdertOgMinstEnAvDeErIkkeOppfylt() ||
-            (vilkår.all { it !== null } && vilkår.any { it!!.erVilkårIkkeOppfylt() })
-    }
-
-    private fun uførhetOgFlyktningsstatusErVurdertOgMinstEnAvDeErIkkeOppfylt(): Boolean {
-        if (uførhet != null && flyktning != null) {
-            if (uførhet.erVilkårIkkeOppfylt() || flyktning.erVilkårIkkeOppfylt()) {
-                return true
-            }
-        }
-        return false
-    }
 
     @JsonIgnore
     fun utledSats(): Either<UfullstendigBehandlingsinformasjon, Sats> {
@@ -135,7 +125,6 @@ data class Behandlingsinformasjon(
     abstract class Base {
         abstract fun erVilkårOppfylt(): Boolean
         abstract fun erVilkårIkkeOppfylt(): Boolean
-        abstract fun avslagsgrunn(): Avslagsgrunn?
     }
 
     data class Uførhet(
@@ -152,9 +141,6 @@ data class Behandlingsinformasjon(
 
         override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
         override fun erVilkårIkkeOppfylt(): Boolean = status == Status.VilkårIkkeOppfylt
-
-        override fun avslagsgrunn(): Avslagsgrunn? =
-            if (erVilkårIkkeOppfylt()) Avslagsgrunn.UFØRHET else null
     }
 
     data class Flyktning(
@@ -170,8 +156,16 @@ data class Behandlingsinformasjon(
         override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
         override fun erVilkårIkkeOppfylt(): Boolean = status == Status.VilkårIkkeOppfylt
 
-        override fun avslagsgrunn(): Avslagsgrunn? =
-            if (erVilkårIkkeOppfylt()) Avslagsgrunn.FLYKTNING else null
+        fun tilVilkår(
+            stønadsperiode: Stønadsperiode,
+            clock: Clock,
+        ): FlyktningVilkår {
+            return FlyktningVilkår.tryCreate(
+                periode = stønadsperiode.periode,
+                flyktning = this,
+                clock = clock,
+            )
+        }
     }
 
     data class LovligOpphold(
@@ -187,8 +181,16 @@ data class Behandlingsinformasjon(
         override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
         override fun erVilkårIkkeOppfylt(): Boolean = status == Status.VilkårIkkeOppfylt
 
-        override fun avslagsgrunn(): Avslagsgrunn? =
-            if (erVilkårIkkeOppfylt()) Avslagsgrunn.OPPHOLDSTILLATELSE else null
+        fun tilVilkår(
+            stønadsperiode: Stønadsperiode,
+            clock: Clock,
+        ): LovligOppholdVilkår {
+            return LovligOppholdVilkår.tryCreate(
+                periode = stønadsperiode.periode,
+                lovligOpphold = this,
+                clock = clock,
+            )
+        }
     }
 
     data class FastOppholdINorge(
@@ -204,8 +206,16 @@ data class Behandlingsinformasjon(
         override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
         override fun erVilkårIkkeOppfylt(): Boolean = status == Status.VilkårIkkeOppfylt
 
-        override fun avslagsgrunn(): Avslagsgrunn? =
-            if (erVilkårIkkeOppfylt()) Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE else null
+        fun tilVilkår(
+            stønadsperiode: Stønadsperiode,
+            clock: Clock,
+        ): FastOppholdINorgeVilkår {
+            return FastOppholdINorgeVilkår.tryCreate(
+                periode = stønadsperiode.periode,
+                fastOpphold = this,
+                clock = clock,
+            )
+        }
     }
 
     data class Institusjonsopphold(
@@ -220,8 +230,17 @@ data class Behandlingsinformasjon(
 
         override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
         override fun erVilkårIkkeOppfylt(): Boolean = status == Status.VilkårIkkeOppfylt
-        override fun avslagsgrunn(): Avslagsgrunn? =
-            if (erVilkårIkkeOppfylt()) Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON else null
+
+        fun tilVilkår(
+            stønadsperiode: Stønadsperiode,
+            clock: Clock,
+        ): InstitusjonsoppholdVilkår {
+            return InstitusjonsoppholdVilkår.tryCreate(
+                periode = stønadsperiode.periode,
+                institusjonsopphold = this,
+                clock = clock,
+            )
+        }
     }
 
     data class OppholdIUtlandet(
@@ -237,8 +256,16 @@ data class Behandlingsinformasjon(
         override fun erVilkårOppfylt(): Boolean = status == Status.SkalHoldeSegINorge
         override fun erVilkårIkkeOppfylt(): Boolean = status == Status.SkalVæreMerEnn90DagerIUtlandet
 
-        override fun avslagsgrunn(): Avslagsgrunn? =
-            if (erVilkårIkkeOppfylt()) Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER else null
+        fun tilVilkår(
+            stønadsperiode: Stønadsperiode,
+            clock: Clock,
+        ): OppholdIUtlandetVilkår {
+            return OppholdIUtlandetVilkår.tryCreate(
+                periode = stønadsperiode.periode,
+                oppholdIUtlandet = this,
+                clock = clock,
+            )
+        }
     }
 
     data class Formue(
@@ -280,9 +307,6 @@ data class Behandlingsinformasjon(
         override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
         override fun erVilkårIkkeOppfylt(): Boolean = status == Status.VilkårIkkeOppfylt
 
-        override fun avslagsgrunn(): Avslagsgrunn? =
-            if (erVilkårIkkeOppfylt()) Avslagsgrunn.FORMUE else null
-
         fun harEpsFormue(): Boolean {
             return epsVerdier?.erVerdierStørreEnn0() == true
         }
@@ -290,7 +314,7 @@ data class Behandlingsinformasjon(
         fun tilVilkår(
             stønadsperiode: Stønadsperiode,
             bosituasjon: List<Grunnlag.Bosituasjon>,
-            clock: Clock
+            clock: Clock,
         ): Vilkår.Formue {
             return Vilkår.Formue.Vurdert.tryCreateFromGrunnlag(
                 grunnlag = nonEmptyListOf(
@@ -309,7 +333,7 @@ data class Behandlingsinformasjon(
                                 kontanter = it.kontanter ?: 0,
                                 depositumskonto = it.depositumskonto ?: 0,
                             ).getOrHandle {
-                                throw java.lang.IllegalStateException("Kunne ikke create formue-verdier. Sjekk om data er gyldig")
+                                throw IllegalStateException("Kunne ikke create formue-verdier. Sjekk om data er gyldig")
                             }
                         },
                         søkersFormue = this.verdier.let {
@@ -323,11 +347,11 @@ data class Behandlingsinformasjon(
                                 kontanter = it?.kontanter ?: 0,
                                 depositumskonto = it?.depositumskonto ?: 0,
                             ).getOrHandle {
-                                throw java.lang.IllegalStateException("Kunne ikke create formue-verdier. Sjekk om data er gyldig")
+                                throw IllegalStateException("Kunne ikke create formue-verdier. Sjekk om data er gyldig")
                             }
                         },
                         begrunnelse = this.begrunnelse,
-                        bosituasjon = bosituasjon.singleFullstendigOrThrow(),
+                        bosituasjon = bosituasjon.singleOrThrow(),
                         behandlingsPeriode = stønadsperiode.periode,
                     ).getOrHandle {
                         throw IllegalArgumentException("Kunne ikke instansiere ${Formuegrunnlag::class.simpleName}. Melding: $it")
@@ -364,8 +388,16 @@ data class Behandlingsinformasjon(
 
         override fun erVilkårIkkeOppfylt(): Boolean = status == Status.IkkeMøttPersonlig
 
-        override fun avslagsgrunn(): Avslagsgrunn? =
-            if (erVilkårIkkeOppfylt()) Avslagsgrunn.PERSONLIG_OPPMØTE else null
+        fun tilVilkår(
+            stønadsperiode: Stønadsperiode,
+            clock: Clock,
+        ): PersonligOppmøteVilkår {
+            return PersonligOppmøteVilkår.tryCreate(
+                periode = stønadsperiode.periode,
+                personligOppmøte = this,
+                clock = clock,
+            )
+        }
     }
 
     data class Bosituasjon(
@@ -386,8 +418,6 @@ data class Behandlingsinformasjon(
         }
 
         override fun erVilkårIkkeOppfylt(): Boolean = false
-
-        override fun avslagsgrunn(): Avslagsgrunn? = null
     }
 
     @JsonTypeInfo(
@@ -424,7 +454,6 @@ data class Behandlingsinformasjon(
 
         override fun erVilkårOppfylt(): Boolean = true
         override fun erVilkårIkkeOppfylt(): Boolean = false
-        override fun avslagsgrunn(): Avslagsgrunn? = null
     }
 
     companion object {

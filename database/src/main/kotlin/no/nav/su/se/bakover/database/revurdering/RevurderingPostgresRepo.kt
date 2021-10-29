@@ -230,7 +230,7 @@ internal class RevurderingPostgresRepo(
             fradragsgrunnlag = fradragsgrunnlag,
             bosituasjon = bosituasjonsgrunnlag,
         )
-        val vilkårsvurderinger = Vilkårsvurderinger(
+        val vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
             uføre = uføreVilkårsvurderingRepo.hent(id, session),
             formue = formueVilkårsvurderingRepo.hent(id, session),
         )

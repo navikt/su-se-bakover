@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingVisitor
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakVisitor
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
 import java.time.LocalDate
@@ -338,10 +339,17 @@ class LagBrevRequestVisitor(
                 revurdertBeregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
                 harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
-                forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
+                forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.hentUføregrunnlag().harForventetInntektStørreEnn0(),
                 dagensDato = LocalDate.now(clock),
             )
         }
+
+    private fun Vilkårsvurderinger.hentUføregrunnlag(): List<Grunnlag.Uføregrunnlag> {
+        return when (this) {
+            is Vilkårsvurderinger.Revurdering -> this.uføre.grunnlag
+            is Vilkårsvurderinger.Søknadsbehandling -> this.uføre.grunnlag
+        }
+    }
 
     private fun opphørtRevurdering(revurdering: Revurdering, beregning: Beregning, opphørsgrunner: List<Opphørsgrunn>) =
         hentPersonOgNavn(
@@ -359,7 +367,7 @@ class LagBrevRequestVisitor(
                 fritekst = revurdering.fritekstTilBrev,
                 saksbehandlerNavn = it.saksbehandlerNavn,
                 attestantNavn = it.attestantNavn,
-                forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
+                forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.hentUføregrunnlag().harForventetInntektStørreEnn0(),
                 opphørsgrunner = opphørsgrunner,
                 dagensDato = LocalDate.now(clock),
             )
@@ -494,7 +502,7 @@ class LagBrevRequestVisitor(
                     is Vedtak.Avslag.AvslagBeregning -> vedtak.behandling.fritekstTilBrev
                     is Vedtak.Avslag.AvslagVilkår -> vedtak.behandling.fritekstTilBrev
                 },
-                uføregrunnlag = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag,
+                uføregrunnlag = vedtak.behandling.vilkårsvurderinger.hentUføregrunnlag(),
             )
         }
 
@@ -514,7 +522,7 @@ class LagBrevRequestVisitor(
                     beregning = beregning,
                     fritekst = revurdering.fritekstTilBrev,
                     harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
-                    uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
+                    uføregrunnlag = revurdering.vilkårsvurderinger.hentUføregrunnlag(),
                     gjeldendeMånedsutbetaling = gjeldendeUtbetaling,
                 )
             }

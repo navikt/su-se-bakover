@@ -21,10 +21,10 @@ data class GjeldendeVedtaksdata(
     private val clock: Clock,
 ) {
     val grunnlagsdata: Grunnlagsdata
-    val vilkårsvurderinger: Vilkårsvurderinger
+    val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
 
     private val tidslinje: Tidslinje<Vedtak.VedtakPåTidslinje> = vedtakListe
-        .lagTidslinje(periode, clock)
+        .lagTidslinje(periode)
 
     private val vedtakPåTidslinje: List<Vedtak.VedtakPåTidslinje> = tidslinje.tidslinje
 
@@ -32,15 +32,27 @@ data class GjeldendeVedtaksdata(
 
     // Utleder grunnlagstyper som kan knyttes til vilkår via deres respektive vilkårsvurderinger
     private val uføreGrunnlagOgVilkår: Vilkår.Uførhet.Vurdert =
-        when (val uførevilkår = vilkårsvurderingerFraTidslinje.uføre) {
-            Vilkår.Uførhet.IkkeVurdert -> throw IllegalStateException("Kan ikke opprette vilkårsvurdering fra ikke-vurderte vilkår")
-            is Vilkår.Uførhet.Vurdert -> uførevilkår
+        when (val vilkårsvurderinger = vilkårsvurderingerFraTidslinje) {
+            is Vilkårsvurderinger.Revurdering -> when (val vilkår = vilkårsvurderinger.uføre) {
+                Vilkår.Uførhet.IkkeVurdert -> throw IllegalStateException("Kan ikke opprette vilkårsvurdering fra ikke-vurderte vilkår")
+                is Vilkår.Uførhet.Vurdert -> vilkår
+            }
+            is Vilkårsvurderinger.Søknadsbehandling -> when (val vilkår = vilkårsvurderinger.uføre) {
+                Vilkår.Uførhet.IkkeVurdert -> throw IllegalStateException("Kan ikke opprette vilkårsvurdering fra ikke-vurderte vilkår")
+                is Vilkår.Uførhet.Vurdert -> vilkår
+            }
         }
 
     private val formuevilkårOgGrunnlag: Vilkår.Formue.Vurdert =
-        when (val formue = vilkårsvurderingerFraTidslinje.formue) {
-            Vilkår.Formue.IkkeVurdert -> throw IllegalStateException("Kan ikke opprette vilkårsvurdering fra ikke-vurderte vilkår")
-            is Vilkår.Formue.Vurdert -> formue
+        when (val vilkårsvurderinger = vilkårsvurderingerFraTidslinje) {
+            is Vilkårsvurderinger.Revurdering -> when (val vilkår = vilkårsvurderinger.formue) {
+                Vilkår.Formue.IkkeVurdert -> throw IllegalStateException("Kan ikke opprette vilkårsvurdering fra ikke-vurderte vilkår")
+                is Vilkår.Formue.Vurdert -> vilkår
+            }
+            is Vilkårsvurderinger.Søknadsbehandling -> when (val vilkår = vilkårsvurderinger.formue) {
+                Vilkår.Formue.IkkeVurdert -> throw IllegalStateException("Kan ikke opprette vilkårsvurdering fra ikke-vurderte vilkår")
+                is Vilkår.Formue.Vurdert -> vilkår
+            }
         }
 
     // TODO istedenfor å bruke constructor + init, burde GjeldendeVedtaksdata ha en tryCreate
@@ -53,11 +65,11 @@ data class GjeldendeVedtaksdata(
                 it.grunnlagsdata.bosituasjon
             }.slåSammenPeriodeOgBosituasjon(),
         )
-        vilkårsvurderinger = Vilkårsvurderinger(
-            uføre = uføreGrunnlagOgVilkår.copy(
+        vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+            uføreGrunnlagOgVilkår.copy(
                 vurderingsperioder = uføreGrunnlagOgVilkår.vurderingsperioder.slåSammenVurderingsperiode(),
             ),
-            formue = formuevilkårOgGrunnlag.copy(
+            formuevilkårOgGrunnlag.copy(
                 vurderingsperioder = formuevilkårOgGrunnlag.vurderingsperioder.slåSammenVurderingsperiode(),
             ),
         )
@@ -71,10 +83,10 @@ data class GjeldendeVedtaksdata(
         .all { it }
 }
 
-private fun List<Vedtak.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurderinger {
-    return Vilkårsvurderinger(
+private fun List<Vedtak.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurderinger.Revurdering {
+    return Vilkårsvurderinger.Revurdering(
         uføre = Vilkår.Uførhet.Vurdert.tryCreate(
-            map { it.vilkårsvurderinger.uføre }
+            this.map { it.vilkårsvurderinger.uføreVilkår() }
                 .filterIsInstance<Vilkår.Uførhet.Vurdert>()
                 .flatMap { it.vurderingsperioder }
                 .let { Nel.fromListUnsafe(it) },
@@ -82,10 +94,24 @@ private fun List<Vedtak.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurde
             throw IllegalArgumentException("Kunne ikke instansiere ${Vilkår.Uførhet.Vurdert::class.simpleName}. Melding: $it")
         },
         formue = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
-            map { it.vilkårsvurderinger.formue }
+            this.map { it.vilkårsvurderinger.formueVilkår() }
                 .filterIsInstance<Vilkår.Formue.Vurdert>()
                 .flatMap { it.vurderingsperioder }
                 .let { Nel.fromListUnsafe(it) },
         ),
     )
+}
+
+private fun Vilkårsvurderinger.uføreVilkår(): Vilkår.Uførhet {
+    return when (this) {
+        is Vilkårsvurderinger.Revurdering -> uføre
+        is Vilkårsvurderinger.Søknadsbehandling -> uføre
+    }
+}
+
+private fun Vilkårsvurderinger.formueVilkår(): Vilkår.Formue {
+    return when (this) {
+        is Vilkårsvurderinger.Revurdering -> formue
+        is Vilkårsvurderinger.Søknadsbehandling -> formue
+    }
 }

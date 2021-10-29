@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import org.junit.jupiter.api.Test
 
 internal class FormueTest {
@@ -44,25 +43,5 @@ internal class FormueTest {
             epsVerdier = null,
             begrunnelse = "null"
         ).erVilkårOppfylt() shouldBe false
-    }
-
-    @Test
-    fun `avslagsgrunn er formue dersom vilkår ikke er oppfylt`() {
-        Behandlingsinformasjon.Formue(
-            status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt,
-            verdier = null,
-            epsVerdier = null,
-            begrunnelse = "null"
-        ).avslagsgrunn() shouldBe Avslagsgrunn.FORMUE
-    }
-
-    @Test
-    fun `avslagsgrunn er null dersom vilkår er oppfylt`() {
-        Behandlingsinformasjon.Formue(
-            status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
-            verdier = null,
-            epsVerdier = null,
-            begrunnelse = "null"
-        ).avslagsgrunn() shouldBe null
     }
 }

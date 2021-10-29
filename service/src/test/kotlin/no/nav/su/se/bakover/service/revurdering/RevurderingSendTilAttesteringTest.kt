@@ -37,7 +37,7 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgInnvilgetFormue
-import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilgetRevurdering
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -243,7 +243,7 @@ class RevurderingSendTilAttesteringTest {
                 tilOgMed = revurderingsperiode.tilOgMed,
             )
 
-            val vilkårsvurderinger = vilkårsvurderingerInnvilget(
+            val vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering(
                 periode = revurderingsperiode,
                 formue = Vilkår.Formue.Vurdert.createFromGrunnlag(
                     grunnlag = nonEmptyListOf(

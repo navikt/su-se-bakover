@@ -109,7 +109,6 @@ data class Sak(
                 vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
                     .lagTidslinje(
                         periode = innvilgetStønadsperiode,
-                        clock = clock,
                     ).tidslinje
                     .filterNot { it.originaltVedtak.erOpphør() }
                     .map { it.periode }

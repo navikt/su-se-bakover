@@ -87,58 +87,45 @@ internal class VedtakPåTidslinjeTest {
                 fradragsgrunnlag = listOf(f1, f2),
                 bosituasjon = listOf(bosituasjon),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         uføreVurderingsperiode,
                     ),
                 ),
-                formue = formuevilkår,
+                formuevilkår,
             ),
             originaltVedtak = originaltVedtak,
         )
         original.copy(CopyArgs.Tidslinje.Full).let { vedtakPåTidslinje ->
             vedtakPåTidslinje.opprettet shouldBe original.opprettet
             vedtakPåTidslinje.periode shouldBe original.periode
-            vedtakPåTidslinje.vilkårsvurderinger.uføre.grunnlag shouldHaveSize 1
-            vedtakPåTidslinje.vilkårsvurderinger.uføre.grunnlag[0].let {
-                it.id shouldNotBe uføregrunnlag.id
-                it.periode shouldBe uføregrunnlag.periode
-                it.uføregrad shouldBe uføregrunnlag.uføregrad
-                it.forventetInntekt shouldBe uføregrunnlag.forventetInntekt
-            }
-            (vedtakPåTidslinje.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).let { vilkårcopy ->
-                vilkårcopy.vurderingsperioder shouldHaveSize 1
-                vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
-                    vurderingsperiodecopy.id shouldNotBe uføreVurderingsperiode.id
-                    vurderingsperiodecopy.begrunnelse shouldBe uføreVurderingsperiode.begrunnelse
-                    vurderingsperiodecopy.resultat shouldBe uføreVurderingsperiode.resultat
-                    vurderingsperiodecopy.periode shouldBe uføreVurderingsperiode.periode
-                    vurderingsperiodecopy.grunnlag!!.let {
+            (vedtakPåTidslinje.vilkårsvurderinger as Vilkårsvurderinger.Revurdering)
+                .let { vilkårsvurdering ->
+                    vilkårsvurdering.uføre.grunnlag shouldHaveSize 1
+                    vilkårsvurdering.uføre.grunnlag[0].let {
                         it.id shouldNotBe uføregrunnlag.id
                         it.periode shouldBe uføregrunnlag.periode
                         it.uføregrad shouldBe uføregrunnlag.uføregrad
                         it.forventetInntekt shouldBe uføregrunnlag.forventetInntekt
                     }
-                }
-            }
-            vedtakPåTidslinje.vilkårsvurderinger.formue.grunnlag shouldHaveSize 1
-            vedtakPåTidslinje.vilkårsvurderinger.formue.grunnlag[0].let {
-                val expectedFormuegrunnlag = formuevilkår.grunnlag.first()
-                it.id shouldNotBe expectedFormuegrunnlag.id
-                it.periode shouldBe expectedFormuegrunnlag.periode
-                it.epsFormue shouldBe expectedFormuegrunnlag.epsFormue
-                it.søkersFormue shouldBe expectedFormuegrunnlag.søkersFormue
-                it.begrunnelse shouldBe expectedFormuegrunnlag.begrunnelse
-            }
-            (vedtakPåTidslinje.vilkårsvurderinger.formue as Vilkår.Formue.Vurdert).let { vilkårcopy ->
-                vilkårcopy.vurderingsperioder shouldHaveSize 1
-                val expectedVurderingsperiode = formuevilkår.vurderingsperioder.first()
-                vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
-                    vurderingsperiodecopy.id shouldNotBe expectedVurderingsperiode.id
-                    vurderingsperiodecopy.resultat shouldBe expectedVurderingsperiode.resultat
-                    vurderingsperiodecopy.periode shouldBe expectedVurderingsperiode.periode
-                    vurderingsperiodecopy.grunnlag.let {
+                    (vilkårsvurdering.uføre as Vilkår.Uførhet.Vurdert).let { vilkårcopy ->
+                        vilkårcopy.vurderingsperioder shouldHaveSize 1
+                        vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
+                            vurderingsperiodecopy.id shouldNotBe uføreVurderingsperiode.id
+                            vurderingsperiodecopy.begrunnelse shouldBe uføreVurderingsperiode.begrunnelse
+                            vurderingsperiodecopy.resultat shouldBe uføreVurderingsperiode.resultat
+                            vurderingsperiodecopy.periode shouldBe uføreVurderingsperiode.periode
+                            vurderingsperiodecopy.grunnlag!!.let {
+                                it.id shouldNotBe uføregrunnlag.id
+                                it.periode shouldBe uføregrunnlag.periode
+                                it.uføregrad shouldBe uføregrunnlag.uføregrad
+                                it.forventetInntekt shouldBe uføregrunnlag.forventetInntekt
+                            }
+                        }
+                    }
+                    vilkårsvurdering.formue.grunnlag shouldHaveSize 1
+                    vilkårsvurdering.formue.grunnlag[0].let {
                         val expectedFormuegrunnlag = formuevilkår.grunnlag.first()
                         it.id shouldNotBe expectedFormuegrunnlag.id
                         it.periode shouldBe expectedFormuegrunnlag.periode
@@ -146,8 +133,24 @@ internal class VedtakPåTidslinjeTest {
                         it.søkersFormue shouldBe expectedFormuegrunnlag.søkersFormue
                         it.begrunnelse shouldBe expectedFormuegrunnlag.begrunnelse
                     }
+                    (vilkårsvurdering.formue as Vilkår.Formue.Vurdert).let { vilkårcopy ->
+                        vilkårcopy.vurderingsperioder shouldHaveSize 1
+                        val expectedVurderingsperiode = formuevilkår.vurderingsperioder.first()
+                        vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
+                            vurderingsperiodecopy.id shouldNotBe expectedVurderingsperiode.id
+                            vurderingsperiodecopy.resultat shouldBe expectedVurderingsperiode.resultat
+                            vurderingsperiodecopy.periode shouldBe expectedVurderingsperiode.periode
+                            vurderingsperiodecopy.grunnlag.let {
+                                val expectedFormuegrunnlag = formuevilkår.grunnlag.first()
+                                it.id shouldNotBe expectedFormuegrunnlag.id
+                                it.periode shouldBe expectedFormuegrunnlag.periode
+                                it.epsFormue shouldBe expectedFormuegrunnlag.epsFormue
+                                it.søkersFormue shouldBe expectedFormuegrunnlag.søkersFormue
+                                it.begrunnelse shouldBe expectedFormuegrunnlag.begrunnelse
+                            }
+                        }
+                    }
                 }
-            }
 
             vedtakPåTidslinje.grunnlagsdata.fradragsgrunnlag.first().fradrag shouldBe f1.fradrag
             vedtakPåTidslinje.grunnlagsdata.fradragsgrunnlag.last().fradrag shouldBe f2.fradrag
@@ -215,13 +218,13 @@ internal class VedtakPåTidslinjeTest {
                 bosituasjon = listOf(b1, b2),
                 fradragsgrunnlag = listOf(f1, f2),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         vurderingsperiode,
                     ),
                 ),
-                formue = formuevilkår,
+                formuevilkår,
             ),
             originaltVedtak = originaltVedtak,
         )
@@ -230,51 +233,19 @@ internal class VedtakPåTidslinjeTest {
             .let { vedtakPåTidslinje ->
                 vedtakPåTidslinje.opprettet shouldBe original.opprettet
                 vedtakPåTidslinje.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
-                vedtakPåTidslinje.vilkårsvurderinger.uføre.grunnlag shouldHaveSize 1
-                vedtakPåTidslinje.vilkårsvurderinger.uføre.grunnlag[0].let {
-                    it.id shouldNotBe uføregrunnlag.id
-                    it.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
-                    it.uføregrad shouldBe uføregrunnlag.uføregrad
-                    it.forventetInntekt shouldBe uføregrunnlag.forventetInntekt
-                }
-                vedtakPåTidslinje.vilkårsvurderinger.formue.grunnlag shouldHaveSize 1
-                vedtakPåTidslinje.vilkårsvurderinger.formue.grunnlag[0].let {
-                    val expectedFormuegrunnlag = formuevilkår.grunnlag.first()
-                    it.id shouldNotBe expectedFormuegrunnlag.id
-                    it.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
-                    it.epsFormue shouldBe expectedFormuegrunnlag.epsFormue
-                    it.søkersFormue shouldBe expectedFormuegrunnlag.søkersFormue
-                    it.begrunnelse shouldBe expectedFormuegrunnlag.begrunnelse
-                }
-                vedtakPåTidslinje.grunnlagsdata.bosituasjon[0].let {
-                    (it as Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen)
-                    it.id shouldNotBe b1.id
-                    it.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
-                    it.begrunnelse shouldBe "Begrunnelse"
-                }
-                (vedtakPåTidslinje.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).let { vilkårcopy ->
-                    vilkårcopy.vurderingsperioder shouldHaveSize 1
-                    vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
-                        vurderingsperiodecopy.id shouldNotBe vurderingsperiode.id
-                        vurderingsperiodecopy.begrunnelse shouldBe vurderingsperiode.begrunnelse
-                        vurderingsperiodecopy.resultat shouldBe vurderingsperiode.resultat
-                        vurderingsperiodecopy.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
-                        vurderingsperiodecopy.grunnlag!!.let {
+
+                (vedtakPåTidslinje.vilkårsvurderinger as Vilkårsvurderinger.Revurdering)
+                    .let { vilkårsvurdering ->
+                        vilkårsvurdering.uføre.grunnlag shouldHaveSize 1
+                        vilkårsvurdering.uføre.grunnlag[0].let {
                             it.id shouldNotBe uføregrunnlag.id
                             it.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
                             it.uføregrad shouldBe uføregrunnlag.uføregrad
                             it.forventetInntekt shouldBe uføregrunnlag.forventetInntekt
                         }
-                    }
-                }
-                (vedtakPåTidslinje.vilkårsvurderinger.formue as Vilkår.Formue.Vurdert).let { vilkårcopy ->
-                    vilkårcopy.vurderingsperioder shouldHaveSize 1
-                    vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
-                        val expectedVurderingsperiode = formuevilkår.vurderingsperioder.first()
-                        vurderingsperiodecopy.id shouldNotBe expectedVurderingsperiode.id
-                        vurderingsperiodecopy.resultat shouldBe expectedVurderingsperiode.resultat
-                        vurderingsperiodecopy.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
-                        vurderingsperiodecopy.grunnlag.let {
+
+                        vilkårsvurdering.formue.grunnlag shouldHaveSize 1
+                        vilkårsvurdering.formue.grunnlag[0].let {
                             val expectedFormuegrunnlag = formuevilkår.grunnlag.first()
                             it.id shouldNotBe expectedFormuegrunnlag.id
                             it.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
@@ -282,7 +253,44 @@ internal class VedtakPåTidslinjeTest {
                             it.søkersFormue shouldBe expectedFormuegrunnlag.søkersFormue
                             it.begrunnelse shouldBe expectedFormuegrunnlag.begrunnelse
                         }
+                        (vilkårsvurdering.uføre as Vilkår.Uførhet.Vurdert).let { vilkårcopy ->
+                            vilkårcopy.vurderingsperioder shouldHaveSize 1
+                            vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
+                                vurderingsperiodecopy.id shouldNotBe vurderingsperiode.id
+                                vurderingsperiodecopy.begrunnelse shouldBe vurderingsperiode.begrunnelse
+                                vurderingsperiodecopy.resultat shouldBe vurderingsperiode.resultat
+                                vurderingsperiodecopy.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
+                                vurderingsperiodecopy.grunnlag!!.let {
+                                    it.id shouldNotBe uføregrunnlag.id
+                                    it.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
+                                    it.uføregrad shouldBe uføregrunnlag.uføregrad
+                                    it.forventetInntekt shouldBe uføregrunnlag.forventetInntekt
+                                }
+                            }
+                        }
+                        (vilkårsvurdering.formue as Vilkår.Formue.Vurdert).let { vilkårcopy ->
+                            vilkårcopy.vurderingsperioder shouldHaveSize 1
+                            vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
+                                val expectedVurderingsperiode = formuevilkår.vurderingsperioder.first()
+                                vurderingsperiodecopy.id shouldNotBe expectedVurderingsperiode.id
+                                vurderingsperiodecopy.resultat shouldBe expectedVurderingsperiode.resultat
+                                vurderingsperiodecopy.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
+                                vurderingsperiodecopy.grunnlag.let {
+                                    val expectedFormuegrunnlag = formuevilkår.grunnlag.first()
+                                    it.id shouldNotBe expectedFormuegrunnlag.id
+                                    it.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
+                                    it.epsFormue shouldBe expectedFormuegrunnlag.epsFormue
+                                    it.søkersFormue shouldBe expectedFormuegrunnlag.søkersFormue
+                                    it.begrunnelse shouldBe expectedFormuegrunnlag.begrunnelse
+                                }
+                            }
+                        }
                     }
+                vedtakPåTidslinje.grunnlagsdata.bosituasjon[0].let {
+                    (it as Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen)
+                    it.id shouldNotBe b1.id
+                    it.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
+                    it.begrunnelse shouldBe "Begrunnelse"
                 }
                 vedtakPåTidslinje.grunnlagsdata.fradragsgrunnlag.let { fradragCopy ->
                     fradragCopy shouldHaveSize 1

@@ -90,11 +90,11 @@ internal class RevurderingLeggTilFormueServiceTest {
         ).getOrHandle { fail("Vi skal få tilbake en revurdering") }
 
         actual shouldBe beOfType<RevurderingOgFeilmeldingerResponse>()
-        val expectedVilkårsvurderinger = Vilkårsvurderinger(
-            uføre = Vilkår.Uførhet.Vurdert.create(
+        val expectedVilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+            Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
-                        id = (actual.revurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.first().id,
+                        id = ((actual.revurdering.vilkårsvurderinger as Vilkårsvurderinger.Revurdering).uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.first().id,
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Innvilget,
                         grunnlag = Grunnlag.Uføregrunnlag(
@@ -109,14 +109,14 @@ internal class RevurderingLeggTilFormueServiceTest {
                     ),
                 ),
             ),
-            formue = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
+            Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Formue.tryCreate(
-                        id = (actual.revurdering.vilkårsvurderinger.formue as Vilkår.Formue.Vurdert).vurderingsperioder.first().id,
+                        id = ((actual.revurdering.vilkårsvurderinger as Vilkårsvurderinger.Revurdering).formue as Vilkår.Formue.Vurdert).vurderingsperioder.first().id,
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Innvilget,
                         grunnlag = Formuegrunnlag.create(
-                            id = (actual.revurdering.vilkårsvurderinger.formue as Vilkår.Formue.Vurdert).grunnlag.first().id,
+                            id = ((actual.revurdering.vilkårsvurderinger as Vilkårsvurderinger.Revurdering).formue as Vilkår.Formue.Vurdert).grunnlag.first().id,
                             periode = periodeHele2021,
                             opprettet = fixedTidspunkt,
                             epsFormue = Formuegrunnlag.Verdier.empty(),
@@ -377,8 +377,8 @@ internal class RevurderingLeggTilFormueServiceTest {
                         ),
                     ),
                 ),
-                vilkårsvurderinger = Vilkårsvurderinger(
-                    uføre = Vilkår.Uførhet.Vurdert.create(
+                vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                    Vilkår.Uførhet.Vurdert.create(
                         vurderingsperioder = nonEmptyListOf(
                             Vurderingsperiode.Uføre.create(
                                 id = UUID.randomUUID(),
@@ -532,8 +532,8 @@ internal class RevurderingLeggTilFormueServiceTest {
     private val periodeHele2020 = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.mars(2020))
     private val uføreId = UUID.randomUUID()
 
-    private val vilkårsvurderinger = Vilkårsvurderinger(
-        uføre = Vilkår.Uførhet.Vurdert.create(
+    private val vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+        Vilkår.Uførhet.Vurdert.create(
             vurderingsperioder = nonEmptyListOf(
                 Vurderingsperiode.Uføre.create(
                     id = uføreId,
@@ -550,7 +550,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     begrunnelse = "ok2k",
                 ),
             ),
-        ),
+        )
     )
 
     private val opprettetRevurdering = OpprettetRevurdering(

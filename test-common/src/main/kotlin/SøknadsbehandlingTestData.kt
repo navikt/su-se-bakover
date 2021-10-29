@@ -6,8 +6,8 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.withAlleVilkårAvslått
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
@@ -25,7 +25,7 @@ val behandlingsinformasjonAlleVilkårInnvilget = Behandlingsinformasjon
 
 val behandlingsinformasjonAlleVilkårAvslått = Behandlingsinformasjon
     .lagTomBehandlingsinformasjon()
-    .withVilkårAvslått()
+    .withAlleVilkårAvslått()
 
 /**
  * Skal tilsvare en ny søknadsbehandling.
@@ -34,6 +34,9 @@ val behandlingsinformasjonAlleVilkårAvslått = Behandlingsinformasjon
 fun søknadsbehandlingVilkårsvurdertUavklart(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    grunnlagsdata: Grunnlagsdata = Grunnlagsdata.IkkeVurdert,
+    behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårUavklart,
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
     return nySakMedjournalførtSøknadOgOppgave(
         sakId = sakId,
@@ -48,12 +51,12 @@ fun søknadsbehandlingVilkårsvurdertUavklart(
             saksnummer = sak.saksnummer,
             søknad = journalførtSøknadMedOppgave,
             oppgaveId = journalførtSøknadMedOppgave.oppgaveId,
-            behandlingsinformasjon = behandlingsinformasjonAlleVilkårUavklart,
+            behandlingsinformasjon = behandlingsinformasjon,
             fnr = sak.fnr,
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
             attesteringer = Attesteringshistorikk.empty(),
         )
         Pair(
@@ -70,21 +73,28 @@ fun søknadsbehandlingVilkårsvurdertInnvilget(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Innvilget> {
     return søknadsbehandlingVilkårsvurdertUavklart(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
     ).let { (sak, søknadsbehandling) ->
-        val oppdatertSøknadsbehandling = (
-            søknadsbehandling.tilVilkårsvurdert(
-                behandlingsinformasjon,
-                // TODO jah: Bytt til å bruke en mer spesifikk funksjon på søknadsbehandling når/hvis det kommer.
+        val oppdatertSøknadsbehandling = søknadsbehandling
+            .copy(
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger
+            ).tilVilkårsvurdert(
+                behandlingsinformasjon = behandlingsinformasjon
             ) as Søknadsbehandling.Vilkårsvurdert.Innvilget
-            ).copy(
-            grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
-        )
+        // val oppdatertSøknadsbehandling = (
+        //     søknadsbehandling.tilVilkårsvurdert(
+        //         behandlingsinformasjon,
+        //         // TODO jah: Bytt til å bruke en mer spesifikk funksjon på søknadsbehandling når/hvis det kommer.
+        //     ) as Søknadsbehandling.Vilkårsvurdert.Innvilget
+        //     ).copy(
+        //     grunnlagsdata = grunnlagsdata,
+        //     vilkårsvurderinger = vilkårsvurderinger,
+        // )
         Pair(
             sak.copy(
                 søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
@@ -99,20 +109,19 @@ fun søknadsbehandlingVilkårsvurdertAvslag(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårAvslått,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Avslag> {
     return søknadsbehandlingVilkårsvurdertUavklart(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
     ).let { (sak, søknadsbehandling) ->
-        val oppdatertSøknadsbehandling = (
-            // TODO jah: Bytt til å bruke en mer spesifikk funksjon på søknadsbehandling når/hvis det kommer.
-            søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon) as Søknadsbehandling.Vilkårsvurdert.Avslag
-            )
+        val oppdatertSøknadsbehandling = søknadsbehandling
             .copy(
                 grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-            )
+                vilkårsvurderinger = vilkårsvurderinger
+            ).tilVilkårsvurdert(
+                behandlingsinformasjon = behandlingsinformasjon
+            ) as Søknadsbehandling.Vilkårsvurdert.Avslag
         Pair(
             sak.copy(
                 søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
@@ -127,7 +136,7 @@ fun søknadsbehandlingBeregnetInnvilget(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
     beregning: Beregning = beregning(),
 ): Pair<Sak, Søknadsbehandling.Beregnet.Innvilget> {
     return søknadsbehandlingVilkårsvurdertInnvilget(
@@ -159,7 +168,7 @@ fun søknadsbehandlingBeregnetAvslag(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
     beregning: Beregning = beregningAvslag()
 ): Pair<Sak, Søknadsbehandling.Beregnet.Avslag> {
     return søknadsbehandlingVilkårsvurdertInnvilget(
@@ -184,7 +193,7 @@ fun søknadsbehandlingSimulert(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
     beregning: Beregning = beregning(),
 ): Pair<Sak, Søknadsbehandling.Simulert> {
     return søknadsbehandlingBeregnetInnvilget(
@@ -211,7 +220,7 @@ fun søknadsbehandlingTilAttesteringInnvilget(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
     beregning: Beregning = beregning(),
 ): Pair<Sak, Søknadsbehandling.TilAttestering.Innvilget> {
     return søknadsbehandlingSimulert(
@@ -240,7 +249,7 @@ fun søknadsbehandlingTilAttesteringAvslagMedBeregning(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
     beregning: Beregning = beregningAvslag()
 ): Pair<Sak, Søknadsbehandling.TilAttestering.Avslag.MedBeregning> {
     return søknadsbehandlingBeregnetAvslag(
@@ -269,7 +278,7 @@ fun søknadsbehandlingTilAttesteringAvslagUtenBeregning(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårAvslått,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
 ): Pair<Sak, Søknadsbehandling.TilAttestering.Avslag.UtenBeregning> {
     return søknadsbehandlingVilkårsvurdertAvslag(
         saksnummer = saksnummer,
@@ -296,7 +305,7 @@ fun søknadsbehandlingUnderkjentInnvilget(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
     beregning: Beregning = beregning(),
     attestering: Attestering = attesteringUnderkjent,
 ): Pair<Sak, Søknadsbehandling.Underkjent.Innvilget> {
@@ -325,7 +334,7 @@ fun søknadsbehandlingIverksattInnvilget(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
     beregning: Beregning = beregning(),
 ): Pair<Sak, Søknadsbehandling.Iverksatt.Innvilget> {
     return søknadsbehandlingTilAttesteringInnvilget(
@@ -353,7 +362,7 @@ fun søknadsbehandlingIverksattAvslagMedBeregning(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
     beregning: Beregning = beregningAvslag(stønadsperiode.periode),
 ): Pair<Sak, Søknadsbehandling.Iverksatt.Avslag.MedBeregning> {
     return søknadsbehandlingTilAttesteringAvslagMedBeregning(
@@ -381,7 +390,7 @@ fun søknadsbehandlingIverksattAvslagUtenBeregning(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårAvslått,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
 ): Pair<Sak, Søknadsbehandling.Iverksatt.Avslag.UtenBeregning> {
     return søknadsbehandlingTilAttesteringAvslagUtenBeregning(
         saksnummer = saksnummer,

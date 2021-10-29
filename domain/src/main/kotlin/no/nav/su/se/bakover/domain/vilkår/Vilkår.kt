@@ -9,14 +9,26 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.minAndMaxOf
+import no.nav.su.se.bakover.common.periode.overlappende
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Grunnbeløp.Companion.`0,5G`
-import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag.Companion.equals
+import no.nav.su.se.bakover.domain.grunnlag.FlyktningGrunnlag.Companion.equals
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag.Companion.equals
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger.Søknadsbehandling.Companion.equals
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge.Companion.equals
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning.Companion.equals
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold.Companion.equals
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -28,70 +40,294 @@ Her har vi utelatt for høy inntekt (SU<0) og su under minstegrense (SU<2%)
 sealed class Inngangsvilkår {
     object Uførhet : Inngangsvilkår()
     object Formue : Inngangsvilkår()
-    /*
-     object Flyktning : Inngangsvilkår()
-     object Oppholdstillatelse : Inngangsvilkår()
-     object PersonligOppmøte : Inngangsvilkår()
-     object BorOgOppholderSegINorge : Inngangsvilkår()
-     object UtenlandsoppholdOver90Dager : Inngangsvilkår()
-     object InnlagtPåInstitusjon : Inngangsvilkår()
-     */
-
-    fun tilOpphørsgrunn() = when (this) {
-        Uførhet -> Opphørsgrunn.UFØRHET
-        Formue -> Opphørsgrunn.FORMUE
-    }
+    object Flyktning : Inngangsvilkår()
+    object LovligOpphold : Inngangsvilkår()
+    object Institusjonsopphold : Inngangsvilkår()
+    object OppholdIUtlandet : Inngangsvilkår()
+    object PersonligOppmøte : Inngangsvilkår()
+    object FastOppholdINorge : Inngangsvilkår()
 }
 
-data class Vilkårsvurderinger(
-    val uføre: Vilkår.Uførhet,
-    val formue: Vilkår.Formue = Vilkår.Formue.IkkeVurdert,
-) {
+fun Set<Vilkår>.erLik(other: Set<Vilkår>): Boolean {
+    return count() == other.count() &&
+        mapIndexed() { index, vilkår -> other.toList()[index].erLik(vilkår) }
+            .all { it }
+}
 
-    // TODO jah: Valider at de vurderte uføre-periodene er de samme som de vurderte formue-periodene
-    private val vilkår = setOf(uføre, formue)
+fun Nel<Vurderingsperiode>.erLik(other: Nel<Vurderingsperiode>): Boolean {
+    return count() == other.count() &&
+        mapIndexed() { index, vilkår -> other[index].erLik(vilkår) }
+            .all { it }
+}
 
-    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vilkårsvurderinger =
-        this.copy(
-            uføre = this.uføre.oppdaterStønadsperiode(stønadsperiode),
-            formue = this.formue.oppdaterStønadsperiode(stønadsperiode),
-        )
-
-    companion object {
-        val IkkeVurdert = Vilkårsvurderinger(
-            uføre = Vilkår.Uførhet.IkkeVurdert,
-            formue = Vilkår.Formue.IkkeVurdert,
-        )
-    }
-
-    val resultat: Resultat =
-        vilkår.map { it.resultat }.let { alleVurderingsresultat ->
-            when {
-                alleVurderingsresultat.all { it is Resultat.Innvilget } -> Resultat.Innvilget
-                alleVurderingsresultat.any { it is Resultat.Avslag } -> Resultat.Avslag
-                else -> Resultat.Uavklart
-            }
-        }
-
-    fun tidligsteDatoForAvslag(): LocalDate? = vilkår.mapNotNull { it.hentTidligesteDatoForAvslag() }.minByOrNull { it }
-
-    fun utledOpphørsgrunner(): List<Opphørsgrunn> {
-        return vilkår.mapNotNull {
-            when (it) {
-                is Vilkår.Uførhet.Vurdert -> if (it.erAvslag) it.vilkår.tilOpphørsgrunn() else null
-                is Vilkår.Formue.Vurdert -> if (it.erAvslag) it.vilkår.tilOpphørsgrunn() else null
-                Vilkår.Formue.IkkeVurdert, Vilkår.Uførhet.IkkeVurdert -> null
-            }
-        }
-    }
+sealed class Vilkårsvurderinger {
+    abstract val vilkår: Set<Vilkår>
 
     val periode: Periode? by lazy {
-        val uføreperioder = (uføre as? Vilkår.Uførhet.Vurdert)?.vurderingsperioder?.map { it.periode } ?: emptyList()
-        val formueperioder = (formue as? Vilkår.Formue.Vurdert)?.vurderingsperioder?.map { it.periode } ?: emptyList()
-        uføreperioder.plus(formueperioder).ifNotEmpty {
-            Periode.create(
-                fraOgMed = this.minOf { it.fraOgMed },
-                tilOgMed = this.maxOf { it.tilOgMed },
+        vilkår.flatMap { vilkår ->
+            when (vilkår) {
+                is FastOppholdINorgeVilkår.Vurdert -> {
+                    vilkår.vurderingsperioder.map { it.periode }
+                }
+                is FlyktningVilkår.Vurdert -> {
+                    vilkår.vurderingsperioder.map { it.periode }
+                }
+                is Vilkår.Formue.Vurdert -> {
+                    vilkår.vurderingsperioder.map { it.periode }
+                }
+                is InstitusjonsoppholdVilkår.Vurdert -> {
+                    vilkår.vurderingsperioder.map { it.periode }
+                }
+                is LovligOppholdVilkår.Vurdert -> {
+                    vilkår.vurderingsperioder.map { it.periode }
+                }
+                is OppholdIUtlandetVilkår.Vurdert -> {
+                    vilkår.vurderingsperioder.map { it.periode }
+                }
+                is PersonligOppmøteVilkår.Vurdert -> {
+                    vilkår.vurderingsperioder.map { it.periode }
+                }
+                is Vilkår.Uførhet.Vurdert -> {
+                    vilkår.vurderingsperioder.map { it.periode }
+                }
+                else -> emptyList()
+            }
+        }.ifNotEmpty { this.minAndMaxOf() }
+    }
+
+    val resultat: Vilkårsvurderingsresultat by lazy {
+        when {
+            vilkår.all { it.resultat is Resultat.Innvilget } -> {
+                Vilkårsvurderingsresultat.Innvilget(vilkår)
+            }
+            vilkår.any { it.resultat is Resultat.Avslag } -> {
+                Vilkårsvurderingsresultat.Avslag(vilkår.filter { it.resultat is Resultat.Avslag }.toSet())
+            }
+            else -> {
+                Vilkårsvurderingsresultat.Uavklart(vilkår.filter { it.resultat is Resultat.Uavklart }.toSet())
+            }
+        }
+    }
+
+    abstract fun lagTidslinje(periode: Periode): Vilkårsvurderinger
+
+    abstract fun leggTil(vilkår: Vilkår): Vilkårsvurderinger
+
+    abstract fun tilVilkårsvurderingerRevurdering(): Revurdering
+    abstract fun tilVilkårsvurderingerSøknadsbehandling(): Søknadsbehandling
+
+    abstract fun erLik(other: Vilkårsvurderinger): Boolean
+
+    data class Søknadsbehandling(
+        val uføre: Vilkår.Uførhet = Vilkår.Uførhet.IkkeVurdert,
+        val formue: Vilkår.Formue = Vilkår.Formue.IkkeVurdert,
+        val flyktning: FlyktningVilkår = FlyktningVilkår.IkkeVurdert,
+        val lovligOpphold: LovligOppholdVilkår = LovligOppholdVilkår.IkkeVurdert,
+        val fastOpphold: FastOppholdINorgeVilkår = FastOppholdINorgeVilkår.IkkeVurdert,
+        val institusjonsopphold: InstitusjonsoppholdVilkår = InstitusjonsoppholdVilkår.IkkeVurdert,
+        val oppholdIUtlandet: OppholdIUtlandetVilkår = OppholdIUtlandetVilkår.IkkeVurdert,
+        val personligOppmøte: PersonligOppmøteVilkår = PersonligOppmøteVilkår.IkkeVurdert,
+    ) : Vilkårsvurderinger() {
+        override val vilkår: Set<Vilkår>
+            get() {
+                return setOf(
+                    uføre,
+                    formue,
+                    flyktning,
+                    lovligOpphold,
+                    fastOpphold,
+                    institusjonsopphold,
+                    oppholdIUtlandet,
+                    personligOppmøte,
+                )
+            }
+
+        override fun lagTidslinje(periode: Periode): Søknadsbehandling {
+            return copy(
+                uføre = uføre.lagTidslinje(periode),
+                formue = formue.lagTidslinje(periode),
+                flyktning = flyktning.lagTidslinje(periode),
+                lovligOpphold = lovligOpphold.lagTidslinje(periode),
+                fastOpphold = fastOpphold.lagTidslinje(periode),
+                institusjonsopphold = institusjonsopphold.lagTidslinje(periode),
+                oppholdIUtlandet = oppholdIUtlandet.lagTidslinje(periode),
+                personligOppmøte = personligOppmøte.lagTidslinje(periode),
+            )
+        }
+
+        override fun leggTil(vilkår: Vilkår): Søknadsbehandling {
+            return when (vilkår) {
+                is FastOppholdINorgeVilkår -> copy(fastOpphold = vilkår)
+                is FlyktningVilkår -> copy(flyktning = vilkår)
+                is Vilkår.Formue -> copy(formue = vilkår)
+                is InstitusjonsoppholdVilkår -> copy(institusjonsopphold = vilkår)
+                is LovligOppholdVilkår -> copy(lovligOpphold = vilkår)
+                is OppholdIUtlandetVilkår -> copy(oppholdIUtlandet = vilkår)
+                is PersonligOppmøteVilkår -> copy(personligOppmøte = vilkår)
+                is Vilkår.Uførhet -> copy(uføre = vilkår)
+            }
+        }
+
+        override fun tilVilkårsvurderingerRevurdering(): Revurdering {
+            return Revurdering(
+                uføre = uføre,
+                formue = formue,
+            )
+        }
+
+        override fun tilVilkårsvurderingerSøknadsbehandling(): Søknadsbehandling {
+            return this
+        }
+
+        override fun erLik(other: Vilkårsvurderinger): Boolean {
+            return other is Søknadsbehandling &&
+                vilkår.erLik(other.vilkår)
+        }
+
+        /**
+         * Override av [equals] for å slippe å endre alle eksisterende tester som baserer seg på objektliket.
+         * Må modifiserers etterhvert som disse dataene begynner å lagres.
+         */
+        override fun equals(other: Any?): Boolean {
+            return other is Søknadsbehandling && erLik(other)
+        }
+
+        /**
+         *  Bro mellom [Behandlingsinformasjon] og [Vilkårsvurderinger]. Mapper over tilgjengelig data til et format
+         *  som vilkårsvurderingene forstår. På denne måten kan [Vilkårsvurderinger] eie konseptet vurdering av vilkår
+         *  og ikke [Behandlingsinformasjon]. For vilkår/grunnlag som fullt og helt er konvertert til aktuell modell,
+         *  trengs det ingen mapping, da disse kommer inn fra andre steder enn [Behandlingsinformasjon] og vil være
+         *  tilgjengelig på korrekt format.
+         */
+        fun oppdater(
+            stønadsperiode: Stønadsperiode,
+            behandlingsinformasjon: Behandlingsinformasjon,
+            grunnlagsdata: Grunnlagsdata, // For validering av formue
+            clock: Clock,
+        ): Søknadsbehandling {
+            return behandlingsinformasjon.vilkår.mapNotNull {
+                when (it) {
+                    is Behandlingsinformasjon.Uførhet -> {
+                        null // legges til via grunnlags-flyt
+                    }
+                    is Behandlingsinformasjon.Flyktning -> {
+                        it.tilVilkår(stønadsperiode, clock)
+                    }
+                    is Behandlingsinformasjon.LovligOpphold -> {
+                        it.tilVilkår(stønadsperiode, clock)
+                    }
+                    is Behandlingsinformasjon.FastOppholdINorge -> {
+                        it.tilVilkår(stønadsperiode, clock)
+                    }
+                    is Behandlingsinformasjon.Institusjonsopphold -> {
+                        it.tilVilkår(stønadsperiode, clock)
+                    }
+                    is Behandlingsinformasjon.OppholdIUtlandet -> {
+                        it.tilVilkår(stønadsperiode, clock)
+                    }
+                    is Behandlingsinformasjon.Formue -> {
+                        it.tilVilkår(stønadsperiode, grunnlagsdata.bosituasjon, clock)
+                    }
+                    is Behandlingsinformasjon.PersonligOppmøte -> {
+                        it.tilVilkår(stønadsperiode, clock)
+                    }
+                    is Behandlingsinformasjon.Bosituasjon -> {
+                        null // legges til via grunnlags-flyt
+                    }
+                    null -> {
+                        null // elementer kan være null før de er vurdert
+                    }
+                    else -> {
+                        throw IllegalArgumentException("Ukjent type: ${it::class} for mapping mellom ${Behandlingsinformasjon::class} og ${Vilkårsvurderinger::class}")
+                    }
+                }
+            }.fold(this) { acc, vilkår -> acc.leggTil(vilkår) }
+        }
+
+        fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Søknadsbehandling = copy(
+            uføre = uføre.oppdaterStønadsperiode(stønadsperiode),
+            formue = formue.oppdaterStønadsperiode(stønadsperiode),
+            flyktning = flyktning.oppdaterStønadsperiode(stønadsperiode),
+            lovligOpphold = lovligOpphold.oppdaterStønadsperiode(stønadsperiode),
+            fastOpphold = fastOpphold.oppdaterStønadsperiode(stønadsperiode),
+            institusjonsopphold = institusjonsopphold.oppdaterStønadsperiode(stønadsperiode),
+            oppholdIUtlandet = oppholdIUtlandet.oppdaterStønadsperiode(stønadsperiode),
+            personligOppmøte = personligOppmøte.oppdaterStønadsperiode(stønadsperiode),
+        )
+
+        companion object {
+            val IkkeVurdert = Søknadsbehandling(
+                uføre = Vilkår.Uførhet.IkkeVurdert,
+                formue = Vilkår.Formue.IkkeVurdert,
+                flyktning = FlyktningVilkår.IkkeVurdert,
+                lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
+                fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
+                institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
+                oppholdIUtlandet = OppholdIUtlandetVilkår.IkkeVurdert,
+                personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
+            )
+        }
+    }
+
+    data class Revurdering(
+        val uføre: Vilkår.Uførhet = Vilkår.Uførhet.IkkeVurdert,
+        val formue: Vilkår.Formue = Vilkår.Formue.IkkeVurdert,
+    ) : Vilkårsvurderinger() {
+        override val vilkår: Set<Vilkår>
+            get() {
+                return setOf(
+                    uføre,
+                    formue,
+                )
+            }
+
+        override fun leggTil(vilkår: Vilkår): Revurdering {
+            return when (vilkår) {
+                is Vilkår.Formue -> copy(formue = vilkår)
+                is Vilkår.Uførhet -> copy(uføre = vilkår)
+                else -> throw RuntimeException("Ukjent vilkår for revurdering")
+            }
+        }
+
+        override fun tilVilkårsvurderingerRevurdering(): Revurdering {
+            return this
+        }
+
+        override fun tilVilkårsvurderingerSøknadsbehandling(): Søknadsbehandling {
+            return Søknadsbehandling(
+                uføre = uføre,
+                formue = formue,
+            )
+        }
+
+        override fun erLik(other: Vilkårsvurderinger): Boolean {
+            return other is Revurdering && vilkår.erLik(other.vilkår)
+        }
+
+        /**
+         * Override av [equals] for å slippe å endre alle eksisterende tester som baserer seg på objektliket.
+         * Må modifiserers etterhvert som disse dataene begynner å lagres.
+         */
+        override fun equals(other: Any?): Boolean {
+            return other is Revurdering && erLik(other)
+        }
+
+        override fun lagTidslinje(periode: Periode): Revurdering {
+            return copy(
+                uføre = uføre.lagTidslinje(periode),
+                formue = formue.lagTidslinje(periode),
+            )
+        }
+
+        fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Revurdering = copy(
+            uføre = uføre.oppdaterStønadsperiode(stønadsperiode),
+            formue = formue.oppdaterStønadsperiode(stønadsperiode),
+        )
+
+        companion object {
+            val IkkeVurdert = Revurdering(
+                uføre = Vilkår.Uførhet.IkkeVurdert,
+                formue = Vilkår.Formue.IkkeVurdert,
             )
         }
     }
@@ -107,14 +343,30 @@ data class Vilkårsvurderinger(
 sealed class Vilkårsvurderingsresultat {
     data class Avslag(
         val vilkår: Set<Vilkår>,
-    ) : Vilkårsvurderingsresultat()
+    ) : Vilkårsvurderingsresultat() {
+        val avslagsgrunner = vilkår.map { it.vilkår.tilAvslagsgrunn() }
+        val dato = vilkår.minOf { it.hentTidligesteDatoForAvslag()!! }
+
+        private fun Inngangsvilkår.tilAvslagsgrunn(): Avslagsgrunn {
+            return when (this) {
+                Inngangsvilkår.FastOppholdINorge -> Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE
+                Inngangsvilkår.Flyktning -> Avslagsgrunn.FLYKTNING
+                Inngangsvilkår.Formue -> Avslagsgrunn.FORMUE
+                Inngangsvilkår.Institusjonsopphold -> Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON
+                Inngangsvilkår.LovligOpphold -> Avslagsgrunn.OPPHOLDSTILLATELSE
+                Inngangsvilkår.OppholdIUtlandet -> Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER
+                Inngangsvilkår.PersonligOppmøte -> Avslagsgrunn.PERSONLIG_OPPMØTE
+                Inngangsvilkår.Uførhet -> Avslagsgrunn.UFØRHET
+            }
+        }
+    }
 
     data class Innvilget(
         val vilkår: Set<Vilkår>,
     ) : Vilkårsvurderingsresultat()
 
     data class Uavklart(
-        val vilkår: Set<Inngangsvilkår>,
+        val vilkår: Set<Vilkår>,
     ) : Vilkårsvurderingsresultat()
 }
 
@@ -125,13 +377,20 @@ sealed class Vilkår {
     abstract val resultat: Resultat
     abstract val erAvslag: Boolean
     abstract val erInnvilget: Boolean
+    abstract val vilkår: Inngangsvilkår
 
     abstract fun hentTidligesteDatoForAvslag(): LocalDate?
+    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vilkår
+    abstract fun erLik(other: Vilkår): Boolean
+    abstract fun lagTidslinje(periode: Periode): Vilkår
 
     sealed class Uførhet : Vilkår() {
+        override val vilkår = Inngangsvilkår.Uførhet
         abstract val grunnlag: List<Grunnlag.Uføregrunnlag>
 
-        abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Uførhet
+        abstract override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Uførhet
+
+        abstract override fun lagTidslinje(periode: Periode): Uførhet
 
         object IkkeVurdert : Uførhet() {
             override val resultat: Resultat = Resultat.Uavklart
@@ -140,13 +399,21 @@ sealed class Vilkår {
             override val grunnlag = emptyList<Grunnlag.Uføregrunnlag>()
 
             override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
+
+            override fun lagTidslinje(periode: Periode): IkkeVurdert {
+                return this
+            }
+
             override fun hentTidligesteDatoForAvslag(): LocalDate? = null
+
+            override fun erLik(other: Vilkår): Boolean {
+                return other is IkkeVurdert
+            }
         }
 
         data class Vurdert private constructor(
             val vurderingsperioder: Nel<Vurderingsperiode.Uføre>,
         ) : Uførhet() {
-            val vilkår = Inngangsvilkår.Uførhet
             override val grunnlag: List<Grunnlag.Uføregrunnlag> = vurderingsperioder.mapNotNull {
                 it.grunnlag
             }
@@ -165,15 +432,16 @@ sealed class Vilkår {
                     .minByOrNull { it }
             }
 
+            override fun erLik(other: Vilkår): Boolean {
+                return other is Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
+            }
+
             companion object {
 
                 fun tryCreate(
                     vurderingsperioder: Nel<Vurderingsperiode.Uføre>,
                 ): Either<UgyldigUførevilkår, Vurdert> {
-                    if (vurderingsperioder.all { v1 ->
-                        vurderingsperioder.minus(v1).any { v2 -> v1.periode overlapper v2.periode }
-                    }
-                    ) {
+                    if (vurderingsperioder.overlappende()) {
                         return UgyldigUførevilkår.OverlappendeVurderingsperioder.left()
                     }
 
@@ -207,26 +475,34 @@ sealed class Vilkår {
             }
 
             override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Uførhet {
-                if (this.vurderingsperioder.size > 1) {
-                    throw IllegalStateException("kan ikke oppdatere stønadsperiode for uføre vilkår som har mer enn èn vurdering")
-                }
+                check(vurderingsperioder.count() == 1)
                 return this.copy(
                     vurderingsperioder = this.vurderingsperioder.map {
                         it.oppdaterStønadsperiode(stønadsperiode)
                     },
                 )
             }
+
+            override fun lagTidslinje(periode: Periode): Vurdert {
+                return copy(
+                    vurderingsperioder = Nel.fromListUnsafe(
+                        Tidslinje(
+                            periode = periode,
+                            objekter = vurderingsperioder,
+                        ).tidslinje,
+                    ),
+                )
+            }
         }
     }
 
     sealed class Formue : Vilkår() {
-
+        override val vilkår = Inngangsvilkår.Formue
         abstract val grunnlag: List<Formuegrunnlag>
 
-        abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue
+        abstract override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue
 
-        /* § 8. Formue over 0,5 ganger grunnbeløpet gir avslag i søknaden. */
-        val vilkår = Inngangsvilkår.Formue
+        abstract override fun lagTidslinje(periode: Periode): Formue
 
         /**
          * Definert i paragraf 8 til 0.5 G som vanligvis endrer seg 1. mai, årlig.
@@ -240,9 +516,17 @@ sealed class Vilkår {
             override val erInnvilget = false
 
             override fun hentTidligesteDatoForAvslag(): LocalDate? = null
+            override fun erLik(other: Vilkår): Boolean {
+                return other is IkkeVurdert
+            }
+
             override val grunnlag = emptyList<Formuegrunnlag>()
 
             override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue = this
+
+            override fun lagTidslinje(periode: Periode): IkkeVurdert {
+                return this
+            }
         }
 
         data class Vurdert private constructor(
@@ -259,6 +543,17 @@ sealed class Vilkår {
                 )
             }
 
+            override fun lagTidslinje(periode: Periode): Vurdert {
+                return copy(
+                    vurderingsperioder = Nel.fromListUnsafe(
+                        Tidslinje(
+                            periode = periode,
+                            objekter = vurderingsperioder,
+                        ).tidslinje,
+                    ),
+                )
+            }
+
             override val erInnvilget: Boolean =
                 vurderingsperioder.all { it.resultat == Resultat.Innvilget }
 
@@ -271,6 +566,10 @@ sealed class Vilkår {
             override fun hentTidligesteDatoForAvslag(): LocalDate? {
                 return vurderingsperioder.filter { it.resultat == Resultat.Avslag }.map { it.periode.fraOgMed }
                     .minByOrNull { it }
+            }
+
+            override fun erLik(other: Vilkår): Boolean {
+                return other is Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
             }
 
             override val grunnlag: List<Formuegrunnlag> = vurderingsperioder.map {
@@ -296,10 +595,7 @@ sealed class Vilkår {
                 private fun fromVurderingsperioder(
                     vurderingsperioder: Nel<Vurderingsperiode.Formue>,
                 ): Either<UgyldigFormuevilkår, Vurdert> {
-                    if (vurderingsperioder.all { v1 ->
-                        vurderingsperioder.minus(v1).any { v2 -> v1.periode overlapper v2.periode }
-                    }
-                    ) {
+                    if (vurderingsperioder.overlappende()) {
                         return UgyldigFormuevilkår.OverlappendeVurderingsperioder.left()
                     }
                     return Vurdert(vurderingsperioder).right()
@@ -346,9 +642,6 @@ sealed class Vurderingsperiode {
         return this.periode.tilstøter(other.periode)
     }
 
-    /**
-     * unnlater ID, og opprettet.
-     */
     abstract fun erLik(other: Vurderingsperiode): Boolean
 
     fun tilstøterOgErLik(other: Vurderingsperiode) = this.tilstøter(other) && this.erLik(other)
@@ -389,18 +682,13 @@ sealed class Vurderingsperiode {
          * Sjekker at uføregrad og forventet inntekt er lik
          */
         override fun erLik(other: Vurderingsperiode): Boolean {
-            if (other !is Uføre) {
-                return false
-            }
-            if ((this.grunnlag == null && other.grunnlag != null) || (this.grunnlag != null && other.grunnlag == null)) {
-                return false
-            }
-
-            return this.resultat == other.resultat && (
-                this.grunnlag == null && other.grunnlag == null || this.grunnlag!!.tilstøterOgErLik(
-                    other.grunnlag!!,
-                )
-                )
+            return other is Uføre &&
+                resultat == other.resultat &&
+                when {
+                    grunnlag != null && other.grunnlag != null -> grunnlag.erLik(other.grunnlag)
+                    grunnlag == null && other.grunnlag == null -> true
+                    else -> false
+                }
         }
 
         companion object {
@@ -478,12 +766,18 @@ sealed class Vurderingsperiode {
         }
 
         override fun erLik(other: Vurderingsperiode): Boolean {
-            if (other !is Formue) {
-                return false
-            }
-            return this.resultat == other.resultat &&
-                this.grunnlag.tilstøterOgErLik(other.grunnlag)
+            return other is Formue &&
+                resultat == other.resultat &&
+                grunnlag.erLik(other.grunnlag)
         }
+
+        // /**
+        //  * Override av [equals] for å slippe å endre alle eksisterende tester som baserer seg på objektliket.
+        //  * Denne må fjernes etterhvert som klassen begynner å holde fornuftig data.
+        //  */
+        // override fun equals(other: Any?): Boolean {
+        //     return other is Formue && erLik(other)
+        // }
 
         companion object {
             fun create(

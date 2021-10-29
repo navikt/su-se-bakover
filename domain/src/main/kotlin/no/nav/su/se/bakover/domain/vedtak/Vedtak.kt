@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.domain.vedtak
 
-import arrow.core.Nel
-import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
@@ -22,9 +20,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.domain.visitor.SkalSendeBrevVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
@@ -358,37 +354,10 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
          */
         val originaltVedtak: VedtakSomKanRevurderes,
     ) : KanPlasseresPåTidslinje<VedtakPåTidslinje> {
+
         override fun copy(args: CopyArgs.Tidslinje): VedtakPåTidslinje =
             when (args) {
                 CopyArgs.Tidslinje.Full -> {
-                    val uførevilkår = when (vilkårsvurderinger.uføre) {
-                        Vilkår.Uførhet.IkkeVurdert -> Vilkår.Uførhet.IkkeVurdert
-                        is Vilkår.Uførhet.Vurdert -> {
-                            val vurderingsperioder: NonEmptyList<Vurderingsperiode.Uføre> = Nel.fromListUnsafe(
-                                Tidslinje(
-                                    periode = periode,
-                                    objekter = vilkårsvurderinger.uføre.vurderingsperioder,
-                                ).tidslinje,
-                            )
-                            vilkårsvurderinger.uføre.copy(
-                                vurderingsperioder = vurderingsperioder,
-                            )
-                        }
-                    }
-                    val formue = when (vilkårsvurderinger.formue) {
-                        is Vilkår.Formue.IkkeVurdert -> Vilkår.Formue.IkkeVurdert
-                        is Vilkår.Formue.Vurdert -> {
-                            val vurderingsperioder: NonEmptyList<Vurderingsperiode.Formue> = Nel.fromListUnsafe(
-                                Tidslinje(
-                                    periode = periode,
-                                    objekter = vilkårsvurderinger.formue.vurderingsperioder,
-                                ).tidslinje,
-                            )
-                            vilkårsvurderinger.formue.copy(
-                                vurderingsperioder = vurderingsperioder,
-                            )
-                        }
-                    }
                     copy(
                         periode = periode,
                         grunnlagsdata = Grunnlagsdata.create(
@@ -401,36 +370,11 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                                 it.copy(args = CopyArgs.Snitt(periode))
                             },
                         ),
-                        vilkårsvurderinger = Vilkårsvurderinger(
-                            uføre = uførevilkår,
-                            formue = formue,
-                        ),
+                        vilkårsvurderinger = vilkårsvurderinger.lagTidslinje(periode),
                         originaltVedtak = originaltVedtak,
                     )
                 }
                 is CopyArgs.Tidslinje.NyPeriode -> {
-                    val uførevilkår = when (this.vilkårsvurderinger.uføre) {
-                        Vilkår.Uførhet.IkkeVurdert -> Vilkår.Uførhet.IkkeVurdert
-                        is Vilkår.Uførhet.Vurdert -> this.vilkårsvurderinger.uføre.copy(
-                            vurderingsperioder = Nel.fromListUnsafe(
-                                Tidslinje(
-                                    periode = args.periode,
-                                    objekter = this.vilkårsvurderinger.uføre.vurderingsperioder,
-                                ).tidslinje,
-                            ),
-                        )
-                    }
-                    val formue = when (this.vilkårsvurderinger.formue) {
-                        Vilkår.Formue.IkkeVurdert -> Vilkår.Formue.IkkeVurdert
-                        is Vilkår.Formue.Vurdert -> this.vilkårsvurderinger.formue.copy(
-                            vurderingsperioder = Nel.fromListUnsafe(
-                                Tidslinje(
-                                    periode = args.periode,
-                                    objekter = this.vilkårsvurderinger.formue.vurderingsperioder,
-                                ).tidslinje,
-                            ),
-                        )
-                    }
                     copy(
                         periode = args.periode,
                         grunnlagsdata = Grunnlagsdata.create(
@@ -445,10 +389,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                                 it.copy(args = CopyArgs.Snitt(args.periode))
                             },
                         ),
-                        vilkårsvurderinger = Vilkårsvurderinger(
-                            uføre = uførevilkår,
-                            formue = formue,
-                        ),
+                        vilkårsvurderinger = vilkårsvurderinger.lagTidslinje(args.periode),
                         originaltVedtak = originaltVedtak,
                     )
                 }
@@ -457,22 +398,13 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
 }
 
 // TODO: ("Må sees i sammenheng med evt endringer knyttet til hvilke vedtakstyper som legges til grunn for revurdering")
-fun List<VedtakSomKanRevurderes>.lagTidslinje(periode: Periode, clock: Clock): Tidslinje<Vedtak.VedtakPåTidslinje> =
+fun List<VedtakSomKanRevurderes>.lagTidslinje(periode: Periode): Tidslinje<Vedtak.VedtakPåTidslinje> =
     map {
         Vedtak.VedtakPåTidslinje(
             opprettet = it.opprettet,
             periode = it.periode,
             grunnlagsdata = it.behandling.grunnlagsdata,
-            vilkårsvurderinger = it.behandling.vilkårsvurderinger.copy(
-                formue = it.behandling.let { behandling ->
-                    // TODO jah: For Søknadsbehandling, migrer behandlingsinformasjon.formue til vilkårsvurderinger.formue
-                    if (behandling is Søknadsbehandling) behandling.behandlingsinformasjon.formue!!.tilVilkår(
-                        stønadsperiode = behandling.stønadsperiode!!,
-                        bosituasjon = behandling.grunnlagsdata.bosituasjon,
-                        clock = clock,
-                    ) else behandling.vilkårsvurderinger.formue
-                },
-            ),
+            vilkårsvurderinger = it.behandling.vilkårsvurderinger,
             originaltVedtak = it,
         )
     }.let {

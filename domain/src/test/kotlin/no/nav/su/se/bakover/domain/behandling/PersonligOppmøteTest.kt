@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import org.junit.jupiter.api.Test
 
 internal class PersonligOppmøteTest {
@@ -54,26 +53,5 @@ internal class PersonligOppmøteTest {
             status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
             begrunnelse = null
         ).erVilkårOppfylt() shouldBe true
-    }
-
-    @Test
-    fun `avslagsgrunn er personlig oppmøte dersom man ikker har møtt personlig`() {
-        Behandlingsinformasjon.PersonligOppmøte(
-            status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttPersonlig,
-            begrunnelse = null
-        ).avslagsgrunn() shouldBe Avslagsgrunn.PERSONLIG_OPPMØTE
-    }
-
-    @Test
-    fun `avslagsgrunn er null i andre tilfeller`() {
-        Behandlingsinformasjon.PersonligOppmøte(
-            status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
-            begrunnelse = null
-        ).avslagsgrunn() shouldBe null
-
-        Behandlingsinformasjon.PersonligOppmøte(
-            status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttMenMidlertidigUnntakFraOppmøteplikt,
-            begrunnelse = null
-        ).avslagsgrunn() shouldBe null
     }
 }

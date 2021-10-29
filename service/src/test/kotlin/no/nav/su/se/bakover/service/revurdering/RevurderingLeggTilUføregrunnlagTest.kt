@@ -47,8 +47,8 @@ internal class RevurderingLeggTilUføregrunnlagTest {
                         ),
                     ),
                 ),
-                vilkårsvurderinger = Vilkårsvurderinger(
-                    uføre = Vilkår.Uførhet.Vurdert.create(
+                vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                    Vilkår.Uførhet.Vurdert.create(
                         vurderingsperioder = nonEmptyListOf(
                             Vurderingsperiode.Uføre.create(
                                 id = UUID.randomUUID(),
@@ -60,7 +60,7 @@ internal class RevurderingLeggTilUføregrunnlagTest {
                             ),
                         ),
                     ),
-                    formue = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
+                    Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
                         vurderingsperioder = nonEmptyListOf(
                             Vurderingsperiode.Formue.create(
                                 id = UUID.randomUUID(), opprettet = fixedTidspunkt, resultat = Resultat.Avslag,
@@ -83,7 +83,8 @@ internal class RevurderingLeggTilUføregrunnlagTest {
                             ),
                         ),
                     ),
-                ),
+
+                )
             ),
         ).second
 

@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -26,7 +25,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.behandling.satsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
+import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -66,14 +65,15 @@ import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgInnvilgetFormue
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.fail
-import org.mockito.kotlin.mock
 import java.time.Clock
 import java.util.UUID
 
@@ -81,7 +81,7 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `responderer med feil dersom vi ikke får til å hente person`() {
-        uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått())
+        uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning())
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
                     hentPerson = { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson.left() },
@@ -141,7 +141,7 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `lager request for vilkårsvurdert avslag`() {
-        uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått())
+        uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning())
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
@@ -153,7 +153,7 @@ internal class LagBrevRequestVisitorTest {
                         person = person,
                         avslag = Avslag(
                             opprettet = fixedTidspunkt,
-                            avslagsgrunner = listOf(Avslagsgrunn.UFØRHET),
+                            avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
                             harEktefelle = false,
                             beregning = null,
                         ),
@@ -202,7 +202,8 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `lager request for beregnet avslag`() {
-        uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått())
+        uavklart
+            .tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning())
             .tilBeregnet(avslagBeregning)
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
@@ -215,7 +216,7 @@ internal class LagBrevRequestVisitorTest {
                         person = person,
                         avslag = Avslag(
                             opprettet = fixedTidspunkt,
-                            avslagsgrunner = listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.FOR_HØY_INNTEKT),
+                            avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING, Avslagsgrunn.FOR_HØY_INNTEKT),
                             harEktefelle = false,
                             beregning = avslagBeregning,
                         ),
@@ -267,7 +268,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for avslag til attestering uten beregning`() {
         (
             uavklart.tilVilkårsvurdert(
-                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått(),
+                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -282,7 +283,7 @@ internal class LagBrevRequestVisitorTest {
                         person = person,
                         avslag = Avslag(
                             opprettet = fixedTidspunkt,
-                            avslagsgrunner = listOf(Avslagsgrunn.UFØRHET),
+                            avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
                             harEktefelle = false,
                             beregning = null,
                         ),
@@ -360,7 +361,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for underkjent avslag uten beregning`() {
         (
             uavklart.tilVilkårsvurdert(
-                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått(),
+                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -383,7 +384,7 @@ internal class LagBrevRequestVisitorTest {
                         person = person,
                         avslag = Avslag(
                             opprettet = fixedTidspunkt,
-                            avslagsgrunner = listOf(Avslagsgrunn.UFØRHET),
+                            avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
                             harEktefelle = false,
                             beregning = null,
                         ),
@@ -478,7 +479,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for iverksatt avslag uten beregning`() {
         (
             uavklart.tilVilkårsvurdert(
-                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått(),
+                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -496,7 +497,7 @@ internal class LagBrevRequestVisitorTest {
                         person = person,
                         avslag = Avslag(
                             opprettet = fixedTidspunkt,
-                            avslagsgrunner = listOf(Avslagsgrunn.UFØRHET),
+                            avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
                             harEktefelle = false,
                             beregning = null,
                         ),
@@ -513,7 +514,7 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for iverksatt avslag med beregning`() {
         (
-            uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått())
+            uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning())
                 .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -531,7 +532,7 @@ internal class LagBrevRequestVisitorTest {
                         person = person,
                         avslag = Avslag(
                             opprettet = fixedTidspunkt,
-                            avslagsgrunner = listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.FOR_HØY_INNTEKT),
+                            avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING, Avslagsgrunn.FOR_HØY_INNTEKT),
                             harEktefelle = false,
                             beregning = avslagBeregning,
                         ),
@@ -660,7 +661,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for vedtak om avslått stønad uten beregning`() {
         val søknadsbehandling = (
             uavklart.tilVilkårsvurdert(
-                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått(),
+                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -690,7 +691,7 @@ internal class LagBrevRequestVisitorTest {
             person = person,
             avslag = Avslag(
                 opprettet = fixedTidspunkt,
-                avslagsgrunner = listOf(Avslagsgrunn.UFØRHET),
+                avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
                 harEktefelle = false,
                 beregning = null,
             ),
@@ -740,7 +741,7 @@ internal class LagBrevRequestVisitorTest {
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
@@ -818,8 +819,8 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             resultat = Resultat.Innvilget,
@@ -830,7 +831,7 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                 ),
-                formue = innvilgetFormueVilkår(revurderingsperiode),
+                innvilgetFormueVilkår(revurderingsperiode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -1046,7 +1047,7 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
@@ -1157,28 +1158,12 @@ internal class LagBrevRequestVisitorTest {
     )
 
     private val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))
-    private val uavklart = Søknadsbehandling.Vilkårsvurdert.Uavklart(
-        id = UUID.randomUUID(),
-        opprettet = fixedTidspunkt,
-        sakId = UUID.randomUUID(),
-        saksnummer = Saksnummer(2021),
-        søknad = mock(),
-        oppgaveId = OppgaveId(""),
-        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-        fnr = Fnr.generer(),
-        fritekstTilBrev = "",
-        stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.create(
-            bosituasjon = listOf(
-                Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                    id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    periode = stønadsperiode.periode,
-                    begrunnelse = null,
-                ),
-            ),
+
+    private val uavklart = søknadsbehandlingVilkårsvurdertUavklart(
+        grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = stønadsperiode.periode))),
+        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+        vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+            uføre = innvilgetUførevilkår(periode = stønadsperiode.periode),
         ),
-        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
-        attesteringer = Attesteringshistorikk.empty(),
-    )
+    ).second
 }

@@ -5,8 +5,8 @@ import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.time.Clock
 import java.time.LocalDate
 
@@ -55,13 +55,13 @@ data class VurderOmVilkårGirOpphørVedRevurdering(
     val resultat = vilkårGirOpphør()
 
     private fun vilkårGirOpphør(): OpphørVedRevurdering {
-        return when (vilkårsvurderinger.resultat) {
-            Resultat.Avslag -> OpphørVedRevurdering.Ja(
-                vilkårsvurderinger.utledOpphørsgrunner(),
-                vilkårsvurderinger.tidligsteDatoForAvslag()!!,
+        return when (val resultat = vilkårsvurderinger.resultat) {
+            is Vilkårsvurderingsresultat.Avslag -> OpphørVedRevurdering.Ja(
+                opphørsgrunner = resultat.avslagsgrunner.map { it.tilOpphørsgrunn() },
+                opphørsdato = resultat.dato,
             )
-            Resultat.Innvilget -> OpphørVedRevurdering.Nei
-            Resultat.Uavklart -> throw IllegalStateException("Et vurdert vilkår i revurdering kan ikke være uavklart. Siden vilkårene brukes på tvers av søknadsbehandling og revurdering, må den støtte at et vurdert vilkår kan være uavklart i søknadsbehandlingsøyemed.")
+            is Vilkårsvurderingsresultat.Innvilget -> OpphørVedRevurdering.Nei
+            is Vilkårsvurderingsresultat.Uavklart -> throw IllegalStateException("Et vurdert vilkår i revurdering kan ikke være uavklart. Siden vilkårene brukes på tvers av søknadsbehandling og revurdering, må den støtte at et vurdert vilkår kan være uavklart i søknadsbehandlingsøyemed.")
         }
     }
 }

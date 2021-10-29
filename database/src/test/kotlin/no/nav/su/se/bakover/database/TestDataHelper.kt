@@ -43,7 +43,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
+import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -78,11 +78,14 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.beregningAvslag
+import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import java.time.Clock
 import java.util.UUID
 import javax.sql.DataSource
@@ -92,7 +95,7 @@ internal val tomBehandlingsinformasjon = Behandlingsinformasjon.lagTomBehandling
 internal val behandlingsinformasjonMedAlleVilkårOppfylt =
     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
 internal val behandlingsinformasjonMedAvslag =
-    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått()
+    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning()
 
 internal val oppgaveId = OppgaveId("oppgaveId")
 internal val journalpostId = JournalpostId("journalpostId")
@@ -274,7 +277,10 @@ internal class TestDataHelper(
     internal val dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory)
     internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(dataSource, fixedClock)
 
-    fun nySakMedNySøknad(fnr: Fnr = Fnr.generer(), søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build()): NySak {
+    fun nySakMedNySøknad(
+        fnr: Fnr = Fnr.generer(),
+        søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build(),
+    ): NySak {
         return SakFactory(clock = clock).nySakMedNySøknad(fnr, søknadInnhold).also {
             sakRepo.opprettSak(it)
         }
@@ -283,7 +289,10 @@ internal class TestDataHelper(
     /**
      * Ny søknad som _ikke_ er journalført eller har oppgave
      */
-    fun nySøknadForEksisterendeSak(sakId: UUID, søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build()): Søknad.Ny {
+    fun nySøknadForEksisterendeSak(
+        sakId: UUID,
+        søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build(),
+    ): Søknad.Ny {
         return Søknad.Ny(
             sakId = sakId,
             id = UUID.randomUUID(),
@@ -292,7 +301,10 @@ internal class TestDataHelper(
         ).also { søknadRepo.opprettSøknad(it) }
     }
 
-    fun nyLukketSøknadForEksisterendeSak(sakId: UUID, søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build()): Søknad.Journalført.MedOppgave.Lukket {
+    fun nyLukketSøknadForEksisterendeSak(
+        sakId: UUID,
+        søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build(),
+    ): Søknad.Journalført.MedOppgave.Lukket {
         return nySøknadForEksisterendeSak(sakId = sakId, søknadInnhold = søknadInnhold)
             .journalfør(journalpostId).also {
                 søknadRepo.oppdaterjournalpostId(it)
@@ -429,7 +441,7 @@ internal class TestDataHelper(
         periode: Periode,
         epsFnr: Fnr? = null,
         grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataRevurdering(epsFnr),
-        vilkårsvurderinger: Vilkårsvurderinger = innvilgetVilkårsvurderingerRevurdering(),
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering = innvilgetVilkårsvurderingerRevurdering(),
     ): OpprettetRevurdering {
         return OpprettetRevurdering(
             id = UUID.randomUUID(),
@@ -559,7 +571,7 @@ internal class TestDataHelper(
         }
     }
 
-    private fun innvilgetVilkårsvurderingerSøknadsbehandling() = Vilkårsvurderinger(
+    private fun innvilgetVilkårsvurderingerSøknadsbehandling() = Vilkårsvurderinger.Søknadsbehandling(
         uføre = Vilkår.Uførhet.Vurdert.create(
             vurderingsperioder = nonEmptyListOf(
                 Vurderingsperiode.Uføre.create(
@@ -579,7 +591,15 @@ internal class TestDataHelper(
             ),
         ),
         // søknadsbehandling benytter enn så lenge formue fra behandlingsinformajson
-        formue = Vilkår.Formue.IkkeVurdert,
+    ).oppdater(
+        stønadsperiode = stønadsperiode,
+        behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
+        grunnlagsdata = Grunnlagsdata.tryCreate(
+            fradragsgrunnlag = listOf(),
+            bosituasjon = listOf(bosituasjongrunnlagEnslig(stønadsperiode.periode)),
+        ).getOrFail(),
+        clock = fixedClock,
+
     )
 
     private fun innvilgetGrunnlagsdataSøknadsbehandling(epsFnr: Fnr? = null) = Grunnlagsdata.create(
@@ -602,44 +622,48 @@ internal class TestDataHelper(
         fradragsgrunnlag = emptyList(),
     )
 
-    private fun innvilgetVilkårsvurderingerRevurdering() = innvilgetVilkårsvurderingerSøknadsbehandling().copy(
-        formue = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
-            vurderingsperioder = nonEmptyListOf(
-                Vurderingsperiode.Formue.create(
-                    id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    resultat = Resultat.Innvilget,
-                    grunnlag = Formuegrunnlag.fromPersistence(
+    private fun innvilgetVilkårsvurderingerRevurdering() = innvilgetVilkårsvurderingerSøknadsbehandling()
+        .tilVilkårsvurderingerRevurdering()
+        .copy(
+            formue = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
+                vurderingsperioder = nonEmptyListOf(
+                    Vurderingsperiode.Formue.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
-                        periode = stønadsperiode.periode, epsFormue = null,
-                        søkersFormue = Formuegrunnlag.Verdier.create(
-                            verdiIkkePrimærbolig = 0,
-                            verdiEiendommer = 0,
-                            verdiKjøretøy = 0,
-                            innskudd = 0,
-                            verdipapir = 0,
-                            pengerSkyldt = 0,
-                            kontanter = 0,
-                            depositumskonto = 0,
+                        resultat = Resultat.Innvilget,
+                        grunnlag = Formuegrunnlag.fromPersistence(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            periode = stønadsperiode.periode, epsFormue = null,
+                            søkersFormue = Formuegrunnlag.Verdier.create(
+                                verdiIkkePrimærbolig = 0,
+                                verdiEiendommer = 0,
+                                verdiKjøretøy = 0,
+                                innskudd = 0,
+                                verdipapir = 0,
+                                pengerSkyldt = 0,
+                                kontanter = 0,
+                                depositumskonto = 0,
+                            ),
+                            begrunnelse = null,
                         ),
-                        begrunnelse = null,
+                        periode = stønadsperiode.periode,
                     ),
-                    periode = stønadsperiode.periode,
                 ),
             ),
-        ),
-    )
+        )
 
     private fun innvilgetGrunnlagsdataRevurdering(epsFnr: Fnr? = null) =
         innvilgetGrunnlagsdataSøknadsbehandling(epsFnr)
 
     internal fun nyInnvilgetVilkårsvurdering(
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
-        vilkårsvurderinger: Vilkårsvurderinger = innvilgetVilkårsvurderingerSøknadsbehandling(),
+        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = innvilgetVilkårsvurderingerSøknadsbehandling(),
         grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataSøknadsbehandling(),
     ): Søknadsbehandling.Vilkårsvurdert.Innvilget {
-        return nySøknadsbehandling(behandlingsinformasjon = behandlingsinformasjon).copy(
+        return nySøknadsbehandling(
+            behandlingsinformasjon = behandlingsinformasjon,
+        ).copy(
             vilkårsvurderinger = vilkårsvurderinger,
             grunnlagsdata = grunnlagsdata,
         ).tilVilkårsvurdert(
@@ -661,21 +685,40 @@ internal class TestDataHelper(
     ) {
         bosituasjongrunnlagPostgresRepo.lagreBosituasjongrunnlag(behandlingId, grunnlagsdata.bosituasjon)
         fradragsgrunnlagPostgresRepo.lagreFradragsgrunnlag(behandlingId, grunnlagsdata.fradragsgrunnlag)
-        uføreVilkårsvurderingRepo.lagre(behandlingId, vilkårsvurderinger.uføre)
-        formueVilkårsvurderingPostgresRepo.lagre(behandlingId, vilkårsvurderinger.formue)
+        when (vilkårsvurderinger) {
+            is Vilkårsvurderinger.Revurdering -> {
+                uføreVilkårsvurderingRepo.lagre(behandlingId, vilkårsvurderinger.uføre)
+                formueVilkårsvurderingPostgresRepo.lagre(behandlingId, vilkårsvurderinger.formue)
+            }
+            is Vilkårsvurderinger.Søknadsbehandling -> {
+                uføreVilkårsvurderingRepo.lagre(behandlingId, vilkårsvurderinger.uføre)
+                formueVilkårsvurderingPostgresRepo.lagre(behandlingId, vilkårsvurderinger.formue)
+            }
+        }
     }
 
-    internal fun nyAvslåttVilkårsvurdering(): Søknadsbehandling.Vilkårsvurdert.Avslag {
-        return nySøknadsbehandling().tilVilkårsvurdert(
-            behandlingsinformasjonMedAvslag,
-        ).also {
-            søknadsbehandlingRepo.lagre(it)
-        } as Søknadsbehandling.Vilkårsvurdert.Avslag
+    internal fun nyAvslåttVilkårsvurdering(
+        grunnlagsdata: Grunnlagsdata = Grunnlagsdata.create(
+            bosituasjon = listOf(bosituasjongrunnlagEnslig(stønadsperiode.periode)),
+        ),
+        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = Vilkårsvurderinger.Søknadsbehandling(
+            uføre = innvilgetUførevilkår(periode = stønadsperiode.periode),
+        ),
+    ): Søknadsbehandling.Vilkårsvurdert.Avslag {
+        return nySøknadsbehandling()
+            .copy(
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+            ).tilVilkårsvurdert(behandlingsinformasjonMedAvslag)
+            .also {
+                søknadsbehandlingRepo.lagre(it)
+                lagreVilkårOgGrunnlag(it.id, vilkårsvurderinger, grunnlagsdata)
+            } as Søknadsbehandling.Vilkårsvurdert.Avslag
     }
 
     private fun nyInnvilgetBeregning(
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
-        vilkårsvurderinger: Vilkårsvurderinger = innvilgetVilkårsvurderingerSøknadsbehandling(),
+        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = innvilgetVilkårsvurderingerSøknadsbehandling(),
         grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataSøknadsbehandling(),
     ): Søknadsbehandling.Beregnet.Innvilget {
         return nyInnvilgetVilkårsvurdering(behandlingsinformasjon, vilkårsvurderinger, grunnlagsdata).tilBeregnet(
@@ -695,7 +738,7 @@ internal class TestDataHelper(
 
     private fun nySimulering(
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
-        vilkårsvurderinger: Vilkårsvurderinger = innvilgetVilkårsvurderingerSøknadsbehandling(),
+        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = innvilgetVilkårsvurderingerSøknadsbehandling(),
         grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataSøknadsbehandling(),
     ): Søknadsbehandling.Simulert {
         return nyInnvilgetBeregning(behandlingsinformasjon, vilkårsvurderinger, grunnlagsdata).let {
@@ -707,7 +750,7 @@ internal class TestDataHelper(
 
     internal fun nyTilInnvilgetAttestering(
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
-        vilkårsvurderinger: Vilkårsvurderinger = innvilgetVilkårsvurderingerSøknadsbehandling(),
+        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = innvilgetVilkårsvurderingerSøknadsbehandling(),
         grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataSøknadsbehandling(),
         fritekstTilBrev: String = "",
     ): Søknadsbehandling.TilAttestering.Innvilget {
@@ -765,7 +808,7 @@ internal class TestDataHelper(
 
     internal fun nyIverksattInnvilget(
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
-        vilkårsvurderinger: Vilkårsvurderinger = innvilgetVilkårsvurderingerSøknadsbehandling(),
+        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = innvilgetVilkårsvurderingerSøknadsbehandling(),
         epsFnr: Fnr? = null,
         grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataSøknadsbehandling(epsFnr),
         avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,

@@ -43,8 +43,8 @@ internal class RevurderingTest {
         val periode = Periode.create(1.januar(2021), 31.desember(2021))
         lagRevurdering(
             periode = periode,
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -56,7 +56,7 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
-                formue = innvilgetFormueVilkår(periode),
+                innvilgetFormueVilkår(periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -78,8 +78,8 @@ internal class RevurderingTest {
         val periode = Periode.create(1.januar(2021), 31.desember(2021))
         lagRevurdering(
             periode = periode,
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -91,7 +91,7 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
-                formue = innvilgetFormueVilkår(periode),
+                innvilgetFormueVilkår(periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -112,8 +112,8 @@ internal class RevurderingTest {
         val periode = Periode.create(1.januar(2021), 31.desember(2021))
         lagRevurdering(
             periode = periode,
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -125,7 +125,8 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
-                formue = innvilgetFormueVilkår(periode),
+                innvilgetFormueVilkår(periode),
+
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -164,8 +165,8 @@ internal class RevurderingTest {
         val periode = Periode.create(1.januar(2021), 31.desember(2021))
         lagRevurdering(
             periode = periode,
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -177,7 +178,7 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
-                formue = innvilgetFormueVilkår(periode),
+                innvilgetFormueVilkår(periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -197,8 +198,8 @@ internal class RevurderingTest {
         val periode = Periode.create(1.januar(2021), 31.desember(2021))
         lagRevurdering(
             periode = periode,
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -210,7 +211,7 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
-                formue = innvilgetFormueVilkår(periode),
+                innvilgetFormueVilkår(periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -230,8 +231,8 @@ internal class RevurderingTest {
         val periode = Periode.create(1.januar(2021), 31.desember(2021))
         lagRevurdering(
             periode = periode,
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -243,7 +244,7 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
-                formue = innvilgetFormueVilkår(periode),
+                innvilgetFormueVilkår(periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -266,8 +267,8 @@ internal class RevurderingTest {
         val periode = Periode.create(1.januar(2021), 31.desember(2021))
         lagRevurdering(
             periode = periode,
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -279,7 +280,7 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
-                formue = innvilgetFormueVilkår(periode),
+                innvilgetFormueVilkår(periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -307,8 +308,8 @@ internal class RevurderingTest {
         val periode = Periode.create(1.januar(2021), 31.desember(2021))
         lagRevurdering(
             periode = periode,
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -320,7 +321,7 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
-                formue = innvilgetFormueVilkår(periode),
+                innvilgetFormueVilkår(periode),
             ),
             fradrag = listOf(
                 lagFradragsgrunnlag(
@@ -361,8 +362,8 @@ internal class RevurderingTest {
         )
         lagRevurdering(
             periode = periode,
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -374,7 +375,7 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
-                formue = innvilgetFormueVilkår(periode),
+                innvilgetFormueVilkår(periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -409,8 +410,8 @@ internal class RevurderingTest {
         )
         lagRevurdering(
             periode = periode,
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -422,7 +423,7 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
-                formue = innvilgetFormueVilkår(periode),
+                innvilgetFormueVilkår(periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -456,7 +457,7 @@ internal class RevurderingTest {
 
     private fun lagRevurdering(
         tilRevurdering: Vedtak.EndringIYtelse = mock(),
-        vilkårsvurderinger: Vilkårsvurderinger,
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         fradrag: List<Grunnlag.Fradragsgrunnlag> = emptyList(),
         bosituasjon: List<Grunnlag.Bosituasjon>,
         periode: Periode,

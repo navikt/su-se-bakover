@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.saksbehandler
@@ -61,7 +62,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
 
@@ -96,8 +96,8 @@ class RevurderingIngenEndringTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -109,7 +109,7 @@ class RevurderingIngenEndringTest {
                         ),
                     ),
                 ),
-                formue = formueVilkår(periodeNesteMånedOgTreMånederFram),
+                formueVilkår(periodeNesteMånedOgTreMånederFram),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
@@ -184,8 +184,8 @@ class RevurderingIngenEndringTest {
 
     @Test
     fun `attesterer revurdering som ikke fører til endring i ytelse`() {
-        val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
-            on { resultat } doReturn Resultat.Innvilget
+        val vilkårsvurderingerMock = mock<Vilkårsvurderinger.Revurdering> {
+            on { resultat } doReturn Vilkårsvurderingsresultat.Innvilget(emptySet())
         }
         val tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second
         val beregnetRevurdering = BeregnetRevurdering.IngenEndring(
@@ -300,7 +300,7 @@ class RevurderingIngenEndringTest {
             forhåndsvarsel = null,
             skalFøreTilBrevutsending = false,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
         )
@@ -318,7 +318,7 @@ class RevurderingIngenEndringTest {
             attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attesteringUnderkjent),
             skalFøreTilBrevutsending = false,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
