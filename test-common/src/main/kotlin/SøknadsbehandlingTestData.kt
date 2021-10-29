@@ -84,17 +84,9 @@ fun søknadsbehandlingVilkårsvurdertInnvilget(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger
             ).tilVilkårsvurdert(
-                behandlingsinformasjon = behandlingsinformasjon
+                behandlingsinformasjon = behandlingsinformasjon,
+                clock = fixedClock,
             ) as Søknadsbehandling.Vilkårsvurdert.Innvilget
-        // val oppdatertSøknadsbehandling = (
-        //     søknadsbehandling.tilVilkårsvurdert(
-        //         behandlingsinformasjon,
-        //         // TODO jah: Bytt til å bruke en mer spesifikk funksjon på søknadsbehandling når/hvis det kommer.
-        //     ) as Søknadsbehandling.Vilkårsvurdert.Innvilget
-        //     ).copy(
-        //     grunnlagsdata = grunnlagsdata,
-        //     vilkårsvurderinger = vilkårsvurderinger,
-        // )
         Pair(
             sak.copy(
                 søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
@@ -120,7 +112,8 @@ fun søknadsbehandlingVilkårsvurdertAvslag(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger
             ).tilVilkårsvurdert(
-                behandlingsinformasjon = behandlingsinformasjon
+                behandlingsinformasjon = behandlingsinformasjon,
+                clock = fixedClock,
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
         Pair(
             sak.copy(

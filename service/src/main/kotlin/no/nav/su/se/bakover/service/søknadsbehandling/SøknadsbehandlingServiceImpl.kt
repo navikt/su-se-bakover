@@ -161,7 +161,7 @@ internal class SøknadsbehandlingServiceImpl(
 
         return statusovergang(
             søknadsbehandling = søknadsbehandling,
-            statusovergang = Statusovergang.TilVilkårsvurdert(request.behandlingsinformasjon),
+            statusovergang = Statusovergang.TilVilkårsvurdert(request.behandlingsinformasjon, clock),
         ).let { vilkårsvurdert ->
             søknadsbehandlingRepo.lagre(vilkårsvurdert)
             vilkårsvurdert.right()
@@ -487,6 +487,7 @@ internal class SøknadsbehandlingServiceImpl(
             statusovergang = Statusovergang.OppdaterStønadsperiode(
                 oppdatertStønadsperiode = request.stønadsperiode,
                 sak = sak,
+                clock = clock,
             ),
         ).mapLeft {
             SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode(it)

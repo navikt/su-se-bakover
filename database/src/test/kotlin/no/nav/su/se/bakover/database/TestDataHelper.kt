@@ -668,6 +668,7 @@ internal class TestDataHelper(
             grunnlagsdata = grunnlagsdata,
         ).tilVilkårsvurdert(
             behandlingsinformasjon,
+            clock = fixedClock,
         ).also {
             lagreVilkårOgGrunnlag(
                 behandlingId = it.id,
@@ -709,7 +710,10 @@ internal class TestDataHelper(
             .copy(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
-            ).tilVilkårsvurdert(behandlingsinformasjonMedAvslag)
+            ).tilVilkårsvurdert(
+                behandlingsinformasjon = behandlingsinformasjonMedAvslag,
+                clock = fixedClock,
+            )
             .also {
                 søknadsbehandlingRepo.lagre(it)
                 lagreVilkårOgGrunnlag(it.id, vilkårsvurderinger, grunnlagsdata)

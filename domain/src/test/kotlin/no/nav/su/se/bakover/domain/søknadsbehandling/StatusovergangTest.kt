@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.attesteringUnderkjent
 import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.saksbehandler
@@ -112,7 +113,10 @@ internal class StatusovergangTest {
                     grunnlagsdata = vilkårsvurdertInnvilget.grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurdertInnvilget.vilkårsvurderinger,
                 ),
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
+                Statusovergang.TilVilkårsvurdert(
+                    Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                    fixedClock,
+                ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
 
@@ -123,7 +127,10 @@ internal class StatusovergangTest {
                     grunnlagsdata = vilkårsvurdertInnvilget.grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurdertInnvilget.vilkårsvurderinger,
                 ),
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAvslåttFlyktning()),
+                Statusovergang.TilVilkårsvurdert(
+                    Behandlingsinformasjon().withAvslåttFlyktning(),
+                    fixedClock,
+                ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
 
@@ -131,7 +138,10 @@ internal class StatusovergangTest {
         fun `opprettet til vilkårsvurdert uavklart (opprettet)`() {
             statusovergang(
                 opprettet,
-                Statusovergang.TilVilkårsvurdert(withVilkårIkkeVurdert()),
+                Statusovergang.TilVilkårsvurdert(
+                    withVilkårIkkeVurdert(),
+                    fixedClock,
+                ),
             ) shouldBe opprettet
         }
 
@@ -139,7 +149,10 @@ internal class StatusovergangTest {
         fun `vilkårsvurdert innvilget til vilkårsvurdert innvilget`() {
             statusovergang(
                 vilkårsvurdertInnvilget,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
+                Statusovergang.TilVilkårsvurdert(
+                    Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                    fixedClock,
+                ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
 
@@ -147,7 +160,10 @@ internal class StatusovergangTest {
         fun `vilkårsvurdert innvilget til vilkårsvurdert avslag`() {
             statusovergang(
                 vilkårsvurdertInnvilget,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAvslåttFlyktning()),
+                Statusovergang.TilVilkårsvurdert(
+                    Behandlingsinformasjon().withAvslåttFlyktning(),
+                    fixedClock,
+                ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
 
@@ -160,7 +176,10 @@ internal class StatusovergangTest {
                         uføre = innvilgetUførevilkår(),
                     ),
                 ),
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
+                Statusovergang.TilVilkårsvurdert(
+                    Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                    fixedClock
+                ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
 
@@ -168,7 +187,10 @@ internal class StatusovergangTest {
         fun `vilkårsvurdert avslag til vilkårsvurdert avslag`() {
             statusovergang(
                 vilkårsvurdertAvslag,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAvslåttFlyktning()),
+                Statusovergang.TilVilkårsvurdert(
+                    Behandlingsinformasjon().withAvslåttFlyktning(),
+                    fixedClock,
+                ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
 
@@ -176,7 +198,10 @@ internal class StatusovergangTest {
         fun `beregnet innvilget til vilkårsvurdert innvilget`() {
             statusovergang(
                 beregnetInnvilget,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
+                Statusovergang.TilVilkårsvurdert(
+                    Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                    fixedClock
+                ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
 
@@ -184,7 +209,10 @@ internal class StatusovergangTest {
         fun `beregnet innvilget til vilkårsvurdert avslag`() {
             statusovergang(
                 beregnetInnvilget,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAvslåttFlyktning()),
+                Statusovergang.TilVilkårsvurdert(
+                    Behandlingsinformasjon().withAvslåttFlyktning(),
+                    fixedClock,
+                ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
 
@@ -192,7 +220,10 @@ internal class StatusovergangTest {
         fun `beregnet avslag til vilkårsvurdert innvilget`() {
             statusovergang(
                 beregnetAvslag,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
+                Statusovergang.TilVilkårsvurdert(
+                    Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                    fixedClock
+                ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
 
@@ -200,7 +231,10 @@ internal class StatusovergangTest {
         fun `beregnet avslag til vilkårsvurdert avslag`() {
             statusovergang(
                 beregnetAvslag,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAvslåttFlyktning()),
+                Statusovergang.TilVilkårsvurdert(
+                    Behandlingsinformasjon().withAvslåttFlyktning(),
+                    fixedClock,
+                ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
 
@@ -208,7 +242,10 @@ internal class StatusovergangTest {
         fun `simulert til vilkårsvurdert innvilget`() {
             statusovergang(
                 simulert,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
+                Statusovergang.TilVilkårsvurdert(
+                    Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                    fixedClock
+                ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
 
@@ -216,7 +253,10 @@ internal class StatusovergangTest {
         fun `simulert til vilkårsvurdert avslag`() {
             statusovergang(
                 simulert,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAvslåttFlyktning()),
+                Statusovergang.TilVilkårsvurdert(
+                    Behandlingsinformasjon().withAvslåttFlyktning(),
+                    fixedClock,
+                ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
 
@@ -224,7 +264,10 @@ internal class StatusovergangTest {
         fun `underkjent innvilget til vilkårsvurdert innvilget`() {
             statusovergang(
                 underkjentInnvilget,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
+                Statusovergang.TilVilkårsvurdert(
+                    Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                    fixedClock
+                ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
 
@@ -232,7 +275,10 @@ internal class StatusovergangTest {
         fun `underkjent innvilget til vilkårsvurdert avslag`() {
             statusovergang(
                 underkjentInnvilget,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAvslåttFlyktning()),
+                Statusovergang.TilVilkårsvurdert(
+                    Behandlingsinformasjon().withAvslåttFlyktning(),
+                    fixedClock,
+                ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
 
@@ -245,7 +291,10 @@ internal class StatusovergangTest {
                         uføre = innvilgetUførevilkår(),
                     ),
                 ),
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
+                Statusovergang.TilVilkårsvurdert(
+                    Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                    fixedClock
+                ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
 
@@ -253,7 +302,10 @@ internal class StatusovergangTest {
         fun `underkjent avslag vilkår til vilkårsvurdert avslag`() {
             statusovergang(
                 underkjentAvslagVilkår,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAvslåttFlyktning()),
+                Statusovergang.TilVilkårsvurdert(
+                    Behandlingsinformasjon().withAvslåttFlyktning(),
+                    fixedClock,
+                ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
 
@@ -266,7 +318,10 @@ internal class StatusovergangTest {
                         uføre = innvilgetUførevilkår(),
                     ),
                 ),
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
+                Statusovergang.TilVilkårsvurdert(
+                    Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                    fixedClock
+                ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
 
@@ -279,7 +334,10 @@ internal class StatusovergangTest {
                         uføre = innvilgetUførevilkår(),
                     ),
                 ),
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAvslåttFlyktning()),
+                Statusovergang.TilVilkårsvurdert(
+                    Behandlingsinformasjon().withAvslåttFlyktning(),
+                    fixedClock,
+                ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>()
         }
 
@@ -297,13 +355,19 @@ internal class StatusovergangTest {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     statusovergang(
                         it,
-                        Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
+                        Statusovergang.TilVilkårsvurdert(
+                            Behandlingsinformasjon().withAlleVilkårOppfylt(),
+                            fixedClock
+                        ),
                     )
                 }
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     statusovergang(
                         it,
-                        Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAvslåttFlyktning()),
+                        Statusovergang.TilVilkårsvurdert(
+                            Behandlingsinformasjon().withAvslåttFlyktning(),
+                            fixedClock,
+                        ),
                     )
                 }
             }
@@ -826,7 +890,7 @@ internal class StatusovergangTest {
                 assertDoesNotThrow {
                     forsøkStatusovergang(
                         søknadsbehandling = it,
-                        statusovergang = Statusovergang.OppdaterStønadsperiode(stønadsperiode, sak),
+                        statusovergang = Statusovergang.OppdaterStønadsperiode(stønadsperiode, sak, fixedClock),
                     )
                 }
             }
@@ -849,6 +913,7 @@ internal class StatusovergangTest {
                         statusovergang = Statusovergang.OppdaterStønadsperiode(
                             oppdatertStønadsperiode = stønadsperiode,
                             sak = sak,
+                            clock = fixedClock,
                         ),
                     )
                 }
@@ -865,6 +930,7 @@ internal class StatusovergangTest {
                 statusovergang = Statusovergang.OppdaterStønadsperiode(
                     oppdatertStønadsperiode = Stønadsperiode.create(nyPeriode, ""),
                     sak = sak,
+                    clock = fixedClock,
                 ),
             )
             actual.orNull()!!.periode shouldBe nyPeriode
@@ -890,6 +956,7 @@ internal class StatusovergangTest {
                 statusovergang = Statusovergang.OppdaterStønadsperiode(
                     oppdatertStønadsperiode = Stønadsperiode.create(nyPeriode, ""),
                     sak = sak,
+                    clock = fixedClock,
                 ),
             )
             actual shouldBe Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode.left()
@@ -927,6 +994,7 @@ internal class StatusovergangTest {
                 statusovergang = Statusovergang.OppdaterStønadsperiode(
                     oppdatertStønadsperiode = nyPeriode,
                     sak = sakMedBehandlingOgVedtak,
+                    clock = fixedClock,
                 ),
             ).let {
                 it shouldBe Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer.left()

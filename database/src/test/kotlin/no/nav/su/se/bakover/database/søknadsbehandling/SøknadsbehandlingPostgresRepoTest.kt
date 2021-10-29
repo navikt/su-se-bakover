@@ -183,11 +183,13 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
                     uføre = innvilgetUførevilkår(periode = uavklartVilkårsvurdering.periode),
                 ),
-            ).tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
-                .also {
-                    testDataHelper.lagreVilkårOgGrunnlag(it.id, it.vilkårsvurderinger, it.grunnlagsdata)
-                    repo.lagre(it)
-                }
+            ).tilVilkårsvurdert(
+                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+                clock = fixedClock,
+            ).also {
+                testDataHelper.lagreVilkårOgGrunnlag(it.id, it.vilkårsvurderinger, it.grunnlagsdata)
+                repo.lagre(it)
+            }
 
             val beregnet = innvilgetVilkårsvurdering
                 .tilBeregnet(beregning = beregning())
@@ -216,7 +218,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     }
                 }
             // Tilbake til vilkårsvurdert
-            simulert.tilVilkårsvurdert(behandlingsinformasjonMedAlleVilkårOppfylt)
+            simulert.tilVilkårsvurdert(behandlingsinformasjonMedAlleVilkårOppfylt, fixedClock)
                 .also {
                     repo.lagre(it)
                     repo.hent(it.id) shouldBe it

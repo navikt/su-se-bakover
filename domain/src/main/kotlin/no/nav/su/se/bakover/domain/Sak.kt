@@ -102,7 +102,7 @@ data class Sak(
     /**
      * Identifiser alle perioder hvor ytelsen har vært eller vil være løpende.
      */
-    fun hentPerioderMedLøpendeYtelse(clock: Clock = Clock.systemUTC()): List<Periode> {
+    fun hentPerioderMedLøpendeYtelse(): List<Periode> {
         return vedtakListe.filterIsInstance<Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling>()
             .map { it.periode }
             .flatMap { innvilgetStønadsperiode ->

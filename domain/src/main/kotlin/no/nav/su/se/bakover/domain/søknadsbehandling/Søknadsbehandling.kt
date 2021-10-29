@@ -88,7 +88,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
 
     sealed class Vilkårsvurdert : Søknadsbehandling() {
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
+        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon, clock: Clock): Vilkårsvurdert =
             opprett(
                 id,
                 opprettet,
@@ -103,6 +103,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 grunnlagsdata,
                 vilkårsvurderinger,
                 attesteringer,
+                clock,
             )
 
         fun tilBeregnet(beregning: Beregning): Beregnet =
@@ -138,12 +139,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 grunnlagsdata: Grunnlagsdata,
                 vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 attesteringer: Attesteringshistorikk,
+                clock: Clock,
             ): Vilkårsvurdert {
                 val oppdaterteVilkårsvurderinger = vilkårsvurderinger.oppdater(
                     stønadsperiode = stønadsperiode!!,
                     behandlingsinformasjon = behandlingsinformasjon,
                     grunnlagsdata = grunnlagsdata,
-                    clock = Clock.systemUTC(),
+                    clock = clock,
                 )
                 return when (oppdaterteVilkårsvurderinger.resultat) {
                     is Vilkårsvurderingsresultat.Avslag -> {
@@ -340,7 +342,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         abstract val beregning: Beregning
         abstract override val stønadsperiode: Stønadsperiode
 
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
+        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon, clock: Clock): Vilkårsvurdert =
             Vilkårsvurdert.opprett(
                 id,
                 opprettet,
@@ -355,6 +357,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 grunnlagsdata,
                 vilkårsvurderinger,
                 attesteringer,
+                clock,
             )
 
         fun tilBeregnet(beregning: Beregning): Beregnet =
@@ -634,7 +637,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             ).right()
         }
 
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
+        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon, clock: Clock): Vilkårsvurdert =
             Vilkårsvurdert.opprett(
                 id,
                 opprettet,
@@ -649,6 +652,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 grunnlagsdata,
                 vilkårsvurderinger,
                 attesteringer,
+                clock,
             )
 
         fun tilBeregnet(beregning: Beregning): Beregnet =
@@ -971,7 +975,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
         abstract fun nyOppgaveId(nyOppgaveId: OppgaveId): Underkjent
 
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
+        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon, clock: Clock): Vilkårsvurdert =
             Vilkårsvurdert.opprett(
                 id,
                 opprettet,
@@ -986,6 +990,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 grunnlagsdata,
                 vilkårsvurderinger,
                 attesteringer,
+                clock,
             )
 
         data class Innvilget(
