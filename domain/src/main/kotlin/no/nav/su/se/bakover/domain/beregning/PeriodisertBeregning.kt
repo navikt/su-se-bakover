@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.positiveOrZero
 import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.utenSosialstønad
 import kotlin.math.roundToInt
 
 internal data class PeriodisertBeregning(
@@ -22,15 +23,19 @@ internal data class PeriodisertBeregning(
         .positiveOrZero()
         .roundToInt()
 
-    override fun getSumFradrag() = fradrag
-        .sumOf { it.månedsbeløp }
-        .limitedUpwardsTo(getSatsbeløp())
+    override fun sumYtelseUtenSosialstønad(): Int = (getSatsbeløp() - beregnSumFradrag(fradrag.utenSosialstønad()))
+        .positiveOrZero()
+        .roundToInt()
+
+    override fun getSumFradrag() = beregnSumFradrag(fradrag)
 
     override fun getBenyttetGrunnbeløp(): Int = Grunnbeløp.`1G`.påDato(periode.fraOgMed).toInt()
     override fun getSats(): Sats = sats
     override fun getSatsbeløp(): Double = sats.periodiser(periode).getValue(periode)
     override fun getFradrag(): List<Fradrag> = fradrag
     override fun getFribeløpForEps(): Double = fribeløpForEps
+
+    private fun beregnSumFradrag(fradrag: List<Fradrag>) = fradrag.sumOf { it.månedsbeløp }.limitedUpwardsTo(getSatsbeløp())
 
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
 }

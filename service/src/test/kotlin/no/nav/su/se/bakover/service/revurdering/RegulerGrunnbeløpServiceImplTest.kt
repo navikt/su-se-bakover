@@ -192,6 +192,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                             override fun getSatsbeløp() = 20637.32
                             override fun getFradrag() = listOf(fradrag)
                             override fun getFribeløpForEps(): Double = 0.0
+                            override fun sumYtelseUtenSosialstønad(): Int = 19637
 
                             override val periode = Periode.create(1.januar(2020), 31.januar(2020))
                             override fun equals(other: Any?) =

@@ -34,3 +34,5 @@ enum class FradragTilhører {
 fun List<Fradrag>.harFradragSomTilhørerEps(): Boolean {
     return this.any { it.tilhørerEps() }
 }
+
+fun List<Fradrag>.utenSosialstønad(): List<Fradrag> = filterNot { it.fradragstype === Fradragstype.Sosialstønad }

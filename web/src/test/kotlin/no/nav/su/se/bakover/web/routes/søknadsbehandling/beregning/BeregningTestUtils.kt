@@ -41,6 +41,8 @@ internal object TestMånedsberegning : Månedsberegning {
     override fun getSatsbeløp(): Double = 20637.32
     override fun getFradrag(): List<Fradrag> = listOf(TestFradrag, TestFradragEps)
     override fun getFribeløpForEps(): Double = 0.0
+    override fun sumYtelseUtenSosialstønad(): Int = 19946
+
     override val periode: Periode = Periode.create(1.august(2020), 31.august(2020))
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
 }

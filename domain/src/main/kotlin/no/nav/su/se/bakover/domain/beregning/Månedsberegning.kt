@@ -12,6 +12,7 @@ interface Månedsberegning : PeriodisertInformasjon {
     fun getSatsbeløp(): Double
     fun getFradrag(): List<Fradrag>
     fun getFribeløpForEps(): Double
+    fun sumYtelseUtenSosialstønad(): Int
 
     fun erFradragForEpsBenyttetIBeregning() =
         getFradrag().any { it.fradragstype == Fradragstype.BeregnetFradragEPS }

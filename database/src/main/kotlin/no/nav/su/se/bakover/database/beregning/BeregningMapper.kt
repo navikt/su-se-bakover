@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.beregning
 
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.limitedUpwardsTo
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -11,7 +12,9 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
+import no.nav.su.se.bakover.domain.beregning.fradrag.utenSosialstønad
 import java.util.UUID
+import kotlin.math.roundToInt
 
 internal data class PersistertBeregning(
     private val id: UUID,
@@ -66,6 +69,7 @@ internal data class PersistertMånedsberegning(
     override fun getSatsbeløp(): Double = satsbeløp
     override fun getFradrag(): List<Fradrag> = fradrag
     override fun getFribeløpForEps(): Double = fribeløpForEps
+    override fun sumYtelseUtenSosialstønad(): Int = (satsbeløp - fradrag.utenSosialstønad().sumOf { it.månedsbeløp }).limitedUpwardsTo(satsbeløp).roundToInt().coerceAtLeast(0)
 
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
 
@@ -115,7 +119,7 @@ internal fun Månedsberegning.toSnapshot() = PersistertMånedsberegning(
     satsbeløp = getSatsbeløp(),
     fradrag = getFradrag().map { it.toSnapshot() },
     periode = periode,
-    fribeløpForEps = getFribeløpForEps()
+    fribeløpForEps = getFribeløpForEps(),
 )
 
 internal fun Fradrag.toSnapshot() = PersistertFradrag(

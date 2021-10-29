@@ -17,7 +17,7 @@ data class BeregningMedFradragBeregnetMånedsvis(
     private val sats: Sats,
     private val fradrag: List<Fradrag>,
     private val fradragStrategy: FradragStrategy,
-    private val begrunnelse: String?
+    private val begrunnelse: String?,
 ) : Beregning {
     private val beregning = beregn()
 
@@ -47,15 +47,25 @@ data class BeregningMedFradragBeregnetMånedsvis(
                 periode = it,
                 sats = sats,
                 fradrag = beregnetPeriodisertFradrag[it] ?: emptyList(),
-                fribeløpForEps = fradragStrategy.getEpsFribeløp(it)
+                fribeløpForEps = fradragStrategy.getEpsFribeløp(it),
             ).let { månedsberegning ->
-                when (månedsberegning.ytelseStørreEnn0MenMindreEnnToProsentAvHøySats()) {
-                    true -> MånedsberegningFactory.ny(
-                        periode = månedsberegning.periode,
-                        sats = sats,
-                        fradrag = månedsberegning.getFradrag()
-                            .plus(månedsberegning.lagFradragForBeløpUnderMinstegrense()),
+                when (
+                    størreEnn0MenMindreEnnToProsentAvHøySats(
+                        månedsberegning.getSumYtelse(),
+                        månedsberegning.periode,
+                    ) && størreEnn0MenMindreEnnToProsentAvHøySats(
+                        månedsberegning.sumYtelseUtenSosialstønad(),
+                        månedsberegning.periode,
                     )
+                ) {
+                    true -> {
+                        MånedsberegningFactory.ny(
+                            periode = månedsberegning.periode,
+                            sats = sats,
+                            fradrag = månedsberegning.getFradrag()
+                                .plus(månedsberegning.lagFradragForBeløpUnderMinstegrense()),
+                        )
+                    }
                     false -> månedsberegning
                 }
             }
@@ -68,12 +78,12 @@ data class BeregningMedFradragBeregnetMånedsvis(
             månedsbeløp = getSumYtelse().toDouble(),
             periode = periode,
             utenlandskInntekt = null,
-            tilhører = FradragTilhører.BRUKER
+            tilhører = FradragTilhører.BRUKER,
         ),
     )
 
-    private fun Månedsberegning.ytelseStørreEnn0MenMindreEnnToProsentAvHøySats() =
-        getSumYtelse() > 0 && getSumYtelse() < Sats.toProsentAvHøy(periode)
+    private fun størreEnn0MenMindreEnnToProsentAvHøySats(sum: Int, periode: Periode) =
+        sum > 0 && sum < Sats.toProsentAvHøy(periode)
 
     override fun getSats(): Sats = sats
     override fun getMånedsberegninger(): List<Månedsberegning> = beregning.values.toList()
