@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.domain.revurdering
 
+import no.nav.su.se.bakover.common.procentuellDifferens
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
-import kotlin.math.abs
 
 data class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
     private val eksisterendeUtbetalinger: List<Utbetalingslinje>,
@@ -14,9 +14,6 @@ data class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetal
     val resultat: Boolean
 
     init {
-        fun diffEr10ProsentEllerMer(førsteMånedsbeløp: Int, gjeldendeUtbetalingsbeløp: Int) =
-            abs(førsteMånedsbeløp - gjeldendeUtbetalingsbeløp) >= (0.1 * gjeldendeUtbetalingsbeløp)
-
         val utbetalingstidslinje = TidslinjeForUtbetalinger(
             periode = nyBeregning.periode,
             utbetalingslinjer = eksisterendeUtbetalinger,
@@ -26,10 +23,28 @@ data class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetal
             .minByOrNull { it.periode.fraOgMed }!!
         val gjeldendeUtbetaling = utbetalingstidslinje.gjeldendeForDato(førsteMånedsberegning.periode.fraOgMed)
 
-        resultat = diffEr10ProsentEllerMer(
-            førsteMånedsbeløp = førsteMånedsberegning.finnBeløpFor10ProsentSjekk(),
-            gjeldendeUtbetalingsbeløp = gjeldendeUtbetaling?.beløp ?: 0,
+        val nyttMånedsbeløp = førsteMånedsberegning.finnBeløpFor10ProsentSjekk()
+        val gjeldendeUtbetalingsbeløp = gjeldendeUtbetaling?.beløp ?: 0
+
+        resultat = procentuellDifferens(gjeldendeUtbetalingsbeløp, nyttMånedsbeløp).fold(
+            ifLeft = { økningFra0ErMer10Prosent(nyttMånedsbeløp) },
+            ifRight = { økning ->
+                when {
+                    økning < 0 -> økning <= -0.1
+                    else -> økning >= 0.1
+                }
+            }
         )
+    }
+
+    /**
+     * Økning fra 0 er ikke matematiskt definiert, men i vårt case så vi aksepterer følgende:
+     * 0 -> 0 >= 0.1 = false
+     * 0 -> x >= 0.1 = true, där x är ett positivt heltal (ikke 0)
+     * */
+    private fun økningFra0ErMer10Prosent(nyVerdi: Int) = when (nyVerdi) {
+        0 -> false
+        else -> true
     }
 
     /**
