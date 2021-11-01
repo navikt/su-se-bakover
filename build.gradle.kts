@@ -50,7 +50,7 @@ allprojects {
 
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.3.0")
         implementation("io.confluent:kafka-avro-serializer:6.2.1")
-        implementation("org.apache.avro:avro:1.10.2")
+        implementation("org.apache.avro:avro:1.11.0")
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 
