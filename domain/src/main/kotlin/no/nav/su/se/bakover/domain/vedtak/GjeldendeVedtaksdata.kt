@@ -9,8 +9,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkår.Formue.Vurdert.Companion.slåSammenVurderingsperiode
-import no.nav.su.se.bakover.domain.vilkår.Vilkår.Uførhet.Vurdert.Companion.slåSammenVurderingsperiode
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
 import java.time.LocalDate
@@ -66,12 +64,10 @@ data class GjeldendeVedtaksdata(
             }.slåSammenPeriodeOgBosituasjon(),
         )
         vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-            uføreGrunnlagOgVilkår.copy(
-                vurderingsperioder = uføreGrunnlagOgVilkår.vurderingsperioder.slåSammenVurderingsperiode(),
-            ),
-            formuevilkårOgGrunnlag.copy(
-                vurderingsperioder = formuevilkårOgGrunnlag.vurderingsperioder.slåSammenVurderingsperiode(),
-            ),
+            uføre = uføreGrunnlagOgVilkår.slåSammenVurderingsperioder()
+                .getOrHandle { throw IllegalArgumentException("Kunne ikke slå sammen vurderingsperioder uføre: $it") },
+            formue = formuevilkårOgGrunnlag.slåSammenVurderingsperioder()
+                .getOrHandle { throw IllegalArgumentException("Kunne ikke slå sammen vurderingsperioder formue: $it") },
         )
     }
 

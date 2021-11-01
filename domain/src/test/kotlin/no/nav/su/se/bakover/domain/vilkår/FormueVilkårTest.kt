@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.vilkår.Vilkår.Formue.Vurdert.Companion.slåSammenVurderingsperiode
+import no.nav.su.se.bakover.domain.vilkår.Vilkår.Formue.Vurdert.Companion.slåSammenVurderingsperioder
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -32,7 +32,7 @@ internal class FormueVilkårTest {
             ),
         )
 
-        val actual = nonEmptyListOf(f1, f2, f3).slåSammenVurderingsperiode()
+        val actual = nonEmptyListOf(f1, f2, f3).slåSammenVurderingsperioder()
         actual.size shouldBe 2
         actual.first() shouldBe lagFormueVurderingsperiode(
             id = actual.first().id,

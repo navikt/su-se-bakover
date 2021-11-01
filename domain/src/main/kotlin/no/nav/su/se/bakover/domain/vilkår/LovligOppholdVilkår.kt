@@ -11,15 +11,10 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.overlappende
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag.Companion.equals
-import no.nav.su.se.bakover.domain.grunnlag.FlyktningGrunnlag.Companion.equals
-import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag.Companion.equals
 import no.nav.su.se.bakover.domain.grunnlag.LovligOppholdGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge.Companion.equals
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning.Companion.equals
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -158,9 +153,13 @@ data class VurderingsperiodeLovligOpphold private constructor(
 ) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeLovligOpphold> {
 
     override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeLovligOpphold {
-        return copy(
+        return create(
+            id = id,
+            opprettet = opprettet,
+            resultat = resultat,
             periode = stønadsperiode.periode,
             grunnlag = this.grunnlag?.oppdaterPeriode(stønadsperiode.periode),
+            begrunnelse = begrunnelse,
         )
     }
 

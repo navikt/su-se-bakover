@@ -157,9 +157,13 @@ data class VurderingsperiodePersonligOppmøte private constructor(
 ) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodePersonligOppmøte> {
 
     override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodePersonligOppmøte {
-        return copy(
+        return create(
+            id = id,
+            opprettet = opprettet,
+            resultat = resultat,
             periode = stønadsperiode.periode,
             grunnlag = this.grunnlag?.oppdaterPeriode(stønadsperiode.periode),
+            begrunnelse = begrunnelse,
         )
     }
 

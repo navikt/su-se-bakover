@@ -152,9 +152,13 @@ data class VurderingsperiodeFastOppholdINorge private constructor(
 ) : Vurderingsperiode(), KanPlasseresPåTidslinje<VurderingsperiodeFastOppholdINorge> {
 
     override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): VurderingsperiodeFastOppholdINorge {
-        return copy(
+        return create(
+            id = id,
+            opprettet = opprettet,
+            resultat = resultat,
             periode = stønadsperiode.periode,
             grunnlag = this.grunnlag?.oppdaterPeriode(stønadsperiode.periode),
+            begrunnelse = begrunnelse,
         )
     }
 

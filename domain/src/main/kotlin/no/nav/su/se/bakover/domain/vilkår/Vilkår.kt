@@ -285,7 +285,7 @@ sealed class Vilkårsvurderinger {
             return when (vilkår) {
                 is Vilkår.Formue -> copy(formue = vilkår)
                 is Vilkår.Uførhet -> copy(uføre = vilkår)
-                else -> throw RuntimeException("Ukjent vilkår for revurdering")
+                else -> throw IllegalArgumentException("Ukjent vilkår for revurdering: ${vilkår::class}")
             }
         }
 
@@ -436,6 +436,10 @@ sealed class Vilkår {
                 return other is Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
             }
 
+            fun slåSammenVurderingsperioder(): Either<UgyldigUførevilkår, Uførhet.Vurdert> {
+                return fromVurderingsperioder(vurderingsperioder = vurderingsperioder.slåSammenVurderingsperiode())
+            }
+
             companion object {
 
                 fun tryCreate(
@@ -464,6 +468,15 @@ sealed class Vilkår {
                             it.first().copy(CopyArgs.Tidslinje.NyPeriode(periode = periode))
                         }
                     return NonEmptyList.fromListUnsafe(slåttSammen)
+                }
+
+                fun fromVurderingsperioder(
+                    vurderingsperioder: Nel<Vurderingsperiode.Uføre>,
+                ): Either<UgyldigUførevilkår, Vurdert> {
+                    if (vurderingsperioder.overlappende()) {
+                        return UgyldigUførevilkår.OverlappendeVurderingsperioder.left()
+                    }
+                    return Vurdert(vurderingsperioder).right()
                 }
 
                 private fun List<Vurderingsperiode.Uføre>.sisteUføreperiodeErLikOgTilstøtende(other: Vurderingsperiode.Uføre) =
@@ -576,6 +589,10 @@ sealed class Vilkår {
                 it.grunnlag
             }
 
+            fun slåSammenVurderingsperioder(): Either<UgyldigFormuevilkår, Vurdert> {
+                return fromVurderingsperioder(vurderingsperioder = vurderingsperioder.slåSammenVurderingsperioder())
+            }
+
             companion object {
 
                 fun tryCreateFromGrunnlag(
@@ -592,7 +609,7 @@ sealed class Vilkår {
                 ): Vurdert =
                     fromVurderingsperioder(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
 
-                private fun fromVurderingsperioder(
+                fun fromVurderingsperioder(
                     vurderingsperioder: Nel<Vurderingsperiode.Formue>,
                 ): Either<UgyldigFormuevilkår, Vurdert> {
                     if (vurderingsperioder.overlappende()) {
@@ -601,7 +618,7 @@ sealed class Vilkår {
                     return Vurdert(vurderingsperioder).right()
                 }
 
-                fun Nel<Vurderingsperiode.Formue>.slåSammenVurderingsperiode(): Nel<Vurderingsperiode.Formue> {
+                fun Nel<Vurderingsperiode.Formue>.slåSammenVurderingsperioder(): Nel<Vurderingsperiode.Formue> {
                     val slåttSammen = this.sortedBy { it.periode.fraOgMed }
                         .fold(mutableListOf<MutableList<Vurderingsperiode.Formue>>()) { acc, formue ->
                             if (acc.isEmpty()) {
@@ -770,14 +787,6 @@ sealed class Vurderingsperiode {
                 resultat == other.resultat &&
                 grunnlag.erLik(other.grunnlag)
         }
-
-        // /**
-        //  * Override av [equals] for å slippe å endre alle eksisterende tester som baserer seg på objektliket.
-        //  * Denne må fjernes etterhvert som klassen begynner å holde fornuftig data.
-        //  */
-        // override fun equals(other: Any?): Boolean {
-        //     return other is Formue && erLik(other)
-        // }
 
         companion object {
             fun create(

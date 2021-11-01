@@ -1,13 +1,11 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.Either
+import arrow.core.getOrHandle
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
-import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag.Companion.equals
-import no.nav.su.se.bakover.domain.grunnlag.FlyktningGrunnlag.Companion.equals
-import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag.Companion.equals
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import java.util.UUID
 
@@ -18,7 +16,11 @@ data class LovligOppholdGrunnlag(
 ) : Grunnlag(), KanPlasseresPåTidslinje<LovligOppholdGrunnlag> {
 
     fun oppdaterPeriode(periode: Periode): LovligOppholdGrunnlag {
-        return this.copy(periode = periode)
+        return tryCreate(
+            id = id,
+            opprettet = opprettet,
+            periode = periode,
+        ).getOrHandle { throw IllegalArgumentException(it.toString()) }
     }
 
     override fun copy(args: CopyArgs.Tidslinje): LovligOppholdGrunnlag = when (args) {
