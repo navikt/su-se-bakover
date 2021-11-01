@@ -13,18 +13,18 @@ import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.periodeJuli2021
 import no.nav.su.se.bakover.test.periodeJuni2021
 import no.nav.su.se.bakover.test.periodeMai2021
+import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 internal class OppholdIUtlandetVilkårTest {
     @Test
     fun `mapper behandlingsinformasjon for oppfylt til vilkår og grunnlag`() {
-        OppholdIUtlandetVilkår.tryCreate(
-            periode = periode2021,
-            oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
-                status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
-                begrunnelse = "jabadoo",
-            ),
+        Behandlingsinformasjon.OppholdIUtlandet(
+            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
+            begrunnelse = "jabadoo",
+        ).tilVilkår(
+            stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
         ).erLik(
             OppholdIUtlandetVilkår.Vurdert.tryCreate(
@@ -48,12 +48,11 @@ internal class OppholdIUtlandetVilkårTest {
 
     @Test
     fun `mapper behandlingsinformasjon for avslag til vilkår og grunnlag`() {
-        OppholdIUtlandetVilkår.tryCreate(
-            periode = periode2021,
-            oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
-                status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalVæreMerEnn90DagerIUtlandet,
-                begrunnelse = null,
-            ),
+        Behandlingsinformasjon.OppholdIUtlandet(
+            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalVæreMerEnn90DagerIUtlandet,
+            begrunnelse = null,
+        ).tilVilkår(
+            stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
         ).erLik(
             OppholdIUtlandetVilkår.Vurdert.tryCreate(
@@ -77,12 +76,11 @@ internal class OppholdIUtlandetVilkårTest {
 
     @Test
     fun `mapper behandlingsinformasjon for uavklart til vilkår og grunnlag`() {
-        OppholdIUtlandetVilkår.tryCreate(
-            periode = periode2021,
-            oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
-                status = Behandlingsinformasjon.OppholdIUtlandet.Status.Uavklart,
-                begrunnelse = null,
-            ),
+        Behandlingsinformasjon.OppholdIUtlandet(
+            status = Behandlingsinformasjon.OppholdIUtlandet.Status.Uavklart,
+            begrunnelse = null,
+        ).tilVilkår(
+            stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
         ).erLik(OppholdIUtlandetVilkår.IkkeVurdert) shouldBe true
     }

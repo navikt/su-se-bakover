@@ -403,6 +403,18 @@ internal class VilkårsvurderingerTest {
         }
 
         @Test
+        fun `periode for ikke vurderte vilkår`() {
+            Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert.periode shouldBe null
+            Vilkårsvurderinger.Revurdering.IkkeVurdert.periode shouldBe null
+        }
+
+        @Test
+        fun `periode for vurderte vilkår`() {
+            Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert.periode shouldBe null
+            Vilkårsvurderinger.Revurdering.IkkeVurdert.periode shouldBe null
+        }
+
+        @Test
         fun `likhet`() {
             val a = vilkårsvurderingerInnvilgetRevurdering()
             val b = vilkårsvurderingerInnvilgetRevurdering()

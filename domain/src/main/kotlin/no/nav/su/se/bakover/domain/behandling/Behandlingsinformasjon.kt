@@ -13,8 +13,14 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.FlyktningGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.LovligOppholdGrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.OppholdIUtlandetGrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -24,7 +30,14 @@ import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
+import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeLovligOpphold
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOppholdIUtlandet
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePersonligOppmøte
 import java.time.Clock
 import java.time.LocalDate
 import java.time.Period
@@ -155,11 +168,38 @@ data class Behandlingsinformasjon(
             stønadsperiode: Stønadsperiode,
             clock: Clock,
         ): FlyktningVilkår {
-            return FlyktningVilkår.tryCreate(
-                periode = stønadsperiode.periode,
-                flyktning = this,
-                clock = clock,
-            )
+            return when (status) {
+                Status.VilkårOppfylt,
+                Status.VilkårIkkeOppfylt,
+                -> {
+                    FlyktningVilkår.Vurdert.tryCreate(
+                        vurderingsperioder = nonEmptyListOf(
+                            VurderingsperiodeFlyktning.tryCreate(
+                                id = UUID.randomUUID(),
+                                opprettet = Tidspunkt.now(clock),
+                                resultat = when (erVilkårOppfylt()) {
+                                    true -> Resultat.Innvilget
+                                    false -> Resultat.Avslag
+                                },
+                                grunnlag = FlyktningGrunnlag.tryCreate(
+                                    id = UUID.randomUUID(),
+                                    opprettet = Tidspunkt.now(clock),
+                                    periode = stønadsperiode.periode,
+                                ).getOrHandle {
+                                    throw IllegalArgumentException("Kunne ikke instansiere ${FlyktningGrunnlag::class.simpleName}. Melding: $it")
+                                },
+                                vurderingsperiode = stønadsperiode.periode,
+                                begrunnelse = begrunnelse ?: "",
+                            ).getOrHandle {
+                                throw IllegalArgumentException("Kunne ikke instansiere ${VurderingsperiodeFlyktning::class.simpleName}. Melding: $it")
+                            },
+                        ),
+                    ).getOrHandle {
+                        throw IllegalArgumentException("Kunne ikke instansiere ${FlyktningVilkår.Vurdert::class.simpleName}. Melding: $it")
+                    }
+                }
+                Status.Uavklart -> FlyktningVilkår.IkkeVurdert
+            }
         }
     }
 
@@ -180,11 +220,38 @@ data class Behandlingsinformasjon(
             stønadsperiode: Stønadsperiode,
             clock: Clock,
         ): LovligOppholdVilkår {
-            return LovligOppholdVilkår.tryCreate(
-                periode = stønadsperiode.periode,
-                lovligOpphold = this,
-                clock = clock,
-            )
+            return when (status) {
+                Status.VilkårOppfylt,
+                Status.VilkårIkkeOppfylt,
+                -> {
+                    LovligOppholdVilkår.Vurdert.tryCreate(
+                        vurderingsperioder = nonEmptyListOf(
+                            VurderingsperiodeLovligOpphold.tryCreate(
+                                id = UUID.randomUUID(),
+                                opprettet = Tidspunkt.now(clock),
+                                resultat = when (erVilkårOppfylt()) {
+                                    true -> Resultat.Innvilget
+                                    false -> Resultat.Avslag
+                                },
+                                grunnlag = LovligOppholdGrunnlag.tryCreate(
+                                    id = UUID.randomUUID(),
+                                    opprettet = Tidspunkt.now(clock),
+                                    periode = stønadsperiode.periode,
+                                ).getOrHandle {
+                                    throw IllegalArgumentException("Kunne ikke instansiere ${LovligOppholdGrunnlag::class.simpleName}. Melding: $it")
+                                },
+                                vurderingsperiode = stønadsperiode.periode,
+                                begrunnelse = begrunnelse ?: "",
+                            ).getOrHandle {
+                                throw IllegalArgumentException("Kunne ikke instansiere ${VurderingsperiodeLovligOpphold::class.simpleName}. Melding: $it")
+                            },
+                        ),
+                    ).getOrHandle {
+                        throw IllegalArgumentException("Kunne ikke instansiere ${LovligOppholdVilkår.Vurdert::class.simpleName}. Melding: $it")
+                    }
+                }
+                Status.Uavklart -> LovligOppholdVilkår.IkkeVurdert
+            }
         }
     }
 
@@ -205,11 +272,38 @@ data class Behandlingsinformasjon(
             stønadsperiode: Stønadsperiode,
             clock: Clock,
         ): FastOppholdINorgeVilkår {
-            return FastOppholdINorgeVilkår.tryCreate(
-                periode = stønadsperiode.periode,
-                fastOpphold = this,
-                clock = clock,
-            )
+            return when (status) {
+                Status.VilkårOppfylt,
+                Status.VilkårIkkeOppfylt,
+                -> {
+                    FastOppholdINorgeVilkår.Vurdert.tryCreate(
+                        vurderingsperioder = nonEmptyListOf(
+                            VurderingsperiodeFastOppholdINorge.tryCreate(
+                                id = UUID.randomUUID(),
+                                opprettet = Tidspunkt.now(clock),
+                                resultat = when (erVilkårOppfylt()) {
+                                    true -> Resultat.Innvilget
+                                    false -> Resultat.Avslag
+                                },
+                                grunnlag = FastOppholdINorgeGrunnlag.tryCreate(
+                                    id = UUID.randomUUID(),
+                                    opprettet = Tidspunkt.now(clock),
+                                    periode = stønadsperiode.periode,
+                                ).getOrHandle {
+                                    throw IllegalArgumentException("Kunne ikke instansiere ${FastOppholdINorgeGrunnlag::class.simpleName}. Melding: $it")
+                                },
+                                vurderingsperiode = stønadsperiode.periode,
+                                begrunnelse = begrunnelse ?: "",
+                            ).getOrHandle {
+                                throw IllegalArgumentException("Kunne ikke instansiere ${VurderingsperiodeFastOppholdINorge::class.simpleName}. Melding: $it")
+                            },
+                        ),
+                    ).getOrHandle {
+                        throw IllegalArgumentException("Kunne ikke instansiere ${FastOppholdINorgeVilkår.Vurdert::class.simpleName}. Melding: $it")
+                    }
+                }
+                Status.Uavklart -> FastOppholdINorgeVilkår.IkkeVurdert
+            }
         }
     }
 
@@ -230,11 +324,38 @@ data class Behandlingsinformasjon(
             stønadsperiode: Stønadsperiode,
             clock: Clock,
         ): InstitusjonsoppholdVilkår {
-            return InstitusjonsoppholdVilkår.tryCreate(
-                periode = stønadsperiode.periode,
-                institusjonsopphold = this,
-                clock = clock,
-            )
+            return when (status) {
+                Status.VilkårOppfylt,
+                Status.VilkårIkkeOppfylt,
+                -> {
+                    InstitusjonsoppholdVilkår.Vurdert.tryCreate(
+                        vurderingsperioder = nonEmptyListOf(
+                            VurderingsperiodeInstitusjonsopphold.tryCreate(
+                                id = UUID.randomUUID(),
+                                opprettet = Tidspunkt.now(clock),
+                                resultat = when (erVilkårOppfylt()) {
+                                    true -> Resultat.Innvilget
+                                    false -> Resultat.Avslag
+                                },
+                                grunnlag = InstitusjonsoppholdGrunnlag.tryCreate(
+                                    id = UUID.randomUUID(),
+                                    opprettet = Tidspunkt.now(clock),
+                                    periode = stønadsperiode.periode,
+                                ).getOrHandle {
+                                    throw IllegalArgumentException("Kunne ikke instansiere ${InstitusjonsoppholdGrunnlag::class.simpleName}. Melding: $it")
+                                },
+                                vurderingsperiode = stønadsperiode.periode,
+                                begrunnelse = begrunnelse ?: "",
+                            ).getOrHandle {
+                                throw IllegalArgumentException("Kunne ikke instansiere ${VurderingsperiodeInstitusjonsopphold::class.simpleName}. Melding: $it")
+                            },
+                        ),
+                    ).getOrHandle {
+                        throw IllegalArgumentException("Kunne ikke instansiere ${InstitusjonsoppholdVilkår.Vurdert::class.simpleName}. Melding: $it")
+                    }
+                }
+                Status.Uavklart -> InstitusjonsoppholdVilkår.IkkeVurdert
+            }
         }
     }
 
@@ -255,11 +376,38 @@ data class Behandlingsinformasjon(
             stønadsperiode: Stønadsperiode,
             clock: Clock,
         ): OppholdIUtlandetVilkår {
-            return OppholdIUtlandetVilkår.tryCreate(
-                periode = stønadsperiode.periode,
-                oppholdIUtlandet = this,
-                clock = clock,
-            )
+            return when (status) {
+                Status.SkalHoldeSegINorge,
+                Status.SkalVæreMerEnn90DagerIUtlandet,
+                -> {
+                    OppholdIUtlandetVilkår.Vurdert.tryCreate(
+                        vurderingsperioder = nonEmptyListOf(
+                            VurderingsperiodeOppholdIUtlandet.tryCreate(
+                                id = UUID.randomUUID(),
+                                opprettet = Tidspunkt.now(clock),
+                                resultat = when (erVilkårOppfylt()) {
+                                    true -> Resultat.Innvilget
+                                    false -> Resultat.Avslag
+                                },
+                                grunnlag = OppholdIUtlandetGrunnlag.tryCreate(
+                                    id = UUID.randomUUID(),
+                                    opprettet = Tidspunkt.now(clock),
+                                    periode = stønadsperiode.periode,
+                                ).getOrHandle {
+                                    throw IllegalArgumentException("Kunne ikke instansiere ${OppholdIUtlandetGrunnlag::class.simpleName}. Melding: $it")
+                                },
+                                vurderingsperiode = stønadsperiode.periode,
+                                begrunnelse = begrunnelse ?: "",
+                            ).getOrHandle {
+                                throw IllegalArgumentException("Kunne ikke instansiere ${VurderingsperiodeOppholdIUtlandet::class.simpleName}. Melding: $it")
+                            },
+                        ),
+                    ).getOrHandle {
+                        throw IllegalArgumentException("Kunne ikke instansiere ${OppholdIUtlandetVilkår.Vurdert::class.simpleName}. Melding: $it")
+                    }
+                }
+                Status.Uavklart -> OppholdIUtlandetVilkår.IkkeVurdert
+            }
         }
     }
 
@@ -387,11 +535,42 @@ data class Behandlingsinformasjon(
             stønadsperiode: Stønadsperiode,
             clock: Clock,
         ): PersonligOppmøteVilkår {
-            return PersonligOppmøteVilkår.tryCreate(
-                periode = stønadsperiode.periode,
-                personligOppmøte = this,
-                clock = clock,
-            )
+            return when (status) {
+                Status.MøttPersonlig,
+                Status.IkkeMøttMenVerge,
+                Status.IkkeMøttMenSykMedLegeerklæringOgFullmakt,
+                Status.IkkeMøttMenKortvarigSykMedLegeerklæring,
+                Status.IkkeMøttMenMidlertidigUnntakFraOppmøteplikt,
+                Status.IkkeMøttPersonlig,
+                -> {
+                    PersonligOppmøteVilkår.Vurdert.tryCreate(
+                        vurderingsperioder = nonEmptyListOf(
+                            VurderingsperiodePersonligOppmøte.tryCreate(
+                                id = UUID.randomUUID(),
+                                opprettet = Tidspunkt.now(clock),
+                                resultat = when (erVilkårOppfylt()) {
+                                    true -> Resultat.Innvilget
+                                    false -> Resultat.Avslag
+                                },
+                                grunnlag = PersonligOppmøteGrunnlag.tryCreate(
+                                    id = UUID.randomUUID(),
+                                    opprettet = Tidspunkt.now(clock),
+                                    periode = stønadsperiode.periode,
+                                ).getOrHandle {
+                                    throw IllegalArgumentException("Kunne ikke instansiere ${PersonligOppmøteGrunnlag::class.simpleName}. Melding: $it")
+                                },
+                                vurderingsperiode = stønadsperiode.periode,
+                                begrunnelse = begrunnelse ?: "",
+                            ).getOrHandle {
+                                throw IllegalArgumentException("Kunne ikke instansiere ${VurderingsperiodePersonligOppmøte::class.simpleName}. Melding: $it")
+                            },
+                        ),
+                    ).getOrHandle {
+                        throw IllegalArgumentException("Kunne ikke instansiere ${PersonligOppmøteVilkår.Vurdert::class.simpleName}. Melding: $it")
+                    }
+                }
+                Status.Uavklart -> PersonligOppmøteVilkår.IkkeVurdert
+            }
         }
     }
 

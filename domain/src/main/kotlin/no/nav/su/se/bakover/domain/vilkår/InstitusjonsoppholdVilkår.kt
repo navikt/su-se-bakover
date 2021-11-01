@@ -4,18 +4,15 @@ import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrHandle
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.overlappende
 import no.nav.su.se.bakover.domain.CopyArgs
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
-import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -25,47 +22,6 @@ sealed class InstitusjonsoppholdVilkår : Vilkår() {
 
     abstract override fun lagTidslinje(periode: Periode): InstitusjonsoppholdVilkår
     abstract override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): InstitusjonsoppholdVilkår
-
-    companion object {
-        fun tryCreate(
-            periode: Periode,
-            institusjonsopphold: Behandlingsinformasjon.Institusjonsopphold,
-            clock: Clock,
-        ): InstitusjonsoppholdVilkår {
-            return when (institusjonsopphold.status) {
-                Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
-                Behandlingsinformasjon.Institusjonsopphold.Status.VilkårIkkeOppfylt,
-                -> {
-                    Vurdert.tryCreate(
-                        vurderingsperioder = nonEmptyListOf(
-                            VurderingsperiodeInstitusjonsopphold.tryCreate(
-                                id = UUID.randomUUID(),
-                                opprettet = Tidspunkt.now(clock),
-                                resultat = when (institusjonsopphold.erVilkårOppfylt()) {
-                                    true -> Resultat.Innvilget
-                                    false -> Resultat.Avslag
-                                },
-                                grunnlag = InstitusjonsoppholdGrunnlag.tryCreate(
-                                    id = UUID.randomUUID(),
-                                    opprettet = Tidspunkt.now(clock),
-                                    periode = periode,
-                                ).getOrHandle {
-                                    throw IllegalArgumentException("Kunne ikke instansiere ${InstitusjonsoppholdGrunnlag::class.simpleName}. Melding: $it")
-                                },
-                                vurderingsperiode = periode,
-                                begrunnelse = institusjonsopphold.begrunnelse ?: "",
-                            ).getOrHandle {
-                                throw IllegalArgumentException("Kunne ikke instansiere ${VurderingsperiodeInstitusjonsopphold::class.simpleName}. Melding: $it")
-                            },
-                        ),
-                    ).getOrHandle {
-                        throw IllegalArgumentException("Kunne ikke instansiere ${Vurdert::class.simpleName}. Melding: $it")
-                    }
-                }
-                Behandlingsinformasjon.Institusjonsopphold.Status.Uavklart -> IkkeVurdert
-            }
-        }
-    }
 
     object IkkeVurdert : InstitusjonsoppholdVilkår() {
         override val resultat: Resultat = Resultat.Uavklart

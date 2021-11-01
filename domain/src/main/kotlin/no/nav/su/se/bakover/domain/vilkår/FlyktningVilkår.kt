@@ -4,18 +4,15 @@ import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrHandle
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.overlappende
 import no.nav.su.se.bakover.domain.CopyArgs
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.FlyktningGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
-import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -25,47 +22,6 @@ sealed class FlyktningVilkår : Vilkår() {
 
     abstract override fun lagTidslinje(periode: Periode): FlyktningVilkår
     abstract override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FlyktningVilkår
-
-    companion object {
-        fun tryCreate(
-            periode: Periode,
-            flyktning: Behandlingsinformasjon.Flyktning,
-            clock: Clock,
-        ): FlyktningVilkår {
-            return when (flyktning.status) {
-                Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-                Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
-                -> {
-                    Vurdert.tryCreate(
-                        vurderingsperioder = nonEmptyListOf(
-                            VurderingsperiodeFlyktning.tryCreate(
-                                id = UUID.randomUUID(),
-                                opprettet = Tidspunkt.now(clock),
-                                resultat = when (flyktning.erVilkårOppfylt()) {
-                                    true -> Resultat.Innvilget
-                                    false -> Resultat.Avslag
-                                },
-                                grunnlag = FlyktningGrunnlag.tryCreate(
-                                    id = UUID.randomUUID(),
-                                    opprettet = Tidspunkt.now(clock),
-                                    periode = periode,
-                                ).getOrHandle {
-                                    throw IllegalArgumentException("Kunne ikke instansiere ${FlyktningGrunnlag::class.simpleName}. Melding: $it")
-                                },
-                                vurderingsperiode = periode,
-                                begrunnelse = flyktning.begrunnelse ?: "",
-                            ).getOrHandle {
-                                throw IllegalArgumentException("Kunne ikke instansiere ${VurderingsperiodeFlyktning::class.simpleName}. Melding: $it")
-                            },
-                        ),
-                    ).getOrHandle {
-                        throw IllegalArgumentException("Kunne ikke instansiere ${Vurdert::class.simpleName}. Melding: $it")
-                    }
-                }
-                Behandlingsinformasjon.Flyktning.Status.Uavklart -> IkkeVurdert
-            }
-        }
-    }
 
     object IkkeVurdert : FlyktningVilkår() {
         override val resultat: Resultat = Resultat.Uavklart

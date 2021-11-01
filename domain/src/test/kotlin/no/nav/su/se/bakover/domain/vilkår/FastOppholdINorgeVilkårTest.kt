@@ -13,19 +13,19 @@ import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.periodeJuli2021
 import no.nav.su.se.bakover.test.periodeJuni2021
 import no.nav.su.se.bakover.test.periodeMai2021
+import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 internal class FastOppholdINorgeVilkårTest {
     @Test
     fun `mapper behandlingsinformasjon for oppfylt til vilkår og grunnlag`() {
-        FastOppholdINorgeVilkår.tryCreate(
-            periode = periode2021,
-            fastOpphold = Behandlingsinformasjon.FastOppholdINorge(
-                status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
-                begrunnelse = "jabadoo",
-            ),
-            clock = fixedClock,
+        Behandlingsinformasjon.FastOppholdINorge(
+            status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
+            begrunnelse = "jabadoo",
+        ).tilVilkår(
+            stønadsperiode = stønadsperiode2021,
+            clock = fixedClock
         ).erLik(
             FastOppholdINorgeVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
@@ -48,13 +48,12 @@ internal class FastOppholdINorgeVilkårTest {
 
     @Test
     fun `mapper behandlingsinformasjon for avslag til vilkår og grunnlag`() {
-        FastOppholdINorgeVilkår.tryCreate(
-            periode = periode2021,
-            fastOpphold = Behandlingsinformasjon.FastOppholdINorge(
-                status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårIkkeOppfylt,
-                begrunnelse = null,
-            ),
-            clock = fixedClock,
+        Behandlingsinformasjon.FastOppholdINorge(
+            status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårIkkeOppfylt,
+            begrunnelse = null,
+        ).tilVilkår(
+            stønadsperiode = stønadsperiode2021,
+            clock = fixedClock
         ).erLik(
             FastOppholdINorgeVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
@@ -77,13 +76,12 @@ internal class FastOppholdINorgeVilkårTest {
 
     @Test
     fun `mapper behandlingsinformasjon for uavklart til vilkår og grunnlag`() {
-        FastOppholdINorgeVilkår.tryCreate(
-            periode = periode2021,
-            fastOpphold = Behandlingsinformasjon.FastOppholdINorge(
-                status = Behandlingsinformasjon.FastOppholdINorge.Status.Uavklart,
-                begrunnelse = null,
-            ),
-            clock = fixedClock,
+        Behandlingsinformasjon.FastOppholdINorge(
+            status = Behandlingsinformasjon.FastOppholdINorge.Status.Uavklart,
+            begrunnelse = null,
+        ).tilVilkår(
+            stønadsperiode = stønadsperiode2021,
+            clock = fixedClock
         ).erLik(FastOppholdINorgeVilkår.IkkeVurdert) shouldBe true
     }
 

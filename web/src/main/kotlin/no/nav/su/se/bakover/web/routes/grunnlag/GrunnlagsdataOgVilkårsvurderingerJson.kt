@@ -30,16 +30,15 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
 internal fun Vilkårsvurderinger.uføreJson(): UføreVilkårJson? {
     return when (this) {
         is Vilkårsvurderinger.Revurdering -> {
-            when (uføre) {
+            when (val v = uføre) {
                 Vilkår.Uførhet.IkkeVurdert -> null
-                // TODO hva skyldes problem med smart cast her?
-                is Vilkår.Uførhet.Vurdert -> (uføre as Vilkår.Uførhet.Vurdert).toJson()
+                is Vilkår.Uførhet.Vurdert -> v.toJson()
             }
         }
         is Vilkårsvurderinger.Søknadsbehandling -> {
-            when (uføre) {
+            when (val v = uføre) {
                 Vilkår.Uførhet.IkkeVurdert -> null
-                is Vilkår.Uførhet.Vurdert -> (uføre as Vilkår.Uførhet.Vurdert).toJson()
+                is Vilkår.Uførhet.Vurdert -> v.toJson()
             }
         }
     }

@@ -63,51 +63,53 @@ fun Nel<Vurderingsperiode>.erLik(other: Nel<Vurderingsperiode>): Boolean {
 sealed class Vilkårsvurderinger {
     abstract val vilkår: Set<Vilkår>
 
-    val periode: Periode? by lazy {
-        vilkår.flatMap { vilkår ->
-            when (vilkår) {
-                is FastOppholdINorgeVilkår.Vurdert -> {
-                    vilkår.vurderingsperioder.map { it.periode }
+    val periode: Periode?
+        get() {
+            return vilkår.flatMap { vilkår ->
+                when (vilkår) {
+                    is FastOppholdINorgeVilkår.Vurdert -> {
+                        vilkår.vurderingsperioder.map { it.periode }
+                    }
+                    is FlyktningVilkår.Vurdert -> {
+                        vilkår.vurderingsperioder.map { it.periode }
+                    }
+                    is Vilkår.Formue.Vurdert -> {
+                        vilkår.vurderingsperioder.map { it.periode }
+                    }
+                    is InstitusjonsoppholdVilkår.Vurdert -> {
+                        vilkår.vurderingsperioder.map { it.periode }
+                    }
+                    is LovligOppholdVilkår.Vurdert -> {
+                        vilkår.vurderingsperioder.map { it.periode }
+                    }
+                    is OppholdIUtlandetVilkår.Vurdert -> {
+                        vilkår.vurderingsperioder.map { it.periode }
+                    }
+                    is PersonligOppmøteVilkår.Vurdert -> {
+                        vilkår.vurderingsperioder.map { it.periode }
+                    }
+                    is Vilkår.Uførhet.Vurdert -> {
+                        vilkår.vurderingsperioder.map { it.periode }
+                    }
+                    else -> emptyList()
                 }
-                is FlyktningVilkår.Vurdert -> {
-                    vilkår.vurderingsperioder.map { it.periode }
-                }
-                is Vilkår.Formue.Vurdert -> {
-                    vilkår.vurderingsperioder.map { it.periode }
-                }
-                is InstitusjonsoppholdVilkår.Vurdert -> {
-                    vilkår.vurderingsperioder.map { it.periode }
-                }
-                is LovligOppholdVilkår.Vurdert -> {
-                    vilkår.vurderingsperioder.map { it.periode }
-                }
-                is OppholdIUtlandetVilkår.Vurdert -> {
-                    vilkår.vurderingsperioder.map { it.periode }
-                }
-                is PersonligOppmøteVilkår.Vurdert -> {
-                    vilkår.vurderingsperioder.map { it.periode }
-                }
-                is Vilkår.Uførhet.Vurdert -> {
-                    vilkår.vurderingsperioder.map { it.periode }
-                }
-                else -> emptyList()
-            }
-        }.ifNotEmpty { this.minAndMaxOf() }
-    }
+            }.ifNotEmpty { this.minAndMaxOf() }
+        }
 
-    val resultat: Vilkårsvurderingsresultat by lazy {
-        when {
-            vilkår.all { it.resultat is Resultat.Innvilget } -> {
-                Vilkårsvurderingsresultat.Innvilget(vilkår)
-            }
-            vilkår.any { it.resultat is Resultat.Avslag } -> {
-                Vilkårsvurderingsresultat.Avslag(vilkår.filter { it.resultat is Resultat.Avslag }.toSet())
-            }
-            else -> {
-                Vilkårsvurderingsresultat.Uavklart(vilkår.filter { it.resultat is Resultat.Uavklart }.toSet())
+    val resultat: Vilkårsvurderingsresultat
+        get() {
+            return when {
+                vilkår.all { it.resultat is Resultat.Innvilget } -> {
+                    Vilkårsvurderingsresultat.Innvilget(vilkår)
+                }
+                vilkår.any { it.resultat is Resultat.Avslag } -> {
+                    Vilkårsvurderingsresultat.Avslag(vilkår.filter { it.resultat is Resultat.Avslag }.toSet())
+                }
+                else -> {
+                    Vilkårsvurderingsresultat.Uavklart(vilkår.filter { it.resultat is Resultat.Uavklart }.toSet())
+                }
             }
         }
-    }
 
     abstract fun lagTidslinje(periode: Periode): Vilkårsvurderinger
 
@@ -488,7 +490,7 @@ sealed class Vilkår {
             }
 
             override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Uførhet {
-                check(vurderingsperioder.count() == 1)
+                check(vurderingsperioder.size == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn èn vurdering" }
                 return this.copy(
                     vurderingsperioder = this.vurderingsperioder.map {
                         it.oppdaterStønadsperiode(stønadsperiode)
@@ -546,9 +548,7 @@ sealed class Vilkår {
             val vurderingsperioder: Nel<Vurderingsperiode.Formue>,
         ) : Formue() {
             override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue {
-                if (this.vurderingsperioder.size > 1) {
-                    throw IllegalStateException("kan ikke oppdatere stønadsperiode for formue vilkår som har mer enn èn vurdering")
-                }
+                check(vurderingsperioder.size == 1) { "Kan ikke oppdatere stønadsperiode for vilkår med med enn èn vurdering" }
                 return this.copy(
                     vurderingsperioder = this.vurderingsperioder.map {
                         it.oppdaterStønadsperiode(stønadsperiode)

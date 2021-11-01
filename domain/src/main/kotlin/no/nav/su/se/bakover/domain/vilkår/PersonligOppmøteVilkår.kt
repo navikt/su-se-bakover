@@ -4,18 +4,15 @@ import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrHandle
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.overlappende
 import no.nav.su.se.bakover.domain.CopyArgs
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
-import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -25,51 +22,6 @@ sealed class PersonligOppmøteVilkår : Vilkår() {
 
     abstract override fun lagTidslinje(periode: Periode): PersonligOppmøteVilkår
     abstract override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): PersonligOppmøteVilkår
-
-    companion object {
-        fun tryCreate(
-            periode: Periode,
-            personligOppmøte: Behandlingsinformasjon.PersonligOppmøte,
-            clock: Clock,
-        ): PersonligOppmøteVilkår {
-            return when (personligOppmøte.status) {
-                Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
-                Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttMenVerge,
-                Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttMenSykMedLegeerklæringOgFullmakt,
-                Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttMenKortvarigSykMedLegeerklæring,
-                Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttMenMidlertidigUnntakFraOppmøteplikt,
-                Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttPersonlig,
-                -> {
-                    Vurdert.tryCreate(
-                        vurderingsperioder = nonEmptyListOf(
-                            VurderingsperiodePersonligOppmøte.tryCreate(
-                                id = UUID.randomUUID(),
-                                opprettet = Tidspunkt.now(clock),
-                                resultat = when (personligOppmøte.erVilkårOppfylt()) {
-                                    true -> Resultat.Innvilget
-                                    false -> Resultat.Avslag
-                                },
-                                grunnlag = PersonligOppmøteGrunnlag.tryCreate(
-                                    id = UUID.randomUUID(),
-                                    opprettet = Tidspunkt.now(clock),
-                                    periode = periode,
-                                ).getOrHandle {
-                                    throw IllegalArgumentException("Kunne ikke instansiere ${PersonligOppmøteGrunnlag::class.simpleName}. Melding: $it")
-                                },
-                                vurderingsperiode = periode,
-                                begrunnelse = personligOppmøte.begrunnelse ?: "",
-                            ).getOrHandle {
-                                throw IllegalArgumentException("Kunne ikke instansiere ${VurderingsperiodePersonligOppmøte::class.simpleName}. Melding: $it")
-                            },
-                        ),
-                    ).getOrHandle {
-                        throw IllegalArgumentException("Kunne ikke instansiere ${Vurdert::class.simpleName}. Melding: $it")
-                    }
-                }
-                Behandlingsinformasjon.PersonligOppmøte.Status.Uavklart -> IkkeVurdert
-            }
-        }
-    }
 
     object IkkeVurdert : PersonligOppmøteVilkår() {
         override val resultat: Resultat = Resultat.Uavklart

@@ -13,18 +13,18 @@ import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.periodeJuli2021
 import no.nav.su.se.bakover.test.periodeJuni2021
 import no.nav.su.se.bakover.test.periodeMai2021
+import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 internal class InstitusjonsoppholdVilkårTest {
     @Test
     fun `mapper behandlingsinformasjon for oppfylt til vilkår og grunnlag`() {
-        InstitusjonsoppholdVilkår.tryCreate(
-            periode = periode2021,
-            institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
-                status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
-                begrunnelse = "jabadoo",
-            ),
+        Behandlingsinformasjon.Institusjonsopphold(
+            status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
+            begrunnelse = "jabadoo",
+        ).tilVilkår(
+            stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
         ).erLik(
             InstitusjonsoppholdVilkår.Vurdert.tryCreate(
@@ -48,12 +48,11 @@ internal class InstitusjonsoppholdVilkårTest {
 
     @Test
     fun `mapper behandlingsinformasjon for avslag til vilkår og grunnlag`() {
-        InstitusjonsoppholdVilkår.tryCreate(
-            periode = periode2021,
-            institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
-                status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårIkkeOppfylt,
-                begrunnelse = null,
-            ),
+        Behandlingsinformasjon.Institusjonsopphold(
+            status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårIkkeOppfylt,
+            begrunnelse = null,
+        ).tilVilkår(
+            stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
         ).erLik(
             InstitusjonsoppholdVilkår.Vurdert.tryCreate(
@@ -77,12 +76,11 @@ internal class InstitusjonsoppholdVilkårTest {
 
     @Test
     fun `mapper behandlingsinformasjon for uavklart til vilkår og grunnlag`() {
-        InstitusjonsoppholdVilkår.tryCreate(
-            periode = periode2021,
-            institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
-                status = Behandlingsinformasjon.Institusjonsopphold.Status.Uavklart,
-                begrunnelse = null,
-            ),
+        Behandlingsinformasjon.Institusjonsopphold(
+            status = Behandlingsinformasjon.Institusjonsopphold.Status.Uavklart,
+            begrunnelse = null,
+        ).tilVilkår(
+            stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
         ).erLik(InstitusjonsoppholdVilkår.IkkeVurdert) shouldBe true
     }

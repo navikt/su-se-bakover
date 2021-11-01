@@ -4,18 +4,15 @@ import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrHandle
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.overlappende
 import no.nav.su.se.bakover.domain.CopyArgs
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
-import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -25,47 +22,6 @@ sealed class FastOppholdINorgeVilkår : Vilkår() {
 
     abstract override fun lagTidslinje(periode: Periode): FastOppholdINorgeVilkår
     abstract override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): FastOppholdINorgeVilkår
-
-    companion object {
-        fun tryCreate(
-            periode: Periode,
-            fastOpphold: Behandlingsinformasjon.FastOppholdINorge,
-            clock: Clock,
-        ): FastOppholdINorgeVilkår {
-            return when (fastOpphold.status) {
-                Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
-                Behandlingsinformasjon.FastOppholdINorge.Status.VilkårIkkeOppfylt,
-                -> {
-                    Vurdert.tryCreate(
-                        vurderingsperioder = nonEmptyListOf(
-                            VurderingsperiodeFastOppholdINorge.tryCreate(
-                                id = UUID.randomUUID(),
-                                opprettet = Tidspunkt.now(clock),
-                                resultat = when (fastOpphold.erVilkårOppfylt()) {
-                                    true -> Resultat.Innvilget
-                                    false -> Resultat.Avslag
-                                },
-                                grunnlag = FastOppholdINorgeGrunnlag.tryCreate(
-                                    id = UUID.randomUUID(),
-                                    opprettet = Tidspunkt.now(clock),
-                                    periode = periode,
-                                ).getOrHandle {
-                                    throw IllegalArgumentException("Kunne ikke instansiere ${FastOppholdINorgeGrunnlag::class.simpleName}. Melding: $it")
-                                },
-                                vurderingsperiode = periode,
-                                begrunnelse = fastOpphold.begrunnelse ?: "",
-                            ).getOrHandle {
-                                throw IllegalArgumentException("Kunne ikke instansiere ${VurderingsperiodeFastOppholdINorge::class.simpleName}. Melding: $it")
-                            },
-                        ),
-                    ).getOrHandle {
-                        throw IllegalArgumentException("Kunne ikke instansiere ${Vurdert::class.simpleName}. Melding: $it")
-                    }
-                }
-                Behandlingsinformasjon.FastOppholdINorge.Status.Uavklart -> IkkeVurdert
-            }
-        }
-    }
 
     object IkkeVurdert : FastOppholdINorgeVilkår() {
         override val resultat: Resultat = Resultat.Uavklart

@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.periodeJuli2021
 import no.nav.su.se.bakover.test.periodeJuni2021
 import no.nav.su.se.bakover.test.periodeMai2021
+import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -23,12 +24,11 @@ internal class PersonligOppmøteVilkårTest {
             .minus(Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttPersonlig)
             .minus(Behandlingsinformasjon.PersonligOppmøte.Status.Uavklart)
             .forEach {
-                PersonligOppmøteVilkår.tryCreate(
-                    periode = periode2021,
-                    personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
-                        status = it,
-                        begrunnelse = "jabadoo",
-                    ),
+                Behandlingsinformasjon.PersonligOppmøte(
+                    status = it,
+                    begrunnelse = "jabadoo",
+                ).tilVilkår(
+                    stønadsperiode = stønadsperiode2021,
                     clock = fixedClock,
                 ).erLik(
                     PersonligOppmøteVilkår.Vurdert.tryCreate(
@@ -53,12 +53,11 @@ internal class PersonligOppmøteVilkårTest {
 
     @Test
     fun `mapper behandlingsinformasjon for avslag til vilkår og grunnlag`() {
-        PersonligOppmøteVilkår.tryCreate(
-            periode = periode2021,
-            personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
-                status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttPersonlig,
-                begrunnelse = null,
-            ),
+        Behandlingsinformasjon.PersonligOppmøte(
+            status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttPersonlig,
+            begrunnelse = null,
+        ).tilVilkår(
+            stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
         ).erLik(
             PersonligOppmøteVilkår.Vurdert.tryCreate(
@@ -82,12 +81,11 @@ internal class PersonligOppmøteVilkårTest {
 
     @Test
     fun `mapper behandlingsinformasjon for uavklart til vilkår og grunnlag`() {
-        PersonligOppmøteVilkår.tryCreate(
-            periode = periode2021,
-            personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
-                status = Behandlingsinformasjon.PersonligOppmøte.Status.Uavklart,
-                begrunnelse = null,
-            ),
+        Behandlingsinformasjon.PersonligOppmøte(
+            status = Behandlingsinformasjon.PersonligOppmøte.Status.Uavklart,
+            begrunnelse = null,
+        ).tilVilkår(
+            stønadsperiode = stønadsperiode2021,
             clock = fixedClock,
         ).erLik(PersonligOppmøteVilkår.IkkeVurdert) shouldBe true
     }
