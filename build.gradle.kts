@@ -50,7 +50,7 @@ allprojects {
 
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.3.0")
         implementation("io.confluent:kafka-avro-serializer:6.2.1")
-        implementation("org.apache.avro:avro:1.10.2")
+        implementation("org.apache.avro:avro:1.11.0")
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 
@@ -58,7 +58,7 @@ allprojects {
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
         testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
         testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
-        testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.0.3")
+        testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.1.1")
         testImplementation("io.kotest:kotest-extensions:$kotestVersion")
         testImplementation("org.skyscreamer:jsonassert:1.5.0")
         testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
