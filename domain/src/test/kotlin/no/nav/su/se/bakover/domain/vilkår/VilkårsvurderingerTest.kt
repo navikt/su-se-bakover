@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.vilkår
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -12,11 +13,16 @@ import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
+import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.periodeJuli2021
 import no.nav.su.se.bakover.test.periodeMai2021
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttAlle
@@ -191,6 +197,100 @@ internal class VilkårsvurderingerTest {
             a shouldBe b
             (a == b) shouldBe true
             a.erLik(b) shouldBe true
+        }
+
+        @Test
+        fun `oppdaterer vilkårsvurderinger med informasjon fra behandlingsinformasjon`() {
+            val innvilget = vilkårsvurderingerInnvilget()
+            innvilget.resultat shouldBe beOfType<Vilkårsvurderingsresultat.Innvilget>()
+
+            innvilget.oppdater(
+                stønadsperiode = Stønadsperiode.create(periode2021, ""),
+                behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
+                grunnlagsdata = Grunnlagsdata.create(
+                    fradragsgrunnlag = emptyList(),
+                    bosituasjon = listOf(bosituasjongrunnlagEnslig(periode2021)),
+                ),
+                clock = fixedClock,
+            ).let {
+                it.resultat shouldBe Vilkårsvurderingsresultat.Avslag(
+                    vilkår = setOf(it.flyktning),
+                )
+            }
+        }
+
+        @Test
+        fun `ignorerer uføre, bosituasjon og null fra behandlingsinformasjon ved oppdatering`() {
+            val uavklart = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert
+
+            uavklart.resultat shouldBe beOfType<Vilkårsvurderingsresultat.Uavklart>()
+
+            val behandlingsinformasjon = Behandlingsinformasjon
+                .lagTomBehandlingsinformasjon()
+                .copy(
+                    uførhet = Behandlingsinformasjon.Uførhet(
+                        status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
+                        uføregrad = 20,
+                        forventetInntekt = 10,
+                        begrunnelse = "",
+                    ),
+                    bosituasjon = Behandlingsinformasjon.Bosituasjon(
+                        ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
+                        delerBolig = true,
+                        ektemakeEllerSamboerUførFlyktning = true,
+                        begrunnelse = "",
+                    ),
+                )
+
+            uavklart.oppdater(
+                stønadsperiode = Stønadsperiode.create(periode2021, ""),
+                behandlingsinformasjon = behandlingsinformasjon,
+                grunnlagsdata = Grunnlagsdata.IkkeVurdert,
+                clock = fixedClock,
+            ) shouldBe uavklart
+        }
+
+        @Test
+        fun `legg til erstatter eksisternde vilkår med nytt`() {
+            val innvilget = vilkårsvurderingerInnvilget()
+            val uavklart = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert
+
+            uavklart.vilkår shouldBe setOf(
+                Vilkår.Uførhet.IkkeVurdert,
+                Vilkår.Formue.IkkeVurdert,
+                FlyktningVilkår.IkkeVurdert,
+                LovligOppholdVilkår.IkkeVurdert,
+                FastOppholdINorgeVilkår.IkkeVurdert,
+                InstitusjonsoppholdVilkår.IkkeVurdert,
+                OppholdIUtlandetVilkår.IkkeVurdert,
+                PersonligOppmøteVilkår.IkkeVurdert,
+            )
+
+            val uavklartMedUføre = uavklart.leggTil(innvilget.uføre)
+
+            uavklartMedUføre.vilkår shouldBe setOf(
+                innvilget.uføre,
+                Vilkår.Formue.IkkeVurdert,
+                FlyktningVilkår.IkkeVurdert,
+                LovligOppholdVilkår.IkkeVurdert,
+                FastOppholdINorgeVilkår.IkkeVurdert,
+                InstitusjonsoppholdVilkår.IkkeVurdert,
+                OppholdIUtlandetVilkår.IkkeVurdert,
+                PersonligOppmøteVilkår.IkkeVurdert,
+            )
+
+            val uavklartUtenUføreIgjen = uavklartMedUføre.leggTil(uavklart.uføre)
+
+            uavklartUtenUføreIgjen.vilkår shouldBe setOf(
+                Vilkår.Uførhet.IkkeVurdert,
+                Vilkår.Formue.IkkeVurdert,
+                FlyktningVilkår.IkkeVurdert,
+                LovligOppholdVilkår.IkkeVurdert,
+                FastOppholdINorgeVilkår.IkkeVurdert,
+                InstitusjonsoppholdVilkår.IkkeVurdert,
+                OppholdIUtlandetVilkår.IkkeVurdert,
+                PersonligOppmøteVilkår.IkkeVurdert,
+            )
         }
     }
 
