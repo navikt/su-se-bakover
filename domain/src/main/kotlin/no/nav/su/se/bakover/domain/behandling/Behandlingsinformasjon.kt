@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
-import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import java.time.Clock
 import java.time.LocalDate
@@ -54,10 +53,6 @@ data class Behandlingsinformasjon(
         formue,
         personligOppmøte,
     )
-    private val allBehandlingsinformasjon: List<Base?>
-        get() {
-            return vilkår + bosituasjon + ektefelle
-        }
 
     fun patch(
         b: Behandlingsinformasjon,
@@ -471,45 +466,6 @@ data class Behandlingsinformasjon(
         )
     }
 
-    fun oppdaterFormue(
-        vilkår: Vilkår.Formue.Vurdert,
-    ): Behandlingsinformasjon {
-        val verdier = Formue.Verdier(
-            verdiIkkePrimærbolig = vilkår.grunnlag.first().søkersFormue.verdiIkkePrimærbolig,
-            verdiEiendommer = vilkår.grunnlag.first().søkersFormue.verdiEiendommer,
-            verdiKjøretøy = vilkår.grunnlag.first().søkersFormue.verdiKjøretøy,
-            innskudd = vilkår.grunnlag.first().søkersFormue.innskudd,
-            verdipapir = vilkår.grunnlag.first().søkersFormue.verdipapir,
-            pengerSkyldt = vilkår.grunnlag.first().søkersFormue.pengerSkyldt,
-            kontanter = vilkår.grunnlag.first().søkersFormue.kontanter,
-            depositumskonto = vilkår.grunnlag.first().søkersFormue.depositumskonto,
-        )
-        val epsVerdier = Formue.Verdier(
-            verdiIkkePrimærbolig = vilkår.grunnlag.firstOrNull()?.epsFormue?.verdiIkkePrimærbolig,
-            verdiEiendommer = vilkår.grunnlag.firstOrNull()?.epsFormue?.verdiEiendommer,
-            verdiKjøretøy = vilkår.grunnlag.firstOrNull()?.epsFormue?.verdiKjøretøy,
-            innskudd = vilkår.grunnlag.firstOrNull()?.epsFormue?.innskudd,
-            verdipapir = vilkår.grunnlag.firstOrNull()?.epsFormue?.verdipapir,
-            pengerSkyldt = vilkår.grunnlag.firstOrNull()?.epsFormue?.pengerSkyldt,
-            kontanter = vilkår.grunnlag.firstOrNull()?.epsFormue?.kontanter,
-            depositumskonto = vilkår.grunnlag.firstOrNull()?.epsFormue?.depositumskonto,
-        )
-        val formue = Formue(
-            status = when (vilkår.resultat) {
-                Resultat.Avslag -> Formue.Status.VilkårIkkeOppfylt
-                Resultat.Innvilget -> Formue.Status.VilkårOppfylt
-                Resultat.Uavklart -> Formue.Status.MåInnhenteMerInformasjon
-            },
-            verdier = verdier,
-            epsVerdier = epsVerdier,
-            begrunnelse = vilkår.grunnlag.first().begrunnelse,
-        )
-
-        return this.copy(
-            formue = formue,
-        )
-    }
-
     /**
      * Midlertidig migreringsfunksjon fra Behandlingsinformasjon + Grunnlag.Bosituasjon -> Behandlingsinformasjon
      * Behandlingsinformasjonen ligger blant annet i Vedtaket inntil videre.
@@ -595,9 +551,5 @@ data class Behandlingsinformasjon(
             adressebeskyttelse = eps.adressebeskyttelse,
             skjermet = eps.skjermet,
         ).right()
-    }
-
-    fun harEpsFormue(): Boolean {
-        return formue?.harEpsFormue() == true
     }
 }
