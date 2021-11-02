@@ -576,7 +576,7 @@ internal class SøknadsbehandlingServiceImpl(
         return vilkårsvurder(
             SøknadsbehandlingService.VilkårsvurderRequest(
                 behandlingId = søknadsbehandling.id,
-                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.oppdaterBosituasjonOgEktefelle(
+                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.oppdaterBosituasjonOgEktefelleOgNullstillFormueForEpsHvisIngenEps(
                     bosituasjon = bosituasjon,
                 ) {
                     personService.hentPerson(it)
@@ -636,7 +636,7 @@ internal class SøknadsbehandlingServiceImpl(
         return vilkårsvurder(
             SøknadsbehandlingService.VilkårsvurderRequest(
                 behandlingId = søknadsbehandling.id,
-                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.oppdaterBosituasjonOgEktefelle(
+                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.oppdaterBosituasjonOgEktefelleOgNullstillFormueForEpsHvisIngenEps(
                     bosituasjon = bosituasjon,
                 ) {
                     personService.hentPerson(it)

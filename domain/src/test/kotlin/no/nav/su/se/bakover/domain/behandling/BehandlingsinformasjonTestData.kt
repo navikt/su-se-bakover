@@ -203,6 +203,12 @@ object BehandlingsinformasjonTestData {
     }
 
     object Bosituasjon {
+        val OppfyltIngenEPS = Behandlingsinformasjon.Bosituasjon(
+            ektefelle = EktefellePartnerSamboer.OppfyltIngenEPS,
+            delerBolig = null,
+            begrunnelse = null,
+            ektemakeEllerSamboerUførFlyktning = null,
+        )
         val OppfyltDelerBolig = Behandlingsinformasjon.Bosituasjon(
             ektefelle = EktefellePartnerSamboer.OppfyltIngenEPS,
             delerBolig = true,

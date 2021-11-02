@@ -6,7 +6,12 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.behandling.BehandlingsinformasjonTestData.behandlingsinformasjonMedAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test
+import java.util.UUID
 import no.nav.su.se.bakover.domain.behandling.BehandlingsinformasjonTestData as TestData
 
 internal class BehandlingsinformasjonTest {
@@ -148,5 +153,25 @@ internal class BehandlingsinformasjonTest {
         ferdig.getBeregningStrategy() shouldBe BeregningStrategy.BorAlene.right()
         ferdig.getSatsgrunn() shouldBe Satsgrunn.ENSLIG.right()
         ferdig.utledSats() shouldBe Sats.HØY.right()
+    }
+
+    @Test
+    fun `nullstiller formue for eps dersom bosuituasjon oppdateres til ufullstendig uten eps`() {
+        behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+            formue = TestData.Formue.OppfyltMedEPS,
+            bosituasjon = TestData.Bosituasjon.OppfyltEPSIkkeUførFlyktning,
+            ektefelle = TestData.EktefellePartnerSamboer.OppyltEPSUnder67,
+        ).oppdaterBosituasjonOgEktefelleOgNullstillFormueForEpsHvisIngenEps(
+            bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = periode2021,
+            ),
+            hentPerson = { KunneIkkeHentePerson.FantIkkePerson.left() },
+        ) shouldBe behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+            formue = TestData.Formue.OppfyltUtenEPS,
+            bosituasjon = TestData.Bosituasjon.OppfyltIngenEPS,
+            ektefelle = TestData.EktefellePartnerSamboer.OppfyltIngenEPS,
+        ).right()
     }
 }

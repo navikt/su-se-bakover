@@ -21,7 +21,6 @@ internal class VilkårsvurderingServiceImpl(
             }
             is Vilkårsvurderinger.Søknadsbehandling -> {
                 uføreVilkårsvurderingRepo.lagre(behandlingId, vilkårsvurderinger.uføre)
-                formueVilkårsvurderingRepo.lagre(behandlingId, vilkårsvurderinger.formue)
             }
         }
     }

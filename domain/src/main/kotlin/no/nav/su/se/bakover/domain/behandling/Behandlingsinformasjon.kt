@@ -648,25 +648,30 @@ data class Behandlingsinformasjon(
     /**
      * Midlertidig migreringsfunksjon fra Behandlingsinformasjon + Grunnlag.Bosituasjon -> Behandlingsinformasjon
      * Behandlingsinformasjonen ligger blant annet i Vedtaket inntil videre.
-     * */
-    fun oppdaterBosituasjonOgEktefelle(
+     *
+     * TODO: helhet rundt løsning for oppdatering av formue og bosituasjon (formue avhengig av bosituasjon).
+     */
+    fun oppdaterBosituasjonOgEktefelleOgNullstillFormueForEpsHvisIngenEps(
         bosituasjon: Grunnlag.Bosituasjon,
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
     ): Either<KunneIkkeHentePerson, Behandlingsinformasjon> {
-        val behandlingsinformasjonBosituasjon = when (bosituasjon) {
-            is Grunnlag.Bosituasjon.Ufullstendig.HarEps -> Bosituasjon(
-                ektefelle = hentEktefelle(bosituasjon.fnr, hentPerson).getOrHandle { return it.left() },
-                delerBolig = null,
-                ektemakeEllerSamboerUførFlyktning = null,
-                begrunnelse = null,
-            )
+        val (oppdatertBosituasjon, oppdatertFormue) = when (bosituasjon) {
+            is Grunnlag.Bosituasjon.Ufullstendig.HarEps -> {
+                Bosituasjon(
+                    ektefelle = hentEktefelle(bosituasjon.fnr, hentPerson).getOrHandle { return it.left() },
+                    delerBolig = null,
+                    ektemakeEllerSamboerUførFlyktning = null,
+                    begrunnelse = null,
+                ) to formue
+            }
             is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps -> {
                 Bosituasjon(
                     ektefelle = EktefellePartnerSamboer.IngenEktefelle,
                     delerBolig = null,
                     ektemakeEllerSamboerUførFlyktning = null,
                     begrunnelse = null,
-                )
+                    // TODO helhetlig løsning for oppdatering av begge avhengige verdier samtidig
+                ) to formue?.copy(epsVerdier = null) // fjerner eventuelle eps-verdier for å unngå ugyldig tilstand på tvers av bostituasjon og formue
             }
             is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> {
                 Bosituasjon(
@@ -674,7 +679,7 @@ data class Behandlingsinformasjon(
                     delerBolig = true,
                     ektemakeEllerSamboerUførFlyktning = null,
                     begrunnelse = bosituasjon.begrunnelse,
-                )
+                ) to formue
             }
             is Grunnlag.Bosituasjon.Fullstendig.Enslig -> {
                 Bosituasjon(
@@ -682,7 +687,7 @@ data class Behandlingsinformasjon(
                     delerBolig = false,
                     ektemakeEllerSamboerUførFlyktning = null,
                     begrunnelse = bosituasjon.begrunnelse,
-                )
+                ) to formue
             }
             is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> {
                 Bosituasjon(
@@ -690,7 +695,7 @@ data class Behandlingsinformasjon(
                     delerBolig = null,
                     ektemakeEllerSamboerUførFlyktning = null,
                     begrunnelse = bosituasjon.begrunnelse,
-                )
+                ) to formue
             }
             is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> {
                 Bosituasjon(
@@ -698,7 +703,7 @@ data class Behandlingsinformasjon(
                     delerBolig = null,
                     ektemakeEllerSamboerUførFlyktning = false,
                     begrunnelse = bosituasjon.begrunnelse,
-                )
+                ) to formue
             }
             is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> {
                 Bosituasjon(
@@ -706,12 +711,13 @@ data class Behandlingsinformasjon(
                     delerBolig = null,
                     ektemakeEllerSamboerUførFlyktning = true,
                     begrunnelse = bosituasjon.begrunnelse,
-                )
+                ) to formue
             }
         }
         return this.copy(
-            bosituasjon = behandlingsinformasjonBosituasjon,
-            ektefelle = behandlingsinformasjonBosituasjon.ektefelle,
+            bosituasjon = oppdatertBosituasjon,
+            ektefelle = oppdatertBosituasjon.ektefelle,
+            formue = oppdatertFormue,
         ).right()
     }
 
