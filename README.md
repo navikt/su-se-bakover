@@ -5,7 +5,7 @@
 ### Lokalt oppsett
 
 #### Database (Postgres)
-Lokal database startes med `./docker-compose up`
+Lokal database startes med `docker compose up`
 
 Hvis man ønsker å resette hele databasen og starte fra scratch er det enkleste å slette volumet ved å kjøre `./resetdb.sh`
 
