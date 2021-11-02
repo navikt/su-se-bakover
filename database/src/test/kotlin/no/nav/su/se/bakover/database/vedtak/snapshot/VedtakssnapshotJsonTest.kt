@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
+import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
 import no.nav.su.se.bakover.domain.beregning.Sats.ORDINÆR
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName.Enslig
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører.BRUKER
@@ -71,10 +71,8 @@ internal class VedtakssnapshotJsonTest {
                 oppgaveId = OppgaveId("oppgaveId"),
             ),
             oppgaveId = OppgaveId("oppgaveId"),
-            behandlingsinformasjon = Behandlingsinformasjon
-                .lagTomBehandlingsinformasjon()
-                .withAlleVilkårOppfylt()
-                .withVilkårAvslått(),
+            behandlingsinformasjon = Behandlingsinformasjon()
+                .withAvslåttFlyktning(),
             fnr = fnr,
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
             attesteringer = Attesteringshistorikk.empty()
@@ -82,7 +80,7 @@ internal class VedtakssnapshotJsonTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
         )
 
         val avslag = Vedtakssnapshot.Avslag(
@@ -116,13 +114,13 @@ internal class VedtakssnapshotJsonTest {
                   "beregning":null,
                   "behandlingsinformasjon":{
                      "uførhet":{
-                        "status":"VilkårIkkeOppfylt",
-                        "uføregrad":null,
-                        "forventetInntekt":null,
+                        "status":"VilkårOppfylt",
+                        "uføregrad":20,
+                        "forventetInntekt":10,
                         "begrunnelse":null
                      },
                      "flyktning":{
-                        "status":"VilkårOppfylt",
+                        "status":"VilkårIkkeOppfylt",
                         "begrunnelse":null
                      },
                      "lovligOpphold":{
@@ -356,10 +354,8 @@ internal class VedtakssnapshotJsonTest {
                 oppgaveId = OppgaveId("oppgaveId"),
             ),
             oppgaveId = OppgaveId("oppgaveId"),
-            behandlingsinformasjon = Behandlingsinformasjon
-                .lagTomBehandlingsinformasjon()
-                .withAlleVilkårOppfylt()
-                .withVilkårAvslått(),
+            behandlingsinformasjon = Behandlingsinformasjon()
+                .withAlleVilkårOppfylt(),
             fnr = fnr,
             beregning = PersistertBeregning(
                 id = UUID.fromString(beregningId),
@@ -427,7 +423,7 @@ internal class VedtakssnapshotJsonTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
         )
         val utbetaling = oversendtUtbetalingUtenKvittering(innvilget)
         val innvilgelse = Vedtakssnapshot.Innvilgelse(
@@ -518,9 +514,9 @@ internal class VedtakssnapshotJsonTest {
                 },
                   "behandlingsinformasjon":{
                      "uførhet":{
-                        "status":"VilkårIkkeOppfylt",
-                        "uføregrad":null,
-                        "forventetInntekt":null,
+                        "status":"VilkårOppfylt",
+                        "uføregrad":20,
+                        "forventetInntekt":10,
                         "begrunnelse":null
                      },
                      "flyktning":{

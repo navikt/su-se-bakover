@@ -218,7 +218,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                 fritekstTilBrev = "",
                 stønadsperiode = null,
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
                 attesteringer = Attesteringshistorikk.empty(),
             ),
             // periode er null for Søknadsbehandling.Vilkårsvurdert.Uavklart og vil gi exception dersom man kaller get() på den.
@@ -262,7 +262,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
                         fritekstTilBrev = "",
                         stønadsperiode = null,
                         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+                        vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
                         attesteringer = Attesteringshistorikk.empty(),
                     ),
                 )

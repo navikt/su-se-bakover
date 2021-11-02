@@ -162,7 +162,7 @@ class OppdaterStønadsperiodeTest {
             fritekstTilBrev = "",
             stønadsperiode = BehandlingTestUtils.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
         )
 

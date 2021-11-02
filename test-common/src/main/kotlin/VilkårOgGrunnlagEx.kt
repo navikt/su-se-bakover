@@ -5,12 +5,19 @@ import arrow.core.getOrHandle
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
+import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
+import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
+import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
@@ -103,10 +110,143 @@ fun Vilkår.Uførhet.shouldBeEqualToExceptId(expected: Vilkår.Uførhet) {
     }
 }
 
+fun FlyktningVilkår.shouldBeEqualToExceptId(expected: FlyktningVilkår) {
+    when (this) {
+        FlyktningVilkår.IkkeVurdert -> {
+            this shouldBe expected
+        }
+        is FlyktningVilkår.Vurdert -> {
+            expected.shouldBeTypeOf<FlyktningVilkår.Vurdert>()
+            this.vurderingsperioder.zip(expected.vurderingsperioder).map { (actual, expected) ->
+                actual.shouldBeEqualToIgnoringFields(expected, Vurderingsperiode::id, Vurderingsperiode::grunnlag)
+                actual.id shouldNotBe expected.id
+
+                if (actual.grunnlag == null) {
+                    expected.grunnlag shouldBe null
+                } else {
+                    actual.grunnlag!!.shouldBeEqualToIgnoringFields(expected.grunnlag!!, Formuegrunnlag::id)
+                    actual.grunnlag!!.id shouldNotBe expected.grunnlag!!.id
+                }
+            }
+        }
+    }
+}
+
+fun LovligOppholdVilkår.shouldBeEqualToExceptId(expected: LovligOppholdVilkår) {
+    when (this) {
+        LovligOppholdVilkår.IkkeVurdert -> {
+            this shouldBe expected
+        }
+        is LovligOppholdVilkår.Vurdert -> {
+            expected.shouldBeTypeOf<LovligOppholdVilkår.Vurdert>()
+            this.vurderingsperioder.zip(expected.vurderingsperioder).map { (actual, expected) ->
+                actual.shouldBeEqualToIgnoringFields(expected, Vurderingsperiode::id, Vurderingsperiode::grunnlag)
+                actual.id shouldNotBe expected.id
+
+                if (actual.grunnlag == null) {
+                    expected.grunnlag shouldBe null
+                } else {
+                    actual.grunnlag!!.shouldBeEqualToIgnoringFields(expected.grunnlag!!, Formuegrunnlag::id)
+                    actual.grunnlag!!.id shouldNotBe expected.grunnlag!!.id
+                }
+            }
+        }
+    }
+}
+
+fun FastOppholdINorgeVilkår.shouldBeEqualToExceptId(expected: FastOppholdINorgeVilkår) {
+    when (this) {
+        FastOppholdINorgeVilkår.IkkeVurdert -> {
+            this shouldBe expected
+        }
+        is FastOppholdINorgeVilkår.Vurdert -> {
+            expected.shouldBeTypeOf<FastOppholdINorgeVilkår.Vurdert>()
+            this.vurderingsperioder.zip(expected.vurderingsperioder).map { (actual, expected) ->
+                actual.shouldBeEqualToIgnoringFields(expected, Vurderingsperiode::id, Vurderingsperiode::grunnlag)
+                actual.id shouldNotBe expected.id
+
+                if (actual.grunnlag == null) {
+                    expected.grunnlag shouldBe null
+                } else {
+                    actual.grunnlag!!.shouldBeEqualToIgnoringFields(expected.grunnlag!!, Formuegrunnlag::id)
+                    actual.grunnlag!!.id shouldNotBe expected.grunnlag!!.id
+                }
+            }
+        }
+    }
+}
+
+fun InstitusjonsoppholdVilkår.shouldBeEqualToExceptId(expected: InstitusjonsoppholdVilkår) {
+    when (this) {
+        InstitusjonsoppholdVilkår.IkkeVurdert -> {
+            this shouldBe expected
+        }
+        is InstitusjonsoppholdVilkår.Vurdert -> {
+            expected.shouldBeTypeOf<InstitusjonsoppholdVilkår.Vurdert>()
+            this.vurderingsperioder.zip(expected.vurderingsperioder).map { (actual, expected) ->
+                actual.shouldBeEqualToIgnoringFields(expected, Vurderingsperiode::id, Vurderingsperiode::grunnlag)
+                actual.id shouldNotBe expected.id
+
+                if (actual.grunnlag == null) {
+                    expected.grunnlag shouldBe null
+                } else {
+                    actual.grunnlag!!.shouldBeEqualToIgnoringFields(expected.grunnlag!!, Formuegrunnlag::id)
+                    actual.grunnlag!!.id shouldNotBe expected.grunnlag!!.id
+                }
+            }
+        }
+    }
+}
+
+fun OppholdIUtlandetVilkår.shouldBeEqualToExceptId(expected: OppholdIUtlandetVilkår) {
+    when (this) {
+        OppholdIUtlandetVilkår.IkkeVurdert -> {
+            this shouldBe expected
+        }
+        is OppholdIUtlandetVilkår.Vurdert -> {
+            expected.shouldBeTypeOf<OppholdIUtlandetVilkår.Vurdert>()
+            this.vurderingsperioder.zip(expected.vurderingsperioder).map { (actual, expected) ->
+                actual.shouldBeEqualToIgnoringFields(expected, Vurderingsperiode::id, Vurderingsperiode::grunnlag)
+                actual.id shouldNotBe expected.id
+
+                if (actual.grunnlag == null) {
+                    expected.grunnlag shouldBe null
+                } else {
+                    actual.grunnlag!!.shouldBeEqualToIgnoringFields(expected.grunnlag!!, Formuegrunnlag::id)
+                    actual.grunnlag!!.id shouldNotBe expected.grunnlag!!.id
+                }
+            }
+        }
+    }
+}
+
+fun PersonligOppmøteVilkår.shouldBeEqualToExceptId(expected: PersonligOppmøteVilkår) {
+    when (this) {
+        PersonligOppmøteVilkår.IkkeVurdert -> {
+            this shouldBe expected
+        }
+        is PersonligOppmøteVilkår.Vurdert -> {
+            expected.shouldBeTypeOf<PersonligOppmøteVilkår.Vurdert>()
+            this.vurderingsperioder.zip(expected.vurderingsperioder).map { (actual, expected) ->
+                actual.shouldBeEqualToIgnoringFields(expected, Vurderingsperiode::id, Vurderingsperiode::grunnlag)
+                actual.id shouldNotBe expected.id
+
+                if (actual.grunnlag == null) {
+                    expected.grunnlag shouldBe null
+                } else {
+                    actual.grunnlag!!.shouldBeEqualToIgnoringFields(expected.grunnlag!!, Formuegrunnlag::id)
+                    actual.grunnlag!!.id shouldNotBe expected.grunnlag!!.id
+                }
+            }
+        }
+    }
+}
+
 fun Grunnlag.Bosituasjon.shouldBeEqualToExceptId(expected: Grunnlag.Bosituasjon) {
     this.shouldBeEqualToIgnoringFields(expected, Grunnlag.Bosituasjon::id)
     this.id shouldNotBe expected.id
 }
+
 @JvmName("shouldBeEqualToExceptIdGrunnlagBosituasjon")
 fun List<Grunnlag.Bosituasjon>.shouldBeEqualToExceptId(expected: List<Grunnlag.Bosituasjon>) {
     this.zip(expected).map { (actual, expected) ->
@@ -132,6 +272,34 @@ fun Grunnlagsdata.shouldBeEqualToExceptId(expected: Grunnlagsdata) {
 }
 
 fun Vilkårsvurderinger.shouldBeEqualToExceptId(expected: Vilkårsvurderinger) {
-    this.formue.shouldBeEqualToExceptId(expected.formue)
-    this.uføre.shouldBeEqualToExceptId(expected.uføre)
+    when (this) {
+        is Vilkårsvurderinger.Revurdering -> {
+            this.shouldBeEqualToExceptId(expected)
+        }
+        is Vilkårsvurderinger.Søknadsbehandling -> {
+            this.shouldBeEqualToExceptId(expected)
+        }
+    }
+}
+
+fun Vilkårsvurderinger.Søknadsbehandling.shouldBeEqualToExceptId(expected: Vilkårsvurderinger) {
+    expected shouldBe beOfType<Vilkårsvurderinger.Søknadsbehandling>()
+    (expected as Vilkårsvurderinger.Søknadsbehandling).let {
+        this.uføre.shouldBeEqualToExceptId(expected.uføre)
+        this.formue.shouldBeEqualToExceptId(expected.formue)
+        this.flyktning.shouldBeEqualToExceptId(expected.flyktning)
+        this.lovligOpphold.shouldBeEqualToExceptId(expected.lovligOpphold)
+        this.fastOpphold.shouldBeEqualToExceptId(expected.fastOpphold)
+        this.institusjonsopphold.shouldBeEqualToExceptId(expected.institusjonsopphold)
+        this.oppholdIUtlandet.shouldBeEqualToExceptId(expected.oppholdIUtlandet)
+        this.personligOppmøte.shouldBeEqualToExceptId(expected.personligOppmøte)
+    }
+}
+
+fun Vilkårsvurderinger.Revurdering.shouldBeEqualToExceptId(expected: Vilkårsvurderinger) {
+    expected shouldBe beOfType<Vilkårsvurderinger.Revurdering>()
+    (expected as Vilkårsvurderinger.Revurdering).let {
+        this.uføre.shouldBeEqualToExceptId(expected.uføre)
+        this.formue.shouldBeEqualToExceptId(expected.formue)
+    }
 }

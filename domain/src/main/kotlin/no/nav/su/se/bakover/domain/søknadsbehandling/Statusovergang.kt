@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import java.time.Clock
 
 abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
@@ -21,42 +22,43 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
     class TilVilkårsvurdert(
         private val behandlingsinformasjon: Behandlingsinformasjon,
+        private val clock: Clock,
     ) : Statusovergang<Nothing, Søknadsbehandling.Vilkårsvurdert>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.UtenBeregning) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock).right()
         }
     }
 
@@ -213,6 +215,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
     class OppdaterStønadsperiode(
         private val oppdatertStønadsperiode: Stønadsperiode,
         private val sak: Sak,
+        private val clock: Clock,
     ) : Statusovergang<OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode, Søknadsbehandling.Vilkårsvurdert>() {
 
         sealed class KunneIkkeOppdatereStønadsperiode {
@@ -248,7 +251,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
                 ).getOrHandle { return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left() },
                 vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger.oppdaterStønadsperiode(oppdatertStønadsperiode),
                 attesteringer = søknadsbehandling.attesteringer,
-            ).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
+            ).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon, clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {

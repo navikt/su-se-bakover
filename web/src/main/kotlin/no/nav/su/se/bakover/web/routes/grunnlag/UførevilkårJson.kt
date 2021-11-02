@@ -33,6 +33,12 @@ internal fun Vilkår.Uførhet.Vurdert.toJson() = UføreVilkårJson(
 internal fun Inngangsvilkår.toJson() = when (this) {
     Inngangsvilkår.Uførhet -> "Uførhet"
     Inngangsvilkår.Formue -> "Formue"
+    Inngangsvilkår.Flyktning -> "Flyktning"
+    Inngangsvilkår.LovligOpphold -> "Lovlig opphold"
+    Inngangsvilkår.Institusjonsopphold -> "Institusjonsopphold"
+    Inngangsvilkår.OppholdIUtlandet -> "Opphold i utlandet"
+    Inngangsvilkår.PersonligOppmøte -> "Personlig oppmøte"
+    Inngangsvilkår.FastOppholdINorge -> "Fast opphold i Norge"
 }
 
 internal fun Resultat.toUførhetStatusString() = when (this) {

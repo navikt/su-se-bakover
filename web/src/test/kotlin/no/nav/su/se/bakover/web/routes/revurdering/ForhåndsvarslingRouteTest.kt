@@ -88,7 +88,7 @@ internal class ForhåndsvarslingRouteTest {
             ),
             forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
         )
@@ -151,7 +151,7 @@ internal class ForhåndsvarslingRouteTest {
             ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
         )

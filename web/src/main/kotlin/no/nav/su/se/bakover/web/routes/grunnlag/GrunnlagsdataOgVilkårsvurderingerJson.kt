@@ -13,16 +13,44 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
     val formue: FormuevilkårJson?,
 ) {
     companion object {
-        fun create(grunnlagsdata: Grunnlagsdata, vilkårsvurderinger: Vilkårsvurderinger): GrunnlagsdataOgVilkårsvurderingerJson {
+        fun create(
+            grunnlagsdata: Grunnlagsdata,
+            vilkårsvurderinger: Vilkårsvurderinger,
+        ): GrunnlagsdataOgVilkårsvurderingerJson {
             return GrunnlagsdataOgVilkårsvurderingerJson(
-                uføre = when (val uføre = vilkårsvurderinger.uføre) {
-                    Vilkår.Uførhet.IkkeVurdert -> null
-                    is Vilkår.Uførhet.Vurdert -> uføre.toJson()
-                },
+                uføre = vilkårsvurderinger.uføreJson(),
                 fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag.toJson() },
                 bosituasjon = grunnlagsdata.bosituasjon.toJson(),
-                formue = vilkårsvurderinger.formue.toJson(),
+                formue = vilkårsvurderinger.formueJson(),
             )
+        }
+    }
+}
+
+internal fun Vilkårsvurderinger.uføreJson(): UføreVilkårJson? {
+    return when (this) {
+        is Vilkårsvurderinger.Revurdering -> {
+            when (val v = uføre) {
+                Vilkår.Uførhet.IkkeVurdert -> null
+                is Vilkår.Uførhet.Vurdert -> v.toJson()
+            }
+        }
+        is Vilkårsvurderinger.Søknadsbehandling -> {
+            when (val v = uføre) {
+                Vilkår.Uførhet.IkkeVurdert -> null
+                is Vilkår.Uførhet.Vurdert -> v.toJson()
+            }
+        }
+    }
+}
+
+internal fun Vilkårsvurderinger.formueJson(): FormuevilkårJson? {
+    return when (this) {
+        is Vilkårsvurderinger.Revurdering -> {
+            formue.toJson()
+        }
+        is Vilkårsvurderinger.Søknadsbehandling -> {
+            formue.toJson()
         }
     }
 }

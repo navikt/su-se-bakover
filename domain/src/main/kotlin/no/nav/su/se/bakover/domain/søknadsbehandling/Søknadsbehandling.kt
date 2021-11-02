@@ -28,8 +28,10 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import org.slf4j.LoggerFactory
+import java.time.Clock
 import java.util.UUID
 
 private val log = LoggerFactory.getLogger("Søknadsbehandling.kt")
@@ -42,7 +44,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     abstract val status: BehandlingsStatus
     abstract val stønadsperiode: Stønadsperiode?
     abstract override val grunnlagsdata: Grunnlagsdata
-    abstract override val vilkårsvurderinger: Vilkårsvurderinger
+    abstract override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling
     abstract override val attesteringer: Attesteringshistorikk
 
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på revurderinger)
@@ -86,7 +88,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
 
     sealed class Vilkårsvurdert : Søknadsbehandling() {
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
+        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon, clock: Clock): Vilkårsvurdert =
             opprett(
                 id,
                 opprettet,
@@ -101,6 +103,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 grunnlagsdata,
                 vilkårsvurderinger,
                 attesteringer,
+                clock,
             )
 
         fun tilBeregnet(beregning: Beregning): Beregnet =
@@ -134,30 +137,18 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 fritekstTilBrev: String,
                 stønadsperiode: Stønadsperiode?,
                 grunnlagsdata: Grunnlagsdata,
-                vilkårsvurderinger: Vilkårsvurderinger,
+                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 attesteringer: Attesteringshistorikk,
+                clock: Clock,
             ): Vilkårsvurdert {
-                return when {
-                    // TODO jah: Burde vi ikke sjekke Vilkår.Grunnlag også?
-                    behandlingsinformasjon.erInnvilget() -> {
-                        Innvilget(
-                            id,
-                            opprettet,
-                            sakId,
-                            saksnummer,
-                            søknad,
-                            oppgaveId,
-                            behandlingsinformasjon,
-                            fnr,
-                            fritekstTilBrev,
-                            stønadsperiode!!,
-                            grunnlagsdata,
-                            vilkårsvurderinger,
-                            attesteringer,
-                        )
-                    }
-                    // TODO jah: Burde vi ikke sjekke Vilkår.Grunnlag også?
-                    behandlingsinformasjon.erAvslag() -> {
+                val oppdaterteVilkårsvurderinger = vilkårsvurderinger.oppdater(
+                    stønadsperiode = stønadsperiode!!,
+                    behandlingsinformasjon = behandlingsinformasjon,
+                    grunnlagsdata = grunnlagsdata,
+                    clock = clock,
+                )
+                return when (oppdaterteVilkårsvurderinger.resultat) {
+                    is Vilkårsvurderingsresultat.Avslag -> {
                         Avslag(
                             id,
                             opprettet,
@@ -168,13 +159,30 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             behandlingsinformasjon,
                             fnr,
                             fritekstTilBrev,
-                            stønadsperiode!!,
+                            stønadsperiode,
                             grunnlagsdata,
-                            vilkårsvurderinger,
+                            oppdaterteVilkårsvurderinger,
                             attesteringer,
                         )
                     }
-                    else -> {
+                    is Vilkårsvurderingsresultat.Innvilget -> {
+                        Innvilget(
+                            id,
+                            opprettet,
+                            sakId,
+                            saksnummer,
+                            søknad,
+                            oppgaveId,
+                            behandlingsinformasjon,
+                            fnr,
+                            fritekstTilBrev,
+                            stønadsperiode,
+                            grunnlagsdata,
+                            oppdaterteVilkårsvurderinger,
+                            attesteringer,
+                        )
+                    }
+                    is Vilkårsvurderingsresultat.Uavklart -> {
                         Uavklart(
                             id,
                             opprettet,
@@ -187,7 +195,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             fritekstTilBrev,
                             stønadsperiode,
                             grunnlagsdata,
-                            vilkårsvurderinger,
+                            oppdaterteVilkårsvurderinger,
                             attesteringer,
                         )
                     }
@@ -207,7 +215,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode,
             override val grunnlagsdata: Grunnlagsdata,
-            override val vilkårsvurderinger: Vilkårsvurderinger,
+            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
         ) : Vilkårsvurdert() {
 
@@ -259,7 +267,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode,
             override val grunnlagsdata: Grunnlagsdata,
-            override val vilkårsvurderinger: Vilkårsvurderinger,
+            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
         ) : Vilkårsvurdert(), ErAvslag {
 
@@ -291,7 +299,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     attesteringer,
                 )
 
-            override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner()
+            // TODO fiks typing/gyldig tilstand/vilkår fradrag?
+            override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.resultat) {
+                is Vilkårsvurderingsresultat.Avslag -> vilkår.avslagsgrunner
+                is Vilkårsvurderingsresultat.Innvilget -> emptyList()
+                is Vilkårsvurderingsresultat.Uavklart -> emptyList()
+            }
         }
 
         data class Uavklart(
@@ -306,7 +319,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode?,
             override val grunnlagsdata: Grunnlagsdata,
-            override val vilkårsvurderinger: Vilkårsvurderinger,
+            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
         ) : Vilkårsvurdert() {
 
@@ -329,7 +342,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         abstract val beregning: Beregning
         abstract override val stønadsperiode: Stønadsperiode
 
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
+        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon, clock: Clock): Vilkårsvurdert =
             Vilkårsvurdert.opprett(
                 id,
                 opprettet,
@@ -344,6 +357,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 grunnlagsdata,
                 vilkårsvurderinger,
                 attesteringer,
+                clock,
             )
 
         fun tilBeregnet(beregning: Beregning): Beregnet =
@@ -397,7 +411,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 fritekstTilBrev: String,
                 stønadsperiode: Stønadsperiode,
                 grunnlagsdata: Grunnlagsdata,
-                vilkårsvurderinger: Vilkårsvurderinger,
+                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 attesteringer: Attesteringshistorikk,
             ): Beregnet =
                 when (VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
@@ -449,7 +463,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode,
             override val grunnlagsdata: Grunnlagsdata,
-            override val vilkårsvurderinger: Vilkårsvurderinger,
+            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
         ) : Beregnet() {
             override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_INNVILGET
@@ -500,7 +514,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode,
             override val grunnlagsdata: Grunnlagsdata,
-            override val vilkårsvurderinger: Vilkårsvurderinger,
+            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
         ) : Beregnet(), ErAvslag {
             override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_AVSLAG
@@ -565,8 +579,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     attesteringer,
                 )
 
-            override val avslagsgrunner: List<Avslagsgrunn> =
-                behandlingsinformasjon.utledAvslagsgrunner() + avslagsgrunnForBeregning
+            // TODO fiks typing/gyldig tilstand/vilkår fradrag?
+            override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.resultat) {
+                is Vilkårsvurderingsresultat.Avslag -> vilkår.avslagsgrunner
+                is Vilkårsvurderingsresultat.Innvilget -> emptyList()
+                is Vilkårsvurderingsresultat.Uavklart -> emptyList()
+            } + avslagsgrunnForBeregning
         }
     }
 
@@ -584,7 +602,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         override val fritekstTilBrev: String,
         override val stønadsperiode: Stønadsperiode,
         override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger,
+        override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
         override val attesteringer: Attesteringshistorikk,
     ) : Søknadsbehandling() {
         override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
@@ -619,7 +637,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             ).right()
         }
 
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
+        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon, clock: Clock): Vilkårsvurdert =
             Vilkårsvurdert.opprett(
                 id,
                 opprettet,
@@ -634,6 +652,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 grunnlagsdata,
                 vilkårsvurderinger,
                 attesteringer,
+                clock,
             )
 
         fun tilBeregnet(beregning: Beregning): Beregnet =
@@ -719,7 +738,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode,
             override val grunnlagsdata: Grunnlagsdata,
-            override val vilkårsvurderinger: Vilkårsvurderinger,
+            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             override val attesteringer: Attesteringshistorikk,
         ) : TilAttestering() {
             override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_INNVILGET
@@ -793,11 +812,17 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val fritekstTilBrev: String,
                 override val stønadsperiode: Stønadsperiode,
                 override val grunnlagsdata: Grunnlagsdata,
-                override val vilkårsvurderinger: Vilkårsvurderinger,
+                override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val attesteringer: Attesteringshistorikk,
             ) : Avslag() {
 
-                override val avslagsgrunner = behandlingsinformasjon.utledAvslagsgrunner()
+                // TODO fiks typing/gyldig tilstand/vilkår fradrag?
+                override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.resultat) {
+                    is Vilkårsvurderingsresultat.Avslag -> vilkår.avslagsgrunner
+                    is Vilkårsvurderingsresultat.Innvilget -> emptyList()
+                    is Vilkårsvurderingsresultat.Uavklart -> emptyList()
+                }
+
                 override val periode: Periode = stønadsperiode.periode
 
                 override fun accept(visitor: SøknadsbehandlingVisitor) {
@@ -863,7 +888,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val fritekstTilBrev: String,
                 override val stønadsperiode: Stønadsperiode,
                 override val grunnlagsdata: Grunnlagsdata,
-                override val vilkårsvurderinger: Vilkårsvurderinger,
+                override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
                 override val attesteringer: Attesteringshistorikk,
             ) : Avslag() {
 
@@ -873,7 +898,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         is AvslagGrunnetBeregning.Nei -> emptyList()
                     }
 
-                override val avslagsgrunner = behandlingsinformasjon.utledAvslagsgrunner() + avslagsgrunnForBeregning
+                // TODO fiks typing/gyldig tilstand/vilkår fradrag?
+                override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.resultat) {
+                    is Vilkårsvurderingsresultat.Avslag -> vilkår.avslagsgrunner
+                    is Vilkårsvurderingsresultat.Innvilget -> emptyList()
+                    is Vilkårsvurderingsresultat.Uavklart -> emptyList()
+                } + avslagsgrunnForBeregning
+
                 override val periode: Periode = stønadsperiode.periode
 
                 override fun accept(visitor: SøknadsbehandlingVisitor) {
@@ -944,7 +975,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
         abstract fun nyOppgaveId(nyOppgaveId: OppgaveId): Underkjent
 
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
+        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon, clock: Clock): Vilkårsvurdert =
             Vilkårsvurdert.opprett(
                 id,
                 opprettet,
@@ -959,6 +990,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 grunnlagsdata,
                 vilkårsvurderinger,
                 attesteringer,
+                clock,
             )
 
         data class Innvilget(
@@ -977,7 +1009,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode,
             override val grunnlagsdata: Grunnlagsdata,
-            override val vilkårsvurderinger: Vilkårsvurderinger,
+            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
         ) : Underkjent() {
 
             override fun nyOppgaveId(nyOppgaveId: OppgaveId): Innvilget {
@@ -1092,7 +1124,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val fritekstTilBrev: String,
                 override val stønadsperiode: Stønadsperiode,
                 override val grunnlagsdata: Grunnlagsdata,
-                override val vilkårsvurderinger: Vilkårsvurderinger,
+                override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT_AVSLAG
                 override val periode: Periode = stønadsperiode.periode
@@ -1175,8 +1207,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         attesteringer,
                     )
 
-                override val avslagsgrunner: List<Avslagsgrunn> =
-                    behandlingsinformasjon.utledAvslagsgrunner() + avslagsgrunnForBeregning
+                // TODO fiks typing/gyldig tilstand/vilkår fradrag?
+                override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.resultat) {
+                    is Vilkårsvurderingsresultat.Avslag -> vilkår.avslagsgrunner
+                    is Vilkårsvurderingsresultat.Innvilget -> emptyList()
+                    is Vilkårsvurderingsresultat.Uavklart -> emptyList()
+                } + avslagsgrunnForBeregning
             }
 
             data class UtenBeregning(
@@ -1193,7 +1229,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val fritekstTilBrev: String,
                 override val stønadsperiode: Stønadsperiode,
                 override val grunnlagsdata: Grunnlagsdata,
-                override val vilkårsvurderinger: Vilkårsvurderinger,
+                override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT_AVSLAG
                 override val periode: Periode = stønadsperiode.periode
@@ -1224,7 +1260,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         attesteringer,
                     )
 
-                override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner()
+                // TODO fiks typing/gyldig tilstand/vilkår fradrag?
+                override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.resultat) {
+                    is Vilkårsvurderingsresultat.Avslag -> vilkår.avslagsgrunner
+                    is Vilkårsvurderingsresultat.Innvilget -> emptyList()
+                    is Vilkårsvurderingsresultat.Uavklart -> emptyList()
+                }
             }
         }
     }
@@ -1258,7 +1299,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode,
             override val grunnlagsdata: Grunnlagsdata,
-            override val vilkårsvurderinger: Vilkårsvurderinger,
+            override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
         ) : Iverksatt() {
             override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_INNVILGET
             override val periode: Periode = stønadsperiode.periode
@@ -1284,7 +1325,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val fritekstTilBrev: String,
                 override val stønadsperiode: Stønadsperiode,
                 override val grunnlagsdata: Grunnlagsdata,
-                override val vilkårsvurderinger: Vilkårsvurderinger,
+                override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
                 override val periode: Periode = stønadsperiode.periode
@@ -1299,8 +1340,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         is AvslagGrunnetBeregning.Nei -> emptyList()
                     }
 
-                override val avslagsgrunner: List<Avslagsgrunn> =
-                    behandlingsinformasjon.utledAvslagsgrunner() + avslagsgrunnForBeregning
+                // TODO fiks typing/gyldig tilstand/vilkår fradrag?
+                override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.resultat) {
+                    is Vilkårsvurderingsresultat.Avslag -> vilkår.avslagsgrunner
+                    is Vilkårsvurderingsresultat.Innvilget -> emptyList()
+                    is Vilkårsvurderingsresultat.Uavklart -> emptyList()
+                } + avslagsgrunnForBeregning
             }
 
             data class UtenBeregning(
@@ -1317,7 +1362,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 override val fritekstTilBrev: String,
                 override val stønadsperiode: Stønadsperiode,
                 override val grunnlagsdata: Grunnlagsdata,
-                override val vilkårsvurderinger: Vilkårsvurderinger,
+                override val vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
                 override val periode: Periode = stønadsperiode.periode
@@ -1326,7 +1371,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     visitor.visit(this)
                 }
 
-                override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner()
+                // TODO fiks typing/gyldig tilstand/vilkår fradrag?
+                override val avslagsgrunner: List<Avslagsgrunn> = when (val vilkår = vilkårsvurderinger.resultat) {
+                    is Vilkårsvurderingsresultat.Avslag -> vilkår.avslagsgrunner
+                    is Vilkårsvurderingsresultat.Innvilget -> emptyList()
+                    is Vilkårsvurderingsresultat.Uavklart -> emptyList()
+                }
             }
         }
     }

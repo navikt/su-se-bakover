@@ -324,7 +324,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             fritekstTilBrev = "",
             stønadsperiode = behandling.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
         )
 
         response shouldBe expected.right()
@@ -482,7 +482,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 fritekstTilBrev = "",
                 stønadsperiode = it.stønadsperiode,
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
                 attesteringer = Attesteringshistorikk.empty(),
             )
         }
@@ -535,7 +535,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
         )
 
@@ -561,7 +561,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
         )
 

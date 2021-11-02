@@ -44,6 +44,22 @@ enum class Avslagsgrunn {
         INNLAGT_PÅ_INSTITUSJON -> listOf(12)
         MANGLENDE_DOKUMENTASJON -> listOf(18)
     }
+
+    fun tilOpphørsgrunn(): Opphørsgrunn {
+        return when (this) {
+            UFØRHET -> Opphørsgrunn.UFØRHET
+            FLYKTNING -> TODO()
+            OPPHOLDSTILLATELSE -> TODO()
+            PERSONLIG_OPPMØTE -> TODO()
+            FORMUE -> Opphørsgrunn.FORMUE
+            BOR_OG_OPPHOLDER_SEG_I_NORGE -> TODO()
+            FOR_HØY_INNTEKT -> Opphørsgrunn.FOR_HØY_INNTEKT
+            SU_UNDER_MINSTEGRENSE -> Opphørsgrunn.SU_UNDER_MINSTEGRENSE
+            UTENLANDSOPPHOLD_OVER_90_DAGER -> TODO()
+            INNLAGT_PÅ_INSTITUSJON -> TODO()
+            MANGLENDE_DOKUMENTASJON -> TODO()
+        }
+    }
 }
 
 /**

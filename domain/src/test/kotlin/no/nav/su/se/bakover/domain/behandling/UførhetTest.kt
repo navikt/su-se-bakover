@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import org.junit.jupiter.api.Test
 
 internal class UførhetTest {
@@ -47,25 +46,5 @@ internal class UførhetTest {
             forventetInntekt = 100,
             begrunnelse = null,
         ).erVilkårOppfylt() shouldBe false
-    }
-
-    @Test
-    fun `avslagsgrunn er uførhet dersom status er ikke oppfylt`() {
-        Behandlingsinformasjon.Uførhet(
-            status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
-            uføregrad = 100,
-            forventetInntekt = 100,
-            begrunnelse = null,
-        ).avslagsgrunn() shouldBe Avslagsgrunn.UFØRHET
-    }
-
-    @Test
-    fun `avslagsgrunn er null dersom status er oppfylt`() {
-        Behandlingsinformasjon.Uførhet(
-            status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
-            uføregrad = 100,
-            forventetInntekt = 100,
-            begrunnelse = null,
-        ).avslagsgrunn() shouldBe null
     }
 }

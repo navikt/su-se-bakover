@@ -102,8 +102,8 @@ internal class OppdaterRevurderingServiceTest {
                 ),
             ),
         ),
-        vilkårsvurderinger = Vilkårsvurderinger(
-            uføre = vilkårsvurderingUføre,
+        vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+            vilkårsvurderingUføre
         ),
         informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert)),
     )
@@ -291,7 +291,7 @@ internal class OppdaterRevurderingServiceTest {
                             ),
                         ),
                     ),
-                    vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+                    vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                     informasjonSomRevurderes = it.informasjonSomRevurderes,
                 )
             }
@@ -452,9 +452,9 @@ internal class OppdaterRevurderingServiceTest {
             on { hent(any()) } doReturn opprettetRevurdering.copy(
                 // simuler at det er gjort endringer før oppdatering
                 grunnlagsdata = Grunnlagsdata.create(),
-                vilkårsvurderinger = Vilkårsvurderinger(
-                    uføre = Vilkår.Uførhet.IkkeVurdert,
-                ),
+                vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                    Vilkår.Uførhet.IkkeVurdert,
+                )
             )
         }
 
@@ -535,9 +535,9 @@ internal class OppdaterRevurderingServiceTest {
             behandling = vedtakSøknadsbehandlingIverksattInnvilget().second.behandling.copy(
                 stønadsperiode = Stønadsperiode.create(periodePlussEtÅr),
                 grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjon)),
-                vilkårsvurderinger = Vilkårsvurderinger(
-                    uføre = uførevilkår,
-                    formue = andreVedtakFormueVilkår,
+                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                    uførevilkår,
+                    andreVedtakFormueVilkår,
                 ),
             ),
         )
@@ -631,8 +631,8 @@ internal class OppdaterRevurderingServiceTest {
                     ),
                 ),
             )
-            on { vilkårsvurderinger } doReturn Vilkårsvurderinger(
-                uføre = vilkårsvurderingUføre,
+            on { vilkårsvurderinger } doReturn Vilkårsvurderinger.Revurdering(
+                vilkårsvurderingUføre,
             )
         }
 

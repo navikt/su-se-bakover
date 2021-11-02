@@ -47,14 +47,14 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                         ),
                     ),
                 ),
-                vilkårsvurderinger = Vilkårsvurderinger(
-                    uføre = innvilgetUførevilkårForventetInntekt0(
+                vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                    innvilgetUførevilkårForventetInntekt0(
                         periode = Periode.create(
                             1.januar(2021),
                             31.mai(2021),
                         ),
                     ),
-                    formue = Vilkår.Formue.IkkeVurdert,
+                    Vilkår.Formue.IkkeVurdert,
                 ),
             )
         }.message shouldBe "Grunnlagsdataperioden (Periode(fraOgMed=2021-01-01, tilOgMed=2021-04-30)) må være lik vilkårsvurderingerperioden (Periode(fraOgMed=2021-01-01, tilOgMed=2021-05-31))"
@@ -84,14 +84,14 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = innvilgetUførevilkårForventetInntekt0(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                innvilgetUførevilkårForventetInntekt0(
                     periode = Periode.create(
                         1.januar(2021),
                         31.mai(2021),
                     ),
                 ),
-                formue = Vilkår.Formue.IkkeVurdert,
+                Vilkår.Formue.IkkeVurdert,
             ),
         )
     }
@@ -100,14 +100,14 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
     fun `ikke vurdert grunnlagsdata og innvilget vilkårsvurderinger kaster ikke exception`() {
         GrunnlagsdataOgVilkårsvurderinger(
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = innvilgetUførevilkårForventetInntekt0(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                innvilgetUførevilkårForventetInntekt0(
                     periode = Periode.create(
                         1.januar(2021),
                         31.mai(2021),
                     ),
                 ),
-                formue = Vilkår.Formue.IkkeVurdert,
+                Vilkår.Formue.IkkeVurdert,
             ),
         )
     }
@@ -136,7 +136,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
         )
     }
 
@@ -144,7 +144,7 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
     fun `ikke vurdert grunnlagsdata og ikke vurdert vilkårsvurderinger kaster ikke exception`() {
         GrunnlagsdataOgVilkårsvurderinger(
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
         )
     }
 

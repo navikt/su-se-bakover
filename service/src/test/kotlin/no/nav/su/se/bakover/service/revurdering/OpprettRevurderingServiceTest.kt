@@ -90,9 +90,7 @@ internal class OpprettRevurderingServiceTest {
 
     private fun createInnvilgetBehandling() = søknadsbehandlingIverksattInnvilget(
         stønadsperiode = stønadsperiodeNesteMånedOgTreMånederFram,
-        vilkårsvurderinger = vilkårsvurderingerInnvilget().copy(
-            uføre = vilkårsvurderingUføre,
-        ),
+        vilkårsvurderinger = vilkårsvurderingerInnvilget(uføre = vilkårsvurderingUføre)
     ).second
 
     private fun createSøknadsbehandlingVedtak() =
@@ -466,9 +464,9 @@ internal class OpprettRevurderingServiceTest {
                     ),
                 ),
             )
-            on { vilkårsvurderinger } doReturn Vilkårsvurderinger(
-                uføre = vilkårsvurderingUføre,
-                formue = formueVilkår(periodeNesteMånedOgTreMånederFram),
+            on { vilkårsvurderinger } doReturn Vilkårsvurderinger.Revurdering(
+                vilkårsvurderingUføre,
+                formueVilkår(periodeNesteMånedOgTreMånederFram),
             )
         }
         val vedtakForFørsteJanuarLagetNå = mock<Vedtak.EndringIYtelse.InnvilgetRevurdering> {
@@ -585,9 +583,9 @@ internal class OpprettRevurderingServiceTest {
                         ),
                     ),
                 ),
-                vilkårsvurderinger = Vilkårsvurderinger(
-                    uføre = vilkårsvurderingUføre,
-                    formue = formueVilkår(periodeNesteMånedOgTreMånederFram),
+                vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                    vilkårsvurderingUføre,
+                    formueVilkår(periodeNesteMånedOgTreMånederFram),
                 ),
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             ),
@@ -844,8 +842,8 @@ internal class OpprettRevurderingServiceTest {
                 grunnlagsdata = Grunnlagsdata.create(
                     bosituasjon = bosituasjon,
                 ),
-                vilkårsvurderinger = Vilkårsvurderinger(
-                    uføre = uførevilkår,
+                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                    uførevilkår,
                 ),
                 stønadsperiode = Stønadsperiode.create(periodePlussEtÅr),
             ),
@@ -916,8 +914,8 @@ internal class OpprettRevurderingServiceTest {
                     ),
                 ),
             )
-            on { vilkårsvurderinger } doReturn Vilkårsvurderinger(
-                uføre = vilkårsvurderingUføre,
+            on { vilkårsvurderinger } doReturn Vilkårsvurderinger.Revurdering(
+                vilkårsvurderingUføre,
             )
         }
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(

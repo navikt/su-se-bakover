@@ -20,7 +20,7 @@ fun NySøknadsbehandling.toSøknadsbehandling(saksnummer: Saksnummer): Søknadsb
         fritekstTilBrev = "",
         stønadsperiode = null,
         grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+        vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
         attesteringer = Attesteringshistorikk.empty(),
     )
 }

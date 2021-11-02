@@ -17,15 +17,15 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
         ),
         flyktning = Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-            begrunnelse = flyktning?.begrunnelse
+            begrunnelse = flyktning?.begrunnelse,
         ),
         lovligOpphold = Behandlingsinformasjon.LovligOpphold(
             status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-            begrunnelse = lovligOpphold?.begrunnelse
+            begrunnelse = lovligOpphold?.begrunnelse,
         ),
         fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
             status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
-            begrunnelse = fastOppholdINorge?.begrunnelse
+            begrunnelse = fastOppholdINorge?.begrunnelse,
         ),
         institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
@@ -33,7 +33,7 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
         ),
         oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
             status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
-            begrunnelse = oppholdIUtlandet?.begrunnelse
+            begrunnelse = oppholdIUtlandet?.begrunnelse,
         ),
         formue = Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
@@ -48,11 +48,11 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
                 depositumskonto = formue?.verdier?.depositumskonto ?: 0,
             ),
             epsVerdier = null,
-            begrunnelse = formue?.begrunnelse
+            begrunnelse = formue?.begrunnelse,
         ),
         personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
             status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
-            begrunnelse = personligOppmøte?.begrunnelse
+            begrunnelse = personligOppmøte?.begrunnelse,
         ),
         bosituasjon = Behandlingsinformasjon.Bosituasjon(
             ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
@@ -64,17 +64,73 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
     )
 
 @TestOnly
-fun Behandlingsinformasjon.withVilkårAvslått() =
-    this.withAlleVilkårOppfylt().patch(
-        Behandlingsinformasjon(
-            uførhet = Behandlingsinformasjon.Uførhet(
-                status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
-                uføregrad = null,
-                forventetInntekt = null,
-                begrunnelse = null
-            )
-        )
+fun Behandlingsinformasjon.withAlleVilkårAvslått() =
+    Behandlingsinformasjon(
+        uførhet = Behandlingsinformasjon.Uførhet(
+            status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
+            uføregrad = uførhet?.uføregrad ?: 20,
+            forventetInntekt = uførhet?.forventetInntekt ?: 10,
+            begrunnelse = uførhet?.begrunnelse,
+        ),
+        flyktning = Behandlingsinformasjon.Flyktning(
+            status = Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
+            begrunnelse = flyktning?.begrunnelse,
+        ),
+        lovligOpphold = Behandlingsinformasjon.LovligOpphold(
+            status = Behandlingsinformasjon.LovligOpphold.Status.VilkårIkkeOppfylt,
+            begrunnelse = lovligOpphold?.begrunnelse,
+        ),
+        fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
+            status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårIkkeOppfylt,
+            begrunnelse = fastOppholdINorge?.begrunnelse,
+        ),
+        institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
+            status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårIkkeOppfylt,
+            begrunnelse = institusjonsopphold?.begrunnelse,
+        ),
+        oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
+            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalVæreMerEnn90DagerIUtlandet,
+            begrunnelse = oppholdIUtlandet?.begrunnelse,
+        ),
+        formue = Behandlingsinformasjon.Formue(
+            status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt,
+            verdier = Behandlingsinformasjon.Formue.Verdier(
+                verdiIkkePrimærbolig = formue?.verdier?.verdiIkkePrimærbolig ?: 90000000,
+                verdiEiendommer = formue?.verdier?.verdiEiendommer ?: 0,
+                verdiKjøretøy = formue?.verdier?.verdiKjøretøy ?: 0,
+                innskudd = formue?.verdier?.innskudd ?: 0,
+                verdipapir = formue?.verdier?.verdipapir ?: 0,
+                pengerSkyldt = formue?.verdier?.pengerSkyldt ?: 0,
+                kontanter = formue?.verdier?.kontanter ?: 0,
+                depositumskonto = formue?.verdier?.depositumskonto ?: 0,
+            ),
+            epsVerdier = null,
+            begrunnelse = formue?.begrunnelse,
+        ),
+        personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
+            status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttPersonlig,
+            begrunnelse = personligOppmøte?.begrunnelse,
+        ),
+        bosituasjon = Behandlingsinformasjon.Bosituasjon(
+            ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
+            delerBolig = bosituasjon?.delerBolig ?: false,
+            ektemakeEllerSamboerUførFlyktning = bosituasjon?.ektemakeEllerSamboerUførFlyktning,
+            begrunnelse = bosituasjon?.begrunnelse,
+        ),
+        ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
     )
+
+@TestOnly
+fun Behandlingsinformasjon.withAvslåttFlyktning(): Behandlingsinformasjon {
+    return withAlleVilkårOppfylt().patch(
+        Behandlingsinformasjon(
+            flyktning = Behandlingsinformasjon.Flyktning(
+                status = Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
+                begrunnelse = flyktning?.begrunnelse,
+            ),
+        ),
+    )
+}
 
 @TestOnly
 fun withVilkårIkkeVurdert() =
@@ -88,5 +144,5 @@ fun withVilkårIkkeVurdert() =
         formue = null,
         personligOppmøte = null,
         bosituasjon = null,
-        ektefelle = null
+        ektefelle = null,
     )

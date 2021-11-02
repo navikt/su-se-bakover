@@ -169,8 +169,8 @@ internal class GjeldendeVedtaksdataTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -182,7 +182,7 @@ internal class GjeldendeVedtaksdataTest {
                         ),
                     ),
                 ),
-                formue = innvilgetFormueVilkår(periode),
+                innvilgetFormueVilkår(periode),
             ),
         ),
         utbetalingId = UUID30.randomUUID(),
@@ -245,8 +245,8 @@ internal class GjeldendeVedtaksdataTest {
                 fradragsgrunnlag = listOf(),
                 bosituasjon = listOf(),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -258,7 +258,7 @@ internal class GjeldendeVedtaksdataTest {
                         ),
                     ),
                 ),
-                formue = innvilgetFormueVilkår(periode),
+                innvilgetFormueVilkår(periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 revurderingsteg = mapOf(

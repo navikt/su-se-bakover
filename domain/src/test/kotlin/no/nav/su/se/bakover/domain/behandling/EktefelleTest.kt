@@ -39,19 +39,6 @@ internal class EktefelleTest {
     }
 
     @Test
-    fun `har ingen avslagsgrunn`() {
-        Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
-            Fnr.generer(),
-            navn = Person.Navn(fornavn = "fornavn", mellomnavn = null, etternavn = "etternavn"),
-            kjønn = null,
-            fødselsdato = null,
-            adressebeskyttelse = null,
-            skjermet = null,
-        ).avslagsgrunn() shouldBe null
-        Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle.avslagsgrunn() shouldBe null
-    }
-
-    @Test
     fun `alder skal være 30 hvis fødselsdato er 30 år siden`() {
         val ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
             Fnr.generer(),
