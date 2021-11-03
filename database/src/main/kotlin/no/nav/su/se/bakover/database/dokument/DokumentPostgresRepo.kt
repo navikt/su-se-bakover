@@ -216,6 +216,9 @@ internal class DokumentPostgresRepo(
         val revurderingId = uuidOrNull("revurderingId")
         val tittel = string("tittel")
         val bestillbrev = boolean("bestillbrev")
+        val brevbestillingId = if (hentStatus) stringOrNull("brevbestillingid") else null
+        val journalpostId = if (hentStatus) stringOrNull("journalpostid") else null
+
         return when (type) {
             DokumentKategori.INFORMASJON -> Dokument.MedMetadata.Informasjon(
                 id = id,
@@ -229,8 +232,8 @@ internal class DokumentPostgresRepo(
                     vedtakId = vedtakId,
                     revurderingId = revurderingId,
                     bestillBrev = bestillbrev,
-                    brevbestillingId = if (hentStatus) stringOrNull("brevbestillingid") else null,
-                    journalpostId = if (hentStatus) stringOrNull("journalpostid") else null,
+                    brevbestillingId = brevbestillingId,
+                    journalpostId = journalpostId,
                 ),
             )
             DokumentKategori.VEDTAK -> Dokument.MedMetadata.Vedtak(
@@ -245,6 +248,8 @@ internal class DokumentPostgresRepo(
                     vedtakId = vedtakId,
                     revurderingId = revurderingId,
                     bestillBrev = bestillbrev,
+                    brevbestillingId = brevbestillingId,
+                    journalpostId = journalpostId,
                 ),
             )
         }

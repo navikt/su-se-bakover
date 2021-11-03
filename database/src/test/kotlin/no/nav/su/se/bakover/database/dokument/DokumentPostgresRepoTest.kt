@@ -120,7 +120,7 @@ internal class DokumentPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val dokumentRepo = testDataHelper.dokumentRepo
             val sak = testDataHelper.nySakMedNySøknad()
-            val original = Dokument.MedMetadata.Informasjon(
+            val original = Dokument.MedMetadata.Vedtak(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 tittel = "tittel",
