@@ -119,6 +119,7 @@ object ServiceBuilder {
             grunnlagService = grunnlagService,
             vedtakService = vedtakService,
             sakService = sakService,
+            sessionFactory = databaseRepos.sessionFactory,
         ).apply { addObserver(statistikkService) }
 
         val nøkkelTallService = NøkkeltallServiceImpl(databaseRepos.nøkkeltallRepo)

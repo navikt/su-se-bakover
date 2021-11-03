@@ -37,8 +37,10 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
+import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
@@ -66,6 +68,7 @@ import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarslingRequest
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.service.revurdering.HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse
+import no.nav.su.se.bakover.service.revurdering.KunneIKkeLageBrevutkastForAvsluttingAvRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeGjenopptaYtelse
@@ -593,17 +596,12 @@ open class AccessCheckProxy(
                     return services.revurdering.sendTilAttestering(request)
                 }
 
-                override fun lagBrevutkast(
+                override fun hentBrevutkast(
                     revurderingId: UUID,
-                    fritekst: String,
+                    fritekst: String?,
                 ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
                     assertHarTilgangTilRevurdering(revurderingId)
-                    return services.revurdering.lagBrevutkast(revurderingId, fritekst)
-                }
-
-                override fun hentBrevutkast(revurderingId: UUID): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
-                    assertHarTilgangTilRevurdering(revurderingId)
-                    return services.revurdering.hentBrevutkast(revurderingId)
+                    return services.revurdering.hentBrevutkast(revurderingId, fritekst)
                 }
 
                 override fun iverksett(
@@ -652,6 +650,22 @@ open class AccessCheckProxy(
                 override fun hentGjeldendeGrunnlagsdataOgVilkårsvurderinger(revurderingId: UUID): Either<KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger, HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.hentGjeldendeGrunnlagsdataOgVilkårsvurderinger(revurderingId)
+                }
+
+                override fun avsluttRevurdering(
+                    revurderingId: UUID,
+                    begrunnelse: String,
+                    fritekst: String?,
+                ): Either<KunneIkkeAvslutteRevurdering, AvsluttetRevurdering> {
+                    assertHarTilgangTilRevurdering(revurderingId)
+                    return services.revurdering.avsluttRevurdering(revurderingId, begrunnelse, fritekst)
+                }
+
+                override fun brevutkastForAvslutting(
+                    revurderingId: UUID,
+                    fritekst: String?,
+                ): Either<KunneIKkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, ByteArray>> {
+                    return services.revurdering.brevutkastForAvslutting(revurderingId, fritekst)
                 }
             },
             vedtakService = object : VedtakService {

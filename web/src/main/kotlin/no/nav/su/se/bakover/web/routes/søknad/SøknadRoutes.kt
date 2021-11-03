@@ -164,7 +164,7 @@ internal fun Route.søknadRoutes(
                             when (it) {
                                 KunneIkkeAvslåSøknad.SøknadsbehandlingIUgyldigTilstandForAvslag -> Feilresponser.behandlingErIUgyldigTilstand
                                 KunneIkkeAvslåSøknad.KunneIkkeFinneGjeldendeUtbetaling -> Feilresponser.fantIkkeGjeldendeUtbetaling
-                                KunneIkkeAvslåSøknad.KunneIkkeGenererePDF -> Feilresponser.kunneIkkeGenererePdf
+                                KunneIkkeAvslåSøknad.KunneIkkeGenererePDF -> Feilresponser.Brev.kunneIkkeGenerereBrev
                                 KunneIkkeAvslåSøknad.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> Feilresponser.fantIkkeSaksbehandlerEllerAttestant
                                 KunneIkkeAvslåSøknad.KunneIkkeHentePerson -> Feilresponser.fantIkkePerson
                                 KunneIkkeAvslåSøknad.FantIkkeSak -> Feilresponser.fantIkkeSak

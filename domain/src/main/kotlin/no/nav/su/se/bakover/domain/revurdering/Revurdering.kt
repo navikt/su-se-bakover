@@ -72,6 +72,34 @@ sealed class AbstraktRevurdering : Behandling {
 
 sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
 
+    data class AvsluttetStansAvYtelse private constructor(
+        private val underliggendeStansAvYtelse: SimulertStansAvYtelse,
+        val begrunnelse: String,
+    ) : StansAvYtelseRevurdering() {
+        override val tilRevurdering: VedtakSomKanRevurderes = underliggendeStansAvYtelse.tilRevurdering
+        override val id: UUID = underliggendeStansAvYtelse.id
+        override val opprettet: Tidspunkt = underliggendeStansAvYtelse.opprettet
+        override val periode: Periode = underliggendeStansAvYtelse.periode
+        override val grunnlagsdata: Grunnlagsdata = underliggendeStansAvYtelse.grunnlagsdata
+        override val vilkårsvurderinger: Vilkårsvurderinger = underliggendeStansAvYtelse.vilkårsvurderinger
+        val saksbehandler: Saksbehandler = underliggendeStansAvYtelse.saksbehandler
+        val simulering: Simulering = underliggendeStansAvYtelse.simulering
+        val revurderingsårsak: Revurderingsårsak = underliggendeStansAvYtelse.revurderingsårsak
+
+        companion object {
+            fun tryCreate(
+                stansAvYtelseRevurdering: StansAvYtelseRevurdering,
+                begrunnelse: String,
+            ): Either<KunneIkkeLageAvsluttetStansAvYtelse, AvsluttetStansAvYtelse> {
+                return when (stansAvYtelseRevurdering) {
+                    is AvsluttetStansAvYtelse -> KunneIkkeLageAvsluttetStansAvYtelse.RevurderingErAlleredeAvsluttet.left()
+                    is IverksattStansAvYtelse -> KunneIkkeLageAvsluttetStansAvYtelse.RevurderingenErIverksatt.left()
+                    is SimulertStansAvYtelse -> AvsluttetStansAvYtelse(stansAvYtelseRevurdering, begrunnelse).right()
+                }
+            }
+        }
+    }
+
     data class SimulertStansAvYtelse(
         override val id: UUID,
         override val opprettet: Tidspunkt,
@@ -107,6 +135,11 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
         object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteStansAvYtelse()
     }
 
+    sealed class KunneIkkeLageAvsluttetStansAvYtelse {
+        object RevurderingErAlleredeAvsluttet : KunneIkkeLageAvsluttetStansAvYtelse()
+        object RevurderingenErIverksatt : KunneIkkeLageAvsluttetStansAvYtelse()
+    }
+
     data class IverksattStansAvYtelse(
         override val id: UUID,
         override val opprettet: Tidspunkt,
@@ -122,6 +155,46 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
 }
 
 sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
+
+    fun avslutt(
+        begrunnelse: String,
+    ): Either<KunneIkkeLageAvsluttetGjenopptaAvYtelse, AvsluttetGjenoppta> {
+        return AvsluttetGjenoppta.tryCreate(
+            gjenopptakAvYtelseRevurdering = this,
+            begrunnelse = begrunnelse,
+        )
+    }
+
+    data class AvsluttetGjenoppta private constructor(
+        private val underliggendeStansAvYtelse: SimulertGjenopptakAvYtelse,
+        val begrunnelse: String,
+    ) : GjenopptaYtelseRevurdering() {
+        override val tilRevurdering: VedtakSomKanRevurderes = underliggendeStansAvYtelse.tilRevurdering
+        override val id: UUID = underliggendeStansAvYtelse.id
+        override val opprettet: Tidspunkt = underliggendeStansAvYtelse.opprettet
+        override val periode: Periode = underliggendeStansAvYtelse.periode
+        override val grunnlagsdata: Grunnlagsdata = underliggendeStansAvYtelse.grunnlagsdata
+        override val vilkårsvurderinger: Vilkårsvurderinger = underliggendeStansAvYtelse.vilkårsvurderinger
+        val saksbehandler: Saksbehandler = underliggendeStansAvYtelse.saksbehandler
+        val simulering: Simulering = underliggendeStansAvYtelse.simulering
+        val revurderingsårsak: Revurderingsårsak = underliggendeStansAvYtelse.revurderingsårsak
+
+        companion object {
+            fun tryCreate(
+                gjenopptakAvYtelseRevurdering: GjenopptaYtelseRevurdering,
+                begrunnelse: String,
+            ): Either<KunneIkkeLageAvsluttetGjenopptaAvYtelse, AvsluttetGjenoppta> {
+                return when (gjenopptakAvYtelseRevurdering) {
+                    is AvsluttetGjenoppta -> KunneIkkeLageAvsluttetGjenopptaAvYtelse.RevurderingErAlleredeAvsluttet.left()
+                    is IverksattGjenopptakAvYtelse -> KunneIkkeLageAvsluttetGjenopptaAvYtelse.RevurderingenErIverksatt.left()
+                    is SimulertGjenopptakAvYtelse -> AvsluttetGjenoppta(
+                        gjenopptakAvYtelseRevurdering,
+                        begrunnelse,
+                    ).right()
+                }
+            }
+        }
+    }
 
     data class SimulertGjenopptakAvYtelse(
         override val id: UUID,
@@ -158,6 +231,11 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
         object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteGjenopptakAvYtelse()
     }
 
+    sealed class KunneIkkeLageAvsluttetGjenopptaAvYtelse {
+        object RevurderingErAlleredeAvsluttet : KunneIkkeLageAvsluttetGjenopptaAvYtelse()
+        object RevurderingenErIverksatt : KunneIkkeLageAvsluttetGjenopptaAvYtelse()
+    }
+
     data class IverksattGjenopptakAvYtelse(
         override val id: UUID,
         override val opprettet: Tidspunkt,
@@ -188,6 +266,17 @@ sealed class Revurdering :
     abstract val forhåndsvarsel: Forhåndsvarsel?
 
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>)
+
+    fun avslutt(
+        begrunnelse: String,
+        fritekst: String?,
+    ): Either<KunneIkkeLageAvsluttetRevurdering, AvsluttetRevurdering> {
+        return AvsluttetRevurdering.tryCreate(
+            underliggendeRevurdering = this,
+            begrunnelse = begrunnelse,
+            fritekst = fritekst,
+        )
+    }
 
     sealed class KunneIkkeLeggeTilFradrag {
         data class Valideringsfeil(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilFradrag()
@@ -1412,6 +1501,7 @@ fun Revurdering.medFritekst(fritekstTilBrev: String) =
         is IverksattRevurdering.IngenEndring -> copy(fritekstTilBrev = fritekstTilBrev)
         is RevurderingTilAttestering.IngenEndring -> copy(fritekstTilBrev = fritekstTilBrev)
         is UnderkjentRevurdering.IngenEndring -> copy(fritekstTilBrev = fritekstTilBrev)
+        is AvsluttetRevurdering -> throw IllegalStateException("Skal ikke kunne legge til fritekst på underliggende revurdering for en avsluttet revurdering")
     }
 
 enum class Vurderingstatus(val status: String) {

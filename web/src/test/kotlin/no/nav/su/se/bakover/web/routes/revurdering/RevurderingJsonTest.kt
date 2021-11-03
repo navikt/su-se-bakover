@@ -174,10 +174,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregninger": ${serialize(beregning.toJson())},
                 "status": "${RevurderingsStatus.BEREGNET_INNVILGET}",
                 "saksbehandler": "Petter",
                 "periode": {
@@ -255,10 +252,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregninger": ${serialize(beregning.toJson())},
                 "status": "${RevurderingsStatus.BEREGNET_OPPHØRT}",
                 "saksbehandler": "Petter",
                 "periode": {
@@ -336,10 +330,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregninger": ${serialize(beregning.toJson())},
                 "status": "${RevurderingsStatus.BEREGNET_INGEN_ENDRING}",
                 "saksbehandler": "Petter",
                 "periode": {
@@ -418,10 +409,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                {
-                  "revurdert": ${serialize(beregning.toJson())}
-                },
+                "beregninger": ${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
                   "totalBruttoYtelse": 0
@@ -504,10 +492,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                {
-                  "revurdert": ${serialize(beregning.toJson())}
-                },
+                "beregninger": ${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
                   "totalBruttoYtelse": 0
@@ -590,10 +575,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregninger": ${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
                   "totalBruttoYtelse": 0
@@ -677,10 +659,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregninger": ${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
                   "totalBruttoYtelse": 0
@@ -764,10 +743,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregninger": ${serialize(beregning.toJson())},
                 "simulering": null,
                 "status": "${RevurderingsStatus.TIL_ATTESTERING_INGEN_ENDRING}",
                 "saksbehandler": "Petter",
@@ -856,10 +832,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregninger": ${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
                   "totalBruttoYtelse": 0
@@ -958,10 +931,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregninger":${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
                   "totalBruttoYtelse": 0
@@ -1060,10 +1030,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregninger": ${serialize(beregning.toJson())},
                 "simulering": null,
                 "status": "${RevurderingsStatus.UNDERKJENT_INGEN_ENDRING}",
                 "saksbehandler": "Petter",
@@ -1158,10 +1125,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregninger": ${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
                   "totalBruttoYtelse": 0
@@ -1252,10 +1216,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregninger": ${serialize(beregning.toJson())},
                 "simulering": {
                   "perioder": [],
                   "totalBruttoYtelse": 0
@@ -1346,10 +1307,7 @@ internal class RevurderingJsonTest {
                 "id": "$id",
                 "opprettet": "$opprettet",
                 "tilRevurdering": ${serialize(vedtak.toJson())},
-                "beregninger":
-                  {
-                    "revurdert": ${serialize(beregning.toJson())}
-                  },
+                "beregninger": ${serialize(beregning.toJson())},
                 "simulering": null,
                 "status": "${RevurderingsStatus.IVERKSATT_INGEN_ENDRING}",
                 "saksbehandler": "Petter",

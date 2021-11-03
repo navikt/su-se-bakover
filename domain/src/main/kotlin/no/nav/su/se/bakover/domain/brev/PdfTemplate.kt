@@ -18,5 +18,6 @@ sealed class PdfTemplate(
     object Forhåndsvarsel : PdfTemplate("forhåndsvarsel")
     sealed class Revurdering(templateName: String) : PdfTemplate(templateName) {
         object Inntekt : Revurdering("revurderingAvInntekt")
+        object Avslutt : Revurdering("avsluttRevurdering")
     }
 }

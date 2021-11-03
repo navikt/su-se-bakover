@@ -17,8 +17,10 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
+import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
@@ -88,8 +90,7 @@ interface RevurderingService {
         request: SendTilAttesteringRequest,
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering>
 
-    fun lagBrevutkast(revurderingId: UUID, fritekst: String): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray>
-    fun hentBrevutkast(revurderingId: UUID): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray>
+    fun hentBrevutkast(revurderingId: UUID, fritekst: String?): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray>
     fun iverksett(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant,
@@ -123,6 +124,17 @@ interface RevurderingService {
     fun hentGjeldendeGrunnlagsdataOgVilkårsvurderinger(
         revurderingId: UUID,
     ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger, HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse>
+
+    fun brevutkastForAvslutting(
+        revurderingId: UUID,
+        fritekst: String?,
+    ): Either<KunneIKkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, ByteArray>>
+
+    fun avsluttRevurdering(
+        revurderingId: UUID,
+        begrunnelse: String,
+        fritekst: String?,
+    ): Either<KunneIkkeAvslutteRevurdering, AvsluttetRevurdering>
 }
 
 data class RevurderingOgFeilmeldingerResponse(
@@ -435,6 +447,12 @@ sealed class KunneIkkeIverksetteGjenopptakAvYtelse {
     }
 
     object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteGjenopptakAvYtelse()
+}
+
+sealed class KunneIKkeLageBrevutkastForAvsluttingAvRevurdering {
+    object FantIkkeRevurdering : KunneIKkeLageBrevutkastForAvsluttingAvRevurdering()
+    object KunneIkkeLageBrevutkast : KunneIKkeLageBrevutkastForAvsluttingAvRevurdering()
+    object RevurderingenErIkkeForhåndsvarslet : KunneIKkeLageBrevutkastForAvsluttingAvRevurdering()
 }
 
 data class LeggTilBosituasjongrunnlagRequest(

@@ -50,7 +50,12 @@ sealed class BrevTemplate(
     sealed class Revurdering(pdfTemplate: PdfTemplate, brevTittel: String) : BrevTemplate(pdfTemplate, brevTittel) {
         object Inntekt : Revurdering(
             pdfTemplate = PdfTemplate.Revurdering.Inntekt,
-            brevTittel = "Vi har vurdert den supplerende stønaden din på nytt"
+            brevTittel = "Vi har vurdert den supplerende stønaden din på nytt",
+        )
+
+        object AvsluttRevurdering : Revurdering(
+            pdfTemplate = PdfTemplate.Revurdering.Avslutt,
+            brevTittel = "Varsel om at ny vurdering av din supplerende stønad er blitt avsluttet",
         )
     }
 }

@@ -23,30 +23,15 @@ internal fun Route.brevutkastForRevurdering(
 ) {
     authorize(Brukerrolle.Saksbehandler) {
 
-        data class Body(val fritekst: String)
+        data class Body(val fritekst: String?)
 
-        get("$revurderingPath/{revurderingId}/brevutkast") {
-            call.withRevurderingId { revurderingId ->
-                val revurdering = revurderingService.hentRevurdering(revurderingId)
-                    ?: return@withRevurderingId call.svar(fantIkkeRevurdering)
-
-                revurderingService.hentBrevutkast(revurderingId).fold(
-                    ifLeft = { call.svar(it.tilResultat()) },
-                    ifRight = {
-                        call.sikkerlogg("Hentet brevutkast for revurdering med id $revurderingId")
-                        call.audit(revurdering.fnr, AuditLogEvent.Action.ACCESS, revurderingId)
-                        call.respondBytes(it, ContentType.Application.Pdf)
-                    },
-                )
-            }
-        }
         post("$revurderingPath/{revurderingId}/brevutkast") {
             call.withRevurderingId { revurderingId ->
                 call.withBody<Body> { body ->
                     val revurdering = revurderingService.hentRevurdering(revurderingId)
                         ?: return@withRevurderingId call.svar(fantIkkeRevurdering)
 
-                    revurderingService.lagBrevutkast(revurderingId, body.fritekst).fold(
+                    revurderingService.hentBrevutkast(revurderingId, body.fritekst).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
                             call.sikkerlogg("Laget brevutkast for revurdering med id $revurderingId")
