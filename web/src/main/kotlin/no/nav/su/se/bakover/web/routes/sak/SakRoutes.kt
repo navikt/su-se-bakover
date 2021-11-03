@@ -29,75 +29,77 @@ internal const val sakPath = "/saker"
 internal fun Route.sakRoutes(
     sakService: SakService,
 ) {
-    post("$sakPath/søk") {
-        data class Body(
-            val fnr: String?,
-            val saksnummer: String?,
-        )
-        call.withBody<Body> { body ->
-            when {
-                body.fnr != null -> {
-                    Either.catch { Fnr(body.fnr) }.fold(
-                        ifLeft = {
-                            call.svar(
-                                BadRequest.errorJson(
-                                    "${body.fnr} er ikke et gyldig fødselsnummer",
-                                    "fnr_ikke_gyldig"
-                                )
-                            )
-                        },
-                        ifRight = { fnr ->
-                            sakService.hentSak(fnr)
-                                .mapLeft {
-                                    call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
-                                    call.svar(
-                                        NotFound.errorJson(
-                                            "Fant ikke noen sak for person: ${body.fnr}",
-                                            "fant_ikke_sak_for_person"
-                                        )
+    authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+        post("$sakPath/søk") {
+            data class Body(
+                val fnr: String?,
+                val saksnummer: String?,
+            )
+            call.withBody<Body> { body ->
+                when {
+                    body.fnr != null -> {
+                        Either.catch { Fnr(body.fnr) }.fold(
+                            ifLeft = {
+                                call.svar(
+                                    BadRequest.errorJson(
+                                        "${body.fnr} er ikke et gyldig fødselsnummer",
+                                        "fnr_ikke_gyldig"
                                     )
-                                }
-                                .map {
-                                    call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
-                                    call.svar(Resultat.json(OK, serialize(it.toJson())))
-                                }
-                        },
-                    )
-                }
-                body.saksnummer != null -> {
-                    Saksnummer.tryParse(body.saksnummer).fold(
-                        ifLeft = {
-                            call.svar(
-                                BadRequest.errorJson(
-                                    "${body.saksnummer} er ikke et gyldig saksnummer",
-                                    "saksnummer_ikke_gyldig"
                                 )
-                            )
-                        },
-                        ifRight = { saksnummer ->
-                            call.svar(
-                                sakService.hentSak(saksnummer).fold(
-                                    {
-                                        NotFound.errorJson(
-                                            "Fant ikke sak med saksnummer: ${body.saksnummer}",
-                                            "fant_ikke_sak"
+                            },
+                            ifRight = { fnr ->
+                                sakService.hentSak(fnr)
+                                    .mapLeft {
+                                        call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
+                                        call.svar(
+                                            NotFound.errorJson(
+                                                "Fant ikke noen sak for person: ${body.fnr}",
+                                                "fant_ikke_sak_for_person"
+                                            )
                                         )
-                                    },
-                                    {
-                                        call.audit(it.fnr, AuditLogEvent.Action.ACCESS, null)
-                                        Resultat.json(OK, serialize((it.toJson())))
-                                    },
-                                ),
-                            )
-                        },
+                                    }
+                                    .map {
+                                        call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
+                                        call.svar(Resultat.json(OK, serialize(it.toJson())))
+                                    }
+                            },
+                        )
+                    }
+                    body.saksnummer != null -> {
+                        Saksnummer.tryParse(body.saksnummer).fold(
+                            ifLeft = {
+                                call.svar(
+                                    BadRequest.errorJson(
+                                        "${body.saksnummer} er ikke et gyldig saksnummer",
+                                        "saksnummer_ikke_gyldig"
+                                    )
+                                )
+                            },
+                            ifRight = { saksnummer ->
+                                call.svar(
+                                    sakService.hentSak(saksnummer).fold(
+                                        {
+                                            NotFound.errorJson(
+                                                "Fant ikke sak med saksnummer: ${body.saksnummer}",
+                                                "fant_ikke_sak"
+                                            )
+                                        },
+                                        {
+                                            call.audit(it.fnr, AuditLogEvent.Action.ACCESS, null)
+                                            Resultat.json(OK, serialize((it.toJson())))
+                                        },
+                                    ),
+                                )
+                            },
+                        )
+                    }
+                    else -> call.svar(
+                        BadRequest.errorJson(
+                            "Må oppgi enten saksnummer eller fødselsnummer",
+                            "mangler_saksnummer_fødselsnummer"
+                        )
                     )
                 }
-                else -> call.svar(
-                    BadRequest.errorJson(
-                        "Må oppgi enten saksnummer eller fødselsnummer",
-                        "mangler_saksnummer_fødselsnummer"
-                    )
-                )
             }
         }
     }
