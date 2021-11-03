@@ -92,5 +92,8 @@ sealed class Dokument {
          * Hvis satt til true, vil det automatisk opprettes en [Dokumentdistribusjon] for dette [Dokument] ved lagring.
          */
         val bestillBrev: Boolean,
+
+        val journalpostId: String? = null,
+        val brevbestillingId: String? = null,
     )
 }
