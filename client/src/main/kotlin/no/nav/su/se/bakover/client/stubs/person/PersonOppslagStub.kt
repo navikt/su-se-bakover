@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client.stubs.person
 
 import arrow.core.Either
+import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
@@ -58,5 +59,9 @@ object PersonOppslagStub :
     override fun aktørId(fnr: Fnr) = AktørId("2437280977705").right()
     override fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> = AktørId("2437280977705").right()
 
-    override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> = Unit.right()
+    override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> =
+        if (fnr.toString().endsWith("66"))
+            KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
+        else
+            Unit.right()
 }
