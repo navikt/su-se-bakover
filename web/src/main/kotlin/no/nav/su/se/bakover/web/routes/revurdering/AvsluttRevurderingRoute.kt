@@ -8,7 +8,10 @@ import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
+import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageAvsluttetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIKkeLageBrevutkastForAvsluttingAvRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.AuditLogEvent
@@ -40,18 +43,7 @@ internal fun Route.AvsluttRevurderingRoute(
                         begrunnelse = body.begrunnelse,
                         fritekst = body.fritekst,
                     ).fold(
-                        ifLeft = {
-                            when (it) {
-                                KunneIkkeAvslutteRevurdering.FantIkkeRevurdering -> call.svar(Revurderingsfeilresponser.fantIkkeRevurdering)
-                                is KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetRevurdering -> call.svar(
-                                    HttpStatusCode.BadRequest.errorJson(
-                                        "Revurderingen er allerede avsluttet",
-                                        "revurderingen_er_allerede_avsluttet",
-                                    ),
-                                )
-                                KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument -> call.svar(Feilresponser.Brev.kunneIkkeLageBrevutkast)
-                            }
-                        },
+                        ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
                             call.sikkerlogg("Avsluttet behandling av revurdering med revurderingId $revurderingId")
                             call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
@@ -82,6 +74,16 @@ internal fun Route.AvsluttRevurderingRoute(
     }
 }
 
+private fun KunneIkkeAvslutteRevurdering.tilResultat(): Resultat {
+    return when (this) {
+        KunneIkkeAvslutteRevurdering.FantIkkeRevurdering -> Revurderingsfeilresponser.fantIkkeRevurdering
+        is KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse -> this.feil.tilResultat()
+        is KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetRevurdering -> this.feil.tilResultat()
+        is KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetStansAvYtelse -> this.feil.tilResultat()
+        KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument -> Feilresponser.Brev.kunneIkkeLageBrevutkast
+    }
+}
+
 private fun KunneIKkeLageBrevutkastForAvsluttingAvRevurdering.tilResultat(): Resultat {
     return when (this) {
         KunneIKkeLageBrevutkastForAvsluttingAvRevurdering.FantIkkeRevurdering -> Revurderingsfeilresponser.fantIkkeRevurdering
@@ -90,5 +92,37 @@ private fun KunneIKkeLageBrevutkastForAvsluttingAvRevurdering.tilResultat(): Res
             "Revurderingen er ikke forhåndsvarslet for å vise brev",
             "revurdering_er_ikke_forhåndsvarslet_for_å_vise_brev",
         )
+    }
+}
+
+private val revurderingErAlleredeAvsluttet = HttpStatusCode.BadRequest.errorJson(
+    "Revurderingen er allerede avsluttet",
+    "revurderingen_er_allerede_avsluttet",
+)
+
+private val revurderingenErIverksatt = HttpStatusCode.BadRequest.errorJson(
+    "Revurderingen er iverksatt",
+    "revurderingen_er_iverksatt",
+)
+
+private fun KunneIkkeLageAvsluttetRevurdering.tilResultat(): Resultat {
+    return when (this) {
+        KunneIkkeLageAvsluttetRevurdering.RevurderingErAlleredeAvsluttet -> revurderingErAlleredeAvsluttet
+        KunneIkkeLageAvsluttetRevurdering.RevurderingenErIverksatt -> revurderingenErIverksatt
+        KunneIkkeLageAvsluttetRevurdering.RevurderingenErTilAttestering -> revurderingErAlleredeAvsluttet
+    }
+}
+
+private fun GjenopptaYtelseRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse.tilResultat(): Resultat {
+    return when (this) {
+        GjenopptaYtelseRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse.RevurderingErAlleredeAvsluttet -> revurderingErAlleredeAvsluttet
+        GjenopptaYtelseRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse.RevurderingenErIverksatt -> revurderingenErIverksatt
+    }
+}
+
+private fun StansAvYtelseRevurdering.KunneIkkeLageAvsluttetStansAvYtelse.tilResultat(): Resultat {
+    return when (this) {
+        StansAvYtelseRevurdering.KunneIkkeLageAvsluttetStansAvYtelse.RevurderingErAlleredeAvsluttet -> revurderingErAlleredeAvsluttet
+        StansAvYtelseRevurdering.KunneIkkeLageAvsluttetStansAvYtelse.RevurderingenErIverksatt -> revurderingenErIverksatt
     }
 }

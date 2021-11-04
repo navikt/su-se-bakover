@@ -72,9 +72,21 @@ sealed class AbstraktRevurdering : Behandling {
 
 sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
 
+    fun avslutt(
+        begrunnelse: String,
+        datoAvsluttet: LocalDate,
+    ): Either<KunneIkkeLageAvsluttetStansAvYtelse, AvsluttetStansAvYtelse> {
+        return AvsluttetStansAvYtelse.tryCreate(
+            stansAvYtelseRevurdering = this,
+            begrunnelse = begrunnelse,
+            datoAvsluttet,
+        )
+    }
+
     data class AvsluttetStansAvYtelse private constructor(
         private val underliggendeStansAvYtelse: SimulertStansAvYtelse,
         val begrunnelse: String,
+        val datoAvsluttet: LocalDate,
     ) : StansAvYtelseRevurdering() {
         override val tilRevurdering: VedtakSomKanRevurderes = underliggendeStansAvYtelse.tilRevurdering
         override val id: UUID = underliggendeStansAvYtelse.id
@@ -90,11 +102,16 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
             fun tryCreate(
                 stansAvYtelseRevurdering: StansAvYtelseRevurdering,
                 begrunnelse: String,
+                datoAvsluttet: LocalDate,
             ): Either<KunneIkkeLageAvsluttetStansAvYtelse, AvsluttetStansAvYtelse> {
                 return when (stansAvYtelseRevurdering) {
                     is AvsluttetStansAvYtelse -> KunneIkkeLageAvsluttetStansAvYtelse.RevurderingErAlleredeAvsluttet.left()
                     is IverksattStansAvYtelse -> KunneIkkeLageAvsluttetStansAvYtelse.RevurderingenErIverksatt.left()
-                    is SimulertStansAvYtelse -> AvsluttetStansAvYtelse(stansAvYtelseRevurdering, begrunnelse).right()
+                    is SimulertStansAvYtelse -> AvsluttetStansAvYtelse(
+                        stansAvYtelseRevurdering,
+                        begrunnelse,
+                        datoAvsluttet,
+                    ).right()
                 }
             }
         }
@@ -158,16 +175,19 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
 
     fun avslutt(
         begrunnelse: String,
+        datoAvsluttet: LocalDate,
     ): Either<KunneIkkeLageAvsluttetGjenopptaAvYtelse, AvsluttetGjenoppta> {
         return AvsluttetGjenoppta.tryCreate(
             gjenopptakAvYtelseRevurdering = this,
             begrunnelse = begrunnelse,
+            datoAvsluttet = datoAvsluttet,
         )
     }
 
     data class AvsluttetGjenoppta private constructor(
         private val underliggendeStansAvYtelse: SimulertGjenopptakAvYtelse,
         val begrunnelse: String,
+        val datoAvsluttet: LocalDate,
     ) : GjenopptaYtelseRevurdering() {
         override val tilRevurdering: VedtakSomKanRevurderes = underliggendeStansAvYtelse.tilRevurdering
         override val id: UUID = underliggendeStansAvYtelse.id
@@ -183,6 +203,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
             fun tryCreate(
                 gjenopptakAvYtelseRevurdering: GjenopptaYtelseRevurdering,
                 begrunnelse: String,
+                datoAvsluttet: LocalDate,
             ): Either<KunneIkkeLageAvsluttetGjenopptaAvYtelse, AvsluttetGjenoppta> {
                 return when (gjenopptakAvYtelseRevurdering) {
                     is AvsluttetGjenoppta -> KunneIkkeLageAvsluttetGjenopptaAvYtelse.RevurderingErAlleredeAvsluttet.left()
@@ -190,6 +211,7 @@ sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
                     is SimulertGjenopptakAvYtelse -> AvsluttetGjenoppta(
                         gjenopptakAvYtelseRevurdering,
                         begrunnelse,
+                        datoAvsluttet,
                     ).right()
                 }
             }
@@ -270,11 +292,13 @@ sealed class Revurdering :
     fun avslutt(
         begrunnelse: String,
         fritekst: String?,
+        datoAvsluttet: LocalDate,
     ): Either<KunneIkkeLageAvsluttetRevurdering, AvsluttetRevurdering> {
         return AvsluttetRevurdering.tryCreate(
             underliggendeRevurdering = this,
             begrunnelse = begrunnelse,
             fritekst = fritekst,
+            datoAvsluttet = datoAvsluttet,
         )
     }
 

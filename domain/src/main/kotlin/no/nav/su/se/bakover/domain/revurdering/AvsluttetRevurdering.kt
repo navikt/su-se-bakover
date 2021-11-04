@@ -11,12 +11,14 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import java.time.LocalDate
 import java.util.UUID
 
 data class AvsluttetRevurdering private constructor(
     private val underliggendeRevurdering: Revurdering,
     val begrunnelse: String,
     val fritekst: String?,
+    val datoAvsluttet: LocalDate,
 ) : Revurdering() {
     override val id: UUID = underliggendeRevurdering.id
     override val opprettet: Tidspunkt = underliggendeRevurdering.opprettet
@@ -74,6 +76,7 @@ data class AvsluttetRevurdering private constructor(
             underliggendeRevurdering: Revurdering,
             begrunnelse: String,
             fritekst: String?,
+            datoAvsluttet: LocalDate,
         ): Either<KunneIkkeLageAvsluttetRevurdering, AvsluttetRevurdering> {
 
             return when (underliggendeRevurdering) {
@@ -86,7 +89,7 @@ data class AvsluttetRevurdering private constructor(
                 is BeregnetRevurdering,
                 is SimulertRevurdering,
                 is UnderkjentRevurdering,
-                -> AvsluttetRevurdering(underliggendeRevurdering, begrunnelse, fritekst).right()
+                -> AvsluttetRevurdering(underliggendeRevurdering, begrunnelse, fritekst, datoAvsluttet).right()
             }
         }
     }
@@ -100,6 +103,12 @@ sealed class KunneIkkeLageAvsluttetRevurdering {
 
 sealed class KunneIkkeAvslutteRevurdering {
     data class KunneIkkeLageAvsluttetRevurdering(val feil: no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageAvsluttetRevurdering) :
+        KunneIkkeAvslutteRevurdering()
+
+    data class KunneIkkeLageAvsluttetGjenopptaAvYtelse(val feil: GjenopptaYtelseRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse) :
+        KunneIkkeAvslutteRevurdering()
+
+    data class KunneIkkeLageAvsluttetStansAvYtelse(val feil: StansAvYtelseRevurdering.KunneIkkeLageAvsluttetStansAvYtelse) :
         KunneIkkeAvslutteRevurdering()
 
     object FantIkkeRevurdering : KunneIkkeAvslutteRevurdering()

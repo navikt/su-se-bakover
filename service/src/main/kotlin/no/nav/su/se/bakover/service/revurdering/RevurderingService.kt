@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
-import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
@@ -134,7 +133,7 @@ interface RevurderingService {
         revurderingId: UUID,
         begrunnelse: String,
         fritekst: String?,
-    ): Either<KunneIkkeAvslutteRevurdering, AvsluttetRevurdering>
+    ): Either<KunneIkkeAvslutteRevurdering, AbstraktRevurdering>
 }
 
 data class RevurderingOgFeilmeldingerResponse(

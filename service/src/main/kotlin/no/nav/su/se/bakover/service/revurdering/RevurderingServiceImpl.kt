@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
-import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -39,6 +38,7 @@ import no.nav.su.se.bakover.domain.revurdering.IdentifiserRevurderingsopphørSom
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
+import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageAvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -1222,17 +1222,34 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         begrunnelse: String,
         fritekst: String?,
-    ): Either<KunneIkkeAvslutteRevurdering, AvsluttetRevurdering> {
-        val revurdering = hent(revurderingId)
-            .getOrHandle { return KunneIkkeAvslutteRevurdering.FantIkkeRevurdering.left() }
+    ): Either<KunneIkkeAvslutteRevurdering, AbstraktRevurdering> {
+        val revurdering =
+            revurderingRepo.hent(revurderingId) ?: return KunneIkkeAvslutteRevurdering.FantIkkeRevurdering.left()
 
-        return revurdering.avslutt(begrunnelse, fritekst).mapLeft {
-            KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetRevurdering(it)
-        }.map { avsluttRevurdering ->
+        val avsluttetRevurdering = when (revurdering) {
+            is GjenopptaYtelseRevurdering -> revurdering.avslutt(begrunnelse, LocalDate.now(clock))
+            is Revurdering -> revurdering.avslutt(begrunnelse, fritekst, LocalDate.now(clock))
+            is StansAvYtelseRevurdering -> revurdering.avslutt(begrunnelse, LocalDate.now(clock))
+        }
 
-            if (avsluttRevurdering.forhåndsvarsel is Forhåndsvarsel.SkalForhåndsvarsles) {
+        return avsluttetRevurdering.mapLeft {
+            when (it) {
+                is GjenopptaYtelseRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse -> KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse(
+                    it,
+                )
+                is StansAvYtelseRevurdering.KunneIkkeLageAvsluttetStansAvYtelse -> KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetStansAvYtelse(
+                    it,
+                )
+                is KunneIkkeLageAvsluttetRevurdering -> KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetRevurdering(
+                    it,
+                )
+                else -> throw IllegalStateException("Det ble gitt ut en ukjent feil ved avslutting av en revurdering. feilen er $it")
+            }
+        }.map { avsluttedeRevurdering ->
+
+            if (avsluttedeRevurdering is Revurdering && avsluttedeRevurdering.forhåndsvarsel is Forhåndsvarsel.SkalForhåndsvarsles) {
                 val brev = LagBrevRequestForAvsluttingAvRevurdering(
-                    revurdering,
+                    avsluttedeRevurdering,
                     fritekst,
                 ).getOrElse {
                     return KunneIkkeAvslutteRevurdering.FantIkkeRevurdering.left()
@@ -1252,13 +1269,13 @@ internal class RevurderingServiceImpl(
                     )
                     sessionFactory.withTransactionContext {
                         brevService.lagreDokument(dokumentMedMetaData)
-                        revurderingRepo.lagre(avsluttRevurdering)
+                        revurderingRepo.lagre(avsluttedeRevurdering)
                     }
                 }
-                avsluttRevurdering
+                avsluttedeRevurdering
             } else {
-                revurderingRepo.lagre(avsluttRevurdering)
-                avsluttRevurdering
+                revurderingRepo.lagre(avsluttedeRevurdering)
+                avsluttedeRevurdering
             }
         }
     }

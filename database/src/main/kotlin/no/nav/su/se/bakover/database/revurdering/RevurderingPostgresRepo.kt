@@ -52,6 +52,7 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -270,6 +271,7 @@ internal class RevurderingPostgresRepo(
                 is GjenopptaYtelseRevurdering -> GjenopptaYtelseRevurdering.AvsluttetGjenoppta.tryCreate(
                     gjenopptakAvYtelseRevurdering = revurdering,
                     begrunnelse = avsluttet.begrunnelse,
+                    datoAvsluttet = avsluttet.datoAvsluttet,
                 ).getOrHandle {
                     throw IllegalStateException("Kunne ikke lage en avsluttet gjenoppta revurdering. Se innhold i databasen. revurderingsId $id")
                 }
@@ -278,6 +280,7 @@ internal class RevurderingPostgresRepo(
                         underliggendeRevurdering = revurdering,
                         begrunnelse = avsluttet.begrunnelse,
                         fritekst = avsluttet.fritekst,
+                        datoAvsluttet = avsluttet.datoAvsluttet,
                     ).getOrHandle {
                         throw IllegalStateException("Kunne ikke lage en avsluttet revurdering. Se innhold i databasen. revurderingsId $id")
                     }
@@ -285,6 +288,7 @@ internal class RevurderingPostgresRepo(
                 is StansAvYtelseRevurdering -> StansAvYtelseRevurdering.AvsluttetStansAvYtelse.tryCreate(
                     stansAvYtelseRevurdering = revurdering,
                     begrunnelse = avsluttet.begrunnelse,
+                    datoAvsluttet = avsluttet.datoAvsluttet,
                 ).getOrHandle {
                     throw IllegalStateException("Kunne ikke lage en avsluttet stans av ytelse. Se innhold i databasen. revurderingsId $id")
                 }
@@ -560,6 +564,7 @@ internal class RevurderingPostgresRepo(
                         AvsluttetRevurderingInfo(
                             begrunnelse = revurdering.begrunnelse,
                             fritekst = revurdering.fritekst,
+                            datoAvsluttet = revurdering.datoAvsluttet,
                         ),
                     ),
                 ),
@@ -612,6 +617,7 @@ internal class RevurderingPostgresRepo(
     data class AvsluttetRevurderingInfo(
         val begrunnelse: String,
         val fritekst: String?,
+        val datoAvsluttet: LocalDate,
     )
 
     private fun lagRevurdering(
