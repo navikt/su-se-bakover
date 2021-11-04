@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.UtbetalingJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
 import no.nav.su.se.bakover.web.routes.vedtak.VedtakJson
 import no.nav.su.se.bakover.web.routes.vedtak.toJson
@@ -62,3 +63,8 @@ internal data class SakJson(
         )
     }
 }
+
+internal data class BegrensetSakinfoJson(
+    val harÅpenSøknad: Boolean,
+    val iverksattInnvilgetStønadsperiode: PeriodeJson?,
+)
