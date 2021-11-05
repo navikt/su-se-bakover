@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import org.junit.jupiter.api.Test
 
 internal class OppholdIUtlandetTest {
@@ -31,21 +30,5 @@ internal class OppholdIUtlandetTest {
             status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalVæreMerEnn90DagerIUtlandet,
             begrunnelse = null
         ).erVilkårOppfylt() shouldBe false
-    }
-
-    @Test
-    fun `avslagsgrunn er utenlandsopphold dersom status er ikke skal være i utlandet`() {
-        Behandlingsinformasjon.OppholdIUtlandet(
-            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalVæreMerEnn90DagerIUtlandet,
-            begrunnelse = "neh"
-        ).avslagsgrunn() shouldBe Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER
-    }
-
-    @Test
-    fun `avslagsgrunn er null dersom status er skal holde seg i norge`() {
-        Behandlingsinformasjon.OppholdIUtlandet(
-            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
-            begrunnelse = "neh"
-        ).avslagsgrunn() shouldBe null
     }
 }

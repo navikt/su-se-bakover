@@ -264,7 +264,7 @@ internal class BehandlingStatistikkMapperTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
@@ -341,7 +341,7 @@ internal class BehandlingStatistikkMapperTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         BehandlingStatistikkMapper(fixedClock).map(iverksattRevurdering) shouldBe Statistikk.Behandling(
@@ -418,7 +418,7 @@ internal class BehandlingStatistikkMapperTest {
             forhåndsvarsel = null,
             skalFøreTilBrevutsending = true,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         BehandlingStatistikkMapper(fixedClock).map(iverksattRevurdering) shouldBe Statistikk.Behandling(
@@ -608,7 +608,7 @@ internal class BehandlingStatistikkMapperTest {
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
         grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+        vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
         attesteringer = Attesteringshistorikk.empty(),
     )
 

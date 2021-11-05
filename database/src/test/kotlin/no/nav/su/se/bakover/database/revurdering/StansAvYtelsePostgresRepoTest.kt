@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.revurdering
 
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
@@ -12,9 +13,10 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.periodeMai2021
+import no.nav.su.se.bakover.test.revurderingsårsak
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulering
-import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilgetRevurdering
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -30,7 +32,7 @@ internal class StansAvYtelsePostgresRepoTest {
                 opprettet = fixedTidspunkt,
                 periode = periode2021,
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
-                vilkårsvurderinger = vilkårsvurderingerInnvilget(),
+                vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering(),
                 tilRevurdering = søknadsbehandling,
                 saksbehandler = saksbehandler,
                 simulering = simulering(),
@@ -64,7 +66,7 @@ internal class StansAvYtelsePostgresRepoTest {
                 opprettet = fixedTidspunkt,
                 periode = periode2021,
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
-                vilkårsvurderinger = vilkårsvurderingerInnvilget(),
+                vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering(),
                 tilRevurdering = søknadsbehandling,
                 saksbehandler = saksbehandler,
                 simulering = simulering(),
@@ -75,14 +77,17 @@ internal class StansAvYtelsePostgresRepoTest {
             )
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
-            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering
+            testDataHelper.revurderingRepo.hent(simulertRevurdering.id)!!.shouldBeEqualToIgnoringFields(
+                simulertRevurdering,
+                StansAvYtelseRevurdering.SimulertStansAvYtelse::tilRevurdering,
+            )
 
             val nyInformasjon = simulertRevurdering.copy(
                 id = simulertRevurdering.id,
                 opprettet = simulertRevurdering.opprettet,
                 periode = periodeMai2021,
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(periodeMai2021),
-                vilkårsvurderinger = vilkårsvurderingerInnvilget(periodeMai2021),
+                vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering(periode = periodeMai2021),
                 tilRevurdering = søknadsbehandling,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksern"),
                 simulering = simulering().copy(
@@ -95,7 +100,10 @@ internal class StansAvYtelsePostgresRepoTest {
             )
 
             testDataHelper.revurderingRepo.lagre(nyInformasjon)
-            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe nyInformasjon
+            testDataHelper.revurderingRepo.hent(simulertRevurdering.id)!!.shouldBeEqualToIgnoringFields(
+                nyInformasjon,
+                StansAvYtelseRevurdering.SimulertStansAvYtelse::tilRevurdering,
+            )
         }
     }
 }

@@ -46,6 +46,7 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
@@ -133,8 +134,8 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 it shouldBe opprettetRevurdering.copy(
                     vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger.copy(
                         uføre = innvilgetUførevilkår(
-                            vurderingsperiodeId = (it.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.first().id,
-                            grunnlagsId = (it.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).grunnlag.first().id,
+                            vurderingsperiodeId = ((it.vilkårsvurderinger as Vilkårsvurderinger.Revurdering).uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.first().id,
+                            grunnlagsId = ((it.vilkårsvurderinger as Vilkårsvurderinger.Revurdering).uføre as Vilkår.Uførhet.Vurdert).grunnlag.first().id,
                             opprettet = fixedTidspunkt,
                             periode = nyttUføregrunnlag.periode,
                             begrunnelse = "grunnbeløpet er høyere",
@@ -224,8 +225,8 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -237,7 +238,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                         ),
                     ),
                 ),
-                formue = formueVilkår(periode),
+                formueVilkår(periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
@@ -325,7 +326,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = mock {
-                on { resultat } doReturn Resultat.Innvilget
+                on { resultat } doReturn Vilkårsvurderingsresultat.Innvilget(emptySet())
             },
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
@@ -385,7 +386,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = mock {
-                on { resultat } doReturn Resultat.Innvilget
+                on { resultat } doReturn Vilkårsvurderingsresultat.Innvilget(emptySet())
             },
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -443,7 +444,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = mock {
-                on { resultat } doReturn Resultat.Innvilget
+                on { resultat } doReturn Vilkårsvurderingsresultat.Innvilget(emptySet())
             },
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
@@ -524,7 +525,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = mock {
-                on { resultat } doReturn Resultat.Innvilget
+                on { resultat } doReturn Vilkårsvurderingsresultat.Innvilget(emptySet())
             },
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -604,7 +605,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
         )
@@ -624,7 +625,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 

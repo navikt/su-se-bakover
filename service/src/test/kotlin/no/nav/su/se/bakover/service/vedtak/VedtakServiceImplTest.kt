@@ -290,7 +290,7 @@ internal class VedtakServiceImplTest {
                 fritekstTilBrev = "",
                 stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             ),
             UUID30.randomUUID(),
             fixedClock,

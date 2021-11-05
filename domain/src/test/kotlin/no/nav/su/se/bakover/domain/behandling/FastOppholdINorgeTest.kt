@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import org.junit.jupiter.api.Test
 
 internal class FastOppholdINorgeTest {
@@ -31,21 +30,5 @@ internal class FastOppholdINorgeTest {
             status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårIkkeOppfylt,
             begrunnelse = "neh"
         ).erVilkårOppfylt() shouldBe false
-    }
-
-    @Test
-    fun `avslagsgrunn er oppholdstillatelse dersom status er ikke oppfylt`() {
-        Behandlingsinformasjon.FastOppholdINorge(
-            status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårIkkeOppfylt,
-            begrunnelse = "neh"
-        ).avslagsgrunn() shouldBe Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE
-    }
-
-    @Test
-    fun `avslagsgrunn er null dersom status er oppfylt`() {
-        Behandlingsinformasjon.FastOppholdINorge(
-            status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
-            begrunnelse = "neh"
-        ).avslagsgrunn() shouldBe null
     }
 }

@@ -93,7 +93,7 @@ internal class FortsettEtterForhåndsvarselRouteTest {
 
             ),
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
         )
@@ -163,7 +163,7 @@ internal class FortsettEtterForhåndsvarselRouteTest {
                 begrunnelse = "begrunnelse",
             ),
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
         )
@@ -233,7 +233,7 @@ internal class FortsettEtterForhåndsvarselRouteTest {
                 begrunnelse = "begrunnelse",
             ),
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
         )

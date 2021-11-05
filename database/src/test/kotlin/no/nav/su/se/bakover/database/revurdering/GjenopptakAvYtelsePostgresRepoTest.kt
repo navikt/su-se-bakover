@@ -12,9 +12,10 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.periodeMai2021
+import no.nav.su.se.bakover.test.revurderingsårsak
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulering
-import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilgetRevurdering
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -30,7 +31,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
                 opprettet = fixedTidspunkt,
                 periode = periode2021,
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
-                vilkårsvurderinger = vilkårsvurderingerInnvilget(),
+                vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering(),
                 tilRevurdering = søknadsbehandling,
                 saksbehandler = saksbehandler,
                 simulering = simulering(),
@@ -65,7 +66,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
                 opprettet = fixedTidspunkt,
                 periode = periode2021,
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
-                vilkårsvurderinger = vilkårsvurderingerInnvilget(),
+                vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering(),
                 tilRevurdering = søknadsbehandling,
                 saksbehandler = saksbehandler,
                 simulering = simulering(),
@@ -81,7 +82,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
             val nyInformasjon = simulertRevurdering.copy(
                 periode = periodeMai2021,
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(periodeMai2021),
-                vilkårsvurderinger = vilkårsvurderingerInnvilget(periodeMai2021),
+                vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering(periode = periodeMai2021),
                 tilRevurdering = søknadsbehandling,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksern"),
                 simulering = simulering().copy(

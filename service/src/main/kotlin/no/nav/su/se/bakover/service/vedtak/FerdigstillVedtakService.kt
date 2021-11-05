@@ -67,7 +67,7 @@ internal class FerdigstillVedtakServiceImpl(
     private fun ferdigstillVedtak(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak, Vedtak> {
         // TODO jm: sjekk om vi allerede har distribuert?
         return if (vedtak.skalSendeBrev()) {
-            lagreDokumentJournalførOgDistribuer(vedtak).getOrHandle { return it.left() }
+            lagreDokument(vedtak).getOrHandle { return it.left() }
             lukkOppgaveMedSystembruker(vedtak)
             vedtak.right()
         } else {
@@ -76,7 +76,7 @@ internal class FerdigstillVedtakServiceImpl(
         }
     }
 
-    fun lagreDokumentJournalførOgDistribuer(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak, Vedtak> {
+    fun lagreDokument(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak, Vedtak> {
         return brevService.lagDokument(vedtak)
             .mapLeft {
                 KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev

@@ -251,7 +251,7 @@ internal class RevurderingServiceImpl(
         }
     }
 
-    private fun fjernBosituasjonOgFradragHvisIkkeEntydig(gjeldendeVedtaksdata: GjeldendeVedtaksdata): Pair<Grunnlagsdata, Vilkårsvurderinger> {
+    private fun fjernBosituasjonOgFradragHvisIkkeEntydig(gjeldendeVedtaksdata: GjeldendeVedtaksdata): Pair<Grunnlagsdata, Vilkårsvurderinger.Revurdering> {
         val gjeldendeBosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon
 
         // Dette kan oppstå når vi revurderer en revurdering. Da må vi vise eksisterende, men skal ikke preutfylle.

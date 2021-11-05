@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import org.junit.jupiter.api.Test
 
 internal class LovligOppholdTest {
@@ -31,21 +30,5 @@ internal class LovligOppholdTest {
             status = Behandlingsinformasjon.LovligOpphold.Status.VilkårIkkeOppfylt,
             begrunnelse = "neh"
         ).erVilkårOppfylt() shouldBe false
-    }
-
-    @Test
-    fun `avslagsgrunn er oppholdstillatelse dersom status er ikke oppfylt`() {
-        Behandlingsinformasjon.LovligOpphold(
-            status = Behandlingsinformasjon.LovligOpphold.Status.VilkårIkkeOppfylt,
-            begrunnelse = "neh"
-        ).avslagsgrunn() shouldBe Avslagsgrunn.OPPHOLDSTILLATELSE
-    }
-
-    @Test
-    fun `avslagsgrunn er null dersom status er oppfylt`() {
-        Behandlingsinformasjon.LovligOpphold(
-            status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-            begrunnelse = "neh"
-        ).avslagsgrunn() shouldBe null
     }
 }

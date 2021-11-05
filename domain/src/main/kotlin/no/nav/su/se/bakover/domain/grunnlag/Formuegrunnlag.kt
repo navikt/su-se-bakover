@@ -7,7 +7,13 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
+import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag.Companion.equals
+import no.nav.su.se.bakover.domain.grunnlag.FlyktningGrunnlag.Companion.equals
+import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag.Companion.equals
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge.Companion.equals
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning.Companion.equals
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold.Companion.equals
 import java.util.UUID
 
 data class Formuegrunnlag private constructor(
@@ -20,13 +26,10 @@ data class Formuegrunnlag private constructor(
 ) : Grunnlag(), KanPlasseresPåTidslinje<Formuegrunnlag> {
 
     override fun erLik(other: Grunnlag): Boolean {
-        if (other !is Formuegrunnlag) {
-            return false
-        }
-
-        return this.søkersFormue == other.søkersFormue &&
-            this.epsFormue == other.epsFormue &&
-            this.begrunnelse == other.begrunnelse
+        return other is Formuegrunnlag &&
+            søkersFormue == other.søkersFormue &&
+            epsFormue == other.epsFormue &&
+            begrunnelse == other.begrunnelse
     }
 
     data class Verdier private constructor(
@@ -125,6 +128,43 @@ data class Formuegrunnlag private constructor(
             begrunnelse: String?,
             // Denne tar ikke høyde for søknadsbehandling da denne ikke nødvendigvis er fullstendig
             bosituasjon: Bosituasjon.Fullstendig,
+            behandlingsPeriode: Periode,
+        ): Either<KunneIkkeLageFormueGrunnlag, Formuegrunnlag> {
+            val formuegrunnlag = Formuegrunnlag(
+                id = id,
+                periode = periode,
+                opprettet = opprettet,
+                epsFormue = epsFormue,
+                søkersFormue = søkersFormue,
+                begrunnelse = if (begrunnelse.isNullOrBlank()) null else begrunnelse,
+            )
+            SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
+                bosituasjon = listOf(bosituasjon),
+                formue = listOf(formuegrunnlag),
+            ).resultat.mapLeft {
+                if (it.contains(Konsistensproblem.BosituasjonOgFormue.IngenEPSMenFormueForEPS)) {
+                    return KunneIkkeLageFormueGrunnlag.MåHaEpsHvisManHarSattEpsFormue.left()
+                }
+                if (it.contains(Konsistensproblem.BosituasjonOgFormue.EPSFormueperiodeErUtenforBosituasjonPeriode)) {
+                    return KunneIkkeLageFormueGrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode.left()
+                }
+            }
+
+            if (!(behandlingsPeriode.inneholder(periode))) {
+                return KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden.left()
+            }
+            return formuegrunnlag.right()
+        }
+
+        fun tryCreate(
+            id: UUID = UUID.randomUUID(),
+            opprettet: Tidspunkt,
+            periode: Periode,
+            epsFormue: Verdier?,
+            søkersFormue: Verdier,
+            begrunnelse: String?,
+            // Tillater ufullstending for å kunne bruke med søknadsbehandling
+            bosituasjon: Bosituasjon,
             behandlingsPeriode: Periode,
         ): Either<KunneIkkeLageFormueGrunnlag, Formuegrunnlag> {
             val formuegrunnlag = Formuegrunnlag(

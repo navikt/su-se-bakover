@@ -14,7 +14,14 @@ internal class VilkårsvurderingServiceImpl(
     private val formueVilkårsvurderingRepo: FormueVilkårsvurderingRepo,
 ) : VilkårsvurderingService {
     override fun lagre(behandlingId: UUID, vilkårsvurderinger: Vilkårsvurderinger) {
-        uføreVilkårsvurderingRepo.lagre(behandlingId, vilkårsvurderinger.uføre)
-        formueVilkårsvurderingRepo.lagre(behandlingId, vilkårsvurderinger.formue)
+        when (vilkårsvurderinger) {
+            is Vilkårsvurderinger.Revurdering -> {
+                uføreVilkårsvurderingRepo.lagre(behandlingId, vilkårsvurderinger.uføre)
+                formueVilkårsvurderingRepo.lagre(behandlingId, vilkårsvurderinger.formue)
+            }
+            is Vilkårsvurderinger.Søknadsbehandling -> {
+                uføreVilkårsvurderingRepo.lagre(behandlingId, vilkårsvurderinger.uføre)
+            }
+        }
     }
 }

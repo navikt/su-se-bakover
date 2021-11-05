@@ -135,14 +135,13 @@ internal class VedtakTest {
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(bosituasjon),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = lagVurdertUføreVilkår(periode),
-                formue = lagVurdertFormueVilkår(periode, bosituasjon),
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                lagVurdertUføreVilkår(periode),
+                lagVurdertFormueVilkår(periode, bosituasjon),
             ),
         )
         listOf(vedtak).lagTidslinje(
             Periode.create(1.januar(2021), 31.desember(2021)),
-            fixedClock,
         ).tidslinje.let { tidslinje ->
             tidslinje.size shouldBe 1
             tidslinje[0].shouldBeEqualToExceptId(
@@ -171,11 +170,11 @@ internal class VedtakTest {
             fraDato = 1.januar(2021),
             tilDato = 31.desember(2021),
             grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjonA)),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = lagVurdertUføreVilkår(
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                lagVurdertUføreVilkår(
                     vurderingsperiode = periodeA,
                 ),
-                formue = lagVurdertFormueVilkår(
+                lagVurdertFormueVilkår(
                     periodeA,
                     bosituasjonA,
                 ),
@@ -189,9 +188,9 @@ internal class VedtakTest {
             fraDato = 1.mai(2021),
             tilDato = 31.desember(2021),
             grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjonB)),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = lagVurdertUføreVilkår(periodeB),
-                formue = lagVurdertFormueVilkår(periodeB, bosituasjonB),
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                lagVurdertUføreVilkår(periodeB),
+                lagVurdertFormueVilkår(periodeB, bosituasjonB),
             ),
         )
         listOf(a, b).lagTidslinje(
@@ -199,7 +198,6 @@ internal class VedtakTest {
                 1.januar(2021),
                 31.desember(2021),
             ),
-            clock = fixedClock,
         ).tidslinje.let {
             it.size shouldBe 2
             it.first().shouldBeEqualToExceptId(
@@ -211,11 +209,11 @@ internal class VedtakTest {
                             lagFullstendigBostiuasjon(Periode.create(1.januar(2021), 30.april(2021))),
                         ),
                     ),
-                    vilkårsvurderinger = Vilkårsvurderinger(
-                        uføre = lagVurdertUføreVilkår(
+                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                        lagVurdertUføreVilkår(
                             vurderingsperiode = Periode.create(1.januar(2021), 30.april(2021)),
                         ),
-                        formue = lagVurdertFormueVilkår(
+                        lagVurdertFormueVilkår(
                             Periode.create(1.januar(2021), 30.april(2021)),
                             lagFullstendigBostiuasjon(Periode.create(1.januar(2021), 30.april(2021))),
                         ),
@@ -254,9 +252,9 @@ internal class VedtakTest {
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(lagFullstendigBostiuasjon(p1)),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = lagVurdertUføreVilkår(p1),
-                formue = lagVurdertFormueVilkår(p1, lagFullstendigBostiuasjon(p1)),
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                lagVurdertUføreVilkår(p1),
+                lagVurdertFormueVilkår(p1, lagFullstendigBostiuasjon(p1)),
             ),
         )
 
@@ -268,14 +266,14 @@ internal class VedtakTest {
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(lagFullstendigBostiuasjon(p2)),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = lagVurdertUføreVilkår(p2),
-                formue = lagVurdertFormueVilkår(p2, lagFullstendigBostiuasjon(p2)),
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                lagVurdertUføreVilkår(p2),
+                lagVurdertFormueVilkår(p2, lagFullstendigBostiuasjon(p2)),
+
             ),
         )
         listOf(a, b).lagTidslinje(
             Periode.create(1.januar(2021), 31.desember(2021)),
-            fixedClock,
         ).tidslinje.let { tidslinje ->
             tidslinje.size shouldBe 2
 
@@ -289,9 +287,9 @@ internal class VedtakTest {
                         fradragsgrunnlag = listOf(),
                         bosituasjon = listOf(firstBosituasjon),
                     ),
-                    vilkårsvurderinger = Vilkårsvurderinger(
-                        uføre = lagVurdertUføreVilkår(firstPeriode),
-                        formue = lagVurdertFormueVilkår(firstPeriode, firstBosituasjon),
+                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                        lagVurdertUføreVilkår(firstPeriode),
+                        lagVurdertFormueVilkår(firstPeriode, firstBosituasjon),
                     ),
                     originaltVedtak = a,
                 ),
@@ -307,9 +305,9 @@ internal class VedtakTest {
                         fradragsgrunnlag = listOf(),
                         bosituasjon = listOf(lastBostiuasjon),
                     ),
-                    vilkårsvurderinger = Vilkårsvurderinger(
-                        uføre = lagVurdertUføreVilkår(lastPeriode),
-                        formue = lagVurdertFormueVilkår(lastPeriode, lastBostiuasjon),
+                    vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                        lagVurdertUføreVilkår(lastPeriode),
+                        lagVurdertFormueVilkår(lastPeriode, lastBostiuasjon),
                     ),
                     originaltVedtak = b,
                 ),
@@ -336,9 +334,9 @@ internal class VedtakTest {
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(b1),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = lagVurdertUføreVilkår(p1),
-                formue = lagVurdertFormueVilkår(p1, b1),
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                lagVurdertUføreVilkår(p1),
+                lagVurdertFormueVilkår(p1, b1),
             ),
         )
 
@@ -360,16 +358,15 @@ internal class VedtakTest {
             grunnlagsdata = Grunnlagsdata.create(
                 bosituasjon = listOf(b2),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(nonEmptyListOf(uføreVurderingB)),
-                formue = lagVurdertFormueVilkår(p2, b2),
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+                Vilkår.Uførhet.Vurdert.create(nonEmptyListOf(uføreVurderingB)),
+                lagVurdertFormueVilkår(p2, b2),
             ),
         )
 
         val actual =
             listOf(a, b).lagTidslinje(
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
-                fixedClock,
             ).tidslinje.let {
                 it.size shouldBe 1
                 it[0]
@@ -383,11 +380,12 @@ internal class VedtakTest {
                     fradragsgrunnlag = listOf(),
                     bosituasjon = listOf(b2),
                 ),
-                vilkårsvurderinger = Vilkårsvurderinger(
-                    uføre = Vilkår.Uførhet.Vurdert.create(
+                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
+
+                    Vilkår.Uførhet.Vurdert.create(
                         nonEmptyListOf(uføreVurderingB),
                     ),
-                    formue = lagVurdertFormueVilkår(p2, b2),
+                    lagVurdertFormueVilkår(p2, b2),
                 ),
                 originaltVedtak = b,
             ),
@@ -403,7 +401,7 @@ internal class VedtakTest {
         fraDato: LocalDate,
         tilDato: LocalDate,
         grunnlagsdata: Grunnlagsdata,
-        vilkårsvurderinger: Vilkårsvurderinger,
+        vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
     ): Vedtak.EndringIYtelse {
         val clock = fixedClockWithRekkefølge(rekkefølge)
         return Vedtak.fromSøknadsbehandling(

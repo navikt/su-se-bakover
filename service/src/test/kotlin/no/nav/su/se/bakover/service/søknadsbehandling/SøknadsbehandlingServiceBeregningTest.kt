@@ -86,7 +86,7 @@ class SøknadsbehandlingServiceBeregningTest {
                 ),
             ),
         ),
-        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+        vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
         attesteringer = Attesteringshistorikk.empty(),
     )
 
@@ -185,7 +185,7 @@ class SøknadsbehandlingServiceBeregningTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
         )
 

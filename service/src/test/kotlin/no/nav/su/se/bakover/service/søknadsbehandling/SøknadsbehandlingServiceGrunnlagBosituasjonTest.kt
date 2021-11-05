@@ -92,7 +92,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
         ).tilAttestering(Saksbehandler("saksa"), "")
 
@@ -131,7 +131,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
         )
 
@@ -239,7 +239,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
         ).tilAttestering(Saksbehandler("saksa"), "")
 
@@ -290,7 +290,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
         )
 

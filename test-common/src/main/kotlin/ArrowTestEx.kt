@@ -7,3 +7,7 @@ import io.kotest.assertions.fail
 fun <A, B> Either<A, B>.getOrFail(msg: String): B {
     return getOrHandle { fail(msg) }
 }
+
+fun <A, B> Either<A, B>.getOrFail(): B {
+    return getOrHandle { fail("""$it""") }
+}

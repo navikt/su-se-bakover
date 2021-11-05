@@ -35,7 +35,7 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
     beregning: Beregning = beregning(),
     utbetalingId: UUID30 = UUID30.randomUUID(),
     clock: Clock = fixedClock,
@@ -78,7 +78,7 @@ fun vedtakSøknadsbehandlingIverksattAvslagMedBeregning(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
     beregning: Beregning = beregningAvslag(),
 ): Pair<Sak, Vedtak.Avslag.AvslagBeregning> {
     return søknadsbehandlingIverksattAvslagMedBeregning(

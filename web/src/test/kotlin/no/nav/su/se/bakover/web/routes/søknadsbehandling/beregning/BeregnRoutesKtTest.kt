@@ -116,6 +116,9 @@ internal class BeregnRoutesKtTest {
             val repos = repos(dataSource)
             val services = services(dataSource, repos)
             val objects = setup(services, repos)
+            services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
+                request = LeggTilBosituasjonEpsRequest(behandlingId = objects.søknadsbehandling.id, epsFnr = null)
+            )
             services.søknadsbehandling.vilkårsvurder(
                 VilkårsvurderRequest(
                     objects.søknadsbehandling.id,

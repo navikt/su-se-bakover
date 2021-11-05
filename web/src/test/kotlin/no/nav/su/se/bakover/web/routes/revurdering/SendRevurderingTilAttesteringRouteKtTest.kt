@@ -95,7 +95,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
         )
@@ -142,7 +142,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
         )
@@ -191,7 +191,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             skalFøreTilBrevutsending = true,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
         )

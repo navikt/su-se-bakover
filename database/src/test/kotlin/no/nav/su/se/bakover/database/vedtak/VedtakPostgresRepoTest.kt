@@ -33,7 +33,7 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.saksbehandler
-import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilgetRevurdering
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -112,7 +112,7 @@ internal class VedtakPostgresRepoTest {
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
                 ),
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
@@ -256,7 +256,7 @@ internal class VedtakPostgresRepoTest {
                 opprettet = fixedTidspunkt,
                 periode = periode2021,
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
-                vilkårsvurderinger = vilkårsvurderingerInnvilget(),
+                vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering(),
                 tilRevurdering = søknadsbehandling,
                 saksbehandler = saksbehandler,
                 simulering = simulering(søknadsbehandling.behandling.fnr),
@@ -294,7 +294,7 @@ internal class VedtakPostgresRepoTest {
                 opprettet = fixedTidspunkt,
                 periode = periode2021,
                 grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
-                vilkårsvurderinger = vilkårsvurderingerInnvilget(),
+                vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering(),
                 tilRevurdering = søknadsbehandling,
                 saksbehandler = saksbehandler,
                 simulering = simulering(søknadsbehandling.behandling.fnr),

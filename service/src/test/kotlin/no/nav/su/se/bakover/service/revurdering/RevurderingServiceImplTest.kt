@@ -54,6 +54,7 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.argThat
@@ -151,8 +152,8 @@ internal class RevurderingServiceImplTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -164,7 +165,7 @@ internal class RevurderingServiceImplTest {
                         ),
                     ),
                 ),
-                formue = formueVilkår(tilRevurdering.periode),
+                formueVilkår(tilRevurdering.periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -236,7 +237,7 @@ internal class RevurderingServiceImplTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
         )
@@ -299,8 +300,8 @@ internal class RevurderingServiceImplTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -312,7 +313,7 @@ internal class RevurderingServiceImplTest {
                         ),
                     ),
                 ),
-                formue = formueVilkår(tilRevurdering.periode),
+                formueVilkår(tilRevurdering.periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -379,7 +380,7 @@ internal class RevurderingServiceImplTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
@@ -395,7 +396,7 @@ internal class RevurderingServiceImplTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
         )
@@ -468,7 +469,7 @@ internal class RevurderingServiceImplTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
         )
@@ -534,7 +535,7 @@ internal class RevurderingServiceImplTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
         )
@@ -647,8 +648,8 @@ internal class RevurderingServiceImplTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -660,7 +661,8 @@ internal class RevurderingServiceImplTest {
                         ),
                     ),
                 ),
-                formue = formueVilkår(periodeNesteMånedOgTreMånederFram),
+                formueVilkår(periodeNesteMånedOgTreMånederFram),
+
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -840,7 +842,7 @@ internal class RevurderingServiceImplTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
@@ -906,8 +908,8 @@ internal class RevurderingServiceImplTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Uførhet.Vurdert.create(
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
+                Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -919,7 +921,8 @@ internal class RevurderingServiceImplTest {
                         ),
                     ),
                 ),
-                formue = formueVilkår(periodeNesteMånedOgTreMånederFram),
+                formueVilkår(periodeNesteMånedOgTreMånederFram),
+
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
@@ -1130,7 +1133,7 @@ internal class RevurderingServiceImplTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         testForhåndsvarslerIkkeGittRevurdering(opprettet)
@@ -1147,7 +1150,7 @@ internal class RevurderingServiceImplTest {
             forhåndsvarsel = null,
             beregning = TestBeregning,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
         )
@@ -1299,7 +1302,7 @@ internal class RevurderingServiceImplTest {
             forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = mock {
-                on { resultat } doReturn Resultat.Innvilget
+                on { resultat } doReturn Vilkårsvurderingsresultat.Innvilget(emptySet())
             },
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
@@ -1376,7 +1379,7 @@ internal class RevurderingServiceImplTest {
                 "",
             ),
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
         )

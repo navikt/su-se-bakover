@@ -56,7 +56,7 @@ class NyBehandlingRoutesTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             attesteringer = Attesteringshistorikk.empty(),
         )
         val saksbehandlingServiceMock = mock<SøknadsbehandlingService> {

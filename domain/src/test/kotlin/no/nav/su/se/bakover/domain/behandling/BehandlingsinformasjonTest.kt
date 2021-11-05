@@ -4,162 +4,17 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.behandling.BehandlingsinformasjonTestData.behandlingsinformasjonMedAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test
+import java.util.UUID
 import no.nav.su.se.bakover.domain.behandling.BehandlingsinformasjonTestData as TestData
 
 internal class BehandlingsinformasjonTest {
-
-    @Test
-    fun `alle vilkår må være innvilget for at summen av vilkår skal være innvilget`() {
-        behandlingsinformasjonMedAlleVilkårOppfylt.erInnvilget() shouldBe true
-        behandlingsinformasjonMedAlleVilkårOppfylt.erAvslag() shouldBe false
-    }
-
-    @Test
-    fun `et vilkår som ikke er oppfylt fører til at summen er avslått`() {
-        val info = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
-            lovligOpphold = TestData.LovligOpphold.IkkeOppfylt
-        )
-        info.erInnvilget() shouldBe false
-        info.erAvslag() shouldBe true
-    }
-
-    @Test
-    fun `lister ut alle avslagsgrunner for vilkår som ikke er oppfylt`() {
-        val info = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
-            uførhet = TestData.Uførhet.IkkeOppfylt,
-            lovligOpphold = TestData.LovligOpphold.IkkeOppfylt
-        )
-        info.utledAvslagsgrunner() shouldBe listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.OPPHOLDSTILLATELSE)
-    }
-
-    @Test
-    fun `ingen avslagsgrunn dersom alle vilkår er oppfylt`() {
-        behandlingsinformasjonMedAlleVilkårOppfylt.utledAvslagsgrunner() shouldBe emptyList()
-    }
-
-    @Test
-    fun `dersom uførhet er vurdert men ikke oppfylt skal man få avslag`() {
-        val info = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
-            uførhet = TestData.Uførhet.IkkeOppfylt
-        )
-        info.erInnvilget() shouldBe false
-        info.erAvslag() shouldBe true
-        info.utledAvslagsgrunner() shouldBe listOf(Avslagsgrunn.UFØRHET)
-    }
-
-    @Test
-    fun `dersom flyktning er vurdert men ikke oppfylt skal man få avslag`() {
-        val info = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
-            flyktning = TestData.Flyktning.IkkeOppfylt
-        )
-        info.erInnvilget() shouldBe false
-        info.erAvslag() shouldBe true
-        info.utledAvslagsgrunner() shouldBe listOf(Avslagsgrunn.FLYKTNING)
-    }
-
-    @Test
-    fun `dersom man mangler vurdering av et vilkår er det ikke innvilget, men ikke nødvendigvis avslag`() {
-        val info = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
-            lovligOpphold = null
-        )
-        info.erInnvilget() shouldBe false
-        info.erAvslag() shouldBe false
-        info.utledAvslagsgrunner() shouldBe emptyList()
-    }
-
-    @Test
-    fun `dersom uførhet og flyktning er fylt ut, men en av dem gir avslag, skal man få avslag uten å fylle inn resten`() {
-        val ikkeOppfyltUfør = Behandlingsinformasjon(
-            uførhet = TestData.Uførhet.IkkeOppfylt,
-            flyktning = TestData.Flyktning.Oppfylt,
-            lovligOpphold = null,
-            fastOppholdINorge = null,
-            institusjonsopphold = null,
-            oppholdIUtlandet = null,
-            formue = null,
-            personligOppmøte = null,
-            bosituasjon = null,
-            ektefelle = null,
-        )
-        ikkeOppfyltUfør.erInnvilget() shouldBe false
-        ikkeOppfyltUfør.erAvslag() shouldBe true
-
-        val ikkeOppfyltFlyktning = Behandlingsinformasjon(
-            uførhet = TestData.Uførhet.Oppfylt,
-            flyktning = TestData.Flyktning.IkkeOppfylt,
-            lovligOpphold = null,
-            fastOppholdINorge = null,
-            institusjonsopphold = null,
-            oppholdIUtlandet = null,
-            formue = null,
-            personligOppmøte = null,
-            bosituasjon = null,
-            ektefelle = null,
-        )
-        ikkeOppfyltFlyktning.erInnvilget() shouldBe false
-        ikkeOppfyltFlyktning.erAvslag() shouldBe true
-    }
-
-    @Test
-    fun `dersom ett vilkår er ikke-oppfylt og alle de andre er uavklart, skal det gi avslag`() {
-        val ikkeOppfyltFastOpphold = Behandlingsinformasjon(
-            uførhet = TestData.Uførhet.Uavklart,
-            flyktning = TestData.Flyktning.Uavklart,
-            lovligOpphold = TestData.LovligOpphold.Uavklart,
-            fastOppholdINorge = TestData.FastOppholdINorge.IkkeOppfylt,
-            institusjonsopphold = TestData.Institusjonsopphold.Uavklart,
-            oppholdIUtlandet = TestData.OppholdIUtlandet.Uavklart,
-            formue = TestData.Formue.Uavklart,
-            personligOppmøte = TestData.PersonligOppmøte.Uavklart,
-            bosituasjon = TestData.Bosituasjon.OppfyltDelerIkkeBolig,
-            ektefelle = TestData.EktefellePartnerSamboer.OppfyltIngenEPS,
-        )
-
-        ikkeOppfyltFastOpphold.erInnvilget() shouldBe false
-        ikkeOppfyltFastOpphold.erAvslag() shouldBe true
-    }
-
-    @Test
-    fun `dersom ett vilkår er ikke-oppfylt og alle de andre er enten uavklart eller oppfylt, skal det gi avslag`() {
-        val ikkeOppfyltOppholdIUtlandet = Behandlingsinformasjon(
-            uførhet = TestData.Uførhet.Oppfylt,
-            flyktning = TestData.Flyktning.Oppfylt,
-            lovligOpphold = TestData.LovligOpphold.Uavklart,
-            fastOppholdINorge = TestData.FastOppholdINorge.Uavklart,
-            institusjonsopphold = TestData.Institusjonsopphold.Oppfylt,
-            oppholdIUtlandet = TestData.OppholdIUtlandet.IkkeOppfylt,
-            formue = TestData.Formue.OppfyltMedEPS,
-            personligOppmøte = TestData.PersonligOppmøte.Uavklart,
-            bosituasjon = TestData.Bosituasjon.OppfyltDelerIkkeBolig,
-            ektefelle = TestData.EktefellePartnerSamboer.OppfyltIngenEPS,
-        )
-
-        ikkeOppfyltOppholdIUtlandet.erInnvilget() shouldBe false
-        ikkeOppfyltOppholdIUtlandet.erAvslag() shouldBe true
-    }
-
-    @Test
-    fun `dersom ingen vilkår er ikke-oppfylt og ett eller flere er uavklart, så er ikke behandlingen ferdig`() {
-        val uferdig = Behandlingsinformasjon(
-            uførhet = TestData.Uførhet.Oppfylt,
-            flyktning = TestData.Flyktning.Oppfylt,
-            lovligOpphold = TestData.LovligOpphold.Uavklart,
-            fastOppholdINorge = TestData.FastOppholdINorge.Uavklart,
-            institusjonsopphold = TestData.Institusjonsopphold.Oppfylt,
-            oppholdIUtlandet = TestData.OppholdIUtlandet.Uavklart,
-            formue = TestData.Formue.OppfyltMedEPS,
-            personligOppmøte = TestData.PersonligOppmøte.Uavklart,
-            bosituasjon = TestData.Bosituasjon.OppfyltDelerIkkeBolig,
-            ektefelle = TestData.EktefellePartnerSamboer.OppfyltIngenEPS,
-        )
-
-        uferdig.erInnvilget() shouldBe false
-        uferdig.erAvslag() shouldBe false
-    }
 
     @Test
     fun `bosituasjon er null skal returnere BosituasjonErUbesvart`() {
@@ -298,5 +153,25 @@ internal class BehandlingsinformasjonTest {
         ferdig.getBeregningStrategy() shouldBe BeregningStrategy.BorAlene.right()
         ferdig.getSatsgrunn() shouldBe Satsgrunn.ENSLIG.right()
         ferdig.utledSats() shouldBe Sats.HØY.right()
+    }
+
+    @Test
+    fun `nullstiller formue for eps dersom bosuituasjon oppdateres til ufullstendig uten eps`() {
+        behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+            formue = TestData.Formue.OppfyltMedEPS,
+            bosituasjon = TestData.Bosituasjon.OppfyltEPSIkkeUførFlyktning,
+            ektefelle = TestData.EktefellePartnerSamboer.OppyltEPSUnder67,
+        ).oppdaterBosituasjonOgEktefelleOgNullstillFormueForEpsHvisIngenEps(
+            bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = periode2021,
+            ),
+            hentPerson = { KunneIkkeHentePerson.FantIkkePerson.left() },
+        ) shouldBe behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+            formue = TestData.Formue.OppfyltUtenEPS,
+            bosituasjon = TestData.Bosituasjon.OppfyltIngenEPS,
+            ektefelle = TestData.EktefellePartnerSamboer.OppfyltIngenEPS,
+        ).right()
     }
 }

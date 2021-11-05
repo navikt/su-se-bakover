@@ -40,7 +40,6 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
@@ -162,7 +161,7 @@ internal class SøknadsbehandlingServiceImpl(
 
         return statusovergang(
             søknadsbehandling = søknadsbehandling,
-            statusovergang = Statusovergang.TilVilkårsvurdert(request.behandlingsinformasjon),
+            statusovergang = Statusovergang.TilVilkårsvurdert(request.behandlingsinformasjon, clock),
         ).let { vilkårsvurdert ->
             søknadsbehandlingRepo.lagre(vilkårsvurdert)
             vilkårsvurdert.right()
@@ -488,6 +487,7 @@ internal class SøknadsbehandlingServiceImpl(
             statusovergang = Statusovergang.OppdaterStønadsperiode(
                 oppdatertStønadsperiode = request.stønadsperiode,
                 sak = sak,
+                clock = clock,
             ),
         ).mapLeft {
             SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode(it)
@@ -553,7 +553,7 @@ internal class SøknadsbehandlingServiceImpl(
             // TODO jah: Legg til Søknadsbehandling.leggTilUføre(...) som for Revurdering og persister Søknadsbehandlingen som returnerers. Da slipper man og det ekstra hent(...) kallet.
             vilkårsvurderingService.lagre(
                 it.id,
-                Vilkårsvurderinger(uføre = vilkår),
+                it.vilkårsvurderinger.leggTil(vilkår),
             )
             søknadsbehandlingRepo.hent(søknadsbehandling.id)!!
         }
@@ -576,7 +576,7 @@ internal class SøknadsbehandlingServiceImpl(
         return vilkårsvurder(
             SøknadsbehandlingService.VilkårsvurderRequest(
                 behandlingId = søknadsbehandling.id,
-                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.oppdaterBosituasjonOgEktefelle(
+                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.oppdaterBosituasjonOgEktefelleOgNullstillFormueForEpsHvisIngenEps(
                     bosituasjon = bosituasjon,
                 ) {
                     personService.hentPerson(it)
@@ -636,7 +636,7 @@ internal class SøknadsbehandlingServiceImpl(
         return vilkårsvurder(
             SøknadsbehandlingService.VilkårsvurderRequest(
                 behandlingId = søknadsbehandling.id,
-                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.oppdaterBosituasjonOgEktefelle(
+                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.oppdaterBosituasjonOgEktefelleOgNullstillFormueForEpsHvisIngenEps(
                     bosituasjon = bosituasjon,
                 ) {
                     personService.hentPerson(it)
