@@ -173,6 +173,7 @@ sealed class FortsettEtterForhåndsvarselFeil {
     object RevurderingErIkkeForhåndsvarslet : FortsettEtterForhåndsvarselFeil()
     object AlleredeBesluttet : FortsettEtterForhåndsvarselFeil()
     data class Attestering(val subError: KunneIkkeSendeRevurderingTilAttestering) : FortsettEtterForhåndsvarselFeil()
+    data class KunneIkkeAvslutteRevurdering(val subError: no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering) : FortsettEtterForhåndsvarselFeil()
 }
 
 object FantIkkeRevurdering
@@ -284,6 +285,11 @@ sealed class KunneIkkeLageBrevutkastForRevurdering {
     object FantIkkePerson : KunneIkkeLageBrevutkastForRevurdering()
     object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeLageBrevutkastForRevurdering()
     object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeLageBrevutkastForRevurdering()
+}
+
+sealed class KunneIkkeHentePersonEllerSaksbehandlerNavn {
+    object FantIkkePerson : KunneIkkeHentePersonEllerSaksbehandlerNavn()
+    object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeHentePersonEllerSaksbehandlerNavn()
 }
 
 sealed class KunneIkkeUnderkjenneRevurdering {

@@ -711,7 +711,10 @@ internal class RevurderingServiceImpl(
 
         val personOgSaksbehandlerNavn =
             hentPersonOgSaksbehandlerNavn(revurdering.fnr, revurdering.saksbehandler).getOrHandle {
-                return it.left()
+                return when (it) {
+                    KunneIkkeHentePersonEllerSaksbehandlerNavn.FantIkkePerson -> KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson.left()
+                    KunneIkkeHentePersonEllerSaksbehandlerNavn.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
+                }
             }
 
         val brevRequest = LagBrevRequest.Forhåndsvarsel(
@@ -1152,7 +1155,19 @@ internal class RevurderingServiceImpl(
                         Either.Right(revurdering)
                     }
                     is FortsettEtterForhåndsvarslingRequest.AvsluttUtenEndringer -> {
-                        TODO("Not yet implemented")
+                        avsluttRevurdering(
+                            revurderingId = request.revurderingId,
+                            begrunnelse = request.begrunnelse,
+                            fritekst = request.fritekstTilBrev,
+                        ).mapLeft {
+                            FortsettEtterForhåndsvarselFeil.KunneIkkeAvslutteRevurdering(it)
+                        }.map {
+                            when (it) {
+                                is GjenopptaYtelseRevurdering -> throw java.lang.IllegalStateException("Her har vi avsluttet en gjenopptaYtelse-revurdering på et sted vi ikke skulle")
+                                is StansAvYtelseRevurdering -> throw java.lang.IllegalStateException("Her har vi avsluttet en stansAvYtelse-revurdering på et sted vi ikke skulle")
+                                is Revurdering -> it
+                            }
+                        }
                     }
                 }
             }
@@ -1164,7 +1179,10 @@ internal class RevurderingServiceImpl(
     ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
         val personOgSaksbehandlerNavn =
             hentPersonOgSaksbehandlerNavn(revurdering.fnr, revurdering.saksbehandler).getOrHandle {
-                return KunneIkkeForhåndsvarsle.FantIkkePerson.left() // TODO: legg inn for at det kan være person eller saksbehandler som gikk feil
+                return when (it) {
+                    KunneIkkeHentePersonEllerSaksbehandlerNavn.FantIkkePerson -> KunneIkkeForhåndsvarsle.FantIkkePerson.left()
+                    KunneIkkeHentePersonEllerSaksbehandlerNavn.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeForhåndsvarsle.KunneIkkeHenteNavnForSaksbehandler.left()
+                }
             }
 
         val dokument = LagBrevRequest.Forhåndsvarsel(
@@ -1313,7 +1331,10 @@ internal class RevurderingServiceImpl(
     ): Either<KunneIkkeLageBrevutkastForRevurdering, LagBrevRequest.AvsluttRevurdering> {
         val personOgSaksbehandlerNavn =
             hentPersonOgSaksbehandlerNavn(revurdering.fnr, revurdering.saksbehandler).getOrHandle {
-                return it.left()
+                return when (it) {
+                    KunneIkkeHentePersonEllerSaksbehandlerNavn.FantIkkePerson -> KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson.left()
+                    KunneIkkeHentePersonEllerSaksbehandlerNavn.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
+                }
             }
 
         return LagBrevRequest.AvsluttRevurdering(
@@ -1327,15 +1348,15 @@ internal class RevurderingServiceImpl(
     private fun hentPersonOgSaksbehandlerNavn(
         fnr: Fnr,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeLageBrevutkastForRevurdering, Pair<Person, String>> {
+    ): Either<KunneIkkeHentePersonEllerSaksbehandlerNavn, Pair<Person, String>> {
         val person = personService.hentPerson(fnr).getOrElse {
             log.error("Fant ikke person for fnr: $fnr")
-            return KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson.left()
+            return KunneIkkeHentePersonEllerSaksbehandlerNavn.FantIkkePerson.left()
         }
 
         val saksbehandlerNavn = microsoftGraphApiClient.hentNavnForNavIdent(saksbehandler).getOrElse {
             log.error("Fant ikke saksbehandlernavn for saksbehandler: $saksbehandler")
-            return KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
+            return KunneIkkeHentePersonEllerSaksbehandlerNavn.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
         }
 
         return Pair(person, saksbehandlerNavn).right()

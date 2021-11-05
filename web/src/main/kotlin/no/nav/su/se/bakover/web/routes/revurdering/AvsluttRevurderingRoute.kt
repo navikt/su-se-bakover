@@ -95,17 +95,17 @@ private fun KunneIKkeLageBrevutkastForAvsluttingAvRevurdering.tilResultat(): Res
     }
 }
 
-private val revurderingErAlleredeAvsluttet = HttpStatusCode.BadRequest.errorJson(
+internal val revurderingErAlleredeAvsluttet = HttpStatusCode.BadRequest.errorJson(
     "Revurderingen er allerede avsluttet",
     "revurderingen_er_allerede_avsluttet",
 )
 
-private val revurderingenErIverksatt = HttpStatusCode.BadRequest.errorJson(
+internal val revurderingenErIverksatt = HttpStatusCode.BadRequest.errorJson(
     "Revurderingen er iverksatt",
     "revurderingen_er_iverksatt",
 )
 
-private fun KunneIkkeLageAvsluttetRevurdering.tilResultat(): Resultat {
+internal fun KunneIkkeLageAvsluttetRevurdering.tilResultat(): Resultat {
     return when (this) {
         KunneIkkeLageAvsluttetRevurdering.RevurderingErAlleredeAvsluttet -> revurderingErAlleredeAvsluttet
         KunneIkkeLageAvsluttetRevurdering.RevurderingenErIverksatt -> revurderingenErIverksatt
@@ -113,14 +113,14 @@ private fun KunneIkkeLageAvsluttetRevurdering.tilResultat(): Resultat {
     }
 }
 
-private fun GjenopptaYtelseRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse.tilResultat(): Resultat {
+internal fun GjenopptaYtelseRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse.tilResultat(): Resultat {
     return when (this) {
         GjenopptaYtelseRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse.RevurderingErAlleredeAvsluttet -> revurderingErAlleredeAvsluttet
         GjenopptaYtelseRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse.RevurderingenErIverksatt -> revurderingenErIverksatt
     }
 }
 
-private fun StansAvYtelseRevurdering.KunneIkkeLageAvsluttetStansAvYtelse.tilResultat(): Resultat {
+internal fun StansAvYtelseRevurdering.KunneIkkeLageAvsluttetStansAvYtelse.tilResultat(): Resultat {
     return when (this) {
         StansAvYtelseRevurdering.KunneIkkeLageAvsluttetStansAvYtelse.RevurderingErAlleredeAvsluttet -> revurderingErAlleredeAvsluttet
         StansAvYtelseRevurdering.KunneIkkeLageAvsluttetStansAvYtelse.RevurderingenErIverksatt -> revurderingenErIverksatt

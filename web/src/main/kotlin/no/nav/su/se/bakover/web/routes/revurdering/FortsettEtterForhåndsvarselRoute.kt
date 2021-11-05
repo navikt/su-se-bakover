@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
+import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarslingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
@@ -17,6 +18,7 @@ import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
+import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
@@ -84,6 +86,13 @@ internal fun Route.fortsettEtterForhåndsvarselRoute(
                                             "Revurderingen er ikke i riktig tilstand for å beslutte forhåndsvarslingen",
                                             "ikke_riktig_tilstand_for_å_beslutte_forhåndsvarslingen",
                                         )
+                                        is FortsettEtterForhåndsvarselFeil.KunneIkkeAvslutteRevurdering -> when (fortsettEtterForhåndsvarselFeil.subError) {
+                                            KunneIkkeAvslutteRevurdering.FantIkkeRevurdering -> Revurderingsfeilresponser.fantIkkeRevurdering
+                                            is KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse -> (fortsettEtterForhåndsvarselFeil.subError as KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse).feil.tilResultat()
+                                            is KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetRevurdering -> (fortsettEtterForhåndsvarselFeil.subError as KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetRevurdering).feil.tilResultat()
+                                            is KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetStansAvYtelse -> (fortsettEtterForhåndsvarselFeil.subError as KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetStansAvYtelse).feil.tilResultat()
+                                            KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument -> Feilresponser.Brev.kunneIkkeLageBrevutkast
+                                        }
                                     }
                                 }
                         }
