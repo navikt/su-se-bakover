@@ -4,18 +4,23 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.database.sak.SakRepo
+import no.nav.su.se.bakover.domain.BegrensetSakinfo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.sak.SakRestans
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.slf4j.LoggerFactory
+import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 internal class SakServiceImpl(
     private val sakRepo: SakRepo,
+    private val clock: Clock,
 ) : SakService {
     private val log = LoggerFactory.getLogger(this::class.java)
     val observers: MutableList<EventObserver> = mutableListOf()
@@ -45,5 +50,27 @@ internal class SakServiceImpl(
 
     override fun hentRestanserForAlleSaker(): List<SakRestans> {
         return sakRepo.hentSakRestanser()
+    }
+
+    override fun hentBegrensetSakinfo(fnr: Fnr): Either<FantIkkeSak, BegrensetSakinfo> {
+        return hentSak(fnr)
+            .map { sak ->
+                val now = LocalDate.now(clock)
+                BegrensetSakinfo(
+                    harÅpenSøknad = sak.søknader
+                        .any { søknad ->
+                            val behandling = sak.søknadsbehandlinger
+                                .find { b -> b.søknad.id == søknad.id }
+                            (
+                                søknad !is Søknad.Journalført.MedOppgave.Lukket &&
+                                    (behandling == null || !behandling.erIverksatt)
+                                )
+                        },
+                    iverksattInnvilgetStønadsperiode = sak
+                        .hentPerioderMedLøpendeYtelse()
+                        .filter { it.inneholder(now) }
+                        .maxByOrNull { it.tilOgMed },
+                )
+            }
     }
 }

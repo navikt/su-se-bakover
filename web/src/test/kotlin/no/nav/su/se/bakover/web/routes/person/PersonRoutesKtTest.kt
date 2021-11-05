@@ -70,7 +70,7 @@ internal class PersonRoutesKtTest {
                 """
                   {
                   "message": "Inneholder ikke et gyldig fødselsnummer",
-                  "code": "ikke_gyldig_fødselsnummer" 
+                  "code": "ikke_gyldig_fødselsnummer"
                   }
                 """.trimIndent(),
                 response.content,
@@ -174,7 +174,7 @@ internal class PersonRoutesKtTest {
                 """
                   {
                   "message": "Feil ved oppslag på person",
-                  "code": "feil_ved_oppslag_person" 
+                  "code": "feil_ved_oppslag_person"
                   }
                 """.trimIndent(),
                 response.content,
@@ -216,7 +216,7 @@ internal class PersonRoutesKtTest {
                 """
                   {
                   "message": "Fant ikke person",
-                  "code": "fant_ikke_person" 
+                  "code": "fant_ikke_person"
                   }
                 """.trimIndent(),
                 response.content,
