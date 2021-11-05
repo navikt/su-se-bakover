@@ -107,7 +107,7 @@ internal fun Route.sakRoutes(
         }
     }
 
-    authorize(Brukerrolle.Veileder) {
+    authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
         get("$sakPath/info/{fnr}") {
             call.parameter("fnr")
                 .flatMap {
