@@ -491,7 +491,7 @@ data class ApplicationConfig(
             unleash = UnleashConfig.createFromEnvironmentVariables(),
             jobConfig = JobConfig(
                 personhendelse = JobConfig.Personhendelse(naisCluster())
-            )
+            ),
         )
 
         fun createLocalConfig() = ApplicationConfig(
@@ -509,7 +509,7 @@ data class ApplicationConfig(
             unleash = UnleashConfig.createFromEnvironmentVariables(),
             jobConfig = JobConfig(
                 personhendelse = JobConfig.Personhendelse(naisCluster())
-            )
+            ),
         ).also {
             log.warn("**********  Using local config (the environment variable 'NAIS_CLUSTER_NAME' is missing.)")
         }
@@ -525,6 +525,7 @@ data class ApplicationConfig(
 
         fun isRunningLocally() = naisCluster() == null
         fun isNotProd() = isRunningLocally() || naisCluster() == NaisCluster.Dev
+        fun fnrKode6() = getEnvironmentVariableOrDefault("FNR_KODE6", "default")
     }
     data class JobConfig(val personhendelse: Personhendelse) {
         data class Personhendelse(private val naisCluster: NaisCluster?) {
