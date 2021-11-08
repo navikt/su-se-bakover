@@ -163,7 +163,7 @@ sealed class FortsettEtterForhåndsvarslingRequest {
         override val revurderingId: UUID,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val begrunnelse: String,
-        val fritekstTilBrev: String,
+        val fritekstTilBrev: String?,
     ) : FortsettEtterForhåndsvarslingRequest()
 }
 

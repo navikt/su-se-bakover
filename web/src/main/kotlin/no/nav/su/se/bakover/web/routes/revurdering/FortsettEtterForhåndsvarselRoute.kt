@@ -63,7 +63,7 @@ internal fun Route.fortsettEtterForhåndsvarselRoute(
                                 FortsettEtterForhåndsvarslingRequest.AvsluttUtenEndringer(
                                     revurderingId = revurderingId,
                                     begrunnelse = body.begrunnelse,
-                                    fritekstTilBrev = body.fritekstTilBrev ?: "",
+                                    fritekstTilBrev = body.fritekstTilBrev,
                                     saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                                 ),
                             )

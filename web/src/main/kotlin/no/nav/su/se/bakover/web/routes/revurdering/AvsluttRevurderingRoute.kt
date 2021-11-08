@@ -58,7 +58,7 @@ internal fun Route.AvsluttRevurderingRoute(
             val fritekst: String?,
         )
 
-        post("$revurderingPath/{revurderingId}/brevutkastForAvslutning") {
+        post("$revurderingPath/{revurderingId}/brevutkastForAvslutting") {
             call.withRevurderingId { revurderingId ->
                 call.withBody<BrevutkastForAvslutting> { body ->
                     revurderingService.brevutkastForAvslutting(revurderingId, body.fritekst).fold(

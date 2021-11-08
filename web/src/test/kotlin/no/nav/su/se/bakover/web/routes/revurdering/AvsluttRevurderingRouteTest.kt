@@ -11,8 +11,8 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.test.avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -26,7 +26,7 @@ internal class AvsluttRevurderingRouteTest {
 
     @Test
     fun `Avslutter revurdering`() {
-        val avsluttet = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
+        val avsluttet = avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
 
         val revurderingServiceMock = mock<RevurderingService> {
             on { avsluttRevurdering(anyOrNull(), anyOrNull(), anyOrNull()) } doReturn avsluttet.right()
@@ -52,8 +52,6 @@ internal class AvsluttRevurderingRouteTest {
                     """.trimIndent(),
                 )
             }.apply {
-                val content = response.content
-                println(content)
                 response.status() shouldBe HttpStatusCode.OK
             }
         }
@@ -77,7 +75,7 @@ internal class AvsluttRevurderingRouteTest {
         ) {
             defaultRequest(
                 HttpMethod.Post,
-                "${RevurderingRoutesTestData.requestPath}/$revurderingId/brevutkastForAvslutning",
+                "${RevurderingRoutesTestData.requestPath}/$revurderingId/brevutkastForAvslutting",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(

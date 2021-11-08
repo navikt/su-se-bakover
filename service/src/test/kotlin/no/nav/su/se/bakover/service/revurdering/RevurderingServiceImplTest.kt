@@ -1371,6 +1371,53 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
+    fun `avslutter en revurdering etter valg om hva som skal gjøres etter forhåndsvarsling`() {
+        val simulert = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second.copy(
+            forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt,
+        )
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn simulert
+            doNothing().`when`(mock).oppdaterForhåndsvarsel(any(), any())
+        }
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
+        }
+        val msGraphApiOppslag = mock<MicrosoftGraphApiOppslag> {
+            on { hentNavnForNavIdent(any()) } doReturn "saksbehandler".right()
+        }
+        val brevServiceMock = mock<BrevService1> {
+            on { lagBrev(any()) } doReturn "byteArray".toByteArray().right()
+            doNothing().`when`(mock).lagreDokument(any())
+        }
+        val sessionFactoryMock = TestSessionFactory()
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            personService = personServiceMock,
+            microsoftGraphApiClient = msGraphApiOppslag,
+            brevService = brevServiceMock,
+            sessionFactory = sessionFactoryMock,
+        )
+
+        val actual = revurderingService.fortsettEtterForhåndsvarsling(
+            request = FortsettEtterForhåndsvarslingRequest.AvsluttUtenEndringer(
+                revurderingId = simulert.id,
+                saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "navn"),
+                begrunnelse = "b e g r u n n e l s e",
+                fritekstTilBrev = null,
+            ),
+        )
+
+        actual shouldBe AvsluttetRevurdering.tryCreate(
+            underliggendeRevurdering = simulert,
+            begrunnelse = "b e g r u n n e l s e",
+            fritekst = null,
+            datoAvsluttet = LocalDate.now(fixedClock),
+        )
+    }
+
+    @Test
     fun `beslutter ikke en allerede besluttet forhåndsvarsling`() {
         val simulertRevurdering = SimulertRevurdering.Innvilget(
             id = revurderingId,

@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.test.simulertRevurderingOpphørtUføreFraInnvilgetS�
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import org.junit.jupiter.api.Test
 
-internal class AvsluttRevurderingTest {
+internal class AvsluttetRevurderingTest {
 
     @Test
     fun `lager en avsluttet revurdering med opprettet som underliggende`() {
@@ -40,6 +40,18 @@ internal class AvsluttRevurderingTest {
             underliggendeRevurdering = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second,
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
             fritekst = null,
+            datoAvsluttet = 15.mai(2021),
+        ).shouldBeRight()
+    }
+
+    @Test
+    fun `kan legge til fritekst dersom underliggende revurdering er forhåndsvarslet`() {
+        AvsluttetRevurdering.tryCreate(
+            underliggendeRevurdering = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second.copy(
+                forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt
+            ),
+            begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
+            fritekst = "en god, og fri tekst",
             datoAvsluttet = 15.mai(2021),
         ).shouldBeRight()
     }
