@@ -162,7 +162,7 @@ fun søknadsbehandlingBeregnetAvslag(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    beregning: Beregning = beregningAvslag()
+    beregning: Beregning = beregningAvslagForHøyInntekt()
 ): Pair<Sak, Søknadsbehandling.Beregnet.Avslag> {
     return søknadsbehandlingVilkårsvurdertInnvilget(
         saksnummer = saksnummer,
@@ -243,7 +243,7 @@ fun søknadsbehandlingTilAttesteringAvslagMedBeregning(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    beregning: Beregning = beregningAvslag()
+    beregning: Beregning = beregningAvslagForHøyInntekt()
 ): Pair<Sak, Søknadsbehandling.TilAttestering.Avslag.MedBeregning> {
     return søknadsbehandlingBeregnetAvslag(
         saksnummer = saksnummer,
@@ -356,7 +356,7 @@ fun søknadsbehandlingIverksattAvslagMedBeregning(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    beregning: Beregning = beregningAvslag(stønadsperiode.periode),
+    beregning: Beregning = beregningAvslagForHøyInntekt(stønadsperiode.periode),
 ): Pair<Sak, Søknadsbehandling.Iverksatt.Avslag.MedBeregning> {
     return søknadsbehandlingTilAttesteringAvslagMedBeregning(
         saksnummer = saksnummer,

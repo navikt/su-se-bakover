@@ -1,10 +1,14 @@
 package no.nav.su.se.bakover.database.beregning
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.limitedUpwardsTo
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
@@ -12,9 +16,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
-import no.nav.su.se.bakover.domain.beregning.fradrag.utenSosialstønad
 import java.util.UUID
-import kotlin.math.roundToInt
 
 internal data class PersistertBeregning(
     private val id: UUID,
@@ -61,6 +63,8 @@ internal data class PersistertMånedsberegning(
     private val fradrag: List<PersistertFradrag>,
     override val periode: Periode,
     private val fribeløpForEps: Double,
+    @JsonProperty("merknader")
+    val persisterteMerknader: List<PersistertMerknad.Beregning> = emptyList(),
 ) : Månedsberegning {
     override fun getSumYtelse(): Int = sumYtelse
     override fun getSumFradrag(): Double = sumFradrag
@@ -69,7 +73,9 @@ internal data class PersistertMånedsberegning(
     override fun getSatsbeløp(): Double = satsbeløp
     override fun getFradrag(): List<Fradrag> = fradrag
     override fun getFribeløpForEps(): Double = fribeløpForEps
-    override fun sumYtelseUtenSosialstønad(): Int = (satsbeløp - fradrag.utenSosialstønad().sumOf { it.månedsbeløp }).limitedUpwardsTo(satsbeløp).roundToInt().coerceAtLeast(0)
+
+    @JsonIgnore
+    override fun getMerknader(): List<Merknad.Beregning> = persisterteMerknader.toDomain()
 
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
 
@@ -108,7 +114,7 @@ internal fun Beregning.toSnapshot() = PersistertBeregning(
     sumFradrag = getSumFradrag(),
     periode = periode,
     fradragStrategyName = getFradragStrategyName(),
-    begrunnelse = getBegrunnelse()
+    begrunnelse = getBegrunnelse(),
 )
 
 internal fun Månedsberegning.toSnapshot() = PersistertMånedsberegning(
@@ -120,6 +126,7 @@ internal fun Månedsberegning.toSnapshot() = PersistertMånedsberegning(
     fradrag = getFradrag().map { it.toSnapshot() },
     periode = periode,
     fribeløpForEps = getFribeløpForEps(),
+    persisterteMerknader = getMerknader().toSnapshot(),
 )
 
 internal fun Fradrag.toSnapshot() = PersistertFradrag(
@@ -129,3 +136,11 @@ internal fun Fradrag.toSnapshot() = PersistertFradrag(
     periode = periode,
     tilhører = tilhører,
 )
+
+internal fun serialiserBeregning(beregning: Beregning): String {
+    return serialize(beregning.toSnapshot())
+}
+
+internal fun deserialiserBeregning(beregning: String?): PersistertBeregning? {
+    return beregning?.let { deserialize(beregning) }
+}

@@ -522,4 +522,21 @@ internal class PeriodeTest {
 
         emptyList<Periode>().reduser() shouldBe emptyList()
     }
+
+    @Test
+    fun `forskyvning av perioder`() {
+        januar(2021).forskyv(1) shouldBe februar(2021)
+        januar(2021).forskyv(-1) shouldBe desember(2020)
+        januar(2021).forskyv(12) shouldBe januar(2022)
+        januar(2021).forskyv(-12) shouldBe januar(2020)
+
+        Periode.create(1.januar(2021), 31.desember(2021)).forskyv(1) shouldBe
+            Periode.create(1.februar(2021), 31.januar(2022))
+        Periode.create(1.januar(2021), 31.desember(2021)).forskyv(-1) shouldBe
+            Periode.create(1.desember(2020), 30.november(2021))
+        Periode.create(1.januar(2021), 31.desember(2021)).forskyv(12) shouldBe
+            Periode.create(1.januar(2022), 31.desember(2022))
+        Periode.create(1.januar(2021), 31.desember(2021)).forskyv(-12) shouldBe
+            Periode.create(1.januar(2020), 31.desember(2020))
+    }
 }

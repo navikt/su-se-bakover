@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSessio
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
-import no.nav.su.se.bakover.database.beregning.toSnapshot
+import no.nav.su.se.bakover.database.beregning.serialiserBeregning
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -302,11 +302,11 @@ internal class VedtakPostgresRepo(
                         is Vedtak.EndringIYtelse.StansAvYtelse ->
                             null
                         is Vedtak.EndringIYtelse.InnvilgetRevurdering ->
-                            objectMapper.writeValueAsString(vedtak.beregning.toSnapshot())
+                            serialiserBeregning(vedtak.beregning)
                         is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling ->
-                            objectMapper.writeValueAsString(vedtak.beregning.toSnapshot())
+                            serialiserBeregning(vedtak.beregning)
                         is Vedtak.EndringIYtelse.OpphørtRevurdering ->
-                            objectMapper.writeValueAsString(vedtak.beregning.toSnapshot())
+                            serialiserBeregning(vedtak.beregning)
                     },
                     "vedtaktype" to when (vedtak) {
                         is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> VedtakType.GJENOPPTAK_AV_YTELSE
@@ -361,7 +361,7 @@ internal class VedtakPostgresRepo(
                     "tilOgMed" to vedtak.periode.tilOgMed,
                     "saksbehandler" to vedtak.saksbehandler,
                     "attestant" to vedtak.attestant,
-                    "beregning" to beregning?.let { objectMapper.writeValueAsString(it.toSnapshot()) },
+                    "beregning" to beregning?.let { serialiserBeregning(it) },
                     "vedtaktype" to VedtakType.AVSLAG,
                     "avslagsgrunner" to vedtak.avslagsgrunner.serialize(),
                 ),
@@ -406,7 +406,7 @@ internal class VedtakPostgresRepo(
                     "attestant" to vedtak.attestant,
                     "utbetalingid" to null,
                     "simulering" to null,
-                    "beregning" to objectMapper.writeValueAsString(vedtak.beregning.toSnapshot()),
+                    "beregning" to serialiserBeregning(vedtak.beregning),
                     "vedtaktype" to VedtakType.INGEN_ENDRING,
                 ),
                 session,

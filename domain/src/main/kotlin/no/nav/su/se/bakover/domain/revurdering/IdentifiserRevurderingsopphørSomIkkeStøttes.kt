@@ -7,9 +7,12 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
+import no.nav.su.se.bakover.domain.beregning.alleMånederHarMerknadForAvslag
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import java.time.Clock
 
 sealed class IdentifiserRevurderingsopphørSomIkkeStøttes {
 
@@ -46,11 +49,13 @@ sealed class IdentifiserRevurderingsopphørSomIkkeStøttes {
         private val vilkårsvurderinger: Vilkårsvurderinger,
         private val tidligereBeregning: Beregning,
         private val nyBeregning: Beregning,
+        private val clock: Clock,
     ) : IdentifiserRevurderingsopphørSomIkkeStøttes() {
         val resultat: Either<Set<RevurderingsutfallSomIkkeStøttes>, Unit> =
             VurderOpphørVedRevurdering.VilkårsvurderingerOgBeregning(
                 vilkårsvurderinger,
                 nyBeregning,
+                clock,
             ).resultat.let { opphørVedRevurdering ->
                 val utfall = mutableSetOf<RevurderingsutfallSomIkkeStøttes>()
                 when (opphørVedRevurdering) {
@@ -86,17 +91,16 @@ sealed class IdentifiserRevurderingsopphørSomIkkeStøttes {
                 }
             }
 
-        private fun fullstendigOpphør(): Boolean =
-            nyBeregning.alleMånederErUnderMinstebeløp() || nyBeregning.alleMånederHarBeløpLik0()
+        private fun fullstendigOpphør(): Boolean = nyBeregning.alleMånederHarMerknadForAvslag()
 
         private fun harAndreBeløpsendringerEnnMånederUnderMinstegrense(): Boolean {
-            return harBeløpsendringer(nyBeregning.getMånedsberegninger().filterNot { it.erSumYtelseUnderMinstebeløp() })
+            return harBeløpsendringer(nyBeregning.getMånedsberegninger().filterNot { it.getMerknader().contains(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats) })
         }
 
         private fun harAndreBeløpsendringerEnnMånederMedBeløp0(): Boolean {
             return harBeløpsendringer(
                 nyBeregning.getMånedsberegninger()
-                    .filterNot { !it.erSumYtelseUnderMinstebeløp() && it.getSumYtelse() == 0 },
+                    .filterNot { !it.getMerknader().contains(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats) && it.getSumYtelse() == 0 },
             )
         }
 

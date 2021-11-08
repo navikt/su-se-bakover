@@ -22,6 +22,10 @@ class Grunnbeløp private constructor(private val multiplier: Double) {
         .sortedByDescending { it.key }
         .first { forDato.isAfter(it.key) || forDato.isEqual(it.key) }.key
 
+    fun månedsbeløp(dato: LocalDate): Double = påDato(dato) / 12
+
+    fun heltallPåDato(dato: LocalDate): Int = påDato(dato).roundToInt()
+
     /**
      * Hent grunnbeløpet * multiplier som er gyldig på gitt dato og alle senere.
      */

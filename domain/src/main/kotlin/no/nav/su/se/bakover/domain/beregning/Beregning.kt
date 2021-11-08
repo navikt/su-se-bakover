@@ -1,5 +1,11 @@
 package no.nav.su.se.bakover.domain.beregning
 
+import arrow.core.Either
+import arrow.core.NonEmptyList
+import arrow.core.getOrHandle
+import arrow.core.left
+import arrow.core.nonEmptyListOf
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
@@ -39,7 +45,46 @@ interface Beregning : PeriodisertInformasjon {
      * Denne vil tvinge sub-klassene til å override.
      */
     override fun equals(other: Any?): Boolean
+}
 
-    fun alleMånederErUnderMinstebeløp(): Boolean = getMånedsberegninger().all { it.erSumYtelseUnderMinstebeløp() }
-    fun alleMånederHarBeløpLik0(): Boolean = getMånedsberegninger().all { it.getSumYtelse() == 0 }
+fun Beregning.alleMånederHarMerknadForAvslag(): Boolean {
+    return finnMånederMedMerknadForAvslag()
+        .getOrHandle { return false }
+        .count() == getMånedsberegninger().count()
+}
+
+fun Beregning.finnMånederMedMerknad(): Either<BeregningUtenMerknader, NonEmptyList<Pair<Månedsberegning, List<Merknad.Beregning>>>> {
+    return getMånedsberegninger()
+        .filterNot { it.getMerknader().isEmpty() }
+        .ifEmpty { return BeregningUtenMerknader.left() }
+        .map { nonEmptyListOf(it to it.getMerknader()) }
+        .reduce { a, b -> a + b }
+        .right()
+}
+
+object BeregningUtenMerknader
+
+fun Beregning.finnMånederMedMerknadForAvslag(): Either<IngenMerknaderForAvslag, NonEmptyList<Pair<Månedsberegning, Merknad.Beregning>>> {
+    return finnMånederMedMerknad()
+        .getOrHandle { return IngenMerknaderForAvslag.left() }
+        .map { (månedsberegning, _) ->
+            månedsberegning.finnMerknadForAvslag()
+                .mapLeft { IngenMerknaderForAvslag }
+                .map { månedsberegning to it }
+                .getOrHandle { IngenMerknaderForAvslag }
+        }
+        .filterIsInstance<Pair<Månedsberegning, Merknad.Beregning>>()
+        .ifEmpty { return IngenMerknaderForAvslag.left() }
+        .map { nonEmptyListOf(it) }
+        .reduce { a, b -> a + b }
+        .right()
+}
+
+object IngenMerknaderForAvslag
+
+fun Beregning.finnFørsteMånedMedMerknadForAvslag(): Either<IngenMerknaderForAvslag, Pair<Månedsberegning, Merknad.Beregning>> {
+    return finnMånederMedMerknadForAvslag()
+        .getOrHandle { return IngenMerknaderForAvslag.left() }
+        .minByOrNull { (månedsberegning, _) -> månedsberegning.periode.fraOgMed }!!
+        .right()
 }
