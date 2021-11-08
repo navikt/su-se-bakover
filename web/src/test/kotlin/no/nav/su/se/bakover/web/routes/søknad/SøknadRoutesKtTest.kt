@@ -162,7 +162,7 @@ internal class SøknadRoutesKtTest {
                 saksnummer = response.saksnummer
             }
 
-            defaultRequest(Get, "$sakPath/$sakId", listOf(Brukerrolle.Veileder)).apply {
+            defaultRequest(Get, "$sakPath/$sakId", listOf(Brukerrolle.Saksbehandler)).apply {
                 response.status() shouldBe OK
                 val sakJson = objectMapper.readValue<SakJson>(response.content!!)
                 sakJson.søknader.first().søknadInnhold.personopplysninger.fnr shouldMatch fnr.toString()

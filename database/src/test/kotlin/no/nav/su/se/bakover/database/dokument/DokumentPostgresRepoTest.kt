@@ -113,4 +113,43 @@ internal class DokumentPostgresRepoTest {
             )
         }
     }
+
+    @Test
+    fun `henter dokument med status`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val dokumentRepo = testDataHelper.dokumentRepo
+            val sak = testDataHelper.nySakMedNySøknad()
+            val original = Dokument.MedMetadata.Vedtak(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                tittel = "tittel",
+                generertDokument = "".toByteArray(),
+                generertDokumentJson = """{"some":"json"}""",
+                metadata = Dokument.Metadata(
+                    sakId = sak.id,
+                    søknadId = sak.søknad.id,
+                    bestillBrev = true,
+                ),
+            )
+            dokumentRepo.lagre(original, testDataHelper.sessionFactory.newTransactionContext())
+
+            val hentetDokumentUtenStatus = dokumentRepo.hentForSak(sak.id).first()
+            hentetDokumentUtenStatus.metadata.journalpostId shouldBe null
+            hentetDokumentUtenStatus.metadata.brevbestillingId shouldBe null
+
+            val journalført = dokumentRepo.hentDokumenterForDistribusjon().first()
+            dokumentRepo.oppdaterDokumentdistribusjon(
+                journalført.journalfør { JournalpostId("jp").right() }.getOrHandle {
+                    fail { "Skulle fått journalført" }
+                }.distribuerBrev { BrevbestillingId("brev").right() }.getOrHandle {
+                    fail { "Skulle fått bestilt brev" }
+                },
+            )
+
+            val hentetDokumentMedStatus = dokumentRepo.hentForSak(sak.id).first()
+            hentetDokumentMedStatus.metadata.journalpostId shouldBe "jp"
+            hentetDokumentMedStatus.metadata.brevbestillingId shouldBe "brev"
+        }
+    }
 }

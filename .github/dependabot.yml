@@ -19,6 +19,8 @@ updates:
         versions:
           - 6.2.1-ce
           - 6.2.1-ccs
+          - 7.0.0-ce
+          - 7.0.0-ccs
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

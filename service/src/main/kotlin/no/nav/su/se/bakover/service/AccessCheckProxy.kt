@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.BegrensetSakinfo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
@@ -282,6 +283,11 @@ open class AccessCheckProxy(
                     // vi gjør ikke noe assert fordi vi ikke sender noe sensitiv info.
                     // Samtidig som at dem går gjennom hentSak() når de skal saksbehandle
                     return services.sak.hentRestanserForAlleSaker()
+                }
+
+                override fun hentBegrensetSakinfo(fnr: Fnr): Either<FantIkkeSak, BegrensetSakinfo> {
+                    assertHarTilgangTilPerson(fnr)
+                    return services.sak.hentBegrensetSakinfo(fnr)
                 }
             },
             søknad = object : SøknadService {
