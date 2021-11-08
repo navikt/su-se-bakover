@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.sak.SakRestans
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
@@ -41,7 +42,7 @@ internal class SakServiceImplTest {
 
         val observer: EventObserver = mock()
 
-        val sakService = SakServiceImpl(sakRepo)
+        val sakService = SakServiceImpl(sakRepo, fixedClock)
         sakService.observers.add(observer)
         sakService.opprettSak(mock { on { id } doReturn sakId })
 
@@ -58,7 +59,7 @@ internal class SakServiceImplTest {
 
         val observer: EventObserver = mock()
 
-        val sakService = SakServiceImpl(sakRepo)
+        val sakService = SakServiceImpl(sakRepo, fixedClock)
         sakService.observers.add(observer)
         assertThrows<RuntimeException> {
             sakService.opprettSak(mock())
@@ -83,7 +84,7 @@ internal class SakServiceImplTest {
             )
         }
 
-        val sakService = SakServiceImpl(sakRepo)
+        val sakService = SakServiceImpl(sakRepo, fixedClock)
         val sakMedÅpenSøknad = sakService.hentRestanserForAlleSaker()
 
         sakMedÅpenSøknad shouldBe listOf(
@@ -132,7 +133,7 @@ internal class SakServiceImplTest {
             )
         }
 
-        val sakService = SakServiceImpl(sakRepo)
+        val sakService = SakServiceImpl(sakRepo, fixedClock)
         val sakerMedÅpneBehandlinger = sakService.hentRestanserForAlleSaker()
 
         sakerMedÅpneBehandlinger shouldBe listOf(
@@ -206,7 +207,7 @@ internal class SakServiceImplTest {
             )
         }
 
-        val sakService = SakServiceImpl(sakRepo)
+        val sakService = SakServiceImpl(sakRepo, fixedClock)
         val sakerMedÅpneRevurderinger = sakService.hentRestanserForAlleSaker()
 
         sakerMedÅpneRevurderinger shouldBe listOf(

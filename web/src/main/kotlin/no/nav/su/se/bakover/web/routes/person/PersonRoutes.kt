@@ -27,11 +27,11 @@ internal const val personPath = "/person"
 
 internal fun Route.personRoutes(
     personService: PersonService,
-    clock: Clock
+    clock: Clock,
 ) {
     post("$personPath/søk") {
         data class Body(
-            val fnr: String
+            val fnr: String,
         )
 
         call.withBody<Body> { body ->
@@ -87,12 +87,12 @@ data class PersonResponseJson(
     data class NavnJson(
         val fornavn: String,
         val mellomnavn: String?,
-        val etternavn: String
+        val etternavn: String,
     )
 
     data class TelefonnummerJson(
         val landskode: String,
-        val nummer: String
+        val nummer: String,
     )
 
     data class AdresseJson(
@@ -131,7 +131,7 @@ data class PersonResponseJson(
             telefonnummer = this.telefonnummer?.let { t ->
                 TelefonnummerJson(
                     landskode = t.landskode,
-                    nummer = t.nummer
+                    nummer = t.nummer,
                 )
             },
             adresse = this.adresse?.map {

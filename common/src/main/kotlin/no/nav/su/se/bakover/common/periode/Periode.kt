@@ -42,6 +42,9 @@ data class Periode private constructor(
     infix fun inneholder(other: Periode): Boolean =
         starterSamtidigEllerTidligere(other) && slutterSamtidigEllerSenere(other)
 
+    infix fun inneholder(dato: LocalDate): Boolean =
+        dato in fraOgMed..tilOgMed
+
     infix fun tilstøter(other: Periode): Boolean {
         val sluttStart = Period.between(tilOgMed, other.fraOgMed)
         val startSlutt = Period.between(fraOgMed, other.tilOgMed)

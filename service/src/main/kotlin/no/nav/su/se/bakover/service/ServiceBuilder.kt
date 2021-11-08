@@ -47,6 +47,7 @@ object ServiceBuilder {
         )
         val sakService = SakServiceImpl(
             sakRepo = databaseRepos.sak,
+            clock = clock
         ).apply { observers.add(statistikkService) }
         val utbetalingService = UtbetalingServiceImpl(
             utbetalingRepo = databaseRepos.utbetaling,

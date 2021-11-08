@@ -158,3 +158,8 @@ class SakFactory(
         )
     }
 }
+
+data class BegrensetSakinfo(
+    val harÅpenSøknad: Boolean,
+    val iverksattInnvilgetStønadsperiode: Periode?,
+)
