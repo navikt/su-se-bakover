@@ -51,7 +51,12 @@ object PersonOppslagStub :
         fullmakt = null,
     )
 
-    override fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = nyTestPerson(fnr).right()
+    override fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> =
+        if (fnr.toString() == ApplicationConfig.fnrKode6())
+            KunneIkkeHentePerson.IkkeTilgangTilPerson.left()
+        else
+            nyTestPerson(fnr).right()
+
     override fun personMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = nyTestPerson(fnr).right()
     override fun aktørId(fnr: Fnr) = AktørId("2437280977705").right()
     override fun aktørIdMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> = AktørId("2437280977705").right()
