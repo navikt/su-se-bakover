@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.Feilresponser
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkePersonEllerSaksbehandlerNavn
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
@@ -92,6 +93,7 @@ internal fun Route.fortsettEtterForhåndsvarselRoute(
                                             is KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetRevurdering -> (fortsettEtterForhåndsvarselFeil.subError as KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetRevurdering).feil.tilResultat()
                                             is KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetStansAvYtelse -> (fortsettEtterForhåndsvarselFeil.subError as KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetStansAvYtelse).feil.tilResultat()
                                             KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument -> Feilresponser.Brev.kunneIkkeLageBrevutkast
+                                            KunneIkkeAvslutteRevurdering.FantIkkePersonEllerSaksbehandlerNavn -> fantIkkePersonEllerSaksbehandlerNavn
                                         }
                                     }
                                 }

@@ -89,7 +89,22 @@ data class AvsluttetRevurdering private constructor(
                 is BeregnetRevurdering,
                 is SimulertRevurdering,
                 is UnderkjentRevurdering,
-                -> AvsluttetRevurdering(underliggendeRevurdering, begrunnelse, fritekst, datoAvsluttet).right()
+                -> {
+                    if (fritekst != null) {
+                        return when (underliggendeRevurdering.forhåndsvarsel) {
+                            null,
+                            Forhåndsvarsel.IngenForhåndsvarsel,
+                            -> KunneIkkeLageAvsluttetRevurdering.FritekstErFylltUtUtenForhåndsvarsel.left()
+
+                            is Forhåndsvarsel.SkalForhåndsvarsles.Besluttet,
+                            Forhåndsvarsel.SkalForhåndsvarsles.Sendt,
+                            -> AvsluttetRevurdering(
+                                underliggendeRevurdering, begrunnelse, fritekst, datoAvsluttet,
+                            ).right()
+                        }
+                    }
+                    return AvsluttetRevurdering(underliggendeRevurdering, begrunnelse, fritekst, datoAvsluttet).right()
+                }
             }
         }
     }
@@ -99,6 +114,7 @@ sealed class KunneIkkeLageAvsluttetRevurdering {
     object RevurderingErAlleredeAvsluttet : KunneIkkeLageAvsluttetRevurdering()
     object RevurderingenErIverksatt : KunneIkkeLageAvsluttetRevurdering()
     object RevurderingenErTilAttestering : KunneIkkeLageAvsluttetRevurdering()
+    object FritekstErFylltUtUtenForhåndsvarsel : KunneIkkeLageAvsluttetRevurdering()
 }
 
 sealed class KunneIkkeAvslutteRevurdering {
@@ -113,4 +129,5 @@ sealed class KunneIkkeAvslutteRevurdering {
 
     object FantIkkeRevurdering : KunneIkkeAvslutteRevurdering()
     object KunneIkkeLageDokument : KunneIkkeAvslutteRevurdering()
+    object FantIkkePersonEllerSaksbehandlerNavn : KunneIkkeAvslutteRevurdering()
 }

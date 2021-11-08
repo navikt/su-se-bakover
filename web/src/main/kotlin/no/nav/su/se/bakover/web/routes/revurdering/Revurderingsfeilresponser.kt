@@ -34,6 +34,11 @@ internal object Revurderingsfeilresponser {
         "ingenting_å_revurdere_i_perioden",
     )
 
+    val fantIkkePersonEllerSaksbehandlerNavn = BadRequest.errorJson(
+        "Fant ikke person eller saksbehandler navn",
+        "fant_ikke_person_eller_saksbehandler_navn",
+    )
+
     object OpprettelseOgOppdateringAvRevurdering {
         val måVelgeInformasjonSomRevurderes = BadRequest.errorJson(
             "Må velge minst en ting som skal revurderes",

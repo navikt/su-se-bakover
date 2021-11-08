@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkePersonEllerSaksbehandlerNavn
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -81,6 +82,7 @@ private fun KunneIkkeAvslutteRevurdering.tilResultat(): Resultat {
         is KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetRevurdering -> this.feil.tilResultat()
         is KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetStansAvYtelse -> this.feil.tilResultat()
         KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument -> Feilresponser.Brev.kunneIkkeLageBrevutkast
+        KunneIkkeAvslutteRevurdering.FantIkkePersonEllerSaksbehandlerNavn -> fantIkkePersonEllerSaksbehandlerNavn
     }
 }
 
@@ -110,6 +112,10 @@ internal fun KunneIkkeLageAvsluttetRevurdering.tilResultat(): Resultat {
         KunneIkkeLageAvsluttetRevurdering.RevurderingErAlleredeAvsluttet -> revurderingErAlleredeAvsluttet
         KunneIkkeLageAvsluttetRevurdering.RevurderingenErIverksatt -> revurderingenErIverksatt
         KunneIkkeLageAvsluttetRevurdering.RevurderingenErTilAttestering -> revurderingErAlleredeAvsluttet
+        KunneIkkeLageAvsluttetRevurdering.FritekstErFylltUtUtenForhåndsvarsel -> HttpStatusCode.BadRequest.errorJson(
+            "Fritekst er fyllt ut på en revurdering som ikke er forhåndsvarslet",
+            "fritekst_er_fyllt_ut_uten_forhåndsvarsel"
+        )
     }
 }
 

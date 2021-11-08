@@ -1162,11 +1162,7 @@ internal class RevurderingServiceImpl(
                         ).mapLeft {
                             FortsettEtterForhåndsvarselFeil.KunneIkkeAvslutteRevurdering(it)
                         }.map {
-                            when (it) {
-                                is GjenopptaYtelseRevurdering -> throw java.lang.IllegalStateException("Her har vi avsluttet en gjenopptaYtelse-revurdering på et sted vi ikke skulle")
-                                is StansAvYtelseRevurdering -> throw java.lang.IllegalStateException("Her har vi avsluttet en stansAvYtelse-revurdering på et sted vi ikke skulle")
-                                is Revurdering -> it
-                            }
+                            it as Revurdering
                         }
                     }
                 }
@@ -1270,7 +1266,7 @@ internal class RevurderingServiceImpl(
                     avsluttedeRevurdering,
                     fritekst,
                 ).getOrElse {
-                    return KunneIkkeAvslutteRevurdering.FantIkkeRevurdering.left()
+                    return KunneIkkeAvslutteRevurdering.FantIkkePersonEllerSaksbehandlerNavn.left()
                 }
 
                 brev.tilDokument {
@@ -1281,6 +1277,7 @@ internal class RevurderingServiceImpl(
                     val dokumentMedMetaData = dokument.leggTilMetadata(
                         metadata = Dokument.Metadata(
                             sakId = revurdering.sakId,
+                            vedtakId = revurdering.tilRevurdering.id,
                             revurderingId = revurdering.id,
                             bestillBrev = true,
                         ),

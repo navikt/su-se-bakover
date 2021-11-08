@@ -664,6 +664,7 @@ open class AccessCheckProxy(
                     revurderingId: UUID,
                     fritekst: String?,
                 ): Either<KunneIKkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, ByteArray>> {
+                    assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.brevutkastForAvslutting(revurderingId, fritekst)
                 }
             },

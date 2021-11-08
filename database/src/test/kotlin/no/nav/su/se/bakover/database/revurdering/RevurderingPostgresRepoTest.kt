@@ -7,6 +7,8 @@ import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
+import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.TestDataHelper
@@ -26,6 +28,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -956,6 +959,52 @@ internal class RevurderingPostgresRepoTest {
                         BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
                         "begrunnelse",
                     ),
+                ),
+            ),
+            true,
+        )
+    }
+
+    @Test
+    fun `lagrer, og henter en avsluttet revurdering med opprettet som underliggende revurdering`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.revurderingRepo
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val opprettet = opprettet(vedtak)
+            repo.lagre(opprettet)
+
+            val avsluttetRevurdering = AvsluttetRevurdering.tryCreate(
+                underliggendeRevurdering = opprettet,
+                begrunnelse = "avslutter denne revurderingen",
+                fritekst = null,
+                datoAvsluttet = 10.mai(2021),
+            ).getOrHandle { throw IllegalStateException("Her skulle vi jammen ha en avsluttet revurdering. $it") }
+
+            repo.lagre(avsluttetRevurdering)
+            repo.hent(avsluttetRevurdering.id) shouldBe avsluttetRevurdering
+        }
+    }
+
+    @Test
+    fun `avsluttet json matcher AvsluttetRevurderingInfo`() {
+        //language=JSON
+        val avsluttetJson = """
+          {
+            "fritekst": "en fri tekst", 
+            "begrunnelse": "en begrunnelse", 
+            "datoAvsluttet": "2021-11-02"
+          }
+        """.trimIndent()
+
+        JSONAssert.assertEquals(
+            avsluttetJson,
+            serialize(
+                RevurderingPostgresRepo.AvsluttetRevurderingInfo(
+                    begrunnelse = "en begrunnelse",
+                    fritekst = "en fri tekst",
+                    datoAvsluttet = 2.november(2021),
                 ),
             ),
             true,

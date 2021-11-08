@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.revurdering
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -12,7 +13,6 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.periodeMai2021
-import no.nav.su.se.bakover.test.revurderingsårsak
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulering
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilgetRevurdering
@@ -96,6 +96,39 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
 
             testDataHelper.revurderingRepo.lagre(nyInformasjon)
             testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe nyInformasjon
+        }
+    }
+
+    @Test
+    fun `lagrer og henter en avsluttet gjenopptakAvYtelse`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val søknadsbehandling = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val simulertRevurdering = GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = periode2021,
+                grunnlagsdata = grunnlagsdataEnsligUtenFradrag(),
+                vilkårsvurderinger = vilkårsvurderingerInnvilgetRevurdering(),
+                tilRevurdering = søknadsbehandling,
+                saksbehandler = saksbehandler,
+                simulering = simulering(),
+                revurderingsårsak = Revurderingsårsak.create(
+                    årsak = Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING.toString(),
+                    begrunnelse = "huffa",
+                ),
+            )
+
+            testDataHelper.revurderingRepo.lagre(simulertRevurdering)
+
+            val avsluttetGjenopptaAvYtelse = simulertRevurdering.avslutt(
+                begrunnelse = "Avslutter denne her",
+                datoAvsluttet = 17.mai(2021),
+            ).getOrFail("Her skulle vi ha avsluttet en gjenopptaAvYtelse revurdering")
+
+            testDataHelper.revurderingRepo.lagre(avsluttetGjenopptaAvYtelse)
+
+            testDataHelper.revurderingRepo.hent(avsluttetGjenopptaAvYtelse.id) shouldBe avsluttetGjenopptaAvYtelse
         }
     }
 }
