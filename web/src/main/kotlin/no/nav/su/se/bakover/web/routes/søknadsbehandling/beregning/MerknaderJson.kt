@@ -5,8 +5,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.UtenlandskInntektJson.Companion.toJson
-import java.time.format.DateTimeFormatter
-import kotlin.math.roundToInt
 
 internal fun List<Merknad.Beregning>.toJson() = map { it.toJson() }
 
@@ -36,25 +34,6 @@ internal fun Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats.toJson() =
 
 internal fun Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats.toJson() =
     MerknadJson.BeregningJson.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySatsJson
-
-internal fun Merknad.Beregning.MerknadMånedsberegning.toJson() = MerknadJson.BeregningJson.MerknadMånedsberegningJson(
-    fraOgMed = periode.fraOgMed.format(DateTimeFormatter.ISO_DATE),
-    tilOgMed = periode.tilOgMed.format(DateTimeFormatter.ISO_DATE),
-    sats = sats.name,
-    grunnbeløp = grunnbeløp,
-    beløp = beløp,
-    fradrag = fradrag.map { it.toJson() },
-    satsbeløp = satsbeløp.roundToInt(),
-    fribeløpForEps = fribeløpForEps,
-)
-
-internal fun Merknad.Beregning.MerknadFradrag.toJson() = MerknadJson.BeregningJson.MerknadFradragJson(
-    periode = periode.toJson(),
-    type = fradragstype.toString(),
-    beløp = månedsbeløp,
-    utenlandskInntekt = utenlandskInntekt?.toJson(),
-    tilhører = tilhører.toString(),
-)
 
 internal sealed class MerknadJson {
 
@@ -97,24 +76,5 @@ internal sealed class MerknadJson {
         object SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySatsJson : MerknadJson.BeregningJson()
         object BeløpMellomNullOgToProsentAvHøySatsJson : MerknadJson.BeregningJson()
         object BeløpErNullJson : MerknadJson.BeregningJson()
-
-        data class MerknadMånedsberegningJson(
-            val fraOgMed: String,
-            val tilOgMed: String,
-            val sats: String,
-            val grunnbeløp: Int,
-            val beløp: Int,
-            val fradrag: List<MerknadFradragJson>,
-            val satsbeløp: Int,
-            val fribeløpForEps: Double,
-        )
-
-        data class MerknadFradragJson(
-            val periode: PeriodeJson?,
-            val type: String,
-            val beløp: Double,
-            val utenlandskInntekt: UtenlandskInntektJson?,
-            val tilhører: String,
-        )
     }
 }

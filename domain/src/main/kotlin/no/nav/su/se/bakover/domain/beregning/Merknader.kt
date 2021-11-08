@@ -1,11 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning
 
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Grunnbeløp
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import java.time.LocalDate
 
 sealed class Merknader {
@@ -81,41 +77,5 @@ sealed class Merknad {
          * Beregnet beløp for en måned (ex [Fradragstype.Sosialstønad]) er 0.
          */
         object BeløpErNull : Merknad.Beregning()
-
-        data class MerknadMånedsberegning(
-            val periode: Periode,
-            val sats: Sats,
-            val grunnbeløp: Int,
-            val beløp: Int,
-            val fradrag: List<MerknadFradrag>,
-            val satsbeløp: Double,
-            val fribeløpForEps: Double,
-        )
-
-        data class MerknadFradrag(
-            val periode: Periode,
-            val fradragstype: Fradragstype,
-            val månedsbeløp: Double,
-            val utenlandskInntekt: UtenlandskInntekt?,
-            val tilhører: FradragTilhører,
-        )
     }
 }
-
-fun Månedsberegning.toMerknadMånedsberegning() = Merknad.Beregning.MerknadMånedsberegning(
-    periode = periode,
-    sats = getSats(),
-    grunnbeløp = getBenyttetGrunnbeløp(),
-    beløp = getSumYtelse(),
-    fradrag = getFradrag().map { it.toMerknadFradrag() },
-    satsbeløp = getSatsbeløp(),
-    fribeløpForEps = getFribeløpForEps(),
-)
-
-fun Fradrag.toMerknadFradrag() = Merknad.Beregning.MerknadFradrag(
-    periode = periode,
-    fradragstype = fradragstype,
-    månedsbeløp = månedsbeløp,
-    utenlandskInntekt = utenlandskInntekt,
-    tilhører = tilhører,
-)

@@ -2,12 +2,7 @@ package no.nav.su.se.bakover.database.beregning
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Merknad
-import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import java.time.LocalDate
 
 internal sealed class PersistertMerknad {
@@ -51,24 +46,6 @@ internal sealed class PersistertMerknad {
         object SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats : PersistertMerknad.Beregning()
         object BeløpMellomNullOgToProsentAvHøySats : PersistertMerknad.Beregning()
         object BeløpErNull : PersistertMerknad.Beregning()
-
-        data class MerknadMånedsberegning(
-            val periode: Periode,
-            val sats: Sats,
-            val grunnbeløp: Int,
-            val beløp: Int,
-            val fradrag: List<MerknadFradrag>,
-            val satsbeløp: Double,
-            val fribeløpForEps: Double,
-        )
-
-        data class MerknadFradrag(
-            val periode: Periode,
-            val fradragstype: Fradragstype,
-            val månedsbeløp: Double,
-            val utenlandskInntekt: UtenlandskInntekt?,
-            val tilhører: FradragTilhører,
-        )
     }
 }
 
@@ -147,49 +124,5 @@ internal fun PersistertMerknad.Beregning.EndringGrunnbeløp.Detalj.toDomain(): M
     return Merknad.Beregning.EndringGrunnbeløp.Detalj(
         dato = dato,
         grunnbeløp = grunnbeløp,
-    )
-}
-
-internal fun Merknad.Beregning.MerknadMånedsberegning.toSnapshot(): PersistertMerknad.Beregning.MerknadMånedsberegning {
-    return PersistertMerknad.Beregning.MerknadMånedsberegning(
-        periode = periode,
-        sats = sats,
-        grunnbeløp = grunnbeløp,
-        beløp = beløp,
-        fradrag = fradrag.map { it.toSnapshot() },
-        satsbeløp = satsbeløp,
-        fribeløpForEps = fribeløpForEps,
-    )
-}
-
-internal fun PersistertMerknad.Beregning.MerknadMånedsberegning.toDomain(): Merknad.Beregning.MerknadMånedsberegning {
-    return Merknad.Beregning.MerknadMånedsberegning(
-        periode = periode,
-        sats = sats,
-        grunnbeløp = grunnbeløp,
-        beløp = beløp,
-        fradrag = fradrag.map { it.toDomain() },
-        satsbeløp = satsbeløp,
-        fribeløpForEps = fribeløpForEps,
-    )
-}
-
-internal fun Merknad.Beregning.MerknadFradrag.toSnapshot(): PersistertMerknad.Beregning.MerknadFradrag {
-    return PersistertMerknad.Beregning.MerknadFradrag(
-        periode = periode,
-        fradragstype = fradragstype,
-        månedsbeløp = månedsbeløp,
-        utenlandskInntekt = utenlandskInntekt,
-        tilhører = tilhører,
-    )
-}
-
-internal fun PersistertMerknad.Beregning.MerknadFradrag.toDomain(): Merknad.Beregning.MerknadFradrag {
-    return Merknad.Beregning.MerknadFradrag(
-        periode = periode,
-        fradragstype = fradragstype,
-        månedsbeløp = månedsbeløp,
-        utenlandskInntekt = utenlandskInntekt,
-        tilhører = tilhører,
     )
 }
