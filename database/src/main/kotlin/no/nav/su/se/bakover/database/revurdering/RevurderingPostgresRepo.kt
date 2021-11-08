@@ -9,12 +9,15 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionFactory
+import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.database.Session
+import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UtlandsoppholdVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -85,6 +88,7 @@ internal class RevurderingPostgresRepo(
     private val fradragsgrunnlagPostgresRepo: FradragsgrunnlagPostgresRepo,
     private val bosituasjonsgrunnlagPostgresRepo: BosituasjongrunnlagPostgresRepo,
     private val uføreVilkårsvurderingRepo: UføreVilkårsvurderingPostgresRepo,
+    private val utlandsoppholdVilkårsvurderingRepo: UtlandsoppholdVilkårsvurderingPostgresRepo,
     private val formueVilkårsvurderingRepo: FormueVilkårsvurderingPostgresRepo,
     søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
     private val dbMetrics: DbMetrics,
@@ -97,6 +101,7 @@ internal class RevurderingPostgresRepo(
         bosituasjonsgrunnlagPostgresRepo = bosituasjonsgrunnlagPostgresRepo,
         uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
         formueVilkårsvurderingRepo = formueVilkårsvurderingRepo,
+        utlandsoppholdVilkårsvurderingRepo = utlandsoppholdVilkårsvurderingRepo,
     )
 
     private val gjenopptakAvYtelseRepo = GjenopptakAvYtelsePostgresRepo(
@@ -104,6 +109,7 @@ internal class RevurderingPostgresRepo(
         bosituasjonsgrunnlagPostgresRepo = bosituasjonsgrunnlagPostgresRepo,
         uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
         formueVilkårsvurderingRepo = formueVilkårsvurderingRepo,
+        utlandsoppholdVilkårsvurderingRepo = utlandsoppholdVilkårsvurderingRepo,
     )
 
     override fun hent(id: UUID): AbstraktRevurdering? {
@@ -137,7 +143,9 @@ internal class RevurderingPostgresRepo(
 
     override fun lagre(revurdering: AbstraktRevurdering) {
         when (revurdering) {
-            is Revurdering -> dataSource.withSession { lagre(revurdering, it) }
+            is Revurdering -> sessionFactory.withTransactionContext {
+                it.withTransaction { tx -> lagre(revurdering, tx) }
+            }
             is GjenopptaYtelseRevurdering -> sessionFactory.withTransactionContext {
                 gjenopptakAvYtelseRepo.lagre(
                     revurdering,
@@ -153,7 +161,7 @@ internal class RevurderingPostgresRepo(
         }
     }
 
-    internal fun lagre(revurdering: Revurdering, session: Session) {
+    internal fun lagre(revurdering: Revurdering, session: TransactionalSession) {
         when (revurdering) {
             is OpprettetRevurdering -> lagre(revurdering, session)
             is BeregnetRevurdering -> lagre(revurdering, session)
@@ -233,6 +241,7 @@ internal class RevurderingPostgresRepo(
         val vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
             uføre = uføreVilkårsvurderingRepo.hent(id, session),
             formue = formueVilkårsvurderingRepo.hent(id, session),
+            oppholdIUtlandet = utlandsoppholdVilkårsvurderingRepo.hent(id, session),
         )
 
         return when (RevurderingsType.valueOf(string("revurderingsType"))) {
@@ -535,57 +544,57 @@ internal class RevurderingPostgresRepo(
         }
     }
 
-    private fun lagre(revurdering: OpprettetRevurdering, session: Session) =
+    private fun lagre(revurdering: OpprettetRevurdering, session: TransactionalSession) {
         """
-                    insert into revurdering (
-                        id,
-                        opprettet,
-                        periode,
-                        beregning,
-                        simulering,
-                        saksbehandler,
-                        oppgaveId,
-                        revurderingsType,
-                        attestering,
-                        vedtakSomRevurderesId,
-                        fritekstTilBrev,
-                        årsak,
-                        begrunnelse,
-                        forhåndsvarsel,
-                        informasjonSomRevurderes
-                    ) values (
-                        :id,
-                        :opprettet,
-                        to_json(:periode::json),
-                        null,
-                        null,
-                        :saksbehandler,
-                        :oppgaveId,
-                        '${RevurderingsType.OPPRETTET}',
-                        to_jsonb(:attestering::jsonb),
-                        :vedtakSomRevurderesId,
-                        :fritekstTilBrev,
-                        :arsak,
-                        :begrunnelse,
-                        to_json(:forhandsvarsel::json),
-                        to_json(:informasjonSomRevurderes::json)
-                    )
-                        ON CONFLICT(id) do update set
-                        id=:id,
-                        opprettet=:opprettet,
-                        periode=to_json(:periode::json),
-                        beregning=null,
-                        simulering=null,
-                        saksbehandler=:saksbehandler,
-                        oppgaveId=:oppgaveId,
-                        revurderingsType='${RevurderingsType.OPPRETTET}',
-                        attestering=to_jsonb(:attestering::jsonb),
-                        vedtakSomRevurderesId=:vedtakSomRevurderesId,
-                        fritekstTilBrev=:fritekstTilBrev,
-                        årsak=:arsak,
-                        begrunnelse=:begrunnelse,
-                        forhåndsvarsel=to_json(:forhandsvarsel::json),
-                        informasjonSomRevurderes=to_json(:informasjonSomRevurderes::json)
+                        insert into revurdering (
+                            id,
+                            opprettet,
+                            periode,
+                            beregning,
+                            simulering,
+                            saksbehandler,
+                            oppgaveId,
+                            revurderingsType,
+                            attestering,
+                            vedtakSomRevurderesId,
+                            fritekstTilBrev,
+                            årsak,
+                            begrunnelse,
+                            forhåndsvarsel,
+                            informasjonSomRevurderes
+                        ) values (
+                            :id,
+                            :opprettet,
+                            to_json(:periode::json),
+                            null,
+                            null,
+                            :saksbehandler,
+                            :oppgaveId,
+                            '${RevurderingsType.OPPRETTET}',
+                            to_jsonb(:attestering::jsonb),
+                            :vedtakSomRevurderesId,
+                            :fritekstTilBrev,
+                            :arsak,
+                            :begrunnelse,
+                            to_json(:forhandsvarsel::json),
+                            to_json(:informasjonSomRevurderes::json)
+                        )
+                            ON CONFLICT(id) do update set
+                            id=:id,
+                            opprettet=:opprettet,
+                            periode=to_json(:periode::json),
+                            beregning=null,
+                            simulering=null,
+                            saksbehandler=:saksbehandler,
+                            oppgaveId=:oppgaveId,
+                            revurderingsType='${RevurderingsType.OPPRETTET}',
+                            attestering=to_jsonb(:attestering::jsonb),
+                            vedtakSomRevurderesId=:vedtakSomRevurderesId,
+                            fritekstTilBrev=:fritekstTilBrev,
+                            årsak=:arsak,
+                            begrunnelse=:begrunnelse,
+                            forhåndsvarsel=to_json(:forhandsvarsel::json),
+                            informasjonSomRevurderes=to_json(:informasjonSomRevurderes::json)
         """.trimIndent()
             .insert(
                 mapOf(
@@ -607,7 +616,14 @@ internal class RevurderingPostgresRepo(
                 session,
             )
 
-    private fun lagre(revurdering: BeregnetRevurdering, session: Session) =
+        utlandsoppholdVilkårsvurderingRepo.lagre(
+            behandlingId = revurdering.id,
+            vilkår = revurdering.vilkårsvurderinger.oppholdIUtlandet,
+            tx = session,
+        )
+    }
+
+    private fun lagre(revurdering: BeregnetRevurdering, session: TransactionalSession) =
         """
                     update
                         revurdering
@@ -639,7 +655,7 @@ internal class RevurderingPostgresRepo(
                 session,
             )
 
-    private fun lagre(revurdering: SimulertRevurdering, session: Session) =
+    private fun lagre(revurdering: SimulertRevurdering, session: TransactionalSession) =
         """
                     update
                         revurdering
@@ -673,7 +689,7 @@ internal class RevurderingPostgresRepo(
                 session,
             )
 
-    private fun lagre(revurdering: RevurderingTilAttestering, session: Session) =
+    private fun lagre(revurdering: RevurderingTilAttestering, session: TransactionalSession) =
         """
                     update
                         revurdering
@@ -718,7 +734,7 @@ internal class RevurderingPostgresRepo(
                 session,
             )
 
-    private fun lagre(revurdering: IverksattRevurdering, session: Session) =
+    private fun lagre(revurdering: IverksattRevurdering, session: TransactionalSession) =
         """
                     update
                         revurdering
@@ -757,7 +773,7 @@ internal class RevurderingPostgresRepo(
                 session,
             )
 
-    private fun lagre(revurdering: UnderkjentRevurdering, session: Session) =
+    private fun lagre(revurdering: UnderkjentRevurdering, session: TransactionalSession) =
         """
                     update
                         revurdering

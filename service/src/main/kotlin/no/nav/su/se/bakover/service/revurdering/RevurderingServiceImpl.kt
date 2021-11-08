@@ -62,6 +62,7 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import java.time.Clock
 import java.time.LocalDate
@@ -290,6 +291,31 @@ internal class RevurderingServiceImpl(
         }.map {
             // TODO jah: Flytt denne inn i revurderingRepo.lagre
             vilkårsvurderingService.lagre(it.id, it.vilkårsvurderinger)
+            revurderingRepo.lagre(it)
+            identifiserFeilOgLagResponse(it)
+        }
+    }
+
+    override fun leggTilUtlandsopphold(
+        request: LeggTilOppholdIUtlandetRequest
+    ): Either<KunneIkkeLeggeTilUtlandsopphold, RevurderingOgFeilmeldingerResponse> {
+        val revurdering = hent(request.behandlingId)
+            .getOrHandle { return KunneIkkeLeggeTilUtlandsopphold.FantIkkeBehandling.left() }
+
+        val oppholdIUtlandetVilkår = request.toVilkår(revurdering.periode, clock).getOrHandle {
+            return when (it) {
+                LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.OverlappendeVurderingsperioder -> KunneIkkeLeggeTilUtlandsopphold.OverlappendeVurderingsperioder.left()
+                LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.PeriodeForGrunnlagOgVurderingErForskjellig -> KunneIkkeLeggeTilUtlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+            }
+        }
+
+        return revurdering.oppdaterOppholdIUtlandetOgMarkerSomVurdert(oppholdIUtlandetVilkår).mapLeft {
+            KunneIkkeLeggeTilUtlandsopphold.UgyldigTilstand(
+                revurdering::class,
+                OpprettetRevurdering::class,
+            )
+        }.map {
+            // vilkårsvurderingService.lagre(it.id, it.vilkårsvurderinger)
             revurderingRepo.lagre(it)
             identifiserFeilOgLagResponse(it)
         }

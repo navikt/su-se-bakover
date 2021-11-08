@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UtlandsoppholdVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -18,6 +19,7 @@ internal class StansAvYtelsePostgresRepo(
     private val bosituasjonsgrunnlagPostgresRepo: BosituasjongrunnlagPostgresRepo,
     private val uføreVilkårsvurderingRepo: UføreVilkårsvurderingPostgresRepo,
     private val formueVilkårsvurderingRepo: FormueVilkårsvurderingPostgresRepo,
+    private val utlandsoppholdVilkårsvurderingRepo: UtlandsoppholdVilkårsvurderingPostgresRepo,
 ) {
     internal fun lagre(revurdering: StansAvYtelseRevurdering, sessionContext: TransactionContext) {
         sessionContext.withTransaction { tx ->
@@ -92,6 +94,11 @@ internal class StansAvYtelsePostgresRepo(
                         behandlingId = revurdering.id,
                         vilkår = revurdering.vilkårsvurderinger.formue,
                         tx = tx,
+                    )
+                    utlandsoppholdVilkårsvurderingRepo.lagre(
+                        behandlingId = revurdering.id,
+                        vilkår = revurdering.vilkårsvurderinger.oppholdIUtlandet,
+                        tx = tx
                     )
                 }
                 is StansAvYtelseRevurdering.IverksattStansAvYtelse -> {

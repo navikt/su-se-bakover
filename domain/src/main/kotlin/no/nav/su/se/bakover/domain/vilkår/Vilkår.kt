@@ -174,6 +174,7 @@ sealed class Vilkårsvurderinger {
             return Revurdering(
                 uføre = uføre,
                 formue = formue,
+                oppholdIUtlandet = oppholdIUtlandet,
             )
         }
 
@@ -274,12 +275,14 @@ sealed class Vilkårsvurderinger {
     data class Revurdering(
         val uføre: Vilkår.Uførhet = Vilkår.Uførhet.IkkeVurdert,
         val formue: Vilkår.Formue = Vilkår.Formue.IkkeVurdert,
+        val oppholdIUtlandet: OppholdIUtlandetVilkår = OppholdIUtlandetVilkår.IkkeVurdert,
     ) : Vilkårsvurderinger() {
         override val vilkår: Set<Vilkår>
             get() {
                 return setOf(
                     uføre,
                     formue,
+                    oppholdIUtlandet,
                 )
             }
 
@@ -287,6 +290,7 @@ sealed class Vilkårsvurderinger {
             return when (vilkår) {
                 is Vilkår.Formue -> copy(formue = vilkår)
                 is Vilkår.Uførhet -> copy(uføre = vilkår)
+                is OppholdIUtlandetVilkår -> copy(oppholdIUtlandet = vilkår)
                 else -> throw IllegalArgumentException("Ukjent vilkår for revurdering: ${vilkår::class}")
             }
         }
@@ -299,6 +303,7 @@ sealed class Vilkårsvurderinger {
             return Søknadsbehandling(
                 uføre = uføre,
                 formue = formue,
+                oppholdIUtlandet = oppholdIUtlandet,
             )
         }
 
@@ -318,18 +323,21 @@ sealed class Vilkårsvurderinger {
             return copy(
                 uføre = uføre.lagTidslinje(periode),
                 formue = formue.lagTidslinje(periode),
+                oppholdIUtlandet = oppholdIUtlandet.lagTidslinje(periode)
             )
         }
 
         fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Revurdering = copy(
             uføre = uføre.oppdaterStønadsperiode(stønadsperiode),
             formue = formue.oppdaterStønadsperiode(stønadsperiode),
+            oppholdIUtlandet = oppholdIUtlandet.oppdaterStønadsperiode(stønadsperiode)
         )
 
         companion object {
             val IkkeVurdert = Revurdering(
                 uføre = Vilkår.Uførhet.IkkeVurdert,
                 formue = Vilkår.Formue.IkkeVurdert,
+                oppholdIUtlandet = OppholdIUtlandetVilkår.IkkeVurdert,
             )
         }
     }

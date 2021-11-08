@@ -77,6 +77,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilBosituasjongrun
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilGrunnlag
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUtlandsopphold
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAttestering
@@ -119,6 +120,7 @@ import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import java.time.LocalDate
@@ -618,6 +620,13 @@ open class AccessCheckProxy(
                 ): Either<KunneIkkeLeggeTilGrunnlag, RevurderingOgFeilmeldingerResponse> {
                     assertHarTilgangTilRevurdering(request.behandlingId)
                     return services.revurdering.leggTilUføregrunnlag(request)
+                }
+
+                override fun leggTilUtlandsopphold(
+                    request: LeggTilOppholdIUtlandetRequest,
+                ): Either<KunneIkkeLeggeTilUtlandsopphold, RevurderingOgFeilmeldingerResponse> {
+                    assertHarTilgangTilRevurdering(request.behandlingId)
+                    return services.revurdering.leggTilUtlandsopphold(request)
                 }
 
                 override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, RevurderingOgFeilmeldingerResponse> {

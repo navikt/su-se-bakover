@@ -73,6 +73,7 @@ import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -237,7 +238,8 @@ internal class RegulerGrunnbeløpServiceImplTest {
                         ),
                     ),
                 ),
-                formueVilkår(periode),
+                formue = formueVilkår(periode),
+                oppholdIUtlandet = utlandsoppholdInnvilget(periode = periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(

@@ -20,6 +20,8 @@ import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UtlandsoppholdVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UtlandsoppholdgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
@@ -214,6 +216,7 @@ internal class TestDataHelper(
         postgresSessionFactory = sessionFactory,
     )
     internal val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
+    internal val utlandsoppholdgrunnlagPostgresRepo = UtlandsoppholdgrunnlagPostgresRepo()
     internal val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(
         dataSource = dataSource,
         dbMetrics = dbMetrics,
@@ -229,6 +232,11 @@ internal class TestDataHelper(
     internal val uføreVilkårsvurderingRepo = UføreVilkårsvurderingPostgresRepo(
         dataSource = dataSource,
         uføregrunnlagRepo = uføregrunnlagPostgresRepo,
+        dbMetrics = dbMetrics,
+    )
+    internal val utlandsoppholdVilkårsvurderingRepo = UtlandsoppholdVilkårsvurderingPostgresRepo(
+        dataSource = dataSource,
+        utlandsoppholdgrunnlagRepo = utlandsoppholdgrunnlagPostgresRepo,
         dbMetrics = dbMetrics,
     )
     internal val formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo()
@@ -250,6 +258,7 @@ internal class TestDataHelper(
         fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
         bosituasjonsgrunnlagPostgresRepo = bosituasjongrunnlagPostgresRepo,
         uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
+        utlandsoppholdVilkårsvurderingRepo = utlandsoppholdVilkårsvurderingRepo,
         formueVilkårsvurderingRepo = formueVilkårsvurderingPostgresRepo,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         dbMetrics = dbMetrics,

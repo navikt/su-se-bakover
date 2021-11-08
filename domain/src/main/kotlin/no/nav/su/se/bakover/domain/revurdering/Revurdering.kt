@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.Visitable
@@ -206,6 +207,9 @@ sealed class Revurdering :
     open fun oppdaterUføreOgMarkerSomVurdert(uføre: Vilkår.Uførhet.Vurdert): Either<UgyldigTilstand, OpprettetRevurdering> =
         UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
 
+    open fun oppdaterOppholdIUtlandetOgMarkerSomVurdert(vilkår: OppholdIUtlandetVilkår): Either<UgyldigTilstand, OpprettetRevurdering> =
+        UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
+
     open fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert): Either<UgyldigTilstand, OpprettetRevurdering> =
         UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
 
@@ -221,6 +225,15 @@ sealed class Revurdering :
         return oppdaterVilkårsvurderinger(
             vilkårsvurderinger = vilkårsvurderinger.leggTil(uføre) as Vilkårsvurderinger.Revurdering,
             informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Uførhet),
+        ).right()
+    }
+
+    protected fun oppdaterOppholdIUtlandetOgMarkerSomVurdertInternal(
+        vilkår: OppholdIUtlandetVilkår,
+    ): Either<UgyldigTilstand, OpprettetRevurdering> {
+        return oppdaterVilkårsvurderinger(
+            vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår) as Vilkårsvurderinger.Revurdering,
+            informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.UtenlandsoppholdOver90Dager),
         ).right()
     }
 
@@ -458,6 +471,10 @@ data class OpprettetRevurdering(
         uføre: Vilkår.Uførhet.Vurdert,
     ) = oppdaterUføreOgMarkerSomVurdertInternal(uføre)
 
+    override fun oppdaterOppholdIUtlandetOgMarkerSomVurdert(
+        vilkår: OppholdIUtlandetVilkår,
+    ) = oppdaterOppholdIUtlandetOgMarkerSomVurdertInternal(vilkår)
+
     override fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert) =
         oppdaterFormueOgMarkerSomVurdertInternal(formue)
 
@@ -493,6 +510,10 @@ sealed class BeregnetRevurdering : Revurdering() {
     override fun oppdaterUføreOgMarkerSomVurdert(
         uføre: Vilkår.Uførhet.Vurdert,
     ) = oppdaterUføreOgMarkerSomVurdertInternal(uføre)
+
+    override fun oppdaterOppholdIUtlandetOgMarkerSomVurdert(
+        vilkår: OppholdIUtlandetVilkår,
+    ) = oppdaterOppholdIUtlandetOgMarkerSomVurdertInternal(vilkår)
 
     override fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert) =
         oppdaterFormueOgMarkerSomVurdertInternal(formue)
@@ -680,6 +701,10 @@ sealed class SimulertRevurdering : Revurdering() {
     override fun oppdaterUføreOgMarkerSomVurdert(
         uføre: Vilkår.Uførhet.Vurdert,
     ) = oppdaterUføreOgMarkerSomVurdertInternal(uføre)
+
+    override fun oppdaterOppholdIUtlandetOgMarkerSomVurdert(
+        vilkår: OppholdIUtlandetVilkår,
+    ) = oppdaterOppholdIUtlandetOgMarkerSomVurdertInternal(vilkår)
 
     override fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert) =
         oppdaterFormueOgMarkerSomVurdertInternal(formue)
@@ -1197,6 +1222,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
     abstract val beregning: Beregning
     abstract override val attesteringer: Attesteringshistorikk
     abstract override val grunnlagsdata: Grunnlagsdata
+    abstract override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
     val attestering: Attestering.Underkjent
         get() = attesteringer.hentSisteAttestering() as Attestering.Underkjent
 
@@ -1205,6 +1231,10 @@ sealed class UnderkjentRevurdering : Revurdering() {
     override fun oppdaterUføreOgMarkerSomVurdert(
         uføre: Vilkår.Uførhet.Vurdert,
     ) = oppdaterUføreOgMarkerSomVurdertInternal(uføre)
+
+    override fun oppdaterOppholdIUtlandetOgMarkerSomVurdert(
+        vilkår: OppholdIUtlandetVilkår,
+    ) = oppdaterOppholdIUtlandetOgMarkerSomVurdertInternal(vilkår)
 
     override fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert) =
         oppdaterFormueOgMarkerSomVurdertInternal(formue)
@@ -1430,6 +1460,6 @@ enum class Revurderingsteg(val vilkår: String) {
     Bosituasjon("Bosituasjon"),
 
     // InnlagtPåInstitusjon("InnlagtPåInstitusjon"),
-    // UtenlandsoppholdOver90Dager("UtenlandsoppholdOver90Dager"),
+    UtenlandsoppholdOver90Dager("UtenlandsoppholdOver90Dager"),
     Inntekt("Inntekt"),
 }

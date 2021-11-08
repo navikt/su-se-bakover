@@ -2,17 +2,20 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.Either
 import arrow.core.Nel
+import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.minAndMaxOf
 import no.nav.su.se.bakover.common.periode.overlappende
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.OppholdIUtlandetGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOppholdIUtlandet.Companion.slåSammenVurderingsperioder
 import java.time.LocalDate
 import java.util.UUID
 
@@ -70,11 +73,29 @@ sealed class OppholdIUtlandetVilkår : Vilkår() {
         }
 
         override fun erLik(other: Vilkår): Boolean {
-            return other is OppholdIUtlandetVilkår.Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
+            return other is Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
+        }
+
+        fun slåSammenVurderingsperioder(): Either<UgyldigOppholdIUtlandetVilkår, OppholdIUtlandetVilkår> {
+            return fromVurderingsperioder(vurderingsperioder = vurderingsperioder.slåSammenVurderingsperioder())
         }
 
         companion object {
             fun tryCreate(
+                vurderingsperioder: Nel<VurderingsperiodeOppholdIUtlandet>,
+            ): Either<UgyldigOppholdIUtlandetVilkår, Vurdert> {
+                if (vurderingsperioder.overlappende()) {
+                    return UgyldigOppholdIUtlandetVilkår.OverlappendeVurderingsperioder.left()
+                }
+                return Vurdert(vurderingsperioder).right()
+            }
+
+            fun createFromVilkårsvurderinger(
+                vurderingsperioder: Nel<VurderingsperiodeOppholdIUtlandet>,
+            ): Vurdert =
+                fromVurderingsperioder(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
+
+            fun fromVurderingsperioder(
                 vurderingsperioder: Nel<VurderingsperiodeOppholdIUtlandet>,
             ): Either<UgyldigOppholdIUtlandetVilkår, Vurdert> {
                 if (vurderingsperioder.overlappende()) {
@@ -181,6 +202,27 @@ data class VurderingsperiodeOppholdIUtlandet private constructor(
                 begrunnelse = begrunnelse,
             ).right()
         }
+
+        fun Nel<VurderingsperiodeOppholdIUtlandet>.slåSammenVurderingsperioder(): Nel<VurderingsperiodeOppholdIUtlandet> {
+            val slåttSammen = this.sortedBy { it.periode.fraOgMed }
+                .fold(mutableListOf<MutableList<VurderingsperiodeOppholdIUtlandet>>()) { acc, oppholdIUtlandet ->
+                    if (acc.isEmpty()) {
+                        acc.add(mutableListOf(oppholdIUtlandet))
+                    } else if (acc.last().sisteFormueperiodeErLikOgTilstøtende(oppholdIUtlandet)) {
+                        acc.last().add(oppholdIUtlandet)
+                    } else {
+                        acc.add(mutableListOf(oppholdIUtlandet))
+                    }
+                    acc
+                }.map {
+                    val periode = it.map { it.periode }.minAndMaxOf()
+                    it.first().copy(CopyArgs.Tidslinje.NyPeriode(periode = periode))
+                }
+            return NonEmptyList.fromListUnsafe(slåttSammen)
+        }
+
+        private fun List<VurderingsperiodeOppholdIUtlandet>.sisteFormueperiodeErLikOgTilstøtende(other: VurderingsperiodeOppholdIUtlandet) =
+            this.last().tilstøterOgErLik(other)
     }
 
     sealed class UgyldigVurderingsperiode {

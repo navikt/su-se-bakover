@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.test
 
 import arrow.core.Either
 import arrow.core.getOrHandle
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -127,7 +128,18 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
         revurderingsperiode,
         fixedClock,
-    ),
+    ).let {
+        it.copy(
+            grunnlagsdata = it.grunnlagsdata.copy(
+                fradragsgrunnlag = nonEmptyListOf(
+                    fradragsgrunnlagArbeidsinntekt(
+                        periode = revurderingsperiode,
+                        arbeidsinntekt = 7500.0
+                    )
+                )
+            )
+        )
+    },
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
 ): Pair<Sak, BeregnetRevurdering.Innvilget> {
 

@@ -17,6 +17,9 @@ import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UtlandsoppholdVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UtlandsoppholdVilkårsvurderingRepo
+import no.nav.su.se.bakover.database.grunnlag.UtlandsoppholdgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.hendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
@@ -87,6 +90,8 @@ object DatabaseBuilder {
         val sessionFactory = PostgresSessionFactory(dataSource)
 
         val uføregrunnlagRepo = UføregrunnlagPostgresRepo()
+        val utlandsoppholdgrunnlagRepo = UtlandsoppholdgrunnlagPostgresRepo()
+
         val fradragsgrunnlag = FradragsgrunnlagPostgresRepo(
             dataSource = dataSource,
             dbMetrics = dbMetrics,
@@ -105,6 +110,12 @@ object DatabaseBuilder {
         val uføreVilkårsvurderingRepo = UføreVilkårsvurderingPostgresRepo(
             dataSource = dataSource,
             uføregrunnlagRepo = uføregrunnlagRepo,
+            dbMetrics = dbMetrics,
+        )
+
+        val utlandsoppholdVilkårsvurderingRepo = UtlandsoppholdVilkårsvurderingPostgresRepo(
+            dataSource = dataSource,
+            utlandsoppholdgrunnlagRepo = utlandsoppholdgrunnlagRepo,
             dbMetrics = dbMetrics,
         )
 
@@ -128,6 +139,7 @@ object DatabaseBuilder {
             fradragsgrunnlagPostgresRepo = fradragsgrunnlag,
             bosituasjonsgrunnlagPostgresRepo = bosituasjongrunnlag,
             uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
+            utlandsoppholdVilkårsvurderingRepo = utlandsoppholdVilkårsvurderingRepo,
             formueVilkårsvurderingRepo = formueVilkårsvurderingRepo,
             søknadsbehandlingRepo = saksbehandlingRepo,
             dbMetrics = dbMetrics,
@@ -172,6 +184,7 @@ object DatabaseBuilder {
             vedtakRepo = vedtakRepo,
             grunnlagRepo = grunnlagRepo,
             uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
+            utlandsoppholdVilkårsvurderingRepo = utlandsoppholdVilkårsvurderingRepo,
             formueVilkårsvurderingRepo = formueVilkårsvurderingRepo,
             dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory),
             personhendelseRepo = hendelseRepo,
@@ -194,6 +207,7 @@ data class DatabaseRepos(
     val vedtakRepo: VedtakRepo,
     val grunnlagRepo: GrunnlagRepo,
     val uføreVilkårsvurderingRepo: UføreVilkårsvurderingRepo,
+    val utlandsoppholdVilkårsvurderingRepo: UtlandsoppholdVilkårsvurderingRepo,
     val formueVilkårsvurderingRepo: FormueVilkårsvurderingRepo,
     val personhendelseRepo: PersonhendelseRepo,
     val dokumentRepo: DokumentRepo,

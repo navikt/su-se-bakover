@@ -49,13 +49,9 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
-import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.person
@@ -63,7 +59,6 @@ import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.beregning.TestBeregningSomGirOpphør
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
-import no.nav.su.se.bakover.service.formueVilkår
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -84,8 +79,10 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
@@ -93,7 +90,9 @@ import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksbehandlerNavn
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgInnvilgetFormue
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
@@ -116,59 +115,23 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `beregnOgSimuler - kan beregne og simulere`() {
-        val tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second
-        val uføregrunnlag = Grunnlag.Uføregrunnlag(
-            periode = tilRevurdering.periode,
-            uføregrad = Uføregrad.parse(20),
-            forventetInntekt = 10,
-            opprettet = fixedTidspunkt,
+        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
+            saksnummer = saksnummer,
+            stønadsperiode = stønadsperiode2021,
         )
-        val opprettetRevurdering = OpprettetRevurdering(
-            id = revurderingId,
-            periode = tilRevurdering.periode,
-            opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.create(
-                fradragsgrunnlag = listOf(
-                    lagFradragsgrunnlag(
-                        type = Fradragstype.Arbeidsinntekt,
-                        månedsbeløp = 10000.0,
-                        periode = tilRevurdering.periode,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                ),
-                bosituasjon = listOf(
-                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = tilRevurdering.periode,
-                        begrunnelse = null,
-                    ),
-                ),
-            ),
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-                Vilkår.Uførhet.Vurdert.create(
-                    vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Uføre.create(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            resultat = Resultat.Innvilget,
-                            grunnlag = uføregrunnlag,
-                            periode = tilRevurdering.periode,
-                            begrunnelse = "ok2k",
-                        ),
-                    ),
-                ),
-                formueVilkår(tilRevurdering.periode),
-            ),
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-        )
+
+        val grunnlagsdataOgVilkårsvurderinger = sak.hentGjeldendeVilkårOgGrunnlag(stønadsperiode2021.periode, fixedClock)
+
+        val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+            sakOgVedtakSomKanRevurderes = sak to vedtak,
+            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.copy(
+                grunnlagsdata = grunnlagsdataEnsligMedFradrag(
+                    fradragsgrunnlag = nonEmptyListOf(
+                        fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 10000.0)
+                    )
+                )
+            )
+        ).second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering
@@ -179,8 +142,8 @@ internal class RevurderingServiceImplTest {
         val utbetalingMock = mock<Utbetaling> {
             on { utbetalingslinjer } doReturn nonEmptyListOf(
                 Utbetalingslinje.Ny(
-                    fraOgMed = tilRevurdering.periode.fraOgMed,
-                    tilOgMed = tilRevurdering.periode.tilOgMed,
+                    fraOgMed = opprettetRevurdering.periode.fraOgMed,
+                    tilOgMed = opprettetRevurdering.periode.tilOgMed,
                     forrigeUtbetalingslinjeId = null,
                     beløp = 20000,
                     uføregrad = Uføregrad.parse(50),
@@ -215,7 +178,7 @@ internal class RevurderingServiceImplTest {
                 sakId = argThat { it shouldBe sakId },
                 saksbehandler = argThat { it shouldBe saksbehandler },
                 beregning = argThat { it shouldBe (actual.revurdering as SimulertRevurdering).beregning },
-                uføregrunnlag = argThat { it shouldBe listOf(uføregrunnlag) },
+                uføregrunnlag = argThat { it shouldBe opprettetRevurdering.vilkårsvurderinger.uføre.grunnlag },
             )
             verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.revurdering })
         }
@@ -265,58 +228,8 @@ internal class RevurderingServiceImplTest {
     @Test
     fun `beregnOgSimuler - får feil når simulering feiler`() {
         val tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second
-        val uføregrunnlag = Grunnlag.Uføregrunnlag(
-            periode = tilRevurdering.periode,
-            uføregrad = Uføregrad.parse(20),
-            forventetInntekt = 10,
-            opprettet = fixedTidspunkt,
-        )
-        val opprettetRevurdering = OpprettetRevurdering(
-            id = revurderingId,
-            periode = tilRevurdering.periode,
-            opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.create(
-                fradragsgrunnlag = listOf(
-                    lagFradragsgrunnlag(
-                        type = Fradragstype.Arbeidsinntekt,
-                        månedsbeløp = 10000.0,
-                        periode = tilRevurdering.periode,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                ),
-                bosituasjon = listOf(
-                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = tilRevurdering.periode,
-                        begrunnelse = null,
-                    ),
-                ),
-            ),
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-                Vilkår.Uførhet.Vurdert.create(
-                    vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Uføre.create(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            resultat = Resultat.Innvilget,
-                            grunnlag = uføregrunnlag,
-                            periode = tilRevurdering.periode,
-                            begrunnelse = "ok2k",
-                        ),
-                    ),
-                ),
-                formueVilkår(tilRevurdering.periode),
-            ),
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-        )
+
+        val beregnetRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
 
         val utbetalingMock = mock<Utbetaling> {
             on { utbetalingslinjer } doReturn nonEmptyListOf(
@@ -334,7 +247,7 @@ internal class RevurderingServiceImplTest {
             on { hentUtbetalinger(any()) } doReturn listOf(utbetalingMock)
         }
         val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn opprettetRevurdering
+            on { hent(revurderingId) } doReturn beregnetRevurdering
         }
 
         val actual = createRevurderingService(
@@ -604,68 +517,7 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `beregnOgSimuler - kan beregne og simuler underkjent revurdering på nytt`() {
-        val attestering = Attestering.Underkjent(
-            attestant = NavIdentBruker.Attestant(navIdent = "123"),
-            grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
-            kommentar = "pls math",
-            opprettet = Tidspunkt.EPOCH,
-        )
-        val uføregrunnlag = Grunnlag.Uføregrunnlag(
-            periode = periodeNesteMånedOgTreMånederFram,
-            uføregrad = Uføregrad.parse(20),
-            forventetInntekt = 10,
-            opprettet = fixedTidspunkt,
-        )
-        val underkjentRevurdering = UnderkjentRevurdering.Innvilget(
-            id = revurderingId,
-            periode = periodeNesteMånedOgTreMånederFram,
-            opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second,
-            saksbehandler = saksbehandler,
-            beregning = beregning,
-            simulering = mock(),
-            oppgaveId = OppgaveId("oppgaveId"),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attestering),
-            grunnlagsdata = Grunnlagsdata.create(
-                fradragsgrunnlag = listOf(
-                    lagFradragsgrunnlag(
-                        type = Fradragstype.Arbeidsinntekt,
-                        månedsbeløp = 4000.0,
-                        periode = periodeNesteMånedOgTreMånederFram,
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
-                ),
-                bosituasjon = listOf(
-                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = periodeNesteMånedOgTreMånederFram,
-                        begrunnelse = null,
-                    ),
-                ),
-            ),
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-                Vilkår.Uførhet.Vurdert.create(
-                    vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Uføre.create(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            resultat = Resultat.Innvilget,
-                            grunnlag = uføregrunnlag,
-                            periode = periodeNesteMånedOgTreMånederFram,
-                            begrunnelse = "ok2k",
-                        ),
-                    ),
-                ),
-                formueVilkår(periodeNesteMånedOgTreMånederFram),
-
-            ),
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-        )
+        val underkjentRevurdering = underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak().second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn underkjentRevurdering
@@ -712,7 +564,7 @@ internal class RevurderingServiceImplTest {
                 sakId = argThat { it shouldBe sakId },
                 saksbehandler = argThat { it shouldBe saksbehandler },
                 beregning = argThat { it shouldBe (actual.revurdering as SimulertRevurdering).beregning },
-                uføregrunnlag = argThat { it shouldBe listOf(uføregrunnlag) },
+                uføregrunnlag = argThat { it shouldBe underkjentRevurdering.vilkårsvurderinger.uføre.grunnlag },
             )
             verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.revurdering })
         }
@@ -889,44 +741,7 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `forhåndsvarsler en simulert-revurdering`() {
-        val simulertRevurdering = SimulertRevurdering.Innvilget(
-            id = revurderingId,
-            periode = periodeNesteMånedOgTreMånederFram,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second,
-            saksbehandler = saksbehandler,
-            beregning = TestBeregning,
-            simulering = Simulering(
-                gjelderId = fnr,
-                gjelderNavn = "navn",
-                datoBeregnet = fixedLocalDate,
-                nettoBeløp = 0,
-                periodeList = listOf(),
-            ),
-            oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-                Vilkår.Uførhet.Vurdert.create(
-                    vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Uføre.create(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            resultat = Resultat.Innvilget,
-                            grunnlag = null,
-                            periode = periodeNesteMånedOgTreMånederFram,
-                            begrunnelse = "ok2k",
-                        ),
-                    ),
-                ),
-                formueVilkår(periodeNesteMånedOgTreMånederFram),
-
-            ),
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty(),
-        )
+        val simulertRevurdering = simulertRevurderingInnvilget
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn simulertRevurdering
@@ -995,7 +810,7 @@ internal class RevurderingServiceImplTest {
                     )
                 },
             )
-            verify(oppgaveServiceMock).oppdaterOppgave(OppgaveId("oppgaveid"), "Forhåndsvarsel er sendt.")
+            verify(oppgaveServiceMock).oppdaterOppgave(oppgaveIdRevurdering, "Forhåndsvarsel er sendt.")
         }
 
         verifyNoMoreInteractions(

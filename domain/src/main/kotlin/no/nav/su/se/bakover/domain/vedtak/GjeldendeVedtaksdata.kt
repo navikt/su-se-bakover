@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.slåS
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
@@ -53,6 +54,18 @@ data class GjeldendeVedtaksdata(
             }
         }
 
+    private val utlandsoppholdvilkårOgGrunnlag: OppholdIUtlandetVilkår.Vurdert =
+        when (val vilkårsvurderinger = vilkårsvurderingerFraTidslinje) {
+            is Vilkårsvurderinger.Revurdering -> when (val vilkår = vilkårsvurderinger.oppholdIUtlandet) {
+                OppholdIUtlandetVilkår.IkkeVurdert -> throw IllegalStateException("Kan ikke opprette vilkårsvurdering fra ikke-vurderte vilkår")
+                is OppholdIUtlandetVilkår.Vurdert -> vilkår
+            }
+            is Vilkårsvurderinger.Søknadsbehandling -> when (val vilkår = vilkårsvurderinger.oppholdIUtlandet) {
+                OppholdIUtlandetVilkår.IkkeVurdert -> throw IllegalStateException("Kan ikke opprette vilkårsvurdering fra ikke-vurderte vilkår")
+                is OppholdIUtlandetVilkår.Vurdert -> vilkår
+            }
+        }
+
     // TODO istedenfor å bruke constructor + init, burde GjeldendeVedtaksdata ha en tryCreate
     init {
         grunnlagsdata = Grunnlagsdata.create(
@@ -68,6 +81,8 @@ data class GjeldendeVedtaksdata(
                 .getOrHandle { throw IllegalArgumentException("Kunne ikke slå sammen vurderingsperioder uføre: $it") },
             formue = formuevilkårOgGrunnlag.slåSammenVurderingsperioder()
                 .getOrHandle { throw IllegalArgumentException("Kunne ikke slå sammen vurderingsperioder formue: $it") },
+            oppholdIUtlandet = utlandsoppholdvilkårOgGrunnlag.slåSammenVurderingsperioder()
+                .getOrHandle { throw IllegalArgumentException("Kunne ikke slå sammen vurderingsperioder utlandsopphold: $it") },
         )
     }
 
@@ -95,6 +110,12 @@ private fun List<Vedtak.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurde
                 .flatMap { it.vurderingsperioder }
                 .let { Nel.fromListUnsafe(it) },
         ),
+        oppholdIUtlandet = OppholdIUtlandetVilkår.Vurdert.createFromVilkårsvurderinger(
+            this.map { it.vilkårsvurderinger.oppholdIUtlandetVilkår() }
+                .filterIsInstance<OppholdIUtlandetVilkår.Vurdert>()
+                .flatMap { it.vurderingsperioder }
+                .let { Nel.fromListUnsafe(it) }
+        )
     )
 }
 
@@ -109,5 +130,12 @@ private fun Vilkårsvurderinger.formueVilkår(): Vilkår.Formue {
     return when (this) {
         is Vilkårsvurderinger.Revurdering -> formue
         is Vilkårsvurderinger.Søknadsbehandling -> formue
+    }
+}
+
+private fun Vilkårsvurderinger.oppholdIUtlandetVilkår(): OppholdIUtlandetVilkår {
+    return when (this) {
+        is Vilkårsvurderinger.Revurdering -> oppholdIUtlandet
+        is Vilkårsvurderinger.Søknadsbehandling -> oppholdIUtlandet
     }
 }

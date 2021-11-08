@@ -304,6 +304,7 @@ internal class VilkårsvurderingerTest {
                     setOf(
                         it.uføre,
                         it.formue,
+                        it.oppholdIUtlandet,
                     ),
                 )
             }
@@ -353,7 +354,7 @@ internal class VilkårsvurderingerTest {
                 .let { vilkårsvurdering ->
                     (vilkårsvurdering.resultat as Vilkårsvurderingsresultat.Avslag).let {
                         it.vilkår shouldBe vilkårsvurdering.vilkår
-                        it.avslagsgrunner shouldBe listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.FORMUE)
+                        it.avslagsgrunner shouldBe listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.FORMUE, Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER)
                         it.dato shouldBe 1.januar(2021)
                     }
                 }
@@ -386,6 +387,7 @@ internal class VilkårsvurderingerTest {
                 setOf(
                     Vilkår.Uførhet.IkkeVurdert,
                     Vilkår.Formue.IkkeVurdert,
+                    OppholdIUtlandetVilkår.IkkeVurdert,
                 ),
             )
         }
