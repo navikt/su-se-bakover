@@ -64,10 +64,6 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                     {
                                         when (it) {
                                             SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
-                                            is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
-                                                it.fra,
-                                                it.til,
-                                            )
                                             SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl -> Feilresponser.fantIkkePerson
                                             is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag -> Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
                                         }
@@ -90,18 +86,16 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                     if (body.epsFnr.isNullOrEmpty()) {
                         return@withBehandlingId call.svar(Feilresponser.ugyldigBody)
                     }
-                    søknadsbehandlingService.leggTilBosituasjonEpsgrunnlagSkjermet(
-                        behandlingId,
-                        Fnr(body.epsFnr),
+                    søknadsbehandlingService.leggTilBosituasjonEpsgrunnlag(
+                        LeggTilBosituasjonEpsRequest(
+                            behandlingId = behandlingId,
+                            epsFnr = Fnr(body.epsFnr),
+                        ),
                     )
                         .fold(
                             {
                                 when (it) {
                                     SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
-                                    is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
-                                        it.fra,
-                                        it.til,
-                                    )
                                     SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl -> Feilresponser.fantIkkePerson
                                     is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag -> Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
                                 }
@@ -127,10 +121,6 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                 ).mapLeft {
                                     when (it) {
                                         SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
-                                        is SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
-                                            it.fra,
-                                            it.til,
-                                        )
                                         SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLagreBosituasjon -> Feilresponser.kunneIkkeLeggeTilBosituasjonsgrunnlag
                                         SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeHentePersonIPdl -> Feilresponser.fantIkkePerson
                                         is SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag -> Feilresponser.kunneIkkeLeggeTilBosituasjonsgrunnlag

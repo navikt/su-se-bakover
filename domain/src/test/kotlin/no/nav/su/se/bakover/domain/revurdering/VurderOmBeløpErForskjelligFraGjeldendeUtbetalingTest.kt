@@ -16,6 +16,8 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
 
@@ -89,6 +91,7 @@ internal class VurderOmBeløpErForskjelligFraGjeldendeUtbetalingTest {
     }
 
     private fun lagUtbetaling(månedsbeløp: Int, periode: Periode = beregningsperiode) = Utbetalingslinje.Ny(
+        opprettet = fixedTidspunkt,
         fraOgMed = periode.fraOgMed,
         tilOgMed = periode.tilOgMed,
         forrigeUtbetalingslinjeId = null,
@@ -112,7 +115,7 @@ internal class VurderOmBeløpErForskjelligFraGjeldendeUtbetalingTest {
                 tilhører = FradragTilhører.BRUKER,
             )
         }
-        return BeregningFactory.ny(
+        return BeregningFactory(clock = fixedClock).ny(
             periode = periodeBeløpMap.map { it.first }
                 .let { perioder -> Periode.create(perioder.minOf { it.fraOgMed }, perioder.maxOf { it.tilOgMed }) },
             sats = Sats.HØY,

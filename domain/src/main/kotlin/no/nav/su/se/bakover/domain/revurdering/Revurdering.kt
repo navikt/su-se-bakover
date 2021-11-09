@@ -168,7 +168,7 @@ sealed class Revurdering :
         ).right()
     }
 
-    protected fun oppdaterVilkårsvurderinger(
+    private fun oppdaterVilkårsvurderinger(
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes,
     ): OpprettetRevurdering {
@@ -189,7 +189,7 @@ sealed class Revurdering :
         )
     }
 
-    protected fun oppdaterGrunnlag(
+    private fun oppdaterGrunnlag(
         grunnlagsdata: Grunnlagsdata,
         informasjonSomRevurderes: InformasjonSomRevurderes,
     ): OpprettetRevurdering {
@@ -212,8 +212,9 @@ sealed class Revurdering :
 
     open fun beregn(
         eksisterendeUtbetalinger: List<Utbetaling>,
+        clock: Clock,
     ): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
-        val revurdertBeregning: Beregning = BeregningStrategyFactory().beregn(
+        val revurdertBeregning: Beregning = BeregningStrategyFactory(clock).beregn(
             GrunnlagsdataOgVilkårsvurderinger(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
@@ -924,6 +925,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
     override fun beregn(
         eksisterendeUtbetalinger: List<Utbetaling>,
+        clock: Clock,
     ): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
     }
@@ -1100,6 +1102,7 @@ sealed class IverksattRevurdering : Revurdering() {
 
     override fun beregn(
         eksisterendeUtbetalinger: List<Utbetaling>,
+        clock: Clock,
     ) =
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er iverksatt")
 }

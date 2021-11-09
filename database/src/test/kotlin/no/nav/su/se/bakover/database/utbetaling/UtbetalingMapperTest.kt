@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -41,11 +42,11 @@ internal class UtbetalingMapperTest {
                 ),
             ),
             type = Utbetaling.UtbetalingsType.NY,
-            avstemmingsnøkkel = Avstemmingsnøkkel(),
+            avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678910"),
                 gjelderNavn = "navn",
-                datoBeregnet = idag(),
+                datoBeregnet = idag(fixedClock),
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
@@ -75,11 +76,11 @@ internal class UtbetalingMapperTest {
                 )
             ),
             type = Utbetaling.UtbetalingsType.NY,
-            avstemmingsnøkkel = Avstemmingsnøkkel(),
+            avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
             simulering = Simulering(
                 gjelderId = Fnr(fnr = "12345678910"),
                 gjelderNavn = "navn",
-                datoBeregnet = idag(),
+                datoBeregnet = idag(fixedClock),
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),

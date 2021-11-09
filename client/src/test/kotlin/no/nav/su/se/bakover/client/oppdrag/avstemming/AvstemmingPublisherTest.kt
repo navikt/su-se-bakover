@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.oversendtUtbetalingUtenKvittering
 import org.junit.jupiter.api.Test
@@ -134,10 +135,12 @@ class AvstemmingPublisherTest {
     }
 
     private val grensesnittavstemming = Avstemming.Grensesnittavstemming(
+        opprettet = fixedTidspunkt,
         fraOgMed = 1.januar(2020).startOfDay(),
         tilOgMed = 2.januar(2020).startOfDay(),
         utbetalinger = listOf(
             Utbetaling.OversendtUtbetaling.MedKvittering(
+                opprettet = fixedTidspunkt,
                 saksnummer = saksnummer,
                 sakId = sakId,
                 utbetalingslinjer = nonEmptyListOf(
@@ -155,7 +158,7 @@ class AvstemmingPublisherTest {
                 simulering = Simulering(
                     gjelderId = Fnr("12345678910"),
                     gjelderNavn = "",
-                    datoBeregnet = idag(),
+                    datoBeregnet = idag(fixedClock),
                     nettoBeløp = 5000,
                     periodeList = listOf(),
                 ),

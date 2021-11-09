@@ -41,6 +41,7 @@ internal class AvstemmingPostgresRepoTest {
 
             repo.opprettGrensesnittsavstemming(
                 Avstemming.Grensesnittavstemming(
+                    opprettet = fixedTidspunkt,
                     fraOgMed = 1.januar(2020).startOfDay(),
                     tilOgMed = 2.januar(2020).startOfDay(),
                     utbetalinger = listOf(utbetalingMedKvittering.second),
@@ -48,6 +49,7 @@ internal class AvstemmingPostgresRepoTest {
             )
 
             val second = Avstemming.Grensesnittavstemming(
+                opprettet = fixedTidspunkt,
                 fraOgMed = 3.januar(2020).startOfDay(),
                 tilOgMed = 4.januar(2020).startOfDay(),
                 utbetalinger = listOf(utbetalingMedKvittering.second),
@@ -289,6 +291,7 @@ internal class AvstemmingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = AvstemmingPostgresRepo(dataSource)
             val første = Utbetalingslinje.Ny(
+                opprettet = fixedTidspunkt,
                 fraOgMed = 1.januar(2020),
                 tilOgMed = 30.april(2020),
                 forrigeUtbetalingslinjeId = null,
@@ -296,6 +299,7 @@ internal class AvstemmingPostgresRepoTest {
                 uføregrad = Uføregrad.parse(50),
             )
             val andre = Utbetalingslinje.Ny(
+                opprettet = fixedTidspunkt,
                 fraOgMed = 1.mai(2020),
                 tilOgMed = 31.desember(2020),
                 forrigeUtbetalingslinjeId = første.id,

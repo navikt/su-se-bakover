@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.oppdrag
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
@@ -23,6 +24,7 @@ internal class UtbetalingslinjeTest {
     }
 
     private fun createUtbetalingslinje(fraOgMed: LocalDate, tilOgMed: LocalDate) = Utbetalingslinje.Ny(
+        opprettet = fixedTidspunkt,
         fraOgMed = fraOgMed,
         tilOgMed = tilOgMed,
         forrigeUtbetalingslinjeId = null,

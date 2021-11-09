@@ -32,8 +32,9 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import org.slf4j.LoggerFactory
+import java.time.Clock
 
-object StubClientsBuilder : ClientsBuilder {
+class StubClientsBuilder(val clock: Clock) : ClientsBuilder {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -54,7 +55,7 @@ object StubClientsBuilder : ClientsBuilder {
             dokArkiv = DokArkivStub.also { log.warn("********** Using stub for ${DokArkiv::class.java} **********") },
             oppgaveClient = OppgaveClientStub.also { log.warn("********** Using stub for ${OppgaveClient::class.java} **********") },
             kodeverk = KodeverkHttpClient(applicationConfig.clientsConfig.kodeverkUrl, "srvsupstonad"),
-            simuleringClient = SimuleringStub.also { log.warn("********** Using stub for ${SimuleringClient::class.java} **********") },
+            simuleringClient = SimuleringStub(clock).also { log.warn("********** Using stub for ${SimuleringClient::class.java} **********") },
             utbetalingPublisher = UtbetalingStub.also { log.warn("********** Using stub for ${UtbetalingPublisher::class.java} **********") },
             dokDistFordeling = DokDistFordelingStub.also { log.warn("********** Using stub for ${DokDistFordelingClient::class.java} **********") },
             avstemmingPublisher = AvstemmingStub.also { log.warn("********** Using stub for ${AvstemmingPublisher::class.java} **********") },

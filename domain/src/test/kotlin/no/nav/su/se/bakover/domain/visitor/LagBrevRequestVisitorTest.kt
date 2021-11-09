@@ -946,7 +946,7 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
             ).second
-                .beregn(eksisterendeUtbetalinger = emptyList())
+                .beregn(eksisterendeUtbetalinger = emptyList(), clock = fixedClock)
                 .getOrHandle { fail("Skulle gått bra") }
                 .toSimulert(simulering) as SimulertRevurdering.Opphørt
             )
@@ -1014,7 +1014,7 @@ internal class LagBrevRequestVisitorTest {
             ),
         )
 
-        val bereget = revurdering.beregn(eksisterendeUtbetalinger = sak.utbetalinger)
+        val bereget = revurdering.beregn(eksisterendeUtbetalinger = sak.utbetalinger, clock = fixedClock)
             .getOrHandle { fail("Skulle gått bra") }
             .toSimulert(simulering) as SimulertRevurdering.Opphørt
 
@@ -1166,7 +1166,7 @@ internal class LagBrevRequestVisitorTest {
             is NavIdentBruker.Saksbehandler -> saksbehandlerNavn.right()
         }
 
-    private val innvilgetBeregning = BeregningFactory.ny(
+    private val innvilgetBeregning = BeregningFactory(clock = fixedClock).ny(
         id = UUID.randomUUID(),
         opprettet = fixedTidspunkt,
         periode = Periode.create(1.januar(2021), 31.desember(2021)),
@@ -1183,7 +1183,7 @@ internal class LagBrevRequestVisitorTest {
         fradragStrategy = FradragStrategy.Enslig,
     )
 
-    private val avslagBeregning = BeregningFactory.ny(
+    private val avslagBeregning = BeregningFactory(clock = fixedClock).ny(
         id = UUID.randomUUID(),
         opprettet = fixedTidspunkt,
         periode = Periode.create(1.januar(2021), 31.desember(2021)),

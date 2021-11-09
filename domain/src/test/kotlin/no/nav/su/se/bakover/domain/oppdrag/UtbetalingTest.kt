@@ -70,7 +70,7 @@ internal class UtbetalingTest {
         opprettet = opprettet,
         type = Utbetaling.UtbetalingsType.NY,
         behandler = NavIdentBruker.Saksbehandler("Z123"),
-        avstemmingsnøkkel = Avstemmingsnøkkel()
+        avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt)
     )
 
     private fun createUtbetalingslinje(
@@ -80,6 +80,7 @@ internal class UtbetalingTest {
         forrigeUtbetalingslinjeId: UUID30? = null,
         uføregrad: Uføregrad = Uføregrad.parse(50),
     ) = Utbetalingslinje.Ny(
+        opprettet = fixedTidspunkt,
         fraOgMed = fraOgMed,
         tilOgMed = tilOgMed,
         beløp = beløp,

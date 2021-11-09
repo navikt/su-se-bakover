@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test
@@ -151,7 +152,7 @@ internal class BeregningMapperTest {
         opprettet: Tidspunkt = fixedTidspunkt,
         begrunnelse: String = "begrunnelse",
     ) =
-        BeregningFactory.ny(
+        BeregningFactory(clock = fixedClock).ny(
             id = UUID.randomUUID(),
             opprettet = opprettet,
             periode = periode,

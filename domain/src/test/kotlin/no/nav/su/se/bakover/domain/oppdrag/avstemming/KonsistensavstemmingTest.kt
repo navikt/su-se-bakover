@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.generer
@@ -775,11 +776,11 @@ internal class KonsistensavstemmingTest {
         opprettet = opprettet,
         type = Utbetaling.UtbetalingsType.NY,
         behandler = behandler,
-        avstemmingsnøkkel = Avstemmingsnøkkel(),
+        avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
         simulering = Simulering(
             gjelderId = fnr,
             gjelderNavn = "navn",
-            datoBeregnet = idag(),
+            datoBeregnet = idag(fixedClock),
             nettoBeløp = 0,
             periodeList = listOf(),
         ),
