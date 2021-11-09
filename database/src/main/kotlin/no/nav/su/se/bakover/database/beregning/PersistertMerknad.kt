@@ -30,7 +30,7 @@ internal sealed class PersistertMerknad {
             name = "SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats",
         ),
     )
-    sealed class Beregning {
+    sealed class Beregning : PersistertMerknad() {
 
         data class EndringGrunnbeløp(
             val gammeltGrunnbeløp: Detalj,

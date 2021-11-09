@@ -47,7 +47,7 @@ internal class BeregningMapperTest {
 
     @Test
     fun `mapper snapshot av beregning til json`() {
-        val beregningSnapshot = createBeregning(periode = mai(2021)).toSnapshot()
+        val beregningSnapshot = createBeregning(periode = mai(2021))
         //language=json
         val expectedJson = """
             {
@@ -118,7 +118,7 @@ internal class BeregningMapperTest {
               "begrunnelse": "begrunnelse"
             }
         """.trimIndent()
-        JSONAssert.assertEquals(expectedJson, objectMapper.writeValueAsString(beregningSnapshot), true)
+        JSONAssert.assertEquals(expectedJson, serialiserBeregning(beregningSnapshot), true)
     }
 
     @Test
@@ -127,9 +127,22 @@ internal class BeregningMapperTest {
 
         JSONAssert.assertNotEquals(
             objectMapper.writeValueAsString(beregning),
-            objectMapper.writeValueAsString(beregning.toSnapshot()),
+            serialiserBeregning(beregning),
             true,
         )
+    }
+
+    @Test
+    fun `snapshot er idempotent`() {
+        val original: Beregning = createBeregning()
+        val snapshot: PersistertBeregning = original.toSnapshot()
+        val idempotent: PersistertBeregning = snapshot.toSnapshot()
+
+        snapshot shouldBe idempotent
+
+        JSONAssert.assertEquals(serialiserBeregning(original), serialiserBeregning(snapshot), true)
+        JSONAssert.assertEquals(serialiserBeregning(snapshot), serialiserBeregning(idempotent), true)
+        JSONAssert.assertEquals(serialiserBeregning(original), serialiserBeregning(idempotent), true)
     }
 
     @Test

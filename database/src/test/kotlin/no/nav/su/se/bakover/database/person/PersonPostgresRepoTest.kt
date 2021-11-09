@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.database.person
 
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.beregning
+import no.nav.su.se.bakover.database.innvilgetBeregning
 import no.nav.su.se.bakover.database.simulering
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Fnr
@@ -208,7 +208,7 @@ internal class PersonPostgresRepoTest {
                     oppgaveId = revurdering.oppgaveId,
                     fritekstTilBrev = revurdering.fritekstTilBrev,
                     revurderingsårsak = revurdering.revurderingsårsak,
-                    beregning = beregning(revurdering.periode),
+                    beregning = innvilgetBeregning(revurdering.periode),
                     simulering = simulering(revurdering.fnr),
                     forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                     grunnlagsdata = revurdering.grunnlagsdata,
@@ -248,7 +248,7 @@ internal class PersonPostgresRepoTest {
                     oppgaveId = revurdering.oppgaveId,
                     fritekstTilBrev = revurdering.fritekstTilBrev,
                     revurderingsårsak = revurdering.revurderingsårsak,
-                    beregning = beregning(revurdering.periode),
+                    beregning = innvilgetBeregning(revurdering.periode),
                     simulering = simulering(revurdering.fnr),
                     forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                     grunnlagsdata = revurdering.grunnlagsdata,

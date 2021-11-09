@@ -13,7 +13,7 @@ internal data class PeriodisertBeregning(
     private val fradrag: List<Fradrag>,
     private val fribeløpForEps: Double = 0.0,
 ) : Månedsberegning {
-    private val merknader: Merknader.Beregning = Merknader.Beregning()
+    private val merknader: Merknader.Beregningsmerknad = Merknader.Beregningsmerknad()
 
     init {
         require(fradrag.all { it.periode == periode }) { "Fradrag må være gjeldende for aktuell måned" }

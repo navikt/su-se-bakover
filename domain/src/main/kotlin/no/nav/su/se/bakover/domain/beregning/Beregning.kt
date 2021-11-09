@@ -47,7 +47,7 @@ interface Beregning : PeriodisertInformasjon {
     override fun equals(other: Any?): Boolean
 }
 
-fun Beregning.alleMånederHarMerknadForAvslag(): Boolean {
+fun Beregning.harAlleMånederMerknadForAvslag(): Boolean {
     return finnMånederMedMerknadForAvslag()
         .getOrHandle { return false }
         .count() == getMånedsberegninger().count()

@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsv
 import no.nav.su.se.bakover.domain.beregning.IngenMerknaderForAvslag
 import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.alleMånederHarMerknadForAvslag
 import no.nav.su.se.bakover.domain.beregning.finnFørsteMånedMedMerknadForAvslag
 import no.nav.su.se.bakover.domain.beregning.finnMånederMedMerknad
 import no.nav.su.se.bakover.domain.beregning.finnMånederMedMerknadForAvslag
@@ -34,6 +33,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.IkkePeriodisertFradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.PeriodisertFradrag
+import no.nav.su.se.bakover.domain.beregning.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.periode2021
@@ -141,7 +141,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             fradragStrategy = FradragStrategy.Enslig,
         )
 
-        beregning.alleMånederHarMerknadForAvslag() shouldBe true
+        beregning.harAlleMånederMerknadForAvslag() shouldBe true
         beregning.finnFørsteMånedMedMerknadForAvslag()
             .getOrFail() shouldBe (beregning.getMånedsberegninger()[0] to Merknad.Beregning.BeløpErNull)
         beregning.finnMånederMedMerknadForAvslag().getOrFail() shouldContainAll listOf(
@@ -574,7 +574,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 beløpMellomNullOgToProsent.first to beløpMellomNullOgToProsent.second[0],
             )
             it.finnFørsteMånedMedMerknadForAvslag().getOrFail() shouldBe (beløpNull.first to beløpNull.second[0])
-            it.alleMånederHarMerknadForAvslag() shouldBe false
+            it.harAlleMånederMerknadForAvslag() shouldBe false
         }
     }
 

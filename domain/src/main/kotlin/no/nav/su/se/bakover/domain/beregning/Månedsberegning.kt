@@ -46,8 +46,8 @@ interface Månedsberegning : PeriodisertInformasjon {
 }
 
 /**
- * Godtar bare at det eksisterer 1 merknad som kan føre til avlsag per måned.
- * Se logikk for opprettelsen av merknader i [Merknader.Beregning]
+ * Godtar bare at det eksisterer 1 merknad som kan føre til avslag per måned.
+ * Se logikk for opprettelsen av merknader i [Merknader.Beregningsmerknad]
  */
 fun Månedsberegning.finnMerknadForAvslag(): Either<IngenMerknaderForAvslag, Merknad.Beregning> {
     return getMerknader().mapNotNull {

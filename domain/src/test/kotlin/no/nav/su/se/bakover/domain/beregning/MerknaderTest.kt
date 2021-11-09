@@ -15,7 +15,7 @@ internal class MerknaderTest {
             Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats,
         ).forEach {
             assertThrows<IllegalArgumentException> {
-                Merknader.Beregning().apply {
+                Merknader.Beregningsmerknad().apply {
                     leggTil(Merknad.Beregning.BeløpErNull, it)
                 }
             }
@@ -27,7 +27,7 @@ internal class MerknaderTest {
             Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats,
         ).forEach {
             assertThrows<IllegalArgumentException> {
-                Merknader.Beregning().apply {
+                Merknader.Beregningsmerknad().apply {
                     leggTil(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats, it)
                 }
             }
@@ -39,7 +39,7 @@ internal class MerknaderTest {
             Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats,
         ).forEach {
             assertThrows<IllegalArgumentException> {
-                Merknader.Beregning().apply {
+                Merknader.Beregningsmerknad().apply {
                     leggTil(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats, it)
                 }
             }
@@ -54,7 +54,7 @@ internal class MerknaderTest {
             Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats,
         ).forEach {
             assertDoesNotThrow {
-                Merknader.Beregning().apply {
+                Merknader.Beregningsmerknad().apply {
                     leggTil(
                         Merknad.Beregning.EndringGrunnbeløp(
                             gammeltGrunnbeløp = Merknad.Beregning.EndringGrunnbeløp.Detalj.forDato(1.mai(2020)),

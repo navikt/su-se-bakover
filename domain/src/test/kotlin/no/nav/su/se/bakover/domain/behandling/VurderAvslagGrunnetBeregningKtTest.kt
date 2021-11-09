@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 internal class VurderAvslagGrunnetBeregningKtTest {
 
@@ -193,6 +194,24 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Nei
 
         beregning.finnMerknaderForPeriode(juni(2021)) shouldBe listOf(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats)
+    }
+
+    @Test
+    fun `avslagsgrunner for merknad`() {
+        Merknad.Beregning.BeløpErNull.tilAvslagsgrunn() shouldBe AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT
+        Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats.tilAvslagsgrunn() shouldBe AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE
+
+        listOf(
+            Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats,
+            Merknad.Beregning.EndringGrunnbeløp(
+                gammeltGrunnbeløp = Merknad.Beregning.EndringGrunnbeløp.Detalj.forDato(1.mai(2020)),
+                nyttGrunnbeløp = Merknad.Beregning.EndringGrunnbeløp.Detalj.forDato(1.mai(2021)),
+            ),
+        ).forEach {
+            assertThrows<IllegalStateException> {
+                it.tilAvslagsgrunn()
+            }
+        }
     }
 
     private fun lagBeregningMedFradrag(

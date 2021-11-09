@@ -96,7 +96,7 @@ internal val behandlingsinformasjonMedAvslag =
 
 internal val oppgaveId = OppgaveId("oppgaveId")
 internal val journalpostId = JournalpostId("journalpostId")
-internal fun beregning(periode: Periode = stønadsperiode.periode) = no.nav.su.se.bakover.test.beregning(periode).toSnapshot()
+internal fun innvilgetBeregning(periode: Periode = stønadsperiode.periode) = no.nav.su.se.bakover.test.beregning(periode).toSnapshot()
 
 internal val avslåttBeregning: PersistertBeregning = beregningAvslagForHøyInntekt().toSnapshot()
 
@@ -712,7 +712,7 @@ internal class TestDataHelper(
         grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataSøknadsbehandling(),
     ): Søknadsbehandling.Beregnet.Innvilget {
         return nyInnvilgetVilkårsvurdering(behandlingsinformasjon, vilkårsvurderinger, grunnlagsdata).tilBeregnet(
-            beregning(),
+            innvilgetBeregning(),
         ).also {
             søknadsbehandlingRepo.lagre(it)
         } as Søknadsbehandling.Beregnet.Innvilget

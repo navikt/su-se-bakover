@@ -27,18 +27,20 @@ data class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetal
         val gjeldendeUtbetaling =
             utbetalingstidslinje.gjeldendeForDato(førsteMånedsberegning.periode.fraOgMed)?.beløp ?: 0
 
+        val førsteMånedsbeløp = førsteMånedsberegning.finnBeløpFor10ProsentSjekk()
+
         resultat = when {
-            førsteMånedsberegning.finnBeløpFor10ProsentSjekk() == 0 && gjeldendeUtbetaling == 0 -> {
+            førsteMånedsbeløp == 0 && gjeldendeUtbetaling == 0 -> {
                 false
             }
-            førsteMånedsberegning.finnBeløpFor10ProsentSjekk() == 0 && gjeldendeUtbetaling != 0 -> {
+            førsteMånedsbeløp == 0 && gjeldendeUtbetaling != 0 -> {
                 true
             }
-            førsteMånedsberegning.finnBeløpFor10ProsentSjekk() != 0 && gjeldendeUtbetaling == 0 -> {
+            førsteMånedsbeløp != 0 && gjeldendeUtbetaling == 0 -> {
                 true
             }
             else -> {
-                abs(førsteMånedsberegning.finnBeløpFor10ProsentSjekk() - gjeldendeUtbetaling) >= (0.1 * gjeldendeUtbetaling)
+                abs(førsteMånedsbeløp - gjeldendeUtbetaling) >= (0.1 * gjeldendeUtbetaling)
             }
         }
     }

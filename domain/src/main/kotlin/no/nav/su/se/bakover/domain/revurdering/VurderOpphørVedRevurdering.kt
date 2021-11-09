@@ -5,9 +5,9 @@ import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Merknad
-import no.nav.su.se.bakover.domain.beregning.alleMånederHarMerknadForAvslag
 import no.nav.su.se.bakover.domain.beregning.finnFørsteMånedMedMerknadForAvslag
 import no.nav.su.se.bakover.domain.beregning.finnMånederMedMerknadForAvslag
+import no.nav.su.se.bakover.domain.beregning.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import java.time.Clock
@@ -76,7 +76,7 @@ data class VurderOmBeregningGirOpphørVedRevurdering(
     val resultat = beregningGirOpphør()
 
     private fun beregningGirOpphør(): OpphørVedRevurdering {
-        return if (beregning.alleMånederHarMerknadForAvslag()) {
+        return if (beregning.harAlleMånederMerknadForAvslag()) {
             beregning.finnFørsteMånedMedMerknadForAvslag()
                 .getOrHandle { throw IllegalStateException("Skal eksistere minste èn måned med avslag.") }
                 .let { (månedsberegning, merknad) ->

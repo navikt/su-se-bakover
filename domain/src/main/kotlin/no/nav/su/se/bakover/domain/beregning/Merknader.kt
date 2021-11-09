@@ -6,7 +6,7 @@ import java.time.LocalDate
 
 sealed class Merknader {
 
-    class Beregning {
+    class Beregningsmerknad {
         private val merknader: MutableList<Merknad.Beregning> = mutableListOf()
 
         fun leggTil(vararg merknad: Merknad.Beregning) {

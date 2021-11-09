@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.beregning.alleMånederHarMerknadForAvslag
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
 
@@ -91,7 +91,7 @@ sealed class IdentifiserRevurderingsopphørSomIkkeStøttes {
                 }
             }
 
-        private fun fullstendigOpphør(): Boolean = nyBeregning.alleMånederHarMerknadForAvslag()
+        private fun fullstendigOpphør(): Boolean = nyBeregning.harAlleMånederMerknadForAvslag()
 
         private fun harAndreBeløpsendringerEnnMånederUnderMinstegrense(): Boolean {
             return harBeløpsendringer(nyBeregning.getMånedsberegninger().filterNot { it.getMerknader().contains(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats) })
