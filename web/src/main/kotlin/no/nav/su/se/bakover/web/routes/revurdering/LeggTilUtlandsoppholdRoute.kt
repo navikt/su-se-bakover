@@ -32,7 +32,7 @@ private data class UtlandsoppholdBody(
     }
 }
 
-internal fun Route.LeggTilUtlandsoppholdRoute(
+internal fun Route.leggTilUtlandsoppholdRoute(
     revurderingService: RevurderingService,
 ) {
     authorize(Brukerrolle.Saksbehandler) {

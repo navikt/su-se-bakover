@@ -33,6 +33,8 @@ internal fun Route.revurderingRoutes(
 
     leggTilGrunnlagRevurderingRoutes(revurderingService)
 
+    leggTilUtlandsoppholdRoute(revurderingService)
+
     leggTilFradragRevurdering(revurderingService, clock)
 
     LeggTilBosituasjonRevurderingRoute(revurderingService)
