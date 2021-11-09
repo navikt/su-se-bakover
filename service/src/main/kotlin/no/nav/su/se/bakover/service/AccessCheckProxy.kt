@@ -485,12 +485,17 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, sessionContext: SessionContext) {
+                override fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, tx: TransactionContext) {
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun lagre(avslag: AvslagManglendeDokumentasjon, sessionContext: SessionContext) {
+                override fun lagre(avslag: AvslagManglendeDokumentasjon, tx: TransactionContext) {
                     kastKanKunKallesFraAnnenService()
+                }
+
+                override fun leggTilOppholdIUtlandet(request: LeggTilOppholdIUtlandetRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet, Søknadsbehandling> {
+                    assertHarTilgangTilBehandling(request.behandlingId)
+                    return services.søknadsbehandling.leggTilOppholdIUtlandet(request)
                 }
             },
             ferdigstillVedtak = object : FerdigstillVedtakService {

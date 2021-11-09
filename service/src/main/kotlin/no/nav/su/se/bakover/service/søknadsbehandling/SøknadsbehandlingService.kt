@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -36,8 +37,9 @@ interface SøknadsbehandlingService {
     fun fullførBosituasjongrunnlag(request: FullførBosituasjonRequest): Either<KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling>
     fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling>
     fun hentForSøknad(søknadId: UUID): Søknadsbehandling?
-    fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, sessionContext: SessionContext)
-    fun lagre(avslag: AvslagManglendeDokumentasjon, sessionContext: SessionContext)
+    fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, tx: TransactionContext)
+    fun lagre(avslag: AvslagManglendeDokumentasjon, tx: TransactionContext)
+    fun leggTilOppholdIUtlandet(request: LeggTilOppholdIUtlandetRequest): Either<KunneIkkeLeggeTilOppholdIUtlandet, Søknadsbehandling>
 
     data class OpprettRequest(
         val søknadId: UUID,
@@ -194,5 +196,15 @@ interface SøknadsbehandlingService {
             val til: KClass<out Søknadsbehandling>,
         ) : KunneIkkeLeggeTilFradragsgrunnlag()
         data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilFradragsgrunnlag()
+    }
+
+    sealed class KunneIkkeLeggeTilOppholdIUtlandet {
+        object FantIkkeBehandling : KunneIkkeLeggeTilOppholdIUtlandet()
+        object OverlappendeVurderingsperioder : KunneIkkeLeggeTilOppholdIUtlandet()
+        object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilOppholdIUtlandet()
+        data class UgyldigTilstand(
+            val fra: KClass<out Søknadsbehandling>,
+            val til: KClass<out Søknadsbehandling>,
+        ) : KunneIkkeLeggeTilOppholdIUtlandet()
     }
 }

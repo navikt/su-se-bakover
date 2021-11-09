@@ -6,7 +6,7 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -61,6 +61,7 @@ import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -700,11 +701,39 @@ internal class SøknadsbehandlingServiceImpl(
         return oppdatertBehandling.right()
     }
 
-    override fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, sessionContext: SessionContext) {
-        søknadsbehandlingRepo.lagre(lukketSøknadbehandling, sessionContext)
+    override fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, tx: TransactionContext) {
+        søknadsbehandlingRepo.lagre(lukketSøknadbehandling, tx)
     }
 
-    override fun lagre(avslag: AvslagManglendeDokumentasjon, sessionContext: SessionContext) {
-        return søknadsbehandlingRepo.lagreAvslagManglendeDokumentasjon(avslag, sessionContext)
+    override fun lagre(avslag: AvslagManglendeDokumentasjon, tx: TransactionContext) {
+        return søknadsbehandlingRepo.lagreAvslagManglendeDokumentasjon(avslag, tx)
+    }
+
+    override fun leggTilOppholdIUtlandet(request: LeggTilOppholdIUtlandetRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet, Søknadsbehandling> {
+        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
+            ?: return SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.FantIkkeBehandling.left()
+
+        val vilkår = request.toVilkår(
+            behandlingsperiode = søknadsbehandling.periode,
+            clock = clock,
+        ).getOrHandle {
+            return when (it) {
+                LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.OverlappendeVurderingsperioder -> SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.OverlappendeVurderingsperioder
+                LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.PeriodeForGrunnlagOgVurderingErForskjellig -> SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.PeriodeForGrunnlagOgVurderingErForskjellig
+            }.left()
+        }
+
+        val vilkårsvurdert = søknadsbehandling.leggTilOppholdIUtlandet(vilkår, clock)
+            .getOrHandle {
+                return when (it) {
+                    Søknadsbehandling.KunneIkkeLeggeTilOppholdIUtlandet.IkkeLovÅLeggeTilFradragIDenneStatusen -> SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.UgyldigTilstand(
+                        fra = søknadsbehandling::class,
+                        til = Søknadsbehandling.Vilkårsvurdert::class,
+                    )
+                }.left()
+            }
+
+        søknadsbehandlingRepo.lagre(vilkårsvurdert)
+        return vilkårsvurdert.right()
     }
 }

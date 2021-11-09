@@ -7,22 +7,16 @@ import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.withAlleVilkårAvslått
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingId
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
-import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
-import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
+import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertAvslag
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -100,24 +94,18 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
 
     @Test
     fun `vilkårsvurderer med alle avslag`() {
-        val uavklart = søknadsbehandlingVilkårsvurdertUavklart(
-            grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
-            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-                uføre = avslåttUførevilkårUtenGrunnlag(),
-            ),
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårAvslått()
-        ).second
+        val avslag = søknadsbehandlingVilkårsvurdertAvslag().second
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn uavklart
+            on { hent(any()) } doReturn avslag
         }
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).vilkårsvurder(
             SøknadsbehandlingService.VilkårsvurderRequest(
-                uavklart.id,
-                uavklart.behandlingsinformasjon,
+                avslag.id,
+                avslag.behandlingsinformasjon,
             ),
         ).getOrFail()
 
@@ -138,7 +126,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         }
 
         inOrder(søknadsbehandlingRepoMock) {
-            verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe uavklart.id })
+            verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe avslag.id })
             verify(søknadsbehandlingRepoMock).defaultSessionContext()
             verify(søknadsbehandlingRepoMock).lagre(eq(response), anyOrNull())
         }

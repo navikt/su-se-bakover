@@ -88,6 +88,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
+import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import java.time.Clock
 import java.util.UUID
 import javax.sql.DataSource
@@ -252,6 +253,7 @@ internal class TestDataHelper(
         uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
         dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
+        oppholdIUtlandetRepo = utlandsoppholdVilkårsvurderingRepo,
     )
     internal val revurderingRepo = RevurderingPostgresRepo(
         dataSource = dataSource,
@@ -599,6 +601,7 @@ internal class TestDataHelper(
                 ),
             ),
         ),
+        oppholdIUtlandet = utlandsoppholdInnvilget(periode = stønadsperiode.periode)
         // søknadsbehandling benytter enn så lenge formue fra behandlingsinformajson
     ).oppdater(
         stønadsperiode = stønadsperiode,
@@ -608,7 +611,6 @@ internal class TestDataHelper(
             bosituasjon = listOf(bosituasjongrunnlagEnslig(stønadsperiode.periode)),
         ).getOrFail(),
         clock = fixedClock,
-
     )
 
     private fun innvilgetGrunnlagsdataSøknadsbehandling(epsFnr: Fnr? = null) = Grunnlagsdata.create(

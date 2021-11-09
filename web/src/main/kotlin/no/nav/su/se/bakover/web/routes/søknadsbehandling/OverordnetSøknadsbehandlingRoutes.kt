@@ -10,9 +10,11 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
 ) {
     søknadsbehandlingRoutes(søknadsbehandlingService)
 
-    leggTilGrunnlagSøknadsbehandlingRoutes(søknadsbehandlingService)
+    leggTilUføregrunnlagRoutes(søknadsbehandlingService)
 
     leggTilGrunnlagBosituasjonRoutes(søknadsbehandlingService)
 
     leggTilGrunnlagFradrag(søknadsbehandlingService, clock)
+
+    leggTilOppholdIUtlandet(søknadsbehandlingService)
 }

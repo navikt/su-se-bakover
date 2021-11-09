@@ -305,10 +305,12 @@ fun vilkårsvurderingerInnvilget(
     periode: Periode = periode2021,
     uføre: Vilkår.Uførhet = innvilgetUførevilkårForventetInntekt0(periode = periode),
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode),
-    behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget
+    behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
+    oppholdIUtlandet: OppholdIUtlandetVilkår = utlandsoppholdInnvilget(periode = periode)
 ): Vilkårsvurderinger.Søknadsbehandling {
     return Vilkårsvurderinger.Søknadsbehandling(
         uføre = uføre,
+        oppholdIUtlandet = oppholdIUtlandet
     ).oppdater(
         stønadsperiode = Stønadsperiode.create(periode = periode, begrunnelse = ""),
         behandlingsinformasjon = behandlingsinformasjon,
@@ -366,6 +368,7 @@ fun vilkårsvurderingerAvslåttAlle(
         uføre = avslåttUførevilkårUtenGrunnlag(
             periode = periode,
         ),
+        oppholdIUtlandet = utlandsoppholdAvslag(periode = periode),
     ).oppdater(
         stønadsperiode = Stønadsperiode.create(
             periode = periode,

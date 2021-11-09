@@ -60,6 +60,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
@@ -886,6 +887,13 @@ internal class SøknadsbehandlingRoutesKtTest {
                 oppfylt = behandlingsinformasjon.uførhet!!.status,
                 begrunnelse = behandlingsinformasjon.uførhet!!.begrunnelse,
             ),
+        )
+        services.søknadsbehandling.leggTilOppholdIUtlandet(
+            LeggTilOppholdIUtlandetRequest(
+                behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
+                status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
+                begrunnelse = "Skal være her hele tiden",
+            )
         )
         services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
             LeggTilBosituasjonEpsRequest(

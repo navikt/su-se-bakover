@@ -38,6 +38,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
@@ -283,6 +284,13 @@ internal class BeregnRoutesKtTest {
                 oppfylt = behandlingsinformasjon.uførhet!!.status,
                 begrunnelse = behandlingsinformasjon.uførhet!!.begrunnelse,
             ),
+        )
+        services.søknadsbehandling.leggTilOppholdIUtlandet(
+            request = LeggTilOppholdIUtlandetRequest(
+                behandlingId = objects.søknadsbehandling.id,
+                status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
+                begrunnelse = "Veldig bra"
+            )
         )
         services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
             LeggTilBosituasjonEpsRequest(

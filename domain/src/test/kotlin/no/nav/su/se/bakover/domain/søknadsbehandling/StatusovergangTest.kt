@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt12000
+import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -174,6 +175,7 @@ internal class StatusovergangTest {
                     grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
                         uføre = innvilgetUførevilkår(),
+                        oppholdIUtlandet = utlandsoppholdInnvilget()
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(
@@ -289,6 +291,7 @@ internal class StatusovergangTest {
                     grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
                         uføre = innvilgetUførevilkår(),
+                        oppholdIUtlandet = utlandsoppholdInnvilget()
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(
@@ -316,6 +319,7 @@ internal class StatusovergangTest {
                     grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
                         uføre = innvilgetUførevilkår(),
+                        oppholdIUtlandet = utlandsoppholdInnvilget()
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(

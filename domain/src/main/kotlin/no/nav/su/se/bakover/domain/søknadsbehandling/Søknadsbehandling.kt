@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.visitor.Visitable
@@ -71,6 +72,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             KunneIkkeLeggeTilFradragsgrunnlag()
     }
 
+    sealed class KunneIkkeLeggeTilOppholdIUtlandet {
+        object IkkeLovÅLeggeTilFradragIDenneStatusen : KunneIkkeLeggeTilOppholdIUtlandet()
+    }
+
     internal fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Unit> {
         if (fradragsgrunnlag.isNotEmpty()) {
             if (fradragsgrunnlag.periode() != null) {
@@ -86,6 +91,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
     open fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> =
         KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
+
+    open fun leggTilOppholdIUtlandet(
+        oppholdIUtlandet: OppholdIUtlandetVilkår,
+        clock: Clock,
+    ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
+        return KunneIkkeLeggeTilOppholdIUtlandet.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
+    }
 
     sealed class Vilkårsvurdert : Søknadsbehandling() {
         fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon, clock: Clock): Vilkårsvurdert =
@@ -253,6 +265,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     attesteringer,
                 ).right()
             }
+
+            override fun leggTilOppholdIUtlandet(
+                oppholdIUtlandet: OppholdIUtlandetVilkår,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
+                return copy(
+                    vilkårsvurderinger = vilkårsvurderinger.leggTil(oppholdIUtlandet),
+                ).tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+            }
         }
 
         data class Avslag(
@@ -305,6 +326,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 is Vilkårsvurderingsresultat.Innvilget -> emptyList()
                 is Vilkårsvurderingsresultat.Uavklart -> emptyList()
             }
+
+            override fun leggTilOppholdIUtlandet(
+                oppholdIUtlandet: OppholdIUtlandetVilkår,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
+                return copy(
+                    vilkårsvurderinger = vilkårsvurderinger.leggTil(oppholdIUtlandet),
+                ).tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+            }
         }
 
         data class Uavklart(
@@ -330,11 +360,20 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
             }
-        }
 
-        data class StønadsperiodeIkkeDefinertException(
-            val msg: String = "Sønadsperiode er ikke definert",
-        ) : RuntimeException(msg)
+            override fun leggTilOppholdIUtlandet(
+                oppholdIUtlandet: OppholdIUtlandetVilkår,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
+                return copy(
+                    vilkårsvurderinger = vilkårsvurderinger.leggTil(oppholdIUtlandet),
+                ).tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+            }
+
+            data class StønadsperiodeIkkeDefinertException(
+                val msg: String = "Sønadsperiode er ikke definert",
+            ) : RuntimeException(msg)
+        }
     }
 
     sealed class Beregnet : Søknadsbehandling() {
@@ -499,6 +538,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     attesteringer,
                 ).right()
             }
+
+            override fun leggTilOppholdIUtlandet(
+                oppholdIUtlandet: OppholdIUtlandetVilkår,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
+                return copy(
+                    vilkårsvurderinger = vilkårsvurderinger.leggTil(oppholdIUtlandet),
+                ).tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+            }
         }
 
         data class Avslag(
@@ -585,6 +633,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 is Vilkårsvurderingsresultat.Innvilget -> emptyList()
                 is Vilkårsvurderingsresultat.Uavklart -> emptyList()
             } + avslagsgrunnForBeregning
+
+            override fun leggTilOppholdIUtlandet(
+                oppholdIUtlandet: OppholdIUtlandetVilkår,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
+                return copy(
+                    vilkårsvurderinger = vilkårsvurderinger.leggTil(oppholdIUtlandet),
+                ).tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+            }
         }
     }
 
@@ -714,6 +771,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 vilkårsvurderinger,
                 attesteringer,
             )
+
+        override fun leggTilOppholdIUtlandet(
+            oppholdIUtlandet: OppholdIUtlandetVilkår,
+            clock: Clock,
+        ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
+            return copy(
+                vilkårsvurderinger = vilkårsvurderinger.leggTil(oppholdIUtlandet),
+            ).tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+        }
     }
 
     sealed class TilAttestering : Søknadsbehandling() {
@@ -1106,6 +1172,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     vilkårsvurderinger,
                     attesteringer,
                 )
+
+            override fun leggTilOppholdIUtlandet(
+                oppholdIUtlandet: OppholdIUtlandetVilkår,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
+                return copy(
+                    vilkårsvurderinger = vilkårsvurderinger.leggTil(oppholdIUtlandet),
+                ).tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+            }
         }
 
         sealed class Avslag : Underkjent(), ErAvslag {
@@ -1213,6 +1288,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     is Vilkårsvurderingsresultat.Innvilget -> emptyList()
                     is Vilkårsvurderingsresultat.Uavklart -> emptyList()
                 } + avslagsgrunnForBeregning
+
+                override fun leggTilOppholdIUtlandet(
+                    oppholdIUtlandet: OppholdIUtlandetVilkår,
+                    clock: Clock,
+                ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
+                    return copy(
+                        vilkårsvurderinger = vilkårsvurderinger.leggTil(oppholdIUtlandet),
+                    ).tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+                }
             }
 
             data class UtenBeregning(
@@ -1265,6 +1349,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     is Vilkårsvurderingsresultat.Avslag -> vilkår.avslagsgrunner
                     is Vilkårsvurderingsresultat.Innvilget -> emptyList()
                     is Vilkårsvurderingsresultat.Uavklart -> emptyList()
+                }
+
+                override fun leggTilOppholdIUtlandet(
+                    oppholdIUtlandet: OppholdIUtlandetVilkår,
+                    clock: Clock,
+                ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
+                    return copy(
+                        vilkårsvurderinger = vilkårsvurderinger.leggTil(oppholdIUtlandet),
+                    ).tilVilkårsvurdert(behandlingsinformasjon, clock).right()
                 }
             }
         }

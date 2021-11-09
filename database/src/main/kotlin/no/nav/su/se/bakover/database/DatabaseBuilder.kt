@@ -131,7 +131,8 @@ object DatabaseBuilder {
             bosituasjongrunnlagRepo = bosituasjongrunnlag,
             uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
             dbMetrics = dbMetrics,
-            sessionFactory = sessionFactory
+            sessionFactory = sessionFactory,
+            oppholdIUtlandetRepo = utlandsoppholdVilkårsvurderingRepo,
         )
 
         val revurderingRepo = RevurderingPostgresRepo(

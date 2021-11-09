@@ -183,8 +183,7 @@ sealed class Vilkårsvurderinger {
         }
 
         override fun erLik(other: Vilkårsvurderinger): Boolean {
-            return other is Søknadsbehandling &&
-                vilkår.erLik(other.vilkår)
+            return other is Søknadsbehandling && vilkår.erLik(other.vilkår)
         }
 
         /**
@@ -226,7 +225,7 @@ sealed class Vilkårsvurderinger {
                         it.tilVilkår(stønadsperiode, clock)
                     }
                     is Behandlingsinformasjon.OppholdIUtlandet -> {
-                        it.tilVilkår(stønadsperiode, clock)
+                        null // legges til via grunnlags-flyt
                     }
                     is Behandlingsinformasjon.Formue -> {
                         it.tilVilkår(stønadsperiode, grunnlagsdata.bosituasjon, clock)
@@ -323,14 +322,14 @@ sealed class Vilkårsvurderinger {
             return copy(
                 uføre = uføre.lagTidslinje(periode),
                 formue = formue.lagTidslinje(periode),
-                oppholdIUtlandet = oppholdIUtlandet.lagTidslinje(periode)
+                oppholdIUtlandet = oppholdIUtlandet.lagTidslinje(periode),
             )
         }
 
         fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Revurdering = copy(
             uføre = uføre.oppdaterStønadsperiode(stønadsperiode),
             formue = formue.oppdaterStønadsperiode(stønadsperiode),
-            oppholdIUtlandet = oppholdIUtlandet.oppdaterStønadsperiode(stønadsperiode)
+            oppholdIUtlandet = oppholdIUtlandet.oppdaterStønadsperiode(stønadsperiode),
         )
 
         companion object {
