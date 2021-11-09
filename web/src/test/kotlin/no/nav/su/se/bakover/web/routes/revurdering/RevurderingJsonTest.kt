@@ -125,7 +125,8 @@ internal class RevurderingJsonTest {
                     ],
                     "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "oppholdIUtlandet": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -206,7 +207,8 @@ internal class RevurderingJsonTest {
                     ],
                     "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "oppholdIUtlandet": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -287,7 +289,8 @@ internal class RevurderingJsonTest {
                     ],
                     "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "oppholdIUtlandet": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -368,7 +371,8 @@ internal class RevurderingJsonTest {
                     ],
                     "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "oppholdIUtlandet": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -454,7 +458,8 @@ internal class RevurderingJsonTest {
                     ],
                     "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "oppholdIUtlandet": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -540,7 +545,8 @@ internal class RevurderingJsonTest {
                     ],
                     "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "oppholdIUtlandet": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -627,7 +633,8 @@ internal class RevurderingJsonTest {
                     ],
                     "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "oppholdIUtlandet": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "Vurdert",
@@ -714,7 +721,8 @@ internal class RevurderingJsonTest {
                     ],
                     "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "oppholdIUtlandet": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -798,7 +806,8 @@ internal class RevurderingJsonTest {
                     ],
                     "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "oppholdIUtlandet": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -901,7 +910,8 @@ internal class RevurderingJsonTest {
                     ],
                     "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "oppholdIUtlandet": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -1003,7 +1013,8 @@ internal class RevurderingJsonTest {
                     ],
                     "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "oppholdIUtlandet": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -1102,7 +1113,8 @@ internal class RevurderingJsonTest {
                     ],
                     "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "oppholdIUtlandet": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -1195,7 +1207,8 @@ internal class RevurderingJsonTest {
                     ],
                     "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "oppholdIUtlandet": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -1289,7 +1302,8 @@ internal class RevurderingJsonTest {
                     ],
                     "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "oppholdIUtlandet": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -1380,7 +1394,8 @@ internal class RevurderingJsonTest {
                     ],
                     "vilkår": "Formue",
                     "vurderinger": []
-                  }
+                  },
+                  "oppholdIUtlandet": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -1420,7 +1435,8 @@ internal class RevurderingJsonTest {
                   "uføre": ${serialize((simulertRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
                   "fradrag": [],
                   "bosituasjon": ${serialize(simulertRevurdering.grunnlagsdata.bosituasjon.toJson())},
-                  "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson())}
+                  "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson())},
+                  "oppholdIUtlandet": ${serialize(simulertRevurdering.vilkårsvurderinger.oppholdIUtlandet.toJson())}
                 },
                 "attesteringer": []
             }
@@ -1452,7 +1468,8 @@ internal class RevurderingJsonTest {
                   "uføre": ${serialize((iverksattRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
                   "fradrag": [],
                   "bosituasjon": ${serialize(iverksattRevurdering.grunnlagsdata.bosituasjon.toJson())},
-                  "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson())}
+                  "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson())},
+                  "oppholdIUtlandet": ${serialize(iverksattRevurdering.vilkårsvurderinger.oppholdIUtlandet.toJson())}
                 },
                 "attesteringer": [{"attestant": "attestant", "opprettet": "${attesteringIverksatt.opprettet}", "underkjennelse": null}]
             }
@@ -1486,7 +1503,8 @@ internal class RevurderingJsonTest {
                   "uføre": ${serialize((simulertRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
                   "fradrag": [],
                   "bosituasjon": ${serialize(simulertRevurdering.grunnlagsdata.bosituasjon.toJson())},
-                  "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson())}
+                  "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson())},
+                  "oppholdIUtlandet": ${serialize(simulertRevurdering.vilkårsvurderinger.oppholdIUtlandet.toJson())}
                 },
                 "attesteringer": []
 
@@ -1518,7 +1536,8 @@ internal class RevurderingJsonTest {
                   "uføre": ${serialize((iverksattRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
                   "fradrag": [],
                   "bosituasjon": ${serialize(iverksattRevurdering.grunnlagsdata.bosituasjon.toJson())},
-                  "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson())}
+                  "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson())},
+                  "oppholdIUtlandet": ${serialize(iverksattRevurdering.vilkårsvurderinger.oppholdIUtlandet.toJson())}
                 },
                 "attesteringer": [{"attestant": "attestant", "opprettet": "${attesteringIverksatt.opprettet}", "underkjennelse": null}]
             }

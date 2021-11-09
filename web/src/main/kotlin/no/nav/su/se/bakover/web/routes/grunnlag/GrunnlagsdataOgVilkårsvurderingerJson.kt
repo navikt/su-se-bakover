@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
@@ -11,6 +12,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
     val fradrag: List<FradragJson>,
     val bosituasjon: List<BosituasjonJson>,
     val formue: FormuevilkårJson?,
+    val oppholdIUtlandet: OppholdIUtlandetVilkårJson?,
 ) {
     companion object {
         fun create(
@@ -22,6 +24,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                 fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag.toJson() },
                 bosituasjon = grunnlagsdata.bosituasjon.toJson(),
                 formue = vilkårsvurderinger.formueJson(),
+                oppholdIUtlandet = vilkårsvurderinger.oppholdIUtlandJson(),
             )
         }
     }
@@ -51,6 +54,23 @@ internal fun Vilkårsvurderinger.formueJson(): FormuevilkårJson? {
         }
         is Vilkårsvurderinger.Søknadsbehandling -> {
             formue.toJson()
+        }
+    }
+}
+
+internal fun Vilkårsvurderinger.oppholdIUtlandJson(): OppholdIUtlandetVilkårJson? {
+    return when (this) {
+        is Vilkårsvurderinger.Revurdering -> {
+            when (val v = oppholdIUtlandet) {
+                OppholdIUtlandetVilkår.IkkeVurdert -> null
+                is OppholdIUtlandetVilkår.Vurdert -> v.toJson()
+            }
+        }
+        is Vilkårsvurderinger.Søknadsbehandling -> {
+            when (val v = oppholdIUtlandet) {
+                OppholdIUtlandetVilkår.IkkeVurdert -> null
+                is OppholdIUtlandetVilkår.Vurdert -> v.toJson()
+            }
         }
     }
 }

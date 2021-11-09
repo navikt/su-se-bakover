@@ -149,7 +149,8 @@ internal class SøknadsbehandlingJsonTest {
                 ],
                 "vilkår": "Formue",
                 "vurderinger": []
-              }
+              },
+              "oppholdIUtlandet": null
           },
           "fritekstTilBrev": "",
           "erLukket": false
@@ -232,7 +233,8 @@ internal class SøknadsbehandlingJsonTest {
                 ],
                 "vilkår": "Formue",
                 "vurderinger": []
-            }
+            },
+            "oppholdIUtlandet": null
           },
           "fritekstTilBrev": "",
           "erLukket": false
