@@ -80,17 +80,6 @@ internal class BeregningMapperTest {
                 "fribeløpForEps": 0.0,
                 "merknader": [
                     {
-                      "type": "EndringGrunnbeløp",
-                      "gammeltGrunnbeløp": {
-                        "dato": "2020-05-01",
-                        "grunnbeløp": 101351
-                      },
-                      "nyttGrunnbeløp": {
-                        "dato": "2021-05-01",
-                        "grunnbeløp": 106399
-                      }
-                    },
-                    {
                       "type": "BeløpErNull"
                     }
                   ]

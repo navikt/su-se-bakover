@@ -18,8 +18,6 @@ internal data class PeriodisertBeregning(
     init {
         require(fradrag.all { it.periode == periode }) { "Fradrag må være gjeldende for aktuell måned" }
         require(periode.getAntallMåneder() == 1) { "Månedsberegning kan kun utføres for en enkelt måned" }
-
-        leggTilMerknadVedEndringIGrunnbeløp()
     }
 
     override fun getSumYtelse(): Int = (getSatsbeløp() - getSumFradrag())
@@ -41,21 +39,6 @@ internal data class PeriodisertBeregning(
 
     override fun getMerknader(): List<Merknad.Beregning> {
         return merknader.alle()
-    }
-
-    private fun leggTilMerknadVedEndringIGrunnbeløp() {
-        Grunnbeløp.`1G`.let {
-            if (periode.fraOgMed == it.datoForSisteEndringAvGrunnbeløp(periode.fraOgMed)) {
-                leggTilMerknad(
-                    Merknad.Beregning.EndringGrunnbeløp(
-                        gammeltGrunnbeløp = Merknad.Beregning.EndringGrunnbeløp.Detalj.forDato(
-                            it.datoForSisteEndringAvGrunnbeløp(periode.forskyv(-1).fraOgMed),
-                        ),
-                        nyttGrunnbeløp = Merknad.Beregning.EndringGrunnbeløp.Detalj.forDato(periode.fraOgMed),
-                    ),
-                )
-            }
-        }
     }
 
     fun leggTilMerknad(merknad: Merknad.Beregning) {

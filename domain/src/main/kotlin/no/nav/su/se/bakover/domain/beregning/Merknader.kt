@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning
 
-import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import java.time.LocalDate
 
 sealed class Merknader {
 
@@ -40,29 +38,6 @@ sealed class Merknader {
 sealed class Merknad {
 
     sealed class Beregning {
-
-        data class EndringGrunnbeløp(
-            val gammeltGrunnbeløp: Detalj,
-            val nyttGrunnbeløp: Detalj,
-        ) : Merknad.Beregning() {
-
-            data class Detalj(
-                val dato: LocalDate,
-                val grunnbeløp: Int,
-            ) {
-                companion object {
-                    fun forDato(dato: LocalDate): Detalj {
-                        Grunnbeløp.`1G`.let {
-                            return Detalj(
-                                dato = dato,
-                                grunnbeløp = it.heltallPåDato(dato),
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
         /**
          * Beregnet beløp for en måned er lavere enn 2% av [Sats.HØY] som følge av sosialstønad.
          */

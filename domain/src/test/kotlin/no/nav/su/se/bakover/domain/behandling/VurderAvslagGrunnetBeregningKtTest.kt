@@ -203,10 +203,6 @@ internal class VurderAvslagGrunnetBeregningKtTest {
 
         listOf(
             Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats,
-            Merknad.Beregning.EndringGrunnbeløp(
-                gammeltGrunnbeløp = Merknad.Beregning.EndringGrunnbeløp.Detalj.forDato(1.mai(2020)),
-                nyttGrunnbeløp = Merknad.Beregning.EndringGrunnbeløp.Detalj.forDato(1.mai(2021)),
-            ),
         ).forEach {
             assertThrows<IllegalStateException> {
                 it.tilAvslagsgrunn()

@@ -3,30 +3,16 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.domain.beregning.Merknad
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.UtenlandskInntektJson.Companion.toJson
 
 internal fun List<Merknad.Beregning>.toJson() = map { it.toJson() }
 
 internal fun Merknad.Beregning.toJson(): MerknadJson.BeregningJson {
     return when (this) {
-        is Merknad.Beregning.EndringGrunnbeløp -> toJson()
         is Merknad.Beregning.BeløpErNull -> toJson()
         is Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats -> toJson()
         is Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats -> toJson()
     }
 }
-
-internal fun Merknad.Beregning.EndringGrunnbeløp.toJson() = MerknadJson.BeregningJson.EndringGrunnbeløpJson(
-    gammeltGrunnbeløp = MerknadJson.BeregningJson.EndringGrunnbeløpJson.DetaljJson(
-        dato = this.gammeltGrunnbeløp.dato.toString(),
-        grunnbeløp = this.gammeltGrunnbeløp.grunnbeløp,
-    ),
-    nyttGrunnbeløp = MerknadJson.BeregningJson.EndringGrunnbeløpJson.DetaljJson(
-        dato = this.nyttGrunnbeløp.dato.toString(),
-        grunnbeløp = this.nyttGrunnbeløp.grunnbeløp,
-    ),
-)
 
 internal fun Merknad.Beregning.BeløpErNull.toJson() = MerknadJson.BeregningJson.BeløpErNullJson
 internal fun Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats.toJson() =

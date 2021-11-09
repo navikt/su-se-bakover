@@ -108,19 +108,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
 
         beregning.finnMånederMedMerknad().getOrFail() shouldContainAll listOf(
             beregning.getMånedsberegninger()[0] to listOf(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats),
-            beregning.getMånedsberegninger()[4] to listOf(
-                Merknad.Beregning.EndringGrunnbeløp(
-                    gammeltGrunnbeløp = Merknad.Beregning.EndringGrunnbeløp.Detalj(
-                        dato = 1.mai(2019),
-                        grunnbeløp = 99858,
-                    ),
-                    nyttGrunnbeløp = Merknad.Beregning.EndringGrunnbeløp.Detalj(
-                        dato = 1.mai(2020),
-                        grunnbeløp = 101351,
-                    ),
-                ),
-                Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats,
-            ),
+            beregning.getMånedsberegninger()[4] to listOf(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats),
             beregning.getMånedsberegninger()[11] to listOf(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats),
         )
     }
@@ -544,18 +532,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         ).let {
             val sosialstønad =
                 it.getMånedsberegninger()[3] to listOf(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats)
-            val endringGrunnbeløp = it.getMånedsberegninger()[4] to listOf(
-                Merknad.Beregning.EndringGrunnbeløp(
-                    gammeltGrunnbeløp = Merknad.Beregning.EndringGrunnbeløp.Detalj(
-                        dato = 1.mai(2020),
-                        grunnbeløp = 101351,
-                    ),
-                    nyttGrunnbeløp = Merknad.Beregning.EndringGrunnbeløp.Detalj(
-                        dato = 1.mai(2021),
-                        grunnbeløp = 106399,
-                    ),
-                ),
-            )
             val beløpNull = it.getMånedsberegninger()[5] to listOf(
                 Merknad.Beregning.BeløpErNull,
             )
@@ -565,7 +541,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
 
             it.finnMånederMedMerknad().getOrFail() shouldBe listOf(
                 sosialstønad,
-                endringGrunnbeløp,
                 beløpNull,
                 beløpMellomNullOgToProsent,
             )
