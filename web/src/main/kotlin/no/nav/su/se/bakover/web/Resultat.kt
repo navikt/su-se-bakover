@@ -23,6 +23,8 @@ internal data class Resultat private constructor(
     companion object {
         fun json(httpCode: HttpStatusCode, json: String): Resultat =
             Resultat(httpCode, json, contentType = ContentType.Application.Json)
+
+        fun okJson(httpCode: HttpStatusCode) = json(httpCode, """{"status": "OK"}""")
     }
 }
 
