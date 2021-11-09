@@ -8,8 +8,6 @@ plugins {
     kotlin("jvm")
     // Støtter unicode filer (i motsetning til https://github.com/JLLeitschuh/ktlint-gradle 10.0.0) og har nyere dependencies som gradle. Virker som den oppdateres hyppigere.
     id("org.jmailen.kotlinter") version "3.6.0"
-    id("com.github.ben-manes.versions") version "0.39.0" // Finds latest versions
-    id("se.patrikerdes.use-latest-versions") version "0.2.18"
 }
 
 version = "0.0.1"
@@ -17,8 +15,6 @@ version = "0.0.1"
 allprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "org.jmailen.kotlinter")
-    apply(plugin = "com.github.ben-manes.versions")
-    apply(plugin = "se.patrikerdes.use-latest-versions")
     repositories {
         mavenCentral()
         maven("https://jitpack.io")
@@ -120,24 +116,6 @@ allprojects {
 
     tasks.withType<Wrapper> {
         gradleVersion = "7.2"
-    }
-    // https://github.com/ben-manes/gradle-versions-plugin
-    tasks.withType<com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask> {
-        fun isNonStable(version: String): Boolean {
-            val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.toUpperCase().contains(it) }
-            val regex = "^[0-9,.v-]+(-r)?$".toRegex()
-            val isStable = stableKeyword || regex.matches(version)
-            return isStable.not()
-        }
-        rejectVersionIf {
-            isNonStable(candidate.version) && !isNonStable(currentVersion)
-        }
-        checkForGradleUpdate = true
-        gradleReleaseChannel = "current"
-        outputFormatter = "json"
-        outputDir = "build/dependencyUpdates"
-        reportfileName = "report"
-        revision = "release" // Not waterproof
     }
 
     // Run `./gradlew allDeps` to get a dependency graph
