@@ -225,6 +225,10 @@ interface LagBrevRequest {
         }
     }
 
+    /**
+     * Brev for når en revurdering er forhåndsvarslet
+     * hvis revurderingen ikke er forhåndsvarslet, er det ikke noe brev.
+     */
     data class AvsluttRevurdering(
         override val person: Person,
         private val saksbehandlerNavn: String,

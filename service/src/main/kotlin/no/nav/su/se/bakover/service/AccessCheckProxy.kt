@@ -67,7 +67,6 @@ import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarslingRequest
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseRequest
 import no.nav.su.se.bakover.service.revurdering.HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse
-import no.nav.su.se.bakover.service.revurdering.KunneIKkeLageBrevutkastForAvsluttingAvRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeGjenopptaYtelse
@@ -75,6 +74,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeHenteGjeldendeGrunnlags
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteGjenopptakAvYtelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteStansYtelse
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilBosituasjongrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFormuegrunnlag
@@ -663,7 +663,7 @@ open class AccessCheckProxy(
                 override fun brevutkastForAvslutting(
                     revurderingId: UUID,
                     fritekst: String?,
-                ): Either<KunneIKkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, ByteArray>> {
+                ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, ByteArray>> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.brevutkastForAvslutting(revurderingId, fritekst)
                 }

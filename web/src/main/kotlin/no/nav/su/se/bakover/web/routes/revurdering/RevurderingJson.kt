@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.domain.grunnlag.throwIfMultiple
@@ -32,7 +31,19 @@ import no.nav.su.se.bakover.web.routes.vedtak.VedtakJson
 import no.nav.su.se.bakover.web.routes.vedtak.toJson
 import java.time.format.DateTimeFormatter
 
-sealed class RevurderingJson
+internal sealed class RevurderingJson {
+    abstract val id: String
+    abstract val status: RevurderingsStatus
+    abstract val opprettet: String
+    abstract val periode: PeriodeJson
+    abstract val tilRevurdering: VedtakJson
+    abstract val saksbehandler: String
+    abstract val årsak: String
+    abstract val begrunnelse: String
+    abstract val forhåndsvarsel: ForhåndsvarselJson?
+    abstract val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson
+    abstract val attesteringer: List<AttesteringJson>
+}
 
 internal enum class RevurderingsStatus {
     OPPRETTET,
@@ -60,159 +71,159 @@ internal enum class RevurderingsStatus {
 }
 
 internal data class OpprettetRevurderingJson(
-    val id: String,
-    val opprettet: String,
-    val periode: PeriodeJson,
-    val tilRevurdering: VedtakJson,
-    val saksbehandler: String,
-    val fritekstTilBrev: String,
-    val årsak: String,
-    val begrunnelse: String,
-    val forhåndsvarsel: ForhåndsvarselJson?,
-    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
+    override val id: String,
+    override val status: RevurderingsStatus,
+    override val opprettet: String,
+    override val periode: PeriodeJson,
+    override val tilRevurdering: VedtakJson,
+    override val saksbehandler: String,
+    override val årsak: String,
+    override val begrunnelse: String,
+    override val forhåndsvarsel: ForhåndsvarselJson?,
+    override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
+    override val attesteringer: List<AttesteringJson>,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
-    val attesteringer: List<AttesteringJson>,
-) : RevurderingJson() {
-    @JsonInclude
-    val status = RevurderingsStatus.OPPRETTET
-}
+    val fritekstTilBrev: String,
+) : RevurderingJson()
 
 internal data class BeregnetRevurderingJson(
-    val id: String,
-    val opprettet: String,
-    val periode: PeriodeJson,
-    val tilRevurdering: VedtakJson,
+    override val id: String,
+    override val status: RevurderingsStatus,
+    override val opprettet: String,
+    override val periode: PeriodeJson,
+    override val tilRevurdering: VedtakJson,
     val beregning: BeregningJson,
-    val saksbehandler: String,
+    override val saksbehandler: String,
     val fritekstTilBrev: String,
-    val årsak: String,
-    val begrunnelse: String,
-    val status: RevurderingsStatus,
-    val forhåndsvarsel: ForhåndsvarselJson?,
-    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
+    override val årsak: String,
+    override val begrunnelse: String,
+    override val forhåndsvarsel: ForhåndsvarselJson?,
+    override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
+    override val attesteringer: List<AttesteringJson>,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
-    val attesteringer: List<AttesteringJson>,
 ) : RevurderingJson()
 
 internal data class SimulertRevurderingJson(
-    val id: String,
-    val opprettet: String,
-    val periode: PeriodeJson,
-    val tilRevurdering: VedtakJson,
+    override val id: String,
+    override val opprettet: String,
+    override val periode: PeriodeJson,
+    override val tilRevurdering: VedtakJson,
+    override val saksbehandler: String,
+    override val årsak: String,
+    override val begrunnelse: String,
+    override val status: RevurderingsStatus,
+    override val forhåndsvarsel: ForhåndsvarselJson?,
+    override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
+    override val attesteringer: List<AttesteringJson>,
     val beregning: BeregningJson,
-    val saksbehandler: String,
     val fritekstTilBrev: String,
-    val årsak: String,
-    val begrunnelse: String,
-    val status: RevurderingsStatus,
-    val forhåndsvarsel: ForhåndsvarselJson?,
     val simulering: SimuleringJson,
-    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
-    val attesteringer: List<AttesteringJson>,
 ) : RevurderingJson()
 
 internal data class TilAttesteringJson(
-    val id: String,
-    val opprettet: String,
-    val periode: PeriodeJson,
-    val tilRevurdering: VedtakJson,
+    override val id: String,
+    override val opprettet: String,
+    override val periode: PeriodeJson,
+    override val tilRevurdering: VedtakJson,
+    override val saksbehandler: String,
+    override val årsak: String,
+    override val begrunnelse: String,
+    override val status: RevurderingsStatus,
+    override val forhåndsvarsel: ForhåndsvarselJson?,
+    override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
+    override val attesteringer: List<AttesteringJson>,
+    val simulering: SimuleringJson?,
     val beregning: BeregningJson,
-    val saksbehandler: String,
     val fritekstTilBrev: String,
     val skalFøreTilBrevutsending: Boolean,
-    val årsak: String,
-    val begrunnelse: String,
-    val status: RevurderingsStatus,
-    val forhåndsvarsel: ForhåndsvarselJson?,
-    val simulering: SimuleringJson?,
-    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
-    val attesteringer: List<AttesteringJson>,
 ) : RevurderingJson()
 
 internal data class IverksattRevurderingJson(
-    val id: String,
-    val opprettet: String,
-    val periode: PeriodeJson,
-    val tilRevurdering: VedtakJson,
+    override val id: String,
+    override val opprettet: String,
+    override val periode: PeriodeJson,
+    override val tilRevurdering: VedtakJson,
+    override val saksbehandler: String,
+    override val årsak: String,
+    override val begrunnelse: String,
+    override val status: RevurderingsStatus,
+    override val forhåndsvarsel: ForhåndsvarselJson?,
+    override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
+    override val attesteringer: List<AttesteringJson>,
     val beregning: BeregningJson,
-    val saksbehandler: String,
+    val simulering: SimuleringJson?,
     val fritekstTilBrev: String,
     val skalFøreTilBrevutsending: Boolean,
-    val årsak: String,
-    val begrunnelse: String,
-    val status: RevurderingsStatus,
-    val forhåndsvarsel: ForhåndsvarselJson?,
-    val simulering: SimuleringJson?,
-    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
-    val attesteringer: List<AttesteringJson>,
 ) : RevurderingJson()
 
 internal data class UnderkjentRevurderingJson(
-    val id: String,
-    val opprettet: String,
-    val periode: PeriodeJson,
-    val tilRevurdering: VedtakJson,
+    override val id: String,
+    override val opprettet: String,
+    override val status: RevurderingsStatus,
+    override val periode: PeriodeJson,
+    override val tilRevurdering: VedtakJson,
+    override val saksbehandler: String,
+    override val årsak: String,
+    override val begrunnelse: String,
+    override val forhåndsvarsel: ForhåndsvarselJson?,
+    override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
+    override val attesteringer: List<AttesteringJson>,
     val beregning: BeregningJson,
-    val saksbehandler: String,
+    val simulering: SimuleringJson?,
     val fritekstTilBrev: String,
     val skalFøreTilBrevutsending: Boolean,
-    val årsak: String,
-    val begrunnelse: String,
-    val status: RevurderingsStatus,
-    val forhåndsvarsel: ForhåndsvarselJson?,
-    val simulering: SimuleringJson?,
-    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
-    val attesteringer: List<AttesteringJson>,
 ) : RevurderingJson()
 
 internal data class AvsluttetRevurderingJson(
-    val id: String,
-    val opprettet: String,
-    val periode: PeriodeJson,
-    val tilRevurdering: VedtakJson,
+    override val id: String,
+    override val opprettet: String,
+    override val periode: PeriodeJson,
+    override val tilRevurdering: VedtakJson,
+    override val saksbehandler: String,
+    override val årsak: String,
+    override val begrunnelse: String,
+    override val status: RevurderingsStatus,
+    override val forhåndsvarsel: ForhåndsvarselJson?,
+    override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
+    override val attesteringer: List<AttesteringJson>,
     val beregning: BeregningJson?,
-    val saksbehandler: String,
-    val fritekstTilBrev: String,
-    val årsak: String,
-    val begrunnelse: String,
-    val status: RevurderingsStatus,
-    val forhåndsvarsel: ForhåndsvarselJson?,
     val simulering: SimuleringJson?,
-    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
+    val fritekstTilBrev: String,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
-    val attesteringer: List<AttesteringJson>,
 ) : RevurderingJson()
 
 internal data class StansAvUtbetalingJson(
-    val id: String,
-    val opprettet: String,
-    val periode: PeriodeJson,
-    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
-    val tilRevurdering: VedtakJson,
-    val saksbehandler: String,
-    val årsak: String,
-    val begrunnelse: String,
-    val status: RevurderingsStatus,
+    override val id: String,
+    override val opprettet: String,
+    override val periode: PeriodeJson,
+    override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
+    override val tilRevurdering: VedtakJson,
+    override val saksbehandler: String,
+    override val årsak: String,
+    override val begrunnelse: String,
+    override val status: RevurderingsStatus,
+    override val attesteringer: List<AttesteringJson>,
+    override val forhåndsvarsel: ForhåndsvarselJson?,
     val simulering: SimuleringJson,
-    val attesteringer: List<AttesteringJson>,
 ) : RevurderingJson()
 
 internal data class GjenopptakAvYtelseJson(
-    val id: String,
-    val opprettet: String,
-    val periode: PeriodeJson,
-    val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
-    val tilRevurdering: VedtakJson,
-    val saksbehandler: String,
-    val årsak: String,
-    val begrunnelse: String,
-    val status: RevurderingsStatus,
+    override val id: String,
+    override val opprettet: String,
+    override val status: RevurderingsStatus,
+    override val periode: PeriodeJson,
+    override val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
+    override val tilRevurdering: VedtakJson,
+    override val saksbehandler: String,
+    override val årsak: String,
+    override val begrunnelse: String,
+    override val attesteringer: List<AttesteringJson>,
+    override val forhåndsvarsel: ForhåndsvarselJson?,
     val simulering: SimuleringJson,
-    val attesteringer: List<AttesteringJson>,
 ) : RevurderingJson()
 
 internal fun Forhåndsvarsel.toJson() = when (this) {
@@ -253,6 +264,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
     is OpprettetRevurdering -> OpprettetRevurderingJson(
         id = id.toString(),
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+        status = InstansTilStatusMapper(this).status,
         periode = periode.toJson(),
         tilRevurdering = tilRevurdering.toJson(),
         saksbehandler = saksbehandler.toString(),
@@ -471,6 +483,7 @@ internal fun StansAvYtelseRevurdering.toJson(): RevurderingJson {
             status = InstansTilStatusMapper(this).status,
             simulering = simulering.toJson(),
             attesteringer = attesteringer.toJson(),
+            forhåndsvarsel = ForhåndsvarselJson.IngenForhåndsvarsel,
         )
         is StansAvYtelseRevurdering.SimulertStansAvYtelse -> {
             StansAvUtbetalingJson(
@@ -488,6 +501,7 @@ internal fun StansAvYtelseRevurdering.toJson(): RevurderingJson {
                 status = InstansTilStatusMapper(this).status,
                 simulering = simulering.toJson(),
                 attesteringer = emptyList(),
+                forhåndsvarsel = ForhåndsvarselJson.IngenForhåndsvarsel,
             )
         }
         is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> StansAvUtbetalingJson(
@@ -505,6 +519,7 @@ internal fun StansAvYtelseRevurdering.toJson(): RevurderingJson {
             status = InstansTilStatusMapper(this).status,
             simulering = simulering.toJson(),
             attesteringer = emptyList(),
+            forhåndsvarsel = ForhåndsvarselJson.IngenForhåndsvarsel,
         )
     }
 }
@@ -527,6 +542,7 @@ internal fun GjenopptaYtelseRevurdering.toJson(): RevurderingJson {
                 status = InstansTilStatusMapper(this).status,
                 simulering = simulering.toJson(),
                 attesteringer = attesteringer.toJson(),
+                forhåndsvarsel = ForhåndsvarselJson.IngenForhåndsvarsel,
             )
         }
         is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> GjenopptakAvYtelseJson(
@@ -544,6 +560,7 @@ internal fun GjenopptaYtelseRevurdering.toJson(): RevurderingJson {
             status = InstansTilStatusMapper(this).status,
             simulering = simulering.toJson(),
             attesteringer = emptyList(),
+            forhåndsvarsel = ForhåndsvarselJson.IngenForhåndsvarsel,
         )
         is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> GjenopptakAvYtelseJson(
             id = id.toString(),
@@ -560,6 +577,7 @@ internal fun GjenopptaYtelseRevurdering.toJson(): RevurderingJson {
             status = InstansTilStatusMapper(this).status,
             simulering = simulering.toJson(),
             attesteringer = emptyList(),
+            forhåndsvarsel = ForhåndsvarselJson.IngenForhåndsvarsel,
         )
     }
 }

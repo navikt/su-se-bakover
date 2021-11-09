@@ -149,6 +149,10 @@ abstract class BrevInnhold {
         override val brevTemplate = BrevTemplate.Forhåndsvarsel
     }
 
+    /**
+     * Brev for når en revurdering er forhåndsvarslet
+     * hvis revurderingen ikke er forhåndsvarslet, er det ikke noe brev.
+     */
     data class AvsluttRevurdering(
         val personalia: Personalia,
         val saksbehandlerNavn: String,

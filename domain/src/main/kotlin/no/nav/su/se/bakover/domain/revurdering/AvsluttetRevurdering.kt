@@ -11,14 +11,13 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import java.time.LocalDate
 import java.util.UUID
 
 data class AvsluttetRevurdering private constructor(
     private val underliggendeRevurdering: Revurdering,
     val begrunnelse: String,
     val fritekst: String?,
-    val datoAvsluttet: LocalDate,
+    val tidspunktAvsluttet: Tidspunkt,
 ) : Revurdering() {
     override val id: UUID = underliggendeRevurdering.id
     override val opprettet: Tidspunkt = underliggendeRevurdering.opprettet
@@ -40,15 +39,14 @@ data class AvsluttetRevurdering private constructor(
         is SimulertRevurdering -> underliggendeRevurdering.beregning
         is UnderkjentRevurdering.Opphørt -> underliggendeRevurdering.beregning
         is UnderkjentRevurdering.Innvilget -> underliggendeRevurdering.beregning
+        is UnderkjentRevurdering.IngenEndring -> underliggendeRevurdering.beregning
 
-        is UnderkjentRevurdering.IngenEndring,
-        is OpprettetRevurdering,
-        -> null
+        is OpprettetRevurdering -> null
 
         is AvsluttetRevurdering,
         is RevurderingTilAttestering,
         is IverksattRevurdering,
-        -> throw IllegalStateException("Den underliggende revurderingen er er i en status som ikke skulle ha vært avsluttet")
+        -> throw IllegalStateException("Skal ikke kunne instansiere en AvsluttetRevurdering med ${underliggendeRevurdering::class}. Sjekk tryCreate om du får denne feilen. id: $id")
     }
 
     val simulering = when (underliggendeRevurdering) {
@@ -64,11 +62,11 @@ data class AvsluttetRevurdering private constructor(
         is AvsluttetRevurdering,
         is RevurderingTilAttestering,
         is IverksattRevurdering,
-        -> throw IllegalStateException("Den underliggende revurderingen er i en status som ikke skulle ha vært avsluttet")
+        -> throw IllegalStateException("Skal ikke kunne instansiere en AvsluttetRevurdering med ${underliggendeRevurdering::class}. Sjekk tryCreate om du får denne feilen. id: $id")
     }
 
     override fun accept(visitor: RevurderingVisitor) {
-        throw IllegalStateException("Skal ikke kunne 'accepte' revurdering visitor når den er avsluttet")
+        visitor.visit(this)
     }
 
     companion object {
@@ -76,7 +74,7 @@ data class AvsluttetRevurdering private constructor(
             underliggendeRevurdering: Revurdering,
             begrunnelse: String,
             fritekst: String?,
-            datoAvsluttet: LocalDate,
+            tidspunktAvsluttet: Tidspunkt,
         ): Either<KunneIkkeLageAvsluttetRevurdering, AvsluttetRevurdering> {
 
             return when (underliggendeRevurdering) {
@@ -96,14 +94,17 @@ data class AvsluttetRevurdering private constructor(
                             Forhåndsvarsel.IngenForhåndsvarsel,
                             -> KunneIkkeLageAvsluttetRevurdering.FritekstErFylltUtUtenForhåndsvarsel.left()
 
-                            is Forhåndsvarsel.SkalForhåndsvarsles.Besluttet,
-                            Forhåndsvarsel.SkalForhåndsvarsles.Sendt,
-                            -> AvsluttetRevurdering(
-                                underliggendeRevurdering, begrunnelse, fritekst, datoAvsluttet,
+                            is Forhåndsvarsel.SkalForhåndsvarsles -> AvsluttetRevurdering(
+                                underliggendeRevurdering, begrunnelse, fritekst, tidspunktAvsluttet,
                             ).right()
                         }
                     }
-                    return AvsluttetRevurdering(underliggendeRevurdering, begrunnelse, fritekst, datoAvsluttet).right()
+                    return AvsluttetRevurdering(
+                        underliggendeRevurdering,
+                        begrunnelse,
+                        fritekst,
+                        tidspunktAvsluttet,
+                    ).right()
                 }
             }
         }

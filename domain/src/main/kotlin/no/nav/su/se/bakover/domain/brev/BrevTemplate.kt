@@ -55,7 +55,7 @@ sealed class BrevTemplate(
 
         object AvsluttRevurdering : Revurdering(
             pdfTemplate = PdfTemplate.Revurdering.Avslutt,
-            brevTittel = "Varsel om at ny vurdering av din supplerende stønad er blitt avsluttet",
+            brevTittel = "Ikke grunnlag for revurdering",
         )
     }
 }

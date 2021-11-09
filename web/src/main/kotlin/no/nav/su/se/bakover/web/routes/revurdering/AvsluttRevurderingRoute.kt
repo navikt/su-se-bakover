@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeLageAvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
-import no.nav.su.se.bakover.service.revurdering.KunneIKkeLageBrevutkastForAvsluttingAvRevurdering
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForAvsluttingAvRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
@@ -86,14 +86,18 @@ private fun KunneIkkeAvslutteRevurdering.tilResultat(): Resultat {
     }
 }
 
-private fun KunneIKkeLageBrevutkastForAvsluttingAvRevurdering.tilResultat(): Resultat {
+private fun KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.tilResultat(): Resultat {
     return when (this) {
-        KunneIKkeLageBrevutkastForAvsluttingAvRevurdering.FantIkkeRevurdering -> Revurderingsfeilresponser.fantIkkeRevurdering
-        KunneIKkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeLageBrevutkast -> Feilresponser.Brev.kunneIkkeLageBrevutkast
-        KunneIKkeLageBrevutkastForAvsluttingAvRevurdering.RevurderingenErIkkeForhåndsvarslet -> HttpStatusCode.BadRequest.errorJson(
+        KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.FantIkkeRevurdering -> Revurderingsfeilresponser.fantIkkeRevurdering
+        KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeLageBrevutkast -> Feilresponser.Brev.kunneIkkeLageBrevutkast
+        KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.RevurderingenErIkkeForhåndsvarslet -> HttpStatusCode.BadRequest.errorJson(
             "Revurderingen er ikke forhåndsvarslet for å vise brev",
             "revurdering_er_ikke_forhåndsvarslet_for_å_vise_brev",
         )
+        KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.FantIkkePerson -> Feilresponser.fantIkkePerson
+        KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeFinneGjeldendeUtbetaling -> Feilresponser.fantIkkeGjeldendeUtbetaling
+        KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeGenererePDF -> Feilresponser.Brev.kunneIkkeGenerereBrev
+        KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> fantIkkePersonEllerSaksbehandlerNavn
     }
 }
 

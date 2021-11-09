@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.database.revurdering
 
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -131,7 +130,7 @@ internal class StansAvYtelsePostgresRepoTest {
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
 
             val avsluttet = simulertRevurdering.avslutt(
-                begrunnelse = "jeg opprettet en stans av ytelse, så gjennom, og så teknte 'neh'", datoAvsluttet = 9.mai(2021)
+                begrunnelse = "jeg opprettet en stans av ytelse, så gjennom, og så teknte 'neh'", tidspunktAvsluttet = fixedTidspunkt
             ).getOrFail("her skulle vi ha hatt en avsluttet stans av ytelse revurdering")
 
             testDataHelper.revurderingRepo.lagre(avsluttet)

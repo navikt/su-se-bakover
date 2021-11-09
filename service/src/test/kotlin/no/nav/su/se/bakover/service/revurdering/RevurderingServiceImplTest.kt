@@ -10,7 +10,6 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
@@ -123,7 +122,6 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-import java.time.LocalDate
 import java.util.UUID
 import no.nav.su.se.bakover.service.brev.BrevService as BrevService1
 
@@ -1380,22 +1378,18 @@ internal class RevurderingServiceImplTest {
             on { hent(any()) } doReturn simulert
             doNothing().`when`(mock).oppdaterForhåndsvarsel(any(), any())
         }
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-        val msGraphApiOppslag = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturn "saksbehandler".right()
-        }
         val brevServiceMock = mock<BrevService1> {
-            on { lagBrev(any()) } doReturn "byteArray".toByteArray().right()
-            doNothing().`when`(mock).lagreDokument(any())
+            on { lagDokument(any()) } doReturn Dokument.UtenMetadata.Informasjon(
+                opprettet = fixedTidspunkt,
+                tittel = "tittel1",
+                generertDokument = "brev".toByteArray(),
+                generertDokumentJson = "brev",
+            ).right()
         }
         val sessionFactoryMock = TestSessionFactory()
 
         val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = msGraphApiOppslag,
             brevService = brevServiceMock,
             sessionFactory = sessionFactoryMock,
         )
@@ -1409,12 +1403,44 @@ internal class RevurderingServiceImplTest {
             ),
         )
 
-        actual shouldBe AvsluttetRevurdering.tryCreate(
+        val expected = AvsluttetRevurdering.tryCreate(
             underliggendeRevurdering = simulert,
             begrunnelse = "b e g r u n n e l s e",
             fritekst = null,
-            datoAvsluttet = LocalDate.now(fixedClock),
+            tidspunktAvsluttet = fixedTidspunkt,
+        ).getOrFail()
+
+        actual shouldBe expected.right()
+
+        verify(revurderingRepoMock, times(2)).hent(argThat { it shouldBe simulert.id })
+        verify(revurderingRepoMock).oppdaterForhåndsvarsel(
+            argThat { it shouldBe simulert.id },
+            argThat {
+                it shouldBe Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
+                    valg = BeslutningEtterForhåndsvarsling.AvsluttUtenEndringer, begrunnelse = "b e g r u n n e l s e",
+                )
+            },
         )
+
+        verify(brevServiceMock).lagDokument(
+            argThat {
+                it shouldBe expected
+            },
+        )
+        verify(brevServiceMock).lagreDokument(
+            argThat {
+                it should beOfType<Dokument.MedMetadata.Informasjon>()
+                it.generertDokument shouldBe "brev".toByteArray()
+                it.metadata shouldBe Dokument.Metadata(
+                    sakId = simulert.sakId,
+                    revurderingId = simulert.id,
+                    vedtakId = simulert.tilRevurdering.id,
+                    bestillBrev = true,
+                )
+            },
+        )
+        verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.getOrFail() })
+        verifyNoMoreInteractions(revurderingRepoMock)
     }
 
     @Test
@@ -1850,7 +1876,7 @@ internal class RevurderingServiceImplTest {
             underliggendeRevurdering = opprettetRevurdering,
             begrunnelse = "opprettet revurderingen med en feil",
             fritekst = null,
-            datoAvsluttet = LocalDate.now(fixedClock),
+            tidspunktAvsluttet = fixedTidspunkt,
         )
 
         verify(revurderingRepoMock).hent(argThat { it shouldBe opprettetRevurdering.id })
@@ -1867,22 +1893,18 @@ internal class RevurderingServiceImplTest {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn simulert
         }
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-        val msGraphApiOppslag = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturn "saksbehandler".right()
-        }
         val brevServiceMock = mock<BrevService1> {
-            on { lagBrev(any()) } doReturn "byteArray".toByteArray().right()
-            doNothing().`when`(mock).lagreDokument(any())
+            on { lagDokument(any()) } doReturn Dokument.UtenMetadata.Informasjon(
+                opprettet = fixedTidspunkt,
+                tittel = "tittel1",
+                generertDokument = "brev".toByteArray(),
+                generertDokumentJson = "brev",
+            ).right()
         }
         val sessionFactoryMock = TestSessionFactory()
 
         val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = msGraphApiOppslag,
             brevService = brevServiceMock,
             sessionFactory = sessionFactoryMock,
         )
@@ -1897,26 +1919,14 @@ internal class RevurderingServiceImplTest {
             underliggendeRevurdering = simulert,
             begrunnelse = "opprettet revurderingen med en feil",
             fritekst = "en fri tekst",
-            datoAvsluttet = LocalDate.now(fixedClock),
+            tidspunktAvsluttet = fixedTidspunkt,
         )
 
         verify(revurderingRepoMock).hent(argThat { it shouldBe simulert.id })
-        verify(personServiceMock).hentPerson(argThat { it shouldBe simulert.fnr })
-        verify(msGraphApiOppslag).hentNavnForNavIdent(argThat { it.toString() shouldBe simulert.saksbehandler.navIdent })
-        verify(brevServiceMock).lagBrev(
-            argThat {
-                it shouldBe LagBrevRequest.AvsluttRevurdering(
-                    person = person,
-                    saksbehandlerNavn = simulert.saksbehandler.navIdent,
-                    fritekst = "en fri tekst",
-                    dagensDato = LocalDate.now(fixedClock),
-                )
-            },
-        )
         verify(brevServiceMock).lagreDokument(
             argThat {
                 it should beOfType<Dokument.MedMetadata.Informasjon>()
-                it.generertDokument shouldBe "byteArray".toByteArray()
+                it.generertDokument shouldBe "brev".toByteArray()
                 it.metadata shouldBe Dokument.Metadata(
                     sakId = simulert.sakId,
                     revurderingId = simulert.id,
@@ -1951,90 +1961,20 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
-    fun `får feil dersom man person-kallet feiler`() {
-        val simulert = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second.copy(
-            forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt
-        )
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn simulert
-        }
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
-        }
-
-        val revurderingService = createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-            personService = personServiceMock,
-        )
-
-        revurderingService.avsluttRevurdering(
-            revurderingId = simulert.id,
-            begrunnelse = "hehe",
-            fritekst = null,
-        ) shouldBe KunneIkkeAvslutteRevurdering.FantIkkePersonEllerSaksbehandlerNavn.left()
-
-        verify(revurderingRepoMock).hent(argThat { it shouldBe simulert.id })
-        verify(personServiceMock).hentPerson(argThat { it shouldBe simulert.fnr })
-        verifyNoMoreInteractions(revurderingRepoMock)
-    }
-
-    @Test
-    fun `får feil dersom man saksbehandlernavn-kallet feiler`() {
+    fun `får feil dersom generering av brev feiler`() {
         val simulert = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second.copy(
             forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn simulert
-        }
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-        val msGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturn MicrosoftGraphApiOppslagFeil.FantIkkeBrukerForNavIdent.left()
-        }
-
-        val revurderingService = createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = msGraphApiOppslagMock
-        )
-
-        revurderingService.avsluttRevurdering(
-            revurderingId = simulert.id,
-            begrunnelse = "hehe",
-            fritekst = null,
-        ) shouldBe KunneIkkeAvslutteRevurdering.FantIkkePersonEllerSaksbehandlerNavn.left()
-
-        verify(revurderingRepoMock).hent(argThat { it shouldBe simulert.id })
-        verify(personServiceMock).hentPerson(argThat { it shouldBe simulert.fnr })
-        verify(msGraphApiOppslagMock).hentNavnForNavIdent(argThat { it.toString() shouldBe simulert.saksbehandler.navIdent })
-        verifyNoMoreInteractions(revurderingRepoMock)
-    }
-
-    @Test
-    fun `får feil dersom man generering av brev feiler`() {
-        val simulert = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second.copy(
-            forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt
-        )
-
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn simulert
-        }
-        val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
-        }
-        val msGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturn "saksbehandler".right()
         }
         val brevServiceMock = mock<BrevService1> {
-            on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
+            on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
         }
 
         val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-            personService = personServiceMock,
-            microsoftGraphApiClient = msGraphApiOppslagMock,
             brevService = brevServiceMock
         )
 
@@ -2045,8 +1985,6 @@ internal class RevurderingServiceImplTest {
         ) shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument.left()
 
         verify(revurderingRepoMock).hent(argThat { it shouldBe simulert.id })
-        verify(personServiceMock).hentPerson(argThat { it shouldBe simulert.fnr })
-        verify(msGraphApiOppslagMock).hentNavnForNavIdent(argThat { it.toString() shouldBe simulert.saksbehandler.navIdent })
         verifyNoMoreInteractions(revurderingRepoMock)
     }
 
@@ -2071,7 +2009,7 @@ internal class RevurderingServiceImplTest {
         actual shouldBe StansAvYtelseRevurdering.AvsluttetStansAvYtelse.tryCreate(
             stansAvYtelseRevurdering = stansAvYtelse,
             begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
-            datoAvsluttet = LocalDate.now(fixedClock),
+            tidspunktAvsluttet = fixedTidspunkt,
         )
 
         verify(revurderingRepoMock).hent(argThat { it shouldBe stansAvYtelse.id })
@@ -2148,7 +2086,7 @@ internal class RevurderingServiceImplTest {
         actual shouldBe GjenopptaYtelseRevurdering.AvsluttetGjenoppta.tryCreate(
             gjenopptakAvYtelseRevurdering = gjenopptaYtelse,
             begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
-            datoAvsluttet = LocalDate.now(fixedClock),
+            tidspunktAvsluttet = fixedTidspunkt,
         )
 
         verify(revurderingRepoMock).hent(argThat { it shouldBe gjenopptaYtelse.id })

@@ -1373,6 +1373,7 @@ internal class RevurderingJsonTest {
                     "tilOgMed": "2021-12-31"
                 },
                 "årsak": "${Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING}",
+                "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
                 "begrunnelse": "valid",
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": ${serialize((simulertRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
@@ -1405,6 +1406,7 @@ internal class RevurderingJsonTest {
                     "tilOgMed": "2021-12-31"
                 },
                 "årsak": "${Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING}",
+                "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
                 "begrunnelse": "valid",
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": ${serialize((iverksattRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
@@ -1440,6 +1442,7 @@ internal class RevurderingJsonTest {
                 },
                 "årsak": "${Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING}",
                 "begrunnelse": "valid",
+                "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": ${serialize((simulertRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
                   "fradrag": [],
@@ -1472,6 +1475,7 @@ internal class RevurderingJsonTest {
                 },
                 "årsak": ${Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING},
                 "begrunnelse": "valid",
+                "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": ${serialize((iverksattRevurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).toJson())},
                   "fradrag": [],

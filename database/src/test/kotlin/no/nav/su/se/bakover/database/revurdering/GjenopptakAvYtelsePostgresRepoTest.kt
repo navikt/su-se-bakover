@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.database.revurdering
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -123,7 +122,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
 
             val avsluttetGjenopptaAvYtelse = simulertRevurdering.avslutt(
                 begrunnelse = "Avslutter denne her",
-                datoAvsluttet = 17.mai(2021),
+                tidspunktAvsluttet = fixedTidspunkt,
             ).getOrFail("Her skulle vi ha avsluttet en gjenopptaAvYtelse revurdering")
 
             testDataHelper.revurderingRepo.lagre(avsluttetGjenopptaAvYtelse)

@@ -7,8 +7,6 @@ import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
-import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.TestDataHelper
@@ -979,7 +977,7 @@ internal class RevurderingPostgresRepoTest {
                 underliggendeRevurdering = opprettet,
                 begrunnelse = "avslutter denne revurderingen",
                 fritekst = null,
-                datoAvsluttet = 10.mai(2021),
+                tidspunktAvsluttet = fixedTidspunkt,
             ).getOrHandle { throw IllegalStateException("Her skulle vi jammen ha en avsluttet revurdering. $it") }
 
             repo.lagre(avsluttetRevurdering)
@@ -994,17 +992,17 @@ internal class RevurderingPostgresRepoTest {
           {
             "fritekst": "en fri tekst", 
             "begrunnelse": "en begrunnelse", 
-            "datoAvsluttet": "2021-11-02"
+            "tidspunktAvsluttet": "2021-01-01T01:02:03.456789Z"
           }
         """.trimIndent()
 
         JSONAssert.assertEquals(
             avsluttetJson,
             serialize(
-                RevurderingPostgresRepo.AvsluttetRevurderingInfo(
+                AvsluttetRevurderingInfo(
                     begrunnelse = "en begrunnelse",
                     fritekst = "en fri tekst",
-                    datoAvsluttet = 2.november(2021),
+                    tidspunktAvsluttet = fixedTidspunkt,
                 ),
             ),
             true,

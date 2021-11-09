@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.domain.revurdering
 import arrow.core.left
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
@@ -20,7 +20,7 @@ internal class AvsluttetRevurderingTest {
             underliggendeRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second,
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
             fritekst = null,
-            datoAvsluttet = 15.mai(2021),
+            tidspunktAvsluttet = fixedTidspunkt,
         ).shouldBeRight()
     }
 
@@ -30,7 +30,7 @@ internal class AvsluttetRevurderingTest {
             underliggendeRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second,
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
             fritekst = null,
-            datoAvsluttet = 15.mai(2021),
+            tidspunktAvsluttet = fixedTidspunkt,
         ).shouldBeRight()
     }
 
@@ -40,7 +40,7 @@ internal class AvsluttetRevurderingTest {
             underliggendeRevurdering = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second,
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
             fritekst = null,
-            datoAvsluttet = 15.mai(2021),
+            tidspunktAvsluttet = fixedTidspunkt,
         ).shouldBeRight()
     }
 
@@ -48,11 +48,11 @@ internal class AvsluttetRevurderingTest {
     fun `kan legge til fritekst dersom underliggende revurdering er forhåndsvarslet`() {
         AvsluttetRevurdering.tryCreate(
             underliggendeRevurdering = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second.copy(
-                forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt
+                forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt,
             ),
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
             fritekst = "en god, og fri tekst",
-            datoAvsluttet = 15.mai(2021),
+            tidspunktAvsluttet = fixedTidspunkt,
         ).shouldBeRight()
     }
 
@@ -62,7 +62,7 @@ internal class AvsluttetRevurderingTest {
             underliggendeRevurdering = tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second,
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
             fritekst = null,
-            datoAvsluttet = 15.mai(2021),
+            tidspunktAvsluttet = fixedTidspunkt,
         ) shouldBe KunneIkkeLageAvsluttetRevurdering.RevurderingenErTilAttestering.left()
     }
 
@@ -72,7 +72,7 @@ internal class AvsluttetRevurderingTest {
             underliggendeRevurdering = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak().second,
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
             fritekst = null,
-            datoAvsluttet = 15.mai(2021),
+            tidspunktAvsluttet = fixedTidspunkt,
         ) shouldBe KunneIkkeLageAvsluttetRevurdering.RevurderingenErIverksatt.left()
     }
 
@@ -80,11 +80,11 @@ internal class AvsluttetRevurderingTest {
     fun `får feil dersom man prøver å lage en avsluttet revurdering med avsluttet som underliggende`() {
         AvsluttetRevurdering.tryCreate(
             underliggendeRevurdering = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second.avslutt(
-                begrunnelse = "begrunnelse", fritekst = null, datoAvsluttet = 10.mai(2021)
+                begrunnelse = "begrunnelse", fritekst = null, tidspunktAvsluttet = fixedTidspunkt,
             ).getOrFail(),
             begrunnelse = "prøver å avslutte en revurdering som er i avsluttet tilstand",
             fritekst = null,
-            datoAvsluttet = 15.mai(2021),
+            tidspunktAvsluttet = fixedTidspunkt,
         ) shouldBe KunneIkkeLageAvsluttetRevurdering.RevurderingErAlleredeAvsluttet.left()
     }
 
@@ -96,7 +96,7 @@ internal class AvsluttetRevurderingTest {
             ),
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
             fritekst = "forhåndsvarsel er null, men jeg er fyllt ut. dette skal ikke være lov",
-            datoAvsluttet = 15.mai(2021),
+            tidspunktAvsluttet = fixedTidspunkt,
         ) shouldBe KunneIkkeLageAvsluttetRevurdering.FritekstErFylltUtUtenForhåndsvarsel.left()
     }
 
@@ -106,7 +106,7 @@ internal class AvsluttetRevurderingTest {
             underliggendeRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second,
             begrunnelse = "Begrunnelse for hvorfor denne har blitt avsluttet",
             fritekst = "forhåndsvarsel er ingen forhåndsvarsel, men jeg er fyllt ut. dette skal ikke være lov",
-            datoAvsluttet = 15.mai(2021),
+            tidspunktAvsluttet = fixedTidspunkt,
         ) shouldBe KunneIkkeLageAvsluttetRevurdering.FritekstErFylltUtUtenForhåndsvarsel.left()
     }
 }

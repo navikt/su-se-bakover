@@ -690,14 +690,14 @@ fun iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
 fun avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     begrunnelse: String = "begrunnelsensen",
     fritekst: String? = null,
-    datoAvsluttet: LocalDate = LocalDate.now(fixedClock),
+    tidspunktAvsluttet: Tidspunkt = Tidspunkt.now(fixedClock),
 ): Pair<Sak, AvsluttetRevurdering> {
     return simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().let { (sak, simulert) ->
         val avsluttet = simulert.avslutt(
             begrunnelse = begrunnelse,
             fritekst = fritekst,
-            datoAvsluttet = datoAvsluttet,
-        ).getOrHandle { throw RuntimeException("Feilet med generering av test data for Iverksatt-revurdering") }
+            tidspunktAvsluttet = tidspunktAvsluttet,
+        ).getOrFail()
 
         Pair(
             sak.copy(
@@ -771,13 +771,13 @@ fun iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
 
 fun avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak(
     begrunnelse: String = "begrunnelse for å avslutte stans av ytelse",
-    datoAvsluttet: LocalDate = LocalDate.now(fixedClock),
+    tidspunktAvsluttet: Tidspunkt = Tidspunkt.now(fixedClock),
 ): Pair<Sak, StansAvYtelseRevurdering.AvsluttetStansAvYtelse> {
     return simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().let { (sak, simulert) ->
 
         val avsluttet = simulert.avslutt(
-            begrunnelse = begrunnelse, datoAvsluttet = datoAvsluttet,
-        ).getOrFail("Feil ved oppsett av test-data for avsluttet stans av ytelse")
+            begrunnelse = begrunnelse, tidspunktAvsluttet = tidspunktAvsluttet,
+        ).getOrFail()
 
         sak.copy(
             // Erstatter den gamle versjonen av samme revurderinger.
@@ -846,13 +846,13 @@ fun iverksattGjenopptakelseAvytelseFraVedtakStansAvYtelse(
 
 fun avsluttetGjenopptakelseAvYtelseeFraIverksattSøknadsbehandlignsvedtak(
     begrunnelse: String = "begrunnelse for å avslutte stans av ytelse",
-    datoAvsluttet: LocalDate = LocalDate.now(fixedClock),
+    tidspunktAvsluttet: Tidspunkt = Tidspunkt.now(fixedClock),
 ): Pair<Sak, GjenopptaYtelseRevurdering.AvsluttetGjenoppta> {
     return simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse().let { (sak, simulert) ->
 
         val avsluttet = simulert.avslutt(
-            begrunnelse = begrunnelse, datoAvsluttet = datoAvsluttet,
-        ).getOrFail("Feil ved oppsett av test-data for avsluttet stans av ytelse")
+            begrunnelse = begrunnelse, tidspunktAvsluttet = tidspunktAvsluttet,
+        ).getOrFail()
 
         sak.copy(
             // Erstatter den gamle versjonen av samme revurderinger.

@@ -122,10 +122,10 @@ internal class StansAvYtelsePostgresRepo(
                         params = mapOf(
                             "id" to revurdering.id,
                             "avsluttet" to objectMapper.writeValueAsString(
-                                RevurderingPostgresRepo.AvsluttetRevurderingInfo(
+                                AvsluttetRevurderingInfo(
                                     begrunnelse = revurdering.begrunnelse,
                                     fritekst = null,
-                                    datoAvsluttet = revurdering.datoAvsluttet,
+                                    tidspunktAvsluttet = revurdering.tidspunktAvsluttet,
                                 ),
                             ),
                         ),

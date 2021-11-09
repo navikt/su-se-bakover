@@ -127,7 +127,7 @@ interface RevurderingService {
     fun brevutkastForAvslutting(
         revurderingId: UUID,
         fritekst: String?,
-    ): Either<KunneIKkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, ByteArray>>
+    ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, ByteArray>>
 
     fun avsluttRevurdering(
         revurderingId: UUID,
@@ -454,10 +454,14 @@ sealed class KunneIkkeIverksetteGjenopptakAvYtelse {
     object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteGjenopptakAvYtelse()
 }
 
-sealed class KunneIKkeLageBrevutkastForAvsluttingAvRevurdering {
-    object FantIkkeRevurdering : KunneIKkeLageBrevutkastForAvsluttingAvRevurdering()
-    object KunneIkkeLageBrevutkast : KunneIKkeLageBrevutkastForAvsluttingAvRevurdering()
-    object RevurderingenErIkkeForhåndsvarslet : KunneIKkeLageBrevutkastForAvsluttingAvRevurdering()
+sealed class KunneIkkeLageBrevutkastForAvsluttingAvRevurdering {
+    object FantIkkeRevurdering : KunneIkkeLageBrevutkastForAvsluttingAvRevurdering()
+    object KunneIkkeLageBrevutkast : KunneIkkeLageBrevutkastForAvsluttingAvRevurdering()
+    object RevurderingenErIkkeForhåndsvarslet : KunneIkkeLageBrevutkastForAvsluttingAvRevurdering()
+    object FantIkkePerson : KunneIkkeLageBrevutkastForAvsluttingAvRevurdering()
+    object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeLageBrevutkastForAvsluttingAvRevurdering()
+    object KunneIkkeGenererePDF : KunneIkkeLageBrevutkastForAvsluttingAvRevurdering()
+    object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeLageBrevutkastForAvsluttingAvRevurdering()
 }
 
 data class LeggTilBosituasjongrunnlagRequest(
