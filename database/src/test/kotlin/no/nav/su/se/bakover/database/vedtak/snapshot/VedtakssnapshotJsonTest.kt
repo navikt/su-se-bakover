@@ -371,6 +371,7 @@ internal class VedtakssnapshotJsonTest {
                         benyttetGrunnbeløp = 66,
                         satsbeløp = 4.1,
                         fribeløpForEps = 0.0,
+                        persisterteMerknader = emptyList()
                     ),
                 ),
                 fradrag = fradrag,
@@ -484,7 +485,8 @@ internal class VedtakssnapshotJsonTest {
                                 "fraOgMed":"2021-01-01",
                                 "tilOgMed":"2021-01-31"
                             },
-                            "fribeløpForEps": 0.0
+                            "fribeløpForEps": 0.0,
+                            "merknader": []
                         }
                     ],
                     "fradrag":[

@@ -24,7 +24,7 @@ enum class Sats(val grunnbeløp: Grunnbeløp) {
 
     private fun satsSomÅrsbeløp(dato: LocalDate): Double = grunnbeløp.påDato(dato)
 
-    private fun satsSomMånedsbeløp(dato: LocalDate): Double = grunnbeløp.påDato(dato) / 12
+    private fun satsSomMånedsbeløp(dato: LocalDate): Double = grunnbeløp.månedsbeløp(dato)
 
     companion object {
         fun toProsentAvHøy(periode: Periode): Double = periode.tilMånedsperioder()

@@ -7,8 +7,8 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.attestant
-import no.nav.su.se.bakover.database.beregning
 import no.nav.su.se.bakover.database.hent
+import no.nav.su.se.bakover.database.innvilgetBeregning
 import no.nav.su.se.bakover.database.simulering
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
@@ -188,7 +188,7 @@ internal class VedtakPostgresRepoTest {
                 tilRevurdering = søknadsbehandlingVedtak,
                 saksbehandler = nyRevurdering.saksbehandler,
                 oppgaveId = OppgaveId(""),
-                beregning = beregning(nyRevurdering.periode),
+                beregning = innvilgetBeregning(nyRevurdering.periode),
                 fritekstTilBrev = "",
                 revurderingsårsak = Revurderingsårsak(
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
@@ -209,7 +209,7 @@ internal class VedtakPostgresRepoTest {
                 tilRevurdering = søknadsbehandlingVedtak,
                 saksbehandler = nyRevurdering.saksbehandler,
                 oppgaveId = OppgaveId(""),
-                beregning = beregning(nyRevurdering.periode),
+                beregning = innvilgetBeregning(nyRevurdering.periode),
                 attesteringer = Attesteringshistorikk.empty()
                     .leggTilNyAttestering(Attestering.Iverksatt(attestant, fixedTidspunkt)),
                 fritekstTilBrev = "",

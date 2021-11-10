@@ -15,8 +15,8 @@ import no.nav.su.se.bakover.database.TestDataHelper.Companion.journalførtSøkna
 import no.nav.su.se.bakover.database.antall
 import no.nav.su.se.bakover.database.avslåttBeregning
 import no.nav.su.se.bakover.database.behandlingsinformasjonMedAlleVilkårOppfylt
-import no.nav.su.se.bakover.database.beregning
 import no.nav.su.se.bakover.database.hent
+import no.nav.su.se.bakover.database.innvilgetBeregning
 import no.nav.su.se.bakover.database.iverksattAttestering
 import no.nav.su.se.bakover.database.saksbehandler
 import no.nav.su.se.bakover.database.simulering
@@ -192,7 +192,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             }
 
             val beregnet = innvilgetVilkårsvurdering
-                .tilBeregnet(beregning = beregning())
+                .tilBeregnet(beregning = innvilgetBeregning())
                 .also {
                     repo.lagre(it)
                     repo.hent(it.id) shouldBe it
@@ -253,7 +253,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             oppgaveId = nyOppgaveId,
                             behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
                             fnr = tilAttestering.fnr,
-                            beregning = beregning(),
+                            beregning = innvilgetBeregning(),
                             simulering = simulering(tilAttestering.fnr),
                             saksbehandler = saksbehandler,
                             fritekstTilBrev = "",
@@ -352,7 +352,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             oppgaveId = nyOppgaveId,
                             behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
                             fnr = tilAttestering.fnr,
-                            beregning = beregning(),
+                            beregning = innvilgetBeregning(),
                             simulering = simulering(tilAttestering.fnr),
                             saksbehandler = saksbehandler,
                             attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(underkjentAttestering),

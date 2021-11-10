@@ -13,6 +13,8 @@ internal data class PeriodisertBeregning(
     private val fradrag: List<Fradrag>,
     private val fribeløpForEps: Double = 0.0,
 ) : Månedsberegning {
+    private val merknader: Merknader.Beregningsmerknad = Merknader.Beregningsmerknad()
+
     init {
         require(fradrag.all { it.periode == periode }) { "Fradrag må være gjeldende for aktuell måned" }
         require(periode.getAntallMåneder() == 1) { "Månedsberegning kan kun utføres for en enkelt måned" }
@@ -22,15 +24,28 @@ internal data class PeriodisertBeregning(
         .positiveOrZero()
         .roundToInt()
 
-    override fun getSumFradrag() = fradrag
-        .sumOf { it.månedsbeløp }
-        .limitedUpwardsTo(getSatsbeløp())
+    override fun getSumFradrag() = beregnSumFradrag(fradrag)
 
-    override fun getBenyttetGrunnbeløp(): Int = Grunnbeløp.`1G`.påDato(periode.fraOgMed).toInt()
+    override fun getBenyttetGrunnbeløp(): Int = Grunnbeløp.`1G`.heltallPåDato(periode.fraOgMed)
     override fun getSats(): Sats = sats
     override fun getSatsbeløp(): Double = sats.periodiser(periode).getValue(periode)
     override fun getFradrag(): List<Fradrag> = fradrag
     override fun getFribeløpForEps(): Double = fribeløpForEps
 
+    private fun beregnSumFradrag(fradrag: List<Fradrag>) =
+        fradrag.sumOf { it.månedsbeløp }.limitedUpwardsTo(getSatsbeløp())
+
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
+
+    override fun getMerknader(): List<Merknad.Beregning> {
+        return merknader.alle()
+    }
+
+    fun leggTilMerknad(merknad: Merknad.Beregning) {
+        merknader.leggTil(merknad)
+    }
+
+    fun beløpStørreEnn0MenMindreEnnToProsentAvHøySats(): Boolean {
+        return getSumYtelse() > 0 && getSumYtelse() < Sats.toProsentAvHøy(periode)
+    }
 }

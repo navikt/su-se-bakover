@@ -651,6 +651,7 @@ internal class RevurderingServiceImpl(
         vilkårsvurderinger = vilkårsvurderinger,
         tidligereBeregning = tidligereBeregning,
         nyBeregning = nyBeregning,
+        clock = clock,
     ).resultat
 
     private fun identifiserUtfallSomIkkeStøttes(
