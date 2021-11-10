@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.getOrHandle
+import arrow.core.merge
 import arrow.core.right
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
@@ -39,7 +40,7 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
 
     data class BosituasjonBody(
         val bosituasjon: BosituasjonValg,
-        val begrunnelse: String?
+        val begrunnelse: String?,
     ) {
         fun toFullførBosituasjongrunnlagRequest(behandlingId: UUID): Either<Resultat, FullførBosituasjonRequest> {
             return FullførBosituasjonRequest(
@@ -56,26 +57,59 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                 call.withBody<EpsBody> { body ->
                     call.svar(
                         body.toLeggTilBosituasjonEpsgrunnlagRequest(behandlingId)
-                            .flatMap { leggTilBosituasjonEpsgrunnlagRequest ->
+                            .map { leggTilBosituasjonEpsgrunnlagRequest ->
                                 søknadsbehandlingService.leggTilBosituasjonEpsgrunnlag(
                                     leggTilBosituasjonEpsgrunnlagRequest,
-                                ).mapLeft {
-                                    when (it) {
-                                        SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
-                                        is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
-                                            it.fra,
-                                            it.til,
-                                        )
-                                        SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl -> Feilresponser.fantIkkePerson
-                                        is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag -> Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
-                                    }
-                                }.map {
-                                    Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
-                                }
-                            }.getOrHandle {
-                                it
-                            },
+                                ).fold(
+                                    {
+                                        when (it) {
+                                            SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
+                                            is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
+                                                it.fra,
+                                                it.til,
+                                            )
+                                            SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl -> Feilresponser.fantIkkePerson
+                                            is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag -> Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
+                                        }
+                                    },
+                                    {
+                                        Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
+                                    },
+                                )
+                            }.merge(),
                     )
+                }
+            }
+        }
+    }
+
+    authorize(Brukerrolle.Saksbehandler) {
+        post("$behandlingPath/{behandlingId}/grunnlag/bosituasjon/eps/skjermet") {
+            call.withBehandlingId { behandlingId ->
+                call.withBody<EpsBody> { body ->
+                    if (body.epsFnr.isNullOrEmpty()) {
+                        return@withBehandlingId call.svar(Feilresponser.ugyldigBody)
+                    }
+                    søknadsbehandlingService.leggTilBosituasjonEpsgrunnlagSkjermet(
+                        behandlingId,
+                        Fnr(body.epsFnr),
+                    )
+                        .fold(
+                            {
+                                when (it) {
+                                    SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
+                                    is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
+                                        it.fra,
+                                        it.til,
+                                    )
+                                    SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl -> Feilresponser.fantIkkePerson
+                                    is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag -> Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
+                                }
+                            },
+                            {
+                                Resultat.okJson(HttpStatusCode.Created)
+                            },
+                        ).let { call.svar(it) }
                 }
             }
         }
