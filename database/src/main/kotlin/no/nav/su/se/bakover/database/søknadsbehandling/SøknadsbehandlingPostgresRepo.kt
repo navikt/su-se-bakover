@@ -12,8 +12,8 @@ import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
-import no.nav.su.se.bakover.database.beregning.PersistertBeregning
-import no.nav.su.se.bakover.database.beregning.toSnapshot
+import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
+import no.nav.su.se.bakover.database.beregning.serialiserBeregning
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
@@ -209,7 +209,7 @@ internal class SøknadsbehandlingPostgresRepo(
         val behandlingsinformasjon = objectMapper.readValue<Behandlingsinformasjon>(string("behandlingsinformasjon"))
         val status = BehandlingsStatus.valueOf(string("status"))
         val oppgaveId = OppgaveId(string("oppgaveId"))
-        val beregning = stringOrNull("beregning")?.let { objectMapper.readValue<PersistertBeregning>(it) }
+        val beregning = deserialiserBeregning(stringOrNull("beregning"))
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val attesteringer = Attesteringshistorikk(objectMapper.readValue(string("attestering")))
         val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }
@@ -528,7 +528,7 @@ internal class SøknadsbehandlingPostgresRepo(
         """.trimIndent()
             .oppdatering(
                 params = defaultParams(søknadsbehandling).plus(
-                    "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot()),
+                    "beregning" to serialiserBeregning(søknadsbehandling.beregning),
                 ),
                 session = tx,
             )
@@ -541,7 +541,7 @@ internal class SøknadsbehandlingPostgresRepo(
             .oppdatering(
                 defaultParams(søknadsbehandling).plus(
                     listOf(
-                        "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot()),
+                        "beregning" to serialiserBeregning(søknadsbehandling.beregning),
                         "simulering" to objectMapper.writeValueAsString(søknadsbehandling.simulering),
                     ),
                 ),

@@ -9,8 +9,6 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
-import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
-import no.nav.su.se.bakover.database.beregning.TestBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
 import no.nav.su.se.bakover.database.dokument.DokumentPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
@@ -46,7 +44,6 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -79,7 +76,7 @@ import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
-import no.nav.su.se.bakover.test.beregningAvslag
+import no.nav.su.se.bakover.test.beregningAvslagForHøyInntekt
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
@@ -102,20 +99,9 @@ internal val behandlingsinformasjonMedAvslag =
 
 internal val oppgaveId = OppgaveId("oppgaveId")
 internal val journalpostId = JournalpostId("journalpostId")
-internal fun beregning(periode: Periode = stønadsperiode.periode) =
-    TestBeregning.toSnapshot().copy(periode = periode)
+internal fun innvilgetBeregning(periode: Periode = stønadsperiode.periode) = no.nav.su.se.bakover.test.beregning(periode).toSnapshot()
 
-internal val persistertMånedsberegning = PersistertMånedsberegning(
-    sumYtelse = 0,
-    sumFradrag = 0.0,
-    benyttetGrunnbeløp = 0,
-    sats = Sats.ORDINÆR,
-    satsbeløp = 0.0,
-    fradrag = listOf(),
-    periode = Periode.create(1.januar(2020), 31.desember(2020)),
-    fribeløpForEps = 0.0,
-)
-internal val avslåttBeregning: PersistertBeregning = beregningAvslag().toSnapshot()
+internal val avslåttBeregning: PersistertBeregning = beregningAvslagForHøyInntekt().toSnapshot()
 
 internal fun simulering(fnr: Fnr) = Simulering(
     gjelderId = fnr,
@@ -737,7 +723,7 @@ internal class TestDataHelper(
         grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdataSøknadsbehandling(),
     ): Søknadsbehandling.Beregnet.Innvilget {
         return nyInnvilgetVilkårsvurdering(behandlingsinformasjon, vilkårsvurderinger, grunnlagsdata).tilBeregnet(
-            beregning(),
+            innvilgetBeregning(),
         ).also {
             søknadsbehandlingRepo.lagre(it)
         } as Søknadsbehandling.Beregnet.Innvilget

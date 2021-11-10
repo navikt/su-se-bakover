@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -159,7 +160,7 @@ internal class RevurderingTest {
             ),
         ).orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
-            it.beregning.alleMånederErUnderMinstebeløp() shouldBe true
+            it.beregning.harAlleMånederMerknadForAvslag() shouldBe true
         }
     }
 

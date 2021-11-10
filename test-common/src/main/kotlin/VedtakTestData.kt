@@ -79,7 +79,7 @@ fun vedtakSøknadsbehandlingIverksattAvslagMedBeregning(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    beregning: Beregning = beregningAvslag(),
+    beregning: Beregning = beregningAvslagForHøyInntekt(),
 ): Pair<Sak, Vedtak.Avslag.AvslagBeregning> {
     return søknadsbehandlingIverksattAvslagMedBeregning(
         saksnummer = saksnummer,

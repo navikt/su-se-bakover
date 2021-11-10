@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning.beregning
 
+import arrow.core.left
+import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
@@ -13,17 +15,28 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.april
+import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
+import no.nav.su.se.bakover.domain.beregning.IngenMerknaderForAvslag
+import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.finnFørsteMånedMedMerknadForAvslag
+import no.nav.su.se.bakover.domain.beregning.finnMånederMedMerknad
+import no.nav.su.se.bakover.domain.beregning.finnMånederMedMerknadForAvslag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.IkkePeriodisertFradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.PeriodisertFradrag
+import no.nav.su.se.bakover.domain.beregning.harAlleMånederMerknadForAvslag
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.temporal.ChronoUnit
@@ -93,8 +106,11 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             fradragStrategy = FradragStrategy.Enslig,
         )
 
-        beregning.alleMånederErUnderMinstebeløp() shouldBe true
-        beregning.alleMånederHarBeløpLik0() shouldBe true
+        beregning.finnMånederMedMerknad().getOrFail() shouldContainAll listOf(
+            beregning.getMånedsberegninger()[0] to listOf(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats),
+            beregning.getMånedsberegninger()[4] to listOf(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats),
+            beregning.getMånedsberegninger()[11] to listOf(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats),
+        )
     }
 
     @Test
@@ -113,8 +129,13 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             fradragStrategy = FradragStrategy.Enslig,
         )
 
-        beregning.alleMånederErUnderMinstebeløp() shouldBe false
-        beregning.alleMånederHarBeløpLik0() shouldBe true
+        beregning.harAlleMånederMerknadForAvslag() shouldBe true
+        beregning.finnFørsteMånedMedMerknadForAvslag()
+            .getOrFail() shouldBe (beregning.getMånedsberegninger()[0] to Merknad.Beregning.BeløpErNull)
+        beregning.finnMånederMedMerknadForAvslag().getOrFail() shouldContainAll listOf(
+            beregning.getMånedsberegninger()[0] to Merknad.Beregning.BeløpErNull,
+            beregning.getMånedsberegninger()[11] to Merknad.Beregning.BeløpErNull,
+        )
     }
 
     @Test
@@ -412,6 +433,124 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         a.getOpprettet() shouldNotBe b.getOpprettet()
         a.getBegrunnelse() shouldNotBe b.getBegrunnelse()
         (a === b) shouldBe false
+    }
+
+    @Test
+    fun `sosialstønad som gir beløp under minstenivå leder ikke til 0-beløp`() {
+        val periode = Periode.create(1.juni(2021), 31.desember(2021))
+        val beregning = BeregningFactory.ny(
+            periode = periode,
+            sats = Sats.HØY,
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 0.0,
+                    periode = periode, utenlandskInntekt = null, tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Sosialstønad,
+                    månedsbeløp = Sats.HØY.månedsbeløp(periode.fraOgMed) - 100,
+                    periode = periode,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+            fradragStrategy = FradragStrategy.Enslig,
+        )
+
+        beregning.getSumYtelse() shouldBe periode.getAntallMåneder() * 100
+        beregning.finnMånederMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
+        beregning.finnMånederMedMerknad().getOrFail()
+            .map { it.second }
+            .all { it.contains(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats) }
+    }
+
+    @Test
+    fun `sosialstønad for EPS som gir beløp under minstenivå leder ikke til 0-beløp`() {
+        val periode = Periode.create(1.juni(2021), 31.desember(2021))
+        val beregning = BeregningFactory.ny(
+            periode = periode,
+            sats = Sats.HØY,
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 0.0,
+                    periode = periode, utenlandskInntekt = null, tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Sosialstønad,
+                    månedsbeløp = Sats.HØY.månedsbeløp(periode.fraOgMed) - 100,
+                    periode = periode,
+                    tilhører = FradragTilhører.EPS,
+                ),
+            ),
+            fradragStrategy = FradragStrategy.EpsUnder67År,
+        )
+
+        beregning.getSumYtelse() shouldBe periode.getAntallMåneder() * 100
+        beregning.finnMånederMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
+        beregning.finnMånederMedMerknad().getOrFail()
+            .map { it.second }
+            .all { it.contains(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats) }
+    }
+
+    @Test
+    fun `merknader`() {
+        BeregningFactory.ny(
+            periode = periode2021,
+            sats = Sats.HØY,
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 0.0,
+                    periode = periode2021,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Sosialstønad,
+                    månedsbeløp = 20750.0,
+                    periode = april(2021),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 250000.0,
+                    periode = juni(2021),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Kapitalinntekt,
+                    månedsbeløp = 21750.0,
+                    periode = desember(2021),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+            fradragStrategy = FradragStrategy.Enslig,
+        ).let {
+            val sosialstønad =
+                it.getMånedsberegninger()[3] to listOf(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats)
+            val beløpNull = it.getMånedsberegninger()[5] to listOf(
+                Merknad.Beregning.BeløpErNull,
+            )
+            val beløpMellomNullOgToProsent = it.getMånedsberegninger()[11] to listOf(
+                Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats,
+            )
+
+            it.finnMånederMedMerknad().getOrFail() shouldBe listOf(
+                sosialstønad,
+                beløpNull,
+                beløpMellomNullOgToProsent,
+            )
+            it.finnMånederMedMerknadForAvslag().getOrFail() shouldBe listOf(
+                beløpNull.first to beløpNull.second[0],
+                beløpMellomNullOgToProsent.first to beløpMellomNullOgToProsent.second[0],
+            )
+            it.finnFørsteMånedMedMerknadForAvslag().getOrFail() shouldBe (beløpNull.first to beløpNull.second[0])
+            it.harAlleMånederMerknadForAvslag() shouldBe false
+        }
     }
 
     private fun createBeregning(opprettet: Tidspunkt = fixedTidspunkt, begrunnelse: String = "begrunnelse") =

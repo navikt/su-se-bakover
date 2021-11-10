@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
@@ -194,6 +195,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                             override fun getSatsbeløp() = 20637.32
                             override fun getFradrag() = listOf(fradrag)
                             override fun getFribeløpForEps(): Double = 0.0
+                            override fun getMerknader(): List<Merknad.Beregning> = emptyList()
 
                             override val periode = Periode.create(1.januar(2020), 31.januar(2020))
                             override fun equals(other: Any?) =

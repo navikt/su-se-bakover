@@ -12,7 +12,8 @@ import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
-import no.nav.su.se.bakover.database.beregning.PersistertBeregning
+import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
+import no.nav.su.se.bakover.database.beregning.serialiserBeregning
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
@@ -211,7 +212,7 @@ internal class RevurderingPostgresRepo(
         val periode = string("periode").let { objectMapper.readValue<Periode>(it) }
         val opprettet = tidspunkt("opprettet")
         val tilRevurdering = vedtakRepo.hent(uuid("vedtakSomRevurderesId"), session)!! as VedtakSomKanRevurderes
-        val beregning = stringOrNull("beregning")?.let { objectMapper.readValue<PersistertBeregning>(it) }
+        val beregning = deserialiserBeregning(stringOrNull("beregning"))
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val saksbehandler = string("saksbehandler")
         val oppgaveId = stringOrNull("oppgaveid")
@@ -546,55 +547,55 @@ internal class RevurderingPostgresRepo(
 
     private fun lagre(revurdering: OpprettetRevurdering, session: TransactionalSession) {
         """
-                        insert into revurdering (
-                            id,
-                            opprettet,
-                            periode,
-                            beregning,
-                            simulering,
-                            saksbehandler,
-                            oppgaveId,
-                            revurderingsType,
-                            attestering,
-                            vedtakSomRevurderesId,
-                            fritekstTilBrev,
-                            årsak,
-                            begrunnelse,
-                            forhåndsvarsel,
-                            informasjonSomRevurderes
-                        ) values (
-                            :id,
-                            :opprettet,
-                            to_json(:periode::json),
-                            null,
-                            null,
-                            :saksbehandler,
-                            :oppgaveId,
-                            '${RevurderingsType.OPPRETTET}',
-                            to_jsonb(:attestering::jsonb),
-                            :vedtakSomRevurderesId,
-                            :fritekstTilBrev,
-                            :arsak,
-                            :begrunnelse,
-                            to_json(:forhandsvarsel::json),
-                            to_json(:informasjonSomRevurderes::json)
-                        )
-                            ON CONFLICT(id) do update set
-                            id=:id,
-                            opprettet=:opprettet,
-                            periode=to_json(:periode::json),
-                            beregning=null,
-                            simulering=null,
-                            saksbehandler=:saksbehandler,
-                            oppgaveId=:oppgaveId,
-                            revurderingsType='${RevurderingsType.OPPRETTET}',
-                            attestering=to_jsonb(:attestering::jsonb),
-                            vedtakSomRevurderesId=:vedtakSomRevurderesId,
-                            fritekstTilBrev=:fritekstTilBrev,
-                            årsak=:arsak,
-                            begrunnelse=:begrunnelse,
-                            forhåndsvarsel=to_json(:forhandsvarsel::json),
-                            informasjonSomRevurderes=to_json(:informasjonSomRevurderes::json)
+                    insert into revurdering (
+                        id,
+                        opprettet,
+                        periode,
+                        beregning,
+                        simulering,
+                        saksbehandler,
+                        oppgaveId,
+                        revurderingsType,
+                        attestering,
+                        vedtakSomRevurderesId,
+                        fritekstTilBrev,
+                        årsak,
+                        begrunnelse,
+                        forhåndsvarsel,
+                        informasjonSomRevurderes
+                    ) values (
+                        :id,
+                        :opprettet,
+                        to_json(:periode::json),
+                        null,
+                        null,
+                        :saksbehandler,
+                        :oppgaveId,
+                        '${RevurderingsType.OPPRETTET}',
+                        to_jsonb(:attestering::jsonb),
+                        :vedtakSomRevurderesId,
+                        :fritekstTilBrev,
+                        :arsak,
+                        :begrunnelse,
+                        to_json(:forhandsvarsel::json),
+                        to_json(:informasjonSomRevurderes::json)
+                    )
+                        ON CONFLICT(id) do update set
+                        id=:id,
+                        opprettet=:opprettet,
+                        periode=to_json(:periode::json),
+                        beregning=null,
+                        simulering=null,
+                        saksbehandler=:saksbehandler,
+                        oppgaveId=:oppgaveId,
+                        revurderingsType='${RevurderingsType.OPPRETTET}',
+                        attestering=to_jsonb(:attestering::jsonb),
+                        vedtakSomRevurderesId=:vedtakSomRevurderesId,
+                        fritekstTilBrev=:fritekstTilBrev,
+                        årsak=:arsak,
+                        begrunnelse=:begrunnelse,
+                        forhåndsvarsel=to_json(:forhandsvarsel::json),
+                        informasjonSomRevurderes=to_json(:informasjonSomRevurderes::json)
         """.trimIndent()
             .insert(
                 mapOf(
@@ -642,7 +643,7 @@ internal class RevurderingPostgresRepo(
                 mapOf(
                     "id" to revurdering.id,
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
-                    "beregning" to objectMapper.writeValueAsString(revurdering.beregning),
+                    "beregning" to serialiserBeregning(revurdering.beregning),
                     "revurderingsType" to when (revurdering) {
                         is BeregnetRevurdering.IngenEndring -> RevurderingsType.BEREGNET_INGEN_ENDRING
                         is BeregnetRevurdering.Innvilget -> RevurderingsType.BEREGNET_INNVILGET
@@ -674,7 +675,7 @@ internal class RevurderingPostgresRepo(
                 mapOf(
                     "id" to revurdering.id,
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
-                    "beregning" to objectMapper.writeValueAsString(revurdering.beregning),
+                    "beregning" to serialiserBeregning(revurdering.beregning),
                     "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
@@ -710,7 +711,7 @@ internal class RevurderingPostgresRepo(
                 mapOf(
                     "id" to revurdering.id,
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
-                    "beregning" to objectMapper.writeValueAsString(revurdering.beregning),
+                    "beregning" to serialiserBeregning(revurdering.beregning),
                     "simulering" to when (revurdering) {
                         is RevurderingTilAttestering.IngenEndring -> null
                         is RevurderingTilAttestering.Innvilget -> objectMapper.writeValueAsString(revurdering.simulering)
@@ -754,7 +755,7 @@ internal class RevurderingPostgresRepo(
                 mapOf(
                     "id" to revurdering.id,
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
-                    "beregning" to objectMapper.writeValueAsString(revurdering.beregning),
+                    "beregning" to serialiserBeregning(revurdering.beregning),
                     "simulering" to when (revurdering) {
                         is IverksattRevurdering.IngenEndring -> null
                         is IverksattRevurdering.Innvilget -> objectMapper.writeValueAsString(revurdering.simulering)

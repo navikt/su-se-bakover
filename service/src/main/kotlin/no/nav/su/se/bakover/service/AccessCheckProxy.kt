@@ -471,6 +471,14 @@ open class AccessCheckProxy(
                     return services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(request)
                 }
 
+                override fun leggTilBosituasjonEpsgrunnlagSkjermet(
+                    behandlingId: UUID,
+                    epsFnr: Fnr,
+                ): Either<SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Grunnlag.Bosituasjon> {
+                    assertHarTilgangTilBehandling(behandlingId)
+                    return services.søknadsbehandling.leggTilBosituasjonEpsgrunnlagSkjermet(behandlingId, epsFnr)
+                }
+
                 override fun fullførBosituasjongrunnlag(request: FullførBosituasjonRequest): Either<SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.fullførBosituasjongrunnlag(request)

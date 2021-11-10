@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
@@ -25,6 +26,7 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
@@ -617,6 +619,37 @@ internal class SøknadsbehandlingServiceImpl(
                 )
             }.right()
         }
+    }
+
+    override fun leggTilBosituasjonEpsgrunnlagSkjermet(
+        behandlingId: UUID,
+        epsFnr: Fnr,
+    ): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Grunnlag.Bosituasjon> {
+        val søknadsbehandling = søknadsbehandlingRepo.hent(behandlingId)
+            ?: return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
+
+        if (søknadsbehandling is Søknadsbehandling.Iverksatt || søknadsbehandling is Søknadsbehandling.TilAttestering)
+            return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.UgyldigTilstand(
+                søknadsbehandling::class,
+                Søknadsbehandling.Vilkårsvurdert::class,
+            ).left()
+
+        // Her vet vi egentlig at hentPerson returnerer `IkkeTilgangTilPerson`, men dobbeltsjekker at vi ikke får andre feil fra PDL
+        personService.hentPerson(epsFnr).let {
+            if (it is Either.Left && (it.value is KunneIkkeHentePerson.FantIkkePerson || it.value is KunneIkkeHentePerson.Ukjent)) {
+                return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left()
+            }
+        }
+
+        val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(clock),
+            periode = søknadsbehandling.periode,
+            fnr = epsFnr,
+        )
+
+        grunnlagService.lagreBosituasjongrunnlag(behandlingId = behandlingId, listOf(bosituasjon))
+        return bosituasjon.right()
     }
 
     override fun fullførBosituasjongrunnlag(request: FullførBosituasjonRequest): Either<KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling> {

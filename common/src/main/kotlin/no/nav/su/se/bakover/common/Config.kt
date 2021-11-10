@@ -4,6 +4,7 @@ import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import io.github.cdimascio.dotenv.dotenv
 import no.nav.su.se.bakover.common.EnvironmentConfig.getEnvironmentVariableOrDefault
+import no.nav.su.se.bakover.common.EnvironmentConfig.getEnvironmentVariableOrNull
 import no.nav.su.se.bakover.common.EnvironmentConfig.getEnvironmentVariableOrThrow
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -30,6 +31,10 @@ private object EnvironmentConfig {
 
     fun getEnvironmentVariableOrDefault(environmentVariableName: String, default: String): String {
         return env[environmentVariableName] ?: default
+    }
+
+    fun getEnvironmentVariableOrNull(environmentVariableName: String): String? {
+        return env[environmentVariableName] ?: null
     }
 
     fun exists(environmentVariableName: String): Boolean {
@@ -491,7 +496,7 @@ data class ApplicationConfig(
             unleash = UnleashConfig.createFromEnvironmentVariables(),
             jobConfig = JobConfig(
                 personhendelse = JobConfig.Personhendelse(naisCluster())
-            )
+            ),
         )
 
         fun createLocalConfig() = ApplicationConfig(
@@ -509,7 +514,7 @@ data class ApplicationConfig(
             unleash = UnleashConfig.createFromEnvironmentVariables(),
             jobConfig = JobConfig(
                 personhendelse = JobConfig.Personhendelse(naisCluster())
-            )
+            ),
         ).also {
             log.warn("**********  Using local config (the environment variable 'NAIS_CLUSTER_NAME' is missing.)")
         }
@@ -525,6 +530,7 @@ data class ApplicationConfig(
 
         fun isRunningLocally() = naisCluster() == null
         fun isNotProd() = isRunningLocally() || naisCluster() == NaisCluster.Dev
+        fun fnrKode6() = getEnvironmentVariableOrNull("FNR_KODE6")
     }
     data class JobConfig(val personhendelse: Personhendelse) {
         data class Personhendelse(private val naisCluster: NaisCluster?) {
