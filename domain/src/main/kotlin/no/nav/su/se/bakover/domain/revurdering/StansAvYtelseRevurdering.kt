@@ -43,6 +43,11 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
         val simulering: Simulering = underliggendeStansAvYtelse.simulering
         val revurderingsårsak: Revurderingsårsak = underliggendeStansAvYtelse.revurderingsårsak
 
+        // vi sender ikke noe brev ved stans/gjenoppta
+        fun skalSendeBrev(): Boolean {
+            return false
+        }
+
         companion object {
             fun tryCreate(
                 stansAvYtelseRevurdering: StansAvYtelseRevurdering,

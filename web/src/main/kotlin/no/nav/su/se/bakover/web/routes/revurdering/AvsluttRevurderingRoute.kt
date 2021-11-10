@@ -115,7 +115,10 @@ internal fun KunneIkkeLageAvsluttetRevurdering.tilResultat(): Resultat {
     return when (this) {
         KunneIkkeLageAvsluttetRevurdering.RevurderingErAlleredeAvsluttet -> revurderingErAlleredeAvsluttet
         KunneIkkeLageAvsluttetRevurdering.RevurderingenErIverksatt -> revurderingenErIverksatt
-        KunneIkkeLageAvsluttetRevurdering.RevurderingenErTilAttestering -> revurderingErAlleredeAvsluttet
+        KunneIkkeLageAvsluttetRevurdering.RevurderingenErTilAttestering -> HttpStatusCode.BadRequest.errorJson(
+            "Revurderingen er til attestering",
+            "revurdering_er_til_attestering"
+        )
         KunneIkkeLageAvsluttetRevurdering.FritekstErFylltUtUtenForhåndsvarsel -> HttpStatusCode.BadRequest.errorJson(
             "Fritekst er fyllt ut på en revurdering som ikke er forhåndsvarslet",
             "fritekst_er_fyllt_ut_uten_forhåndsvarsel"

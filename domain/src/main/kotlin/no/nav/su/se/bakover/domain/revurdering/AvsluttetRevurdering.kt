@@ -69,6 +69,10 @@ data class AvsluttetRevurdering private constructor(
         visitor.visit(this)
     }
 
+    fun skalSendeBrev(): Boolean {
+        return this.forhåndsvarsel is Forhåndsvarsel.SkalForhåndsvarsles
+    }
+
     companion object {
         fun tryCreate(
             underliggendeRevurdering: Revurdering,

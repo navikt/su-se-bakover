@@ -1239,19 +1239,25 @@ internal class RevurderingServiceImpl(
         val revurdering =
             revurderingRepo.hent(revurderingId) ?: return KunneIkkeAvslutteRevurdering.FantIkkeRevurdering.left()
 
-        val avsluttetRevurdering = when (revurdering) {
-            is GjenopptaYtelseRevurdering -> revurdering.avslutt(begrunnelse, Tidspunkt.now(clock)).getOrHandle {
+        val (avsluttetRevurdering, skalSendeBrev) = when (revurdering) {
+            is GjenopptaYtelseRevurdering -> revurdering.avslutt(begrunnelse, Tidspunkt.now(clock)).map {
+                it to it.skalSendeBrev()
+            }.getOrHandle {
                 return KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse(it).left()
             }
-            is Revurdering -> revurdering.avslutt(begrunnelse, fritekst, Tidspunkt.now(clock)).getOrHandle {
-                return KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetRevurdering(it).left()
-            }
-            is StansAvYtelseRevurdering -> revurdering.avslutt(begrunnelse, Tidspunkt.now(clock)).getOrHandle {
+            is StansAvYtelseRevurdering -> revurdering.avslutt(begrunnelse, Tidspunkt.now(clock)).map {
+                it to it.skalSendeBrev()
+            }.getOrHandle {
                 return KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetStansAvYtelse(it).left()
+            }
+            is Revurdering -> revurdering.avslutt(begrunnelse, fritekst, Tidspunkt.now(clock)).map {
+                it to it.skalSendeBrev()
+            }.getOrHandle {
+                return KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetRevurdering(it).left()
             }
         }
 
-        if (avsluttetRevurdering is Revurdering && avsluttetRevurdering.forhåndsvarsel is Forhåndsvarsel.SkalForhåndsvarsles) {
+        if (avsluttetRevurdering is Revurdering && skalSendeBrev) {
             brevService.lagDokument(avsluttetRevurdering).mapLeft {
                 return KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument.left()
             }.map { dokument ->
