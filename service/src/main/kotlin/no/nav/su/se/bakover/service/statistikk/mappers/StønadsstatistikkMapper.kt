@@ -51,8 +51,13 @@ class StønadsstatistikkMapper(
             månedsbeløp = when (vedtak) {
                 is Vedtak.EndringIYtelse.InnvilgetRevurdering -> mapBeregning(vedtak, vedtak.beregning)
                 is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling -> mapBeregning(vedtak, vedtak.beregning)
-                is Vedtak.EndringIYtelse.OpphørtRevurdering -> mapBeregning(vedtak, vedtak.beregning)
-                is Vedtak.EndringIYtelse.StansAvYtelse -> mapBeregning(vedtak)
+
+                /**
+                 * TODO ai 10.11.2021: Endre når revurdering ikke trenger å opphøre behandlingen fra 'fraDato':en
+                 */
+                is Vedtak.EndringIYtelse.OpphørtRevurdering -> emptyList()
+
+                is Vedtak.EndringIYtelse.StansAvYtelse -> emptyList()
                 is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> mapBeregning(vedtak, sak, clock)
             },
             versjon = nå.toEpochMilli(),
@@ -71,18 +76,6 @@ class StønadsstatistikkMapper(
 private fun mapBeregning(vedtak: Vedtak.EndringIYtelse, beregning: Beregning): List<Statistikk.Stønad.Månedsbeløp> =
     beregning.getMånedsberegninger().map {
         tilMånedsbeløp(it, vedtak)
-    }
-
-private fun mapBeregning(vedtak: Vedtak.EndringIYtelse.StansAvYtelse): List<Statistikk.Stønad.Månedsbeløp> =
-    vedtak.periode.tilMånedsperioder().map {
-        Statistikk.Stønad.Månedsbeløp(
-            måned = it.fraOgMed.toString(),
-            stonadsklassifisering = null,
-            bruttosats = 0,
-            nettosats = 0,
-            inntekter = emptyList(),
-            fradragSum = 0,
-        )
     }
 
 private fun mapBeregning(

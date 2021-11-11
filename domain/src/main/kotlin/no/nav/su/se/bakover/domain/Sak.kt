@@ -112,9 +112,8 @@ data class Sak(
                 is Vedtak.EndringIYtelse.StansAvYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.StansAvYtelse")
                 is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.GjenopptakAvYtelse")
             }
-        }?.let {
-            assert(it.getMånedsberegninger().size == 1)
-            it.getMånedsberegninger().first()
+        }?.let { beregning ->
+            beregning.getMånedsberegninger().associateBy { it.periode }[månedsperiode]
         }
     }
 

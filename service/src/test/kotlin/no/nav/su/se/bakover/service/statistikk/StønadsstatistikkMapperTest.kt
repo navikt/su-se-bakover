@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.service.statistikk.mappers.StønadsstatistikkMapper
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.periode2021
+import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
@@ -346,8 +347,72 @@ internal class StønadsstatistikkMapperTest {
                   "gjeldendeStonadVirkningstidspunkt": "2021-01-01",
                   "gjeldendeStonadStopptidspunkt": "2021-02-28",
                   "gjeldendeStonadUtbetalingsstart": "2021-01-01",
-                  "gjeldendeStonadUtbetalingsstopp": "2021-01-01",
+                  "gjeldendeStonadUtbetalingsstopp": "2021-02-28",
                   "månedsbeløp": [],
+                  "versjon": 1609462923456,
+                  "flyktningsstatus": "FLYKTNING"
+                }
+        """.trimIndent()
+
+        JSONAssert.assertEquals(expected, actual, true)
+    }
+
+    @Test
+    fun `Gjenopptak sender med riktig månedsbeløp`() {
+        val (sak, vedtak) = vedtakIverksattGjenopptakAvYtelseFraIverksattStans(Periode.create(1.januar(2021), 28.februar(2021)))
+        val actual = objectMapper.writeValueAsString(
+            StønadsstatistikkMapper(clock).map(
+                vedtak = vedtak,
+                aktørId = aktørId,
+                ytelseVirkningstidspunkt = vedtak.periode.fraOgMed,
+                sak = sak,
+            ),
+        )
+        val expected = """
+                {
+                  "funksjonellTid": "2021-01-01T01:02:03.456789Z",
+                  "tekniskTid": "2021-01-01T01:02:03.456789Z",
+                  "stonadstype": "SU_UFØR",
+                  "sakId": "${sak.id}",
+                  "aktorId": 293829399,
+                  "sakstype": "GJENOPPTAK",
+                  "vedtaksdato": "2021-01-01",
+                  "vedtakstype": "GJENOPPTAK",
+                  "vedtaksresultat": "GJENOPPTATT",
+                  "behandlendeEnhetKode": "4815",
+                  "ytelseVirkningstidspunkt": "2021-01-01",
+                  "gjeldendeStonadVirkningstidspunkt": "2021-01-01",
+                  "gjeldendeStonadStopptidspunkt": "2021-02-28",
+                  "gjeldendeStonadUtbetalingsstart": "2021-01-01",
+                  "gjeldendeStonadUtbetalingsstopp": "2021-02-28",
+                  "månedsbeløp": [
+                    {
+                      "måned": "2021-01-01",
+                      "stonadsklassifisering": "BOR_ALENE",
+                      "bruttosats": 20945,
+                      "nettosats": 20946,
+                      "inntekter": [
+                        {
+                          "inntektstype": "ForventetInntekt",
+                          "beløp": 0
+                        }
+                      ],
+                      "fradragSum": 0
+                    },
+                    {
+                      "måned": "2021-02-01",
+                      "stonadsklassifisering": "BOR_ALENE",
+                      "bruttosats": 20945,
+                      "nettosats": 20946,
+                      "inntekter": [
+                        {
+                          "inntektstype": "ForventetInntekt",
+                          "beløp": 0
+                        }
+                      ],
+                      "fradragSum": 0
+                    }
+                  ],
                   "versjon": 1609462923456,
                   "flyktningsstatus": "FLYKTNING"
                 }
