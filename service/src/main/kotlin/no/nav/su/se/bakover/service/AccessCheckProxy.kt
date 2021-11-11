@@ -500,7 +500,7 @@ open class AccessCheckProxy(
                 }
             },
             ferdigstillVedtak = object : FerdigstillVedtakService {
-                override fun ferdigstillVedtakEtterUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering): Unit =
+                override fun ferdigstillVedtakEtterUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak, Unit> =
                     kastKanKunKallesFraAnnenService()
 
                 override fun lukkOppgaveMedBruker(vedtak: Vedtak): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> =
