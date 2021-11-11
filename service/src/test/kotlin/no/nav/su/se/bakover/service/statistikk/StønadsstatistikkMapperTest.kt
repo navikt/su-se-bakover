@@ -79,7 +79,7 @@ internal class StønadsstatistikkMapperTest {
                     Statistikk.Stønad.Månedsbeløp(
                         måned = it,
                         stonadsklassifisering = Statistikk.Stønadsklassifisering.BOR_ALENE,
-                        bruttosats = 20945,
+                        bruttosats = 20946,
                         nettosats = 17946,
                         inntekter = listOf(
                             Statistikk.Inntekt(
@@ -158,7 +158,7 @@ internal class StønadsstatistikkMapperTest {
                     {
                       "måned": "2021-01-01",
                       "stonadsklassifisering": "BOR_ALENE",
-                      "bruttosats": 20945,
+                      "bruttosats": 20946,
                       "nettosats": 17946,
                       "inntekter": [
                         {
@@ -171,7 +171,7 @@ internal class StønadsstatistikkMapperTest {
                     {
                       "måned": "2021-02-01",
                       "stonadsklassifisering": "BOR_ALENE",
-                      "bruttosats": 20945,
+                      "bruttosats": 20946,
                       "nettosats": 17946,
                       "inntekter": [
                         {
@@ -184,7 +184,7 @@ internal class StønadsstatistikkMapperTest {
                     {
                       "måned": "2021-03-01",
                       "stonadsklassifisering": "BOR_ALENE",
-                      "bruttosats": 20945,
+                      "bruttosats": 20946,
                       "nettosats": 17946,
                       "inntekter": [
                         {
@@ -197,7 +197,7 @@ internal class StønadsstatistikkMapperTest {
                     {
                       "måned": "2021-04-01",
                       "stonadsklassifisering": "BOR_ALENE",
-                      "bruttosats": 20945,
+                      "bruttosats": 20946,
                       "nettosats": 17946,
                       "inntekter": [
                         {
@@ -389,7 +389,7 @@ internal class StønadsstatistikkMapperTest {
                     {
                       "måned": "2021-01-01",
                       "stonadsklassifisering": "BOR_ALENE",
-                      "bruttosats": 20945,
+                      "bruttosats": 20946,
                       "nettosats": 20946,
                       "inntekter": [
                         {
@@ -402,7 +402,7 @@ internal class StønadsstatistikkMapperTest {
                     {
                       "måned": "2021-02-01",
                       "stonadsklassifisering": "BOR_ALENE",
-                      "bruttosats": 20945,
+                      "bruttosats": 20946,
                       "nettosats": 20946,
                       "inntekter": [
                         {

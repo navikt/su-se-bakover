@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.service.statistikk.Statistikk
 import no.nav.su.se.bakover.service.statistikk.stønadsklassifisering
 import java.time.Clock
 import java.time.LocalDate
+import kotlin.math.roundToInt
 
 class StønadsstatistikkMapper(
     private val clock: Clock
@@ -95,7 +96,7 @@ private fun tilMånedsbeløp(
 ) = Statistikk.Stønad.Månedsbeløp(
     måned = månedsberegning.periode.fraOgMed.toString(),
     stonadsklassifisering = stønadsklassifisering(vedtak.behandling, månedsberegning),
-    bruttosats = månedsberegning.getSatsbeløp().toLong(),
+    bruttosats = månedsberegning.getSatsbeløp().roundToInt().toLong(),
     nettosats = månedsberegning.getSumYtelse().toLong(),
     inntekter = månedsberegning.getFradrag().map { fradrag ->
         Statistikk.Inntekt(
