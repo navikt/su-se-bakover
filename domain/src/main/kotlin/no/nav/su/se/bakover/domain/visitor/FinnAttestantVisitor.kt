@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.visitor
 
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -88,4 +89,6 @@ class FinnAttestantVisitor : SøknadsbehandlingVisitor, RevurderingVisitor {
     override fun visit(revurdering: UnderkjentRevurdering.IngenEndring) {
         attestant = revurdering.attestering.attestant
     }
+
+    override fun visit(revurdering: AvsluttetRevurdering) {}
 }

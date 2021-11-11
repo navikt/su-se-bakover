@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
@@ -88,8 +89,7 @@ interface RevurderingService {
         request: SendTilAttesteringRequest,
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering>
 
-    fun lagBrevutkast(revurderingId: UUID, fritekst: String): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray>
-    fun hentBrevutkast(revurderingId: UUID): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray>
+    fun lagBrevutkastForRevurdering(revurderingId: UUID, fritekst: String?): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray>
     fun iverksett(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant,
@@ -123,6 +123,17 @@ interface RevurderingService {
     fun hentGjeldendeGrunnlagsdataOgVilkårsvurderinger(
         revurderingId: UUID,
     ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger, HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse>
+
+    fun lagBrevutkastForAvslutting(
+        revurderingId: UUID,
+        fritekst: String?,
+    ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, ByteArray>>
+
+    fun avsluttRevurdering(
+        revurderingId: UUID,
+        begrunnelse: String,
+        fritekst: String?,
+    ): Either<KunneIkkeAvslutteRevurdering, AbstraktRevurdering>
 }
 
 data class RevurderingOgFeilmeldingerResponse(
@@ -152,7 +163,7 @@ sealed class FortsettEtterForhåndsvarslingRequest {
         override val revurderingId: UUID,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val begrunnelse: String,
-        val fritekstTilBrev: String,
+        val fritekstTilBrev: String?,
     ) : FortsettEtterForhåndsvarslingRequest()
 }
 
@@ -162,6 +173,7 @@ sealed class FortsettEtterForhåndsvarselFeil {
     object RevurderingErIkkeForhåndsvarslet : FortsettEtterForhåndsvarselFeil()
     object AlleredeBesluttet : FortsettEtterForhåndsvarselFeil()
     data class Attestering(val subError: KunneIkkeSendeRevurderingTilAttestering) : FortsettEtterForhåndsvarselFeil()
+    data class KunneIkkeAvslutteRevurdering(val subError: no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering) : FortsettEtterForhåndsvarselFeil()
 }
 
 object FantIkkeRevurdering
@@ -273,6 +285,11 @@ sealed class KunneIkkeLageBrevutkastForRevurdering {
     object FantIkkePerson : KunneIkkeLageBrevutkastForRevurdering()
     object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeLageBrevutkastForRevurdering()
     object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeLageBrevutkastForRevurdering()
+}
+
+sealed class KunneIkkeHentePersonEllerSaksbehandlerNavn {
+    object FantIkkePerson : KunneIkkeHentePersonEllerSaksbehandlerNavn()
+    object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeHentePersonEllerSaksbehandlerNavn()
 }
 
 sealed class KunneIkkeUnderkjenneRevurdering {
@@ -435,6 +452,16 @@ sealed class KunneIkkeIverksetteGjenopptakAvYtelse {
     }
 
     object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteGjenopptakAvYtelse()
+}
+
+sealed class KunneIkkeLageBrevutkastForAvsluttingAvRevurdering {
+    object FantIkkeRevurdering : KunneIkkeLageBrevutkastForAvsluttingAvRevurdering()
+    object KunneIkkeLageBrevutkast : KunneIkkeLageBrevutkastForAvsluttingAvRevurdering()
+    object RevurderingenErIkkeForhåndsvarslet : KunneIkkeLageBrevutkastForAvsluttingAvRevurdering()
+    object FantIkkePerson : KunneIkkeLageBrevutkastForAvsluttingAvRevurdering()
+    object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeLageBrevutkastForAvsluttingAvRevurdering()
+    object KunneIkkeGenererePDF : KunneIkkeLageBrevutkastForAvsluttingAvRevurdering()
+    object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeLageBrevutkastForAvsluttingAvRevurdering()
 }
 
 data class LeggTilBosituasjongrunnlagRequest(

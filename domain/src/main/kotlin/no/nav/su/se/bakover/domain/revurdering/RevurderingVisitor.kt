@@ -18,4 +18,5 @@ interface RevurderingVisitor : Visitor {
     fun visit(revurdering: UnderkjentRevurdering.Innvilget)
     fun visit(revurdering: UnderkjentRevurdering.Opphørt)
     fun visit(revurdering: UnderkjentRevurdering.IngenEndring)
+    fun visit(revurdering: AvsluttetRevurdering)
 }

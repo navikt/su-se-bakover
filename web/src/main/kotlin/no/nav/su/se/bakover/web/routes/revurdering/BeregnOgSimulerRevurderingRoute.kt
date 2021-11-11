@@ -58,7 +58,7 @@ internal fun Route.beregnOgSimulerRevurdering(
     }
 }
 
-data class RevurderingOgFeilmeldingerResponseJson(
+internal data class RevurderingOgFeilmeldingerResponseJson(
     val revurdering: RevurderingJson,
     val feilmeldinger: List<ErrorJson>,
 )

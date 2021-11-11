@@ -23,6 +23,7 @@ object JournalpostFactory {
         BrevTemplate.TrukketSøknad,
         BrevTemplate.AvvistSøknadFritekst,
         BrevTemplate.Forhåndsvarsel,
+        BrevTemplate.Revurdering.AvsluttRevurdering,
         -> Journalpost.Info.from(person, saksnummer, brevInnhold, pdf)
     }
 

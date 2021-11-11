@@ -110,6 +110,28 @@ internal class StansAvYtelsePostgresRepo(
                             tx,
                         )
                 }
+                is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> {
+                    """
+                        update 
+                            revurdering
+                        set 
+                            avsluttet = to_jsonb(:avsluttet::jsonb)
+                        where
+                            id = :id
+                    """.trimIndent().oppdatering(
+                        params = mapOf(
+                            "id" to revurdering.id,
+                            "avsluttet" to objectMapper.writeValueAsString(
+                                AvsluttetRevurderingInfo(
+                                    begrunnelse = revurdering.begrunnelse,
+                                    fritekst = null,
+                                    tidspunktAvsluttet = revurdering.tidspunktAvsluttet,
+                                ),
+                            ),
+                        ),
+                        session = tx,
+                    )
+                }
             }
         }
     }

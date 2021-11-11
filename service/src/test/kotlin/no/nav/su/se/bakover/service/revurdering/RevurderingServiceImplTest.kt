@@ -39,16 +39,20 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
+import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Resultat
@@ -76,15 +80,21 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.simulertRev
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.attestant
+import no.nav.su.se.bakover.test.avsluttetGjenopptakelseAvYtelseeFraIverksattSøknadsbehandlignsvedtak
+import no.nav.su.se.bakover.test.avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak
 import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
+import no.nav.su.se.bakover.test.iverksattGjenopptakelseAvytelseFraVedtakStansAvYtelse
+import no.nav.su.se.bakover.test.iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingId
@@ -92,7 +102,9 @@ import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksbehandlerNavn
 import no.nav.su.se.bakover.test.saksnummer
+import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgInnvilgetFormue
@@ -100,6 +112,7 @@ import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.doReturnConsecutively
 import org.mockito.kotlin.doThrow
@@ -739,7 +752,7 @@ internal class RevurderingServiceImplTest {
                 ).right()
             },
         ).let {
-            it.revurderingService.lagBrevutkast(
+            it.revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
                 fritekst = "",
             ) shouldBe brevPdf.right()
@@ -764,7 +777,7 @@ internal class RevurderingServiceImplTest {
                 on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeHentePerson.left()
             },
         ).let {
-            it.revurderingService.lagBrevutkast(
+            it.revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
                 fritekst = "",
             ) shouldBe KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson.left()
@@ -789,7 +802,7 @@ internal class RevurderingServiceImplTest {
                 on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
             },
         ).let {
-            it.revurderingService.lagBrevutkast(
+            it.revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
                 fritekst = "",
             ) shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
@@ -814,7 +827,7 @@ internal class RevurderingServiceImplTest {
                 on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
             },
         ).let {
-            it.revurderingService.lagBrevutkast(
+            it.revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
                 fritekst = "",
             ) shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast.left()
@@ -857,7 +870,7 @@ internal class RevurderingServiceImplTest {
                     )
                 },
             ).let {
-                it.revurderingService.lagBrevutkast(
+                it.revurderingService.lagBrevutkastForRevurdering(
                     revurderingId = revurderingId,
                     fritekst = "",
                 )
@@ -880,7 +893,7 @@ internal class RevurderingServiceImplTest {
                 brevService = mock {
                     on { lagDokument(any()) } doThrow LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(beregnget::class)
                 }
-            ).revurderingService.lagBrevutkast(
+            ).revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
                 fritekst = "",
             )
@@ -1356,6 +1369,81 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
+    fun `avslutter en revurdering etter valg om hva som skal gjøres etter forhåndsvarsling`() {
+        val simulert = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second.copy(
+            forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt,
+        )
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn simulert
+            doNothing().`when`(mock).oppdaterForhåndsvarsel(any(), any())
+        }
+        val brevServiceMock = mock<BrevService1> {
+            on { lagDokument(any()) } doReturn Dokument.UtenMetadata.Informasjon(
+                opprettet = fixedTidspunkt,
+                tittel = "tittel1",
+                generertDokument = "brev".toByteArray(),
+                generertDokumentJson = "brev",
+            ).right()
+        }
+        val sessionFactoryMock = TestSessionFactory()
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            brevService = brevServiceMock,
+            sessionFactory = sessionFactoryMock,
+        )
+
+        val actual = revurderingService.fortsettEtterForhåndsvarsling(
+            request = FortsettEtterForhåndsvarslingRequest.AvsluttUtenEndringer(
+                revurderingId = simulert.id,
+                saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "navn"),
+                begrunnelse = "b e g r u n n e l s e",
+                fritekstTilBrev = null,
+            ),
+        )
+
+        val expected = AvsluttetRevurdering.tryCreate(
+            underliggendeRevurdering = simulert,
+            begrunnelse = "b e g r u n n e l s e",
+            fritekst = null,
+            tidspunktAvsluttet = fixedTidspunkt,
+        ).getOrFail()
+
+        actual shouldBe expected.right()
+
+        verify(revurderingRepoMock, times(2)).hent(argThat { it shouldBe simulert.id })
+        verify(revurderingRepoMock).oppdaterForhåndsvarsel(
+            argThat { it shouldBe simulert.id },
+            argThat {
+                it shouldBe Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
+                    valg = BeslutningEtterForhåndsvarsling.AvsluttUtenEndringer, begrunnelse = "b e g r u n n e l s e",
+                )
+            },
+        )
+
+        verify(brevServiceMock).lagDokument(
+            argThat {
+                it shouldBe expected
+            },
+        )
+        verify(brevServiceMock).lagreDokument(
+            argThat {
+                it should beOfType<Dokument.MedMetadata.Informasjon>()
+                it.generertDokument shouldBe "brev".toByteArray()
+                it.metadata shouldBe Dokument.Metadata(
+                    sakId = simulert.sakId,
+                    revurderingId = simulert.id,
+                    vedtakId = simulert.tilRevurdering.id,
+                    bestillBrev = true,
+                )
+            },
+        )
+        verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.getOrFail() })
+        verifyNoMoreInteractions(revurderingRepoMock)
+    }
+
+    @Test
     fun `beslutter ikke en allerede besluttet forhåndsvarsling`() {
         val simulertRevurdering = SimulertRevurdering.Innvilget(
             id = revurderingId,
@@ -1764,5 +1852,293 @@ internal class RevurderingServiceImplTest {
             request,
         ) shouldBe KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(KunneIkkeLageGrunnlagsdata.FradragManglerBosituasjon)
             .left()
+    }
+
+    @Test
+    fun `avslutter en revurdering som ikke skal bli forhåndsvarslet`() {
+        val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn opprettetRevurdering
+        }
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        )
+
+        val actual = revurderingService.avsluttRevurdering(
+            revurderingId = opprettetRevurdering.id,
+            begrunnelse = "opprettet revurderingen med en feil",
+            fritekst = null,
+        )
+
+        actual shouldBe AvsluttetRevurdering.tryCreate(
+            underliggendeRevurdering = opprettetRevurdering,
+            begrunnelse = "opprettet revurderingen med en feil",
+            fritekst = null,
+            tidspunktAvsluttet = fixedTidspunkt,
+        )
+
+        verify(revurderingRepoMock).hent(argThat { it shouldBe opprettetRevurdering.id })
+        verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.getOrFail() })
+        verifyNoMoreInteractions(revurderingRepoMock)
+    }
+
+    @Test
+    fun `avslutter en revurdering som er blitt forhåndsvarslet (med fritekst)`() {
+        val simulert = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second.copy(
+            forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt,
+        )
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn simulert
+        }
+        val brevServiceMock = mock<BrevService1> {
+            on { lagDokument(any()) } doReturn Dokument.UtenMetadata.Informasjon(
+                opprettet = fixedTidspunkt,
+                tittel = "tittel1",
+                generertDokument = "brev".toByteArray(),
+                generertDokumentJson = "brev",
+            ).right()
+        }
+        val sessionFactoryMock = TestSessionFactory()
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            brevService = brevServiceMock,
+            sessionFactory = sessionFactoryMock,
+        )
+
+        val actual = revurderingService.avsluttRevurdering(
+            revurderingId = simulert.id,
+            begrunnelse = "opprettet revurderingen med en feil",
+            fritekst = "en fri tekst",
+        )
+
+        actual shouldBe AvsluttetRevurdering.tryCreate(
+            underliggendeRevurdering = simulert,
+            begrunnelse = "opprettet revurderingen med en feil",
+            fritekst = "en fri tekst",
+            tidspunktAvsluttet = fixedTidspunkt,
+        )
+
+        verify(revurderingRepoMock).hent(argThat { it shouldBe simulert.id })
+        verify(brevServiceMock).lagreDokument(
+            argThat {
+                it should beOfType<Dokument.MedMetadata.Informasjon>()
+                it.generertDokument shouldBe "brev".toByteArray()
+                it.metadata shouldBe Dokument.Metadata(
+                    sakId = simulert.sakId,
+                    revurderingId = simulert.id,
+                    vedtakId = simulert.tilRevurdering.id,
+                    bestillBrev = true,
+                )
+            },
+        )
+        verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.getOrFail() })
+        verifyNoMoreInteractions(revurderingRepoMock)
+    }
+
+    @Test
+    fun `får feil dersom man prøver å avslutte en revurdering man ikke finner`() {
+        val id = UUID.randomUUID()
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn null
+        }
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        )
+
+        revurderingService.avsluttRevurdering(
+            revurderingId = id,
+            begrunnelse = "hehe",
+            fritekst = null,
+        ) shouldBe KunneIkkeAvslutteRevurdering.FantIkkeRevurdering.left()
+
+        verify(revurderingRepoMock).hent(argThat { it shouldBe id })
+        verifyNoMoreInteractions(revurderingRepoMock)
+    }
+
+    @Test
+    fun `får feil dersom generering av brev feiler`() {
+        val simulert = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second.copy(
+            forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt
+        )
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn simulert
+        }
+        val brevServiceMock = mock<BrevService1> {
+            on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
+        }
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            brevService = brevServiceMock
+        )
+
+        revurderingService.avsluttRevurdering(
+            revurderingId = simulert.id,
+            begrunnelse = "hehe",
+            fritekst = null,
+        ) shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument.left()
+
+        verify(revurderingRepoMock).hent(argThat { it shouldBe simulert.id })
+        verifyNoMoreInteractions(revurderingRepoMock)
+    }
+
+    @Test
+    fun `avslutter en stansAvYtelse-revurdering`() {
+        val stansAvYtelse = simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().second
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn stansAvYtelse
+        }
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        )
+
+        val actual = revurderingService.avsluttRevurdering(
+            revurderingId = stansAvYtelse.id,
+            begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
+            fritekst = null,
+        )
+
+        actual shouldBe StansAvYtelseRevurdering.AvsluttetStansAvYtelse.tryCreate(
+            stansAvYtelseRevurdering = stansAvYtelse,
+            begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
+            tidspunktAvsluttet = fixedTidspunkt,
+        )
+
+        verify(revurderingRepoMock).hent(argThat { it shouldBe stansAvYtelse.id })
+        verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.getOrFail() })
+        verifyNoMoreInteractions(revurderingRepoMock)
+    }
+
+    @Test
+    fun `får feil dersom man prøver å avslutte en stansAvYtelse-revurdering som allerede er avsluttet`() {
+        val avsluttetStansAvYtelse = avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak().second
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn avsluttetStansAvYtelse
+        }
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        )
+
+        val actual = revurderingService.avsluttRevurdering(
+            revurderingId = avsluttetStansAvYtelse.id,
+            begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
+            fritekst = null,
+        )
+
+        actual shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetStansAvYtelse(StansAvYtelseRevurdering.KunneIkkeLageAvsluttetStansAvYtelse.RevurderingErAlleredeAvsluttet)
+            .left()
+
+        verify(revurderingRepoMock).hent(argThat { it shouldBe avsluttetStansAvYtelse.id })
+        verifyNoMoreInteractions(revurderingRepoMock)
+    }
+
+    @Test
+    fun `får feil dersom man prøver å avslutte en stansAvYtelse-revurdering som er iverksatt`() {
+        val iverksattStansAvYtelse = iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().second
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn iverksattStansAvYtelse
+        }
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        )
+
+        val actual = revurderingService.avsluttRevurdering(
+            revurderingId = iverksattStansAvYtelse.id,
+            begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
+            fritekst = null,
+        )
+
+        actual shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetStansAvYtelse(StansAvYtelseRevurdering.KunneIkkeLageAvsluttetStansAvYtelse.RevurderingenErIverksatt)
+            .left()
+
+        verify(revurderingRepoMock).hent(argThat { it shouldBe iverksattStansAvYtelse.id })
+        verifyNoMoreInteractions(revurderingRepoMock)
+    }
+
+    @Test
+    fun `avslutter en gjenoppta-revurdering`() {
+        val gjenopptaYtelse = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse().second
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn gjenopptaYtelse
+        }
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        )
+
+        val actual = revurderingService.avsluttRevurdering(
+            revurderingId = gjenopptaYtelse.id,
+            begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
+            fritekst = null,
+        )
+
+        actual shouldBe GjenopptaYtelseRevurdering.AvsluttetGjenoppta.tryCreate(
+            gjenopptakAvYtelseRevurdering = gjenopptaYtelse,
+            begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
+            tidspunktAvsluttet = fixedTidspunkt,
+        )
+
+        verify(revurderingRepoMock).hent(argThat { it shouldBe gjenopptaYtelse.id })
+        verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.getOrFail() })
+        verifyNoMoreInteractions(revurderingRepoMock)
+    }
+
+    @Test
+    fun `får feil dersom man prøver å avslutte en gjenoppta-revurdering som er avlusttet`() {
+        val gjenopptaYtelse = avsluttetGjenopptakelseAvYtelseeFraIverksattSøknadsbehandlignsvedtak().second
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn gjenopptaYtelse
+        }
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        )
+
+        val actual = revurderingService.avsluttRevurdering(
+            revurderingId = gjenopptaYtelse.id,
+            begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
+            fritekst = null,
+        )
+
+        actual shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse(GjenopptaYtelseRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse.RevurderingErAlleredeAvsluttet)
+            .left()
+        verify(revurderingRepoMock).hent(argThat { it shouldBe gjenopptaYtelse.id })
+        verifyNoMoreInteractions(revurderingRepoMock)
+    }
+
+    @Test
+    fun `får feil dersom man prøver å avslutte en gjenoppta-revurdering som er iverksatt`() {
+        val gjenopptaYtelse = iverksattGjenopptakelseAvytelseFraVedtakStansAvYtelse().second
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn gjenopptaYtelse
+        }
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        )
+
+        val actual = revurderingService.avsluttRevurdering(
+            revurderingId = gjenopptaYtelse.id,
+            begrunnelse = "skulle stanse ytelse, men så tenkte jeg 'neh'",
+            fritekst = null,
+        )
+
+        actual shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse(GjenopptaYtelseRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse.RevurderingenErIverksatt)
+            .left()
+        verify(revurderingRepoMock).hent(argThat { it shouldBe gjenopptaYtelse.id })
+        verifyNoMoreInteractions(revurderingRepoMock)
     }
 }

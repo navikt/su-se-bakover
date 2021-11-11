@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -686,6 +687,28 @@ fun iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
     }
 }
 
+fun avsluttetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+    begrunnelse: String = "begrunnelsensen",
+    fritekst: String? = null,
+    tidspunktAvsluttet: Tidspunkt = Tidspunkt.now(fixedClock),
+): Pair<Sak, AvsluttetRevurdering> {
+    return simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().let { (sak, simulert) ->
+        val avsluttet = simulert.avslutt(
+            begrunnelse = begrunnelse,
+            fritekst = fritekst,
+            tidspunktAvsluttet = tidspunktAvsluttet,
+        ).getOrFail()
+
+        Pair(
+            sak.copy(
+                // Erstatter den gamle versjonen av samme revurderinger.
+                revurderinger = sak.revurderinger.filterNot { it.id == avsluttet.id } + avsluttet,
+            ),
+            avsluttet,
+        )
+    }
+}
+
 fun simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
     periode: Periode = Periode.create(
         fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
@@ -746,6 +769,23 @@ fun iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
     }
 }
 
+fun avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak(
+    begrunnelse: String = "begrunnelse for å avslutte stans av ytelse",
+    tidspunktAvsluttet: Tidspunkt = Tidspunkt.now(fixedClock),
+): Pair<Sak, StansAvYtelseRevurdering.AvsluttetStansAvYtelse> {
+    return simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak().let { (sak, simulert) ->
+
+        val avsluttet = simulert.avslutt(
+            begrunnelse = begrunnelse, tidspunktAvsluttet = tidspunktAvsluttet,
+        ).getOrFail()
+
+        sak.copy(
+            // Erstatter den gamle versjonen av samme revurderinger.
+            revurderinger = sak.revurderinger.filterNot { it.id == avsluttet.id } + avsluttet,
+        ) to avsluttet
+    }
+}
+
 fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
     periodeForStans: Periode = Periode.create(
         fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
@@ -783,7 +823,10 @@ fun simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
 }
 
 fun iverksattGjenopptakelseAvytelseFraVedtakStansAvYtelse(
-    periode: Periode,
+    periode: Periode = Periode.create(
+        fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
+        tilOgMed = periode2021.tilOgMed,
+    ),
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periode,
     ),
@@ -798,5 +841,22 @@ fun iverksattGjenopptakelseAvytelseFraVedtakStansAvYtelse(
         sak.copy(
             revurderinger = sak.revurderinger.filterNot { it.id == iverksatt.id } + iverksatt,
         ) to iverksatt
+    }
+}
+
+fun avsluttetGjenopptakelseAvYtelseeFraIverksattSøknadsbehandlignsvedtak(
+    begrunnelse: String = "begrunnelse for å avslutte stans av ytelse",
+    tidspunktAvsluttet: Tidspunkt = Tidspunkt.now(fixedClock),
+): Pair<Sak, GjenopptaYtelseRevurdering.AvsluttetGjenoppta> {
+    return simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse().let { (sak, simulert) ->
+
+        val avsluttet = simulert.avslutt(
+            begrunnelse = begrunnelse, tidspunktAvsluttet = tidspunktAvsluttet,
+        ).getOrFail()
+
+        sak.copy(
+            // Erstatter den gamle versjonen av samme revurderinger.
+            revurderinger = sak.revurderinger.filterNot { it.id == avsluttet.id } + avsluttet,
+        ) to avsluttet
     }
 }

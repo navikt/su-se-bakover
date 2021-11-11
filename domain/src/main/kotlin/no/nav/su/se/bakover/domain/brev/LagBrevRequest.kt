@@ -225,6 +225,35 @@ interface LagBrevRequest {
         }
     }
 
+    /**
+     * Brev for når en revurdering er forhåndsvarslet
+     * hvis revurderingen ikke er forhåndsvarslet, er det ikke noe brev.
+     */
+    data class AvsluttRevurdering(
+        override val person: Person,
+        private val saksbehandlerNavn: String,
+        private val fritekst: String?,
+        override val dagensDato: LocalDate,
+    ) : LagBrevRequest {
+        override val brevInnhold: BrevInnhold = BrevInnhold.AvsluttRevurdering(
+            personalia = lagPersonalia(),
+            saksbehandlerNavn = saksbehandlerNavn,
+            fritekst = fritekst,
+        )
+
+        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata> {
+            return genererDokument(genererPdf).map {
+                Dokument.UtenMetadata.Informasjon(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(), // TODO: Ta inn clock
+                    tittel = it.first,
+                    generertDokument = it.second,
+                    generertDokumentJson = it.third,
+                )
+            }
+        }
+    }
+
     sealed class Revurdering : LagBrevRequest {
         data class Inntekt(
             override val person: Person,

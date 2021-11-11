@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
 import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
+import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -241,6 +242,20 @@ class LagBrevRequestVisitor(
 
     override fun visit(vedtak: Vedtak.IngenEndringIYtelse) {
         brevRequest = vedtakIngenEndringIYtelse(vedtak)
+    }
+
+    override fun visit(revurdering: AvsluttetRevurdering) {
+        brevRequest = hentPersonOgNavn(
+            // siden avslutt-brevet er et informasjons-brev, trengs ikke attestant
+            fnr = revurdering.fnr, saksbehandler = revurdering.saksbehandler, attestant = null
+        ).map {
+            LagBrevRequest.AvsluttRevurdering(
+                person = it.person,
+                fritekst = revurdering.fritekst,
+                saksbehandlerNavn = it.saksbehandlerNavn,
+                dagensDato = LocalDate.now(clock),
+            )
+        }
     }
 
     override fun visit(vedtak: Vedtak.EndringIYtelse.StansAvYtelse) {
