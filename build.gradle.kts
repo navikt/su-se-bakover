@@ -115,7 +115,7 @@ allprojects {
     }
 
     tasks.withType<Wrapper> {
-        gradleVersion = "7.2"
+        gradleVersion = "7.3"
     }
 
     // Run `./gradlew allDeps` to get a dependency graph
