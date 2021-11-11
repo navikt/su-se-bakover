@@ -85,6 +85,8 @@ internal class StatistikkServiceImpl(
                     )
                 }
             }
+            is Event.Statistikk.RevurderingStatistikk.Gjenoppta -> publiser(BehandlingStatistikkMapper(clock).map(event.gjenoppta))
+            is Event.Statistikk.RevurderingStatistikk.Stans -> publiser(BehandlingStatistikkMapper(clock).map(event.stans))
         }
     }
 }

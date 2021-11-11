@@ -123,7 +123,10 @@ internal class StansAvYtelseService(
 
                 revurderingRepo.lagre(iverksattRevurdering)
                 vedtakService.lagre(vedtak)
-                observers.forEach { observer -> observer.handle(Event.Statistikk.RevurderingStatistikk.Stans(iverksattRevurdering)) }
+                observers.forEach { observer ->
+                    observer.handle(Event.Statistikk.RevurderingStatistikk.Stans(iverksattRevurdering))
+                    observer.handle(Event.Statistikk.Vedtaksstatistikk(vedtak))
+                }
 
                 return iverksattRevurdering.right()
             }

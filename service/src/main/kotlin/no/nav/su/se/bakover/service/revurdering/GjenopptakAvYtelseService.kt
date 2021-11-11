@@ -142,7 +142,10 @@ class GjenopptakAvYtelseService(
 
                 revurderingRepo.lagre(iverksattRevurdering)
                 vedtakRepo.lagre(vedtak)
-                observers.forEach { observer -> observer.handle(Event.Statistikk.RevurderingStatistikk.Gjenoppta(iverksattRevurdering)) }
+                observers.forEach { observer ->
+                    observer.handle(Event.Statistikk.RevurderingStatistikk.Gjenoppta(iverksattRevurdering))
+                    observer.handle(Event.Statistikk.Vedtaksstatistikk(vedtak))
+                }
 
                 return iverksattRevurdering.right()
             }
