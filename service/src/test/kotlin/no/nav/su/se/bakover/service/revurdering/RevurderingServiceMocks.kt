@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import org.mockito.kotlin.mock
 
@@ -29,7 +30,7 @@ internal data class RevurderingServiceMocks(
     val grunnlagService: GrunnlagService = mock(),
     val vilkårsvurderingService: VilkårsvurderingService = mock(),
     val sakService: SakService = mock(),
-    val sessionFactory: SessionFactory = mock(),
+    val sessionFactory: SessionFactory = TestSessionFactory(),
 ) {
     val revurderingService = RevurderingServiceImpl(
         utbetalingService = utbetalingService,

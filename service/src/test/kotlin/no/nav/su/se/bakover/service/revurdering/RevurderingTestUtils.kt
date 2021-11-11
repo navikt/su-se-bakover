@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -100,7 +101,7 @@ object RevurderingTestUtils {
         vilkårsvurderingService: VilkårsvurderingService = mock(),
         grunnlagService: GrunnlagService = mock(),
         sakService: SakService = mock(),
-        sessionFactory: SessionFactory = mock()
+        sessionFactory: SessionFactory = TestSessionFactory(),
     ) =
         RevurderingServiceImpl(
             utbetalingService = utbetalingService,
