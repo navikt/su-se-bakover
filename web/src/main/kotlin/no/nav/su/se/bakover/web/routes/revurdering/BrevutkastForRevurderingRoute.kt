@@ -4,7 +4,6 @@ import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.response.respondBytes
 import io.ktor.routing.Route
-import io.ktor.routing.get
 import io.ktor.routing.post
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
@@ -31,7 +30,7 @@ internal fun Route.brevutkastForRevurdering(
                     val revurdering = revurderingService.hentRevurdering(revurderingId)
                         ?: return@withRevurderingId call.svar(fantIkkeRevurdering)
 
-                    revurderingService.hentBrevutkast(revurderingId, body.fritekst).fold(
+                    revurderingService.lagBrevutkastForRevurdering(revurderingId, body.fritekst).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
                             call.sikkerlogg("Laget brevutkast for revurdering med id $revurderingId")

@@ -909,7 +909,7 @@ internal class RevurderingServiceImpl(
         }
     }
 
-    override fun hentBrevutkast(
+    override fun lagBrevutkastForRevurdering(
         revurderingId: UUID,
         fritekst: String?,
     ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
@@ -1281,7 +1281,7 @@ internal class RevurderingServiceImpl(
         }
     }
 
-    override fun brevutkastForAvslutting(
+    override fun lagBrevutkastForAvslutting(
         revurderingId: UUID,
         fritekst: String?,
     ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, ByteArray>> {

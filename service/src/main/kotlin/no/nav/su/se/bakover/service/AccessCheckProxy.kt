@@ -595,12 +595,12 @@ open class AccessCheckProxy(
                     return services.revurdering.sendTilAttestering(request)
                 }
 
-                override fun hentBrevutkast(
+                override fun lagBrevutkastForRevurdering(
                     revurderingId: UUID,
                     fritekst: String?,
                 ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
                     assertHarTilgangTilRevurdering(revurderingId)
-                    return services.revurdering.hentBrevutkast(revurderingId, fritekst)
+                    return services.revurdering.lagBrevutkastForRevurdering(revurderingId, fritekst)
                 }
 
                 override fun iverksett(
@@ -660,12 +660,12 @@ open class AccessCheckProxy(
                     return services.revurdering.avsluttRevurdering(revurderingId, begrunnelse, fritekst)
                 }
 
-                override fun brevutkastForAvslutting(
+                override fun lagBrevutkastForAvslutting(
                     revurderingId: UUID,
                     fritekst: String?,
                 ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, ByteArray>> {
                     assertHarTilgangTilRevurdering(revurderingId)
-                    return services.revurdering.brevutkastForAvslutting(revurderingId, fritekst)
+                    return services.revurdering.lagBrevutkastForAvslutting(revurderingId, fritekst)
                 }
             },
             vedtakService = object : VedtakService {

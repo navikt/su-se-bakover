@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
 
-internal fun Route.AvsluttRevurderingRoute(
+internal fun Route.avsluttRevurderingRoute(
     revurderingService: RevurderingService,
 ) {
     authorize(Brukerrolle.Saksbehandler) {
@@ -61,7 +61,7 @@ internal fun Route.AvsluttRevurderingRoute(
         post("$revurderingPath/{revurderingId}/brevutkastForAvslutting") {
             call.withRevurderingId { revurderingId ->
                 call.withBody<BrevutkastForAvslutting> { body ->
-                    revurderingService.brevutkastForAvslutting(revurderingId, body.fritekst).fold(
+                    revurderingService.lagBrevutkastForAvslutting(revurderingId, body.fritekst).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
                             call.sikkerlogg("Laget brevutkast for revurdering med id $revurderingId")

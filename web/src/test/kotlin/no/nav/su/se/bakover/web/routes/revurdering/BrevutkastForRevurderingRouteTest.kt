@@ -60,7 +60,7 @@ internal class BrevutkastForRevurderingRouteTest {
             on { fnr } doReturn mock()
         }
         val revurderingServiceMock = mock<RevurderingService> {
-            on { hentBrevutkast(any(), any()) } doReturn pdfAsBytes.right()
+            on { lagBrevutkastForRevurdering(any(), any()) } doReturn pdfAsBytes.right()
             on { hentRevurdering(any()) } doReturn revurderingMock
         }
 
@@ -147,7 +147,7 @@ internal class BrevutkastForRevurderingRouteTest {
         expectedJsonResponse: String
     ) {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { hentBrevutkast(any(), any()) } doReturn error.left()
+            on { lagBrevutkastForRevurdering(any(), any()) } doReturn error.left()
             on { hentRevurdering(any()) } doReturn mock()
         }
 

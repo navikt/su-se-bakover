@@ -62,7 +62,7 @@ internal class AvsluttRevurderingRouteTest {
         val revurderingId = UUID.randomUUID()
 
         val revurderingServiceMock = mock<RevurderingService> {
-            on { brevutkastForAvslutting(any(), anyOrNull()) } doReturn Pair(
+            on { lagBrevutkastForAvslutting(any(), anyOrNull()) } doReturn Pair(
                 Fnr.generer(),
                 "byteArray".toByteArray(),
             ).right()

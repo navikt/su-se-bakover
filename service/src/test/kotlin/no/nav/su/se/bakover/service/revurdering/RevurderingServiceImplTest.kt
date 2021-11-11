@@ -752,7 +752,7 @@ internal class RevurderingServiceImplTest {
                 ).right()
             },
         ).let {
-            it.revurderingService.hentBrevutkast(
+            it.revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
                 fritekst = "",
             ) shouldBe brevPdf.right()
@@ -777,7 +777,7 @@ internal class RevurderingServiceImplTest {
                 on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeHentePerson.left()
             },
         ).let {
-            it.revurderingService.hentBrevutkast(
+            it.revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
                 fritekst = "",
             ) shouldBe KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson.left()
@@ -802,7 +802,7 @@ internal class RevurderingServiceImplTest {
                 on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
             },
         ).let {
-            it.revurderingService.hentBrevutkast(
+            it.revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
                 fritekst = "",
             ) shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
@@ -827,7 +827,7 @@ internal class RevurderingServiceImplTest {
                 on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
             },
         ).let {
-            it.revurderingService.hentBrevutkast(
+            it.revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
                 fritekst = "",
             ) shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast.left()
@@ -870,7 +870,7 @@ internal class RevurderingServiceImplTest {
                     )
                 },
             ).let {
-                it.revurderingService.hentBrevutkast(
+                it.revurderingService.lagBrevutkastForRevurdering(
                     revurderingId = revurderingId,
                     fritekst = "",
                 )
@@ -893,7 +893,7 @@ internal class RevurderingServiceImplTest {
                 brevService = mock {
                     on { lagDokument(any()) } doThrow LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(beregnget::class)
                 }
-            ).revurderingService.hentBrevutkast(
+            ).revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
                 fritekst = "",
             )

@@ -45,5 +45,5 @@ internal fun Route.revurderingRoutes(
 
     gjenopptaUtbetaling(revurderingService)
 
-    AvsluttRevurderingRoute(revurderingService)
+    avsluttRevurderingRoute(revurderingService)
 }
