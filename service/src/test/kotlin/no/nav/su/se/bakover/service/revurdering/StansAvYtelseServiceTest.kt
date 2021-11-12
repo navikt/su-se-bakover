@@ -5,6 +5,7 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
@@ -20,6 +21,8 @@ import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
 import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -40,9 +43,12 @@ import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehand
 import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentCaptor
 import org.mockito.kotlin.any
+import org.mockito.kotlin.capture
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import java.time.LocalDate
 import java.util.UUID
@@ -191,12 +197,14 @@ class StansAvYtelseServiceTest {
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { simulerStans(any(), any(), any()) } doReturn simulertUtbetaling().right()
         }
+        val observerMock: EventObserver = mock()
 
         RevurderingServiceMocks(
             vedtakService = vedtakServiceMock,
             utbetalingService = utbetalingServiceMock,
             sakService = sakServiceMock,
         ).let {
+            it.revurderingService.addObserver(observerMock)
             val response = it.revurderingService.stansAvYtelse(
                 StansYtelseRequest.Opprett(
                     sakId = sakId,
@@ -220,6 +228,7 @@ class StansAvYtelseServiceTest {
                 stansDato = 1.mai(2021),
             )
             verify(it.revurderingRepo).lagre(response)
+            verify(observerMock).handle(argThat { event -> event shouldBe Event.Statistikk.RevurderingStatistikk.Stans(response) })
             it.verifyNoMoreInteractions()
         }
     }
@@ -302,11 +311,13 @@ class StansAvYtelseServiceTest {
                 )
             } doReturn utbetaling.right()
         }
+        val observerMock: EventObserver = mock()
 
         RevurderingServiceMocks(
             revurderingRepo = revurderingRepoMock,
             utbetalingService = utbetalingServiceMock,
         ).let {
+            it.revurderingService.addObserver(observerMock)
             val response = it.revurderingService.iverksettStansAvYtelse(
                 revurderingId = revurderingId,
                 attestant = NavIdentBruker.Attestant(simulertStans.saksbehandler.navIdent),
@@ -320,18 +331,24 @@ class StansAvYtelseServiceTest {
                 stansDato = simulertStans.periode.fraOgMed,
             )
             verify(it.revurderingRepo).lagre(response)
+            val expectedVedtak = Vedtak.from(
+                revurdering = response,
+                utbetalingId = utbetaling.id,
+                clock = fixedClock,
+            )
             verify(it.vedtakService).lagre(
                 argThat { vedtak ->
                     vedtak.shouldBeEqualToIgnoringFields(
-                        Vedtak.from(
-                            revurdering = response,
-                            utbetalingId = utbetaling.id,
-                            clock = fixedClock,
-                        ),
+                        expectedVedtak,
                         Vedtak::id,
                     )
                 },
             )
+
+            val eventCaptor = ArgumentCaptor.forClass(Event::class.java)
+            verify(observerMock, times(2)).handle(capture<Event>(eventCaptor))
+            eventCaptor.allValues[0] shouldBe Event.Statistikk.RevurderingStatistikk.Stans(response)
+            eventCaptor.allValues[1].shouldBeTypeOf<Event.Statistikk.Vedtaksstatistikk>()
             it.verifyNoMoreInteractions()
         }
     }

@@ -18,6 +18,8 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import java.time.Clock
@@ -32,6 +34,12 @@ class GjenopptakAvYtelseService(
     private val vedtakService: VedtakService,
     private val sakService: SakService,
 ) {
+    private val observers: MutableList<EventObserver> = mutableListOf()
+
+    fun addObserver(eventObserver: EventObserver) {
+        observers.add(eventObserver)
+    }
+
     fun gjenopptaYtelse(request: GjenopptaYtelseRequest): Either<KunneIkkeGjenopptaYtelse, GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse> {
         val sisteVedtak = vedtakRepo.hentForSakId(request.sakId)
             .filterIsInstance<VedtakSomKanRevurderes>()
@@ -102,6 +110,7 @@ class GjenopptakAvYtelseService(
             }
 
             revurderingRepo.lagre(simulertRevurdering)
+            observers.forEach { observer -> observer.handle(Event.Statistikk.RevurderingStatistikk.Gjenoppta(simulertRevurdering)) }
 
             return simulertRevurdering.right()
         }
@@ -133,6 +142,10 @@ class GjenopptakAvYtelseService(
 
                 revurderingRepo.lagre(iverksattRevurdering)
                 vedtakRepo.lagre(vedtak)
+                observers.forEach { observer ->
+                    observer.handle(Event.Statistikk.RevurderingStatistikk.Gjenoppta(iverksattRevurdering))
+                    observer.handle(Event.Statistikk.Vedtaksstatistikk(vedtak))
+                }
 
                 return iverksattRevurdering.right()
             }

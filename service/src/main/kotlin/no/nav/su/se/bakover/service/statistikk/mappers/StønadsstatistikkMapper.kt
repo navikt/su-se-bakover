@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.statistikk.mappers
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -12,11 +13,17 @@ import no.nav.su.se.bakover.service.statistikk.Statistikk
 import no.nav.su.se.bakover.service.statistikk.stønadsklassifisering
 import java.time.Clock
 import java.time.LocalDate
+import kotlin.math.roundToInt
 
 class StønadsstatistikkMapper(
     private val clock: Clock
 ) {
-    fun map(vedtak: Vedtak.EndringIYtelse, aktørId: AktørId, ytelseVirkningstidspunkt: LocalDate): Statistikk.Stønad {
+    fun map(
+        vedtak: Vedtak.EndringIYtelse,
+        aktørId: AktørId,
+        ytelseVirkningstidspunkt: LocalDate,
+        sak: Sak,
+    ): Statistikk.Stønad {
         val nå = Tidspunkt.now(clock)
 
         return Statistikk.Stønad(
@@ -29,11 +36,11 @@ class StønadsstatistikkMapper(
             vedtaksdato = vedtak.opprettet.toLocalDate(zoneIdOslo),
             vedtakstype = vedtakstype(vedtak),
             vedtaksresultat = when (vedtak) {
-                is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> TODO("Ikke implementert for ${vedtak::class}")
+                is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> Statistikk.Stønad.Vedtaksresultat.GJENOPPTATT
                 is Vedtak.EndringIYtelse.InnvilgetRevurdering -> Statistikk.Stønad.Vedtaksresultat.INNVILGET
                 is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling -> Statistikk.Stønad.Vedtaksresultat.INNVILGET
                 is Vedtak.EndringIYtelse.OpphørtRevurdering -> Statistikk.Stønad.Vedtaksresultat.OPPHØRT
-                is Vedtak.EndringIYtelse.StansAvYtelse -> TODO("Ikke implementert for ${vedtak::class}")
+                is Vedtak.EndringIYtelse.StansAvYtelse -> Statistikk.Stønad.Vedtaksresultat.STANSET
             },
             behandlendeEnhetKode = "4815",
             ytelseVirkningstidspunkt = ytelseVirkningstidspunkt,
@@ -42,11 +49,16 @@ class StønadsstatistikkMapper(
             gjeldendeStonadUtbetalingsstart = vedtak.behandling.periode.fraOgMed,
             gjeldendeStonadUtbetalingsstopp = vedtak.behandling.periode.tilOgMed,
             månedsbeløp = when (vedtak) {
-                is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> TODO("Ikke implementert for ${vedtak::class}")
                 is Vedtak.EndringIYtelse.InnvilgetRevurdering -> mapBeregning(vedtak, vedtak.beregning)
                 is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling -> mapBeregning(vedtak, vedtak.beregning)
-                is Vedtak.EndringIYtelse.OpphørtRevurdering -> mapBeregning(vedtak, vedtak.beregning)
-                is Vedtak.EndringIYtelse.StansAvYtelse -> TODO("Ikke implementert for ${vedtak::class}")
+
+                /**
+                 * TODO ai 10.11.2021: Endre når revurdering ikke trenger å opphøre behandlingen fra 'fraDato':en
+                 */
+                is Vedtak.EndringIYtelse.OpphørtRevurdering -> emptyList()
+
+                is Vedtak.EndringIYtelse.StansAvYtelse -> emptyList()
+                is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> mapBeregning(vedtak, sak, clock)
             },
             versjon = nå.toEpochMilli(),
             opphorsgrunn = when (vedtak) {
@@ -61,30 +73,45 @@ class StønadsstatistikkMapper(
     }
 }
 
-private fun mapBeregning(vedtak: Vedtak.EndringIYtelse, beregning: Beregning): List<Statistikk.Stønad.Månedsbeløp> {
-    return beregning.getMånedsberegninger().map {
-        Statistikk.Stønad.Månedsbeløp(
-            måned = it.periode.fraOgMed.toString(),
-            stonadsklassifisering = stønadsklassifisering(vedtak.behandling, it),
-            bruttosats = it.getSatsbeløp().toLong(),
-            nettosats = it.getSumYtelse().toLong(),
-            inntekter = it.getFradrag().map { fradrag ->
-                Statistikk.Inntekt(
-                    inntektstype = fradrag.fradragstype.toString(),
-                    beløp = fradrag.månedsbeløp.toLong(),
-                )
-            },
-            fradragSum = it.getSumFradrag().toLong(),
-        )
+private fun mapBeregning(vedtak: Vedtak.EndringIYtelse, beregning: Beregning): List<Statistikk.Stønad.Månedsbeløp> =
+    beregning.getMånedsberegninger().map {
+        tilMånedsbeløp(it, vedtak)
     }
-}
+
+private fun mapBeregning(
+    vedtak: Vedtak.EndringIYtelse.GjenopptakAvYtelse,
+    sak: Sak,
+    clock: Clock,
+): List<Statistikk.Stønad.Månedsbeløp> =
+    vedtak.periode.tilMånedsperioder().map {
+        sak.hentGjeldendeMånedsberegningForMåned(it, clock)!!
+    }.map {
+        tilMånedsbeløp(it, vedtak)
+    }
+
+private fun tilMånedsbeløp(
+    månedsberegning: Månedsberegning,
+    vedtak: Vedtak.EndringIYtelse,
+) = Statistikk.Stønad.Månedsbeløp(
+    måned = månedsberegning.periode.fraOgMed.toString(),
+    stonadsklassifisering = stønadsklassifisering(vedtak.behandling, månedsberegning),
+    bruttosats = månedsberegning.getSatsbeløp().roundToInt().toLong(),
+    nettosats = månedsberegning.getSumYtelse().toLong(),
+    inntekter = månedsberegning.getFradrag().map { fradrag ->
+        Statistikk.Inntekt(
+            inntektstype = fradrag.fradragstype.toString(),
+            beløp = fradrag.månedsbeløp.toLong(),
+        )
+    },
+    fradragSum = månedsberegning.getSumFradrag().toLong(),
+)
 
 private fun vedtakstype(vedtak: Vedtak.EndringIYtelse) = when (vedtak) {
-    is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> TODO("Ikke implementert for ${vedtak::class}")
+    is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> Statistikk.Stønad.Vedtakstype.GJENOPPTAK
     is Vedtak.EndringIYtelse.InnvilgetRevurdering -> Statistikk.Stønad.Vedtakstype.REVURDERING
     is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling -> Statistikk.Stønad.Vedtakstype.SØKNAD
     is Vedtak.EndringIYtelse.OpphørtRevurdering -> Statistikk.Stønad.Vedtakstype.REVURDERING
-    is Vedtak.EndringIYtelse.StansAvYtelse -> TODO("Ikke implementert for ${vedtak::class}")
+    is Vedtak.EndringIYtelse.StansAvYtelse -> Statistikk.Stønad.Vedtakstype.STANS
 }
 
 private fun stønadsklassifisering(

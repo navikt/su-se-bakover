@@ -107,6 +107,8 @@ internal class RevurderingServiceImpl(
 
     fun addObserver(observer: EventObserver) {
         observers.add(observer)
+        gjenopptakAvYtelseService.addObserver(observer)
+        stansAvYtelseService.addObserver(observer)
     }
 
     fun getObservers(): List<EventObserver> = observers.toList()
