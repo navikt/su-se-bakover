@@ -108,7 +108,7 @@ internal class SøknadsbehandlingRoutesKtTest {
     @Nested
     inner class `Henting av behandling` {
         @Test
-        fun `Forbidden når bruker veileder eller driftspersonell`() {
+        fun `Forbidden når bruker er veileder eller driftspersonell`() {
             withTestApplication(
                 {
                     testSusebakover()
