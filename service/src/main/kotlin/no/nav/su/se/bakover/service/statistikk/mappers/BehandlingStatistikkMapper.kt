@@ -346,7 +346,7 @@ class BehandlingStatistikkMapper(
             }
 
         fun map(stans: StansAvYtelseRevurdering) = when (stans) {
-            is StansAvYtelseRevurdering.IverksattStansAvYtelse -> "Ytelse er stanset"
+            is StansAvYtelseRevurdering.IverksattStansAvYtelse -> "Ytelsen er stanset"
             is StansAvYtelseRevurdering.SimulertStansAvYtelse -> "Simulert stans av ytelsen"
         }
     }
