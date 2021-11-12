@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -103,7 +104,7 @@ internal class SimuleringTest {
     ) = Simulering(
         gjelderId = FNR,
         gjelderNavn = "MYGG LUR",
-        datoBeregnet = idag(),
+        datoBeregnet = idag(fixedClock),
         nettoBeløp = nettoBeløp,
         periodeList,
     )
@@ -113,7 +114,7 @@ internal class SimuleringTest {
     ) = SimulertUtbetaling(
         fagSystemId = UUID30.randomUUID().toString(),
         feilkonto = false,
-        forfall = idag(),
+        forfall = idag(fixedClock),
         utbetalesTilId = FNR,
         utbetalesTilNavn = "MYGG LUR",
         detaljer = detaljer,

@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
 import org.junit.jupiter.api.Test
 import org.xml.sax.helpers.DefaultHandler
@@ -35,10 +36,12 @@ internal class SimuleringRequestBuilderValidationTest {
         val eksisterendeOppdragslinjeid = UUID30.randomUUID()
         val simuleringRequest = SimuleringRequestBuilder(
             utbetaling = Utbetaling.UtbetalingForSimulering(
+                opprettet = fixedTidspunkt,
                 saksnummer = saksnummer,
                 sakId = sakId,
                 utbetalingslinjer = nonEmptyListOf(
                     Utbetalingslinje.Ny(
+                        opprettet = fixedTidspunkt,
                         fraOgMed = 1.januar(2020),
                         tilOgMed = 31.januar(2020),
                         beløp = 10,
@@ -50,7 +53,7 @@ internal class SimuleringRequestBuilderValidationTest {
                 type = Utbetaling.UtbetalingsType.NY,
 
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
-                avstemmingsnøkkel = Avstemmingsnøkkel(),
+                avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
             ),
         ).build().request
 

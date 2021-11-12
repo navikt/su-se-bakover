@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.Test
 import org.xmlunit.diff.DefaultNodeMatcher
@@ -33,6 +34,7 @@ class UtbetalingXmlMappingTest {
     }
 
     private val førsteUtbetalingsLinje = Utbetalingslinje.Ny(
+        opprettet = fixedTidspunkt,
         fraOgMed = 1.januar(2020),
         tilOgMed = 31.januar(2020),
         beløp = 10,
@@ -40,6 +42,7 @@ class UtbetalingXmlMappingTest {
         uføregrad = Uføregrad.parse(50),
     )
     private val andreUtbetalingslinje = Utbetalingslinje.Ny(
+        opprettet = fixedTidspunkt,
         fraOgMed = 1.februar(2020),
         tilOgMed = 29.februar(2020),
         beløp = 20,
@@ -55,6 +58,7 @@ class UtbetalingXmlMappingTest {
 
     private val fnr = Fnr("12345678910")
     private val utbetaling = Utbetaling.UtbetalingForSimulering(
+        opprettet = fixedTidspunkt,
         sakId = sakId,
         saksnummer = saksnummer,
         utbetalingslinjer = nonEmptyListOf(

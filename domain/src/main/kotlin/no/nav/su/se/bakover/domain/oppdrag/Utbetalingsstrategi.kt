@@ -133,6 +133,7 @@ sealed class Utbetalingsstrategi {
         fun generate(): Utbetaling.UtbetalingForSimulering {
             val utbetalingslinjer = createUtbetalingsperioder(beregning, uføregrunnlag).map {
                 Utbetalingslinje.Ny(
+                    opprettet = Tidspunkt.now(clock),
                     fraOgMed = it.fraOgMed,
                     tilOgMed = it.tilOgMed,
                     forrigeUtbetalingslinjeId = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.id,
@@ -143,6 +144,7 @@ sealed class Utbetalingsstrategi {
                 it.zipWithNext { a, b -> b.link(a) }
             }
             return Utbetaling.UtbetalingForSimulering(
+                opprettet = Tidspunkt.now(clock),
                 sakId = sakId,
                 saksnummer = saksnummer,
                 utbetalingslinjer = NonEmptyList.fromListUnsafe(utbetalingslinjer),
@@ -215,6 +217,7 @@ sealed class Utbetalingsstrategi {
             } ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å opphøre")
 
             return Utbetaling.UtbetalingForSimulering(
+                opprettet = Tidspunkt.now(clock),
                 sakId = sakId,
                 saksnummer = saksnummer,
                 utbetalingslinjer = nonEmptyListOf(
@@ -255,6 +258,7 @@ sealed class Utbetalingsstrategi {
             if (unngåBugMedReaktiveringAvOpphørIOppdrag(sisteOversendteUtbetalingslinje.virkningstidspunkt).isLeft()) return Feil.KanIkkeGjenopptaOpphørtePeriode.left()
 
             return Utbetaling.UtbetalingForSimulering(
+                opprettet = Tidspunkt.now(clock),
                 sakId = sakId,
                 saksnummer = saksnummer,
                 utbetalingslinjer = nonEmptyListOf(

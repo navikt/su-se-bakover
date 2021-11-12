@@ -8,8 +8,6 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Person.Navn
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Bosituasjon
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.FastOppholdINorge
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Flyktning
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Flyktning.Status
@@ -44,14 +42,6 @@ object BehandlingTestUtils {
             aktørId = AktørId(aktørId = "123"),
         ),
         navn = Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
-    )
-    private val ektefelle = Ektefelle(
-        fnr = Fnr("17087524256"),
-        navn = Navn("fornavn", null, "etternavn"),
-        kjønn = null,
-        fødselsdato = null,
-        adressebeskyttelse = null,
-        skjermet = null
     )
 
     internal val behandlingsinformasjon = Behandlingsinformasjon(
@@ -109,12 +99,5 @@ object BehandlingTestUtils {
             status = MøttPersonlig,
             begrunnelse = null
         ),
-        bosituasjon = Bosituasjon(
-            ektefelle = ektefelle,
-            delerBolig = false,
-            ektemakeEllerSamboerUførFlyktning = false,
-            begrunnelse = null
-        ),
-        ektefelle = ektefelle
     )
 }

@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
+import java.time.Clock
 import java.util.UUID
 
 /**
@@ -26,8 +27,9 @@ internal object RevurdertBeregning {
         beregningsgrunnlag: Beregningsgrunnlag,
         beregningsstrategi: BeregningStrategy,
         beregnMedVirkningNesteMånedDersomStønadenGårNed: Boolean = false,
+        clock: Clock,
     ): Either<KanIkkeVelgeSisteMånedVedNedgangIStønaden, Beregning> {
-        val revurdertBeregning = beregningsstrategi.beregn(beregningsgrunnlag)
+        val revurdertBeregning = beregningsstrategi.beregn(beregningsgrunnlag, clock)
         if (!beregnMedVirkningNesteMånedDersomStønadenGårNed) {
             return revurdertBeregning.right()
         }
@@ -38,7 +40,7 @@ internal object RevurdertBeregning {
                 .getSumYtelse() -> revurdertBeregning.right()
             revurdertBeregning.getMånedsberegninger().first()
                 .getSumYtelse() < vedtattBeregning.getMånedsberegninger().first()
-                .getSumYtelse() -> beregnMedVirkningFraOgMedMånedenEtter(revurdertBeregning)
+                .getSumYtelse() -> beregnMedVirkningFraOgMedMånedenEtter(revurdertBeregning, clock)
             else -> revurdertBeregning.right()
         }
     }
@@ -50,7 +52,8 @@ Når revurderingsperioden kun har 1 måned og utbetalt beløp er redusert, blir 
 object KanIkkeVelgeSisteMånedVedNedgangIStønaden
 
 private fun beregnMedVirkningFraOgMedMånedenEtter(
-    revurdertBeregning: Beregning
+    revurdertBeregning: Beregning,
+    clock: Clock,
 ): Either<KanIkkeVelgeSisteMånedVedNedgangIStønaden, Beregning> {
     if (revurdertBeregning.getMånedsberegninger().size < 2) {
         return KanIkkeVelgeSisteMånedVedNedgangIStønaden.left()
@@ -61,7 +64,7 @@ private fun beregnMedVirkningFraOgMedMånedenEtter(
     )
     return BeregningMedFradragBeregnetMånedsvis(
         id = UUID.randomUUID(),
-        opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
+        opprettet = Tidspunkt.now(clock),
         periode = nyPeriode,
         sats = revurdertBeregning.getSats(),
         fradrag = revurdertBeregning.getFradrag()
@@ -80,14 +83,14 @@ private fun beregnMedVirkningFraOgMedMånedenEtter(
                                 fraOgMed
                             }
                         },
-                        tilOgMed = it.periode.tilOgMed
+                        tilOgMed = it.periode.tilOgMed,
                     ),
                     utenlandskInntekt = it.utenlandskInntekt,
                     tilhører = it.tilhører,
                 )
             },
         fradragStrategy = FradragStrategy.fromName(revurdertBeregning.getFradragStrategyName()),
-        begrunnelse = revurdertBeregning.getBegrunnelse()
+        begrunnelse = revurdertBeregning.getBegrunnelse(),
     ).right()
 }
 

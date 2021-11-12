@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.IkkePeriodisertFradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.PeriodisertFradrag
 import no.nav.su.se.bakover.domain.beregning.harAlleMånederMerknadForAvslag
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.periode2021
@@ -47,7 +48,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     @Test
     fun `summer for enkel beregning`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
-        val beregning = BeregningFactory.ny(
+        val beregning = BeregningFactory(clock = fixedClock).ny(
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
@@ -68,7 +69,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     @Test
     fun `fradrag for alle perioder`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
-        val beregning = BeregningFactory.ny(
+        val beregning = BeregningFactory(clock = fixedClock).ny(
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
@@ -88,7 +89,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     @Test
     fun `fradrag som gjør at alle perioder får beløp under minstenivå`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
-        val beregning = BeregningFactory.ny(
+        val beregning = BeregningFactory(clock = fixedClock).ny(
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
@@ -116,7 +117,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     @Test
     fun `fradrag som gjør at alle perioder får beløp lik 0`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
-        val beregning = BeregningFactory.ny(
+        val beregning = BeregningFactory(clock = fixedClock).ny(
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
@@ -141,7 +142,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     @Test
     fun `fradrag for enkelte perioder`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
-        val beregning = BeregningFactory.ny(
+        val beregning = BeregningFactory(clock = fixedClock).ny(
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
@@ -168,7 +169,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     @Test
     fun `overlappende fradrag for samme periode`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
-        val beregning = BeregningFactory.ny(
+        val beregning = BeregningFactory(clock = fixedClock).ny(
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
@@ -217,7 +218,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     @Test
     fun `sum under minstebeløp for utbetaling (2 prosent av høy sats)`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
-        val beregning = BeregningFactory.ny(
+        val beregning = BeregningFactory(clock = fixedClock).ny(
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
@@ -280,7 +281,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
 
     @Test
     fun `generer bare bare id og opprettet en gang for hvert objekt`() {
-        val beregning = BeregningFactory.ny(
+        val beregning = BeregningFactory(clock = fixedClock).ny(
             periode = Periode.create(1.januar(2020), 31.mars(2020)),
             sats = Sats.HØY,
             fradrag = listOf(
@@ -304,7 +305,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
 
         val totaltFradrag = 100000.0
 
-        val beregning = BeregningFactory.ny(
+        val beregning = BeregningFactory(clock = fixedClock).ny(
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
@@ -341,7 +342,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
 
         val totaltFradrag = 100000.0
 
-        val beregning = BeregningFactory.ny(
+        val beregning = BeregningFactory(clock = fixedClock).ny(
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
@@ -361,7 +362,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             fradragStrategy = FradragStrategy.Enslig,
         )
 
-        val beregning2 = BeregningFactory.ny(
+        val beregning2 = BeregningFactory(clock = fixedClock).ny(
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
@@ -390,7 +391,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     fun `fradrag må være innenfor beregningsperioden`() {
         val beregningsperiode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
         assertThrows<IllegalArgumentException> {
-            BeregningFactory.ny(
+            BeregningFactory(clock = fixedClock).ny(
                 periode = beregningsperiode,
                 sats = Sats.HØY,
                 fradrag = listOf(
@@ -407,7 +408,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         }
 
         assertThrows<IllegalArgumentException> {
-            BeregningFactory.ny(
+            BeregningFactory(clock = fixedClock).ny(
                 periode = beregningsperiode,
                 sats = Sats.HØY,
                 fradrag = listOf(
@@ -438,7 +439,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     @Test
     fun `sosialstønad som gir beløp under minstenivå leder ikke til 0-beløp`() {
         val periode = Periode.create(1.juni(2021), 31.desember(2021))
-        val beregning = BeregningFactory.ny(
+        val beregning = BeregningFactory(clock = fixedClock).ny(
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
@@ -467,7 +468,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     @Test
     fun `sosialstønad for EPS som gir beløp under minstenivå leder ikke til 0-beløp`() {
         val periode = Periode.create(1.juni(2021), 31.desember(2021))
-        val beregning = BeregningFactory.ny(
+        val beregning = BeregningFactory(clock = fixedClock).ny(
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(
@@ -495,7 +496,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
 
     @Test
     fun `merknader`() {
-        BeregningFactory.ny(
+        BeregningFactory(clock = fixedClock).ny(
             periode = periode2021,
             sats = Sats.HØY,
             fradrag = listOf(

@@ -39,5 +39,14 @@ enum class Sats(val grunnbeløp: Grunnbeløp) {
                 is Grunnlag.Bosituasjon.Fullstendig.Enslig -> HØY
             }
         }
+
+        fun Grunnlag.Bosituasjon.utledSats(): Sats? {
+            return when (this) {
+                is Grunnlag.Bosituasjon.Fullstendig -> utledSats()
+                // I disse 2 tilfellene kan vi ikke utlede satsen
+                is Grunnlag.Bosituasjon.Ufullstendig.HarEps,
+                is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps -> null
+            }
+        }
     }
 }

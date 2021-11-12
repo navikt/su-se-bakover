@@ -54,13 +54,6 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
             status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
             begrunnelse = personligOppmøte?.begrunnelse,
         ),
-        bosituasjon = Behandlingsinformasjon.Bosituasjon(
-            ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-            delerBolig = bosituasjon?.delerBolig ?: false,
-            ektemakeEllerSamboerUførFlyktning = bosituasjon?.ektemakeEllerSamboerUførFlyktning,
-            begrunnelse = bosituasjon?.begrunnelse,
-        ),
-        ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
     )
 
 @TestOnly
@@ -111,13 +104,6 @@ fun Behandlingsinformasjon.withAlleVilkårAvslått() =
             status = Behandlingsinformasjon.PersonligOppmøte.Status.IkkeMøttPersonlig,
             begrunnelse = personligOppmøte?.begrunnelse,
         ),
-        bosituasjon = Behandlingsinformasjon.Bosituasjon(
-            ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-            delerBolig = bosituasjon?.delerBolig ?: false,
-            ektemakeEllerSamboerUførFlyktning = bosituasjon?.ektemakeEllerSamboerUførFlyktning,
-            begrunnelse = bosituasjon?.begrunnelse,
-        ),
-        ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
     )
 
 @TestOnly
@@ -143,6 +129,4 @@ fun withVilkårIkkeVurdert() =
         oppholdIUtlandet = null,
         formue = null,
         personligOppmøte = null,
-        bosituasjon = null,
-        ektefelle = null,
     )

@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import org.junit.jupiter.api.Test
@@ -83,7 +84,11 @@ internal class EnsligBorMedVoksneBeregningTest {
             ),
         )
 
-        BeregningStrategy.BorMedVoksne.beregn(beregningsgrunnlag, "bor med voksen").let {
+        BeregningStrategy.BorMedVoksne.beregn(
+            beregningsgrunnlag = beregningsgrunnlag,
+            clock = fixedClock,
+            begrunnelse = "bor med voksen",
+        ).let {
             it.getSumYtelse() shouldBe 155892
             it.getSumFradrag() shouldBe (arbeidsinntektPrÅr + folketrygdPrÅr + utenlandskInntektPrÅr).plusOrMinus(0.5)
             it.getMånedsberegninger().forEach {

@@ -123,12 +123,13 @@ internal class UtbetalingsstrategiNyTest {
 
         val eksisterendeUtbetalinger = listOf(
             Utbetaling.OversendtUtbetaling.MedKvittering(
+                opprettet = fixedTidspunkt,
                 sakId = sakId,
                 saksnummer = saksnummer,
                 simulering = Simulering(
                     gjelderId = fnr,
                     gjelderNavn = "navn",
-                    datoBeregnet = idag(),
+                    datoBeregnet = idag(fixedClock),
                     nettoBeløp = 0,
                     periodeList = listOf(),
                 ),
@@ -223,7 +224,7 @@ internal class UtbetalingsstrategiNyTest {
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "navn",
-                datoBeregnet = idag(),
+                datoBeregnet = idag(fixedClock),
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
@@ -243,7 +244,7 @@ internal class UtbetalingsstrategiNyTest {
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "navn",
-                datoBeregnet = idag(),
+                datoBeregnet = idag(fixedClock),
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
@@ -263,7 +264,7 @@ internal class UtbetalingsstrategiNyTest {
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "navn",
-                datoBeregnet = idag(),
+                datoBeregnet = idag(fixedClock),
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
@@ -282,7 +283,7 @@ internal class UtbetalingsstrategiNyTest {
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "navn",
-                datoBeregnet = idag(),
+                datoBeregnet = idag(fixedClock),
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
@@ -363,7 +364,7 @@ internal class UtbetalingsstrategiNyTest {
             fnr = fnr,
             utbetalinger = emptyList(),
             behandler = NavIdentBruker.Saksbehandler("Z123"),
-            beregning = BeregningFactory.ny(
+            beregning = BeregningFactory(clock = fixedClock).ny(
                 periode = Periode.create(1.januar(2020), 30.april(2020)),
                 sats = Sats.HØY,
                 fradrag = listOf(
@@ -532,7 +533,7 @@ internal class UtbetalingsstrategiNyTest {
                 utbetalinger = listOf(),
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
                 clock = fixedClock,
-                beregning = BeregningFactory.ny(
+                beregning = BeregningFactory(clock = fixedClock).ny(
                     periode = periode,
                     sats = Sats.HØY,
                     fradrag = listOf(
@@ -680,7 +681,7 @@ internal class UtbetalingsstrategiNyTest {
             utbetalinger = listOf(),
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             clock = fixedClock,
-            beregning = BeregningFactory.ny(
+            beregning = BeregningFactory(clock = fixedClock).ny(
                 periode = periode,
                 sats = Sats.HØY,
                 fradrag = listOf(
@@ -772,7 +773,7 @@ internal class UtbetalingsstrategiNyTest {
             utbetalinger = listOf(),
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             clock = fixedClock,
-            beregning = BeregningFactory.ny(
+            beregning = BeregningFactory(clock = fixedClock).ny(
                 periode = periode,
                 sats = Sats.HØY,
                 fradrag = listOf(
@@ -997,7 +998,7 @@ internal class UtbetalingsstrategiNyTest {
         )
     }
 
-    private fun createBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate) = BeregningFactory.ny(
+    private fun createBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate) = BeregningFactory(clock = fixedClock).ny(
         periode = Periode.create(fraOgMed, tilOgMed),
         sats = Sats.HØY,
         fradrag = listOf(

@@ -198,7 +198,12 @@ fun søknadsbehandlingSimulert(
         beregning = beregning,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling =
-            søknadsbehandling.tilSimulert(simulering = simuleringNy(eksisterendeUtbetalinger = sak.utbetalinger))
+            søknadsbehandling.tilSimulert(
+                simulering = simuleringNy(
+                    eksisterendeUtbetalinger = sak.utbetalinger,
+                    beregning = beregning,
+                ),
+            )
         Pair(
             sak.copy(
                 søknadsbehandlinger = nonEmptyListOf(oppdatertSøknadsbehandling),
@@ -328,7 +333,7 @@ fun søknadsbehandlingIverksattInnvilget(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    beregning: Beregning = beregning(),
+    beregning: Beregning = beregning(periode = stønadsperiode.periode),
 ): Pair<Sak, Søknadsbehandling.Iverksatt.Innvilget> {
     return søknadsbehandlingTilAttesteringInnvilget(
         saksnummer = saksnummer,

@@ -30,11 +30,13 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.søknadsbehandling.simulering
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.gjenopptakUtbetalingForSimulering
 import no.nav.su.se.bakover.test.periode2021
+import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simuleringGjenopptak
@@ -50,7 +52,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class GjenopptaUtbetalingerServiceTest {
@@ -58,11 +60,14 @@ internal class GjenopptaUtbetalingerServiceTest {
     @Test
     fun `Utbetalinger som er stanset blir startet igjen`() {
         val periode = Periode.create(
-            fraOgMed = LocalDate.now(no.nav.su.se.bakover.test.fixedClock).plusMonths(1).startOfMonth(),
+            fraOgMed = fixedLocalDate.plusMonths(1).startOfMonth(),
             tilOgMed = periode2021.tilOgMed,
         )
 
-        val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode)
+        val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            periode = periode,
+            clock = fixedClock,
+        )
 
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -79,6 +84,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             fnr = sak.fnr,
             sakId = sak.id,
             saksnummer = sak.saksnummer,
+            clock = fixedClock.plus(1, ChronoUnit.SECONDS),
         )
 
         val simuleringClientMock = mock<SimuleringClient> {
@@ -90,7 +96,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             utbetalingPublisher = utbetalingPublisherMock,
             sakService = sakServiceMock,
             simuleringClient = simuleringClientMock,
-            clock = fixedClock,
+            clock = fixedClock.plus(2, ChronoUnit.SECONDS),
         ).gjenopptaUtbetalinger(
             sakId = sak.id,
             attestant = saksbehandler,
@@ -206,7 +212,9 @@ internal class GjenopptaUtbetalingerServiceTest {
 
     @Test
     fun `Utbetaling feilet`() {
-        val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak()
+        val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            clock = fixedClock
+        )
 
         val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
@@ -214,6 +222,7 @@ internal class GjenopptaUtbetalingerServiceTest {
 
         val simulering = simuleringGjenopptak(
             eksisterendeUtbetalinger = sak.utbetalinger,
+            clock = fixedClock.plus(2, ChronoUnit.SECONDS),
         )
         val simuleringClientMock = mock<SimuleringClient> {
             on { simulerUtbetaling(any()) } doReturn simulering.right()
@@ -232,7 +241,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             utbetalingPublisher = utbetalingPublisherMock,
             sakService = sakServiceMock,
             simuleringClient = simuleringClientMock,
-            clock = fixedClock,
+            clock = fixedClock.plus(3, ChronoUnit.SECONDS),
         ).gjenopptaUtbetalinger(
             sakId = sak.id,
             attestant = saksbehandler,
@@ -265,7 +274,7 @@ internal class GjenopptaUtbetalingerServiceTest {
         val simuleringMedFeil = Simulering(
             gjelderId = fnr,
             gjelderNavn = "navn",
-            datoBeregnet = idag(),
+            datoBeregnet = idag(fixedClock),
             nettoBeløp = 15000,
             periodeList = listOf(
                 SimulertPeriode(

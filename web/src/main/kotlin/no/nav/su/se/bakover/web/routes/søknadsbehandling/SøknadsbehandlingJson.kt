@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.beregning.Sats.Companion.utledSats
 import no.nav.su.se.bakover.domain.grunnlag.throwIfMultiple
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -17,13 +18,20 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import java.time.format.DateTimeFormatter
 
 internal fun Søknadsbehandling.toJson(): BehandlingJson {
+
+    val behandlingsinformasjonJson = behandlingsinformasjon.toJson(
+        // TODO jah: Fjern behov for borSøkerMedEPS og sats fra behandlingsinformasjon i frontend, deretter her.
+        borSøkerMedEPS = this.grunnlagsdata.bosituasjon.singleOrNull()?.harEktefelle(),
+        sats = this.grunnlagsdata.bosituasjon.singleOrNull()?.utledSats(),
+    )
     return when (this) {
+
         is Søknadsbehandling.Vilkårsvurdert -> BehandlingJson(
             id = id.toString(),
             opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
             sakId = sakId,
             søknad = søknad.toJson(),
-            behandlingsinformasjon = behandlingsinformasjon.toJson(),
+            behandlingsinformasjon = behandlingsinformasjonJson,
             status = status.toString(),
             attesteringer = attesteringer.toJson(),
             saksbehandler = null,
@@ -40,7 +48,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = null,
@@ -58,7 +66,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = null,
@@ -76,7 +84,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
@@ -94,7 +102,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
@@ -112,7 +120,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
@@ -130,7 +138,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.hentAttesteringer().map {
                     when (it) {
@@ -164,7 +172,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
@@ -182,7 +190,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
@@ -200,7 +208,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
@@ -218,7 +226,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),
@@ -236,7 +244,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
                 sakId = sakId,
                 søknad = søknad.toJson(),
-                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
                 attesteringer = attesteringer.toJson(),
                 saksbehandler = saksbehandler.toString(),

@@ -93,7 +93,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
-import no.nav.su.se.bakover.test.iverksattGjenopptakelseAvytelseFraVedtakStansAvYtelse
+import no.nav.su.se.bakover.test.iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
@@ -192,6 +192,7 @@ internal class RevurderingServiceImplTest {
         val utbetalingMock = mock<Utbetaling> {
             on { utbetalingslinjer } doReturn nonEmptyListOf(
                 Utbetalingslinje.Ny(
+                    opprettet = fixedTidspunkt,
                     fraOgMed = tilRevurdering.periode.fraOgMed,
                     tilOgMed = tilRevurdering.periode.tilOgMed,
                     forrigeUtbetalingslinjeId = null,
@@ -334,6 +335,7 @@ internal class RevurderingServiceImplTest {
         val utbetalingMock = mock<Utbetaling> {
             on { utbetalingslinjer } doReturn nonEmptyListOf(
                 Utbetalingslinje.Ny(
+                    opprettet = fixedTidspunkt,
                     fraOgMed = tilRevurdering.periode.fraOgMed,
                     tilOgMed = tilRevurdering.periode.tilOgMed,
                     forrigeUtbetalingslinjeId = null,
@@ -690,6 +692,7 @@ internal class RevurderingServiceImplTest {
         val utbetalingMock = mock<Utbetaling> {
             on { utbetalingslinjer } doReturn nonEmptyListOf(
                 Utbetalingslinje.Ny(
+                    opprettet = fixedTidspunkt,
                     fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
                     tilOgMed = periodeNesteMånedOgTreMånederFram.tilOgMed,
                     forrigeUtbetalingslinjeId = null,
@@ -1591,6 +1594,7 @@ internal class RevurderingServiceImplTest {
         val utbetalingMock = mock<Utbetaling> {
             on { utbetalingslinjer } doReturn nonEmptyListOf(
                 Utbetalingslinje.Ny(
+                    opprettet = fixedTidspunkt,
                     fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
                     tilOgMed = periodeNesteMånedOgTreMånederFram.tilOgMed,
                     forrigeUtbetalingslinjeId = null,
@@ -1641,6 +1645,7 @@ internal class RevurderingServiceImplTest {
         val utbetalingMock = mock<Utbetaling> {
             on { utbetalingslinjer } doReturn nonEmptyListOf(
                 Utbetalingslinje.Ny(
+                    opprettet = fixedTidspunkt,
                     fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
                     tilOgMed = periodeNesteMånedOgTreMånederFram.tilOgMed,
                     forrigeUtbetalingslinjeId = null,
@@ -2120,7 +2125,7 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `får feil dersom man prøver å avslutte en gjenoppta-revurdering som er iverksatt`() {
-        val gjenopptaYtelse = iverksattGjenopptakelseAvytelseFraVedtakStansAvYtelse().second
+        val gjenopptaYtelse = iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse().second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn gjenopptaYtelse

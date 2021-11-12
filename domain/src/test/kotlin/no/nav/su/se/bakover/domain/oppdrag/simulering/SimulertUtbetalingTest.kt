@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 
@@ -14,7 +15,7 @@ internal class SimulertUtbetalingTest {
     private val simulertUtbetaling = SimulertUtbetaling(
         fagSystemId = UUID30.randomUUID().toString(),
         feilkonto = false,
-        forfall = idag(),
+        forfall = idag(fixedClock),
         utbetalesTilId = Fnr.generer(),
         utbetalesTilNavn = "MYGG LUR",
         detaljer = emptyList(),

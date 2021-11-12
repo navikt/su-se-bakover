@@ -36,7 +36,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
-import no.nav.su.se.bakover.test.iverksattGjenopptakelseAvytelseFraVedtakStansAvYtelse
+import no.nav.su.se.bakover.test.iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Nested
@@ -476,7 +476,7 @@ internal class BehandlingStatistikkMapperTest {
 
     @Test
     fun `mapper gjenopptak`() {
-        val gjenopptak = iverksattGjenopptakelseAvytelseFraVedtakStansAvYtelse(periode2021).second
+        val gjenopptak = iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse(periode2021).second
         BehandlingStatistikkMapper(fixedClock).map(gjenopptak) shouldBe Statistikk.Behandling(
             funksjonellTid = gjenopptak.opprettet,
             tekniskTid = fixedTidspunkt,
@@ -520,7 +520,7 @@ internal class BehandlingStatistikkMapperTest {
 
     @Test
     fun `mapper stans`() {
-        val stans = iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode2021).second
+        val stans = iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = periode2021).second
         BehandlingStatistikkMapper(fixedClock).map(stans) shouldBe Statistikk.Behandling(
             funksjonellTid = stans.opprettet,
             tekniskTid = fixedTidspunkt,

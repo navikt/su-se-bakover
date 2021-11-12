@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -215,7 +216,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         fradragStrategy: FradragStrategy = FradragStrategy.Enslig,
     ): Beregning {
         val periode = Periode.create(fradrag.minOf { it.periode.fraOgMed }, fradrag.maxOf { it.periode.tilOgMed })
-        return BeregningFactory.ny(
+        return BeregningFactory(clock = fixedClock).ny(
             periode = periode,
             sats = Sats.HØY,
             fradrag = listOf(

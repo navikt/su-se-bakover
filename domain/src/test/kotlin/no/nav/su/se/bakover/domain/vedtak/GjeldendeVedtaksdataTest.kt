@@ -121,7 +121,7 @@ internal class GjeldendeVedtaksdataTest {
             oppgaveId = OppgaveId(value = "oppgaveId"),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
             fnr = Fnr.generer(),
-            beregning = BeregningFactory.ny(
+            beregning = BeregningFactory(clock = fixedClock).ny(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 periode = periode,
@@ -202,7 +202,7 @@ internal class GjeldendeVedtaksdataTest {
                 årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 begrunnelse = Revurderingsårsak.Begrunnelse.create(value = "beg"),
             ),
-            beregning = BeregningFactory.ny(
+            beregning = BeregningFactory(clock = fixedClock).ny(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
                 periode = periode,

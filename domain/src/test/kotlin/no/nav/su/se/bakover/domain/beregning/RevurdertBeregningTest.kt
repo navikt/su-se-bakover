@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import org.junit.jupiter.api.Test
@@ -29,7 +30,7 @@ internal class RevurdertBeregningTest {
     fun `en måned stønaden ikke endrer seg`() {
         listOf(true, false).forEach {
             val actual = RevurdertBeregning.fraSøknadsbehandling(
-                vedtattBeregning = BeregningFactory.ny(
+                vedtattBeregning = BeregningFactory(clock = fixedClock).ny(
                     periode = januar,
                     sats = Sats.HØY,
                     fradrag = listOf(
@@ -51,6 +52,7 @@ internal class RevurdertBeregningTest {
                 ),
                 beregningsstrategi = BeregningStrategy.BorAlene,
                 beregnMedVirkningNesteMånedDersomStønadenGårNed = it,
+                clock = fixedClock,
             ).orNull()!!
 
             assertSoftly {
@@ -72,7 +74,7 @@ internal class RevurdertBeregningTest {
     fun `en måned stønaden blir satt opp`() {
         listOf(true, false).forEach {
             val actual = RevurdertBeregning.fraSøknadsbehandling(
-                vedtattBeregning = BeregningFactory.ny(
+                vedtattBeregning = BeregningFactory(clock = fixedClock).ny(
                     periode = januar,
                     sats = Sats.HØY,
                     fradrag = listOf(
@@ -94,6 +96,7 @@ internal class RevurdertBeregningTest {
                 ),
                 beregningsstrategi = BeregningStrategy.BorAlene,
                 beregnMedVirkningNesteMånedDersomStønadenGårNed = it,
+                clock = fixedClock,
             ).orNull()!!
 
             assertSoftly {
@@ -135,6 +138,7 @@ internal class RevurdertBeregningTest {
                 ),
                 beregningsstrategi = BeregningStrategy.BorAlene,
                 beregnMedVirkningNesteMånedDersomStønadenGårNed = it,
+                clock = fixedClock,
             ).orNull()!!
 
             assertSoftly {
@@ -162,7 +166,7 @@ internal class RevurdertBeregningTest {
     @Test
     fun `Kan revurdere siste måned dersom stønaden går ned hvis beregnMedVirkningNesteMånedDersomStønadenGårNed false`() {
         val actual = RevurdertBeregning.fraSøknadsbehandling(
-            vedtattBeregning = BeregningFactory.ny(
+            vedtattBeregning = BeregningFactory(clock = fixedClock).ny(
                 periode = januar,
                 sats = Sats.HØY,
                 fradrag = listOf(
@@ -184,6 +188,7 @@ internal class RevurdertBeregningTest {
             ),
             beregningsstrategi = BeregningStrategy.BorAlene,
             beregnMedVirkningNesteMånedDersomStønadenGårNed = false,
+            clock = fixedClock,
         ).orNull()!!
 
         assertSoftly {
@@ -209,7 +214,7 @@ internal class RevurdertBeregningTest {
     @Test
     fun `Kan ikke revurdere kun siste måned dersom stønaden går ned hvis beregnMedVirkningNesteMånedDersomStønadenGårNed true`() {
         val actual = RevurdertBeregning.fraSøknadsbehandling(
-            vedtattBeregning = BeregningFactory.ny(
+            vedtattBeregning = BeregningFactory(clock = fixedClock).ny(
                 periode = januar,
                 sats = Sats.HØY,
                 fradrag = listOf(
@@ -231,6 +236,7 @@ internal class RevurdertBeregningTest {
             ),
             beregningsstrategi = BeregningStrategy.BorAlene,
             beregnMedVirkningNesteMånedDersomStønadenGårNed = true,
+            clock = fixedClock,
         )
 
         actual.shouldBe(KanIkkeVelgeSisteMånedVedNedgangIStønaden.left())
@@ -240,7 +246,7 @@ internal class RevurdertBeregningTest {
     fun `to måneder stønaden blir satt ned hopper over den første måneden`() {
         val periode = Periode.create(1.januar(2021), 28.februar(2021))
         val actual = RevurdertBeregning.fraSøknadsbehandling(
-            vedtattBeregning = BeregningFactory.ny(
+            vedtattBeregning = BeregningFactory(clock = fixedClock).ny(
                 periode = periode,
                 sats = Sats.HØY,
                 fradrag = listOf(
@@ -277,6 +283,7 @@ internal class RevurdertBeregningTest {
             ),
             beregningsstrategi = BeregningStrategy.BorAlene,
             beregnMedVirkningNesteMånedDersomStønadenGårNed = true,
+            clock = fixedClock,
         ).orNull()!!
 
         assertSoftly {

@@ -17,9 +17,12 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.plus
 import org.junit.jupiter.api.Test
-import java.time.Clock
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import kotlin.math.abs
 
 internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetalingTest {
@@ -304,22 +307,27 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
         val første = lagUtbetaling(
             månedsbeløp = 5000,
             periode = Periode.create(1.januar(2021), 31.desember(2021)),
+            utbetalingsIndex = 0,
         )
         val stans = lagStans(
             stansFraOgMedDato = 1.februar(2021),
             forrigeUtbetaling = første,
+            utbetalingsIndex = 1,
         )
         val reaktivering = lagReaktivert(
             reaktiverDato = 1.mars(2021),
             forrigeUtbetaling = stans,
+            utbetalingsIndex = 2,
         )
         val andre = lagUtbetaling(
             månedsbeløp = 10000,
             periode = Periode.create(1.mai(2021), 31.desember(2021)),
+            utbetalingsIndex = 3,
         )
         val opphør = lagOpphør(
             opphørsdato = 1.desember(2021),
             forrigeUtbetaling = andre,
+            utbetalingsIndex = 4,
         )
 
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
@@ -393,8 +401,9 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
         ).resultat shouldBe true
     }
 
-    private fun lagUtbetaling(månedsbeløp: Int, periode: Periode = beregningsperiode) =
+    private fun lagUtbetaling(månedsbeløp: Int, periode: Periode = beregningsperiode, utbetalingsIndex: Int = 0) =
         Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt.plus(utbetalingsIndex.toLong(), ChronoUnit.SECONDS),
             fraOgMed = periode.fraOgMed,
             tilOgMed = periode.tilOgMed,
             forrigeUtbetalingslinjeId = null,
@@ -405,31 +414,34 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
     private fun lagOpphør(
         opphørsdato: LocalDate = beregningsperiode.fraOgMed,
         forrigeUtbetaling: Utbetalingslinje,
+        utbetalingsIndex: Int = 0,
     ) =
         Utbetalingslinje.Endring.Opphør(
             utbetalingslinje = forrigeUtbetaling,
             virkningstidspunkt = opphørsdato,
-            clock = Clock.systemUTC(),
+            clock = fixedClock.plus(utbetalingsIndex.toLong(), ChronoUnit.SECONDS),
         )
 
     private fun lagStans(
         stansFraOgMedDato: LocalDate = beregningsperiode.fraOgMed,
         forrigeUtbetaling: Utbetalingslinje,
+        utbetalingsIndex: Int = 0,
     ) =
         Utbetalingslinje.Endring.Stans(
             utbetalingslinje = forrigeUtbetaling,
             virkningstidspunkt = stansFraOgMedDato,
-            clock = Clock.systemUTC(),
+            clock = fixedClock.plus(utbetalingsIndex.toLong(), ChronoUnit.SECONDS),
         )
 
     private fun lagReaktivert(
         reaktiverDato: LocalDate = beregningsperiode.fraOgMed,
         forrigeUtbetaling: Utbetalingslinje,
+        utbetalingsIndex: Int = 0,
     ) =
         Utbetalingslinje.Endring.Reaktivering(
             utbetalingslinje = forrigeUtbetaling,
             virkningstidspunkt = reaktiverDato,
-            clock = Clock.systemUTC(),
+            clock = fixedClock.plus(utbetalingsIndex.toLong(), ChronoUnit.SECONDS),
         )
 
     private fun lagBeregning(månedsbeløp: Int): Beregning {
@@ -448,7 +460,7 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
                 tilhører = FradragTilhører.BRUKER,
             )
         }
-        return BeregningFactory.ny(
+        return BeregningFactory(clock = fixedClock).ny(
             periode = periodeBeløpMap.map { it.first }
                 .let { perioder -> Periode.create(perioder.minOf { it.fraOgMed }, perioder.maxOf { it.tilOgMed }) },
             sats = Sats.HØY,

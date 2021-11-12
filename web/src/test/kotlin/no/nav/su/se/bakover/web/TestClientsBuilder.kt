@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.client.stubs.person.MicrosoftGraphApiClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.test.fixedClock
 import org.mockito.kotlin.mock
 
 object TestClientsBuilder : ClientsBuilder {
@@ -28,7 +29,7 @@ object TestClientsBuilder : ClientsBuilder {
         dokArkiv = DokArkivStub,
         oppgaveClient = OppgaveClientStub,
         kodeverk = mock(),
-        simuleringClient = SimuleringStub,
+        simuleringClient = SimuleringStub(fixedClock),
         utbetalingPublisher = UtbetalingStub,
         dokDistFordeling = DokDistFordelingStub,
         avstemmingPublisher = AvstemmingStub,

@@ -15,12 +15,14 @@ import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest
 import org.slf4j.LoggerFactory
 import java.net.SocketException
+import java.time.Clock
 import javax.net.ssl.SSLException
 import javax.xml.ws.WebServiceException
 import javax.xml.ws.soap.SOAPFaultException
 
 internal class SimuleringSoapClient(
     private val simulerFpService: SimulerFpService,
+    private val clock: Clock,
 ) : SimuleringClient {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -31,8 +33,8 @@ internal class SimuleringSoapClient(
         val simulerRequest = SimuleringRequestBuilder(utbetaling).build()
         return try {
             simulerFpService.simulerBeregning(simulerRequest)?.response?.let {
-                SimuleringResponseMapper(it).simulering.right()
-            } ?: SimuleringResponseMapper(utbetaling, simulerRequest.request.simuleringsPeriode).simulering.right()
+                SimuleringResponseMapper(it, clock).simulering.right()
+            } ?: SimuleringResponseMapper(utbetaling, simulerRequest.request.simuleringsPeriode, clock).simulering.right()
         } catch (e: SimulerBeregningFeilUnderBehandling) {
             log.warn("Funksjonell feil ved simulering, se sikkerlogg for detaljer", e)
             sikkerLogg.warn(

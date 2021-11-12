@@ -189,31 +189,4 @@ class GrunnlagBosituasjonEpsRoutesTest {
             }
         }
     }
-
-    @Test
-    fun `behandling har ugyldig tilstand`() {
-        val søknadsbehandlingServiceMock = mock<SøknadsbehandlingService> {
-            on { leggTilBosituasjonEpsgrunnlag(any()) } doReturn SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.UgyldigTilstand(
-                fra = Søknadsbehandling.TilAttestering.Avslag.UtenBeregning::class,
-                til = Søknadsbehandling.Vilkårsvurdert::class,
-            ).left()
-        }
-
-        withTestApplication(
-            {
-                testSusebakover(services = services.copy(søknadsbehandling = søknadsbehandlingServiceMock))
-            },
-        ) {
-            defaultRequest(
-                HttpMethod.Post,
-                "$sakPath/${søknadsbehandling.sakId}/behandlinger/${søknadsbehandling.id}/grunnlag/bosituasjon/eps",
-                listOf(Brukerrolle.Saksbehandler),
-            ) {
-                setBody("""{ "epsFnr": "$fnr"}""".trimIndent())
-            }.apply {
-                response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain ("ugyldig_tilstand")
-            }
-        }
-    }
 }
