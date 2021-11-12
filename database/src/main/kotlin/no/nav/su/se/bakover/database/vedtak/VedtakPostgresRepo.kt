@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSessio
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
-import no.nav.su.se.bakover.database.beregning.serialiserBeregning
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -302,11 +301,11 @@ internal class VedtakPostgresRepo(
                         is Vedtak.EndringIYtelse.StansAvYtelse ->
                             null
                         is Vedtak.EndringIYtelse.InnvilgetRevurdering ->
-                            serialiserBeregning(vedtak.beregning)
+                            vedtak.beregning
                         is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling ->
-                            serialiserBeregning(vedtak.beregning)
+                            vedtak.beregning
                         is Vedtak.EndringIYtelse.OpphørtRevurdering ->
-                            serialiserBeregning(vedtak.beregning)
+                            vedtak.beregning
                     },
                     "vedtaktype" to when (vedtak) {
                         is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> VedtakType.GJENOPPTAK_AV_YTELSE
@@ -361,7 +360,7 @@ internal class VedtakPostgresRepo(
                     "tilOgMed" to vedtak.periode.tilOgMed,
                     "saksbehandler" to vedtak.saksbehandler,
                     "attestant" to vedtak.attestant,
-                    "beregning" to beregning?.let { serialiserBeregning(it) },
+                    "beregning" to beregning,
                     "vedtaktype" to VedtakType.AVSLAG,
                     "avslagsgrunner" to vedtak.avslagsgrunner.serialize(),
                 ),
@@ -406,7 +405,7 @@ internal class VedtakPostgresRepo(
                     "attestant" to vedtak.attestant,
                     "utbetalingid" to null,
                     "simulering" to null,
-                    "beregning" to serialiserBeregning(vedtak.beregning),
+                    "beregning" to vedtak.beregning,
                     "vedtaktype" to VedtakType.INGEN_ENDRING,
                 ),
                 session,
