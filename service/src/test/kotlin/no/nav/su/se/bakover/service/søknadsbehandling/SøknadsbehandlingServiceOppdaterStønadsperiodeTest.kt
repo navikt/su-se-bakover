@@ -137,7 +137,7 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
 
             verify(it.søknadsbehandlingRepo).hent(uavklart.id)
             verify(it.sakService).hentSak(sak.id)
-            verify(it.søknadsbehandlingRepo).defaultSessionContext()
+            verify(it.søknadsbehandlingRepo).defaultTransactionContext()
             verify(it.søknadsbehandlingRepo).lagre(
                 argThat {
                     it shouldBe response

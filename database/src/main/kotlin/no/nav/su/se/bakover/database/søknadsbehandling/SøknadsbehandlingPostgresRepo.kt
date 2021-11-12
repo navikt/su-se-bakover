@@ -187,8 +187,12 @@ internal class SøknadsbehandlingPostgresRepo(
         }
     }
 
-    override fun defaultSessionContext(): TransactionContext {
+    override fun defaultTransactionContext(): TransactionContext {
         return sessionFactory.newTransactionContext()
+    }
+
+    override fun defaultSessionContext(): SessionContext {
+        return sessionFactory.newSessionContext()
     }
 
     internal fun hent(id: UUID, session: Session): Søknadsbehandling? {
@@ -225,7 +229,7 @@ internal class SøknadsbehandlingPostgresRepo(
 
         val vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
             uføre = uføreVilkårsvurderingRepo.hent(behandlingId, session),
-            oppholdIUtlandet = oppholdIUtlandetRepo.hent(behandlingId, session)
+            oppholdIUtlandet = oppholdIUtlandetRepo.hent(behandlingId, session),
         ).let { vv ->
             stønadsperiode?.let {
                 vv.oppdater(

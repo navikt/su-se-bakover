@@ -187,7 +187,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         verify(søknadsbehandlingRepoMock, Times(2)).hent(argThat { it shouldBe behandlingId })
-        verify(søknadsbehandlingRepoMock).defaultSessionContext()
+        verify(søknadsbehandlingRepoMock).defaultTransactionContext()
         verify(søknadsbehandlingRepoMock).lagre(any(), anyOrNull()) // Testene til søknadsbehandling vilkårsvurder dekker dette
         verify(grunnlagServiceMock).lagreBosituasjongrunnlag(
             argThat { it shouldBe behandlingId },
@@ -351,7 +351,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         verify(søknadsbehandlingRepoMock, Times(2)).hent(argThat { it shouldBe behandlingId })
-        verify(søknadsbehandlingRepoMock).defaultSessionContext()
+        verify(søknadsbehandlingRepoMock).defaultTransactionContext()
         verify(søknadsbehandlingRepoMock).lagre(any(), anyOrNull())
         verify(grunnlagServiceMock).lagreBosituasjongrunnlag(
             argThat { it shouldBe behandlingId },

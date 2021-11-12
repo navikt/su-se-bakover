@@ -88,7 +88,7 @@ class SøknadsbehandlingLeggTilOppholdIUtlandetTest {
         SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn innvilget
-                on { defaultSessionContext() } doReturn TestSessionFactory.transactionContext
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
         ).let { serviceAndMocks ->
             serviceAndMocks.søknadsbehandlingService.leggTilOppholdIUtlandet(
@@ -104,7 +104,7 @@ class SøknadsbehandlingLeggTilOppholdIUtlandetTest {
                 argThat { it shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>() },
                 argThat { it shouldBe TestSessionFactory.transactionContext },
             )
-            verify(serviceAndMocks.søknadsbehandlingRepo).defaultSessionContext()
+            verify(serviceAndMocks.søknadsbehandlingRepo).defaultTransactionContext()
             serviceAndMocks.verifyNoMoreInteractions()
         }
     }
@@ -115,7 +115,7 @@ class SøknadsbehandlingLeggTilOppholdIUtlandetTest {
         SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn innvilget
-                on { defaultSessionContext() } doReturn TestSessionFactory.transactionContext
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
         ).let { serviceAndMocks ->
             serviceAndMocks.søknadsbehandlingService.leggTilOppholdIUtlandet(
@@ -131,7 +131,7 @@ class SøknadsbehandlingLeggTilOppholdIUtlandetTest {
                 argThat { it shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Avslag>() },
                 argThat { it shouldBe TestSessionFactory.transactionContext },
             )
-            verify(serviceAndMocks.søknadsbehandlingRepo).defaultSessionContext()
+            verify(serviceAndMocks.søknadsbehandlingRepo).defaultTransactionContext()
             serviceAndMocks.verifyNoMoreInteractions()
         }
     }

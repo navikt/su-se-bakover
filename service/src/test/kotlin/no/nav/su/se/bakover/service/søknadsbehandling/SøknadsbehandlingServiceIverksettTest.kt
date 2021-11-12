@@ -340,7 +340,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 simulering = argThat { it shouldBe simulering },
                 uføregrunnlag = argThat { it shouldBe emptyList() },
             )
-            verify(søknadsbehandlingRepoMock).defaultSessionContext()
+            verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(eq(expected), anyOrNull())
             verify(vedtakRepoMock).lagre(
                 argThat {
@@ -392,7 +392,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             ) {
                 verify(it.søknadsbehandlingRepo).hent(avslagTilAttestering.id)
                 verify(it.brevService).lagDokument(argThat { it shouldBe beOfType<Vedtak.Avslag.AvslagBeregning>() })
-                verify(it.søknadsbehandlingRepo).defaultSessionContext()
+                verify(it.søknadsbehandlingRepo).defaultTransactionContext()
                 verify(it.søknadsbehandlingRepo).lagre(eq(expectedAvslag), anyOrNull())
                 verify(it.vedtakRepo).lagre(argThat { it is Vedtak.Avslag.AvslagBeregning })
                 verify(it.brevService).lagreDokument(

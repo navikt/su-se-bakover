@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
@@ -86,7 +85,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
 
         inOrder(søknadsbehandlingRepoMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilget.id })
-            verify(søknadsbehandlingRepoMock).defaultSessionContext()
+            verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(eq(response), anyOrNull())
         }
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)
@@ -127,7 +126,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
 
         inOrder(søknadsbehandlingRepoMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe avslag.id })
-            verify(søknadsbehandlingRepoMock).defaultSessionContext()
+            verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(eq(response), anyOrNull())
         }
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)
