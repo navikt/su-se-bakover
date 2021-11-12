@@ -57,19 +57,20 @@ internal class UtbetalingServiceImpl(
         kvittering: Kvittering,
     ): Either<FantIkkeUtbetaling, Utbetaling.OversendtUtbetaling.MedKvittering> {
         return utbetalingRepo.hentUtbetaling(avstemmingsnøkkel)
-            ?.let {
-                when (it) {
+            ?.let { utbetaling ->
+                when (utbetaling) {
                     is Utbetaling.OversendtUtbetaling.MedKvittering -> {
-                        log.info("Kvittering er allerede mottatt for utbetaling: ${it.id}")
-                        it
+                        log.info("Kvittering er allerede mottatt for utbetaling: ${utbetaling.id}")
+                        utbetaling
                     }
                     is Utbetaling.OversendtUtbetaling.UtenKvittering -> {
-                        it.toKvittertUtbetaling(kvittering).also {
+                        log.info("Oppdaterer utbetaling med kvittering fra Oppdrag")
+                        utbetaling.toKvittertUtbetaling(kvittering).also {
                             utbetalingRepo.oppdaterMedKvittering(it)
                         }
                     }
                 }.right()
-            } ?: FantIkkeUtbetaling.left()
+            } ?: FantIkkeUtbetaling.left().also { log.warn("Fant ikke utbetaling for avstemmingsnøkkel $avstemmingsnøkkel") }
     }
 
     override fun hentGjeldendeUtbetaling(

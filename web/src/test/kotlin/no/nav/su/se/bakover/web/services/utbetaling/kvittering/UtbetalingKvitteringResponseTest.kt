@@ -22,7 +22,7 @@ internal class UtbetalingKvitteringResponseTest {
                 mqCompletionKode = null,
                 mqReasonKode = null,
                 programId = null,
-                sectionNavn = null
+                sectionNavn = null,
             ),
             oppdragRequest = UtbetalingRequest.OppdragRequest(
                 kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING,
@@ -36,14 +36,14 @@ internal class UtbetalingKvitteringResponseTest {
                 avstemming = UtbetalingRequest.Avstemming(
                     kodeKomponent = "SU",
                     nokkelAvstemming = avstemmingsnøkkelIXml,
-                    tidspktMelding = avstemmingsnøkkelTidspunktIXml
+                    tidspktMelding = avstemmingsnøkkelTidspunktIXml,
                 ),
                 oppdragsEnheter = listOf(
                     UtbetalingRequest.OppdragsEnhet(
                         typeEnhet = "BOS",
                         enhet = "8020",
-                        datoEnhetFom = "1970-01-01"
-                    )
+                        datoEnhetFom = "1970-01-01",
+                    ),
                 ),
                 oppdragslinjer = listOf(
                     UtbetalingRequest.Oppdragslinje(

@@ -20,10 +20,11 @@ import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService.KunneIkkeFer
 import org.slf4j.LoggerFactory
 
 interface FerdigstillVedtakService {
-    fun ferdigstillVedtakEtterUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering)
+    fun ferdigstillVedtakEtterUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering): Either<KunneIkkeFerdigstilleVedtak, Unit>
     fun lukkOppgaveMedBruker(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak>
 
     sealed class KunneIkkeFerdigstilleVedtak {
+        data class FantIkkeVedtakForUtbetalingId(val utbetalingId: UUID30) : KunneIkkeFerdigstilleVedtak()
         object KunneIkkeGenerereBrev : KunneIkkeFerdigstilleVedtak()
         object KunneIkkeLukkeOppgave : KunneIkkeFerdigstilleVedtak()
     }
@@ -40,25 +41,25 @@ internal class FerdigstillVedtakServiceImpl(
     /**
      * Entry point for kvittering consumer.
      */
-    override fun ferdigstillVedtakEtterUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering) {
+    override fun ferdigstillVedtakEtterUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering): Either<KunneIkkeFerdigstilleVedtak, Unit> {
         return when (utbetaling.type) {
             Utbetaling.UtbetalingsType.STANS,
             Utbetaling.UtbetalingsType.GJENOPPTA,
             -> {
                 log.info("Utbetaling ${utbetaling.id} er av type ${utbetaling.type} og vil derfor ikke bli prøvd ferdigstilt.")
+                Unit.right()
             }
             Utbetaling.UtbetalingsType.NY,
             Utbetaling.UtbetalingsType.OPPHØR,
             -> {
                 if (!utbetaling.kvittering.erKvittertOk()) {
                     log.error("Prøver ikke å ferdigstille innvilgelse siden kvitteringen fra oppdrag ikke var OK.")
+                    Unit.right()
                 } else {
-                    val vedtak = vedtakRepo.hentForUtbetaling(utbetaling.id)
-                        ?: throw KunneIkkeFerdigstilleVedtakException(utbetaling.id)
-                    ferdigstillVedtak(vedtak).getOrHandle {
-                        throw KunneIkkeFerdigstilleVedtakException(vedtak, it)
-                    }
-                    Unit
+                    log.info("Ferdigstiller vedtak etter utbetaling")
+                    vedtakRepo.hentForUtbetaling(utbetaling.id)?.let { return ferdigstillVedtak(it).map { Unit.right() } }
+                        ?: return KunneIkkeFerdigstilleVedtak.FantIkkeVedtakForUtbetalingId(utbetaling.id).left()
+                            .also { log.warn("Kunne ikke ferdigstille vedtak - fant ikke vedtaket som tilhører utbetaling ${utbetaling.id}.") }
                 }
             }
         }
@@ -141,16 +142,5 @@ internal class FerdigstillVedtakServiceImpl(
             // TODO jah: Nå som vi har vedtakstyper og revurdering må vi vurdere hva vi ønsker grafer på.
             else -> Unit
         }
-    }
-
-    internal data class KunneIkkeFerdigstilleVedtakException private constructor(
-        val msg: String,
-    ) : RuntimeException(msg) {
-
-        constructor(vedtak: Vedtak, error: KunneIkkeFerdigstilleVedtak) : this(
-            "Kunne ikke ferdigstille vedtak - id: ${vedtak.id}. Original feil: ${error::class.qualifiedName}",
-        )
-
-        constructor(utbetalingId: UUID30) : this("Kunne ikke ferdigstille vedtak - fant ikke vedtaket som tilhører utbetaling $utbetalingId. Dette kan være en timing issue.")
     }
 }
