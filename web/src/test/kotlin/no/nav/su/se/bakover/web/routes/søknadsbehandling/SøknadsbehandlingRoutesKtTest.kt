@@ -3,11 +3,9 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -21,7 +19,6 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
@@ -47,6 +44,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.ServiceBuilder
@@ -64,8 +62,10 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
+import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.dbMetricsStub
 import no.nav.su.se.bakover.web.defaultRequest
@@ -79,6 +79,8 @@ import no.nav.su.se.bakover.web.stubs.asBearerToken
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.util.UUID
 import javax.sql.DataSource
@@ -106,22 +108,18 @@ internal class SøknadsbehandlingRoutesKtTest {
     @Nested
     inner class `Henting av behandling` {
         @Test
-        fun `Forbidden når bruker bare er veileder`() {
-            withMigratedDb { dataSource ->
-                val repos = repos(dataSource)
-                val services = services(repos)
-                withTestApplication(
-                    {
-                        testSusebakover(
-                            services = services,
-                            databaseRepos = repos,
-                        )
-                    },
+        fun `Forbidden når bruker veileder eller driftspersonell`() {
+            withTestApplication(
+                {
+                    testSusebakover()
+                },
+            ) {
+                repeat(
+                    Brukerrolle.values().filterNot { it == Brukerrolle.Veileder || it == Brukerrolle.Drift }.size,
                 ) {
-                    val objects = setup(services, repos)
                     defaultRequest(
                         HttpMethod.Get,
-                        "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}",
+                        "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}",
                         listOf(Brukerrolle.Veileder),
                     ).apply {
                         response.status() shouldBe HttpStatusCode.Forbidden
@@ -131,59 +129,27 @@ internal class SøknadsbehandlingRoutesKtTest {
         }
 
         @Test
-        fun `OK når bruker er saksbehandler`() {
-            withMigratedDb { dataSource ->
-                val repos = repos(dataSource)
-                val services = services(repos)
-
-                withTestApplication(
-                    {
-                        testSusebakover(
-                            services = services,
-                            databaseRepos = repos,
-                        )
-                    },
+        fun `OK når bruker er saksbehandler eller attestant`() {
+            withTestApplication(
+                {
+                    testSusebakover(
+                        services = TestServicesBuilder.services(
+                            søknadsbehandling = mock {
+                                on { hent(any()) } doReturn søknadsbehandlingVilkårsvurdertInnvilget().second.right()
+                            },
+                        ),
+                    )
+                },
+            ) {
+                repeat(
+                    Brukerrolle.values().filterNot { it == Brukerrolle.Veileder || it == Brukerrolle.Drift }.size,
                 ) {
-                    val objects = setup(services, repos)
                     defaultRequest(
                         HttpMethod.Get,
-                        "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}",
+                        "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}",
                         listOf(Brukerrolle.Saksbehandler),
                     ).apply {
-                        objectMapper.readValue<BehandlingJson>(response.content!!).let {
-                            it.id shouldBe objects.søknadsbehandling.id.toString()
-                            it.behandlingsinformasjon shouldNotBe null
-                            it.søknad.id shouldBe objects.søknadsbehandling.søknad.id.toString()
-                        }
-                    }
-                }
-            }
-        }
-
-        @Test
-        fun `OK når bruker er attestant`() {
-            withMigratedDb { dataSource ->
-                val repos = repos(dataSource)
-                val services = services(repos)
-                withTestApplication(
-                    {
-                        testSusebakover(
-                            services = services,
-                            databaseRepos = repos,
-                        )
-                    },
-                ) {
-                    val objects = setup(services, repos)
-                    defaultRequest(
-                        HttpMethod.Get,
-                        "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}",
-                        listOf(Brukerrolle.Attestant),
-                    ).apply {
-                        objectMapper.readValue<BehandlingJson>(response.content!!).let {
-                            it.id shouldBe objects.søknadsbehandling.id.toString()
-                            it.behandlingsinformasjon shouldNotBe null
-                            it.søknad.id shouldBe objects.søknadsbehandling.søknad.id.toString()
-                        }
+                        response.status() shouldBe HttpStatusCode.OK
                     }
                 }
             }
@@ -229,7 +195,6 @@ internal class SøknadsbehandlingRoutesKtTest {
 
     @Test
     fun `Opprette en oppgave til attestering feiler mot oppgave`() {
-
         withMigratedDb { dataSource ->
             val repos = repos(dataSource)
             val clients = testClients.copy(
@@ -444,71 +409,86 @@ internal class SøknadsbehandlingRoutesKtTest {
 
         @Test
         fun `Forbidden når bruker ikke er attestant`() {
-            withMigratedDb { dataSource ->
-                val repos = repos(dataSource)
-                val services = services(repos)
-                withFerdigbehandletSakForBruker(services, repos) {
-                    defaultRequest(
-                        HttpMethod.Patch,
-                        "$sakPath/rubbish/behandlinger/${it.søknadsbehandling.id}/iverksett",
-                        listOf(Brukerrolle.Saksbehandler),
-                        navIdentSaksbehandler,
-                    ).apply {
-                        response.status() shouldBe HttpStatusCode.Forbidden
-                    }
+            withTestApplication(
+                {
+                    testSusebakover(
+                        services = TestServicesBuilder.services(
+                            søknadsbehandling = mock {
+                                on { hent(any()) } doReturn SøknadsbehandlingService.FantIkkeBehandling.left()
+                            },
+                        ),
+                    )
+                },
+            ) {
+                defaultRequest(
+                    HttpMethod.Patch,
+                    "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/iverksett",
+                    listOf(Brukerrolle.Saksbehandler),
+                    navIdentSaksbehandler,
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.Forbidden
+                }
 
-                    defaultRequest(
-                        HttpMethod.Patch,
-                        "$sakPath/${it.sak.id}/behandlinger/${UUID.randomUUID()}/iverksett",
-                        listOf(Brukerrolle.Saksbehandler),
-                    ).apply {
-                        response.status() shouldBe HttpStatusCode.Forbidden
-                    }
+                defaultRequest(
+                    HttpMethod.Patch,
+                    "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett",
+                    listOf(Brukerrolle.Saksbehandler),
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.Forbidden
                 }
             }
         }
 
         @Test
         fun `BadRequest når behandlingId er ugyldig uuid eller NotFound når den ikke finnes`() {
-            withMigratedDb { dataSource ->
-                val repos = repos(dataSource)
-                val services = services(repos)
-                withFerdigbehandletSakForBruker(services, repos) {
-                    requestSomAttestant(
-                        HttpMethod.Patch,
-                        "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/iverksett",
-                        navIdentSaksbehandler,
+            withTestApplication(
+                {
+                    testSusebakover(
+                        services = TestServicesBuilder.services(
+                            søknadsbehandling = mock {
+                                on { iverksett(any()) } doReturn KunneIkkeIverksette.FantIkkeBehandling.left()
+                            },
+                        ),
                     )
-                        .apply {
-                            response.status() shouldBe HttpStatusCode.NotFound
-                        }
+                },
+            ) {
+                requestSomAttestant(
+                    HttpMethod.Patch,
+                    "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett",
+                    navIdentSaksbehandler,
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.NotFound
+                }
 
-                    requestSomAttestant(
-                        HttpMethod.Patch,
-                        "$sakPath/rubbish/behandlinger/rubbish/iverksett",
-                        navIdentSaksbehandler,
-                    )
-                        .apply {
-                            response.status() shouldBe HttpStatusCode.BadRequest
-                        }
+                requestSomAttestant(
+                    HttpMethod.Patch,
+                    "$sakPath/rubbish/behandlinger/rubbish/iverksett",
+                    navIdentSaksbehandler,
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.BadRequest
                 }
             }
         }
 
         @Test
         fun `NotFound når behandling ikke eksisterer`() {
-            withMigratedDb { dataSource ->
-                val repos = repos(dataSource)
-                val services = services(repos)
-                withFerdigbehandletSakForBruker(services, repos) {
-                    requestSomAttestant(
-                        HttpMethod.Patch,
-                        "$sakPath/${it.sak.id}/behandlinger/${UUID.randomUUID()}/iverksett",
-                        navIdentSaksbehandler,
+            withTestApplication(
+                {
+                    testSusebakover(
+                        services = TestServicesBuilder.services(
+                            søknadsbehandling = mock {
+                                on { iverksett(any()) } doReturn KunneIkkeIverksette.FantIkkeBehandling.left()
+                            },
+                        ),
                     )
-                        .apply {
-                            response.status() shouldBe HttpStatusCode.NotFound
-                        }
+                },
+            ) {
+                requestSomAttestant(
+                    HttpMethod.Patch,
+                    "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/iverksett",
+                    navIdentSaksbehandler,
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.NotFound
                 }
             }
         }
@@ -599,79 +579,85 @@ internal class SøknadsbehandlingRoutesKtTest {
 
         @Test
         fun `Forbidden når bruker ikke er attestant`() {
-            withMigratedDb { dataSource ->
-                val repos = repos(dataSource)
-                val services = services(repos)
-                withFerdigbehandletSakForBruker(services, repos) { objects ->
-                    defaultRequest(
-                        HttpMethod.Patch,
-                        "$sakPath/rubbish/behandlinger/${objects.søknadsbehandling.id}/underkjenn",
-                        listOf(Brukerrolle.Saksbehandler),
-                        navIdentSaksbehandler,
-                    ).apply {
-                        response.status() shouldBe HttpStatusCode.Forbidden
-                    }
+            withTestApplication(
+                {
+                    testSusebakover()
+                },
+            ) {
+                defaultRequest(
+                    HttpMethod.Patch,
+                    "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/underkjenn",
+                    listOf(Brukerrolle.Saksbehandler),
+                    navIdentSaksbehandler,
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.Forbidden
+                }
 
-                    defaultRequest(
-                        HttpMethod.Patch,
-                        "$sakPath/${objects.sak.id}/behandlinger/rubbish/underkjenn",
-                        listOf(Brukerrolle.Saksbehandler),
-                    ).apply {
-                        response.status() shouldBe HttpStatusCode.Forbidden
-                    }
+                defaultRequest(
+                    HttpMethod.Patch,
+                    "$sakPath/${UUID.randomUUID()}/behandlinger/rubbish/underkjenn",
+                    listOf(Brukerrolle.Saksbehandler),
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.Forbidden
+                }
 
-                    defaultRequest(
-                        HttpMethod.Patch,
-                        "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/underkjenn",
-                        listOf(Brukerrolle.Saksbehandler),
-                    ).apply {
-                        response.status() shouldBe HttpStatusCode.Forbidden
-                    }
+                defaultRequest(
+                    HttpMethod.Patch,
+                    "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/underkjenn",
+                    listOf(Brukerrolle.Saksbehandler),
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.Forbidden
                 }
             }
         }
 
         @Test
         fun `BadRequest når sakId eller behandlingId er ugyldig`() {
-            withMigratedDb { dataSource ->
-                val repos = repos(dataSource)
-                val services = services(repos)
-                withFerdigbehandletSakForBruker(services, repos) { objects ->
-                    requestSomAttestant(
-                        HttpMethod.Patch,
-                        "$sakPath/rubbish/behandlinger/${objects.søknadsbehandling.id}/underkjenn",
-                        navIdentSaksbehandler,
-                    ).apply {
-                        response.status() shouldBe HttpStatusCode.BadRequest
-                    }
+            withTestApplication(
+                {
+                    testSusebakover()
+                },
+            ) {
+                requestSomAttestant(
+                    HttpMethod.Patch,
+                    "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/underkjenn",
+                    navIdentSaksbehandler,
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.BadRequest
+                }
 
-                    requestSomAttestant(
-                        HttpMethod.Patch,
-                        "$sakPath/${objects.sak.id}/behandlinger/rubbish/underkjenn",
-                        navIdentSaksbehandler,
-                    ).apply {
-                        response.status() shouldBe HttpStatusCode.BadRequest
-                    }
+                requestSomAttestant(
+                    HttpMethod.Patch,
+                    "$sakPath/${UUID.randomUUID()}/behandlinger/rubbish/underkjenn",
+                    navIdentSaksbehandler,
+                ).apply {
+                    response.status() shouldBe HttpStatusCode.BadRequest
                 }
             }
         }
 
         @Test
         fun `NotFound når behandling ikke finnes`() {
-            withMigratedDb { dataSource ->
-                val repos = repos(dataSource)
-                val services = services(repos)
-                withFerdigbehandletSakForBruker(services, repos) { objects ->
-                    requestSomAttestant(
-                        HttpMethod.Patch,
-                        "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/underkjenn",
-                        navIdentSaksbehandler,
-                    ) {
-                        setBody("""{"kommentar":"b", "grunn": "BEREGNINGEN_ER_FEIL"}""")
-                    }.apply {
-                        response.content shouldContain "Fant ikke behandling"
-                        response.status() shouldBe HttpStatusCode.NotFound
-                    }
+            withTestApplication(
+                {
+                    testSusebakover(
+                        services = TestServicesBuilder.services(
+                            søknadsbehandling = mock {
+                                on { underkjenn(any()) } doReturn SøknadsbehandlingService.KunneIkkeUnderkjenne.FantIkkeBehandling.left()
+                            },
+                        ),
+                    )
+                },
+            ) {
+                requestSomAttestant(
+                    HttpMethod.Patch,
+                    "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/underkjenn",
+                    navIdentSaksbehandler,
+                ) {
+                    setBody("""{"kommentar":"b", "grunn": "BEREGNINGEN_ER_FEIL"}""")
+                }.apply {
+                    response.content shouldContain "Fant ikke behandling"
+                    response.status() shouldBe HttpStatusCode.NotFound
                 }
             }
         }

@@ -9,7 +9,6 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.jwtStub
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import no.nav.su.se.bakover.web.testSusebakover
@@ -19,22 +18,22 @@ internal class MeRoutesKtTest {
 
     @Test
     fun `GET me should return NAVIdent and roller`() {
-        withTestApplication({
-            testSusebakover(
-                clients = TestClientsBuilder.testClients
-            )
-        }) {
+        withTestApplication(
+            {
+                testSusebakover()
+            },
+        ) {
             handleRequest(
                 HttpMethod.Get,
-                "/me"
+                "/me",
             ) {
                 addHeader(
                     HttpHeaders.Authorization,
                     jwtStub.createJwtToken(
                         subject = "random",
                         roller = listOf(Brukerrolle.Attestant),
-                        navIdent = "navidenten"
-                    ).asBearerToken()
+                        navIdent = "navidenten",
+                    ).asBearerToken(),
                 )
             }.apply {
                 response.status() shouldBe HttpStatusCode.OK

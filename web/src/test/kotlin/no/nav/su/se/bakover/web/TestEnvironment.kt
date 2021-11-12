@@ -92,7 +92,7 @@ val applicationConfig = ApplicationConfig(
         consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(emptyMap()),
     ),
     unleash = ApplicationConfig.UnleashConfig("https://localhost", "su-se-bakover"),
-    jobConfig = ApplicationConfig.JobConfig(ApplicationConfig.JobConfig.Personhendelse(null))
+    jobConfig = ApplicationConfig.JobConfig(ApplicationConfig.JobConfig.Personhendelse(null)),
 )
 
 internal val jwtStub = JwtStub(applicationConfig.azure)
@@ -103,14 +103,17 @@ internal val dbMetricsStub: DbMetrics = object : DbMetrics {
     }
 }
 
+internal fun mockedDb() = TestDatabaseBuilder.build()
+internal fun embeddedPostgres(clock: Clock = fixedClock) = DatabaseBuilder.build(
+    embeddedDatasource = migratedDb(),
+    dbMetrics = dbMetricsStub,
+    clock = clock,
+)
+
 internal fun Application.testSusebakover(
     clock: Clock = fixedClock,
     clients: Clients = TestClientsBuilder.build(applicationConfig),
-    databaseRepos: DatabaseRepos = DatabaseBuilder.build(
-        embeddedDatasource = migratedDb(),
-        dbMetrics = dbMetricsStub,
-        clock = clock,
-    ),
+    databaseRepos: DatabaseRepos = mockedDb(),
     unleash: Unleash = FakeUnleash().apply { enableAll() },
     services: Services = ServiceBuilder.build(
         // build actual clients
@@ -155,7 +158,10 @@ fun TestApplicationEngine.defaultRequest(
 ): TestApplicationCall {
     return handleRequest(method, uri) {
         addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
-        addHeader(HttpHeaders.Authorization, jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken())
+        addHeader(
+            HttpHeaders.Authorization,
+            jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken(),
+        )
         setup()
     }
 }
