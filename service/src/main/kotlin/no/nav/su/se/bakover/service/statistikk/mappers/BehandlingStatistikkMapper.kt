@@ -341,7 +341,7 @@ class BehandlingStatistikkMapper(
 
         fun map(gjenopptak: GjenopptaYtelseRevurdering): String =
             when (gjenopptak) {
-                is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse -> "Ytelsen er gjenopptat"
+                is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse -> "Ytelsen er gjenopptatt"
                 is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> "Simulert gjenopptak av ytelse"
             }
 
