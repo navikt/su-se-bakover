@@ -1,7 +1,10 @@
 package no.nav.su.se.bakover.service.statistikk
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
@@ -14,6 +17,8 @@ import no.nav.su.se.bakover.service.statistikk.mappers.StønadsstatistikkMapper
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.periode2021
+import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
+import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -53,7 +58,7 @@ internal class StønadsstatistikkMapperTest {
             ),
         )
 
-        StønadsstatistikkMapper(clock).map(vedtak, aktørId, periode2021.fraOgMed) shouldBe
+        StønadsstatistikkMapper(clock).map(vedtak, aktørId, periode2021.fraOgMed, sak) shouldBe
             Statistikk.Stønad(
                 funksjonellTid = fixedTidspunkt,
                 tekniskTid = fixedTidspunkt,
@@ -74,7 +79,7 @@ internal class StønadsstatistikkMapperTest {
                     Statistikk.Stønad.Månedsbeløp(
                         måned = it,
                         stonadsklassifisering = Statistikk.Stønadsklassifisering.BOR_ALENE,
-                        bruttosats = 20945,
+                        bruttosats = 20946,
                         nettosats = 17946,
                         inntekter = listOf(
                             Statistikk.Inntekt(
@@ -126,9 +131,10 @@ internal class StønadsstatistikkMapperTest {
         )
         val actual = objectMapper.writeValueAsString(
             StønadsstatistikkMapper(clock).map(
-                vedtak,
-                aktørId,
-                vedtak.periode.fraOgMed,
+                vedtak = vedtak,
+                aktørId = aktørId,
+                ytelseVirkningstidspunkt = vedtak.periode.fraOgMed,
+                sak = sak,
             ),
         )
         val expected = """
@@ -152,7 +158,7 @@ internal class StønadsstatistikkMapperTest {
                     {
                       "måned": "2021-01-01",
                       "stonadsklassifisering": "BOR_ALENE",
-                      "bruttosats": 20945,
+                      "bruttosats": 20946,
                       "nettosats": 17946,
                       "inntekter": [
                         {
@@ -165,7 +171,7 @@ internal class StønadsstatistikkMapperTest {
                     {
                       "måned": "2021-02-01",
                       "stonadsklassifisering": "BOR_ALENE",
-                      "bruttosats": 20945,
+                      "bruttosats": 20946,
                       "nettosats": 17946,
                       "inntekter": [
                         {
@@ -178,7 +184,7 @@ internal class StønadsstatistikkMapperTest {
                     {
                       "måned": "2021-03-01",
                       "stonadsklassifisering": "BOR_ALENE",
-                      "bruttosats": 20945,
+                      "bruttosats": 20946,
                       "nettosats": 17946,
                       "inntekter": [
                         {
@@ -191,7 +197,7 @@ internal class StønadsstatistikkMapperTest {
                     {
                       "måned": "2021-04-01",
                       "stonadsklassifisering": "BOR_ALENE",
-                      "bruttosats": 20945,
+                      "bruttosats": 20946,
                       "nettosats": 17946,
                       "inntekter": [
                         {
@@ -304,6 +310,107 @@ internal class StønadsstatistikkMapperTest {
                         }
                       ],
                       "fradragSum": 3000
+                    }
+                  ],
+                  "versjon": 1609462923456,
+                  "flyktningsstatus": "FLYKTNING"
+                }
+        """.trimIndent()
+
+        JSONAssert.assertEquals(expected, actual, true)
+    }
+
+    @Test
+    fun `Stans gir nullutbetaling`() {
+        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(Periode.create(1.januar(2021), 28.februar(2021)))
+        val actual = objectMapper.writeValueAsString(
+            StønadsstatistikkMapper(clock).map(
+                vedtak = vedtak,
+                aktørId = aktørId,
+                ytelseVirkningstidspunkt = vedtak.periode.fraOgMed,
+                sak = sak,
+            ),
+        )
+        val expected = """
+                {
+                  "funksjonellTid": "2021-01-01T01:02:03.456789Z",
+                  "tekniskTid": "2021-01-01T01:02:03.456789Z",
+                  "stonadstype": "SU_UFØR",
+                  "sakId": "${sak.id}",
+                  "aktorId": 293829399,
+                  "sakstype": "STANS",
+                  "vedtaksdato": "2021-01-02",
+                  "vedtakstype": "STANS",
+                  "vedtaksresultat": "STANSET",
+                  "behandlendeEnhetKode": "4815",
+                  "ytelseVirkningstidspunkt": "2021-01-01",
+                  "gjeldendeStonadVirkningstidspunkt": "2021-01-01",
+                  "gjeldendeStonadStopptidspunkt": "2021-02-28",
+                  "gjeldendeStonadUtbetalingsstart": "2021-01-01",
+                  "gjeldendeStonadUtbetalingsstopp": "2021-02-28",
+                  "månedsbeløp": [],
+                  "versjon": 1609462923456,
+                  "flyktningsstatus": "FLYKTNING"
+                }
+        """.trimIndent()
+
+        JSONAssert.assertEquals(expected, actual, true)
+    }
+
+    @Test
+    fun `Gjenopptak sender med riktig månedsbeløp`() {
+        val (sak, vedtak) = vedtakIverksattGjenopptakAvYtelseFraIverksattStans(Periode.create(1.januar(2021), 28.februar(2021)))
+        val actual = objectMapper.writeValueAsString(
+            StønadsstatistikkMapper(clock).map(
+                vedtak = vedtak,
+                aktørId = aktørId,
+                ytelseVirkningstidspunkt = vedtak.periode.fraOgMed,
+                sak = sak,
+            ),
+        )
+        val expected = """
+                {
+                  "funksjonellTid": "2021-01-01T01:02:03.456789Z",
+                  "tekniskTid": "2021-01-01T01:02:03.456789Z",
+                  "stonadstype": "SU_UFØR",
+                  "sakId": "${sak.id}",
+                  "aktorId": 293829399,
+                  "sakstype": "GJENOPPTAK",
+                  "vedtaksdato": "2021-01-01",
+                  "vedtakstype": "GJENOPPTAK",
+                  "vedtaksresultat": "GJENOPPTATT",
+                  "behandlendeEnhetKode": "4815",
+                  "ytelseVirkningstidspunkt": "2021-01-01",
+                  "gjeldendeStonadVirkningstidspunkt": "2021-01-01",
+                  "gjeldendeStonadStopptidspunkt": "2021-02-28",
+                  "gjeldendeStonadUtbetalingsstart": "2021-01-01",
+                  "gjeldendeStonadUtbetalingsstopp": "2021-02-28",
+                  "månedsbeløp": [
+                    {
+                      "måned": "2021-01-01",
+                      "stonadsklassifisering": "BOR_ALENE",
+                      "bruttosats": 20946,
+                      "nettosats": 20946,
+                      "inntekter": [
+                        {
+                          "inntektstype": "ForventetInntekt",
+                          "beløp": 0
+                        }
+                      ],
+                      "fradragSum": 0
+                    },
+                    {
+                      "måned": "2021-02-01",
+                      "stonadsklassifisering": "BOR_ALENE",
+                      "bruttosats": 20946,
+                      "nettosats": 20946,
+                      "inntekter": [
+                        {
+                          "inntektstype": "ForventetInntekt",
+                          "beløp": 0
+                        }
+                      ],
+                      "fradragSum": 0
                     }
                   ],
                   "versjon": 1609462923456,

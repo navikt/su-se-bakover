@@ -104,11 +104,6 @@ internal object Feilresponser {
         "behandling_i_ugyldig_tilstand_for_avslag",
     )
 
-    val kunneIkkeGenererePdf = InternalServerError.errorJson(
-        "Kunne ikke generere pdf",
-        "kunne_ikke_generere_pdf",
-    )
-
     val fantIkkeSaksbehandlerEllerAttestant = NotFound.errorJson(
         "Fant ikke saksbehandler eller attestant",
         "fant_ikke_saksbehandler_eller_attestant",

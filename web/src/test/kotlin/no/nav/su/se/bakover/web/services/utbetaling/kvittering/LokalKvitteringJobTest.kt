@@ -83,11 +83,12 @@ internal class LokalKvitteringJobTest {
             kvittering = kvittering
         )
         val utbetalingServiceMock = mock<UtbetalingService> {
-
             on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
         }
         val innvilgetSøknadsbehandling = mock<Søknadsbehandling.Iverksatt.Innvilget> {}
-        val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService>()
+        val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService> {
+            on { ferdigstillVedtakEtterUtbetaling(any()) } doReturn Unit.right()
+        }
 
         val utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
             utbetalingService = utbetalingServiceMock,

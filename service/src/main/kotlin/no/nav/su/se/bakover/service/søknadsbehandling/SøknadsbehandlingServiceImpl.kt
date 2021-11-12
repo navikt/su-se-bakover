@@ -360,7 +360,7 @@ internal class SøknadsbehandlingServiceImpl(
                     val vedtak = Vedtak.fromSøknadsbehandling(iverksattBehandling, utbetaling!!.id, clock)
                     vedtakRepo.lagre(vedtak)
 
-                    log.info("Iverksatt innvilgelse for behandling ${iverksattBehandling.id}")
+                    log.info("Iverksatt innvilgelse for behandling ${iverksattBehandling.id}, vedtak: ${vedtak.id}")
                     opprettVedtakssnapshotService.opprettVedtak(
                         vedtakssnapshot = Vedtakssnapshot.Innvilgelse.createFromBehandling(
                             iverksattBehandling,

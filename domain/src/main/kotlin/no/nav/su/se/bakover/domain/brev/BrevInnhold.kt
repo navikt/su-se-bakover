@@ -148,6 +148,18 @@ abstract class BrevInnhold {
     ) : BrevInnhold() {
         override val brevTemplate = BrevTemplate.Forhåndsvarsel
     }
+
+    /**
+     * Brev for når en revurdering er forhåndsvarslet
+     * hvis revurderingen ikke er forhåndsvarslet, er det ikke noe brev.
+     */
+    data class AvsluttRevurdering(
+        val personalia: Personalia,
+        val saksbehandlerNavn: String,
+        val fritekst: String?,
+    ) : BrevInnhold() {
+        override val brevTemplate = BrevTemplate.Revurdering.AvsluttRevurdering
+    }
 }
 
 fun List<Beregningsperiode>.harFradrag() = this.any { it.fradrag.bruker.isNotEmpty() || it.fradrag.eps.fradrag.isNotEmpty() }

@@ -36,6 +36,9 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
+import no.nav.su.se.bakover.test.iverksattGjenopptakelseAvytelseFraVedtakStansAvYtelse
+import no.nav.su.se.bakover.test.iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
+import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -60,7 +63,11 @@ internal class BehandlingStatistikkMapperTest {
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
         )
 
-        BehandlingStatistikkMapper(fixedClock).map(søknad, saksnummer, Statistikk.Behandling.SøknadStatus.SØKNAD_MOTTATT) shouldBe Statistikk.Behandling(
+        BehandlingStatistikkMapper(fixedClock).map(
+            søknad,
+            saksnummer,
+            Statistikk.Behandling.SøknadStatus.SØKNAD_MOTTATT,
+        ) shouldBe Statistikk.Behandling(
             funksjonellTid = søknad.opprettet,
             tekniskTid = søknad.opprettet,
             mottattDato = søknad.opprettet.toLocalDate(zoneIdOslo),
@@ -98,6 +105,7 @@ internal class BehandlingStatistikkMapperTest {
             avsluttet = false,
         )
     }
+
     @Test
     fun `mapper lukket søknad`() {
         val saksnummer = Saksnummer(2079L)
@@ -113,7 +121,11 @@ internal class BehandlingStatistikkMapperTest {
             lukketType = Søknad.Journalført.MedOppgave.Lukket.LukketType.AVVIST,
         )
 
-        BehandlingStatistikkMapper(fixedClock).map(søknad, saksnummer, Statistikk.Behandling.SøknadStatus.SØKNAD_LUKKET) shouldBe Statistikk.Behandling(
+        BehandlingStatistikkMapper(fixedClock).map(
+            søknad,
+            saksnummer,
+            Statistikk.Behandling.SøknadStatus.SØKNAD_LUKKET,
+        ) shouldBe Statistikk.Behandling(
             funksjonellTid = søknad.lukketTidspunkt,
             tekniskTid = søknad.lukketTidspunkt,
             mottattDato = søknad.opprettet.toLocalDate(zoneIdOslo),
@@ -148,7 +160,7 @@ internal class BehandlingStatistikkMapperTest {
             behandlingOpprettetTypeBeskrivelse = null,
             datoForUttak = null,
             datoForUtbetaling = null,
-            avsluttet = true
+            avsluttet = true,
         )
     }
 
@@ -459,6 +471,94 @@ internal class BehandlingStatistikkMapperTest {
             datoForUttak = null,
             datoForUtbetaling = null,
             avsluttet = true,
+        )
+    }
+
+    @Test
+    fun `mapper gjenopptak`() {
+        val gjenopptak = iverksattGjenopptakelseAvytelseFraVedtakStansAvYtelse(periode2021).second
+        BehandlingStatistikkMapper(fixedClock).map(gjenopptak) shouldBe Statistikk.Behandling(
+            funksjonellTid = gjenopptak.opprettet,
+            tekniskTid = fixedTidspunkt,
+            mottattDato = gjenopptak.opprettet.toLocalDate(zoneIdOslo),
+            registrertDato = gjenopptak.opprettet.toLocalDate(zoneIdOslo),
+            behandlingId = gjenopptak.id,
+            relatertBehandlingId = gjenopptak.tilRevurdering.id,
+            sakId = gjenopptak.sakId,
+            søknadId = null,
+            saksnummer = gjenopptak.saksnummer.nummer,
+            behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
+            behandlingStatus = "IVERKSATT_GJENOPPTAK",
+            behandlingStatusBeskrivelse = "Ytelsen er gjenopptatt",
+            behandlingYtelseDetaljer = null,
+            utenlandstilsnitt = "NASJONAL",
+            utenlandstilsnittBeskrivelse = null,
+            ansvarligEnhetKode = "4815",
+            ansvarligEnhetType = "NORG",
+            behandlendeEnhetKode = "4815",
+            behandlendeEnhetType = "NORG",
+            totrinnsbehandling = false,
+            avsender = "su-se-bakover",
+            versjon = fixedClock.millis(),
+            vedtaksDato = null,
+            vedtakId = null,
+            resultat = "Gjenopptatt",
+            resultatBegrunnelse = "Mottatt kontrollerklæring",
+            resultatBegrunnelseBeskrivelse = null,
+            resultatBeskrivelse = null,
+            beslutter = "attestant",
+            saksbehandler = null,
+            behandlingOpprettetAv = null,
+            behandlingOpprettetType = null,
+            behandlingOpprettetTypeBeskrivelse = null,
+            datoForUttak = null,
+            datoForUtbetaling = null,
+            avsluttet = false,
+        )
+    }
+
+    @Test
+    fun `mapper stans`() {
+        val stans = iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode2021).second
+        BehandlingStatistikkMapper(fixedClock).map(stans) shouldBe Statistikk.Behandling(
+            funksjonellTid = stans.opprettet,
+            tekniskTid = fixedTidspunkt,
+            mottattDato = stans.opprettet.toLocalDate(zoneIdOslo),
+            registrertDato = stans.opprettet.toLocalDate(zoneIdOslo),
+            behandlingId = stans.id,
+            relatertBehandlingId = stans.tilRevurdering.id,
+            sakId = stans.sakId,
+            søknadId = null,
+            saksnummer = stans.saksnummer.nummer,
+            behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
+            behandlingStatus = "IVERKSATT_STANS",
+            behandlingStatusBeskrivelse = "Ytelsen er stanset",
+            behandlingYtelseDetaljer = null,
+            utenlandstilsnitt = "NASJONAL",
+            utenlandstilsnittBeskrivelse = null,
+            ansvarligEnhetKode = "4815",
+            ansvarligEnhetType = "NORG",
+            behandlendeEnhetKode = "4815",
+            behandlendeEnhetType = "NORG",
+            totrinnsbehandling = false,
+            avsender = "su-se-bakover",
+            versjon = fixedClock.millis(),
+            vedtaksDato = null,
+            vedtakId = null,
+            resultat = "Stanset",
+            resultatBegrunnelse = "Manglende kontrollerklæring",
+            resultatBegrunnelseBeskrivelse = null,
+            resultatBeskrivelse = null,
+            beslutter = "attestant",
+            saksbehandler = null,
+            behandlingOpprettetAv = null,
+            behandlingOpprettetType = null,
+            behandlingOpprettetTypeBeskrivelse = null,
+            datoForUttak = null,
+            datoForUtbetaling = null,
+            avsluttet = false,
         )
     }
 

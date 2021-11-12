@@ -1,9 +1,11 @@
 package no.nav.su.se.bakover.database.revurdering
 
+import arrow.core.getOrHandle
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
@@ -12,6 +14,7 @@ import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
+import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.beregning.serialiserBeregning
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
@@ -35,6 +38,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
+import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -170,6 +174,7 @@ internal class RevurderingPostgresRepo(
             is RevurderingTilAttestering -> lagre(revurdering, session)
             is IverksattRevurdering -> lagre(revurdering, session)
             is UnderkjentRevurdering -> lagre(revurdering, session)
+            is AvsluttetRevurdering -> lagre(revurdering, session)
         }
     }
 
@@ -209,6 +214,7 @@ internal class RevurderingPostgresRepo(
 
     private fun Row.toRevurdering(session: Session): AbstraktRevurdering {
         val id = uuid("id")
+        val status = RevurderingsType.valueOf(string("revurderingsType"))
         val periode = string("periode").let { objectMapper.readValue<Periode>(it) }
         val opprettet = tidspunkt("opprettet")
         val tilRevurdering = vedtakRepo.hent(uuid("vedtakSomRevurderesId"), session)!! as VedtakSomKanRevurderes
@@ -245,7 +251,404 @@ internal class RevurderingPostgresRepo(
             oppholdIUtlandet = utlandsoppholdVilkårsvurderingRepo.hent(id, session),
         )
 
-        return when (RevurderingsType.valueOf(string("revurderingsType"))) {
+        val revurdering = lagRevurdering(
+            status = status,
+            id = id,
+            periode = periode,
+            opprettet = opprettet,
+            tilRevurdering = tilRevurdering,
+            saksbehandler = saksbehandler,
+            beregning = beregning,
+            simulering = simulering,
+            oppgaveId = oppgaveId,
+            attesteringer = attesteringer,
+            fritekstTilBrev = fritekstTilBrev,
+            revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = forhåndsvarsel,
+            skalFøreTilBrevutsending = skalFøreTilBrevutsending,
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
+            informasjonSomRevurderes = informasjonSomRevurderes,
+        )
+
+        val avsluttet = stringOrNull("avsluttet")?.let {
+            objectMapper.readValue<AvsluttetRevurderingInfo>(it)
+        }
+
+        if (avsluttet != null) {
+            return when (revurdering) {
+                is GjenopptaYtelseRevurdering -> GjenopptaYtelseRevurdering.AvsluttetGjenoppta.tryCreate(
+                    gjenopptakAvYtelseRevurdering = revurdering,
+                    begrunnelse = avsluttet.begrunnelse,
+                    tidspunktAvsluttet = avsluttet.tidspunktAvsluttet,
+                ).getOrHandle {
+                    throw IllegalStateException("Kunne ikke lage en avsluttet gjenoppta revurdering. Se innhold i databasen. revurderingsId $id")
+                }
+                is Revurdering -> {
+                    return AvsluttetRevurdering.tryCreate(
+                        underliggendeRevurdering = revurdering,
+                        begrunnelse = avsluttet.begrunnelse,
+                        fritekst = avsluttet.fritekst,
+                        tidspunktAvsluttet = avsluttet.tidspunktAvsluttet,
+                    ).getOrHandle {
+                        throw IllegalStateException("Kunne ikke lage en avsluttet revurdering. Se innhold i databasen. revurderingsId $id")
+                    }
+                }
+                is StansAvYtelseRevurdering -> StansAvYtelseRevurdering.AvsluttetStansAvYtelse.tryCreate(
+                    stansAvYtelseRevurdering = revurdering,
+                    begrunnelse = avsluttet.begrunnelse,
+                    tidspunktAvsluttet = avsluttet.tidspunktAvsluttet,
+                ).getOrHandle {
+                    throw IllegalStateException("Kunne ikke lage en avsluttet stans av ytelse. Se innhold i databasen. revurderingsId $id")
+                }
+            }
+        }
+        return revurdering
+    }
+
+    private fun lagre(revurdering: OpprettetRevurdering, session: TransactionalSession) {
+        """
+                    insert into revurdering (
+                        id,
+                        opprettet,
+                        periode,
+                        beregning,
+                        simulering,
+                        saksbehandler,
+                        oppgaveId,
+                        revurderingsType,
+                        attestering,
+                        vedtakSomRevurderesId,
+                        fritekstTilBrev,
+                        årsak,
+                        begrunnelse,
+                        forhåndsvarsel,
+                        informasjonSomRevurderes
+                    ) values (
+                        :id,
+                        :opprettet,
+                        to_json(:periode::json),
+                        null,
+                        null,
+                        :saksbehandler,
+                        :oppgaveId,
+                        '${RevurderingsType.OPPRETTET}',
+                        to_jsonb(:attestering::jsonb),
+                        :vedtakSomRevurderesId,
+                        :fritekstTilBrev,
+                        :arsak,
+                        :begrunnelse,
+                        to_json(:forhandsvarsel::json),
+                        to_json(:informasjonSomRevurderes::json)
+                    )
+                        ON CONFLICT(id) do update set
+                        id=:id,
+                        opprettet=:opprettet,
+                        periode=to_json(:periode::json),
+                        beregning=null,
+                        simulering=null,
+                        saksbehandler=:saksbehandler,
+                        oppgaveId=:oppgaveId,
+                        revurderingsType='${RevurderingsType.OPPRETTET}',
+                        attestering=to_jsonb(:attestering::jsonb),
+                        vedtakSomRevurderesId=:vedtakSomRevurderesId,
+                        fritekstTilBrev=:fritekstTilBrev,
+                        årsak=:arsak,
+                        begrunnelse=:begrunnelse,
+                        forhåndsvarsel=to_json(:forhandsvarsel::json),
+                        informasjonSomRevurderes=to_json(:informasjonSomRevurderes::json)
+        """.trimIndent()
+            .insert(
+                mapOf(
+                    "id" to revurdering.id,
+                    "periode" to objectMapper.writeValueAsString(revurdering.periode),
+                    "opprettet" to revurdering.opprettet,
+                    "saksbehandler" to revurdering.saksbehandler.navIdent,
+                    "oppgaveId" to revurdering.oppgaveId.toString(),
+                    "vedtakSomRevurderesId" to revurdering.tilRevurdering.id,
+                    "fritekstTilBrev" to revurdering.fritekstTilBrev,
+                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
+                    "forhandsvarsel" to revurdering.forhåndsvarsel?.let {
+                        objectMapper.writeValueAsString(ForhåndsvarselDto.from(it))
+                    },
+                    "informasjonSomRevurderes" to objectMapper.writeValueAsString(revurdering.informasjonSomRevurderes),
+                    "attestering" to revurdering.attesteringer.hentAttesteringer().serialize(),
+                ),
+                session,
+            )
+        utlandsoppholdVilkårsvurderingRepo.lagre(
+            behandlingId = revurdering.id,
+            vilkår = revurdering.vilkårsvurderinger.oppholdIUtlandet,
+            tx = session,
+        )
+    }
+
+    private fun lagre(revurdering: BeregnetRevurdering, session: TransactionalSession) =
+        """
+                    update
+                        revurdering
+                    set
+                        beregning = to_json(:beregning::json),
+                        simulering = null,
+                        revurderingsType = :revurderingsType,
+                        saksbehandler = :saksbehandler,
+                        årsak = :arsak,
+                        begrunnelse = :begrunnelse,
+                        informasjonSomRevurderes = to_json(:informasjonSomRevurderes::json)
+                    where
+                        id = :id
+        """.trimIndent()
+            .oppdatering(
+                mapOf(
+                    "id" to revurdering.id,
+                    "saksbehandler" to revurdering.saksbehandler.navIdent,
+                    "beregning" to serialiserBeregning(revurdering.beregning),
+                    "revurderingsType" to when (revurdering) {
+                        is BeregnetRevurdering.IngenEndring -> RevurderingsType.BEREGNET_INGEN_ENDRING
+                        is BeregnetRevurdering.Innvilget -> RevurderingsType.BEREGNET_INNVILGET
+                        is BeregnetRevurdering.Opphørt -> RevurderingsType.BEREGNET_OPPHØRT
+                    },
+                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
+                    "informasjonSomRevurderes" to objectMapper.writeValueAsString(revurdering.informasjonSomRevurderes),
+                ),
+                session,
+            )
+
+    private fun lagre(revurdering: SimulertRevurdering, session: TransactionalSession) =
+        """
+                    update
+                        revurdering
+                    set
+                        saksbehandler = :saksbehandler,
+                        beregning = to_json(:beregning::json),
+                        simulering = to_json(:simulering::json),
+                        revurderingsType = :revurderingsType,
+                        årsak = :arsak,
+                        begrunnelse =:begrunnelse,
+                        forhåndsvarsel = to_json(:forhandsvarsel::json)
+                    where
+                        id = :id
+        """.trimIndent()
+            .oppdatering(
+                mapOf(
+                    "id" to revurdering.id,
+                    "saksbehandler" to revurdering.saksbehandler.navIdent,
+                    "beregning" to serialiserBeregning(revurdering.beregning),
+                    "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
+                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
+                    "revurderingsType" to when (revurdering) {
+                        is SimulertRevurdering.Innvilget -> RevurderingsType.SIMULERT_INNVILGET
+                        is SimulertRevurdering.Opphørt -> RevurderingsType.SIMULERT_OPPHØRT
+                    },
+                    "forhandsvarsel" to revurdering.forhåndsvarsel?.let {
+                        objectMapper.writeValueAsString(ForhåndsvarselDto.from(it))
+                    },
+                ),
+                session,
+            )
+
+    private fun lagre(revurdering: RevurderingTilAttestering, session: TransactionalSession) =
+        """
+                    update
+                        revurdering
+                    set
+                        saksbehandler = :saksbehandler,
+                        beregning = to_json(:beregning::json),
+                        simulering = to_json(:simulering::json),
+                        oppgaveId = :oppgaveId,
+                        fritekstTilBrev = :fritekstTilBrev,
+                        årsak = :arsak,
+                        begrunnelse =:begrunnelse,
+                        revurderingsType = :revurderingsType,
+                        skalFøreTilBrevutsending = :skalFoereTilBrevutsending
+                    where
+                        id = :id
+        """.trimIndent()
+            .oppdatering(
+                mapOf(
+                    "id" to revurdering.id,
+                    "saksbehandler" to revurdering.saksbehandler.navIdent,
+                    "beregning" to serialiserBeregning(revurdering.beregning),
+                    "simulering" to when (revurdering) {
+                        is RevurderingTilAttestering.IngenEndring -> null
+                        is RevurderingTilAttestering.Innvilget -> objectMapper.writeValueAsString(revurdering.simulering)
+                        is RevurderingTilAttestering.Opphørt -> objectMapper.writeValueAsString(revurdering.simulering)
+                    },
+                    "oppgaveId" to revurdering.oppgaveId.toString(),
+                    "fritekstTilBrev" to revurdering.fritekstTilBrev,
+                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
+                    "revurderingsType" to when (revurdering) {
+                        is RevurderingTilAttestering.IngenEndring -> RevurderingsType.TIL_ATTESTERING_INGEN_ENDRING
+                        is RevurderingTilAttestering.Innvilget -> RevurderingsType.TIL_ATTESTERING_INNVILGET
+                        is RevurderingTilAttestering.Opphørt -> RevurderingsType.TIL_ATTESTERING_OPPHØRT
+                    },
+                    "skalFoereTilBrevutsending" to when (revurdering) {
+                        is RevurderingTilAttestering.IngenEndring -> revurdering.skalFøreTilBrevutsending
+                        is RevurderingTilAttestering.Innvilget -> true
+                        is RevurderingTilAttestering.Opphørt -> true
+                    },
+                ),
+                session,
+            )
+
+    private fun lagre(revurdering: IverksattRevurdering, session: TransactionalSession) =
+        """
+                    update
+                        revurdering
+                    set
+                        saksbehandler = :saksbehandler,
+                        beregning = to_json(:beregning::json),
+                        simulering = to_json(:simulering::json),
+                        oppgaveId = :oppgaveId,
+                        attestering = to_jsonb(:attestering::jsonb),
+                        årsak = :arsak,
+                        begrunnelse =:begrunnelse,
+                        revurderingsType = :revurderingsType
+                    where
+                        id = :id
+        """.trimIndent()
+            .oppdatering(
+                mapOf(
+                    "id" to revurdering.id,
+                    "saksbehandler" to revurdering.saksbehandler.navIdent,
+                    "beregning" to serialiserBeregning(revurdering.beregning),
+                    "simulering" to when (revurdering) {
+                        is IverksattRevurdering.IngenEndring -> null
+                        is IverksattRevurdering.Innvilget -> objectMapper.writeValueAsString(revurdering.simulering)
+                        is IverksattRevurdering.Opphørt -> objectMapper.writeValueAsString(revurdering.simulering)
+                    },
+                    "oppgaveId" to revurdering.oppgaveId.toString(),
+                    "attestering" to revurdering.attesteringer.hentAttesteringer().serialize(),
+                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
+                    "revurderingsType" to when (revurdering) {
+                        is IverksattRevurdering.IngenEndring -> RevurderingsType.IVERKSATT_INGEN_ENDRING
+                        is IverksattRevurdering.Innvilget -> RevurderingsType.IVERKSATT_INNVILGET
+                        is IverksattRevurdering.Opphørt -> RevurderingsType.IVERKSATT_OPPHØRT
+                    },
+                ),
+                session,
+            )
+
+    private fun lagre(revurdering: UnderkjentRevurdering, session: TransactionalSession) =
+        """
+                    update
+                        revurdering
+                    set
+                        oppgaveId = :oppgaveId,
+                        attestering = to_jsonb(:attestering::jsonb),
+                        årsak = :arsak,
+                        begrunnelse =:begrunnelse,
+                        revurderingsType = :revurderingsType
+                    where
+                        id = :id
+        """.trimIndent()
+            .oppdatering(
+                mapOf(
+                    "id" to revurdering.id,
+                    "oppgaveId" to revurdering.oppgaveId.toString(),
+                    "attestering" to revurdering.attesteringer.hentAttesteringer().serialize(),
+                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
+                    "revurderingsType" to when (revurdering) {
+                        is UnderkjentRevurdering.IngenEndring -> RevurderingsType.UNDERKJENT_INGEN_ENDRING
+                        is UnderkjentRevurdering.Innvilget -> RevurderingsType.UNDERKJENT_INNVILGET
+                        is UnderkjentRevurdering.Opphørt -> RevurderingsType.UNDERKJENT_OPPHØRT
+                    },
+                ),
+                session,
+            )
+
+    private fun lagre(revurdering: AvsluttetRevurdering, session: TransactionalSession) =
+        """
+                    update
+                        revurdering
+                    set
+                        avsluttet = to_jsonb(:avsluttet::jsonb)
+                    where
+                        id = :id
+        """.trimIndent()
+            .oppdatering(
+                params = mapOf(
+                    "id" to revurdering.id,
+                    "avsluttet" to objectMapper.writeValueAsString(
+                        AvsluttetRevurderingInfo(
+                            begrunnelse = revurdering.begrunnelse,
+                            fritekst = revurdering.fritekst,
+                            tidspunktAvsluttet = revurdering.tidspunktAvsluttet,
+                        ),
+                    ),
+                ),
+                session = session,
+            )
+
+    @JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type",
+    )
+    @JsonSubTypes(
+        JsonSubTypes.Type(value = ForhåndsvarselDto.IngenForhåndsvarsel::class, name = "IngenForhåndsvarsel"),
+        JsonSubTypes.Type(value = ForhåndsvarselDto.Sendt::class, name = "Sendt"),
+        JsonSubTypes.Type(value = ForhåndsvarselDto.Besluttet::class, name = "Besluttet"),
+    )
+    sealed class ForhåndsvarselDto {
+        object IngenForhåndsvarsel : ForhåndsvarselDto()
+
+        object Sendt : ForhåndsvarselDto()
+
+        data class Besluttet(
+            val valg: BeslutningEtterForhåndsvarsling,
+            val begrunnelse: String,
+        ) : ForhåndsvarselDto()
+
+        fun toDomain(): Forhåndsvarsel =
+            when (this) {
+                is Sendt -> Forhåndsvarsel.SkalForhåndsvarsles.Sendt
+                is IngenForhåndsvarsel -> Forhåndsvarsel.IngenForhåndsvarsel
+                is Besluttet -> Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
+                    valg = valg,
+                    begrunnelse = begrunnelse,
+                )
+            }
+
+        companion object {
+            fun from(forhåndsvarsel: Forhåndsvarsel) =
+                when (forhåndsvarsel) {
+                    is Forhåndsvarsel.SkalForhåndsvarsles.Sendt -> Sendt
+                    is Forhåndsvarsel.IngenForhåndsvarsel -> IngenForhåndsvarsel
+                    is Forhåndsvarsel.SkalForhåndsvarsles.Besluttet -> Besluttet(
+                        valg = forhåndsvarsel.valg,
+                        begrunnelse = forhåndsvarsel.begrunnelse,
+                    )
+                }
+        }
+    }
+
+    private fun lagRevurdering(
+        status: RevurderingsType,
+        id: UUID,
+        periode: Periode,
+        opprettet: Tidspunkt,
+        tilRevurdering: VedtakSomKanRevurderes,
+        saksbehandler: String,
+        beregning: PersistertBeregning?,
+        simulering: Simulering?,
+        oppgaveId: String?,
+        attesteringer: Attesteringshistorikk,
+        fritekstTilBrev: String?,
+        revurderingsårsak: Revurderingsårsak,
+        forhåndsvarsel: Forhåndsvarsel?,
+        skalFøreTilBrevutsending: Boolean,
+        grunnlagsdata: Grunnlagsdata,
+        vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
+        informasjonSomRevurderes: InformasjonSomRevurderes?,
+    ): AbstraktRevurdering {
+        return when (status) {
             RevurderingsType.UNDERKJENT_INNVILGET -> UnderkjentRevurdering.Innvilget(
                 id = id,
                 periode = periode,
@@ -542,307 +945,6 @@ internal class RevurderingPostgresRepo(
                 attesteringer = attesteringer,
                 revurderingsårsak = revurderingsårsak,
             )
-        }
-    }
-
-    private fun lagre(revurdering: OpprettetRevurdering, session: TransactionalSession) {
-        """
-                    insert into revurdering (
-                        id,
-                        opprettet,
-                        periode,
-                        beregning,
-                        simulering,
-                        saksbehandler,
-                        oppgaveId,
-                        revurderingsType,
-                        attestering,
-                        vedtakSomRevurderesId,
-                        fritekstTilBrev,
-                        årsak,
-                        begrunnelse,
-                        forhåndsvarsel,
-                        informasjonSomRevurderes
-                    ) values (
-                        :id,
-                        :opprettet,
-                        to_json(:periode::json),
-                        null,
-                        null,
-                        :saksbehandler,
-                        :oppgaveId,
-                        '${RevurderingsType.OPPRETTET}',
-                        to_jsonb(:attestering::jsonb),
-                        :vedtakSomRevurderesId,
-                        :fritekstTilBrev,
-                        :arsak,
-                        :begrunnelse,
-                        to_json(:forhandsvarsel::json),
-                        to_json(:informasjonSomRevurderes::json)
-                    )
-                        ON CONFLICT(id) do update set
-                        id=:id,
-                        opprettet=:opprettet,
-                        periode=to_json(:periode::json),
-                        beregning=null,
-                        simulering=null,
-                        saksbehandler=:saksbehandler,
-                        oppgaveId=:oppgaveId,
-                        revurderingsType='${RevurderingsType.OPPRETTET}',
-                        attestering=to_jsonb(:attestering::jsonb),
-                        vedtakSomRevurderesId=:vedtakSomRevurderesId,
-                        fritekstTilBrev=:fritekstTilBrev,
-                        årsak=:arsak,
-                        begrunnelse=:begrunnelse,
-                        forhåndsvarsel=to_json(:forhandsvarsel::json),
-                        informasjonSomRevurderes=to_json(:informasjonSomRevurderes::json)
-        """.trimIndent()
-            .insert(
-                mapOf(
-                    "id" to revurdering.id,
-                    "periode" to objectMapper.writeValueAsString(revurdering.periode),
-                    "opprettet" to revurdering.opprettet,
-                    "saksbehandler" to revurdering.saksbehandler.navIdent,
-                    "oppgaveId" to revurdering.oppgaveId.toString(),
-                    "vedtakSomRevurderesId" to revurdering.tilRevurdering.id,
-                    "fritekstTilBrev" to revurdering.fritekstTilBrev,
-                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
-                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                    "forhandsvarsel" to revurdering.forhåndsvarsel?.let {
-                        objectMapper.writeValueAsString(ForhåndsvarselDto.from(it))
-                    },
-                    "informasjonSomRevurderes" to objectMapper.writeValueAsString(revurdering.informasjonSomRevurderes),
-                    "attestering" to revurdering.attesteringer.hentAttesteringer().serialize(),
-                ),
-                session,
-            )
-
-        utlandsoppholdVilkårsvurderingRepo.lagre(
-            behandlingId = revurdering.id,
-            vilkår = revurdering.vilkårsvurderinger.oppholdIUtlandet,
-            tx = session,
-        )
-    }
-
-    private fun lagre(revurdering: BeregnetRevurdering, session: TransactionalSession) =
-        """
-                    update
-                        revurdering
-                    set
-                        beregning = to_json(:beregning::json),
-                        simulering = null,
-                        revurderingsType = :revurderingsType,
-                        saksbehandler = :saksbehandler,
-                        årsak = :arsak,
-                        begrunnelse = :begrunnelse,
-                        informasjonSomRevurderes = to_json(:informasjonSomRevurderes::json)
-                    where
-                        id = :id
-        """.trimIndent()
-            .oppdatering(
-                mapOf(
-                    "id" to revurdering.id,
-                    "saksbehandler" to revurdering.saksbehandler.navIdent,
-                    "beregning" to serialiserBeregning(revurdering.beregning),
-                    "revurderingsType" to when (revurdering) {
-                        is BeregnetRevurdering.IngenEndring -> RevurderingsType.BEREGNET_INGEN_ENDRING
-                        is BeregnetRevurdering.Innvilget -> RevurderingsType.BEREGNET_INNVILGET
-                        is BeregnetRevurdering.Opphørt -> RevurderingsType.BEREGNET_OPPHØRT
-                    },
-                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
-                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                    "informasjonSomRevurderes" to objectMapper.writeValueAsString(revurdering.informasjonSomRevurderes),
-                ),
-                session,
-            )
-
-    private fun lagre(revurdering: SimulertRevurdering, session: TransactionalSession) =
-        """
-                    update
-                        revurdering
-                    set
-                        saksbehandler = :saksbehandler,
-                        beregning = to_json(:beregning::json),
-                        simulering = to_json(:simulering::json),
-                        revurderingsType = :revurderingsType,
-                        årsak = :arsak,
-                        begrunnelse =:begrunnelse,
-                        forhåndsvarsel = to_json(:forhandsvarsel::json)
-                    where
-                        id = :id
-        """.trimIndent()
-            .oppdatering(
-                mapOf(
-                    "id" to revurdering.id,
-                    "saksbehandler" to revurdering.saksbehandler.navIdent,
-                    "beregning" to serialiserBeregning(revurdering.beregning),
-                    "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
-                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
-                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                    "revurderingsType" to when (revurdering) {
-                        is SimulertRevurdering.Innvilget -> RevurderingsType.SIMULERT_INNVILGET
-                        is SimulertRevurdering.Opphørt -> RevurderingsType.SIMULERT_OPPHØRT
-                    },
-                    "forhandsvarsel" to revurdering.forhåndsvarsel?.let {
-                        objectMapper.writeValueAsString(ForhåndsvarselDto.from(it))
-                    },
-                ),
-                session,
-            )
-
-    private fun lagre(revurdering: RevurderingTilAttestering, session: TransactionalSession) =
-        """
-                    update
-                        revurdering
-                    set
-                        saksbehandler = :saksbehandler,
-                        beregning = to_json(:beregning::json),
-                        simulering = to_json(:simulering::json),
-                        oppgaveId = :oppgaveId,
-                        fritekstTilBrev = :fritekstTilBrev,
-                        årsak = :arsak,
-                        begrunnelse =:begrunnelse,
-                        revurderingsType = :revurderingsType,
-                        skalFøreTilBrevutsending = :skalFoereTilBrevutsending
-                    where
-                        id = :id
-        """.trimIndent()
-            .oppdatering(
-                mapOf(
-                    "id" to revurdering.id,
-                    "saksbehandler" to revurdering.saksbehandler.navIdent,
-                    "beregning" to serialiserBeregning(revurdering.beregning),
-                    "simulering" to when (revurdering) {
-                        is RevurderingTilAttestering.IngenEndring -> null
-                        is RevurderingTilAttestering.Innvilget -> objectMapper.writeValueAsString(revurdering.simulering)
-                        is RevurderingTilAttestering.Opphørt -> objectMapper.writeValueAsString(revurdering.simulering)
-                    },
-                    "oppgaveId" to revurdering.oppgaveId.toString(),
-                    "fritekstTilBrev" to revurdering.fritekstTilBrev,
-                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
-                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                    "revurderingsType" to when (revurdering) {
-                        is RevurderingTilAttestering.IngenEndring -> RevurderingsType.TIL_ATTESTERING_INGEN_ENDRING
-                        is RevurderingTilAttestering.Innvilget -> RevurderingsType.TIL_ATTESTERING_INNVILGET
-                        is RevurderingTilAttestering.Opphørt -> RevurderingsType.TIL_ATTESTERING_OPPHØRT
-                    },
-                    "skalFoereTilBrevutsending" to when (revurdering) {
-                        is RevurderingTilAttestering.IngenEndring -> revurdering.skalFøreTilBrevutsending
-                        is RevurderingTilAttestering.Innvilget -> true
-                        is RevurderingTilAttestering.Opphørt -> true
-                    },
-                ),
-                session,
-            )
-
-    private fun lagre(revurdering: IverksattRevurdering, session: TransactionalSession) =
-        """
-                    update
-                        revurdering
-                    set
-                        saksbehandler = :saksbehandler,
-                        beregning = to_json(:beregning::json),
-                        simulering = to_json(:simulering::json),
-                        oppgaveId = :oppgaveId,
-                        attestering = to_jsonb(:attestering::jsonb),
-                        årsak = :arsak,
-                        begrunnelse =:begrunnelse,
-                        revurderingsType = :revurderingsType
-                    where
-                        id = :id
-        """.trimIndent()
-            .oppdatering(
-                mapOf(
-                    "id" to revurdering.id,
-                    "saksbehandler" to revurdering.saksbehandler.navIdent,
-                    "beregning" to serialiserBeregning(revurdering.beregning),
-                    "simulering" to when (revurdering) {
-                        is IverksattRevurdering.IngenEndring -> null
-                        is IverksattRevurdering.Innvilget -> objectMapper.writeValueAsString(revurdering.simulering)
-                        is IverksattRevurdering.Opphørt -> objectMapper.writeValueAsString(revurdering.simulering)
-                    },
-                    "oppgaveId" to revurdering.oppgaveId.toString(),
-                    "attestering" to revurdering.attesteringer.hentAttesteringer().serialize(),
-                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
-                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                    "revurderingsType" to when (revurdering) {
-                        is IverksattRevurdering.IngenEndring -> RevurderingsType.IVERKSATT_INGEN_ENDRING
-                        is IverksattRevurdering.Innvilget -> RevurderingsType.IVERKSATT_INNVILGET
-                        is IverksattRevurdering.Opphørt -> RevurderingsType.IVERKSATT_OPPHØRT
-                    },
-                ),
-                session,
-            )
-
-    private fun lagre(revurdering: UnderkjentRevurdering, session: TransactionalSession) =
-        """
-                    update
-                        revurdering
-                    set
-                        oppgaveId = :oppgaveId,
-                        attestering = to_jsonb(:attestering::jsonb),
-                        årsak = :arsak,
-                        begrunnelse =:begrunnelse,
-                        revurderingsType = :revurderingsType
-                    where
-                        id = :id
-        """.trimIndent()
-            .oppdatering(
-                mapOf(
-                    "id" to revurdering.id,
-                    "oppgaveId" to revurdering.oppgaveId.toString(),
-                    "attestering" to revurdering.attesteringer.hentAttesteringer().serialize(),
-                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
-                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                    "revurderingsType" to when (revurdering) {
-                        is UnderkjentRevurdering.IngenEndring -> RevurderingsType.UNDERKJENT_INGEN_ENDRING
-                        is UnderkjentRevurdering.Innvilget -> RevurderingsType.UNDERKJENT_INNVILGET
-                        is UnderkjentRevurdering.Opphørt -> RevurderingsType.UNDERKJENT_OPPHØRT
-                    },
-                ),
-                session,
-            )
-
-    @JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,
-        include = JsonTypeInfo.As.PROPERTY,
-        property = "type",
-    )
-    @JsonSubTypes(
-        JsonSubTypes.Type(value = ForhåndsvarselDto.IngenForhåndsvarsel::class, name = "IngenForhåndsvarsel"),
-        JsonSubTypes.Type(value = ForhåndsvarselDto.Sendt::class, name = "Sendt"),
-        JsonSubTypes.Type(value = ForhåndsvarselDto.Besluttet::class, name = "Besluttet"),
-    )
-    sealed class ForhåndsvarselDto {
-        object IngenForhåndsvarsel : ForhåndsvarselDto()
-
-        object Sendt : ForhåndsvarselDto()
-
-        data class Besluttet(
-            val valg: BeslutningEtterForhåndsvarsling,
-            val begrunnelse: String,
-        ) : ForhåndsvarselDto()
-
-        fun toDomain(): Forhåndsvarsel =
-            when (this) {
-                is Sendt -> Forhåndsvarsel.SkalForhåndsvarsles.Sendt
-                is IngenForhåndsvarsel -> Forhåndsvarsel.IngenForhåndsvarsel
-                is Besluttet -> Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
-                    valg = valg,
-                    begrunnelse = begrunnelse,
-                )
-            }
-
-        companion object {
-            fun from(forhåndsvarsel: Forhåndsvarsel) =
-                when (forhåndsvarsel) {
-                    is Forhåndsvarsel.SkalForhåndsvarsles.Sendt -> Sendt
-                    is Forhåndsvarsel.IngenForhåndsvarsel -> IngenForhåndsvarsel
-                    is Forhåndsvarsel.SkalForhåndsvarsles.Besluttet -> Besluttet(
-                        valg = forhåndsvarsel.valg,
-                        begrunnelse = forhåndsvarsel.begrunnelse,
-                    )
-                }
         }
     }
 }

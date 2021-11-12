@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.vedtak
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.Sak
@@ -19,6 +18,8 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
+import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.FantIkkeVedtakForUtbetalingId
+import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeGenerereBrev
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.oversendtUtbetalingMedKvittering
@@ -26,7 +27,6 @@ import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattAvslagMedBeregning
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
@@ -72,7 +72,7 @@ internal class FerdigstillVedtakServiceImplTest {
     }
 
     @Test
-    fun `ferdigstill NY kaster feil hvis utbetalinga ikke kan kobles til et vedtak`() {
+    fun `ferdigstill NY ender i feil hvis utbetalinga ikke kan kobles til et vedtak`() {
         val (sak, vedtak) = innvilgetSøknadsbehandlingVedtak()
 
         FerdigstillVedtakServiceMocks(
@@ -80,9 +80,8 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { hentForUtbetaling(any()) } doReturn null
             },
         ) {
-            assertThrows<FerdigstillVedtakServiceImpl.KunneIkkeFerdigstilleVedtakException> {
-                service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
-            }.message shouldContain vedtak.utbetalingId.toString()
+            val feil = service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
+            feil shouldBe FantIkkeVedtakForUtbetalingId(vedtak.utbetalingId).left()
 
             verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
         }
@@ -100,9 +99,8 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeHentePerson.left()
             }
         ) {
-            assertThrows<FerdigstillVedtakServiceImpl.KunneIkkeFerdigstilleVedtakException> {
-                service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
-            }.message shouldContain vedtak.id.toString()
+            val feil = service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
+            feil shouldBe KunneIkkeGenerereBrev.left()
 
             verify(vedtakRepo).hentForUtbetaling(vedtak.utbetalingId)
             verify(brevService).lagDokument(vedtak)
@@ -121,11 +119,8 @@ internal class FerdigstillVedtakServiceImplTest {
                 on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
             }
         ) {
-            assertThrows<FerdigstillVedtakServiceImpl.KunneIkkeFerdigstilleVedtakException> {
-                service.ferdigstillVedtakEtterUtbetaling(
-                    sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering,
-                )
-            }.message shouldContain vedtak.id.toString()
+            val feil = service.ferdigstillVedtakEtterUtbetaling(sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering)
+            feil shouldBe KunneIkkeGenerereBrev.left()
 
             inOrder(
                 *all(),

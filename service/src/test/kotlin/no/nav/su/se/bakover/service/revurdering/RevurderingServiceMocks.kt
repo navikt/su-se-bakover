@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.revurdering
 
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -12,6 +13,7 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import org.mockito.kotlin.mock
 
@@ -28,6 +30,7 @@ internal data class RevurderingServiceMocks(
     val grunnlagService: GrunnlagService = mock(),
     val vilkårsvurderingService: VilkårsvurderingService = mock(),
     val sakService: SakService = mock(),
+    val sessionFactory: SessionFactory = TestSessionFactory(),
 ) {
     val revurderingService = RevurderingServiceImpl(
         utbetalingService = utbetalingService,
@@ -42,6 +45,7 @@ internal data class RevurderingServiceMocks(
         grunnlagService = grunnlagService,
         vedtakService = vedtakService,
         sakService = sakService,
+        sessionFactory = sessionFactory
     )
 
     fun all() = listOf(

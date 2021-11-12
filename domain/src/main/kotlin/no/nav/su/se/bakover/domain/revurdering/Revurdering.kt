@@ -71,108 +71,6 @@ sealed class AbstraktRevurdering : Behandling {
     override val fnr by lazy { tilRevurdering.behandling.fnr }
 }
 
-sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
-
-    data class SimulertStansAvYtelse(
-        override val id: UUID,
-        override val opprettet: Tidspunkt,
-        override val periode: Periode,
-        override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
-        override val tilRevurdering: VedtakSomKanRevurderes,
-        val saksbehandler: Saksbehandler,
-        val simulering: Simulering,
-        val revurderingsårsak: Revurderingsårsak,
-    ) : StansAvYtelseRevurdering() {
-
-        fun iverksett(attestering: Attestering): Either<KunneIkkeIverksetteStansAvYtelse, IverksattStansAvYtelse> {
-            if (simulering.harFeilutbetalinger()) {
-                return KunneIkkeIverksetteStansAvYtelse.SimuleringIndikererFeilutbetaling.left()
-            }
-            return IverksattStansAvYtelse(
-                id = id,
-                opprettet = opprettet,
-                periode = periode,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                tilRevurdering = tilRevurdering,
-                saksbehandler = saksbehandler,
-                simulering = simulering,
-                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attestering),
-                revurderingsårsak = revurderingsårsak,
-            ).right()
-        }
-    }
-
-    sealed class KunneIkkeIverksetteStansAvYtelse {
-        object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteStansAvYtelse()
-    }
-
-    data class IverksattStansAvYtelse(
-        override val id: UUID,
-        override val opprettet: Tidspunkt,
-        override val periode: Periode,
-        override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
-        override val tilRevurdering: VedtakSomKanRevurderes,
-        val saksbehandler: Saksbehandler,
-        val simulering: Simulering,
-        override val attesteringer: Attesteringshistorikk,
-        val revurderingsårsak: Revurderingsårsak,
-    ) : StansAvYtelseRevurdering(), BehandlingMedAttestering
-}
-
-sealed class GjenopptaYtelseRevurdering : AbstraktRevurdering() {
-
-    data class SimulertGjenopptakAvYtelse(
-        override val id: UUID,
-        override val opprettet: Tidspunkt,
-        override val periode: Periode,
-        override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
-        override val tilRevurdering: VedtakSomKanRevurderes,
-        val saksbehandler: Saksbehandler,
-        val simulering: Simulering,
-        val revurderingsårsak: Revurderingsårsak,
-    ) : GjenopptaYtelseRevurdering() {
-
-        fun iverksett(attestering: Attestering): Either<KunneIkkeIverksetteGjenopptakAvYtelse, IverksattGjenopptakAvYtelse> {
-            if (simulering.harFeilutbetalinger()) {
-                return KunneIkkeIverksetteGjenopptakAvYtelse.SimuleringIndikererFeilutbetaling.left()
-            }
-            return IverksattGjenopptakAvYtelse(
-                id = id,
-                opprettet = opprettet,
-                periode = periode,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger,
-                tilRevurdering = tilRevurdering,
-                saksbehandler = saksbehandler,
-                simulering = simulering,
-                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attestering),
-                revurderingsårsak = revurderingsårsak,
-            ).right()
-        }
-    }
-
-    sealed class KunneIkkeIverksetteGjenopptakAvYtelse {
-        object SimuleringIndikererFeilutbetaling : KunneIkkeIverksetteGjenopptakAvYtelse()
-    }
-
-    data class IverksattGjenopptakAvYtelse(
-        override val id: UUID,
-        override val opprettet: Tidspunkt,
-        override val periode: Periode,
-        override val grunnlagsdata: Grunnlagsdata,
-        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
-        override val tilRevurdering: VedtakSomKanRevurderes,
-        val saksbehandler: Saksbehandler,
-        val simulering: Simulering,
-        override val attesteringer: Attesteringshistorikk,
-        val revurderingsårsak: Revurderingsårsak,
-    ) : GjenopptaYtelseRevurdering(), BehandlingMedAttestering
-}
-
 sealed class Revurdering :
     AbstraktRevurdering(),
     BehandlingMedOppgave,
@@ -189,6 +87,19 @@ sealed class Revurdering :
     abstract val forhåndsvarsel: Forhåndsvarsel?
 
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>)
+
+    fun avslutt(
+        begrunnelse: String,
+        fritekst: String?,
+        tidspunktAvsluttet: Tidspunkt,
+    ): Either<KunneIkkeLageAvsluttetRevurdering, AvsluttetRevurdering> {
+        return AvsluttetRevurdering.tryCreate(
+            underliggendeRevurdering = this,
+            begrunnelse = begrunnelse,
+            fritekst = fritekst,
+            tidspunktAvsluttet = tidspunktAvsluttet,
+        )
+    }
 
     sealed class KunneIkkeLeggeTilFradrag {
         data class Valideringsfeil(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilFradrag()
@@ -1442,6 +1353,7 @@ fun Revurdering.medFritekst(fritekstTilBrev: String) =
         is IverksattRevurdering.IngenEndring -> copy(fritekstTilBrev = fritekstTilBrev)
         is RevurderingTilAttestering.IngenEndring -> copy(fritekstTilBrev = fritekstTilBrev)
         is UnderkjentRevurdering.IngenEndring -> copy(fritekstTilBrev = fritekstTilBrev)
+        is AvsluttetRevurdering -> copy(fritekst = fritekstTilBrev)
     }
 
 enum class Vurderingstatus(val status: String) {

@@ -89,7 +89,7 @@ data class GjeldendeVedtaksdata(
     fun gjeldendeVedtakPåDato(dato: LocalDate): VedtakSomKanRevurderes? =
         tidslinje.gjeldendeForDato(dato)?.originaltVedtak
 
-    fun tidslinjeForVedtakErSammenhengende() = vedtakPåTidslinje
+    fun tidslinjeForVedtakErSammenhengende(): Boolean = vedtakPåTidslinje
         .zipWithNext { a, b -> a.periode tilstøter b.periode }
         .all { it }
 }

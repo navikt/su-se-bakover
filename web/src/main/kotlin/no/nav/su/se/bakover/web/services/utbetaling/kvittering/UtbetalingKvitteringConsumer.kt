@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.web.services.utbetaling.kvittering
 
+import arrow.core.Either
+import arrow.core.flatMap
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
@@ -42,16 +44,18 @@ class UtbetalingKvitteringConsumer(
         if (!kvittering.erKvittertOk()) {
             log.error("Mottok en kvittering fra oppdragssystemet som ikke var OK: $kvittering, dette bør muligens følges opp!")
         }
+
+        log.info("Oppdaterer utbetaling og ferdigstiller innvilgelse med kvittering fra Oppdrag")
         utbetalingService.oppdaterMedKvittering(avstemmingsnøkkel, kvittering)
-            .map { ferdigstillInnvilgelse(it) }
+            .flatMap { ferdigstillInnvilgelse(it) }
             .mapLeft {
                 /**
                  * //TODO finn en bedre løsning på dette?
-                 * Prøver på nytt etter litt delay dersom utbetalingen ikke finnes. Opplever en del tilfeller
-                 * hvor dette skjer, selv om utbetalingen i ettertid finnes i databasen.
+                 * Prøver på nytt etter litt delay dersom utbetalingen/vedtaket ikke finnes.
+                 * Vi har en race condition (spesielt på vedtak), hvor kvitteringen fra Oppdrag av og til kommer før vi har persistert vedtaket.
                  */
                 val delayMs = 1000L
-                log.info("Fant ikke utbetaling for avstemmingsnøkkel $avstemmingsnøkkel, venter $delayMs før retry")
+                log.info("Noe gikk galt i prosessering av kvittering fra Oppdrag, venter ${delayMs}ms før retry")
                 runBlocking {
                     delay(delayMs)
                 }
@@ -59,14 +63,14 @@ class UtbetalingKvitteringConsumer(
                     avstemmingsnøkkel,
                     kvittering,
                 )
-                    .map { ferdigstillInnvilgelse(it) }
+                    .flatMap { ferdigstillInnvilgelse(it) }
                     .mapLeft {
-                        throw RuntimeException("Kunne ikke lagre kvittering. Fant ikke utbetaling med avstemmingsnøkkel $avstemmingsnøkkel")
+                        throw RuntimeException("Kunne ikke oppdatere kvittering eller vedtak ved prossessering av kvittering: $it")
                     }
             }
     }
 
-    private fun ferdigstillInnvilgelse(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering) {
-        ferdigstillVedtakService.ferdigstillVedtakEtterUtbetaling(utbetaling)
+    private fun ferdigstillInnvilgelse(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak, Unit> {
+        return ferdigstillVedtakService.ferdigstillVedtakEtterUtbetaling(utbetaling)
     }
 }

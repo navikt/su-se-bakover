@@ -10,9 +10,12 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -34,6 +37,7 @@ import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IdentifiserRevurderingsopphørSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpphørVedRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -80,6 +84,7 @@ internal class RevurderingServiceImpl(
     private val vilkårsvurderingService: VilkårsvurderingService,
     private val grunnlagService: GrunnlagService,
     private val vedtakService: VedtakService,
+    private val sessionFactory: SessionFactory,
     sakService: SakService,
 ) : RevurderingService {
     private val stansAvYtelseService = StansAvYtelseService(
@@ -103,6 +108,8 @@ internal class RevurderingServiceImpl(
 
     fun addObserver(observer: EventObserver) {
         observers.add(observer)
+        gjenopptakAvYtelseService.addObserver(observer)
+        stansAvYtelseService.addObserver(observer)
     }
 
     fun getObservers(): List<EventObserver> = observers.toList()
@@ -373,17 +380,6 @@ internal class RevurderingServiceImpl(
             revurderingRepo.lagre(it)
             identifiserFeilOgLagResponse(it)
         }
-    }
-
-    private fun hent(id: UUID): Either<KunneIkkeHenteRevurdering, Revurdering> {
-        return revurderingRepo.hent(id)
-            ?.let { if (it is Revurdering) it.right() else KunneIkkeHenteRevurdering.IkkeInstansAvRevurdering.left() }
-            ?: KunneIkkeHenteRevurdering.FantIkkeRevurdering.left()
-    }
-
-    sealed class KunneIkkeHenteRevurdering {
-        object IkkeInstansAvRevurdering : KunneIkkeHenteRevurdering()
-        object FantIkkeRevurdering : KunneIkkeHenteRevurdering()
     }
 
     override fun leggTilFormuegrunnlag(request: LeggTilFormuegrunnlagRequest): Either<KunneIkkeLeggeTilFormuegrunnlag, RevurderingOgFeilmeldingerResponse> {
@@ -740,20 +736,18 @@ internal class RevurderingServiceImpl(
         val revurdering = hent(revurderingId)
             .getOrHandle { return KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering.left() }
 
-        val person = personService.hentPerson(revurdering.fnr).getOrElse {
-            log.error("Fant ikke person for revurdering: ${revurdering.id}")
-            return KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson.left()
-        }
-
-        val saksbehandlerNavn = microsoftGraphApiClient.hentNavnForNavIdent(revurdering.saksbehandler).getOrElse {
-            log.error("Fant ikke saksbehandlernavn for saksbehandler: ${revurdering.saksbehandler}")
-            return KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
-        }
+        val personOgSaksbehandlerNavn =
+            hentPersonOgSaksbehandlerNavn(revurdering.fnr, revurdering.saksbehandler).getOrHandle {
+                return when (it) {
+                    KunneIkkeHentePersonEllerSaksbehandlerNavn.FantIkkePerson -> KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson.left()
+                    KunneIkkeHentePersonEllerSaksbehandlerNavn.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
+                }
+            }
 
         val brevRequest = LagBrevRequest.Forhåndsvarsel(
-            person = person,
+            person = personOgSaksbehandlerNavn.first,
             fritekst = fritekst,
-            saksbehandlerNavn = saksbehandlerNavn,
+            saksbehandlerNavn = personOgSaksbehandlerNavn.second,
             dagensDato = LocalDate.now(clock),
         )
 
@@ -943,18 +937,7 @@ internal class RevurderingServiceImpl(
         }
     }
 
-    override fun lagBrevutkast(
-        revurderingId: UUID,
-        fritekst: String,
-    ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
-        return hentBrevutkast(revurderingId, fritekst)
-    }
-
-    override fun hentBrevutkast(revurderingId: UUID): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
-        return hentBrevutkast(revurderingId, null)
-    }
-
-    private fun hentBrevutkast(
+    override fun lagBrevutkastForRevurdering(
         revurderingId: UUID,
         fritekst: String?,
     ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
@@ -1199,7 +1182,15 @@ internal class RevurderingServiceImpl(
                         Either.Right(revurdering)
                     }
                     is FortsettEtterForhåndsvarslingRequest.AvsluttUtenEndringer -> {
-                        TODO("Not yet implemented")
+                        avsluttRevurdering(
+                            revurderingId = request.revurderingId,
+                            begrunnelse = request.begrunnelse,
+                            fritekst = request.fritekstTilBrev,
+                        ).mapLeft {
+                            FortsettEtterForhåndsvarselFeil.KunneIkkeAvslutteRevurdering(it)
+                        }.map {
+                            it as Revurdering
+                        }
                     }
                 }
             }
@@ -1209,19 +1200,17 @@ internal class RevurderingServiceImpl(
         revurdering: SimulertRevurdering,
         fritekst: String,
     ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
-        val person = personService.hentPerson(revurdering.fnr).getOrElse {
-            log.error("Fant ikke person for revurdering: ${revurdering.id}")
-            return KunneIkkeForhåndsvarsle.FantIkkePerson.left()
-        }
-
-        val saksbehandlerNavn = microsoftGraphApiClient.hentNavnForNavIdent(revurdering.saksbehandler).getOrElse {
-            log.error("Fant ikke saksbehandlernavn for saksbehandler: ${revurdering.saksbehandler}")
-            return KunneIkkeForhåndsvarsle.KunneIkkeHenteNavnForSaksbehandler.left()
-        }
+        val personOgSaksbehandlerNavn =
+            hentPersonOgSaksbehandlerNavn(revurdering.fnr, revurdering.saksbehandler).getOrHandle {
+                return when (it) {
+                    KunneIkkeHentePersonEllerSaksbehandlerNavn.FantIkkePerson -> KunneIkkeForhåndsvarsle.FantIkkePerson.left()
+                    KunneIkkeHentePersonEllerSaksbehandlerNavn.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeForhåndsvarsle.KunneIkkeHenteNavnForSaksbehandler.left()
+                }
+            }
 
         val dokument = LagBrevRequest.Forhåndsvarsel(
-            person = person,
-            saksbehandlerNavn = saksbehandlerNavn,
+            person = personOgSaksbehandlerNavn.first,
+            saksbehandlerNavn = personOgSaksbehandlerNavn.second,
             fritekst = fritekst,
             dagensDato = LocalDate.now(clock),
         ).tilDokument {
@@ -1269,4 +1258,117 @@ internal class RevurderingServiceImpl(
             is FortsettEtterForhåndsvarslingRequest.FortsettMedAndreOpplysninger -> BeslutningEtterForhåndsvarsling.FortsettMedAndreOpplysninger
             is FortsettEtterForhåndsvarslingRequest.FortsettMedSammeOpplysninger -> BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger
         }
+
+    override fun avsluttRevurdering(
+        revurderingId: UUID,
+        begrunnelse: String,
+        fritekst: String?,
+    ): Either<KunneIkkeAvslutteRevurdering, AbstraktRevurdering> {
+        val revurdering =
+            revurderingRepo.hent(revurderingId) ?: return KunneIkkeAvslutteRevurdering.FantIkkeRevurdering.left()
+
+        val (avsluttetRevurdering, skalSendeBrev) = when (revurdering) {
+            is GjenopptaYtelseRevurdering -> revurdering.avslutt(begrunnelse, Tidspunkt.now(clock)).map {
+                it to it.skalSendeBrev()
+            }.getOrHandle {
+                return KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetGjenopptaAvYtelse(it).left()
+            }
+            is StansAvYtelseRevurdering -> revurdering.avslutt(begrunnelse, Tidspunkt.now(clock)).map {
+                it to it.skalSendeBrev()
+            }.getOrHandle {
+                return KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetStansAvYtelse(it).left()
+            }
+            is Revurdering -> revurdering.avslutt(begrunnelse, fritekst, Tidspunkt.now(clock)).map {
+                it to it.skalSendeBrev()
+            }.getOrHandle {
+                return KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetRevurdering(it).left()
+            }
+        }
+
+        if (avsluttetRevurdering is Revurdering && skalSendeBrev) {
+            brevService.lagDokument(avsluttetRevurdering).mapLeft {
+                return KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument.left()
+            }.map { dokument ->
+                val dokumentMedMetaData = dokument.leggTilMetadata(
+                    metadata = Dokument.Metadata(
+                        sakId = revurdering.sakId,
+                        vedtakId = revurdering.tilRevurdering.id,
+                        revurderingId = revurdering.id,
+                        bestillBrev = true,
+                    ),
+                )
+                sessionFactory.withTransactionContext {
+                    brevService.lagreDokument(dokumentMedMetaData)
+                    revurderingRepo.lagre(avsluttetRevurdering)
+                }
+            }
+            return avsluttetRevurdering.right()
+        } else {
+            revurderingRepo.lagre(avsluttetRevurdering)
+            return avsluttetRevurdering.right()
+        }
+    }
+
+    override fun lagBrevutkastForAvslutting(
+        revurderingId: UUID,
+        fritekst: String?,
+    ): Either<KunneIkkeLageBrevutkastForAvsluttingAvRevurdering, Pair<Fnr, ByteArray>> {
+        val revurdering = hent(revurderingId)
+            .getOrHandle { return KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.FantIkkeRevurdering.left() }
+
+        if (revurdering.forhåndsvarsel !is Forhåndsvarsel.SkalForhåndsvarsles) {
+            return KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.RevurderingenErIkkeForhåndsvarslet.left()
+        }
+
+        // Lager en midlertidig aavsluttet revurdering objekt- for å konstruere brevet - Denne blir ikke lagret
+        val avsluttetRevurdering = revurdering.avslutt(
+            begrunnelse = "",
+            fritekst = fritekst,
+            tidspunktAvsluttet = Tidspunkt.now(clock),
+        ).getOrHandle {
+            return KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeLageBrevutkast.left()
+        }
+
+        return brevService.lagDokument(avsluttetRevurdering)
+            .mapLeft {
+                when (it) {
+                    KunneIkkeLageDokument.KunneIkkeFinneGjeldendeUtbetaling -> KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeFinneGjeldendeUtbetaling.left()
+                    KunneIkkeLageDokument.KunneIkkeGenererePDF -> KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeGenererePDF.left()
+                    KunneIkkeLageDokument.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
+                    KunneIkkeLageDokument.KunneIkkeHentePerson -> KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.FantIkkePerson
+                }
+                return KunneIkkeLageBrevutkastForAvsluttingAvRevurdering.KunneIkkeLageBrevutkast.left()
+            }
+            .map {
+                return Pair(avsluttetRevurdering.fnr, it.generertDokument).right()
+            }
+    }
+
+    private fun hentPersonOgSaksbehandlerNavn(
+        fnr: Fnr,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeHentePersonEllerSaksbehandlerNavn, Pair<Person, String>> {
+        val person = personService.hentPerson(fnr).getOrElse {
+            log.error("Fant ikke person for fnr: $fnr")
+            return KunneIkkeHentePersonEllerSaksbehandlerNavn.FantIkkePerson.left()
+        }
+
+        val saksbehandlerNavn = microsoftGraphApiClient.hentNavnForNavIdent(saksbehandler).getOrElse {
+            log.error("Fant ikke saksbehandlernavn for saksbehandler: $saksbehandler")
+            return KunneIkkeHentePersonEllerSaksbehandlerNavn.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
+        }
+
+        return Pair(person, saksbehandlerNavn).right()
+    }
+
+    private fun hent(id: UUID): Either<KunneIkkeHenteRevurdering, Revurdering> {
+        return revurderingRepo.hent(id)
+            ?.let { if (it is Revurdering) it.right() else KunneIkkeHenteRevurdering.IkkeInstansAvRevurdering.left() }
+            ?: KunneIkkeHenteRevurdering.FantIkkeRevurdering.left()
+    }
+
+    sealed class KunneIkkeHenteRevurdering {
+        object IkkeInstansAvRevurdering : KunneIkkeHenteRevurdering()
+        object FantIkkeRevurdering : KunneIkkeHenteRevurdering()
+    }
 }

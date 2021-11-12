@@ -11,6 +11,12 @@
     <logger name="com.zaxxer.hikari" level="ERROR"/>
     <logger name="org.flywaydb" level="ERROR"/>
 
+
+    <logger name="kafka" level="ERROR"/>
+    <logger name="io.confluent" level="ERROR"/>
+    <logger name="org.apache" level="ERROR"/>
+    <logger name="state.change.logger" level="ERROR"/>
+
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>

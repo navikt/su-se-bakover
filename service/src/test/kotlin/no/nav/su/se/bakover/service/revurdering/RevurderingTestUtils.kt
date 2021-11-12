@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -23,6 +24,7 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -98,7 +100,8 @@ object RevurderingTestUtils {
         vedtakRepo: VedtakRepo = mock(),
         vilkårsvurderingService: VilkårsvurderingService = mock(),
         grunnlagService: GrunnlagService = mock(),
-        sakService: SakService = mock()
+        sakService: SakService = mock(),
+        sessionFactory: SessionFactory = TestSessionFactory(),
     ) =
         RevurderingServiceImpl(
             utbetalingService = utbetalingService,
@@ -113,6 +116,7 @@ object RevurderingTestUtils {
             grunnlagService = grunnlagService,
             vedtakService = vedtakService,
             sakService = sakService,
+            sessionFactory = sessionFactory
         )
 
     /**
