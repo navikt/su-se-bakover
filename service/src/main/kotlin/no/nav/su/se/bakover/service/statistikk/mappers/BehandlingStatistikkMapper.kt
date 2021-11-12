@@ -185,23 +185,15 @@ class BehandlingStatistikkMapper(
             behandlingStatusBeskrivelse = BehandlingStatusBeskrivelseMapper.map(gjenopptak),
             versjon = clock.millis(),
             relatertBehandlingId = gjenopptak.tilRevurdering.id,
+            totrinnsbehandling = false,
             avsluttet = false,
         ).apply {
             return when (gjenopptak) {
                 is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse -> {
                     copy(
                         beslutter = gjenopptak.attesteringer.hentSisteAttestering().attestant.navIdent,
-                        resultat = Statistikk.Stønad.Vedtaksresultat.GJENOPPTATT.toString(),
-                        resultatBegrunnelse = when (gjenopptak.revurderingsårsak.årsak) {
-                            Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING -> "Mottatt kontrollerklæring"
-                            Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                            Revurderingsårsak.Årsak.INFORMASJON_FRA_KONTROLLSAMTALE,
-                            Revurderingsårsak.Årsak.DØDSFALL,
-                            Revurderingsårsak.Årsak.ANDRE_KILDER,
-                            Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
-                            Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING,
-                            Revurderingsårsak.Årsak.MIGRERT -> throw RuntimeException("$this er ikke en gyldig årsak for gjenopptak av ytelse")
-                        },
+                        resultat = RevurderingResultatOgBegrunnelseMapper.map(gjenopptak).resultat,
+                        resultatBegrunnelse = RevurderingResultatOgBegrunnelseMapper.map(gjenopptak).begrunnelse,
                     )
                 }
                 is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> this
@@ -224,23 +216,15 @@ class BehandlingStatistikkMapper(
             behandlingStatusBeskrivelse = BehandlingStatusBeskrivelseMapper.map(stans),
             versjon = clock.millis(),
             relatertBehandlingId = stans.tilRevurdering.id,
-            avsluttet = false
+            totrinnsbehandling = false,
+            avsluttet = false,
         ).apply {
             return when (stans) {
                 is StansAvYtelseRevurdering.IverksattStansAvYtelse -> {
                     copy(
                         beslutter = stans.attesteringer.hentSisteAttestering().attestant.navIdent,
-                        resultat = "Stans",
-                        resultatBegrunnelse = when (stans.revurderingsårsak.årsak) {
-                            Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING -> "Manglende kontrollerklæring"
-                            Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                            Revurderingsårsak.Årsak.INFORMASJON_FRA_KONTROLLSAMTALE,
-                            Revurderingsårsak.Årsak.DØDSFALL,
-                            Revurderingsårsak.Årsak.ANDRE_KILDER,
-                            Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
-                            Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING,
-                            Revurderingsårsak.Årsak.MIGRERT -> throw RuntimeException("$this er ikke en gyldig årsak for gjenopptak av ytelse")
-                        }
+                        resultat = RevurderingResultatOgBegrunnelseMapper.map(stans).resultat,
+                        resultatBegrunnelse = RevurderingResultatOgBegrunnelseMapper.map(stans).begrunnelse,
                     )
                 }
                 is StansAvYtelseRevurdering.SimulertStansAvYtelse -> this
@@ -342,12 +326,12 @@ class BehandlingStatistikkMapper(
         fun map(gjenopptak: GjenopptaYtelseRevurdering): String =
             when (gjenopptak) {
                 is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse -> "Ytelsen er gjenopptatt"
-                is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> "Simulert gjenopptak av ytelse"
+                is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> "Opprettet og simulert gjenopptak av ytelse"
             }
 
         fun map(stans: StansAvYtelseRevurdering) = when (stans) {
             is StansAvYtelseRevurdering.IverksattStansAvYtelse -> "Ytelsen er stanset"
-            is StansAvYtelseRevurdering.SimulertStansAvYtelse -> "Simulert stans av ytelsen"
+            is StansAvYtelseRevurdering.SimulertStansAvYtelse -> "Opprettet og simulert stans av ytelsen"
         }
     }
 
@@ -377,8 +361,8 @@ class BehandlingStatistikkMapper(
         private const val ingenEndring = "Uendret"
         private const val ingenEndringBegrunnelse = "Mindre enn 10% endring i inntekt"
 
-        private const val stans = "Stans"
-        private const val gjenopptak = "Gjenopptak"
+        private const val stans = "Stanset"
+        private const val gjenopptak = "Gjenopptatt"
 
         internal fun map(revurdering: Revurdering): ResultatOgBegrunnelse = when (revurdering) {
             is IverksattRevurdering.Innvilget -> ResultatOgBegrunnelse(innvilget, null)
@@ -400,12 +384,12 @@ class BehandlingStatistikkMapper(
         private fun listUtOpphørsgrunner(opphørsgrunner: List<Opphørsgrunn>): String = opphørsgrunner.joinToString(",")
         private fun Revurderingsårsak.Årsak.hentGyldigStansBegrunnelse() = when (this) {
             Revurderingsårsak.Årsak.MANGLENDE_KONTROLLERKLÆRING -> "Manglende kontrollerklæring"
-            else -> throw RuntimeException("$this er ikke en gyldig årsak for stans av ytelse")
+            else -> throw RuntimeException("Feil ved mapping av gyldig årsak for Stans. $this er ikke en gyldig årsak for stans av ytelse")
         }
 
         private fun Revurderingsårsak.Årsak.hentGyldigGjenopptakBegrunnelse() = when (this) {
             Revurderingsårsak.Årsak.MOTTATT_KONTROLLERKLÆRING -> "Mottatt kontrollerklæring"
-            else -> throw RuntimeException("$this er ikke en gyldig årsak for gjenopptak av ytelse")
+            else -> throw RuntimeException("Feil ved mapping av gyldig årsak for Gjenopptak. $this er ikke en gyldig årsak for gjenopptak av ytelse")
         }
     }
 

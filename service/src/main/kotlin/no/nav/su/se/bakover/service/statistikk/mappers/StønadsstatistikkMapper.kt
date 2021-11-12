@@ -24,7 +24,6 @@ class StønadsstatistikkMapper(
         ytelseVirkningstidspunkt: LocalDate,
         sak: Sak,
     ): Statistikk.Stønad {
-
         val nå = Tidspunkt.now(clock)
 
         return Statistikk.Stønad(
@@ -85,7 +84,7 @@ private fun mapBeregning(
     clock: Clock,
 ): List<Statistikk.Stønad.Månedsbeløp> =
     vedtak.periode.tilMånedsperioder().map {
-        sak.hentGjeldendeBeregningForMåned(it, clock)!!
+        sak.hentGjeldendeMånedsberegningForMåned(it, clock)!!
     }.map {
         tilMånedsbeløp(it, vedtak)
     }

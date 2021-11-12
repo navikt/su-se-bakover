@@ -92,7 +92,13 @@ data class Sak(
         }
     }
 
-    fun hentGjeldendeBeregningForMåned(månedsperiode: Periode, clock: Clock): Månedsberegning? {
+    /**
+     * Brukes for å hente den seneste gjeldenden/brukte månedsberegningen for en gitt måned i saken.
+     *
+     * Per nå så er det kun Vedtak i form av [Vedtak.EndringIYtelse] som bidrar til dette, bortsett fra [Vedtak.IngenEndringIYtelse] som har
+     * andre beregnings-beløp som ikke skal ha en påverkan på saken.
+     * */
+    fun hentGjeldendeMånedsberegningForMåned(månedsperiode: Periode, clock: Clock): Månedsberegning? {
         assert(månedsperiode.getAntallMåneder() == 1)
         return GjeldendeVedtaksdata(
             periode = månedsperiode,

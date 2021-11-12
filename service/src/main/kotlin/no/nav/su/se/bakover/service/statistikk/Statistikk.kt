@@ -177,7 +177,7 @@ sealed class Statistikk {
 
         data class Månedsbeløp(
             val måned: String,
-            val stonadsklassifisering: Stønadsklassifisering?,
+            val stonadsklassifisering: Stønadsklassifisering,
             val bruttosats: Long,
             val nettosats: Long,
             val inntekter: List<Inntekt>,
