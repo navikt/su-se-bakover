@@ -106,13 +106,18 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             on { hent(any()) } doReturn tilAttestering
         }
 
-        shouldThrow<StatusovergangVisitor.UgyldigStatusovergangException> {
-            createSøknadsbehandlingService(
-                søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            ).leggTilBosituasjonEpsgrunnlag(
-                LeggTilBosituasjonEpsRequest(behandlingId = behandlingId, epsFnr = null),
-            )
-        }
+        val actual = createSøknadsbehandlingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+        ).leggTilBosituasjonEpsgrunnlag(
+            LeggTilBosituasjonEpsRequest(behandlingId = behandlingId, epsFnr = null),
+        )
+
+        actual shouldBe KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeOppdatereBosituasjon(
+            feil = Søknadsbehandling.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
+                Søknadsbehandling.TilAttestering.Avslag.UtenBeregning::class,
+                Søknadsbehandling.Vilkårsvurdert::class,
+            ),
+        ).left()
     }
 
     @Test
@@ -233,7 +238,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             ),
         )
 
-        verify(søknadsbehandlingRepoMock, Times(2)).hent(argThat { it shouldBe behandlingId })
+        verify(søknadsbehandlingRepoMock, Times(1)).hent(argThat { it shouldBe behandlingId })
         verify(søknadsbehandlingRepoMock).defaultSessionContext()
         verify(søknadsbehandlingRepoMock).lagre(
             any(),
@@ -298,7 +303,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         verify(personServiceMock).hentPerson(bosituasjon.fnr)
-        verify(søknadsbehandlingRepoMock, Times(2)).hent(argThat { it shouldBe uavklart.id })
+        verify(søknadsbehandlingRepoMock, Times(1)).hent(argThat { it shouldBe uavklart.id })
         verify(søknadsbehandlingRepoMock).defaultSessionContext()
         verify(søknadsbehandlingRepoMock).lagre(
             any(),

@@ -12,13 +12,20 @@ import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.web.Resultat
+import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
+import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
+import no.nav.su.se.bakover.web.routes.Feilresponser.harIkkeEktefelle
+import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBehandlingId
 import no.nav.su.se.bakover.web.withBody
@@ -63,9 +70,11 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                 ).fold(
                                     {
                                         when (it) {
-                                            SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
+                                            SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling -> fantIkkeBehandling
                                             SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl -> Feilresponser.fantIkkePerson
                                             is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag -> Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
+                                            is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FeilVedVilkårsvurudering -> it.feil.tilResultat()
+                                            is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeOppdatereBosituasjon -> it.feil.tilResultat()
                                         }
                                     },
                                     {
@@ -95,9 +104,11 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                         .fold(
                             {
                                 when (it) {
-                                    SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
+                                    SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling -> fantIkkeBehandling
                                     SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl -> Feilresponser.fantIkkePerson
                                     is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag -> Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
+                                    is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FeilVedVilkårsvurudering -> it.feil.tilResultat()
+                                    is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeOppdatereBosituasjon -> it.feil.tilResultat()
                                 }
                             },
                             {
@@ -120,7 +131,7 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                     fullføreBosituasjongrunnlagRequest,
                                 ).mapLeft {
                                     when (it) {
-                                        SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
+                                        SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling -> fantIkkeBehandling
                                         SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLagreBosituasjon -> Feilresponser.kunneIkkeLeggeTilBosituasjonsgrunnlag
                                         SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeHentePersonIPdl -> Feilresponser.fantIkkePerson
                                         is SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KunneIkkeEndreBosituasjongrunnlag -> Feilresponser.kunneIkkeLeggeTilBosituasjonsgrunnlag
@@ -135,5 +146,45 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                 }
             }
         }
+    }
+}
+
+internal fun SøknadsbehandlingService.KunneIkkeVilkårsvurdere.tilResultat(): Resultat {
+    return when (this) {
+        SøknadsbehandlingService.KunneIkkeVilkårsvurdere.FantIkkeBehandling -> fantIkkeBehandling
+        is SøknadsbehandlingService.KunneIkkeVilkårsvurdere.FeilVedValideringAvBehandlingsinformasjon -> this.feil.tilResultat()
+        SøknadsbehandlingService.KunneIkkeVilkårsvurdere.HarIkkeEktefelle -> harIkkeEktefelle
+    }
+}
+
+internal fun Søknadsbehandling.KunneIkkeOppdatereBosituasjon.tilResultat(): Resultat {
+    return when (this) {
+        is Søknadsbehandling.KunneIkkeOppdatereBosituasjon.KlarteIkkeHentePersonIPdl -> Feilresponser.fantIkkePerson
+        is Søknadsbehandling.KunneIkkeOppdatereBosituasjon.KunneIkkeLageGrunnlagsdata -> this.feil.tilResultat()
+        is Søknadsbehandling.KunneIkkeOppdatereBosituasjon.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
+    }
+}
+
+internal fun KunneIkkeLageGrunnlagsdata.tilResultat(): Resultat {
+    return when (this) {
+        KunneIkkeLageGrunnlagsdata.FradragForEpsSomIkkeHarEPS -> HttpStatusCode.BadRequest.errorJson(
+            "Det er fradrag for EPS, når søker ikke har EPS",
+            "fradrag_for_eps_uten_eps",
+        )
+        KunneIkkeLageGrunnlagsdata.FradragManglerBosituasjon -> HttpStatusCode.BadRequest.errorJson(
+            "Fradrags er ikke innenfor bosituasjonsperioden",
+            "fradragsperiode_utenfor_bosituasjonperiode",
+        )
+        KunneIkkeLageGrunnlagsdata.MåLeggeTilBosituasjonFørFradrag -> HttpStatusCode.BadRequest.errorJson(
+            "Må ha et bosituasjon, før man legger til fradrag",
+            "må_ha_bosituasjon_før_fradrag",
+        )
+        is KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag -> this.feil.tilResultat()
+    }
+}
+
+internal fun Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.tilResultat(): Resultat {
+    return when (this) {
+        Grunnlag.Fradragsgrunnlag.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> Behandlingsfeilresponser.ugyldigFradragstype
     }
 }

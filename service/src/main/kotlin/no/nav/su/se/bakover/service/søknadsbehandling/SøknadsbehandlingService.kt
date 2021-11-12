@@ -1,11 +1,14 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
@@ -53,12 +56,75 @@ interface SøknadsbehandlingService {
 
     data class VilkårsvurderRequest(
         val behandlingId: UUID,
-        val behandlingsinformasjon: Behandlingsinformasjon,
-    )
+        private val behandlingsinformasjon: Behandlingsinformasjon,
+    ) {
+        fun Behandlingsinformasjon.Formue.Verdier.depositumHøyereEnnInnskudd() =
+            if (this.depositumskonto != null && this.innskudd != null) this.depositumskonto!! > this.innskudd!! else false
+
+        fun hentValidertBehandlingsinformasjon(
+            bosituasjon: Grunnlag.Bosituasjon?,
+        ): Either<FeilVedValideringAvBehandlingsinformasjon, Behandlingsinformasjon> {
+            val borSøkerMedEPS = when (bosituasjon) {
+                is Grunnlag.Bosituasjon.Ufullstendig.HarEps,
+                is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer,
+                -> true
+
+                is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen,
+                is Grunnlag.Bosituasjon.Fullstendig.Enslig,
+                is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps,
+                null,
+                -> false
+            }
+
+            if (erDepositumHøyereInnskudd(borSøkerMedEPS)) {
+                return FeilVedValideringAvBehandlingsinformasjon.DepositumIkkeMindreEnnInnskudd.left()
+            }
+
+            if (harEPSUtenEPSVerdier(borSøkerMedEPS)) {
+                return FeilVedValideringAvBehandlingsinformasjon.HarEPSVerdierUtenEPS.left()
+            }
+
+            return behandlingsinformasjon.right()
+        }
+
+        private fun erDepositumHøyereInnskudd(
+            borSøkerMedEPS: Boolean,
+        ): Boolean {
+            if (behandlingsinformasjon.formue != null) {
+                if (behandlingsinformasjon.formue!!.verdier?.depositumHøyereEnnInnskudd() == true) {
+                    return true
+                }
+                if (borSøkerMedEPS && behandlingsinformasjon.formue!!.epsVerdier?.depositumHøyereEnnInnskudd() == true) {
+                    return true
+                }
+            }
+
+            return false
+        }
+
+        private fun harEPSUtenEPSVerdier(
+            borSøkerMedEPS: Boolean,
+        ): Boolean {
+            // i noen tilfeller, har vi EPS, men formue objektet er null, da vil vi eksplisitt sjekke at epsVerdier ikke er null, og ikke chain kallet med formue
+            if (behandlingsinformasjon.formue != null) {
+                if (borSøkerMedEPS && behandlingsinformasjon.formue?.epsVerdier == null) {
+                    return true
+                }
+            }
+            return false
+        }
+    }
+
+    sealed class FeilVedValideringAvBehandlingsinformasjon {
+        object DepositumIkkeMindreEnnInnskudd : FeilVedValideringAvBehandlingsinformasjon()
+        object HarEPSVerdierUtenEPS : FeilVedValideringAvBehandlingsinformasjon()
+    }
 
     sealed class KunneIkkeVilkårsvurdere {
         object FantIkkeBehandling : KunneIkkeVilkårsvurdere()
         object HarIkkeEktefelle : KunneIkkeVilkårsvurdere()
+        data class FeilVedValideringAvBehandlingsinformasjon(val feil: SøknadsbehandlingService.FeilVedValideringAvBehandlingsinformasjon) :
+            KunneIkkeVilkårsvurdere()
     }
 
     data class BeregnRequest(
@@ -161,7 +227,14 @@ interface SøknadsbehandlingService {
         object FantIkkeBehandling : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
 
         object KlarteIkkeHentePersonIPdl : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
-        data class KunneIkkeEndreBosituasjonEpsGrunnlag(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
+        data class KunneIkkeEndreBosituasjonEpsGrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
+            KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
+
+        data class FeilVedVilkårsvurudering(val feil: KunneIkkeVilkårsvurdere) :
+            KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
+
+        data class KunneIkkeOppdatereBosituasjon(val feil: Søknadsbehandling.KunneIkkeOppdatereBosituasjon) :
+            KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
     }
 
     sealed class KunneIkkeFullføreBosituasjonGrunnlag {

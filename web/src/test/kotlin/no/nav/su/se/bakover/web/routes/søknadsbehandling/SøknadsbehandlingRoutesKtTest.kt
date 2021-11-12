@@ -889,7 +889,20 @@ internal class SøknadsbehandlingRoutesKtTest {
         services.søknadsbehandling.vilkårsvurder(
             VilkårsvurderRequest(
                 uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
-                behandlingsinformasjon,
+                behandlingsinformasjon = if (epsFnr == null) behandlingsinformasjon else behandlingsinformasjon.copy(
+                    formue = behandlingsinformasjon.formue?.copy(
+                        epsVerdier = Behandlingsinformasjon.Formue.Verdier(
+                            verdiIkkePrimærbolig = 0,
+                            verdiEiendommer = 0,
+                            verdiKjøretøy = 0,
+                            innskudd = 0,
+                            verdipapir = 0,
+                            pengerSkyldt = 0,
+                            kontanter = 0,
+                            depositumskonto = 0,
+                        )
+                    )
+                ),
             ),
         )
         if (epsFnr == null) {

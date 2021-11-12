@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
@@ -146,27 +145,22 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeVilkårsvurdere.FantIkkeBehandling.left()
 
-        request.behandlingsinformasjon.formue?.epsVerdier?.let {
-            when (søknadsbehandling.grunnlagsdata.bosituasjon.firstOrNull()) {
-                is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen,
-                is Grunnlag.Bosituasjon.Fullstendig.Enslig,
-                is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps,
-                null,
-                -> {
-                    return SøknadsbehandlingService.KunneIkkeVilkårsvurdere.HarIkkeEktefelle.left()
-                }
-                is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning,
-                is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre,
-                is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning,
-                is Grunnlag.Bosituasjon.Ufullstendig.HarEps,
-                -> {
-                }
-            }
+        val validertBehandlingsinformasjon = request.hentValidertBehandlingsinformasjon(
+            søknadsbehandling.grunnlagsdata.bosituasjon.firstOrNull(),
+        ).getOrHandle {
+            return SøknadsbehandlingService.KunneIkkeVilkårsvurdere.FeilVedValideringAvBehandlingsinformasjon(it).left()
         }
 
+        return vilkårsvurder(søknadsbehandling, validertBehandlingsinformasjon)
+    }
+
+    private fun vilkårsvurder(
+        søknadsbehandling: Søknadsbehandling,
+        validertBehandlingsinformasjon: Behandlingsinformasjon,
+    ): Either<SøknadsbehandlingService.KunneIkkeVilkårsvurdere, Søknadsbehandling.Vilkårsvurdert> {
         return statusovergang(
             søknadsbehandling = søknadsbehandling,
-            statusovergang = Statusovergang.TilVilkårsvurdert(request.behandlingsinformasjon, clock),
+            statusovergang = Statusovergang.TilVilkårsvurdert(validertBehandlingsinformasjon, clock),
         ).let { vilkårsvurdert ->
             søknadsbehandlingRepo.lagre(vilkårsvurdert)
             vilkårsvurdert.right()
@@ -579,46 +573,15 @@ internal class SøknadsbehandlingServiceImpl(
             return it.left()
         }
 
-        return vilkårsvurder(
-            SøknadsbehandlingService.VilkårsvurderRequest(
-                behandlingId = søknadsbehandling.id,
-                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.oppdaterBosituasjonOgEktefelleOgNullstillFormueForEpsHvisIngenEps(
-                    bosituasjon = bosituasjon,
-                ).getOrHandle { return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left() },
-            ),
-        ).mapLeft {
-            return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
+        return søknadsbehandling.oppdaterBosituasjon(bosituasjon, clock) {
+            personService.hentPerson(it)
+        }.mapLeft {
+            KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeOppdatereBosituasjon(it)
         }.map {
             // TODO jah: Legg til Søknadsbehandling.leggTilBosituasjonEpsgrunnlag(...) som for Revurdering og persister Søknadsbehandlingen som returnerers. Da slipper man og det ekstra hent(...) kallet.
             grunnlagService.lagreBosituasjongrunnlag(behandlingId = request.behandlingId, listOf(bosituasjon))
-            return when (it) {
-                is Søknadsbehandling.Vilkårsvurdert.Avslag -> it.copy(
-                    grunnlagsdata = Grunnlagsdata.tryCreate(
-                        bosituasjon = listOf(
-                            bosituasjon,
-                        ),
-                        fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                    ).getOrHandle {
-                        return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag(it).left()
-                    },
-                )
-                is Søknadsbehandling.Vilkårsvurdert.Innvilget -> it.copy(
-                    grunnlagsdata = Grunnlagsdata.tryCreate(
-                        bosituasjon = listOf(bosituasjon),
-                        fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                    ).getOrHandle {
-                        return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag(it).left()
-                    },
-                )
-                is Søknadsbehandling.Vilkårsvurdert.Uavklart -> it.copy(
-                    grunnlagsdata = Grunnlagsdata.tryCreate(
-                        bosituasjon = listOf(bosituasjon),
-                        fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
-                    ).getOrHandle {
-                        return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag(it).left()
-                    },
-                )
-            }.right()
+            søknadsbehandlingRepo.lagre(it)
+            it
         }
     }
 

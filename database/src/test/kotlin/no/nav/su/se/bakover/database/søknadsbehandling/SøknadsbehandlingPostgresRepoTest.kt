@@ -218,7 +218,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     }
                 }
             // Tilbake til vilkårsvurdert
-            simulert.tilVilkårsvurdert(behandlingsinformasjonMedAlleVilkårOppfylt, fixedClock)
+            simulert.tilVilkårsvurdert(behandlingsinformasjonMedAlleVilkårOppfylt, clock = fixedClock)
                 .also {
                     repo.lagre(it)
                     repo.hent(it.id) shouldBe it

@@ -135,6 +135,11 @@ internal object Feilresponser {
         )
     }
 
+    val depositumIkkeMindreEnnInnskudd = BadRequest.errorJson(
+        "Depositum er ikke mindre enn innskudd",
+        "depositum_ikke_mindre_enn_innskudd",
+    )
+
     val kunneIkkeLeggeTilBosituasjonsgrunnlag = BadRequest.errorJson(
         "Kunne ikke legge til bosituasjonsgrunnlag",
         "kunne_ikke_legge_til_bosituasjonsgrunnlag",
@@ -148,6 +153,11 @@ internal object Feilresponser {
     val kunneIkkeAvgjøreOmFørstegangEllerNyPeriode = InternalServerError.errorJson(
         "Kunne ikke opprette oppgave siden vi ikke kan avgjøre om det er en FØRSTEGANGSSØKNAD eller NY_PERIODE",
         "kunne_ikke_avgjøre_om_førstegang_eller_ny_periode",
+    )
+
+    val harIkkeEktefelle = BadRequest.errorJson(
+        "Kan ikke ha formue for eps når søker ikke har eps",
+        "har_ikke_ektefelle",
     )
 
     object Brev {

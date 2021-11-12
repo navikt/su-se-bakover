@@ -51,9 +51,11 @@ import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeGenerereBrev
+import no.nav.su.se.bakover.web.routes.Feilresponser.depositumIkkeMindreEnnInnskudd
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSak
+import no.nav.su.se.bakover.web.routes.Feilresponser.harIkkeEktefelle
 import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeAvgjøreOmFørstegangEllerNyPeriode
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -222,14 +224,6 @@ internal fun Route.søknadsbehandlingRoutes(
         patch("$behandlingPath/{behandlingId}/informasjon") {
             call.withBehandlingId { behandlingId ->
                 call.withBody<BehandlingsinformasjonJson> { body ->
-                    if (body.formue != null && !body.formue.harVerdierOgErGyldig()) {
-                        return@withBehandlingId call.svar(
-                            BadRequest.errorJson(
-                                "Ugyldige verdier på formue",
-                                "ugyldige_verdier_på_formue",
-                            ),
-                        )
-                    }
                     søknadsbehandlingService.vilkårsvurder(
                         VilkårsvurderRequest(
                             behandlingId = behandlingId,
@@ -240,12 +234,8 @@ internal fun Route.søknadsbehandlingRoutes(
                             call.svar(
                                 when (it) {
                                     KunneIkkeVilkårsvurdere.FantIkkeBehandling -> fantIkkeBehandling
-                                    KunneIkkeVilkårsvurdere.HarIkkeEktefelle -> {
-                                        BadRequest.errorJson(
-                                            "Kan ikke ha formue for eps når søker ikke har eps",
-                                            "har_ikke_ektefelle",
-                                        )
-                                    }
+                                    KunneIkkeVilkårsvurdere.HarIkkeEktefelle -> harIkkeEktefelle
+                                    is KunneIkkeVilkårsvurdere.FeilVedValideringAvBehandlingsinformasjon -> it.feil.tilResultat()
                                 },
                             )
                         },
@@ -494,5 +484,15 @@ internal fun Route.søknadsbehandlingRoutes(
                 )
             }
         }
+    }
+}
+
+internal fun SøknadsbehandlingService.FeilVedValideringAvBehandlingsinformasjon.tilResultat(): Resultat {
+    return when (this) {
+        SøknadsbehandlingService.FeilVedValideringAvBehandlingsinformasjon.DepositumIkkeMindreEnnInnskudd -> depositumIkkeMindreEnnInnskudd
+        SøknadsbehandlingService.FeilVedValideringAvBehandlingsinformasjon.HarEPSVerdierUtenEPS -> BadRequest.errorJson(
+            "Har fyllt ut formue for EPS når søker ikke bor med EPS",
+            "eps_verdier_uten_eps",
+        )
     }
 }

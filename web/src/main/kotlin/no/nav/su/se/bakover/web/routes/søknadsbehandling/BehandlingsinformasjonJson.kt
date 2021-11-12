@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.beregning.Sats
 
 internal data class BehandlingsinformasjonJson(
     val uførhet: UførhetJson? = null,
@@ -12,10 +11,9 @@ internal data class BehandlingsinformasjonJson(
     val oppholdIUtlandet: OppholdIUtlandetJson? = null,
     val formue: FormueJson? = null,
     val personligOppmøte: PersonligOppmøteJson? = null,
-    val utledetSats: Sats? = null,
 ) {
     companion object {
-        internal fun Behandlingsinformasjon.toJson(borSøkerMedEPS: Boolean?, sats: Sats?) =
+        internal fun Behandlingsinformasjon.toJson() =
             BehandlingsinformasjonJson(
                 uførhet = uførhet?.toJson(),
                 flyktning = flyktning?.toJson(),
@@ -23,9 +21,8 @@ internal data class BehandlingsinformasjonJson(
                 fastOppholdINorge = fastOppholdINorge?.toJson(),
                 institusjonsopphold = institusjonsopphold?.toJson(),
                 oppholdIUtlandet = oppholdIUtlandet?.toJson(),
-                formue = formue?.toJson(borSøkerMedEPS!!), // borSøkerMedEps må eksistere før formue
+                formue = formue?.toJson(),
                 personligOppmøte = personligOppmøte?.toJson(),
-                utledetSats = sats,
             )
     }
 }
@@ -144,11 +141,10 @@ internal fun Behandlingsinformasjon.OppholdIUtlandet.toJson() =
         begrunnelse = begrunnelse,
     )
 
-internal fun Behandlingsinformasjon.Formue.toJson(borSøkerMedEPS: Boolean) =
+internal fun Behandlingsinformasjon.Formue.toJson() =
     FormueJson(
         status = status.name,
         verdier = this.verdier?.toJson(),
-        borSøkerMedEPS = borSøkerMedEPS,
         epsVerdier = this.epsVerdier?.toJson(),
         begrunnelse = begrunnelse,
     )
@@ -208,18 +204,9 @@ internal data class OppholdIUtlandetJson(
 internal data class FormueJson(
     val status: String,
     val verdier: VerdierJson?,
-    val borSøkerMedEPS: Boolean,
     val epsVerdier: VerdierJson?,
     val begrunnelse: String?,
-) {
-    fun harVerdierOgErGyldig(): Boolean = verdier?.let {
-        if (borSøkerMedEPS) {
-            return verdier.depositumErMindreEllerLikInnskudd() && (epsVerdier?.depositumErMindreEllerLikInnskudd() ?: false)
-        }
-
-        return verdier.depositumErMindreEllerLikInnskudd()
-    } ?: false
-}
+)
 
 internal data class VerdierJson(
     val verdiIkkePrimærbolig: Int?,
@@ -230,9 +217,7 @@ internal data class VerdierJson(
     val pengerSkyldt: Int?,
     val kontanter: Int?,
     val depositumskonto: Int?,
-) {
-    fun depositumErMindreEllerLikInnskudd() = if (depositumskonto != null && innskudd != null) depositumskonto <= innskudd else false
-}
+)
 
 internal data class PersonligOppmøteJson(
     val status: String,
