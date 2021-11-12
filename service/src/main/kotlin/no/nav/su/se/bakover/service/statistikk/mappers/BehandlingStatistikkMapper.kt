@@ -197,6 +197,7 @@ class BehandlingStatistikkMapper(
                     )
                 }
                 is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> this
+                is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> TODO()
             }
         }
     }
@@ -228,6 +229,7 @@ class BehandlingStatistikkMapper(
                     )
                 }
                 is StansAvYtelseRevurdering.SimulertStansAvYtelse -> this
+                is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> TODO()
             }
         }
     }
@@ -299,11 +301,13 @@ class BehandlingStatistikkMapper(
         fun map(gjenopptak: GjenopptaYtelseRevurdering) = when (gjenopptak) {
             is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse -> "IVERKSATT_GJENOPPTAK"
             is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> "SIMULERT_GJENOPPTAK"
+            is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> TODO()
         }
 
         fun map(stans: StansAvYtelseRevurdering) = when (stans) {
             is StansAvYtelseRevurdering.IverksattStansAvYtelse -> "IVERKSATT_STANS"
             is StansAvYtelseRevurdering.SimulertStansAvYtelse -> "SIMULERT_STANS"
+            is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> TODO()
         }
     }
 
@@ -327,11 +331,13 @@ class BehandlingStatistikkMapper(
             when (gjenopptak) {
                 is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse -> "Ytelsen er gjenopptatt"
                 is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> "Opprettet og simulert gjenopptak av ytelse"
+                is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> TODO()
             }
 
         fun map(stans: StansAvYtelseRevurdering) = when (stans) {
             is StansAvYtelseRevurdering.IverksattStansAvYtelse -> "Ytelsen er stanset"
             is StansAvYtelseRevurdering.SimulertStansAvYtelse -> "Opprettet og simulert stans av ytelsen"
+            is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> TODO()
         }
     }
 
