@@ -87,15 +87,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         return Unit.right()
     }
 
-    sealed class KunneIkkeOppdatereBosituasjon {
-        data class KlarteIkkeHentePersonIPdl(val feil: KunneIkkeHentePerson) : KunneIkkeOppdatereBosituasjon()
-        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Vilkårsvurdert>) :
-            KunneIkkeOppdatereBosituasjon()
-
-        data class KunneIkkeLageGrunnlagsdata(val feil: no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata) :
-            KunneIkkeOppdatereBosituasjon()
-    }
-
     open fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> =
         KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
 
@@ -105,6 +96,15 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
     ): Either<KunneIkkeOppdatereBosituasjon, Vilkårsvurdert> {
         return KunneIkkeOppdatereBosituasjon.UgyldigTilstand(this::class, Vilkårsvurdert::class).left()
+    }
+
+    sealed class KunneIkkeOppdatereBosituasjon {
+        data class KlarteIkkeHentePersonIPdl(val feil: KunneIkkeHentePerson) : KunneIkkeOppdatereBosituasjon()
+        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Vilkårsvurdert>) :
+            KunneIkkeOppdatereBosituasjon()
+
+        data class KunneIkkeLageGrunnlagsdata(val feil: no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata) :
+            KunneIkkeOppdatereBosituasjon()
     }
 
     sealed class Vilkårsvurdert : Søknadsbehandling() {

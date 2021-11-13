@@ -81,7 +81,7 @@ internal class VilkårsvurderRequestTest {
     }
 
     @Test
-    fun `får feil dersom det finnes eps verdier, men har ikke eps i bosituasjon`() {
+    fun `får feil dersom det finnes eps, men har ikke epsVerdier`() {
         val request = SøknadsbehandlingService.VilkårsvurderRequest(
             behandlingId = UUID.randomUUID(),
             behandlingsinformasjon = Behandlingsinformasjon(
@@ -109,6 +109,37 @@ internal class VilkårsvurderRequestTest {
         )
 
         request.hentValidertBehandlingsinformasjon(bosituasjon) shouldBe
-            SøknadsbehandlingService.FeilVedValideringAvBehandlingsinformasjon.HarEPSVerdierUtenEPS.left()
+            SøknadsbehandlingService.FeilVedValideringAvBehandlingsinformasjon.BosituasjonSamsvarerIkkeMedInformasjonIFormue.left()
+    }
+
+    @Test
+    fun `får feil dersom det ikke finnes eps, men har epsVerdier`() {
+        val request = SøknadsbehandlingService.VilkårsvurderRequest(
+            behandlingId = UUID.randomUUID(),
+            behandlingsinformasjon = Behandlingsinformasjon(
+                uførhet = null, flyktning = null, lovligOpphold = null, fastOppholdINorge = null,
+                institusjonsopphold = null, oppholdIUtlandet = null,
+                formue = Behandlingsinformasjon.Formue(
+                    status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
+                    verdier = Behandlingsinformasjon.Formue.Verdier(
+                        verdiIkkePrimærbolig = 0, verdiEiendommer = 0,
+                        verdiKjøretøy = 0, innskudd = 0,
+                        verdipapir = 0, pengerSkyldt = 0,
+                        kontanter = 0, depositumskonto = 0,
+                    ),
+                    epsVerdier = Behandlingsinformasjon.Formue.Verdier(
+                        verdiIkkePrimærbolig = 0, verdiEiendommer = 0,
+                        verdiKjøretøy = 0, innskudd = 0,
+                        verdipapir = 0, pengerSkyldt = 0,
+                        kontanter = 0, depositumskonto = 0,
+                    ),
+                    begrunnelse = null,
+                ),
+                personligOppmøte = null,
+            ),
+        )
+
+        request.hentValidertBehandlingsinformasjon(null) shouldBe
+            SøknadsbehandlingService.FeilVedValideringAvBehandlingsinformasjon.BosituasjonSamsvarerIkkeMedInformasjonIFormue.left()
     }
 }

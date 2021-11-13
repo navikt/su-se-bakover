@@ -26,15 +26,15 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
     ) : Statusovergang<Nothing, Søknadsbehandling.Vilkårsvurdert>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {

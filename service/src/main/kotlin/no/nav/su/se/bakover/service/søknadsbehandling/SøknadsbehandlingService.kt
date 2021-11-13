@@ -80,8 +80,8 @@ interface SøknadsbehandlingService {
                 return FeilVedValideringAvBehandlingsinformasjon.DepositumIkkeMindreEnnInnskudd.left()
             }
 
-            if (harEPSUtenEPSVerdier(borSøkerMedEPS)) {
-                return FeilVedValideringAvBehandlingsinformasjon.HarEPSVerdierUtenEPS.left()
+            if (!stemmerBosituasjonMedFormue(borSøkerMedEPS)) {
+                return FeilVedValideringAvBehandlingsinformasjon.BosituasjonSamsvarerIkkeMedInformasjonIFormue.left()
             }
 
             return behandlingsinformasjon.right()
@@ -102,22 +102,25 @@ interface SøknadsbehandlingService {
             return false
         }
 
-        private fun harEPSUtenEPSVerdier(
+        private fun stemmerBosituasjonMedFormue(
             borSøkerMedEPS: Boolean,
         ): Boolean {
-            // i noen tilfeller, har vi EPS, men formue objektet er null, da vil vi eksplisitt sjekke at epsVerdier ikke er null, og ikke chain kallet med formue
+            // i noen tilfeller, har vi EPS, men formue objektet er null, da vil vi eksplisitt sjekke at epsVerdier ikke er null, og ikke safe call med formue
             if (behandlingsinformasjon.formue != null) {
-                if (borSøkerMedEPS && behandlingsinformasjon.formue?.epsVerdier == null) {
-                    return true
+                if (borSøkerMedEPS && behandlingsinformasjon.formue!!.epsVerdier == null) {
+                    return false
+                }
+                if (!borSøkerMedEPS && behandlingsinformasjon.formue!!.epsVerdier != null) {
+                    return false
                 }
             }
-            return false
+            return true
         }
     }
 
     sealed class FeilVedValideringAvBehandlingsinformasjon {
         object DepositumIkkeMindreEnnInnskudd : FeilVedValideringAvBehandlingsinformasjon()
-        object HarEPSVerdierUtenEPS : FeilVedValideringAvBehandlingsinformasjon()
+        object BosituasjonSamsvarerIkkeMedInformasjonIFormue : FeilVedValideringAvBehandlingsinformasjon()
     }
 
     sealed class KunneIkkeVilkårsvurdere {

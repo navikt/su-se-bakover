@@ -490,9 +490,9 @@ internal fun Route.søknadsbehandlingRoutes(
 internal fun SøknadsbehandlingService.FeilVedValideringAvBehandlingsinformasjon.tilResultat(): Resultat {
     return when (this) {
         SøknadsbehandlingService.FeilVedValideringAvBehandlingsinformasjon.DepositumIkkeMindreEnnInnskudd -> depositumIkkeMindreEnnInnskudd
-        SøknadsbehandlingService.FeilVedValideringAvBehandlingsinformasjon.HarEPSVerdierUtenEPS -> BadRequest.errorJson(
-            "Har fyllt ut formue for EPS når søker ikke bor med EPS",
-            "eps_verdier_uten_eps",
+        SøknadsbehandlingService.FeilVedValideringAvBehandlingsinformasjon.BosituasjonSamsvarerIkkeMedInformasjonIFormue -> BadRequest.errorJson(
+            "Bosituasjon samsvarer ikke med informasjon i formue",
+            "bosituasjon_samsvarer_ikke_med_formue",
         )
     }
 }
