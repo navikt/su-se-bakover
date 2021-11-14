@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
@@ -159,20 +160,28 @@ internal fun SøknadsbehandlingService.KunneIkkeVilkårsvurdere.tilResultat(): R
 
 internal fun Søknadsbehandling.KunneIkkeOppdatereBosituasjon.tilResultat(): Resultat {
     return when (this) {
-        is Søknadsbehandling.KunneIkkeOppdatereBosituasjon.KlarteIkkeHentePersonIPdl -> Feilresponser.fantIkkePerson
+        is Søknadsbehandling.KunneIkkeOppdatereBosituasjon.KlarteIkkeHentePerson -> this.feil.tilResultat()
         is Søknadsbehandling.KunneIkkeOppdatereBosituasjon.KunneIkkeLageGrunnlagsdata -> this.feil.tilResultat()
         is Søknadsbehandling.KunneIkkeOppdatereBosituasjon.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
+    }
+}
+
+internal fun KunneIkkeHentePerson.tilResultat(): Resultat {
+    return when (this) {
+        KunneIkkeHentePerson.FantIkkePerson -> Feilresponser.fantIkkePerson
+        KunneIkkeHentePerson.IkkeTilgangTilPerson -> Feilresponser.ikkeTilgangTilPerson
+        KunneIkkeHentePerson.Ukjent -> Feilresponser.feilVedOppslagPåPerson
     }
 }
 
 internal fun KunneIkkeLageGrunnlagsdata.tilResultat(): Resultat {
     return when (this) {
         KunneIkkeLageGrunnlagsdata.FradragForEpsSomIkkeHarEPS -> HttpStatusCode.BadRequest.errorJson(
-            "Det er fradrag for EPS, når søker ikke har EPS",
+            "Kan ikke legge til fradrag knyttet til EPS for en bruker som ikke har EPS.",
             "fradrag_for_eps_uten_eps",
         )
         KunneIkkeLageGrunnlagsdata.FradragManglerBosituasjon -> HttpStatusCode.BadRequest.errorJson(
-            "Fradrags er ikke innenfor bosituasjonsperioden",
+            "Alle fradragsperiodene må være innenfor bosituasjonsperioden.",
             "fradragsperiode_utenfor_bosituasjonperiode",
         )
         KunneIkkeLageGrunnlagsdata.MåLeggeTilBosituasjonFørFradrag -> HttpStatusCode.BadRequest.errorJson(

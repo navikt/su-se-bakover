@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
-import no.nav.su.se.bakover.web.routes.Feilresponser.depositumIkkeMindreEnnInnskudd
+import no.nav.su.se.bakover.web.routes.Feilresponser.depositumErHøyereEnnInnskudd
 import no.nav.su.se.bakover.web.routes.grunnlag.FormuegrunnlagJson
 import no.nav.su.se.bakover.web.routes.revurdering.FormueBody.Companion.toServiceRequest
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
@@ -116,7 +116,7 @@ internal fun Route.leggTilFormueRevurderingRoute(
 }
 
 private fun KunneIkkeLageFormueVerdier.tilResultat() = when (this) {
-    KunneIkkeLageFormueVerdier.DepositumErStørreEnnInnskudd -> depositumIkkeMindreEnnInnskudd
+    KunneIkkeLageFormueVerdier.DepositumErStørreEnnInnskudd -> depositumErHøyereEnnInnskudd
     KunneIkkeLageFormueVerdier.VerdierKanIkkeVæreNegativ -> HttpStatusCode.BadRequest.errorJson(
         "Verdier kan ikke være negativ",
         "verdier_kan_ikke_være_negativ",

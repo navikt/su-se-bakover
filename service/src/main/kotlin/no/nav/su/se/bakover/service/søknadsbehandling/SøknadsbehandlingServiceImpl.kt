@@ -141,7 +141,7 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun vilkårsvurder(request: SøknadsbehandlingService.VilkårsvurderRequest): Either<SøknadsbehandlingService.KunneIkkeVilkårsvurdere, Søknadsbehandling.Vilkårsvurdert> {
+    override fun vilkårsvurder(request: VilkårsvurderRequest): Either<SøknadsbehandlingService.KunneIkkeVilkårsvurdere, Søknadsbehandling.Vilkårsvurdert> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeVilkårsvurdere.FantIkkeBehandling.left()
 
@@ -525,7 +525,7 @@ internal class SøknadsbehandlingServiceImpl(
         // TODO midliertidig til behandlingsinformasjon er borte
         val grunnlag = (vilkår as? Vilkår.Uførhet.Vurdert)?.grunnlag?.firstOrNull()
         return vilkårsvurder(
-            SøknadsbehandlingService.VilkårsvurderRequest(
+            VilkårsvurderRequest(
                 behandlingId = søknadsbehandling.id,
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.copy(
                     uførhet = Behandlingsinformasjon.Uførhet(
@@ -573,13 +573,12 @@ internal class SøknadsbehandlingServiceImpl(
             return it.left()
         }
 
-        return søknadsbehandling.oppdaterBosituasjon(bosituasjon, clock) {
-            personService.hentPerson(it)
-        }.mapLeft {
+        return søknadsbehandling.oppdaterBosituasjon(bosituasjon, clock).mapLeft {
             KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeOppdatereBosituasjon(it)
         }.map {
             // TODO jah: Legg til Søknadsbehandling.leggTilBosituasjonEpsgrunnlag(...) som for Revurdering og persister Søknadsbehandlingen som returnerers. Da slipper man og det ekstra hent(...) kallet.
             grunnlagService.lagreBosituasjongrunnlag(behandlingId = request.behandlingId, listOf(bosituasjon))
+            grunnlagService.lagreFradragsgrunnlag(it.id, it.grunnlagsdata.fradragsgrunnlag)
             søknadsbehandlingRepo.lagre(it)
             it
         }
@@ -595,17 +594,18 @@ internal class SøknadsbehandlingServiceImpl(
             }
 
         return vilkårsvurder(
-            SøknadsbehandlingService.VilkårsvurderRequest(
+            VilkårsvurderRequest(
                 behandlingId = søknadsbehandling.id,
-                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.oppdaterBosituasjonOgEktefelleOgNullstillFormueForEpsHvisIngenEps(
-                    bosituasjon = bosituasjon,
-                ).getOrHandle { return KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeHentePersonIPdl.left() },
+                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.copy(
+                    formue = søknadsbehandling.behandlingsinformasjon.formue?.nullstillEpsFormueHvisIngenEps(bosituasjon),
+                ),
             ),
         ).mapLeft {
             return KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
         }.map {
             // TODO jah: Legg til Søknadsbehandling.fullførBosituasjongrunnlag(...) som for Revurdering og persister Søknadsbehandlingen som returnerers. Da slipper man og det ekstra hent(...) kallet.
             grunnlagService.lagreBosituasjongrunnlag(behandlingId = request.behandlingId, listOf(bosituasjon))
+            grunnlagService.lagreFradragsgrunnlag(it.id, it.grunnlagsdata.fradragsgrunnlag)
             return when (it) {
                 is Søknadsbehandling.Vilkårsvurdert.Avslag -> it.copy(
                     grunnlagsdata = Grunnlagsdata.tryCreate(

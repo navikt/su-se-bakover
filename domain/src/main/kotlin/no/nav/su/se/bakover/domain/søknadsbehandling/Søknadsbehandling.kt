@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -25,6 +24,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.fjernInntekterForEPSDersomFradragIkkeErKonsistentMedOppdatertBosituasjon
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -90,16 +90,40 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     open fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> =
         KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
 
-    open fun oppdaterBosituasjon(
+    fun oppdaterBosituasjon(
         bosituasjon: Grunnlag.Bosituasjon,
         clock: Clock,
-        hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
     ): Either<KunneIkkeOppdatereBosituasjon, Vilkårsvurdert> {
-        return KunneIkkeOppdatereBosituasjon.UgyldigTilstand(this::class, Vilkårsvurdert::class).left()
+        val oppdatertGrunnlagsdata = Grunnlagsdata.tryCreate(
+            fradragsgrunnlag = this.grunnlagsdata.fradragsgrunnlag.fjernInntekterForEPSDersomFradragIkkeErKonsistentMedOppdatertBosituasjon(
+                bosituasjon,
+            ),
+            bosituasjon = listOf(bosituasjon),
+        ).getOrHandle {
+            return KunneIkkeOppdatereBosituasjon.KunneIkkeLageGrunnlagsdata(it).left()
+        }
+        val oppdatertBehandlingsinformasjon = this.behandlingsinformasjon.copy(
+            formue = this.behandlingsinformasjon.formue?.nullstillEpsFormueHvisIngenEps(bosituasjon),
+        )
+        return when (this) {
+            is Vilkårsvurdert -> tilVilkårsvurdert(
+                oppdatertBehandlingsinformasjon,
+                oppdatertGrunnlagsdata,
+                clock,
+            ).right()
+            is Beregnet -> tilVilkårsvurdert(oppdatertBehandlingsinformasjon, oppdatertGrunnlagsdata, clock).right()
+            is Simulert -> tilVilkårsvurdert(oppdatertBehandlingsinformasjon, oppdatertGrunnlagsdata, clock).right()
+            is Underkjent -> tilVilkårsvurdert(oppdatertBehandlingsinformasjon, oppdatertGrunnlagsdata, clock).right()
+
+            is TilAttestering,
+            is LukketSøknadsbehandling,
+            is Iverksatt,
+            -> KunneIkkeOppdatereBosituasjon.UgyldigTilstand(this::class, Vilkårsvurdert::class).left()
+        }
     }
 
     sealed class KunneIkkeOppdatereBosituasjon {
-        data class KlarteIkkeHentePersonIPdl(val feil: KunneIkkeHentePerson) : KunneIkkeOppdatereBosituasjon()
+        data class KlarteIkkeHentePerson(val feil: KunneIkkeHentePerson) : KunneIkkeOppdatereBosituasjon()
         data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Vilkårsvurdert>) :
             KunneIkkeOppdatereBosituasjon()
 
@@ -108,41 +132,11 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     sealed class Vilkårsvurdert : Søknadsbehandling() {
-
-        override fun oppdaterBosituasjon(
-            bosituasjon: Grunnlag.Bosituasjon,
+        fun tilVilkårsvurdert(
+            behandlingsinformasjon: Behandlingsinformasjon,
+            grunnlagsdata: Grunnlagsdata = this.grunnlagsdata,
             clock: Clock,
-            hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
-        ): Either<KunneIkkeOppdatereBosituasjon, Vilkårsvurdert> {
-            val oppdatertGrunnlagsdata = Grunnlagsdata.tryCreate(
-                // TODO: fradragsgrunnlaget kan inneholde innteker for EPS - de bør fjernes dersom vi ikke har EPS
-                fradragsgrunnlag = this.grunnlagsdata.fradragsgrunnlag, bosituasjon = listOf(bosituasjon),
-            ).getOrHandle {
-                return KunneIkkeOppdatereBosituasjon.KunneIkkeLageGrunnlagsdata(it).left()
-            }
-            // TODO: finn ut hvordan vi kan oppdatere bare det vi vil spesifikt
-            val oppdatertBehandlingsinformasjon =
-                this.behandlingsinformasjon.oppdaterBosituasjonOgEktefelleOgNullstillFormueForEpsHvisIngenEps(
-                    bosituasjon = bosituasjon,
-                ).getOrHandle { return KunneIkkeOppdatereBosituasjon.KlarteIkkeHentePersonIPdl(it).left() }
-            return when (this) {
-                is Avslag -> this.copy(
-                    grunnlagsdata = oppdatertGrunnlagsdata,
-                    behandlingsinformasjon = oppdatertBehandlingsinformasjon,
-                )
-                is Innvilget -> this.copy(
-                    grunnlagsdata = oppdatertGrunnlagsdata,
-                    behandlingsinformasjon = oppdatertBehandlingsinformasjon,
-                )
-
-                is Uavklart -> this.copy(
-                    grunnlagsdata = oppdatertGrunnlagsdata,
-                    behandlingsinformasjon = oppdatertBehandlingsinformasjon,
-                )
-            }.right()
-        }
-
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon, clock: Clock): Vilkårsvurdert =
+        ): Vilkårsvurdert =
             opprett(
                 id,
                 opprettet,
@@ -395,36 +389,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         abstract override val behandlingsinformasjon: Behandlingsinformasjon
         abstract val beregning: Beregning
         abstract override val stønadsperiode: Stønadsperiode
-
-        override fun oppdaterBosituasjon(
-            bosituasjon: Grunnlag.Bosituasjon,
-            clock: Clock,
-            hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
-        ): Either<KunneIkkeOppdatereBosituasjon, Vilkårsvurdert> {
-            val oppdatertGrunnlagsdata = Grunnlagsdata.tryCreate(
-                // TODO: fradragsgrunnlaget kan inneholde innteker for EPS - de bør fjernes dersom vi ikke har EPS
-                fradragsgrunnlag = this.grunnlagsdata.fradragsgrunnlag, bosituasjon = listOf(bosituasjon),
-            ).getOrHandle {
-                return KunneIkkeOppdatereBosituasjon.KunneIkkeLageGrunnlagsdata(it).left()
-            }
-            val oppdatertBehandlingsinformasjon =
-                this.behandlingsinformasjon.oppdaterBosituasjonOgEktefelleOgNullstillFormueForEpsHvisIngenEps(
-                    bosituasjon = bosituasjon,
-                ).getOrHandle { return KunneIkkeOppdatereBosituasjon.KlarteIkkeHentePersonIPdl(it).left() }
-
-            return when (this) {
-                is Avslag -> this.tilVilkårsvurdert(
-                    behandlingsinformasjon = oppdatertBehandlingsinformasjon,
-                    grunnlagsdata = oppdatertGrunnlagsdata,
-                    clock = clock,
-                )
-                is Innvilget -> this.tilVilkårsvurdert(
-                    behandlingsinformasjon = oppdatertBehandlingsinformasjon,
-                    grunnlagsdata = oppdatertGrunnlagsdata,
-                    clock = clock,
-                )
-            }.right()
-        }
 
         fun tilVilkårsvurdert(
             behandlingsinformasjon: Behandlingsinformasjon,
@@ -698,29 +662,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
         override fun accept(visitor: SøknadsbehandlingVisitor) {
             visitor.visit(this)
-        }
-
-        override fun oppdaterBosituasjon(
-            bosituasjon: Grunnlag.Bosituasjon,
-            clock: Clock,
-            hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
-        ): Either<KunneIkkeOppdatereBosituasjon, Vilkårsvurdert> {
-            val oppdatertGrunnlagsdata = Grunnlagsdata.tryCreate(
-                // TODO: fradragsgrunnlaget kan inneholde innteker for EPS - de bør fjernes dersom vi ikke har EPS
-                fradragsgrunnlag = this.grunnlagsdata.fradragsgrunnlag, bosituasjon = listOf(bosituasjon),
-            ).getOrHandle {
-                return KunneIkkeOppdatereBosituasjon.KunneIkkeLageGrunnlagsdata(it).left()
-            }
-            val oppdatertBehandlingsinformasjon =
-                this.behandlingsinformasjon.oppdaterBosituasjonOgEktefelleOgNullstillFormueForEpsHvisIngenEps(
-                    bosituasjon = bosituasjon,
-                ).getOrHandle { return KunneIkkeOppdatereBosituasjon.KlarteIkkeHentePersonIPdl(it).left() }
-
-            return this.tilVilkårsvurdert(
-                behandlingsinformasjon = oppdatertBehandlingsinformasjon,
-                grunnlagsdata = oppdatertGrunnlagsdata,
-                clock = clock,
-            ).right()
         }
 
         override fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> {
@@ -1089,29 +1030,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         abstract override val stønadsperiode: Stønadsperiode
 
         abstract fun nyOppgaveId(nyOppgaveId: OppgaveId): Underkjent
-
-        override fun oppdaterBosituasjon(
-            bosituasjon: Grunnlag.Bosituasjon,
-            clock: Clock,
-            hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
-        ): Either<KunneIkkeOppdatereBosituasjon, Vilkårsvurdert> {
-            val oppdatertGrunnlagsdata = Grunnlagsdata.tryCreate(
-                // TODO: fradragsgrunnlaget kan inneholde innteker for EPS - de bør fjernes dersom vi ikke har EPS
-                fradragsgrunnlag = this.grunnlagsdata.fradragsgrunnlag, bosituasjon = listOf(bosituasjon),
-            ).getOrHandle {
-                return KunneIkkeOppdatereBosituasjon.KunneIkkeLageGrunnlagsdata(it).left()
-            }
-            val oppdatertBehandlingsinformasjon =
-                this.behandlingsinformasjon.oppdaterBosituasjonOgEktefelleOgNullstillFormueForEpsHvisIngenEps(
-                    bosituasjon = bosituasjon,
-                ).getOrHandle { return KunneIkkeOppdatereBosituasjon.KlarteIkkeHentePersonIPdl(it).left() }
-
-            return this.tilVilkårsvurdert(
-                behandlingsinformasjon = oppdatertBehandlingsinformasjon,
-                grunnlagsdata = oppdatertGrunnlagsdata,
-                clock = clock,
-            ).right()
-        }
 
         fun tilVilkårsvurdert(
             behandlingsinformasjon: Behandlingsinformasjon,

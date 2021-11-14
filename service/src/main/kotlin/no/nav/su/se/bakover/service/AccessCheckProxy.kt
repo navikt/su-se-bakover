@@ -109,6 +109,7 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeGjeldendeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
@@ -416,7 +417,7 @@ open class AccessCheckProxy(
                     return services.søknadsbehandling.opprett(request)
                 }
 
-                override fun vilkårsvurder(request: SøknadsbehandlingService.VilkårsvurderRequest): Either<SøknadsbehandlingService.KunneIkkeVilkårsvurdere, Søknadsbehandling.Vilkårsvurdert> {
+                override fun vilkårsvurder(request: VilkårsvurderRequest): Either<SøknadsbehandlingService.KunneIkkeVilkårsvurdere, Søknadsbehandling.Vilkårsvurdert> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.vilkårsvurder(request)
                 }

@@ -1,14 +1,10 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
@@ -54,79 +50,10 @@ interface SøknadsbehandlingService {
         object HarAlleredeÅpenSøknadsbehandling : KunneIkkeOpprette()
     }
 
-    data class VilkårsvurderRequest(
-        val behandlingId: UUID,
-        private val behandlingsinformasjon: Behandlingsinformasjon,
-    ) {
-        fun Behandlingsinformasjon.Formue.Verdier.depositumHøyereEnnInnskudd() =
-            if (this.depositumskonto != null && this.innskudd != null) this.depositumskonto!! > this.innskudd!! else false
-
-        fun hentValidertBehandlingsinformasjon(
-            bosituasjon: Grunnlag.Bosituasjon?,
-        ): Either<FeilVedValideringAvBehandlingsinformasjon, Behandlingsinformasjon> {
-            val borSøkerMedEPS = when (bosituasjon) {
-                is Grunnlag.Bosituasjon.Ufullstendig.HarEps,
-                is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer,
-                -> true
-
-                is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen,
-                is Grunnlag.Bosituasjon.Fullstendig.Enslig,
-                is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps,
-                null,
-                -> false
-            }
-
-            if (erDepositumHøyereInnskudd(borSøkerMedEPS)) {
-                return FeilVedValideringAvBehandlingsinformasjon.DepositumIkkeMindreEnnInnskudd.left()
-            }
-
-            if (!stemmerBosituasjonMedFormue(borSøkerMedEPS)) {
-                return FeilVedValideringAvBehandlingsinformasjon.BosituasjonSamsvarerIkkeMedInformasjonIFormue.left()
-            }
-
-            return behandlingsinformasjon.right()
-        }
-
-        private fun erDepositumHøyereInnskudd(
-            borSøkerMedEPS: Boolean,
-        ): Boolean {
-            if (behandlingsinformasjon.formue != null) {
-                if (behandlingsinformasjon.formue!!.verdier?.depositumHøyereEnnInnskudd() == true) {
-                    return true
-                }
-                if (borSøkerMedEPS && behandlingsinformasjon.formue!!.epsVerdier?.depositumHøyereEnnInnskudd() == true) {
-                    return true
-                }
-            }
-
-            return false
-        }
-
-        private fun stemmerBosituasjonMedFormue(
-            borSøkerMedEPS: Boolean,
-        ): Boolean {
-            // i noen tilfeller, har vi EPS, men formue objektet er null, da vil vi eksplisitt sjekke at epsVerdier ikke er null, og ikke safe call med formue
-            if (behandlingsinformasjon.formue != null) {
-                if (borSøkerMedEPS && behandlingsinformasjon.formue!!.epsVerdier == null) {
-                    return false
-                }
-                if (!borSøkerMedEPS && behandlingsinformasjon.formue!!.epsVerdier != null) {
-                    return false
-                }
-            }
-            return true
-        }
-    }
-
-    sealed class FeilVedValideringAvBehandlingsinformasjon {
-        object DepositumIkkeMindreEnnInnskudd : FeilVedValideringAvBehandlingsinformasjon()
-        object BosituasjonSamsvarerIkkeMedInformasjonIFormue : FeilVedValideringAvBehandlingsinformasjon()
-    }
-
     sealed class KunneIkkeVilkårsvurdere {
         object FantIkkeBehandling : KunneIkkeVilkårsvurdere()
         object HarIkkeEktefelle : KunneIkkeVilkårsvurdere()
-        data class FeilVedValideringAvBehandlingsinformasjon(val feil: SøknadsbehandlingService.FeilVedValideringAvBehandlingsinformasjon) :
+        data class FeilVedValideringAvBehandlingsinformasjon(val feil: VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon) :
             KunneIkkeVilkårsvurdere()
     }
 

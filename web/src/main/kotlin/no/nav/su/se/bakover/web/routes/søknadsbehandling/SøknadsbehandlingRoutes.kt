@@ -40,7 +40,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.VilkårsvurderRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
@@ -51,7 +51,7 @@ import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeGenerereBrev
-import no.nav.su.se.bakover.web.routes.Feilresponser.depositumIkkeMindreEnnInnskudd
+import no.nav.su.se.bakover.web.routes.Feilresponser.depositumErHøyereEnnInnskudd
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSak
@@ -487,12 +487,12 @@ internal fun Route.søknadsbehandlingRoutes(
     }
 }
 
-internal fun SøknadsbehandlingService.FeilVedValideringAvBehandlingsinformasjon.tilResultat(): Resultat {
+internal fun VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.tilResultat(): Resultat {
     return when (this) {
-        SøknadsbehandlingService.FeilVedValideringAvBehandlingsinformasjon.DepositumIkkeMindreEnnInnskudd -> depositumIkkeMindreEnnInnskudd
-        SøknadsbehandlingService.FeilVedValideringAvBehandlingsinformasjon.BosituasjonSamsvarerIkkeMedInformasjonIFormue -> BadRequest.errorJson(
-            "Bosituasjon samsvarer ikke med informasjon i formue",
-            "bosituasjon_samsvarer_ikke_med_formue",
+        VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.DepositumIkkeMindreEnnInnskudd -> depositumErHøyereEnnInnskudd
+        VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.BosituasjonOgFormueForEpsErIkkeKonsistent -> BadRequest.errorJson(
+            "Bosituasjon og formue for EPS er ikke konsistent",
+            "bosituasjon_og_formue_for_eps_er_ikke_konsistent",
         )
     }
 }

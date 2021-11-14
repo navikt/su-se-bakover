@@ -54,7 +54,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.VilkårsvurderRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest

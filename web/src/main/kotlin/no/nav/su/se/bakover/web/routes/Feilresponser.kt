@@ -135,9 +135,9 @@ internal object Feilresponser {
         )
     }
 
-    val depositumIkkeMindreEnnInnskudd = BadRequest.errorJson(
-        "Depositum er ikke mindre enn innskudd",
-        "depositum_ikke_mindre_enn_innskudd",
+    val depositumErHøyereEnnInnskudd = BadRequest.errorJson(
+        "Depositum er høyere enn innskudd",
+        "depositum_høyere_enn_innskudd",
     )
 
     val kunneIkkeLeggeTilBosituasjonsgrunnlag = BadRequest.errorJson(

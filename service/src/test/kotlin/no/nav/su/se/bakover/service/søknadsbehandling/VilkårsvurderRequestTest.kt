@@ -18,7 +18,7 @@ internal class VilkårsvurderRequestTest {
 
     @Test
     fun `validerer request OK`() {
-        val request = SøknadsbehandlingService.VilkårsvurderRequest(
+        val request = VilkårsvurderRequest(
             behandlingId = UUID.randomUUID(),
             behandlingsinformasjon = Behandlingsinformasjon(
                 uførhet = null, flyktning = null, lovligOpphold = null, fastOppholdINorge = null,
@@ -57,7 +57,7 @@ internal class VilkårsvurderRequestTest {
 
     @Test
     fun `får feil dersom depositum er høyere enn innskudd ved validering`() {
-        val request = SøknadsbehandlingService.VilkårsvurderRequest(
+        val request = VilkårsvurderRequest(
             behandlingId = UUID.randomUUID(),
             behandlingsinformasjon = Behandlingsinformasjon(
                 uførhet = null, flyktning = null, lovligOpphold = null, fastOppholdINorge = null,
@@ -77,12 +77,12 @@ internal class VilkårsvurderRequestTest {
         )
 
         request.hentValidertBehandlingsinformasjon(bosituasjon = null) shouldBe
-            SøknadsbehandlingService.FeilVedValideringAvBehandlingsinformasjon.DepositumIkkeMindreEnnInnskudd.left()
+            VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.DepositumIkkeMindreEnnInnskudd.left()
     }
 
     @Test
     fun `får feil dersom det finnes eps, men har ikke epsVerdier`() {
-        val request = SøknadsbehandlingService.VilkårsvurderRequest(
+        val request = VilkårsvurderRequest(
             behandlingId = UUID.randomUUID(),
             behandlingsinformasjon = Behandlingsinformasjon(
                 uførhet = null, flyktning = null, lovligOpphold = null, fastOppholdINorge = null,
@@ -109,12 +109,12 @@ internal class VilkårsvurderRequestTest {
         )
 
         request.hentValidertBehandlingsinformasjon(bosituasjon) shouldBe
-            SøknadsbehandlingService.FeilVedValideringAvBehandlingsinformasjon.BosituasjonSamsvarerIkkeMedInformasjonIFormue.left()
+            VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.BosituasjonOgFormueForEpsErIkkeKonsistent.left()
     }
 
     @Test
     fun `får feil dersom det ikke finnes eps, men har epsVerdier`() {
-        val request = SøknadsbehandlingService.VilkårsvurderRequest(
+        val request = VilkårsvurderRequest(
             behandlingId = UUID.randomUUID(),
             behandlingsinformasjon = Behandlingsinformasjon(
                 uførhet = null, flyktning = null, lovligOpphold = null, fastOppholdINorge = null,
@@ -140,6 +140,6 @@ internal class VilkårsvurderRequestTest {
         )
 
         request.hentValidertBehandlingsinformasjon(null) shouldBe
-            SøknadsbehandlingService.FeilVedValideringAvBehandlingsinformasjon.BosituasjonSamsvarerIkkeMedInformasjonIFormue.left()
+            VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.BosituasjonOgFormueForEpsErIkkeKonsistent.left()
     }
 }
