@@ -17,7 +17,7 @@ internal class FormueTest {
     fun `er ikke ferdigbehandlet dersom status er må innhente er informasjon`() {
         Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.MåInnhenteMerInformasjon,
-            verdier = null,
+            verdier = Behandlingsinformasjon.Formue.Verdier.lagTomVerdier(),
             epsVerdier = null,
             begrunnelse = "null"
         ).let {
@@ -30,7 +30,7 @@ internal class FormueTest {
     fun `vilkår er oppfylt dersom status er oppfylt`() {
         Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
-            verdier = null,
+            verdier = Behandlingsinformasjon.Formue.Verdier.lagTomVerdier(),
             epsVerdier = null,
             begrunnelse = "null"
         ).erVilkårOppfylt() shouldBe true
@@ -40,14 +40,14 @@ internal class FormueTest {
     fun `vilkår er ikke oppfylt dersom status ikke er oppfylt`() {
         Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt,
-            verdier = null,
+            verdier = Behandlingsinformasjon.Formue.Verdier.lagTomVerdier(),
             epsVerdier = null,
             begrunnelse = "null",
         ).erVilkårOppfylt() shouldBe false
 
         Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.MåInnhenteMerInformasjon,
-            verdier = null,
+            verdier = Behandlingsinformasjon.Formue.Verdier.lagTomVerdier(),
             epsVerdier = null,
             begrunnelse = "null",
         ).erVilkårOppfylt() shouldBe false

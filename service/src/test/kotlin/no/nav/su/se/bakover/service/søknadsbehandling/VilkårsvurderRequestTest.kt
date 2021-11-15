@@ -16,6 +16,18 @@ import java.util.UUID
 
 internal class VilkårsvurderRequestTest {
 
+    private val bosituasjonUtenEPS = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
+        id = UUID.randomUUID(),
+        opprettet = fixedTidspunkt,
+        periode = Periode.create(1.januar(2021), 31.desember(2021)),
+    )
+    private val bosituasjonMedEPS = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
+        id = UUID.randomUUID(),
+        opprettet = fixedTidspunkt,
+        periode = Periode.create(1.januar(2021), 31.desember(2021)),
+        fnr = Fnr.generer(),
+    )
+
     @Test
     fun `validerer request OK`() {
         val request = VilkårsvurderRequest(
@@ -37,7 +49,7 @@ internal class VilkårsvurderRequestTest {
             ),
         )
 
-        request.hentValidertBehandlingsinformasjon(bosituasjon = null) shouldBe
+        request.hentValidertBehandlingsinformasjon(bosituasjonUtenEPS) shouldBe
             Behandlingsinformasjon(
                 uførhet = null, flyktning = null, lovligOpphold = null, fastOppholdINorge = null,
                 institusjonsopphold = null, oppholdIUtlandet = null,
@@ -76,8 +88,8 @@ internal class VilkårsvurderRequestTest {
             ),
         )
 
-        request.hentValidertBehandlingsinformasjon(bosituasjon = null) shouldBe
-            VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.DepositumIkkeMindreEnnInnskudd.left()
+        request.hentValidertBehandlingsinformasjon(bosituasjonUtenEPS) shouldBe
+            VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.DepositumErHøyereEnnInnskudd.left()
     }
 
     @Test
@@ -101,14 +113,7 @@ internal class VilkårsvurderRequestTest {
             ),
         )
 
-        val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
-            id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
-            periode = Periode.create(1.januar(2021), 31.desember(2021)),
-            fnr = Fnr.generer(),
-        )
-
-        request.hentValidertBehandlingsinformasjon(bosituasjon) shouldBe
+        request.hentValidertBehandlingsinformasjon(bosituasjonMedEPS) shouldBe
             VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.BosituasjonOgFormueForEpsErIkkeKonsistent.left()
     }
 
@@ -139,7 +144,7 @@ internal class VilkårsvurderRequestTest {
             ),
         )
 
-        request.hentValidertBehandlingsinformasjon(null) shouldBe
+        request.hentValidertBehandlingsinformasjon(bosituasjonUtenEPS) shouldBe
             VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.BosituasjonOgFormueForEpsErIkkeKonsistent.left()
     }
 }

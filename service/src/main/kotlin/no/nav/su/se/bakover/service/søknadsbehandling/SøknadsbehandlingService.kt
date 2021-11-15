@@ -157,11 +157,6 @@ interface SøknadsbehandlingService {
         object FantIkkeBehandling : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
 
         object KlarteIkkeHentePersonIPdl : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
-        data class KunneIkkeEndreBosituasjonEpsGrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
-            KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
-
-        data class FeilVedVilkårsvurudering(val feil: KunneIkkeVilkårsvurdere) :
-            KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
 
         data class KunneIkkeOppdatereBosituasjon(val feil: Søknadsbehandling.KunneIkkeOppdatereBosituasjon) :
             KunneIkkeLeggeTilBosituasjonEpsGrunnlag()

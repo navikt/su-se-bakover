@@ -13,20 +13,24 @@ data class VilkårsvurderRequest(
 ) {
 
     sealed class FeilVedValideringAvBehandlingsinformasjon {
-        object DepositumIkkeMindreEnnInnskudd : FeilVedValideringAvBehandlingsinformasjon()
+        object DepositumErHøyereEnnInnskudd : FeilVedValideringAvBehandlingsinformasjon()
         object BosituasjonOgFormueForEpsErIkkeKonsistent : FeilVedValideringAvBehandlingsinformasjon()
+        object KanIkkeLeggeTilFormueFørBosituasjon : FeilVedValideringAvBehandlingsinformasjon()
     }
 
     fun hentValidertBehandlingsinformasjon(
         bosituasjon: Grunnlag.Bosituasjon?,
     ): Either<FeilVedValideringAvBehandlingsinformasjon, Behandlingsinformasjon> {
-        val borSøkerMedEPS = bosituasjon?.harEktefelle() ?: false
+        val formue = behandlingsinformasjon.formue ?: return behandlingsinformasjon.right()
 
-        if (behandlingsinformasjon.formue?.erDepositumHøyereEnnInnskud() == true) {
-            return FeilVedValideringAvBehandlingsinformasjon.DepositumIkkeMindreEnnInnskudd.left()
+        val borSøkerMedEPS = bosituasjon?.harEktefelle()
+            ?: return FeilVedValideringAvBehandlingsinformasjon.KanIkkeLeggeTilFormueFørBosituasjon.left()
+
+        if (formue.erDepositumHøyereEnnInnskudd()) {
+            return FeilVedValideringAvBehandlingsinformasjon.DepositumErHøyereEnnInnskudd.left()
         }
 
-        if (!erEpsFormueOgBosituasjonKonsistent(borSøkerMedEPS)) {
+        if (!erEpsFormueOgBosituasjonKonsistent(formue, borSøkerMedEPS)) {
             return FeilVedValideringAvBehandlingsinformasjon.BosituasjonOgFormueForEpsErIkkeKonsistent.left()
         }
 
@@ -34,17 +38,16 @@ data class VilkårsvurderRequest(
     }
 
     private fun erEpsFormueOgBosituasjonKonsistent(
+        formue: Behandlingsinformasjon.Formue,
         borSøkerMedEPS: Boolean,
     ): Boolean {
-        // i noen tilfeller, har vi EPS, men formue objektet er null, da vil vi eksplisitt sjekke at epsVerdier ikke er null, og ikke safe call med formue
-        if (behandlingsinformasjon.formue != null) {
-            if (borSøkerMedEPS && behandlingsinformasjon.formue!!.epsVerdier == null) {
-                return false
-            }
-            if (!borSøkerMedEPS && behandlingsinformasjon.formue!!.epsVerdier != null) {
-                return false
-            }
+        if (borSøkerMedEPS && formue.epsVerdier == null) {
+            return false
         }
+        if (!borSøkerMedEPS && formue.epsVerdier != null) {
+            return false
+        }
+
         return true
     }
 }

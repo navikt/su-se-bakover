@@ -489,10 +489,14 @@ internal fun Route.søknadsbehandlingRoutes(
 
 internal fun VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.tilResultat(): Resultat {
     return when (this) {
-        VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.DepositumIkkeMindreEnnInnskudd -> depositumErHøyereEnnInnskudd
+        VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.DepositumErHøyereEnnInnskudd -> depositumErHøyereEnnInnskudd
         VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.BosituasjonOgFormueForEpsErIkkeKonsistent -> BadRequest.errorJson(
             "Bosituasjon og formue for EPS er ikke konsistent",
             "bosituasjon_og_formue_for_eps_er_ikke_konsistent",
+        )
+        VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.KanIkkeLeggeTilFormueFørBosituasjon -> BadRequest.errorJson(
+            "Kan ikke legge til formue før det er lagt til en bosituasjon",
+            "legger_til_formue_før_bosituasjon",
         )
     }
 }

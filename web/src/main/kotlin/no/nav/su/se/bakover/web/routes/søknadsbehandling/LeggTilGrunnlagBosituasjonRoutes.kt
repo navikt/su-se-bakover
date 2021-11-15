@@ -73,8 +73,6 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                         when (it) {
                                             SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling -> fantIkkeBehandling
                                             SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl -> Feilresponser.fantIkkePerson
-                                            is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag -> Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
-                                            is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FeilVedVilkårsvurudering -> it.feil.tilResultat()
                                             is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeOppdatereBosituasjon -> it.feil.tilResultat()
                                         }
                                     },
@@ -107,8 +105,6 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                 when (it) {
                                     SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling -> fantIkkeBehandling
                                     SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl -> Feilresponser.fantIkkePerson
-                                    is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeEndreBosituasjonEpsGrunnlag -> Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
-                                    is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FeilVedVilkårsvurudering -> it.feil.tilResultat()
                                     is SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeOppdatereBosituasjon -> it.feil.tilResultat()
                                 }
                             },
@@ -160,8 +156,6 @@ internal fun SøknadsbehandlingService.KunneIkkeVilkårsvurdere.tilResultat(): R
 
 internal fun Søknadsbehandling.KunneIkkeOppdatereBosituasjon.tilResultat(): Resultat {
     return when (this) {
-        is Søknadsbehandling.KunneIkkeOppdatereBosituasjon.KlarteIkkeHentePerson -> this.feil.tilResultat()
-        is Søknadsbehandling.KunneIkkeOppdatereBosituasjon.KunneIkkeLageGrunnlagsdata -> this.feil.tilResultat()
         is Søknadsbehandling.KunneIkkeOppdatereBosituasjon.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
     }
 }

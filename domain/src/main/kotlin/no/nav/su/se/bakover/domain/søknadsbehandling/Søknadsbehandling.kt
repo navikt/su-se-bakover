@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.domain.grunnlag.fjernInntekterForEPSDersomFradragIkk
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.visitor.Visitable
@@ -100,7 +99,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             ),
             bosituasjon = listOf(bosituasjon),
         ).getOrHandle {
-            return KunneIkkeOppdatereBosituasjon.KunneIkkeLageGrunnlagsdata(it).left()
+            // TODO - håndter oppdatering av bosituasjon inne i grunnlagsdata. Den skal også fjerne potensielle fradrag for EPS
+            when (it) {
+                KunneIkkeLageGrunnlagsdata.FradragForEpsSomIkkeHarEPS -> throw IllegalStateException("Fradrag for EPS skulle ha vært fjernet.")
+                KunneIkkeLageGrunnlagsdata.FradragManglerBosituasjon -> throw IllegalStateException("Bosituasjonsperioden har blitt satt feil sammenlignet med fradrag")
+                KunneIkkeLageGrunnlagsdata.MåLeggeTilBosituasjonFørFradrag -> throw IllegalStateException("Dette er metoden for å oppdatere bosituasjon. Vi har en implementasjonsfeil ved at fradrag blir lagt til uten bosituasjon")
+                is KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag -> throw IllegalStateException("Eneste endringen vi potensialt har gjort, er å fjerne fradrag for EPS")
+            }
         }
         val oppdatertBehandlingsinformasjon = this.behandlingsinformasjon.copy(
             formue = this.behandlingsinformasjon.formue?.nullstillEpsFormueHvisIngenEps(bosituasjon),
@@ -123,11 +128,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     sealed class KunneIkkeOppdatereBosituasjon {
-        data class KlarteIkkeHentePerson(val feil: KunneIkkeHentePerson) : KunneIkkeOppdatereBosituasjon()
         data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Vilkårsvurdert>) :
-            KunneIkkeOppdatereBosituasjon()
-
-        data class KunneIkkeLageGrunnlagsdata(val feil: no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata) :
             KunneIkkeOppdatereBosituasjon()
     }
 

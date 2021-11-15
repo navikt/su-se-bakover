@@ -71,14 +71,14 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
             Behandlingsinformasjon.Formue(
                 status = Behandlingsinformasjon.Formue.Status.valueOf(f.status),
                 verdier = Behandlingsinformasjon.Formue.Verdier(
-                    verdiIkkePrimærbolig = f.verdier?.verdiIkkePrimærbolig,
-                    verdiEiendommer = f.verdier?.verdiEiendommer,
-                    verdiKjøretøy = f.verdier?.verdiKjøretøy,
-                    innskudd = f.verdier?.innskudd,
-                    verdipapir = f.verdier?.verdipapir,
-                    pengerSkyldt = f.verdier?.pengerSkyldt,
-                    kontanter = f.verdier?.kontanter,
-                    depositumskonto = f.verdier?.depositumskonto,
+                    verdiIkkePrimærbolig = f.verdier.verdiIkkePrimærbolig,
+                    verdiEiendommer = f.verdier.verdiEiendommer,
+                    verdiKjøretøy = f.verdier.verdiKjøretøy,
+                    innskudd = f.verdier.innskudd,
+                    verdipapir = f.verdier.verdipapir,
+                    pengerSkyldt = f.verdier.pengerSkyldt,
+                    kontanter = f.verdier.kontanter,
+                    depositumskonto = f.verdier.depositumskonto,
                 ),
                 epsVerdier = f.epsVerdier?.let {
                     Behandlingsinformasjon.Formue.Verdier(
@@ -144,7 +144,7 @@ internal fun Behandlingsinformasjon.OppholdIUtlandet.toJson() =
 internal fun Behandlingsinformasjon.Formue.toJson() =
     FormueJson(
         status = status.name,
-        verdier = this.verdier?.toJson(),
+        verdier = this.verdier.toJson(),
         epsVerdier = this.epsVerdier?.toJson(),
         begrunnelse = begrunnelse,
     )
@@ -203,20 +203,20 @@ internal data class OppholdIUtlandetJson(
 
 internal data class FormueJson(
     val status: String,
-    val verdier: VerdierJson?,
+    val verdier: VerdierJson,
     val epsVerdier: VerdierJson?,
     val begrunnelse: String?,
 )
 
 internal data class VerdierJson(
-    val verdiIkkePrimærbolig: Int?,
-    val verdiEiendommer: Int?,
-    val verdiKjøretøy: Int?,
-    val innskudd: Int?,
-    val verdipapir: Int?,
-    val pengerSkyldt: Int?,
-    val kontanter: Int?,
-    val depositumskonto: Int?,
+    val verdiIkkePrimærbolig: Int,
+    val verdiEiendommer: Int,
+    val verdiKjøretøy: Int,
+    val innskudd: Int,
+    val verdipapir: Int,
+    val pengerSkyldt: Int,
+    val kontanter: Int,
+    val depositumskonto: Int,
 )
 
 internal data class PersonligOppmøteJson(

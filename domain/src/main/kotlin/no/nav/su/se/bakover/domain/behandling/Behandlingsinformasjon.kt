@@ -361,30 +361,27 @@ data class Behandlingsinformasjon(
 
     data class Formue(
         val status: Status,
-        val verdier: Verdier?,
+        val verdier: Verdier,
         val epsVerdier: Verdier?,
         val begrunnelse: String?,
     ) : Base() {
 
-        fun erDepositumHøyereEnnInnskud(): Boolean {
-            return verdier?.depositumHøyereEnnInnskudd() == true || epsVerdier?.depositumHøyereEnnInnskudd() == true
+        fun erDepositumHøyereEnnInnskudd(): Boolean {
+            return verdier.depositumHøyereEnnInnskudd() || epsVerdier?.depositumHøyereEnnInnskudd() == true
         }
 
         data class Verdier(
-            val verdiIkkePrimærbolig: Int?,
-            val verdiEiendommer: Int?,
-            val verdiKjøretøy: Int?,
-            val innskudd: Int?,
-            val verdipapir: Int?,
-            val pengerSkyldt: Int?,
-            val kontanter: Int?,
-            val depositumskonto: Int?,
+            val verdiIkkePrimærbolig: Int,
+            val verdiEiendommer: Int,
+            val verdiKjøretøy: Int,
+            val innskudd: Int,
+            val verdipapir: Int,
+            val pengerSkyldt: Int,
+            val kontanter: Int,
+            val depositumskonto: Int,
         ) {
             fun depositumHøyereEnnInnskudd(): Boolean {
-                if (this.depositumskonto != null && this.innskudd !== null && this.depositumskonto > this.innskudd) {
-                    return true
-                }
-                return false
+                return this.depositumskonto > this.innskudd
             }
 
             companion object {
@@ -448,28 +445,28 @@ data class Behandlingsinformasjon(
                         periode = stønadsperiode.periode,
                         epsFormue = this.epsVerdier?.let {
                             Formuegrunnlag.Verdier.tryCreate(
-                                verdiIkkePrimærbolig = it.verdiIkkePrimærbolig ?: 0,
-                                verdiEiendommer = it.verdiEiendommer ?: 0,
-                                verdiKjøretøy = it.verdiKjøretøy ?: 0,
-                                innskudd = it.innskudd ?: 0,
-                                verdipapir = it.verdipapir ?: 0,
-                                pengerSkyldt = it.pengerSkyldt ?: 0,
-                                kontanter = it.kontanter ?: 0,
-                                depositumskonto = it.depositumskonto ?: 0,
+                                verdiIkkePrimærbolig = it.verdiIkkePrimærbolig,
+                                verdiEiendommer = it.verdiEiendommer,
+                                verdiKjøretøy = it.verdiKjøretøy,
+                                innskudd = it.innskudd,
+                                verdipapir = it.verdipapir,
+                                pengerSkyldt = it.pengerSkyldt,
+                                kontanter = it.kontanter,
+                                depositumskonto = it.depositumskonto,
                             ).getOrHandle {
                                 throw IllegalStateException("Kunne ikke create formue-verdier. Sjekk om data er gyldig")
                             }
                         },
                         søkersFormue = this.verdier.let {
                             Formuegrunnlag.Verdier.tryCreate(
-                                verdiIkkePrimærbolig = it?.verdiIkkePrimærbolig ?: 0,
-                                verdiEiendommer = it?.verdiEiendommer ?: 0,
-                                verdiKjøretøy = it?.verdiKjøretøy ?: 0,
-                                innskudd = it?.innskudd ?: 0,
-                                verdipapir = it?.verdipapir ?: 0,
-                                pengerSkyldt = it?.pengerSkyldt ?: 0,
-                                kontanter = it?.kontanter ?: 0,
-                                depositumskonto = it?.depositumskonto ?: 0,
+                                verdiIkkePrimærbolig = it.verdiIkkePrimærbolig,
+                                verdiEiendommer = it.verdiEiendommer,
+                                verdiKjøretøy = it.verdiKjøretøy,
+                                innskudd = it.innskudd,
+                                verdipapir = it.verdipapir,
+                                pengerSkyldt = it.pengerSkyldt,
+                                kontanter = it.kontanter,
+                                depositumskonto = it.depositumskonto,
                             ).getOrHandle {
                                 throw IllegalStateException("Kunne ikke create formue-verdier. Sjekk om data er gyldig")
                             }
