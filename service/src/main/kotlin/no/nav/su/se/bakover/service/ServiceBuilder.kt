@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagServiceImpl
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingServiceImpl
+import no.nav.su.se.bakover.service.klage.KlageServiceImpl
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
@@ -146,6 +147,7 @@ object ServiceBuilder {
         ).apply {
             addObserver(statistikkService)
         }
+        val klageService = KlageServiceImpl(databaseRepos.klageRepo, clock)
         return Services(
             avstemming = AvstemmingServiceImpl(
                 repo = databaseRepos.avstemming,
@@ -188,6 +190,7 @@ object ServiceBuilder {
                 sessionFactory = databaseRepos.sessionFactory,
                 sakService = sakService,
             ),
+            klageService = klageService
         )
     }
 }

@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -60,6 +61,8 @@ import no.nav.su.se.bakover.service.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
+import no.nav.su.se.bakover.service.klage.KlageService
+import no.nav.su.se.bakover.service.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -714,6 +717,12 @@ open class AccessCheckProxy(
                     return services.avslåSøknadManglendeDokumentasjonService.avslå(request)
                 }
             },
+            klageService = object : KlageService {
+                override fun opprettKlage(klage: Klage): Either<KunneIkkeOppretteKlage, Klage> {
+                    assertHarTilgangTilSak(klage.id)
+                    return services.klageService.opprettKlage(klage)
+                }
+            }
         )
     }
 

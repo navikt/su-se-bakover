@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRep
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
+import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
@@ -263,6 +264,7 @@ internal class TestDataHelper(
     internal val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource = dataSource)
     internal val dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory)
     internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(dataSource, fixedClock)
+    internal val klagePostgresRepo = KlagePostgresRepo(dataSource)
 
     fun nySakMedNySøknad(
         fnr: Fnr = Fnr.generer(),

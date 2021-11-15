@@ -21,6 +21,8 @@ import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.hendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
+import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
+import no.nav.su.se.bakover.database.klage.KlageRepo
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonRepo
@@ -142,6 +144,7 @@ object DatabaseBuilder {
         )
         val hendelseRepo = PersonhendelsePostgresRepo(dataSource, clock)
         val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource)
+        val klageRepo = KlagePostgresRepo(dataSource)
 
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(dataSource),
@@ -177,6 +180,7 @@ object DatabaseBuilder {
             personhendelseRepo = hendelseRepo,
             nøkkeltallRepo = nøkkeltallRepo,
             sessionFactory = sessionFactory,
+            klageRepo = klageRepo
         )
     }
 }
@@ -199,4 +203,5 @@ data class DatabaseRepos(
     val dokumentRepo: DokumentRepo,
     val nøkkeltallRepo: NøkkeltallRepo,
     val sessionFactory: SessionFactory,
+    val klageRepo: KlageRepo
 )
