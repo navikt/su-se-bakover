@@ -15,8 +15,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingId
-import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
 import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.getOrFail
@@ -45,7 +43,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).vilkårsvurder(
-            SøknadsbehandlingService.VilkårsvurderRequest(
+            VilkårsvurderRequest(
                 behandlingId = UUID.randomUUID(),
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             ),
@@ -68,7 +66,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).vilkårsvurder(
-            SøknadsbehandlingService.VilkårsvurderRequest(
+            VilkårsvurderRequest(
                 behandlingId = innvilget.id,
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
             ),
@@ -115,7 +113,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).vilkårsvurder(
-            SøknadsbehandlingService.VilkårsvurderRequest(
+            VilkårsvurderRequest(
                 uavklart.id,
                 uavklart.behandlingsinformasjon,
             ),
@@ -157,7 +155,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             createSøknadsbehandlingService(
                 søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             ).vilkårsvurder(
-                SøknadsbehandlingService.VilkårsvurderRequest(
+                VilkårsvurderRequest(
                     behandlingId = iverksatt.id,
                     behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
                         .withAlleVilkårOppfylt(),

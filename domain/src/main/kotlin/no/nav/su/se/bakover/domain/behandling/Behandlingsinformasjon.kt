@@ -1,9 +1,7 @@
 package no.nav.su.se.bakover.domain.behandling
 
-import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
-import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag
@@ -15,7 +13,6 @@ import no.nav.su.se.bakover.domain.grunnlag.LovligOppholdGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.OppholdIUtlandetGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
-import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
@@ -364,20 +361,42 @@ data class Behandlingsinformasjon(
 
     data class Formue(
         val status: Status,
-        val verdier: Verdier?,
+        val verdier: Verdier,
         val epsVerdier: Verdier?,
         val begrunnelse: String?,
     ) : Base() {
+
+        fun erDepositumHøyereEnnInnskudd(): Boolean {
+            return verdier.depositumHøyereEnnInnskudd() || epsVerdier?.depositumHøyereEnnInnskudd() == true
+        }
+
         data class Verdier(
-            val verdiIkkePrimærbolig: Int?,
-            val verdiEiendommer: Int?,
-            val verdiKjøretøy: Int?,
-            val innskudd: Int?,
-            val verdipapir: Int?,
-            val pengerSkyldt: Int?,
-            val kontanter: Int?,
-            val depositumskonto: Int?,
-        )
+            val verdiIkkePrimærbolig: Int,
+            val verdiEiendommer: Int,
+            val verdiKjøretøy: Int,
+            val innskudd: Int,
+            val verdipapir: Int,
+            val pengerSkyldt: Int,
+            val kontanter: Int,
+            val depositumskonto: Int,
+        ) {
+            fun depositumHøyereEnnInnskudd(): Boolean {
+                return this.depositumskonto > this.innskudd
+            }
+
+            companion object {
+                fun lagTomVerdier() = Verdier(
+                    verdiIkkePrimærbolig = 0,
+                    verdiEiendommer = 0,
+                    verdiKjøretøy = 0,
+                    innskudd = 0,
+                    verdipapir = 0,
+                    pengerSkyldt = 0,
+                    kontanter = 0,
+                    depositumskonto = 0,
+                )
+            }
+        }
 
         enum class Status {
             VilkårOppfylt,
@@ -387,6 +406,31 @@ data class Behandlingsinformasjon(
 
         override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
         override fun erVilkårIkkeOppfylt(): Boolean = status == Status.VilkårIkkeOppfylt
+
+        /**
+         * Midlertidig migreringsfunksjon fra Behandlingsinformasjon + Grunnlag.Bosituasjon -> Behandlingsinformasjon
+         * Behandlingsinformasjonen ligger blant annet i Vedtaket inntil videre.
+         *
+         * TODO: helhet rundt løsning for oppdatering av formue og bosituasjon (formue avhengig av bosituasjon).
+         */
+        fun nullstillEpsFormueHvisIngenEps(
+            bosituasjon: Grunnlag.Bosituasjon,
+        ): Formue {
+            return when (bosituasjon) {
+                is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps,
+                is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen,
+                is Grunnlag.Bosituasjon.Fullstendig.Enslig,
+                -> {
+                    // fjerner eventuelle eps-verdier for å unngå ugyldig tilstand på tvers av bostituasjon og formue
+                    this.copy(epsVerdier = null)
+                }
+                is Grunnlag.Bosituasjon.Ufullstendig.HarEps,
+                is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning,
+                is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre,
+                is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning,
+                -> this
+            }
+        }
 
         fun tilVilkår(
             stønadsperiode: Stønadsperiode,
@@ -401,28 +445,28 @@ data class Behandlingsinformasjon(
                         periode = stønadsperiode.periode,
                         epsFormue = this.epsVerdier?.let {
                             Formuegrunnlag.Verdier.tryCreate(
-                                verdiIkkePrimærbolig = it.verdiIkkePrimærbolig ?: 0,
-                                verdiEiendommer = it.verdiEiendommer ?: 0,
-                                verdiKjøretøy = it.verdiKjøretøy ?: 0,
-                                innskudd = it.innskudd ?: 0,
-                                verdipapir = it.verdipapir ?: 0,
-                                pengerSkyldt = it.pengerSkyldt ?: 0,
-                                kontanter = it.kontanter ?: 0,
-                                depositumskonto = it.depositumskonto ?: 0,
+                                verdiIkkePrimærbolig = it.verdiIkkePrimærbolig,
+                                verdiEiendommer = it.verdiEiendommer,
+                                verdiKjøretøy = it.verdiKjøretøy,
+                                innskudd = it.innskudd,
+                                verdipapir = it.verdipapir,
+                                pengerSkyldt = it.pengerSkyldt,
+                                kontanter = it.kontanter,
+                                depositumskonto = it.depositumskonto,
                             ).getOrHandle {
                                 throw IllegalStateException("Kunne ikke create formue-verdier. Sjekk om data er gyldig")
                             }
                         },
                         søkersFormue = this.verdier.let {
                             Formuegrunnlag.Verdier.tryCreate(
-                                verdiIkkePrimærbolig = it?.verdiIkkePrimærbolig ?: 0,
-                                verdiEiendommer = it?.verdiEiendommer ?: 0,
-                                verdiKjøretøy = it?.verdiKjøretøy ?: 0,
-                                innskudd = it?.innskudd ?: 0,
-                                verdipapir = it?.verdipapir ?: 0,
-                                pengerSkyldt = it?.pengerSkyldt ?: 0,
-                                kontanter = it?.kontanter ?: 0,
-                                depositumskonto = it?.depositumskonto ?: 0,
+                                verdiIkkePrimærbolig = it.verdiIkkePrimærbolig,
+                                verdiEiendommer = it.verdiEiendommer,
+                                verdiKjøretøy = it.verdiKjøretøy,
+                                innskudd = it.innskudd,
+                                verdipapir = it.verdipapir,
+                                pengerSkyldt = it.pengerSkyldt,
+                                kontanter = it.kontanter,
+                                depositumskonto = it.depositumskonto,
                             ).getOrHandle {
                                 throw IllegalStateException("Kunne ikke create formue-verdier. Sjekk om data er gyldig")
                             }
@@ -519,33 +563,5 @@ data class Behandlingsinformasjon(
             formue = null,
             personligOppmøte = null,
         )
-    }
-
-    /**
-     * Midlertidig migreringsfunksjon fra Behandlingsinformasjon + Grunnlag.Bosituasjon -> Behandlingsinformasjon
-     * Behandlingsinformasjonen ligger blant annet i Vedtaket inntil videre.
-     *
-     * TODO: helhet rundt løsning for oppdatering av formue og bosituasjon (formue avhengig av bosituasjon).
-     */
-    fun oppdaterBosituasjonOgEktefelleOgNullstillFormueForEpsHvisIngenEps(
-        bosituasjon: Grunnlag.Bosituasjon,
-    ): Either<KunneIkkeHentePerson, Behandlingsinformasjon> {
-        val oppdatertFormue = when (bosituasjon) {
-            is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps,
-            is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen,
-            is Grunnlag.Bosituasjon.Fullstendig.Enslig,
-            -> {
-                // fjerner eventuelle eps-verdier for å unngå ugyldig tilstand på tvers av bostituasjon og formue
-                formue?.copy(epsVerdier = null)
-            }
-            is Grunnlag.Bosituasjon.Ufullstendig.HarEps,
-            is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning,
-            is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre,
-            is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning,
-            -> formue
-        }
-        return this.copy(
-            formue = oppdatertFormue,
-        ).right()
     }
 }

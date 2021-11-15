@@ -4,7 +4,6 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -51,14 +50,11 @@ interface SøknadsbehandlingService {
         object HarAlleredeÅpenSøknadsbehandling : KunneIkkeOpprette()
     }
 
-    data class VilkårsvurderRequest(
-        val behandlingId: UUID,
-        val behandlingsinformasjon: Behandlingsinformasjon,
-    )
-
     sealed class KunneIkkeVilkårsvurdere {
         object FantIkkeBehandling : KunneIkkeVilkårsvurdere()
         object HarIkkeEktefelle : KunneIkkeVilkårsvurdere()
+        data class FeilVedValideringAvBehandlingsinformasjon(val feil: VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon) :
+            KunneIkkeVilkårsvurdere()
     }
 
     data class BeregnRequest(
@@ -161,7 +157,9 @@ interface SøknadsbehandlingService {
         object FantIkkeBehandling : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
 
         object KlarteIkkeHentePersonIPdl : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
-        data class KunneIkkeEndreBosituasjonEpsGrunnlag(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
+
+        data class KunneIkkeOppdatereBosituasjon(val feil: Søknadsbehandling.KunneIkkeOppdatereBosituasjon) :
+            KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
     }
 
     sealed class KunneIkkeFullføreBosituasjonGrunnlag {
