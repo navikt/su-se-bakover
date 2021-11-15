@@ -250,13 +250,6 @@ internal class TestDataHelper(
         dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
     )
-    internal val sakRepo = SakPostgresRepo(
-        sessionFactory = sessionFactory,
-        søknadsbehandlingRepo = søknadsbehandlingRepo,
-        revurderingRepo = revurderingRepo,
-        vedtakPostgresRepo = vedtakRepo,
-        dbMetrics = dbMetrics,
-    )
     internal val personRepo = PersonPostgresRepo(
         dataSource = dataSource,
         dbMetrics = dbMetrics,
@@ -265,6 +258,15 @@ internal class TestDataHelper(
     internal val dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory)
     internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(dataSource, fixedClock)
     internal val klagePostgresRepo = KlagePostgresRepo(dataSource)
+
+    internal val sakRepo = SakPostgresRepo(
+        sessionFactory = sessionFactory,
+        søknadsbehandlingRepo = søknadsbehandlingRepo,
+        revurderingRepo = revurderingRepo,
+        vedtakPostgresRepo = vedtakRepo,
+        dbMetrics = dbMetrics,
+        klageRepo = klagePostgresRepo
+    )
 
     fun nySakMedNySøknad(
         fnr: Fnr = Fnr.generer(),

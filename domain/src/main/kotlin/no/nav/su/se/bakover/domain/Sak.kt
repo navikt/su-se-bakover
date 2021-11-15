@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.reduser
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
@@ -62,6 +63,7 @@ data class Sak(
     val utbetalinger: List<Utbetaling>,
     val revurderinger: List<AbstraktRevurdering> = emptyList(),
     val vedtakListe: List<Vedtak> = emptyList(),
+    val klager: List<Klage> = emptyList()
 ) {
     fun utbetalingstidslinje(
         periode: Periode = Periode.create(
@@ -166,6 +168,7 @@ data class NySak(
             utbetalinger = emptyList(),
             revurderinger = emptyList(),
             vedtakListe = emptyList(),
+            klager = emptyList()
         )
     }
 }

@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.web.routes.sak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
+import no.nav.su.se.bakover.web.routes.klage.KlageJson
+import no.nav.su.se.bakover.web.routes.klage.toJson
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingJson
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
@@ -24,6 +26,7 @@ internal data class SakJson(
     val utbetalingerKanStansesEllerGjenopptas: KanStansesEllerGjenopptas,
     val revurderinger: List<RevurderingJson>,
     val vedtak: List<VedtakJson>,
+    val klager: List<KlageJson>
 ) {
     enum class KanStansesEllerGjenopptas {
         STANS,
@@ -60,6 +63,7 @@ internal data class SakJson(
             },
             revurderinger = revurderinger.map { it.toJson() },
             vedtak = vedtakListe.map { it.toJson() },
+            klager = klager.map { it.toJson() }
         )
     }
 }

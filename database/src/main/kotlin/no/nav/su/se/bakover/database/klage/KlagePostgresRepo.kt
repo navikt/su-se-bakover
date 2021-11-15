@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.klage
 
+import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.tidspunkt
@@ -31,23 +32,21 @@ class KlagePostgresRepo(private val dataSource: DataSource) : KlageRepo {
         }
     }
 
-    override fun hentKlager(sakid: UUID): List<Klage> =
-        dataSource.withSession { session ->
-            """
+    override fun hentKlager(sakid: UUID, session: Session): List<Klage> =
+        """
                 select * from klage where sakid=:sakid
-            """.trimIndent().hentListe(
-                mapOf(
-                    "sakid" to sakid,
-                ),
-                session,
-            ) { row ->
-                Klage(
-                    id = row.uuid("id"),
-                    opprettet = row.tidspunkt("opprettet"),
-                    sakId = row.uuid("sakid"),
-                    journalpostId = JournalpostId(row.string("journalpostid")),
-                    saksbehandler = NavIdentBruker.Saksbehandler(row.string("saksbehandler")),
-                )
-            }
+        """.trimIndent().hentListe(
+            mapOf(
+                "sakid" to sakid,
+            ),
+            session,
+        ) { row ->
+            Klage(
+                id = row.uuid("id"),
+                opprettet = row.tidspunkt("opprettet"),
+                sakId = row.uuid("sakid"),
+                journalpostId = JournalpostId(row.string("journalpostid")),
+                saksbehandler = NavIdentBruker.Saksbehandler(row.string("saksbehandler")),
+            )
         }
 }

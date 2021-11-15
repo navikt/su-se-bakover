@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
+import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.SakFactory
@@ -35,7 +36,9 @@ internal class KlagePostgresRepoTest {
             )
 
             repo.opprett(klage)
-            repo.hentKlager(nySak.id).first() shouldBe klage
+            dataSource.withSession { session ->
+                repo.hentKlager(nySak.id, session).first() shouldBe klage
+            }
         }
     }
 }

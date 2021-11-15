@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSessio
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.insert
+import no.nav.su.se.bakover.database.klage.KlageRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
@@ -30,6 +31,7 @@ internal class SakPostgresRepo(
     private val revurderingRepo: RevurderingPostgresRepo,
     private val vedtakPostgresRepo: VedtakPostgresRepo,
     private val dbMetrics: DbMetrics,
+    private val klageRepo: KlageRepo,
 ) : SakRepo {
 
     private val sakRestansRepo = SakRestansRepo(
@@ -146,6 +148,7 @@ internal class SakPostgresRepo(
                 utbetalinger = UtbetalingInternalRepo.hentUtbetalinger(sakId, session),
                 revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session),
                 vedtakListe = vedtakPostgresRepo.hentForSakId(sakId, session),
+                klager = klageRepo.hentKlager(sakId, session)
             )
         }
     }

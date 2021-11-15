@@ -164,6 +164,7 @@ object DatabaseBuilder {
                 revurderingRepo = revurderingRepo,
                 vedtakPostgresRepo = vedtakRepo,
                 dbMetrics = dbMetrics,
+                klageRepo = klageRepo
             ),
             person = PersonPostgresRepo(
                 dataSource = dataSource,
