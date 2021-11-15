@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUtlandsopphold
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRequest
 import no.nav.su.se.bakover.web.Resultat
+import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.svar
@@ -43,7 +44,10 @@ internal fun Route.leggTilUtlandsoppholdRoute(
                     call.svar(
                         revurderingService.leggTilUtlandsopphold(req).mapLeft {
                             when (it) {
-                                KunneIkkeLeggeTilUtlandsopphold.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
+                                KunneIkkeLeggeTilUtlandsopphold.FantIkkeBehandling -> HttpStatusCode.NotFound.errorJson(
+                                    "Fant ikke revurdering",
+                                    "fant_ikke_revurdering",
+                                )
                                 KunneIkkeLeggeTilUtlandsopphold.OverlappendeVurderingsperioder -> Feilresponser.overlappendeVurderingsperioder
                                 KunneIkkeLeggeTilUtlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig -> Feilresponser.utenforBehandlingsperioden
                                 is KunneIkkeLeggeTilUtlandsopphold.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
@@ -52,8 +56,8 @@ internal fun Route.leggTilUtlandsoppholdRoute(
                                 )
                             }
                         }.map {
-                            Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
-                        }.getOrHandle { it }
+                            Resultat.json(HttpStatusCode.OK, serialize(it.toJson()))
+                        }.getOrHandle { it },
                     )
                 }
             }

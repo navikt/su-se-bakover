@@ -322,7 +322,6 @@ internal class RevurderingServiceImpl(
                 OpprettetRevurdering::class,
             )
         }.map {
-            // vilkårsvurderingService.lagre(it.id, it.vilkårsvurderinger)
             revurderingRepo.lagre(it)
             identifiserFeilOgLagResponse(it)
         }
