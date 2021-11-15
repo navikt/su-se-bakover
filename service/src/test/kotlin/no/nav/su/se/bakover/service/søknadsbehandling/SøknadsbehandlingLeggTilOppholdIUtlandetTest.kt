@@ -4,7 +4,6 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRequest
@@ -28,7 +27,7 @@ class SøknadsbehandlingLeggTilOppholdIUtlandetTest {
             it.søknadsbehandlingService.leggTilOppholdIUtlandet(
                 LeggTilOppholdIUtlandetRequest(
                     behandlingId = UUID.randomUUID(),
-                    status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
+                    status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
                     begrunnelse = "",
                 ),
             ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.FantIkkeBehandling.left()
@@ -70,7 +69,7 @@ class SøknadsbehandlingLeggTilOppholdIUtlandetTest {
             it.søknadsbehandlingService.leggTilOppholdIUtlandet(
                 LeggTilOppholdIUtlandetRequest(
                     behandlingId = iverksatt.id,
-                    status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
+                    status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
                     begrunnelse = "jahoo",
                 ),
             ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.UgyldigTilstand(
@@ -94,7 +93,7 @@ class SøknadsbehandlingLeggTilOppholdIUtlandetTest {
             serviceAndMocks.søknadsbehandlingService.leggTilOppholdIUtlandet(
                 LeggTilOppholdIUtlandetRequest(
                     behandlingId = innvilget.id,
-                    status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
+                    status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
                     begrunnelse = "jahoo",
                 ),
             ) shouldBe innvilget.right()
@@ -121,7 +120,7 @@ class SøknadsbehandlingLeggTilOppholdIUtlandetTest {
             serviceAndMocks.søknadsbehandlingService.leggTilOppholdIUtlandet(
                 LeggTilOppholdIUtlandetRequest(
                     behandlingId = innvilget.id,
-                    status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalVæreMerEnn90DagerIUtlandet,
+                    status = LeggTilOppholdIUtlandetRequest.Status.SkalVæreMerEnn90DagerIUtlandet,
                     begrunnelse = "jahoo",
                 ),
             )

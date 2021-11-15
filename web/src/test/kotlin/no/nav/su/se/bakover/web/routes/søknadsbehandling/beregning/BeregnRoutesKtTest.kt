@@ -288,7 +288,7 @@ internal class BeregnRoutesKtTest {
         services.søknadsbehandling.leggTilOppholdIUtlandet(
             request = LeggTilOppholdIUtlandetRequest(
                 behandlingId = objects.søknadsbehandling.id,
-                status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
+                status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
                 begrunnelse = "Veldig bra"
             )
         )

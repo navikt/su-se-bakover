@@ -12,7 +12,6 @@ internal data class BehandlingsinformasjonJson(
     val lovligOpphold: LovligOppholdJson? = null,
     val fastOppholdINorge: FastOppholdINorgeJson? = null,
     val institusjonsopphold: InstitusjonsoppholdJson? = null,
-    val oppholdIUtlandet: OppholdIUtlandetJson? = null,
     val formue: FormueJson? = null,
     val personligOppmøte: PersonligOppmøteJson? = null,
     val bosituasjon: BosituasjonJson? = null,
@@ -27,7 +26,6 @@ internal data class BehandlingsinformasjonJson(
                 lovligOpphold = lovligOpphold?.toJson(),
                 fastOppholdINorge = fastOppholdINorge?.toJson(),
                 institusjonsopphold = institusjonsopphold?.toJson(),
-                oppholdIUtlandet = oppholdIUtlandet?.toJson(),
                 formue = formue?.toJson(ektefelle),
                 personligOppmøte = personligOppmøte?.toJson(),
                 bosituasjon = bosituasjon?.toJson(),
@@ -71,12 +69,6 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
                 begrunnelse = i.begrunnelse,
             )
         },
-        oppholdIUtlandet = b.oppholdIUtlandet?.let { o ->
-            Behandlingsinformasjon.OppholdIUtlandet(
-                status = Behandlingsinformasjon.OppholdIUtlandet.Status.valueOf(o.status),
-                begrunnelse = o.begrunnelse,
-            )
-        },
         formue = b.formue?.let { f ->
             Behandlingsinformasjon.Formue(
                 status = Behandlingsinformasjon.Formue.Status.valueOf(f.status),
@@ -111,8 +103,8 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
                 begrunnelse = p.begrunnelse,
             )
         },
-        // Vi ønsker ikke at frontenden skal kunne oppdatere bosituasjon og ektefelle. Dette gjøres via grunnlag- og vilkårsvurderingmetodene i SøknadsbehandlingService og RevurderingService.
         bosituasjon = null,
+        // Vi ønsker ikke at frontenden skal kunne oppdatere bosituasjon og ektefelle. Dette gjøres via grunnlag- og vilkårsvurderingmetodene i SøknadsbehandlingService og RevurderingService.
         ektefelle = null,
     )
 
@@ -144,12 +136,6 @@ internal fun Behandlingsinformasjon.FastOppholdINorge.toJson() =
 
 internal fun Behandlingsinformasjon.Institusjonsopphold.toJson() =
     InstitusjonsoppholdJson(
-        status = status.name,
-        begrunnelse = begrunnelse,
-    )
-
-internal fun Behandlingsinformasjon.OppholdIUtlandet.toJson() =
-    OppholdIUtlandetJson(
         status = status.name,
         begrunnelse = begrunnelse,
     )
@@ -226,11 +212,6 @@ internal data class FastOppholdINorgeJson(
 )
 
 internal data class InstitusjonsoppholdJson(
-    val status: String,
-    val begrunnelse: String?,
-)
-
-internal data class OppholdIUtlandetJson(
     val status: String,
     val begrunnelse: String?,
 )

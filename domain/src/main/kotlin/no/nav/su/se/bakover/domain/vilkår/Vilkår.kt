@@ -224,9 +224,6 @@ sealed class Vilkårsvurderinger {
                     is Behandlingsinformasjon.Institusjonsopphold -> {
                         it.tilVilkår(stønadsperiode, clock)
                     }
-                    is Behandlingsinformasjon.OppholdIUtlandet -> {
-                        null // legges til via grunnlags-flyt
-                    }
                     is Behandlingsinformasjon.Formue -> {
                         it.tilVilkår(stønadsperiode, grunnlagsdata.bosituasjon, clock)
                     }

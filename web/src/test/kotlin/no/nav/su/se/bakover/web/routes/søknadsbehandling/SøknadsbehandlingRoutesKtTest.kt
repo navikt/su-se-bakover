@@ -877,7 +877,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         services.søknadsbehandling.leggTilOppholdIUtlandet(
             LeggTilOppholdIUtlandetRequest(
                 behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
-                status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
+                status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
                 begrunnelse = "Skal være her hele tiden",
             )
         )

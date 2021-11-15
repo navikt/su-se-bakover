@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.expectedBosituasjonJson
+import no.nav.su.se.bakover.web.routes.grunnlag.OppholdIUtlandetVilkårJsonTest.Companion.expectedOppholdIUtlandetVurdert
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.expectedVurderingUføreJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJsonTest.Companion.søknadJsonString
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.behandlingId
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.op
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.sakId
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.saksnummer
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJsonTest.Companion.expectedBeregningJson
+import no.nav.su.se.bakover.web.routes.vedtak.toJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.format.DateTimeFormatter
@@ -58,10 +60,6 @@ internal class SøknadsbehandlingJsonTest {
                 },
                 "institusjonsopphold": {
                     "status": "VilkårOppfylt",
-                    "begrunnelse": null
-                },
-                "oppholdIUtlandet": {
-                    "status": "SkalHoldeSegINorge",
                     "begrunnelse": null
                 },
                 "formue": {
@@ -150,7 +148,7 @@ internal class SøknadsbehandlingJsonTest {
                 "vilkår": "Formue",
                 "vurderinger": []
               },
-              "oppholdIUtlandet": null
+              "oppholdIUtlandet": $expectedOppholdIUtlandetVurdert
           },
           "fritekstTilBrev": "",
           "erLukket": false
@@ -198,7 +196,6 @@ internal class SøknadsbehandlingJsonTest {
             "lovligOpphold": null,
             "fastOppholdINorge": null,
             "institusjonsopphold": null,
-            "oppholdIUtlandet": null,
             "formue": null,
             "personligOppmøte": null,
             "bosituasjon": null,

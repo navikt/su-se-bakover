@@ -36,7 +36,7 @@ internal fun Inngangsvilkår.toJson() = when (this) {
     Inngangsvilkår.Flyktning -> "Flyktning"
     Inngangsvilkår.LovligOpphold -> "Lovlig opphold"
     Inngangsvilkår.Institusjonsopphold -> "Institusjonsopphold"
-    Inngangsvilkår.OppholdIUtlandet -> "Opphold i utlandet"
+    Inngangsvilkår.OppholdIUtlandet -> "OppholdIUtlandet"
     Inngangsvilkår.PersonligOppmøte -> "Personlig oppmøte"
     Inngangsvilkår.FastOppholdINorge -> "Fast opphold i Norge"
 }

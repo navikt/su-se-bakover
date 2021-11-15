@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.LovligOppholdGrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.OppholdIUtlandetGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -28,7 +27,6 @@ import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -36,7 +34,6 @@ import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFastOppholdINorge
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeFlyktning
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeInstitusjonsopphold
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeLovligOpphold
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOppholdIUtlandet
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodePersonligOppmøte
 import java.time.Clock
 import java.time.LocalDate
@@ -49,7 +46,6 @@ data class Behandlingsinformasjon(
     val lovligOpphold: LovligOpphold? = null,
     val fastOppholdINorge: FastOppholdINorge? = null,
     val institusjonsopphold: Institusjonsopphold? = null,
-    val oppholdIUtlandet: OppholdIUtlandet? = null,
     val formue: Formue? = null,
     val personligOppmøte: PersonligOppmøte? = null,
     val bosituasjon: Bosituasjon? = null,
@@ -62,7 +58,6 @@ data class Behandlingsinformasjon(
         lovligOpphold,
         fastOppholdINorge,
         institusjonsopphold,
-        oppholdIUtlandet,
         formue,
         personligOppmøte,
     )
@@ -75,7 +70,6 @@ data class Behandlingsinformasjon(
         lovligOpphold = b.lovligOpphold ?: this.lovligOpphold,
         fastOppholdINorge = b.fastOppholdINorge ?: this.fastOppholdINorge,
         institusjonsopphold = b.institusjonsopphold ?: this.institusjonsopphold,
-        oppholdIUtlandet = b.oppholdIUtlandet ?: this.oppholdIUtlandet,
         formue = b.formue ?: this.formue,
         personligOppmøte = b.personligOppmøte ?: this.personligOppmøte,
         bosituasjon = b.bosituasjon ?: this.bosituasjon,
@@ -359,58 +353,6 @@ data class Behandlingsinformasjon(
         }
     }
 
-    data class OppholdIUtlandet(
-        val status: Status,
-        val begrunnelse: String?,
-    ) : Base() {
-        enum class Status {
-            SkalVæreMerEnn90DagerIUtlandet,
-            SkalHoldeSegINorge,
-            Uavklart
-        }
-
-        override fun erVilkårOppfylt(): Boolean = status == Status.SkalHoldeSegINorge
-        override fun erVilkårIkkeOppfylt(): Boolean = status == Status.SkalVæreMerEnn90DagerIUtlandet
-
-        fun tilVilkår(
-            stønadsperiode: Stønadsperiode,
-            clock: Clock,
-        ): OppholdIUtlandetVilkår {
-            return when (status) {
-                Status.SkalHoldeSegINorge,
-                Status.SkalVæreMerEnn90DagerIUtlandet,
-                -> {
-                    OppholdIUtlandetVilkår.Vurdert.tryCreate(
-                        vurderingsperioder = nonEmptyListOf(
-                            VurderingsperiodeOppholdIUtlandet.tryCreate(
-                                id = UUID.randomUUID(),
-                                opprettet = Tidspunkt.now(clock),
-                                resultat = when (erVilkårOppfylt()) {
-                                    true -> Resultat.Innvilget
-                                    false -> Resultat.Avslag
-                                },
-                                grunnlag = OppholdIUtlandetGrunnlag.tryCreate(
-                                    id = UUID.randomUUID(),
-                                    opprettet = Tidspunkt.now(clock),
-                                    periode = stønadsperiode.periode,
-                                ).getOrHandle {
-                                    throw IllegalArgumentException("Kunne ikke instansiere ${OppholdIUtlandetGrunnlag::class.simpleName}. Melding: $it")
-                                },
-                                vurderingsperiode = stønadsperiode.periode,
-                                begrunnelse = begrunnelse ?: "",
-                            ).getOrHandle {
-                                throw IllegalArgumentException("Kunne ikke instansiere ${VurderingsperiodeOppholdIUtlandet::class.simpleName}. Melding: $it")
-                            },
-                        ),
-                    ).getOrHandle {
-                        throw IllegalArgumentException("Kunne ikke instansiere ${OppholdIUtlandetVilkår.Vurdert::class.simpleName}. Melding: $it")
-                    }
-                }
-                Status.Uavklart -> OppholdIUtlandetVilkår.IkkeVurdert
-            }
-        }
-    }
-
     data class Formue(
         val status: Status,
         val verdier: Verdier?,
@@ -637,7 +579,6 @@ data class Behandlingsinformasjon(
             lovligOpphold = null,
             fastOppholdINorge = null,
             institusjonsopphold = null,
-            oppholdIUtlandet = null,
             formue = null,
             personligOppmøte = null,
             bosituasjon = null,

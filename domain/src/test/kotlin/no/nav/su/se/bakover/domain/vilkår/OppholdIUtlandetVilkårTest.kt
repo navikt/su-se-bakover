@@ -4,7 +4,6 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.OppholdIUtlandetGrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.test.fixedClock
@@ -13,77 +12,10 @@ import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.periodeJuli2021
 import no.nav.su.se.bakover.test.periodeJuni2021
 import no.nav.su.se.bakover.test.periodeMai2021
-import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 internal class OppholdIUtlandetVilkårTest {
-    @Test
-    fun `mapper behandlingsinformasjon for oppfylt til vilkår og grunnlag`() {
-        Behandlingsinformasjon.OppholdIUtlandet(
-            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
-            begrunnelse = "jabadoo",
-        ).tilVilkår(
-            stønadsperiode = stønadsperiode2021,
-            clock = fixedClock,
-        ).erLik(
-            OppholdIUtlandetVilkår.Vurdert.tryCreate(
-                vurderingsperioder = nonEmptyListOf(
-                    VurderingsperiodeOppholdIUtlandet.tryCreate(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(fixedClock),
-                        resultat = Resultat.Innvilget,
-                        grunnlag = OppholdIUtlandetGrunnlag(
-                            id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(fixedClock),
-                            periode = periode2021,
-                        ),
-                        vurderingsperiode = periode2021,
-                        begrunnelse = "jabadoo",
-                    ).getOrFail(),
-                ),
-            ).getOrFail(),
-        ) shouldBe true
-    }
-
-    @Test
-    fun `mapper behandlingsinformasjon for avslag til vilkår og grunnlag`() {
-        Behandlingsinformasjon.OppholdIUtlandet(
-            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalVæreMerEnn90DagerIUtlandet,
-            begrunnelse = null,
-        ).tilVilkår(
-            stønadsperiode = stønadsperiode2021,
-            clock = fixedClock,
-        ).erLik(
-            OppholdIUtlandetVilkår.Vurdert.tryCreate(
-                vurderingsperioder = nonEmptyListOf(
-                    VurderingsperiodeOppholdIUtlandet.tryCreate(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(fixedClock),
-                        resultat = Resultat.Avslag,
-                        grunnlag = OppholdIUtlandetGrunnlag(
-                            id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(fixedClock),
-                            periode = periode2021,
-                        ),
-                        vurderingsperiode = periode2021,
-                        begrunnelse = "",
-                    ).getOrFail(),
-                ),
-            ).getOrFail(),
-        ) shouldBe true
-    }
-
-    @Test
-    fun `mapper behandlingsinformasjon for uavklart til vilkår og grunnlag`() {
-        Behandlingsinformasjon.OppholdIUtlandet(
-            status = Behandlingsinformasjon.OppholdIUtlandet.Status.Uavklart,
-            begrunnelse = null,
-        ).tilVilkår(
-            stønadsperiode = stønadsperiode2021,
-            clock = fixedClock,
-        ).erLik(OppholdIUtlandetVilkår.IkkeVurdert) shouldBe true
-    }
 
     @Test
     fun `oppdaterer periode på vurderingsperioder og grunnlag`() {

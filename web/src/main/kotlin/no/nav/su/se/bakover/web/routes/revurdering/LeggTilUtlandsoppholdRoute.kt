@@ -7,7 +7,6 @@ import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUtlandsopphold
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRequest
@@ -26,7 +25,7 @@ private data class UtlandsoppholdBody(
     fun toRequest(revurderingId: UUID): LeggTilOppholdIUtlandetRequest {
         return LeggTilOppholdIUtlandetRequest(
             behandlingId = revurderingId,
-            status = Behandlingsinformasjon.OppholdIUtlandet.Status.valueOf(status),
+            status = LeggTilOppholdIUtlandetRequest.Status.valueOf(status),
             begrunnelse = begrunnelse,
         )
     }
@@ -53,7 +52,7 @@ internal fun Route.leggTilUtlandsoppholdRoute(
                             }
                         }.map {
                             Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
-                        }.getOrHandle { it }
+                        }.getOrHandle { it },
                     )
                 }
             }

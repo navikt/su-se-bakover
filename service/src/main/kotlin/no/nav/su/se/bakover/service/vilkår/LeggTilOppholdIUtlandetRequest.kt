@@ -7,7 +7,6 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOppholdIUtlandet
@@ -17,21 +16,23 @@ import java.util.UUID
 data class LeggTilOppholdIUtlandetRequest(
     /** Dekker både søknadsbehandlingId og revurderingId */
     val behandlingId: UUID,
-    val status: Behandlingsinformasjon.OppholdIUtlandet.Status,
+    val status: Status,
     val begrunnelse: String?,
 ) {
     sealed class UgyldigOppholdIUtlandet {
-        //     object UføregradOgForventetInntektMangler : UgyldigUførevurdering()
         object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigOppholdIUtlandet()
         object OverlappendeVurderingsperioder : UgyldigOppholdIUtlandet()
-        //     object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : UgyldigUførevurdering()
-        //     object AlleVurderingeneMåHaSammeResultat : UgyldigUførevurdering()
-        //     object HeleBehandlingsperiodenMåHaVurderinger : UgyldigUførevurdering()
+    }
+
+    enum class Status {
+        SkalVæreMerEnn90DagerIUtlandet,
+        SkalHoldeSegINorge,
+        Uavklart
     }
 
     fun toVilkår(behandlingsperiode: Periode, clock: Clock): Either<UgyldigOppholdIUtlandet, OppholdIUtlandetVilkår> {
         return when (status) {
-            Behandlingsinformasjon.OppholdIUtlandet.Status.SkalVæreMerEnn90DagerIUtlandet -> {
+            Status.SkalVæreMerEnn90DagerIUtlandet -> {
                 lagVurdertVilkår(
                     resultat = Resultat.Avslag,
                     clock = clock,
@@ -41,7 +42,7 @@ data class LeggTilOppholdIUtlandetRequest(
                 }
             }
 
-            Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge -> {
+            Status.SkalHoldeSegINorge -> {
                 lagVurdertVilkår(
                     resultat = Resultat.Innvilget,
                     clock = clock,
@@ -51,8 +52,14 @@ data class LeggTilOppholdIUtlandetRequest(
                 }
             }
 
-            Behandlingsinformasjon.OppholdIUtlandet.Status.Uavklart -> {
-                OppholdIUtlandetVilkår.IkkeVurdert
+            Status.Uavklart -> {
+                lagVurdertVilkår(
+                    resultat = Resultat.Uavklart,
+                    clock = clock,
+                    periode = behandlingsperiode,
+                ).getOrHandle {
+                    return it.left()
+                }
             }
         }.right()
     }
@@ -74,7 +81,7 @@ data class LeggTilOppholdIUtlandetRequest(
                     return when (it) {
                         VurderingsperiodeOppholdIUtlandet.UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig -> UgyldigOppholdIUtlandet.PeriodeForGrunnlagOgVurderingErForskjellig.left()
                     }
-                }
+                },
             ),
         ).getOrHandle {
             return when (it) {

@@ -135,10 +135,6 @@ internal class VedtakssnapshotJsonTest {
                         "status":"VilkårOppfylt",
                         "begrunnelse":null
                      },
-                     "oppholdIUtlandet":{
-                        "status":"SkalHoldeSegINorge",
-                        "begrunnelse":null
-                     },
                      "formue":{
                         "status":"VilkårOppfylt",
                         "verdier":{
@@ -535,10 +531,6 @@ internal class VedtakssnapshotJsonTest {
                      },
                      "institusjonsopphold":{
                         "status":"VilkårOppfylt",
-                        "begrunnelse":null
-                     },
-                     "oppholdIUtlandet":{
-                        "status":"SkalHoldeSegINorge",
                         "begrunnelse":null
                      },
                      "formue":{
