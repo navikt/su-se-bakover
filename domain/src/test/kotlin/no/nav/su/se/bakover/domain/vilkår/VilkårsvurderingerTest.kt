@@ -234,12 +234,6 @@ internal class VilkårsvurderingerTest {
                         forventetInntekt = 10,
                         begrunnelse = "",
                     ),
-                    bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                        ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-                        delerBolig = true,
-                        ektemakeEllerSamboerUførFlyktning = true,
-                        begrunnelse = "",
-                    ),
                 )
 
             uavklart.oppdater(

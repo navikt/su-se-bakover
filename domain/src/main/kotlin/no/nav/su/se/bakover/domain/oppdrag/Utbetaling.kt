@@ -31,14 +31,14 @@ sealed class Utbetaling {
 
     data class UtbetalingForSimulering(
         override val id: UUID30 = UUID30.randomUUID(),
-        override val opprettet: Tidspunkt = Tidspunkt.now(),
+        override val opprettet: Tidspunkt,
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
         override val utbetalingslinjer: NonEmptyList<Utbetalingslinje>,
         override val type: UtbetalingsType,
         override val behandler: NavIdentBruker,
-        override val avstemmingsnøkkel: Avstemmingsnøkkel
+        override val avstemmingsnøkkel: Avstemmingsnøkkel,
     ) : Utbetaling() {
         fun toSimulertUtbetaling(simulering: Simulering) =
             SimulertUtbetaling(
@@ -57,7 +57,7 @@ sealed class Utbetaling {
 
     data class SimulertUtbetaling(
         override val id: UUID30 = UUID30.randomUUID(),
-        override val opprettet: Tidspunkt = Tidspunkt.now(),
+        override val opprettet: Tidspunkt,
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
@@ -89,7 +89,7 @@ sealed class Utbetaling {
 
         data class UtenKvittering(
             override val id: UUID30 = UUID30.randomUUID(),
-            override val opprettet: Tidspunkt = Tidspunkt.now(),
+            override val opprettet: Tidspunkt,
             override val sakId: UUID,
             override val saksnummer: Saksnummer,
             override val fnr: Fnr,
@@ -98,7 +98,7 @@ sealed class Utbetaling {
             override val behandler: NavIdentBruker,
             override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
             override val simulering: Simulering,
-            override val utbetalingsrequest: Utbetalingsrequest
+            override val utbetalingsrequest: Utbetalingsrequest,
         ) : OversendtUtbetaling() {
             fun toKvittertUtbetaling(kvittering: Kvittering) =
                 MedKvittering(
@@ -119,7 +119,7 @@ sealed class Utbetaling {
 
         data class MedKvittering(
             override val id: UUID30 = UUID30.randomUUID(),
-            override val opprettet: Tidspunkt = Tidspunkt.now(),
+            override val opprettet: Tidspunkt,
             override val sakId: UUID,
             override val saksnummer: Saksnummer,
             override val fnr: Fnr,
@@ -129,7 +129,7 @@ sealed class Utbetaling {
             override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
             override val simulering: Simulering,
             override val utbetalingsrequest: Utbetalingsrequest,
-            val kvittering: Kvittering
+            val kvittering: Kvittering,
         ) : OversendtUtbetaling() {
             fun kvittertMedFeilEllerVarsel() =
                 listOf(

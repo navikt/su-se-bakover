@@ -77,6 +77,7 @@ data class ProdClientsBuilder(
                     disableCNCheck = true,
                     serviceUser = serviceUser,
                 ).wrapWithSTSSimulerFpService(),
+                clock = clock,
             ),
             utbetalingPublisher = UtbetalingMqPublisher(
                 mqPublisher = applicationConfig.oppdrag.let {

@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
@@ -69,7 +70,8 @@ internal class RevurderingTest {
                     begrunnelse = null,
                 ),
             ),
-        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(20000, periode)))).orNull()!!
+        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(20000, periode))), fixedClock)
+            .orNull()!!
             .let {
                 it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
                 (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.UFØRHET)
@@ -105,7 +107,8 @@ internal class RevurderingTest {
                     begrunnelse = null,
                 ),
             ),
-        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(20000, periode)))).orNull()!!
+        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(20000, periode))), fixedClock)
+            .orNull()!!
             .let {
                 it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
             }
@@ -158,6 +161,7 @@ internal class RevurderingTest {
             eksisterendeUtbetalinger = listOf(
                 lagUtbetaling(lagUtbetalingslinje(440, periode)),
             ),
+            clock = fixedClock,
         ).orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
             it.beregning.harAlleMånederMerknadForAvslag() shouldBe true
@@ -193,7 +197,8 @@ internal class RevurderingTest {
                     begrunnelse = null,
                 ),
             ),
-        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(14000, periode)))).orNull()!!.let {
+        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(14000, periode))), fixedClock)
+            .orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.Innvilget>()
         }
     }
@@ -227,7 +232,8 @@ internal class RevurderingTest {
                     begrunnelse = null,
                 ),
             ),
-        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(20000, periode)))).orNull()!!.let {
+        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(20000, periode))), fixedClock)
+            .orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
         }
     }
@@ -264,7 +270,8 @@ internal class RevurderingTest {
             revurderingsårsak = Revurderingsårsak.create(
                 årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.toString(), begrunnelse = "a",
             ),
-        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(20000, periode)))).orNull()!!.let {
+        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(20000, periode))), fixedClock)
+            .orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.Innvilget>()
         }
     }
@@ -306,6 +313,7 @@ internal class RevurderingTest {
                 lagUtbetaling(lagUtbetalingslinje(20946, Periode.create(periode.fraOgMed, 30.april(2021)))),
                 lagUtbetaling(lagUtbetalingslinje(21989, Periode.create(1.mai(2021), periode.tilOgMed))),
             ),
+            clock = fixedClock,
         ).orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
         }
@@ -354,6 +362,7 @@ internal class RevurderingTest {
             ),
         ).beregn(
             eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(14000, periode))),
+            clock = fixedClock,
         ).orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
             (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.FOR_HØY_INNTEKT)
@@ -403,7 +412,8 @@ internal class RevurderingTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(14000, periode)))).orNull()!!.let {
+        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(14000, periode))), fixedClock)
+            .orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
             (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.FOR_HØY_INNTEKT)
         }
@@ -460,7 +470,8 @@ internal class RevurderingTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(14000, periode)))).orNull()!!.let {
+        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(14000, periode))), fixedClock)
+            .orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
             (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)
         }
@@ -498,6 +509,7 @@ internal class RevurderingTest {
     private fun lagUtbetaling(
         vararg utbetalingslinjer: Utbetalingslinje,
     ) = Utbetaling.OversendtUtbetaling.MedKvittering(
+        opprettet = fixedTidspunkt,
         sakId = UUID.randomUUID(),
         saksnummer = Saksnummer(9999),
         fnr = Fnr.generer(),
@@ -511,6 +523,7 @@ internal class RevurderingTest {
     )
 
     private fun lagUtbetalingslinje(månedsbeløp: Int, periode: Periode) = Utbetalingslinje.Ny(
+        opprettet = fixedTidspunkt,
         fraOgMed = periode.fraOgMed,
         tilOgMed = periode.tilOgMed,
         forrigeUtbetalingslinjeId = null,

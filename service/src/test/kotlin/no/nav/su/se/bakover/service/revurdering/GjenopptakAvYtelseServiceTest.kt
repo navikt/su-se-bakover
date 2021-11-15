@@ -57,7 +57,7 @@ class GjenopptakAvYtelseServiceTest {
 
     @Test
     fun `svarer med feil dersom sak ikke har noen vedtak`() {
-        val vedtakRepoMock = mock<VedtakRepo>() {
+        val vedtakRepoMock = mock<VedtakRepo> {
             on { hentForSakId(any()) } doReturn emptyList()
         }
 
@@ -84,7 +84,7 @@ class GjenopptakAvYtelseServiceTest {
 
     @Test
     fun `svarer med feil dersom siste vedtak ikke er en stans`() {
-        val vedtakRepoMock = mock<VedtakRepo>() {
+        val vedtakRepoMock = mock<VedtakRepo> {
             on { hentForSakId(any()) } doReturn listOf(vedtakSøknadsbehandlingIverksattInnvilget().second)
         }
 
@@ -116,9 +116,9 @@ class GjenopptakAvYtelseServiceTest {
             tilOgMed = periode2021.tilOgMed,
         )
 
-        val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode)
+        val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = periode)
 
-        val sakServiceMock = mock<SakService>() {
+        val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
 
@@ -166,9 +166,9 @@ class GjenopptakAvYtelseServiceTest {
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
             tilOgMed = periode2021.tilOgMed,
         )
-        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode)
+        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = periode)
 
-        val sakServiceMock = mock<SakService>() {
+        val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
 
@@ -239,9 +239,9 @@ class GjenopptakAvYtelseServiceTest {
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
             tilOgMed = periode2021.tilOgMed,
         )
-        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode)
+        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = periode)
 
-        val sakServiceMock = mock<SakService>() {
+        val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
 
@@ -316,7 +316,7 @@ class GjenopptakAvYtelseServiceTest {
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
             tilOgMed = periode2021.tilOgMed,
         )
-        val revurderingGjenopptak = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(periode)
+        val revurderingGjenopptak = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(periodeForStans = periode)
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn revurderingGjenopptak.second
@@ -385,7 +385,10 @@ class GjenopptakAvYtelseServiceTest {
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
             tilOgMed = LocalDate.now(fixedClock).plusMonths(2).endOfMonth(),
         )
-        val eksisterende = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(periode)
+        val eksisterende = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
+            periodeForStans = periode,
+            clock = fixedClock
+        )
 
         val vedtakRepoMock = mock<VedtakRepo> {
             on { hentForSakId(any()) } doReturn eksisterende.first.vedtakListe
@@ -408,7 +411,7 @@ class GjenopptakAvYtelseServiceTest {
             on { simulerGjenopptak(any(), any()) } doReturn simulertGjenopptakUtbetaling().right()
         }
 
-        val revurderingRepoMock = mock<RevurderingRepo>() {
+        val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn eksisterende.second
         }
 
@@ -488,7 +491,7 @@ class GjenopptakAvYtelseServiceTest {
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
             tilOgMed = LocalDate.now(fixedClock).plusMonths(2).endOfMonth(),
         )
-        val (sak, _) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(periode)
+        val (sak, _) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(periodeForStans = periode)
 
         val vedtakRepoMock = mock<VedtakRepo> {
             on { hentForSakId(any()) } doReturn sak.vedtakListe

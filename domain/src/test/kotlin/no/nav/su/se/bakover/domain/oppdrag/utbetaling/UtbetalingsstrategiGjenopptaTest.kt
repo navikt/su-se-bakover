@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -38,6 +39,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
         val opprinnelig: Utbetaling.OversendtUtbetaling.UtenKvittering = createOversendtUtbetaling(
             nonEmptyListOf(
                 Utbetalingslinje.Ny(
+                    opprettet = fixedTidspunkt,
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
@@ -109,6 +111,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
         val første = createOversendtUtbetaling(
             nonEmptyListOf(
                 Utbetalingslinje.Ny(
+                    opprettet = fixedTidspunkt,
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
@@ -144,6 +147,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
         val andre = createOversendtUtbetaling(
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
+                    opprettet = fixedTidspunkt,
                     fraOgMed = 1.november(2020),
                     tilOgMed = 31.oktober(2021),
                     forrigeUtbetalingslinjeId = førsteGjenopptak.utbetalingslinjer[0].id,
@@ -193,6 +197,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
         val første = createOversendtUtbetaling(
             nonEmptyListOf(
                 Utbetalingslinje.Ny(
+                    opprettet = fixedTidspunkt,
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
@@ -218,6 +223,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
         val første = createOversendtUtbetaling(
             nonEmptyListOf(
                 Utbetalingslinje.Ny(
+                    opprettet = fixedTidspunkt,
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.juli(2020),
                     forrigeUtbetalingslinjeId = null,
@@ -263,6 +269,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
     @Test
     fun `gjenopptar utbetalinger med flere utbetalingslinjer`() {
         val l1 = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.januar(2020),
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
@@ -270,6 +277,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             uføregrad = Uføregrad.parse(50),
         )
         val l2 = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = l1.id,
@@ -318,6 +326,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
         type: Utbetaling.UtbetalingsType,
     ) =
         Utbetaling.OversendtUtbetaling.UtenKvittering(
+            opprettet = fixedTidspunkt,
             sakId = sakId,
             saksnummer = saksnummer,
             utbetalingsrequest = Utbetalingsrequest(""),
@@ -327,7 +336,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
             simulering = Simulering(
                 gjelderId = Fnr(fnr = fnr.toString()),
                 gjelderNavn = "navn",
-                datoBeregnet = idag(),
+                datoBeregnet = idag(fixedClock),
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),

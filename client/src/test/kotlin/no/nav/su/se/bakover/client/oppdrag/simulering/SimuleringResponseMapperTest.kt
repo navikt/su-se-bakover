@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
@@ -66,14 +67,14 @@ internal class SimuleringResponseMapperTest {
             ),
             type = Utbetaling.UtbetalingsType.OPPHØR,
             behandler = NavIdentBruker.Saksbehandler("saksa"),
-            avstemmingsnøkkel = Avstemmingsnøkkel(),
+            avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
         )
         val simuleringsperiode = SimulerBeregningRequest.SimuleringsPeriode().apply {
             datoSimulerFom = "2021-02-01"
             datoSimulerTom = "2021-10-31"
         }
 
-        SimuleringResponseMapper(utbetaling, simuleringsperiode).simulering shouldBe Simulering(
+        SimuleringResponseMapper(utbetaling, simuleringsperiode, fixedClock).simulering shouldBe Simulering(
             gjelderId = fnr,
             gjelderNavn = fnr.toString(),
             datoBeregnet = fixedLocalDate,
@@ -92,7 +93,7 @@ internal class SimuleringResponseMapperTest {
     fun `mapper fremtidige simulerte utbetalinger`() {
         val responseMedFremtidigUtbetaling =
             XmlMapper.readValue(xmlResponseMedFremtidigUtbetaling, GrensesnittResponse::class.java).response
-        SimuleringResponseMapper(responseMedFremtidigUtbetaling).simulering shouldBe Simulering(
+        SimuleringResponseMapper(responseMedFremtidigUtbetaling, fixedClock).simulering shouldBe Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),
@@ -222,7 +223,7 @@ internal class SimuleringResponseMapperTest {
     fun `mapper simulerte feilutbetalinger`() {
         val responseMedFeilutbetaling =
             XmlMapper.readValue(xmlResponseMedFeilutbetaling, GrensesnittResponse::class.java).response
-        SimuleringResponseMapper(responseMedFeilutbetaling).simulering shouldBe Simulering(
+        SimuleringResponseMapper(responseMedFeilutbetaling, fixedClock).simulering shouldBe Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),
@@ -570,7 +571,7 @@ internal class SimuleringResponseMapperTest {
     fun `mapper simulerte etterbetalinger`() {
         val responseMedEtterbetaling =
             XmlMapper.readValue(xmlResponseMedEtterbetaling, GrensesnittResponse::class.java).response
-        SimuleringResponseMapper(responseMedEtterbetaling).simulering shouldBe Simulering(
+        SimuleringResponseMapper(responseMedEtterbetaling, fixedClock).simulering shouldBe Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),
@@ -838,7 +839,7 @@ internal class SimuleringResponseMapperTest {
     fun `filtrerer vekk detaljer som er ukjent eller uinteressant`() {
         val responseMedFremtidigUtbetaling =
             XmlMapper.readValue(xmlResponseMedUinteressanteKoder, GrensesnittResponse::class.java).response
-        SimuleringResponseMapper(responseMedFremtidigUtbetaling).simulering shouldBe Simulering(
+        SimuleringResponseMapper(responseMedFremtidigUtbetaling, fixedClock).simulering shouldBe Simulering(
             gjelderId = fnr,
             gjelderNavn = navn,
             datoBeregnet = 14.april(2021),

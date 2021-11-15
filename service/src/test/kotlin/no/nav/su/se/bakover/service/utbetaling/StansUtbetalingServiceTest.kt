@@ -58,7 +58,7 @@ internal class StansUtbetalingServiceTest {
     private val simulering = Simulering(
         gjelderId = fnr,
         gjelderNavn = "navn",
-        datoBeregnet = idag(),
+        datoBeregnet = idag(fixedClock),
         nettoBeløp = 0,
         periodeList = listOf(),
     )
@@ -355,7 +355,7 @@ internal class StansUtbetalingServiceTest {
         val simuleringMedProblemer = Simulering(
             gjelderId = fnr,
             gjelderNavn = "navn",
-            datoBeregnet = idag(),
+            datoBeregnet = idag(fixedClock),
             nettoBeløp = 15000,
             periodeList = listOf(
                 SimulertPeriode(

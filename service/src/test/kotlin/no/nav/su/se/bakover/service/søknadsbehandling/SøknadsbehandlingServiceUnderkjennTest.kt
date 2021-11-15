@@ -41,6 +41,7 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
@@ -89,7 +90,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         simulering = Simulering(
             gjelderId = fnr,
             gjelderNavn = "NAVN",
-            datoBeregnet = idag(),
+            datoBeregnet = idag(fixedClock),
             nettoBeløp = 191500,
             periodeList = listOf(),
         ),

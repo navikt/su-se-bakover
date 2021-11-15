@@ -1,10 +1,7 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Sats
-import java.time.LocalDate
 
 internal data class BehandlingsinformasjonJson(
     val uførhet: UførhetJson? = null,
@@ -14,23 +11,19 @@ internal data class BehandlingsinformasjonJson(
     val institusjonsopphold: InstitusjonsoppholdJson? = null,
     val formue: FormueJson? = null,
     val personligOppmøte: PersonligOppmøteJson? = null,
-    val bosituasjon: BosituasjonJson? = null,
     val utledetSats: Sats? = null,
-    val ektefelle: EktefelleJson? = null,
 ) {
     companion object {
-        internal fun Behandlingsinformasjon.toJson() =
+        internal fun Behandlingsinformasjon.toJson(borSøkerMedEPS: Boolean?, sats: Sats?) =
             BehandlingsinformasjonJson(
                 uførhet = uførhet?.toJson(),
                 flyktning = flyktning?.toJson(),
                 lovligOpphold = lovligOpphold?.toJson(),
                 fastOppholdINorge = fastOppholdINorge?.toJson(),
                 institusjonsopphold = institusjonsopphold?.toJson(),
-                formue = formue?.toJson(ektefelle),
+                formue = formue?.toJson(borSøkerMedEPS!!), // borSøkerMedEps må eksistere før formue
                 personligOppmøte = personligOppmøte?.toJson(),
-                bosituasjon = bosituasjon?.toJson(),
-                utledetSats = utledSats().orNull(),
-                ektefelle = ektefelle?.toJson(),
+                utledetSats = sats,
             )
     }
 }
@@ -103,9 +96,6 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
                 begrunnelse = p.begrunnelse,
             )
         },
-        bosituasjon = null,
-        // Vi ønsker ikke at frontenden skal kunne oppdatere bosituasjon og ektefelle. Dette gjøres via grunnlag- og vilkårsvurderingmetodene i SøknadsbehandlingService og RevurderingService.
-        ektefelle = null,
     )
 
 internal fun Behandlingsinformasjon.Uførhet.toJson() =
@@ -140,11 +130,11 @@ internal fun Behandlingsinformasjon.Institusjonsopphold.toJson() =
         begrunnelse = begrunnelse,
     )
 
-internal fun Behandlingsinformasjon.Formue.toJson(ektefellePartnerSamboer: Behandlingsinformasjon.EktefellePartnerSamboer?) =
+internal fun Behandlingsinformasjon.Formue.toJson(borSøkerMedEPS: Boolean) =
     FormueJson(
         status = status.name,
         verdier = this.verdier?.toJson(),
-        borSøkerMedEPS = (ektefellePartnerSamboer as? Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle) != null,
+        borSøkerMedEPS = borSøkerMedEPS,
         epsVerdier = this.epsVerdier?.toJson(),
         begrunnelse = begrunnelse,
     )
@@ -166,26 +156,6 @@ internal fun Behandlingsinformasjon.PersonligOppmøte.toJson() =
         status = status.name,
         begrunnelse = begrunnelse,
     )
-
-internal fun Behandlingsinformasjon.Bosituasjon.toJson() =
-    BosituasjonJson(
-        delerBolig = delerBolig,
-        ektemakeEllerSamboerUførFlyktning = ektemakeEllerSamboerUførFlyktning,
-        begrunnelse = begrunnelse,
-    )
-
-internal fun Behandlingsinformasjon.EktefellePartnerSamboer.toJson() = when (this) {
-    is Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle -> EktefelleJson(
-        fnr = this.fnr,
-        navn = this.navn,
-        kjønn = this.kjønn,
-        fødselsdato = this.fødselsdato,
-        alder = this.getAlder(),
-        adressebeskyttelse = this.adressebeskyttelse,
-        skjermet = this.skjermet,
-    )
-    is Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle -> null
-}
 
 internal inline fun <reified T : Enum<T>> enumContains(s: String) = enumValues<T>().any { it.name == s }
 
@@ -248,20 +218,4 @@ internal data class VerdierJson(
 internal data class PersonligOppmøteJson(
     val status: String,
     val begrunnelse: String?,
-)
-
-internal data class BosituasjonJson(
-    val delerBolig: Boolean?,
-    val ektemakeEllerSamboerUførFlyktning: Boolean?,
-    val begrunnelse: String?,
-)
-
-internal data class EktefelleJson(
-    val fnr: Fnr?,
-    val navn: Person.Navn?,
-    val kjønn: String?,
-    val fødselsdato: LocalDate?,
-    val adressebeskyttelse: String?,
-    val skjermet: Boolean?,
-    val alder: Int?,
 )

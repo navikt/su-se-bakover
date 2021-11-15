@@ -127,6 +127,7 @@ class RevurderingIngenEndringTest {
         val utbetalingMock = mock<Utbetaling> {
             on { utbetalingslinjer } doReturn nonEmptyListOf(
                 Utbetalingslinje.Ny(
+                    opprettet = fixedTidspunkt,
                     fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
                     tilOgMed = periodeNesteMånedOgTreMånederFram.tilOgMed,
                     forrigeUtbetalingslinjeId = null,

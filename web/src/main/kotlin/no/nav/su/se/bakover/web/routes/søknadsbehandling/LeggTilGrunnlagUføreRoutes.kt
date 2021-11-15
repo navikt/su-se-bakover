@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.Uføre.periodeForGrunnlagOgVurderingErForskjellig
-import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBehandlingId
@@ -67,10 +66,6 @@ internal fun Route.leggTilUføregrunnlagRoutes(
                                 ).mapLeft {
                                     when (it) {
                                         SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
-                                        is SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UgyldigTilstand -> ugyldigTilstand(
-                                            it.fra,
-                                            it.til,
-                                        )
                                         SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler -> Feilresponser.Uføre.uføregradOgForventetInntektMangler
                                         SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig -> periodeForGrunnlagOgVurderingErForskjellig
                                         SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder -> Feilresponser.overlappendeVurderingsperioder

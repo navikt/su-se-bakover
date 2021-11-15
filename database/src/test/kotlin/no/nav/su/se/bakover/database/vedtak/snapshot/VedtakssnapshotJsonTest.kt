@@ -1,88 +1,26 @@
 package no.nav.su.se.bakover.database.vedtak.snapshot
 
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.beregning.PersistertBeregning
-import no.nav.su.se.bakover.database.beregning.PersistertFradrag
-import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
-import no.nav.su.se.bakover.database.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotJson.Companion.toJson
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
-import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
-import no.nav.su.se.bakover.domain.beregning.Sats.ORDINÆR
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName.Enslig
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører.BRUKER
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.Arbeidsinntekt
-import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
-import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType.YTEL
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.periodeJanuar2021
+import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
+import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import java.time.LocalDate
 import java.util.UUID
 
 internal class VedtakssnapshotJsonTest {
 
-    private val sakId = "7a8b4a95-9736-4f79-bb38-e1d4a7c42799"
-    private val saksnummer = 2021L
-    private val behandlingId = "62478b8d-8c5a-4da4-8fcf-b48c9b426698"
-    private val søknadId = "68c7dba7-6c5c-422f-862e-94ebae82f24d"
-    private val vedtakssnapshotId = "06015ac6-07ef-4017-bd04-1e7b87b160fa"
-    private val beregningId = "4111d5ee-0215-4d0f-94fc-0959f900ef2e"
-    private val periode = Periode.create(LocalDate.of(2021, 1, 1), LocalDate.of(2021, 1, 31))
-    private val stønadsperiode = Stønadsperiode.create(periode, "begrunnelsen")
-    private val fnr = Fnr("12345678910")
-
     @Test
     fun `kan serialisere avslag`() {
-        val avslagUtenBeregning = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
-            id = UUID.fromString(behandlingId),
-            opprettet = fixedTidspunkt,
-            sakId = UUID.fromString(sakId),
-            saksnummer = Saksnummer(2021),
-            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
-                id = UUID.fromString(søknadId),
-                opprettet = fixedTidspunkt,
-                sakId = UUID.fromString(sakId),
-                søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-                journalpostId = JournalpostId("journalpostId"),
-                oppgaveId = OppgaveId("oppgaveId"),
-            ),
-            oppgaveId = OppgaveId("oppgaveId"),
-            behandlingsinformasjon = Behandlingsinformasjon()
-                .withAvslåttFlyktning(),
-            fnr = fnr,
-            saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-            attesteringer = Attesteringshistorikk.empty()
-                .leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), fixedTidspunkt)),
-            fritekstTilBrev = "",
-            stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
-        )
-
+        val avslagUtenBeregning = søknadsbehandlingIverksattAvslagUtenBeregning().second
+        val vedtakssnapshotId = "06015ac6-07ef-4017-bd04-1e7b87b160fa"
         val avslag = Vedtakssnapshot.Avslag(
             id = UUID.fromString(vedtakssnapshotId),
             opprettet = fixedTidspunkt,
@@ -98,11 +36,11 @@ internal class VedtakssnapshotJsonTest {
                "opprettet":"2021-01-01T01:02:03.456789Z",
                "avslagsgrunner":["PERSONLIG_OPPMØTE"],
                "behandling":{
-                  "id":"$behandlingId",
+                  "id":"${avslagUtenBeregning.id}",
                   "opprettet":"2021-01-01T01:02:03.456789Z",
-                  "sakId":"$sakId",
-                  "saksnummer":2021,
-                  "fnr":"12345678910",
+                  "sakId":"${avslagUtenBeregning.sakId}",
+                  "saksnummer":${avslagUtenBeregning.saksnummer},
+                  "fnr":"${avslagUtenBeregning.fnr}",
                   "status":"IVERKSATT_AVSLAG",
                   "saksbehandler":"saksbehandler",
                   "attestering":{
@@ -110,11 +48,11 @@ internal class VedtakssnapshotJsonTest {
                      "attestant": "attestant",
                      "opprettet": "2021-01-01T01:02:03.456789Z"
                   },
-                  "oppgaveId":"oppgaveId",
-                  "beregning":null,
+                  "oppgaveId":"oppgaveIdSøknad",
+                  "beregning": null,
                   "behandlingsinformasjon":{
                      "uførhet":{
-                        "status":"VilkårOppfylt",
+                        "status":"VilkårIkkeOppfylt",
                         "uføregrad":20,
                         "forventetInntekt":10,
                         "begrunnelse":null
@@ -124,21 +62,21 @@ internal class VedtakssnapshotJsonTest {
                         "begrunnelse":null
                      },
                      "lovligOpphold":{
-                        "status":"VilkårOppfylt",
+                        "status":"VilkårIkkeOppfylt",
                         "begrunnelse":null
                      },
                      "fastOppholdINorge":{
-                        "status":"VilkårOppfylt",
+                        "status":"VilkårIkkeOppfylt",
                         "begrunnelse":null
                      },
                      "institusjonsopphold":{
-                        "status":"VilkårOppfylt",
+                        "status":"VilkårIkkeOppfylt",
                         "begrunnelse":null
                      },
                      "formue":{
-                        "status":"VilkårOppfylt",
+                        "status":"VilkårIkkeOppfylt",
                         "verdier":{
-                           "verdiIkkePrimærbolig":0,
+                           "verdiIkkePrimærbolig":90000000,
                            "verdiEiendommer":0,
                            "verdiKjøretøy":0,
                            "innskudd":0,
@@ -151,19 +89,8 @@ internal class VedtakssnapshotJsonTest {
                         "begrunnelse":null
                      },
                      "personligOppmøte":{
-                        "status":"MøttPersonlig",
+                        "status":"IkkeMøttPersonlig",
                         "begrunnelse":null
-                     },
-                     "bosituasjon":{
-                        "ektefelle":{
-                        "type":"IngenEktefelle"
-                     },
-                        "delerBolig":false,
-                        "ektemakeEllerSamboerUførFlyktning":null,
-                        "begrunnelse":null
-                     },
-                     "ektefelle":{
-                        "type":"IngenEktefelle"
                      }
                   },
                   "behandlingsresultat": {
@@ -171,15 +98,15 @@ internal class VedtakssnapshotJsonTest {
                       "satsgrunn":"ENSLIG"
                   },
                   "søknad":{
-                     "id":"$søknadId",
+                     "id":"${avslagUtenBeregning.søknad.id}",
                      "opprettet":"2021-01-01T01:02:03.456789Z",
-                     "sakId":"$sakId",
+                     "sakId":"${avslagUtenBeregning.sakId}",
                      "søknadInnhold":{
                         "uførevedtak":{
                            "harUførevedtak":true
                         },
                         "personopplysninger":{
-                           "fnr":"12345678910"
+                           "fnr":"${avslagUtenBeregning.fnr}"
                         },
                         "flyktningsstatus":{
                            "registrertFlyktning":false
@@ -309,8 +236,8 @@ internal class VedtakssnapshotJsonTest {
                            }
                         }
                      },
-                     "journalpostId":"journalpostId",
-                     "oppgaveId":"oppgaveId"
+                     "journalpostId":"journalpostIdSøknad",
+                     "oppgaveId":"oppgaveIdSøknad"
                   },
                   "simulering": null
                }
@@ -323,113 +250,18 @@ internal class VedtakssnapshotJsonTest {
 
     @Test
     fun `kan serialisere innvilgelse`() {
-        val fradrag = listOf(
-            PersistertFradrag(
-                fradragstype = Arbeidsinntekt,
-                månedsbeløp = 155.9,
-                utenlandskInntekt = UtenlandskInntekt.create(
-                    beløpIUtenlandskValuta = 12345,
-                    valuta = "Simoleons",
-                    kurs = 129.0,
-                ),
-                periode = periode,
-                tilhører = BRUKER,
-            ),
+        val vedtakssnapshotId = "06015ac6-07ef-4017-bd04-1e7b87b160fa"
+        val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(periodeJanuar2021)
         )
-        val innvilget = Søknadsbehandling.Iverksatt.Innvilget(
-            id = UUID.fromString(behandlingId),
-            opprettet = fixedTidspunkt,
-            sakId = UUID.fromString(sakId),
-            saksnummer = Saksnummer(2021),
-            søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
-                id = UUID.fromString(søknadId),
-                opprettet = fixedTidspunkt,
-                sakId = UUID.fromString(sakId),
-                søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-                journalpostId = JournalpostId("journalpostId"),
-                oppgaveId = OppgaveId("oppgaveId"),
-            ),
-            oppgaveId = OppgaveId("oppgaveId"),
-            behandlingsinformasjon = Behandlingsinformasjon()
-                .withAlleVilkårOppfylt(),
-            fnr = fnr,
-            beregning = PersistertBeregning(
-                id = UUID.fromString(beregningId),
-                opprettet = fixedTidspunkt,
-                sats = ORDINÆR,
-                månedsberegninger = listOf(
-                    PersistertMånedsberegning(
-                        periode = periode,
-                        sats = ORDINÆR,
-                        fradrag = fradrag,
-                        sumYtelse = 3,
-                        sumFradrag = 1.2,
-                        benyttetGrunnbeløp = 66,
-                        satsbeløp = 4.1,
-                        fribeløpForEps = 0.0,
-                        persisterteMerknader = emptyList()
-                    ),
-                ),
-                fradrag = fradrag,
-                sumYtelse = 3,
-                sumFradrag = 2.1,
-                periode = periode,
-                fradragStrategyName = Enslig,
-                begrunnelse = "har en begrunnelse for beregning"
-            ),
-            simulering = Simulering(
-                gjelderId = fnr,
-                gjelderNavn = "gjelderNavn",
-                datoBeregnet = fixedLocalDate,
-                nettoBeløp = 42,
-                periodeList = listOf(
-                    SimulertPeriode(
-                        fraOgMed = fixedLocalDate,
-                        tilOgMed = fixedLocalDate.plusDays(30),
-                        utbetaling = listOf(
-                            SimulertUtbetaling(
-                                fagSystemId = "fagSystemId",
-                                utbetalesTilId = fnr,
-                                utbetalesTilNavn = "utbetalesTilNavn",
-                                forfall = fixedLocalDate,
-                                feilkonto = false,
-                                detaljer = listOf(
-                                    SimulertDetaljer(
-                                        faktiskFraOgMed = fixedLocalDate,
-                                        faktiskTilOgMed = fixedLocalDate.plusDays(30),
-                                        konto = "konto",
-                                        belop = 1,
-                                        tilbakeforing = false,
-                                        sats = 2,
-                                        typeSats = "typeSats",
-                                        antallSats = 3,
-                                        uforegrad = 4,
-                                        klassekode = KlasseKode.SUUFORE,
-                                        klassekodeBeskrivelse = "klassekodeBeskrivelse",
-                                        klasseType = YTEL,
-                                    ),
-                                ),
-                            ),
-                        ),
-                    ),
-                ),
-            ),
-            saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-            attesteringer = Attesteringshistorikk.empty()
-                .leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"), fixedTidspunkt)),
-            fritekstTilBrev = "",
-            stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
-        )
-        val utbetaling = oversendtUtbetalingUtenKvittering(innvilget)
+        val behandling = sak.søknadsbehandlinger.first() as Søknadsbehandling.Iverksatt.Innvilget
+        val utbetaling = sak.utbetalinger.first() as Utbetaling.OversendtUtbetaling.MedKvittering
         val innvilgelse = Vedtakssnapshot.Innvilgelse(
             id = UUID.fromString(vedtakssnapshotId),
             opprettet = fixedTidspunkt,
-            søknadsbehandling = innvilget,
+            søknadsbehandling = behandling,
             utbetaling = utbetaling,
         )
-
         //language=JSON
         val expectedJson = """
             {
@@ -437,11 +269,11 @@ internal class VedtakssnapshotJsonTest {
                "id":"$vedtakssnapshotId",
                "opprettet":"2021-01-01T01:02:03.456789Z",
                "behandling":{
-                  "id":"$behandlingId",
+                  "id":"${behandling.id}",
                   "opprettet":"2021-01-01T01:02:03.456789Z",
-                  "sakId":"$sakId",
-                  "saksnummer":2021,
-                  "fnr":"12345678910",
+                  "sakId":"${sak.id}",
+                  "saksnummer":${sak.saksnummer},
+                  "fnr":"${sak.fnr}",
                   "status":"IVERKSATT_INNVILGET",
                   "saksbehandler":"saksbehandler",
                   "attestering":{
@@ -449,51 +281,45 @@ internal class VedtakssnapshotJsonTest {
                      "attestant": "attestant",
                      "opprettet": "2021-01-01T01:02:03.456789Z"
                   },
-                  "oppgaveId":"oppgaveId",
+                  "oppgaveId":"oppgaveIdSøknad",
                   "beregning":{
-                    "id":"$beregningId",
+                    "id":"${behandling.beregning.getId()}",
                     "opprettet":"2021-01-01T01:02:03.456789Z",
-                    "sats":"ORDINÆR",
-                    "månedsberegninger":[
+                    "sats":"HØY",
+                     "månedsberegninger":[
                         {
-                            "sumYtelse":3,
-                            "sumFradrag":1.2,
-                            "benyttetGrunnbeløp":66,
-                            "sats":"ORDINÆR",
-                            "satsbeløp":4.1,
-                            "fradrag":[
-                                {
-                                    "fradragstype":"Arbeidsinntekt",
-                                    "månedsbeløp":155.9,
-                                    "utenlandskInntekt": {
-                                        "beløpIUtenlandskValuta": 12345,
-                                        "valuta": "Simoleons",
-                                        "kurs": 129.0
-                                    },
-                                    "periode":{
-                                        "fraOgMed":"2021-01-01",
-                                        "tilOgMed":"2021-01-31"
-                                    },
-                                    "tilhører":"BRUKER"
-                                }
-                            ],
-                            "periode":{
+                          "sumYtelse":20946,
+                          "sumFradrag":0.0,
+                          "benyttetGrunnbeløp":101351,
+                          "sats":"HØY",
+                          "satsbeløp":20945.873333333333,
+                          "fradrag":[
+                            {
+                              "fradragstype":"ForventetInntekt",
+                              "månedsbeløp":0.0,
+                              "utenlandskInntekt":null,
+                              "periode":{
                                 "fraOgMed":"2021-01-01",
                                 "tilOgMed":"2021-01-31"
-                            },
-                            "fribeløpForEps": 0.0,
-                            "merknader": []
+                              },
+                              "tilhører":"BRUKER"
+                            }
+                          ],
+                          "periode":{
+                            "fraOgMed":"2021-01-01",
+                            "tilOgMed":"2021-01-31"
+                          },
+                          "fribeløpForEps":0.0,
+                          "merknader":[
+                            
+                          ]
                         }
-                    ],
+                      ],
                     "fradrag":[
                       {
-                        "fradragstype":"Arbeidsinntekt",
-                        "månedsbeløp":155.9,
-                        "utenlandskInntekt":{
-                            "beløpIUtenlandskValuta": 12345,
-                            "valuta": "Simoleons",
-                            "kurs": 129.0
-                        },
+                        "fradragstype":"ForventetInntekt",
+                        "månedsbeløp":0.0,
+                        "utenlandskInntekt":null,
                         "periode":{
                             "fraOgMed":"2021-01-01",
                             "tilOgMed":"2021-01-31"
@@ -501,14 +327,14 @@ internal class VedtakssnapshotJsonTest {
                         "tilhører":"BRUKER"
                       }
                     ],
-                    "sumYtelse":3,
-                    "sumFradrag":2.1,
+                    "sumYtelse":20946,
+                    "sumFradrag":0.0,
                     "periode":{
                         "fraOgMed":"2021-01-01",
                         "tilOgMed":"2021-01-31"
                     },
                     "fradragStrategyName":"Enslig",
-                    "begrunnelse": "har en begrunnelse for beregning"
+                    "begrunnelse": null
                 },
                   "behandlingsinformasjon":{
                      "uførhet":{
@@ -551,17 +377,6 @@ internal class VedtakssnapshotJsonTest {
                      "personligOppmøte":{
                         "status":"MøttPersonlig",
                         "begrunnelse":null
-                     },
-                     "bosituasjon":{
-                        "ektefelle":{
-                        "type":"IngenEktefelle"
-                     },
-                        "delerBolig":false,
-                        "ektemakeEllerSamboerUførFlyktning":null,
-                        "begrunnelse":null
-                     },
-                     "ektefelle":{
-                        "type":"IngenEktefelle"
                      }
                   },
                   "behandlingsresultat": {
@@ -569,15 +384,15 @@ internal class VedtakssnapshotJsonTest {
                     "satsgrunn":"ENSLIG"
                   },
                   "søknad":{
-                     "id":"$søknadId",
+                     "id":"${behandling.søknad.id}",
                      "opprettet":"2021-01-01T01:02:03.456789Z",
-                     "sakId":"$sakId",
+                     "sakId":"${sak.id}",
                      "søknadInnhold":{
                         "uførevedtak":{
                            "harUførevedtak":true
                         },
                         "personopplysninger":{
-                           "fnr":"12345678910"
+                           "fnr":"${sak.fnr}"
                         },
                         "flyktningsstatus":{
                            "registrertFlyktning":false
@@ -707,87 +522,123 @@ internal class VedtakssnapshotJsonTest {
                            }
                         }
                      },
-                     "journalpostId":"journalpostId",
-                     "oppgaveId":"oppgaveId"
+                     "journalpostId":"journalpostIdSøknad",
+                     "oppgaveId":"oppgaveIdSøknad"
                   },
-                  "simulering": {
-                      "gjelderId":"12345678910",
-                      "gjelderNavn":"gjelderNavn",
+                   "simulering":{
+                      "gjelderId":"${sak.fnr}",
+                      "gjelderNavn":"MYGG LUR",
                       "datoBeregnet":"2021-01-01",
-                      "nettoBeløp":42,
+                      "nettoBeløp":20946,
                       "periodeList":[
-                          {
-                              "fraOgMed":"2021-01-01",
-                              "tilOgMed":"2021-01-31",
-                              "utbetaling":[
-                                  {
-                                      "fagSystemId":"fagSystemId",
-                                      "utbetalesTilId":"12345678910",
-                                      "utbetalesTilNavn":"utbetalesTilNavn",
-                                      "forfall":"2021-01-01",
-                                      "feilkonto":false,
-                                      "detaljer":[
-                                          {
-                                              "faktiskFraOgMed":"2021-01-01",
-                                              "faktiskTilOgMed":"2021-01-31",
-                                              "konto":"konto",
-                                              "belop":1,
-                                              "tilbakeforing":false,
-                                              "sats":2,
-                                              "typeSats":"typeSats",
-                                              "antallSats":3,
-                                              "uforegrad":4,
-                                              "klassekode":"SUUFORE",
-                                              "klassekodeBeskrivelse":"klassekodeBeskrivelse",
-                                              "klasseType":"YTEL"
-                                          }
-                                      ]
-                                  }
+                        {
+                          "fraOgMed":"2021-01-01",
+                          "tilOgMed":"2021-01-31",
+                          "utbetaling":[
+                            {
+                              "fagSystemId":"12345676",
+                              "utbetalesTilId":"${sak.fnr}",
+                              "utbetalesTilNavn":"MYGG LUR",
+                              "forfall":"2021-01-31",
+                              "feilkonto":false,
+                              "detaljer":[
+                                {
+                                  "faktiskFraOgMed":"2021-01-01",
+                                  "faktiskTilOgMed":"2021-01-31",
+                                  "konto":"4952000",
+                                  "belop":20946,
+                                  "tilbakeforing":false,
+                                  "sats":20946,
+                                  "typeSats":"MND",
+                                  "antallSats":1,
+                                  "uforegrad":0,
+                                  "klassekode":"SUUFORE",
+                                  "klassekodeBeskrivelse":"Supplerende stønad Uføre",
+                                  "klasseType":"YTEL"
+                                }
                               ]
-                          }
-                      ]
-                  }
-               },
-               "utbetaling": {
-                      "id":"${utbetaling.id}",
-                      "opprettet":"${utbetaling.opprettet}",
-                      "fnr":"12345678910",
-                      "utbetalingslinjer":[
-                         {
-                            "id" : "${utbetaling.utbetalingslinjer[0].id}",
-                            "opprettet" :"${utbetaling.utbetalingslinjer[0].opprettet}",
-                            "fraOgMed" : "2020-01-01",
-                            "tilOgMed" :"2020-12-31",
-                            "forrigeUtbetalingslinjeId" : null,
-                            "beløp" : 25000,
-                            "uføregrad": {
-                              "value": 50
                             }
-                         }
-                      ],
-                      "type":"NY",
-                      "sakId":"$sakId",
-                      "saksnummer":$saksnummer,
-                      "behandler":"attestant",
-                      "avstemmingsnøkkel":{
-                         "opprettet":"${utbetaling.avstemmingsnøkkel.opprettet}",
-                         "nøkkel":"${utbetaling.avstemmingsnøkkel}"
-                      },
-                      "simulering":{
-                         "gjelderId":"12345678910",
-                         "gjelderNavn":"gjelderNavn",
-                         "datoBeregnet":"2021-01-01",
-                         "nettoBeløp":100,
-                         "periodeList":[]
-                      },
-                      "utbetalingsrequest":{
-                         "value":"<xml></xml>"
-                      }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+               "utbetaling":{
+                   "id":"${utbetaling.id}",
+                   "opprettet":"2021-01-01T01:02:03.456789Z",
+                   "sakId":"${sak.id}",
+                   "saksnummer":${sak.saksnummer},
+                   "fnr":"${sak.fnr}",
+                   "utbetalingslinjer":[
+                     {
+                       "id":"${utbetaling.utbetalingslinjer.first().id}",
+                       "opprettet":"2021-01-01T01:02:03.456789Z",
+                       "fraOgMed":"2021-01-01",
+                       "tilOgMed":"2021-01-31",
+                       "forrigeUtbetalingslinjeId":null,
+                       "beløp":15000,
+                       "uføregrad":{
+                         "value":50
+                       }
+                     }
+                   ],
+                   "type":"NY",
+                   "behandler":"attestant",
+                   "avstemmingsnøkkel":{
+                     "opprettet":"2021-01-01T01:02:03.456789Z",
+                     "nøkkel":"${utbetaling.avstemmingsnøkkel}"
+                   },
+                   "simulering":{
+                     "gjelderId":"${sak.fnr}",
+                     "gjelderNavn":"MYGG LUR",
+                     "datoBeregnet":"2021-01-01",
+                     "nettoBeløp":20946,
+                     "periodeList":[
+                       {
+                         "fraOgMed":"2021-01-01",
+                         "tilOgMed":"2021-01-31",
+                         "utbetaling":[
+                           {
+                             "fagSystemId":"12345676",
+                             "utbetalesTilId":"${sak.fnr}",
+                             "utbetalesTilNavn":"MYGG LUR",
+                             "forfall":"2021-01-31",
+                             "feilkonto":false,
+                             "detaljer":[
+                               {
+                                 "faktiskFraOgMed":"2021-01-01",
+                                 "faktiskTilOgMed":"2021-01-31",
+                                 "konto":"4952000",
+                                 "belop":20946,
+                                 "tilbakeforing":false,
+                                 "sats":20946,
+                                 "typeSats":"MND",
+                                 "antallSats":1,
+                                 "uforegrad":0,
+                                 "klassekode":"SUUFORE",
+                                 "klassekodeBeskrivelse":"Supplerende stønad Uføre",
+                                 "klasseType":"YTEL"
+                               }
+                             ]
+                           }
+                         ]
+                       }
+                     ]
+                   },
+                   "utbetalingsrequest":{
+                     "value":"<xml></xml>"
+                   },
+                   "kvittering":{
+                     "utbetalingsstatus":"OK",
+                     "originalKvittering":"<xml></xml>",
+                     "mottattTidspunkt":"2021-01-01T01:02:03.456789Z"
+                   }
+                 }
                }
-            }
         """.trimIndent()
 
         val actualJson = objectMapper.writeValueAsString(innvilgelse.toJson())
+        print(actualJson)
         JSONAssert.assertEquals(expectedJson, actualJson, true)
     }
 }

@@ -8,8 +8,9 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import java.time.Clock
 
-class BeregningStrategyFactory {
+class BeregningStrategyFactory(val clock: Clock) {
     fun beregn(
         grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger,
         beregningsPeriode: Periode,
@@ -36,7 +37,7 @@ class BeregningStrategyFactory {
                 is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
                 is Grunnlag.Bosituasjon.Fullstendig.Enslig -> BeregningStrategy.BorAlene
             }
-        return strategy.beregn(beregningsgrunnlag, begrunnelse)
+        return strategy.beregn(beregningsgrunnlag, clock, begrunnelse)
     }
 }
 
@@ -44,8 +45,8 @@ sealed class BeregningStrategy {
     abstract fun fradragStrategy(): FradragStrategy
     abstract fun sats(): Sats
     abstract fun satsgrunn(): Satsgrunn
-    fun beregn(beregningsgrunnlag: Beregningsgrunnlag, begrunnelse: String? = null): Beregning {
-        return BeregningFactory.ny(
+    fun beregn(beregningsgrunnlag: Beregningsgrunnlag, clock: Clock, begrunnelse: String? = null): Beregning {
+        return BeregningFactory(clock).ny(
             periode = beregningsgrunnlag.beregningsperiode,
             sats = sats(),
             fradrag = beregningsgrunnlag.fradrag,

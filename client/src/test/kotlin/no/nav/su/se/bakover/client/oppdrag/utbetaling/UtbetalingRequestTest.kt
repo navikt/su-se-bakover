@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.LocalDate
@@ -32,10 +33,12 @@ internal class UtbetalingRequestTest {
         private val nyOppdragslinjeId1 = UUID30.randomUUID()
         private val nyOppdragslinjeId2 = UUID30.randomUUID()
         val nyUtbetaling = Utbetaling.UtbetalingForSimulering(
+            opprettet = fixedTidspunkt,
             sakId = sakId,
             saksnummer = saksnummer,
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
+                    opprettet = fixedTidspunkt,
                     id = nyOppdragslinjeId1,
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 30.april(2020),
@@ -44,6 +47,7 @@ internal class UtbetalingRequestTest {
                     uføregrad = Uføregrad.parse(50),
                 ),
                 Utbetalingslinje.Ny(
+                    opprettet = fixedTidspunkt,
                     id = nyOppdragslinjeId2,
                     fraOgMed = 1.mai(2020),
                     tilOgMed = 31.desember(2020),
@@ -55,7 +59,7 @@ internal class UtbetalingRequestTest {
             fnr = FNR,
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Attestant("A123456"),
-            avstemmingsnøkkel = Avstemmingsnøkkel(),
+            avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
         )
 
         val utbetalingRequestFørstegangsutbetaling = UtbetalingRequest(
@@ -145,10 +149,12 @@ internal class UtbetalingRequestTest {
         val nyOppdragslinjeid2 = UUID30.randomUUID()
 
         val nyUtbetaling = Utbetaling.UtbetalingForSimulering(
+            opprettet = fixedTidspunkt,
             sakId = sakId,
             saksnummer = saksnummer,
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
+                    opprettet = fixedTidspunkt,
                     id = nyOppdragslinjeid1,
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 30.april(2020),
@@ -157,6 +163,7 @@ internal class UtbetalingRequestTest {
                     uføregrad = Uføregrad.parse(50),
                 ),
                 Utbetalingslinje.Ny(
+                    opprettet = fixedTidspunkt,
                     id = nyOppdragslinjeid2,
                     fraOgMed = 1.mai(2020),
                     tilOgMed = 31.desember(2020),

@@ -62,15 +62,7 @@ object RevurderingRoutesTestData {
 
             ),
             oppgaveId = OppgaveId(value = ""),
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
-                bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                    ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-                    delerBolig = true,
-                    ektemakeEllerSamboerUførFlyktning = true,
-                    begrunnelse = null,
-                ),
-                ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-            ),
+            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fnr = Fnr.generer(),
             beregning = TestBeregning,
             simulering = mock(),

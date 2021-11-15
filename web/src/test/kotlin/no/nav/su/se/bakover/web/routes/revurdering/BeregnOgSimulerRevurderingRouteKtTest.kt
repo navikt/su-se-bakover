@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurd
 import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
@@ -162,7 +163,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
-        ).beregn(eksisterendeUtbetalinger = emptyList()).orNull()!!
+        ).beregn(eksisterendeUtbetalinger = emptyList(), clock = fixedClock).orNull()!!
 
         val simulertRevurdering = when (beregnetRevurdering) {
             is BeregnetRevurdering.Innvilget -> {

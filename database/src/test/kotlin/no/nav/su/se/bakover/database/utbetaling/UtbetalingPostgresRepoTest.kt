@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 
 internal class UtbetalingPostgresRepoTest {
@@ -92,6 +93,7 @@ internal class UtbetalingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.utbetalingRepo
             val originalUtbetalingslinje = Utbetalingslinje.Ny(
+                opprettet = fixedTidspunkt,
                 fraOgMed = 1.januar(2020),
                 tilOgMed = 31.desember(2020),
                 forrigeUtbetalingslinjeId = null,

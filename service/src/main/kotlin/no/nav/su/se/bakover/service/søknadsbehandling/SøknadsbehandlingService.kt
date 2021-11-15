@@ -2,12 +2,10 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.søknadsbehandling.KunneIkkeIverksette
@@ -36,7 +34,6 @@ interface SøknadsbehandlingService {
     fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling>
     fun leggTilUføregrunnlag(request: LeggTilUførevurderingRequest): Either<KunneIkkeLeggeTilGrunnlag, Søknadsbehandling>
     fun leggTilBosituasjonEpsgrunnlag(request: LeggTilBosituasjonEpsRequest): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling>
-    fun leggTilBosituasjonEpsgrunnlagSkjermet(behandlingId: UUID, epsFnr: Fnr): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Grunnlag.Bosituasjon>
     fun fullførBosituasjongrunnlag(request: FullførBosituasjonRequest): Either<KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling>
     fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling>
     fun hentForSøknad(søknadId: UUID): Søknadsbehandling?
@@ -156,11 +153,6 @@ interface SøknadsbehandlingService {
 
     sealed class KunneIkkeLeggeTilGrunnlag {
         object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
-        data class UgyldigTilstand(
-            val fra: KClass<out Søknadsbehandling>,
-            val til: KClass<out Søknadsbehandling>,
-        ) : KunneIkkeLeggeTilGrunnlag()
-
         object UføregradOgForventetInntektMangler : KunneIkkeLeggeTilGrunnlag()
         object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilGrunnlag()
         object OverlappendeVurderingsperioder : KunneIkkeLeggeTilGrunnlag()
@@ -169,10 +161,6 @@ interface SøknadsbehandlingService {
 
     sealed class KunneIkkeLeggeTilBosituasjonEpsGrunnlag {
         object FantIkkeBehandling : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
-        data class UgyldigTilstand(
-            val fra: KClass<out Søknadsbehandling>,
-            val til: KClass<out Søknadsbehandling>,
-        ) : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
 
         object KlarteIkkeHentePersonIPdl : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
         data class KunneIkkeEndreBosituasjonEpsGrunnlag(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
@@ -180,10 +168,6 @@ interface SøknadsbehandlingService {
 
     sealed class KunneIkkeFullføreBosituasjonGrunnlag {
         object FantIkkeBehandling : KunneIkkeFullføreBosituasjonGrunnlag()
-        data class UgyldigTilstand(
-            val fra: KClass<out Søknadsbehandling>,
-            val til: KClass<out Søknadsbehandling>,
-        ) : KunneIkkeFullføreBosituasjonGrunnlag()
 
         object KlarteIkkeLagreBosituasjon : KunneIkkeFullføreBosituasjonGrunnlag()
         object KlarteIkkeHentePersonIPdl : KunneIkkeFullføreBosituasjonGrunnlag()

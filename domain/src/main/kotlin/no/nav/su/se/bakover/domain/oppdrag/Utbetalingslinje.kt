@@ -22,7 +22,7 @@ sealed class Utbetalingslinje {
 
     data class Ny(
         override val id: UUID30 = UUID30.randomUUID(),
-        override val opprettet: Tidspunkt = Tidspunkt.now(),
+        override val opprettet: Tidspunkt,
         override val fraOgMed: LocalDate,
         override val tilOgMed: LocalDate,
         override var forrigeUtbetalingslinjeId: UUID30?,

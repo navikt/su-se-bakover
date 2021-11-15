@@ -101,7 +101,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         ),
         type = Utbetaling.UtbetalingsType.NY,
         behandler = attestant,
-        avstemmingsnøkkel = Avstemmingsnøkkel(),
+        avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
         simulering = Simulering(
             gjelderId = Fnr.generer(),
             gjelderNavn = "gjelderNavn",

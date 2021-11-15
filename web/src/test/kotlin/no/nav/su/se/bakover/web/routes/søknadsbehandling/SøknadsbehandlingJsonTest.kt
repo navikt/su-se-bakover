@@ -91,25 +91,7 @@ internal class SøknadsbehandlingJsonTest {
                     "status": "MøttPersonlig",
                     "begrunnelse": null
                 },
-                "bosituasjon": {
-                    "delerBolig": false,
-                    "ektemakeEllerSamboerUførFlyktning": false,
-                    "begrunnelse": null
-                },
-                "ektefelle": {
-                    "fnr": "17087524256",
-                    "navn": {
-                      "fornavn": "fornavn",
-                      "mellomnavn": null,
-                      "etternavn": "etternavn"
-                    },
-                    "kjønn": null,
-                    "fødselsdato": "1975-08-17",
-                    "adressebeskyttelse": null,
-                    "skjermet": null,
-                    "alder": 46
-                },
-                "utledetSats": "HØY"
+                "utledetSats": "ORDINÆR"
           },
           "søknad": $søknadJsonString,
           "beregning": $expectedBeregningJson,
@@ -198,9 +180,7 @@ internal class SøknadsbehandlingJsonTest {
             "institusjonsopphold": null,
             "formue": null,
             "personligOppmøte": null,
-            "bosituasjon": null,
-            "utledetSats": null,
-            "ektefelle": null
+            "utledetSats": null
           },
           "søknad": $søknadJsonString,
           "beregning": null,

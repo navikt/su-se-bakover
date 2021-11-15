@@ -15,9 +15,10 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
+import java.time.Clock
 import java.time.LocalDate
 
-object SimuleringStub : SimuleringClient {
+class SimuleringStub(val clock: Clock) : SimuleringClient {
     override fun simulerUtbetaling(utbetaling: Utbetaling): Either<SimuleringFeilet, Simulering> {
         return when (utbetaling.type) {
             Utbetaling.UtbetalingsType.NY -> simulerNyUtbetaling(utbetaling, utbetaling.saksnummer).right()
@@ -56,7 +57,7 @@ object SimuleringStub : SimuleringClient {
         return Simulering(
             gjelderId = utbetaling.fnr,
             gjelderNavn = "MYGG LUR",
-            datoBeregnet = idag(),
+            datoBeregnet = idag(clock = clock),
             nettoBeløp = perioder.calculateNetto(),
             periodeList = perioder,
         )
@@ -87,7 +88,7 @@ object SimuleringStub : SimuleringClient {
         return Simulering(
             gjelderId = utbetaling.fnr,
             gjelderNavn = "MYGG LUR",
-            datoBeregnet = idag(),
+            datoBeregnet = idag(clock),
             nettoBeløp = 0,
             periodeList = listOf(simuleringsPeriode),
         )

@@ -302,7 +302,7 @@ internal class BeregnRoutesKtTest {
             FullførBosituasjonRequest(
                 behandlingId = objects.søknadsbehandling.id,
                 bosituasjon = BosituasjonValg.BOR_ALENE,
-                begrunnelse = behandlingsinformasjon.bosituasjon?.begrunnelse,
+                begrunnelse = "fullførBosituasjongrunnlag begrunnelse",
             ),
         )
         services.søknadsbehandling.vilkårsvurder(

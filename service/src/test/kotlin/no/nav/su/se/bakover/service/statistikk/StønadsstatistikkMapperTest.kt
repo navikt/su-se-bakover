@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.service.statistikk.mappers.StønadsstatistikkMapper
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.periode2021
+import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.vedtakIverksattGjenopptakAvYtelseFraIverksattStans
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -24,7 +25,6 @@ import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
 internal class StønadsstatistikkMapperTest {
-    val clock = fixedClock
     val aktørId = AktørId("293829399")
 
     @Test
@@ -42,7 +42,7 @@ internal class StønadsstatistikkMapperTest {
         )
 
         val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
-            beregning = BeregningFactory.ny(
+            beregning = BeregningFactory(clock = fixedClock).ny(
                 fradragStrategy = FradragStrategy.Enslig,
                 periode = periode2021,
                 sats = Sats.HØY,
@@ -58,7 +58,7 @@ internal class StønadsstatistikkMapperTest {
             ),
         )
 
-        StønadsstatistikkMapper(clock).map(vedtak, aktørId, periode2021.fraOgMed, sak) shouldBe
+        StønadsstatistikkMapper(fixedClock).map(vedtak, aktørId, periode2021.fraOgMed, sak) shouldBe
             Statistikk.Stønad(
                 funksjonellTid = fixedTidspunkt,
                 tekniskTid = fixedTidspunkt,
@@ -104,7 +104,7 @@ internal class StønadsstatistikkMapperTest {
                         fradragSum = 3000,
                     )
                 },
-                versjon = clock.millis(),
+                versjon = fixedClock.millis(),
                 opphorsgrunn = null,
                 opphorsdato = null,
                 flyktningsstatus = "FLYKTNING",
@@ -114,7 +114,7 @@ internal class StønadsstatistikkMapperTest {
     @Test
     fun `serialiserer riktig`() {
         val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
-            beregning = BeregningFactory.ny(
+            beregning = BeregningFactory(clock = fixedClock).ny(
                 fradragStrategy = FradragStrategy.Enslig,
                 periode = periode2021,
                 sats = Sats.HØY,
@@ -130,7 +130,7 @@ internal class StønadsstatistikkMapperTest {
             ),
         )
         val actual = objectMapper.writeValueAsString(
-            StønadsstatistikkMapper(clock).map(
+            StønadsstatistikkMapper(fixedClock).map(
                 vedtak = vedtak,
                 aktørId = aktørId,
                 ytelseVirkningstidspunkt = vedtak.periode.fraOgMed,
@@ -322,9 +322,11 @@ internal class StønadsstatistikkMapperTest {
 
     @Test
     fun `Stans gir nullutbetaling`() {
-        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(Periode.create(1.januar(2021), 28.februar(2021)))
+        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
+            periode = Periode.create(1.januar(2021), 28.februar(2021)),
+        )
         val actual = objectMapper.writeValueAsString(
-            StønadsstatistikkMapper(clock).map(
+            StønadsstatistikkMapper(clock = fixedClock).map(
                 vedtak = vedtak,
                 aktørId = aktørId,
                 ytelseVirkningstidspunkt = vedtak.periode.fraOgMed,
@@ -339,7 +341,7 @@ internal class StønadsstatistikkMapperTest {
                   "sakId": "${sak.id}",
                   "aktorId": 293829399,
                   "sakstype": "STANS",
-                  "vedtaksdato": "2021-01-02",
+                  "vedtaksdato": "2021-01-01",
                   "vedtakstype": "STANS",
                   "vedtaksresultat": "STANSET",
                   "behandlendeEnhetKode": "4815",
@@ -361,7 +363,7 @@ internal class StønadsstatistikkMapperTest {
     fun `Gjenopptak sender med riktig månedsbeløp`() {
         val (sak, vedtak) = vedtakIverksattGjenopptakAvYtelseFraIverksattStans(Periode.create(1.januar(2021), 28.februar(2021)))
         val actual = objectMapper.writeValueAsString(
-            StønadsstatistikkMapper(clock).map(
+            StønadsstatistikkMapper(fixedClock).map(
                 vedtak = vedtak,
                 aktørId = aktørId,
                 ytelseVirkningstidspunkt = vedtak.periode.fraOgMed,

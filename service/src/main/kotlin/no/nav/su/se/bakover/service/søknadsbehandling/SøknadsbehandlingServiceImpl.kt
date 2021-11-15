@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
@@ -157,7 +156,11 @@ internal class SøknadsbehandlingServiceImpl(
                 -> {
                     return SøknadsbehandlingService.KunneIkkeVilkårsvurdere.HarIkkeEktefelle.left()
                 }
-                else -> {
+                is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning,
+                is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre,
+                is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning,
+                is Grunnlag.Bosituasjon.Ufullstendig.HarEps,
+                -> {
                 }
             }
         }
@@ -178,7 +181,7 @@ internal class SøknadsbehandlingServiceImpl(
         return statusovergang(
             søknadsbehandling = søknadsbehandling,
             statusovergang = Statusovergang.TilBeregnet {
-                BeregningStrategyFactory().beregn(
+                BeregningStrategyFactory(clock).beregn(
                     grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
                         grunnlagsdata = søknadsbehandling.grunnlagsdata,
                         vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger,
@@ -518,12 +521,6 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling.left()
 
-        if (søknadsbehandling is Søknadsbehandling.Iverksatt || søknadsbehandling is Søknadsbehandling.TilAttestering)
-            return KunneIkkeLeggeTilGrunnlag.UgyldigTilstand(
-                søknadsbehandling::class,
-                Søknadsbehandling.Vilkårsvurdert::class,
-            ).left()
-
         val vilkår = request.toVilkår(søknadsbehandling.periode, clock).getOrHandle {
             return when (it) {
                 LeggTilUførevurderingRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler.left()
@@ -566,24 +563,29 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
 
-        if (søknadsbehandling is Søknadsbehandling.Iverksatt || søknadsbehandling is Søknadsbehandling.TilAttestering)
-            return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.UgyldigTilstand(
-                søknadsbehandling::class,
-                Søknadsbehandling.Vilkårsvurdert::class,
-            ).left()
-
         val bosituasjon = request.toBosituasjon(søknadsbehandling.periode, clock) {
-            personService.hentPerson(it)
-        }.getOrHandle { return it.left() }
+            personService.hentPerson(it).fold(
+                { error ->
+                    if (error is KunneIkkeHentePerson.IkkeTilgangTilPerson) {
+                        true.right()
+                    } else {
+                        KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left()
+                    }
+                },
+                {
+                    true.right()
+                },
+            )
+        }.getOrHandle {
+            return it.left()
+        }
 
         return vilkårsvurder(
             SøknadsbehandlingService.VilkårsvurderRequest(
                 behandlingId = søknadsbehandling.id,
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.oppdaterBosituasjonOgEktefelleOgNullstillFormueForEpsHvisIngenEps(
                     bosituasjon = bosituasjon,
-                ) {
-                    personService.hentPerson(it)
-                }.getOrHandle { return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left() },
+                ).getOrHandle { return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left() },
             ),
         ).mapLeft {
             return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
@@ -621,46 +623,9 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun leggTilBosituasjonEpsgrunnlagSkjermet(
-        behandlingId: UUID,
-        epsFnr: Fnr,
-    ): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Grunnlag.Bosituasjon> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(behandlingId)
-            ?: return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
-
-        if (søknadsbehandling is Søknadsbehandling.Iverksatt || søknadsbehandling is Søknadsbehandling.TilAttestering)
-            return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.UgyldigTilstand(
-                søknadsbehandling::class,
-                Søknadsbehandling.Vilkårsvurdert::class,
-            ).left()
-
-        // Her vet vi egentlig at hentPerson returnerer `IkkeTilgangTilPerson`, men dobbeltsjekker at vi ikke får andre feil fra PDL
-        personService.hentPerson(epsFnr).let {
-            if (it is Either.Left && (it.value is KunneIkkeHentePerson.FantIkkePerson || it.value is KunneIkkeHentePerson.Ukjent)) {
-                return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left()
-            }
-        }
-
-        val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(clock),
-            periode = søknadsbehandling.periode,
-            fnr = epsFnr,
-        )
-
-        grunnlagService.lagreBosituasjongrunnlag(behandlingId = behandlingId, listOf(bosituasjon))
-        return bosituasjon.right()
-    }
-
     override fun fullførBosituasjongrunnlag(request: FullførBosituasjonRequest): Either<KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
-
-        if (søknadsbehandling is Søknadsbehandling.Iverksatt || søknadsbehandling is Søknadsbehandling.TilAttestering)
-            return KunneIkkeFullføreBosituasjonGrunnlag.UgyldigTilstand(
-                søknadsbehandling::class,
-                Søknadsbehandling.Vilkårsvurdert::class,
-            ).left()
 
         val bosituasjon =
             request.toBosituasjon(søknadsbehandling.grunnlagsdata.bosituasjon.singleOrThrow(), clock).getOrHandle {
@@ -672,9 +637,7 @@ internal class SøknadsbehandlingServiceImpl(
                 behandlingId = søknadsbehandling.id,
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.oppdaterBosituasjonOgEktefelleOgNullstillFormueForEpsHvisIngenEps(
                     bosituasjon = bosituasjon,
-                ) {
-                    personService.hentPerson(it)
-                }.getOrHandle { return KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeHentePersonIPdl.left() },
+                ).getOrHandle { return KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeHentePersonIPdl.left() },
             ),
         ).mapLeft {
             return KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
@@ -714,6 +677,10 @@ internal class SøknadsbehandlingServiceImpl(
         val behandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
 
+        /**
+         *  I flere av funksjonene i denne fila bruker vi [Statusovergang] og [no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor] for å bestemme om det er en gyldig statusovergang, men i dette tilfellet bruker vi domenemodellen sin funksjon leggTilFradragsgrunnlag til dette.
+         * Vi ønsker gradvis å gå over til sistenevnte måte å gjøre det på.
+         */
         val oppdatertBehandling = behandling.leggTilFradragsgrunnlag(request.fradragsgrunnlag).getOrHandle {
             return when (it) {
                 GrunnlagetMåVæreInneforBehandlingsperioden -> KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden.left()

@@ -14,20 +14,25 @@ import no.nav.system.os.entiteter.beregningskjema.BeregningStoppnivaaDetaljer
 import no.nav.system.os.entiteter.beregningskjema.BeregningsPeriode
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningResponse
+import java.time.Clock
 import java.time.LocalDate
 
 internal class SimuleringResponseMapper private constructor(
     val simulering: Simulering,
+    val clock: Clock,
 ) {
     constructor(
         oppdragResponse: SimulerBeregningResponse,
-    ) : this(oppdragResponse.toSimulering())
+        clock: Clock,
+    ) : this(oppdragResponse.toSimulering(), clock)
 
     constructor(
         utbetaling: Utbetaling,
         simuleringsperiode: SimulerBeregningRequest.SimuleringsPeriode,
+        clock: Clock,
     ) : this(
-        utbetaling.mapTomResponsFraOppdrag(simuleringsperiode.toPeriode()),
+        utbetaling.mapTomResponsFraOppdrag(simuleringsperiode.toPeriode(), clock),
+        clock,
     )
 }
 
@@ -84,11 +89,11 @@ private fun BeregningStoppnivaaDetaljer.toSimulertDetalj() =
  * Return something with meaning for our domain for cases where simulering returns an empty response.
  * In functional terms, an empty response means that OS/UR won't perform any payments for the period in question.
  */
-private fun Utbetaling.mapTomResponsFraOppdrag(simuleringsperiode: Periode): Simulering {
+private fun Utbetaling.mapTomResponsFraOppdrag(simuleringsperiode: Periode, clock: Clock): Simulering {
     return Simulering(
         gjelderId = fnr,
         gjelderNavn = fnr.toString(), // Usually returned by response, which in this case is empty.
-        datoBeregnet = LocalDate.now(),
+        datoBeregnet = LocalDate.now(clock),
         nettoBeløp = 0,
         periodeList = listOf(
             SimulertPeriode(
