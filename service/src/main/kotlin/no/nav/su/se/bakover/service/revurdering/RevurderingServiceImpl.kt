@@ -1259,6 +1259,15 @@ internal class RevurderingServiceImpl(
             }
         }
 
+        if (avsluttetRevurdering is Revurdering) {
+            oppgaveService.lukkOppgave(avsluttetRevurdering.oppgaveId)
+                .mapLeft {
+                    log.error("Kunne ikke lukke oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering. Dette må gjøres manuelt.")
+                }.map {
+                    log.info("Lukket oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering.")
+                }
+        }
+
         if (avsluttetRevurdering is Revurdering && skalSendeBrev) {
             brevService.lagDokument(avsluttetRevurdering).mapLeft {
                 return KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument.left()
