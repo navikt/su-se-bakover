@@ -144,7 +144,7 @@ sealed class Revurdering :
     ): Either<UgyldigTilstand, OpprettetRevurdering> {
         return oppdaterVilkårsvurderinger(
             vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår) as Vilkårsvurderinger.Revurdering,
-            informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.UtenlandsoppholdOver90Dager),
+            informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.OppholdIUtlandet),
         ).right()
     }
 
@@ -1372,6 +1372,6 @@ enum class Revurderingsteg(val vilkår: String) {
     Bosituasjon("Bosituasjon"),
 
     // InnlagtPåInstitusjon("InnlagtPåInstitusjon"),
-    UtenlandsoppholdOver90Dager("UtenlandsoppholdOver90Dager"),
+    OppholdIUtlandet("OppholdIUtlandet"),
     Inntekt("Inntekt"),
 }
