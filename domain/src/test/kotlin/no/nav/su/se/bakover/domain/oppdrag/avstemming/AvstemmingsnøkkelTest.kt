@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.toTidspunkt
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.time.Instant
 
@@ -38,7 +39,7 @@ internal class AvstemmingsnøkkelTest {
 
     @Test
     fun `Parse nøkkel from now`() {
-        Avstemmingsnøkkel().also {
+        Avstemmingsnøkkel(opprettet = fixedTidspunkt).also {
             it shouldBe Avstemmingsnøkkel.fromString(it.toString())
         }
     }

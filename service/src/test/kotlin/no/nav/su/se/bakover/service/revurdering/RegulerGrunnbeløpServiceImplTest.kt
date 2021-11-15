@@ -276,6 +276,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
         val utbetalingMock = mock<Utbetaling> {
             on { utbetalingslinjer } doReturn nonEmptyListOf(
                 Utbetalingslinje.Ny(
+                    opprettet = fixedTidspunkt,
                     fraOgMed = periode.fraOgMed,
                     tilOgMed = periode.tilOgMed,
                     forrigeUtbetalingslinjeId = null,

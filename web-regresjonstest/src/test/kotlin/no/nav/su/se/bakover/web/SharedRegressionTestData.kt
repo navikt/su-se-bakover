@@ -187,7 +187,7 @@ object TestClientsBuilder : ClientsBuilder {
         dokArkiv = DokArkivStub,
         oppgaveClient = OppgaveClientStub,
         kodeverk = mock(),
-        simuleringClient = SimuleringStub,
+        simuleringClient = SimuleringStub(fixedClock),
         utbetalingPublisher = UtbetalingStub,
         dokDistFordeling = DokDistFordelingStub,
         avstemmingPublisher = AvstemmingStub,

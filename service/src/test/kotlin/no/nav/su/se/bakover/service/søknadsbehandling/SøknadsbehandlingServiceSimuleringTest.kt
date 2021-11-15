@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -173,12 +174,13 @@ internal class SøknadsbehandlingServiceSimuleringTest {
     private val simulering = Simulering(
         gjelderId = fnr,
         gjelderNavn = "NAVN",
-        datoBeregnet = idag(),
+        datoBeregnet = idag(fixedClock),
         nettoBeløp = 191500,
-        periodeList = listOf()
+        periodeList = listOf(),
     )
 
     private val utbetalingForSimulering = Utbetaling.UtbetalingForSimulering(
+        opprettet = fixedTidspunkt,
         sakId = sakId,
         saksnummer = saksnummer,
         utbetalingslinjer = nonEmptyListOf(
@@ -195,7 +197,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
         fnr = fnr,
         type = Utbetaling.UtbetalingsType.NY,
         behandler = Attestant("SU"),
-        avstemmingsnøkkel = Avstemmingsnøkkel(),
+        avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
     )
 
     private val simulertUtbetaling = utbetalingForSimulering.toSimulertUtbetaling(simulering)

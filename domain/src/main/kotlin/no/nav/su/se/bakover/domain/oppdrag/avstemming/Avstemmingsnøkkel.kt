@@ -7,7 +7,7 @@ import java.time.Instant
 import java.util.concurrent.TimeUnit
 
 data class Avstemmingsnøkkel(
-    val opprettet: Tidspunkt = Tidspunkt.now()
+    val opprettet: Tidspunkt
 ) : Comparable<Avstemmingsnøkkel> {
 
     @JsonProperty
@@ -21,7 +21,7 @@ data class Avstemmingsnøkkel(
     companion object {
         private val nanoPrecision = 1_000_000_000.toBigInteger()
 
-        private fun generer(tidspunkt: Tidspunkt = Tidspunkt.now()): String =
+        private fun generer(tidspunkt: Tidspunkt): String =
             (
                 TimeUnit.NANOSECONDS.convert(tidspunkt.instant.epochSecond, TimeUnit.SECONDS)
                     .toBigInteger() + tidspunkt.instant.nano.toBigInteger()

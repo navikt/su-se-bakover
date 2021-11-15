@@ -19,7 +19,9 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
+import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerBeregningFeilUnderBehandling
 import no.nav.system.os.eksponering.simulerfpservicewsbinding.SimulerFpService
 import no.nav.system.os.entiteter.beregningskjema.Beregning
@@ -48,7 +50,7 @@ internal class SimuleringSoapClientTest {
     @Test
     fun `should return ok simulering`() {
         val simuleringService = SimuleringSoapClient(
-            object : SimulerFpService {
+            simulerFpService = object : SimulerFpService {
                 override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
                     throw IllegalStateException()
                 }
@@ -58,15 +60,19 @@ internal class SimuleringSoapClientTest {
                         .apply { response = okSimuleringResponse() }
                 }
             },
+            clock = fixedClock,
         )
 
-        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringResponseMapper(okSimuleringResponse()).simulering.right()
+        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringResponseMapper(
+            okSimuleringResponse(),
+            fixedClock,
+        ).simulering.right()
     }
 
     @Test
     fun `should handle simulering with empty response`() {
         val simuleringService = SimuleringSoapClient(
-            object : SimulerFpService {
+            simulerFpService = object : SimulerFpService {
                 override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
                     throw IllegalStateException()
                 }
@@ -75,6 +81,7 @@ internal class SimuleringSoapClientTest {
                     return no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse()
                 }
             },
+            clock = fixedClock,
         )
 
         val opphør = nyUtbetaling.copy(
@@ -104,7 +111,7 @@ internal class SimuleringSoapClientTest {
     @Test
     fun `should handle known error situations`() {
         val simuleringService = SimuleringSoapClient(
-            object : SimulerFpService {
+            simulerFpService = object : SimulerFpService {
                 override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
                     throw IllegalStateException()
                 }
@@ -118,6 +125,7 @@ internal class SimuleringSoapClientTest {
                     )
                 }
             },
+            clock = fixedClock,
         )
 
         simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
@@ -126,7 +134,7 @@ internal class SimuleringSoapClientTest {
     @Test
     fun `should handle utenfor åpningstid exception SSLException`() {
         val simuleringService = SimuleringSoapClient(
-            object : SimulerFpService {
+            simulerFpService = object : SimulerFpService {
                 override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
                     throw IllegalStateException()
                 }
@@ -135,6 +143,7 @@ internal class SimuleringSoapClientTest {
                     throw WebServiceException(SSLException(""))
                 }
             },
+            clock = fixedClock,
         )
 
         simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.OPPDRAG_UR_ER_STENGT.left()
@@ -143,7 +152,7 @@ internal class SimuleringSoapClientTest {
     @Test
     fun `should handle utenfor åpningstid exception SocketException`() {
         val simuleringService = SimuleringSoapClient(
-            object : SimulerFpService {
+            simulerFpService = object : SimulerFpService {
                 override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
                     throw IllegalStateException()
                 }
@@ -152,6 +161,7 @@ internal class SimuleringSoapClientTest {
                     throw WebServiceException(SocketException(""))
                 }
             },
+            clock = fixedClock,
         )
 
         val response = simuleringService.simulerUtbetaling(nyUtbetaling)
@@ -162,7 +172,7 @@ internal class SimuleringSoapClientTest {
     @Test
     fun `should handle unknown technical errors`() {
         val simuleringService = SimuleringSoapClient(
-            object : SimulerFpService {
+            simulerFpService = object : SimulerFpService {
                 override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
                     throw IllegalStateException()
                 }
@@ -171,6 +181,7 @@ internal class SimuleringSoapClientTest {
                     throw WebServiceException(IllegalArgumentException())
                 }
             },
+            clock = fixedClock,
         )
 
         simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.TEKNISK_FEIL.left()
@@ -179,7 +190,7 @@ internal class SimuleringSoapClientTest {
     @Test
     fun `skal returnere simulering ekvivalent med 0-utbetaling dersom response ikke inneholder data`() {
         val simuleringService = SimuleringSoapClient(
-            object : SimulerFpService {
+            simulerFpService = object : SimulerFpService {
                 override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
                     throw IllegalStateException()
                 }
@@ -189,14 +200,17 @@ internal class SimuleringSoapClientTest {
                         .apply { response = null }
                 }
             },
+            clock = fixedClock,
         )
 
         val utenBeløp = Utbetaling.UtbetalingForSimulering(
+            opprettet = fixedTidspunkt,
             saksnummer = saksnummer,
             sakId = sakId,
             fnr = FNR,
             utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
+                    opprettet = fixedTidspunkt,
                     fraOgMed = 1.oktober(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
@@ -206,7 +220,7 @@ internal class SimuleringSoapClientTest {
             ),
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
-            avstemmingsnøkkel = Avstemmingsnøkkel(),
+            avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
         )
 
         simuleringService.simulerUtbetaling(utenBeløp) shouldBe Simulering(
@@ -225,10 +239,12 @@ internal class SimuleringSoapClientTest {
     }
 
     private fun createUtbetaling() = Utbetaling.UtbetalingForSimulering(
+        opprettet = fixedTidspunkt,
         sakId = sakId,
         saksnummer = saksnummer,
         utbetalingslinjer = nonEmptyListOf(
             Utbetalingslinje.Ny(
+                opprettet = fixedTidspunkt,
                 id = UUID30.randomUUID(),
                 fraOgMed = 1.januar(2020),
                 tilOgMed = 31.desember(2020),
@@ -240,7 +256,7 @@ internal class SimuleringSoapClientTest {
         fnr = Fnr("12345678910"),
         type = Utbetaling.UtbetalingsType.NY,
         behandler = NavIdentBruker.Saksbehandler("Z123"),
-        avstemmingsnøkkel = Avstemmingsnøkkel(),
+        avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
     )
 
     private fun okSimuleringResponse() = SimulerBeregningResponse().apply {

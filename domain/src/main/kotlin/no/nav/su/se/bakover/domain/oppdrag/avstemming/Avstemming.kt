@@ -22,7 +22,7 @@ sealed class Avstemming {
 
     data class Grensesnittavstemming(
         override val id: UUID30 = UUID30.randomUUID(),
-        override val opprettet: Tidspunkt = Tidspunkt.now(),
+        override val opprettet: Tidspunkt,
         val fraOgMed: Tidspunkt,
         val tilOgMed: Tidspunkt,
         val utbetalinger: List<Utbetaling.OversendtUtbetaling>,
@@ -56,7 +56,7 @@ sealed class Avstemming {
 
         data class Ny(
             override val id: UUID30 = UUID30.randomUUID(),
-            override val opprettet: Tidspunkt = Tidspunkt.now(),
+            override val opprettet: Tidspunkt,
             override val løpendeFraOgMed: Tidspunkt,
             override val opprettetTilOgMed: Tidspunkt,
             private val utbetalinger: List<Utbetaling.OversendtUtbetaling>,
@@ -115,7 +115,7 @@ sealed class Avstemming {
 
         data class Fullført(
             override val id: UUID30 = UUID30.randomUUID(),
-            override val opprettet: Tidspunkt = Tidspunkt.now(),
+            override val opprettet: Tidspunkt,
             override val løpendeFraOgMed: Tidspunkt,
             override val opprettetTilOgMed: Tidspunkt,
             val utbetalinger: Map<Saksnummer, List<Utbetalingslinje>>,

@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
@@ -48,14 +47,6 @@ object BehandlingTestUtils {
         journalpostId = journalpostId,
     )
     internal val fnr = Fnr.generer()
-    private val ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
-        fnr = Fnr("17087524256"),
-        navn = Person.Navn("fornavn", null, "etternavn"),
-        kjønn = null,
-        fødselsdato = LocalDate.of(1975, 8, 17),
-        adressebeskyttelse = null,
-        skjermet = null,
-    )
 
     internal fun innvilgetSøknadsbehandling() = Søknadsbehandling.Iverksatt.Innvilget(
         id = behandlingId,
@@ -119,13 +110,6 @@ object BehandlingTestUtils {
                 status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
                 begrunnelse = null,
             ),
-            bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                ektefelle = ektefelle,
-                delerBolig = false,
-                ektemakeEllerSamboerUførFlyktning = false,
-                begrunnelse = null,
-            ),
-            ektefelle = ektefelle,
         ),
         fnr = fnr,
         beregning = TestBeregning,

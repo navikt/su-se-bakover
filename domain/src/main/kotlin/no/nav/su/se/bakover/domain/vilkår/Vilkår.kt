@@ -233,9 +233,6 @@ sealed class Vilkårsvurderinger {
                     is Behandlingsinformasjon.PersonligOppmøte -> {
                         it.tilVilkår(stønadsperiode, clock)
                     }
-                    is Behandlingsinformasjon.Bosituasjon -> {
-                        null // legges til via grunnlags-flyt
-                    }
                     null -> {
                         null // elementer kan være null før de er vurdert
                     }
@@ -438,7 +435,7 @@ sealed class Vilkår {
                 return other is Vurdert && vurderingsperioder.erLik(other.vurderingsperioder)
             }
 
-            fun slåSammenVurderingsperioder(): Either<UgyldigUførevilkår, Uførhet.Vurdert> {
+            fun slåSammenVurderingsperioder(): Either<UgyldigUførevilkår, Vurdert> {
                 return fromVurderingsperioder(vurderingsperioder = vurderingsperioder.slåSammenVurderingsperiode())
             }
 

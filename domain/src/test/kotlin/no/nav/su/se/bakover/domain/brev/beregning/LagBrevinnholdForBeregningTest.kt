@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
+import no.nav.su.se.bakover.test.fixedClock
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
@@ -22,7 +23,7 @@ internal class LagBrevinnholdForBeregningTest {
 
     @Test
     fun `Lagbrevinnhold for beregning med samme fradrag hele perioden`() {
-        val beregning = BeregningFactory.ny(
+        val beregning = BeregningFactory(clock = fixedClock).ny(
             periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
             sats = Sats.HØY,
             fradrag = listOf(
@@ -61,7 +62,7 @@ internal class LagBrevinnholdForBeregningTest {
 
     @Test
     fun `Lagbrevinnhold for beregning med ulike perioder`() {
-        val beregning = BeregningFactory.ny(
+        val beregning = BeregningFactory(clock = fixedClock).ny(
             periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
             sats = Sats.HØY,
             fradrag = listOf(
@@ -157,7 +158,7 @@ internal class LagBrevinnholdForBeregningTest {
 
     @Test
     fun `lager brevinnhold for beregninger med fradrag for EPS`() {
-        val beregning = BeregningFactory.ny(
+        val beregning = BeregningFactory(clock = fixedClock).ny(
             periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
             sats = Sats.HØY,
             fradrag = listOf(
@@ -387,7 +388,7 @@ internal class LagBrevinnholdForBeregningTest {
 
     @Test
     fun `Fradrag for eps er tom liste hvis beløp er lavere enn fribeløp`() {
-        val beregning = BeregningFactory.ny(
+        val beregning = BeregningFactory(clock = fixedClock).ny(
             periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
             sats = Sats.HØY,
             fradrag = listOf(
@@ -436,7 +437,7 @@ internal class LagBrevinnholdForBeregningTest {
 
     @Test
     fun `Tar med alle fradrag for eps hvis sum av fradragene er høyere enn fribeløp`() {
-        val beregning = BeregningFactory.ny(
+        val beregning = BeregningFactory(clock = fixedClock).ny(
             periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
             sats = Sats.HØY,
             fradrag = listOf(

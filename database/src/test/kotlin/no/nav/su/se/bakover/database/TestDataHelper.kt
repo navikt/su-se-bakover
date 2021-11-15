@@ -121,6 +121,7 @@ internal val underkjentAttestering =
 internal val iverksattAttestering = Attestering.Iverksatt(attestant, fixedTidspunkt)
 internal val avstemmingsnøkkel = Avstemmingsnøkkel(fixedTidspunkt)
 internal fun utbetalingslinje() = Utbetalingslinje.Ny(
+    opprettet = fixedTidspunkt,
     fraOgMed = 1.januar(2020),
     tilOgMed = 31.desember(2020),
     forrigeUtbetalingslinjeId = null,
@@ -457,14 +458,15 @@ internal class TestDataHelper(
         }
     }
 
-    fun beregnetOpphørtRevurdering(): BeregnetRevurdering {
+    private fun beregnetOpphørtRevurdering(): BeregnetRevurdering {
         val vedtak = vedtakMedInnvilgetSøknadsbehandling()
         return nyRevurdering(
             innvilget = vedtak.first,
             periode = stønadsperiode.periode,
             epsFnr = null,
         ).beregn(
-            listOf(vedtak.second),
+            eksisterendeUtbetalinger = listOf(vedtak.second),
+            clock = clock,
         ).getOrHandle {
             throw java.lang.IllegalStateException("Her skal vi ha en beregnet revurdering")
         }.also {

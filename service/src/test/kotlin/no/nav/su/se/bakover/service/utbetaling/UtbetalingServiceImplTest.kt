@@ -61,14 +61,14 @@ internal class UtbetalingServiceImplTest {
 
     private val attestant = NavIdentBruker.Attestant("SU")
 
-    private val avstemmingsnøkkel = Avstemmingsnøkkel()
+    private val avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt)
 
     private val oppdragsmelding = Utbetalingsrequest("")
 
     private val simulering = Simulering(
         gjelderId = fnr,
         gjelderNavn = "navn",
-        datoBeregnet = idag(),
+        datoBeregnet = idag(fixedClock),
         nettoBeløp = 5155,
         periodeList = listOf(),
     )
@@ -138,13 +138,14 @@ internal class UtbetalingServiceImplTest {
     @Test
     fun `hent utbetaling - funnet`() {
         val utbetalingMedKvittering = Utbetaling.OversendtUtbetaling.MedKvittering(
+            opprettet = fixedTidspunkt,
             sakId = sakId,
             saksnummer = saksnummer,
             utbetalingslinjer = dummyUtbetalingslinjer,
             fnr = Fnr("12345678910"),
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
-            avstemmingsnøkkel = Avstemmingsnøkkel(),
+            avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt),
             simulering = simulering,
             utbetalingsrequest = Utbetalingsrequest(""),
             kvittering = kvitteringOK,
@@ -174,7 +175,7 @@ internal class UtbetalingServiceImplTest {
     @Test
     fun `oppdater med kvittering - ikke funnet`() {
 
-        val avstemmingsnøkkel = Avstemmingsnøkkel()
+        val avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt)
 
         val utbetalingRepoMock = mock<UtbetalingRepo> { on { hentUtbetaling(any<Avstemmingsnøkkel>()) } doReturn null }
         val sakServiceMock = mock<SakService>()
@@ -206,6 +207,7 @@ internal class UtbetalingServiceImplTest {
     @Test
     fun `oppdater med kvittering - kvittering eksisterer ikke fra før`() {
         val utbetalingUtenKvittering = Utbetaling.OversendtUtbetaling.UtenKvittering(
+            opprettet = fixedTidspunkt,
             sakId = sakId,
             saksnummer = saksnummer,
             utbetalingslinjer = dummyUtbetalingslinjer,
@@ -214,7 +216,7 @@ internal class UtbetalingServiceImplTest {
             simulering = Simulering(
                 gjelderId = Fnr("12345678910"),
                 gjelderNavn = "navn",
-                datoBeregnet = idag(),
+                datoBeregnet = idag(fixedClock),
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),
@@ -263,8 +265,9 @@ internal class UtbetalingServiceImplTest {
 
     @Test
     fun `oppdater med kvittering - kvittering eksisterer fra før`() {
-        val avstemmingsnøkkel = Avstemmingsnøkkel()
+        val avstemmingsnøkkel = Avstemmingsnøkkel(opprettet = fixedTidspunkt)
         val utbetaling = Utbetaling.OversendtUtbetaling.MedKvittering(
+            opprettet = fixedTidspunkt,
             sakId = sakId,
             saksnummer = saksnummer,
             utbetalingslinjer = dummyUtbetalingslinjer,
@@ -273,7 +276,7 @@ internal class UtbetalingServiceImplTest {
             simulering = Simulering(
                 gjelderId = Fnr("12345678910"),
                 gjelderNavn = "navn",
-                datoBeregnet = idag(),
+                datoBeregnet = idag(fixedClock),
                 nettoBeløp = 0,
                 periodeList = listOf(),
             ),

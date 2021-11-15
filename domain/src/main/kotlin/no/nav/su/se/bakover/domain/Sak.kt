@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.reduser
+import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
@@ -88,6 +89,37 @@ data class Sak(
             clock = clock,
         ).let {
             GrunnlagsdataOgVilkårsvurderinger(it.grunnlagsdata, it.vilkårsvurderinger)
+        }
+    }
+
+    /**
+     * Brukes for å hente den seneste gjeldenden/brukte månedsberegningen for en gitt måned i saken.
+     *
+     * Per nå så er det kun Vedtak i form av [Vedtak.EndringIYtelse] som bidrar til dette, bortsett fra [Vedtak.IngenEndringIYtelse] som har
+     * andre beregnings-beløp som ikke skal ha en påverkan på saken.
+     * */
+    fun hentGjeldendeMånedsberegningForMåned(månedsperiode: Periode, clock: Clock): Månedsberegning? {
+        assert(månedsperiode.getAntallMåneder() == 1)
+        return GjeldendeVedtaksdata(
+            periode = månedsperiode,
+            vedtakListe = NonEmptyList.fromListUnsafe(
+                vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
+                    .filterNot { it is Vedtak.EndringIYtelse.GjenopptakAvYtelse || it is Vedtak.EndringIYtelse.StansAvYtelse || it is Vedtak.IngenEndringIYtelse }.ifEmpty {
+                        return null
+                    },
+            ),
+            clock = clock,
+        ).gjeldendeVedtakPåDato(månedsperiode.fraOgMed)?.let {
+            when (it) {
+                is Vedtak.EndringIYtelse.InnvilgetRevurdering -> it.beregning
+                is Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling -> it.beregning
+                is Vedtak.EndringIYtelse.OpphørtRevurdering -> it.beregning
+                is Vedtak.IngenEndringIYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.IngenEndring")
+                is Vedtak.EndringIYtelse.StansAvYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.StansAvYtelse")
+                is Vedtak.EndringIYtelse.GjenopptakAvYtelse -> throw IllegalStateException("Kodefeil: Skal ha filtrert bort Vedtak.EndringIYtelse.GjenopptakAvYtelse")
+            }
+        }?.let { beregning ->
+            beregning.getMånedsberegninger().associateBy { it.periode }[månedsperiode]
         }
     }
 

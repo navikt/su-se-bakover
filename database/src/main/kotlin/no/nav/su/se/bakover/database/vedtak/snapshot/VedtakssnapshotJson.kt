@@ -9,6 +9,9 @@ import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotJson.Innvilg
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.satsgrunn
+import no.nav.su.se.bakover.domain.beregning.Sats.Companion.utledSats
+import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -100,8 +103,8 @@ internal sealed class VedtakssnapshotJson {
                     beregning = beregning.toSnapshot(),
                     behandlingsinformasjon = behandlingsinformasjon,
                     behandlingsresultat = BehandlingsresultatJson(
-                        sats = behandlingsinformasjon.utledSats().orNull()?.toString(),
-                        satsgrunn = behandlingsinformasjon.getSatsgrunn().orNull()?.toString(),
+                        sats = grunnlagsdata.bosituasjon.singleFullstendigOrThrow().utledSats().toString(),
+                        satsgrunn = grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn().toString(),
                     ),
                     søknad = søknad,
                     simulering = simulering,
@@ -122,8 +125,8 @@ internal sealed class VedtakssnapshotJson {
                     beregning = if (this is Søknadsbehandling.Iverksatt.Avslag.MedBeregning) beregning.toSnapshot() else null,
                     behandlingsinformasjon = behandlingsinformasjon,
                     behandlingsresultat = BehandlingsresultatJson(
-                        sats = behandlingsinformasjon.utledSats().orNull()?.toString(),
-                        satsgrunn = behandlingsinformasjon.getSatsgrunn().orNull()?.toString(),
+                        sats = grunnlagsdata.bosituasjon.singleFullstendigOrThrow().utledSats().toString(),
+                        satsgrunn = grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn().toString(),
                     ),
                     søknad = søknad,
                     simulering = null,

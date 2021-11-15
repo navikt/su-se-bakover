@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import org.junit.jupiter.api.Test
@@ -44,7 +45,11 @@ internal class BeregningStrategyTest {
                 ),
             ),
         )
-        BeregningStrategy.BorAlene.beregn(beregningsgrunnlag, "en begrunnelse").let {
+        BeregningStrategy.BorAlene.beregn(
+            beregningsgrunnlag = beregningsgrunnlag,
+            clock = fixedClock,
+            begrunnelse = "en begrunnelse",
+        ).let {
             it.periode.fraOgMed shouldBe periode.fraOgMed
             it.periode.tilOgMed shouldBe periode.tilOgMed
             it.getSats() shouldBe Sats.HØY

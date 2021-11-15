@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.test
 
-import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub.simulerUtbetaling
+import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -23,11 +24,12 @@ import java.util.UUID
  * Ved opphør bruk simuleringOpphørt()
  */
 fun simuleringNy(
-    beregning: Beregning = beregning(),
+    beregning: Beregning = beregning(periode = periode2021),
     eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    clock: Clock = fixedClock,
 ): Simulering {
     return Utbetalingsstrategi.Ny(
         sakId = sakId,
@@ -36,7 +38,7 @@ fun simuleringNy(
         utbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
         beregning = beregning,
-        clock = fixedClock,
+        clock = clock,
         uføregrunnlag = listOf(
             Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
@@ -47,7 +49,7 @@ fun simuleringNy(
             ),
         ),
     ).generate().let {
-        simulerUtbetaling(it)
+        SimuleringStub(clock).simulerUtbetaling(it)
     }.orNull()!!
 }
 
@@ -57,6 +59,7 @@ fun simuleringStans(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    clock: Clock = fixedClock,
 ): Simulering {
     return stansUtbetalingForSimulering(
         stansDato = stansDato,
@@ -64,8 +67,9 @@ fun simuleringStans(
         sakId = sakId,
         saksnummer = saksnummer,
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+        clock = clock,
     ).let {
-        simulerUtbetaling(it)
+        SimuleringStub(clock).simulerUtbetaling(it)
     }.orNull()!!
 }
 
@@ -74,6 +78,7 @@ fun simuleringGjenopptak(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    clock: Clock = fixedClock,
 ): Simulering {
     return Utbetalingsstrategi.Gjenoppta(
         sakId = sakId,
@@ -81,9 +86,9 @@ fun simuleringGjenopptak(
         fnr = fnr,
         utbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
-        clock = fixedClock,
+        clock = clock,
     ).generer().let {
-        simulerUtbetaling(it.getOrFail("Skal kunne lage utbetaling for gjenopptak"))
+        SimuleringStub(clock).simulerUtbetaling(it.getOrFail("Skal kunne lage utbetaling for gjenopptak"))
     }.orNull()!!
 }
 
@@ -93,6 +98,7 @@ fun simuleringOpphørt(
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    clock: Clock = fixedClock,
 ): Simulering {
     return Utbetalingsstrategi.Opphør(
         sakId = sakId,
@@ -100,10 +106,10 @@ fun simuleringOpphørt(
         fnr = fnr,
         utbetalinger = eksisterendeUtbetalinger,
         behandler = saksbehandler,
-        clock = fixedClock,
+        clock = clock,
         opphørsDato = opphørsdato,
     ).generate().let {
-        simulerUtbetaling(it)
+        SimuleringStub(clock).simulerUtbetaling(it)
     }.orNull()!!
 }
 
@@ -113,7 +119,7 @@ fun simulering(
 ): Simulering = Simulering(
     gjelderId = fnr,
     gjelderNavn = "navn",
-    datoBeregnet = LocalDate.now(),
+    datoBeregnet = fixedLocalDate,
     nettoBeløp = simulertePerioder.sumOf { it.bruttoYtelse() },
     periodeList = simulertePerioder,
 )
@@ -125,7 +131,7 @@ fun simuleringFeilutbetaling(
     return Simulering(
         gjelderId = fnr,
         gjelderNavn = "navn",
-        datoBeregnet = LocalDate.now(),
+        datoBeregnet = fixedLocalDate,
         nettoBeløp = simulertePerioder.sumOf { it.bruttoYtelse() },
         periodeList = simulertePerioder,
     )

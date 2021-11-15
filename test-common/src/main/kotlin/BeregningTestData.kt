@@ -76,9 +76,10 @@ fun beregning(
         fradragFraSaksbehandler = fradragsgrunnlag,
     ).let {
         bosituasjon.utledBeregningsstrategi().beregn(
-            it.getOrHandle {
+            beregningsgrunnlag = it.getOrHandle {
                 throw IllegalArgumentException("Kunne ikke lage testberegning. Underliggende grunn: $it")
             },
+            clock = fixedClock,
         )
     }
 }

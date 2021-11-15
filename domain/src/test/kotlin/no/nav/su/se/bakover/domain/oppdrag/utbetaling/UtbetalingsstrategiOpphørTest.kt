@@ -41,12 +41,13 @@ internal class UtbetalingsstrategiOpphørTest {
     )
 
     private val enUtbetaling = Utbetaling.OversendtUtbetaling.MedKvittering(
+        opprettet = fixedTidspunkt,
         sakId = sakId,
         saksnummer = saksnummer,
         simulering = Simulering(
             gjelderId = fnr,
             gjelderNavn = "navn",
-            datoBeregnet = idag(),
+            datoBeregnet = idag(fixedClock),
             nettoBeløp = 0,
             periodeList = listOf(),
         ),

@@ -4,7 +4,9 @@ import arrow.core.NonEmptyList
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
@@ -15,8 +17,12 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -25,7 +31,9 @@ import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.oversendtGjenopptakUtbetalingUtenKvittering
 import no.nav.su.se.bakover.test.periode2021
+import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
@@ -35,9 +43,12 @@ import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknad
 import no.nav.su.se.bakover.test.vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentCaptor
 import org.mockito.kotlin.any
+import org.mockito.kotlin.capture
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import java.time.LocalDate
 import java.util.UUID
@@ -46,7 +57,7 @@ class GjenopptakAvYtelseServiceTest {
 
     @Test
     fun `svarer med feil dersom sak ikke har noen vedtak`() {
-        val vedtakRepoMock = mock<VedtakRepo>() {
+        val vedtakRepoMock = mock<VedtakRepo> {
             on { hentForSakId(any()) } doReturn emptyList()
         }
 
@@ -73,7 +84,7 @@ class GjenopptakAvYtelseServiceTest {
 
     @Test
     fun `svarer med feil dersom siste vedtak ikke er en stans`() {
-        val vedtakRepoMock = mock<VedtakRepo>() {
+        val vedtakRepoMock = mock<VedtakRepo> {
             on { hentForSakId(any()) } doReturn listOf(vedtakSøknadsbehandlingIverksattInnvilget().second)
         }
 
@@ -105,9 +116,9 @@ class GjenopptakAvYtelseServiceTest {
             tilOgMed = periode2021.tilOgMed,
         )
 
-        val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode)
+        val (sak, _) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = periode)
 
-        val sakServiceMock = mock<SakService>() {
+        val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
 
@@ -155,9 +166,9 @@ class GjenopptakAvYtelseServiceTest {
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
             tilOgMed = periode2021.tilOgMed,
         )
-        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode)
+        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = periode)
 
-        val sakServiceMock = mock<SakService>() {
+        val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
 
@@ -228,9 +239,9 @@ class GjenopptakAvYtelseServiceTest {
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
             tilOgMed = periode2021.tilOgMed,
         )
-        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode)
+        val (sak, vedtak) = vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(periode = periode)
 
-        val sakServiceMock = mock<SakService>() {
+        val sakServiceMock = mock<SakService> {
             on { hentSak(any<UUID>()) } doReturn sak.right()
         }
 
@@ -255,12 +266,15 @@ class GjenopptakAvYtelseServiceTest {
             on { simulerGjenopptak(any(), any()) } doReturn simulertGjenopptakUtbetaling().right()
         }
 
+        val observerMock: EventObserver = mock()
+
         RevurderingServiceMocks(
             vedtakRepo = vedtakRepoMock,
             vedtakService = vedtakServiceMock,
             utbetalingService = utbetalingServiceMock,
             sakService = sakServiceMock,
         ).let {
+            it.revurderingService.addObserver(observerMock)
             val response = it.revurderingService.gjenopptaYtelse(
                 GjenopptaYtelseRequest.Opprett(
                     sakId = sakId,
@@ -291,6 +305,7 @@ class GjenopptakAvYtelseServiceTest {
                 saksbehandler = saksbehandler,
             )
             verify(it.revurderingRepo).lagre(response)
+            verify(observerMock).handle(argThat { event -> event shouldBe Event.Statistikk.RevurderingStatistikk.Gjenoppta(response) })
             it.verifyNoMoreInteractions()
         }
     }
@@ -301,7 +316,7 @@ class GjenopptakAvYtelseServiceTest {
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
             tilOgMed = periode2021.tilOgMed,
         )
-        val revurderingGjenopptak = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(periode)
+        val revurderingGjenopptak = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(periodeForStans = periode)
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn revurderingGjenopptak.second
@@ -370,7 +385,10 @@ class GjenopptakAvYtelseServiceTest {
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
             tilOgMed = LocalDate.now(fixedClock).plusMonths(2).endOfMonth(),
         )
-        val eksisterende = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(periode)
+        val eksisterende = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
+            periodeForStans = periode,
+            clock = fixedClock
+        )
 
         val vedtakRepoMock = mock<VedtakRepo> {
             on { hentForSakId(any()) } doReturn eksisterende.first.vedtakListe
@@ -393,7 +411,7 @@ class GjenopptakAvYtelseServiceTest {
             on { simulerGjenopptak(any(), any()) } doReturn simulertGjenopptakUtbetaling().right()
         }
 
-        val revurderingRepoMock = mock<RevurderingRepo>() {
+        val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn eksisterende.second
         }
 
@@ -473,7 +491,7 @@ class GjenopptakAvYtelseServiceTest {
             fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
             tilOgMed = LocalDate.now(fixedClock).plusMonths(2).endOfMonth(),
         )
-        val (sak, _) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(periode)
+        val (sak, _) = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(periodeForStans = periode)
 
         val vedtakRepoMock = mock<VedtakRepo> {
             on { hentForSakId(any()) } doReturn sak.vedtakListe
@@ -516,6 +534,71 @@ class GjenopptakAvYtelseServiceTest {
 
             verify(it.vedtakRepo).hentForSakId(sakId)
             verify(it.sakService).hentSak(sakId)
+            it.verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `happy path for iverksettelse`() {
+        val periode = Periode.create(
+            fraOgMed = LocalDate.now(fixedClock).plusMonths(1).startOfMonth(),
+            tilOgMed = periode2021.tilOgMed,
+        )
+        val simulertGjenopptak = simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(periodeForStans = periode).second
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn simulertGjenopptak
+        }
+
+        val utbetaling = oversendtGjenopptakUtbetalingUtenKvittering()
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on {
+                gjenopptaUtbetalinger(
+                    any(),
+                    any(),
+                    any(),
+                )
+            } doReturn utbetaling.right()
+        }
+        val vedtakRepoMock: VedtakRepo = mock()
+        val observerMock: EventObserver = mock()
+
+        RevurderingServiceMocks(
+            revurderingRepo = revurderingRepoMock,
+            utbetalingService = utbetalingServiceMock,
+            vedtakRepo = vedtakRepoMock
+        ).let {
+            it.revurderingService.addObserver(observerMock)
+            val response = it.revurderingService.iverksettGjenopptakAvYtelse(
+                revurderingId = revurderingId,
+                attestant = NavIdentBruker.Attestant(simulertGjenopptak.saksbehandler.navIdent),
+            ).getOrFail("Feil med oppsett av testdata")
+
+            verify(it.revurderingRepo).hent(simulertGjenopptak.id)
+            verify(it.utbetalingService).gjenopptaUtbetalinger(
+                sakId = simulertGjenopptak.sakId,
+                attestant = NavIdentBruker.Attestant(simulertGjenopptak.saksbehandler.navIdent),
+                simulering = simulertGjenopptak.simulering,
+            )
+            verify(it.revurderingRepo).lagre(response)
+            val expectedVedtak = Vedtak.from(
+                revurdering = response,
+                utbetalingId = utbetaling.id,
+                clock = fixedClock,
+            )
+            verify(it.vedtakRepo).lagre(
+                argThat { vedtak ->
+                    vedtak.shouldBeEqualToIgnoringFields(
+                        expectedVedtak,
+                        Vedtak::id,
+                    )
+                },
+            )
+
+            val eventCaptor = ArgumentCaptor.forClass(Event::class.java)
+            verify(observerMock, times(2)).handle(capture<Event>(eventCaptor))
+            eventCaptor.allValues[0] shouldBe Event.Statistikk.RevurderingStatistikk.Gjenoppta(response)
+            eventCaptor.allValues[1].shouldBeTypeOf<Event.Statistikk.Vedtaksstatistikk>()
             it.verifyNoMoreInteractions()
         }
     }

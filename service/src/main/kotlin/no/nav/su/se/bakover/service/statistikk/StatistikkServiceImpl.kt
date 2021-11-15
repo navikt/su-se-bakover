@@ -80,11 +80,13 @@ internal class StatistikkServiceImpl(
                                 .filterIsInstance<Vedtak.EndringIYtelse>()
                                 .minOf { it.periode.fraOgMed }
 
-                            publiser(StønadsstatistikkMapper(clock).map(event.vedtak, aktørId, ytelseVirkningstidspunkt))
+                            publiser(StønadsstatistikkMapper(clock).map(event.vedtak, aktørId, ytelseVirkningstidspunkt, sak))
                         }
                     )
                 }
             }
+            is Event.Statistikk.RevurderingStatistikk.Gjenoppta -> publiser(BehandlingStatistikkMapper(clock).map(event.gjenoppta))
+            is Event.Statistikk.RevurderingStatistikk.Stans -> publiser(BehandlingStatistikkMapper(clock).map(event.stans))
         }
     }
 }

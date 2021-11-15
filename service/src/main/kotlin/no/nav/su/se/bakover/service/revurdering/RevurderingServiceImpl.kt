@@ -107,6 +107,8 @@ internal class RevurderingServiceImpl(
 
     fun addObserver(observer: EventObserver) {
         observers.add(observer)
+        gjenopptakAvYtelseService.addObserver(observer)
+        stansAvYtelseService.addObserver(observer)
     }
 
     fun getObservers(): List<EventObserver> = observers.toList()
@@ -584,7 +586,7 @@ internal class RevurderingServiceImpl(
                 val eksisterendeUtbetalinger = utbetalingService.hentUtbetalinger(originalRevurdering.sakId)
 
                 val beregnetRevurdering =
-                    originalRevurdering.beregn(eksisterendeUtbetalinger).getOrHandle {
+                    originalRevurdering.beregn(eksisterendeUtbetalinger, clock).getOrHandle {
                         return when (it) {
                             is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
                             is Revurdering.KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag(
