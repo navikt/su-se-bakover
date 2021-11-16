@@ -23,7 +23,9 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
+import no.nav.su.se.bakover.domain.klage.OpprettetKlage
+import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -64,6 +66,7 @@ import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
+import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -719,9 +722,14 @@ open class AccessCheckProxy(
                 }
             },
             klageService = object : KlageService {
-                override fun opprettKlage(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, Klage> {
+                override fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage> {
                     assertHarTilgangTilSak(request.sakId)
-                    return services.klageService.opprettKlage(request)
+                    return services.klageService.opprett(request)
+                }
+
+                override fun vilkårsvurder(request: VurderKlagevilkårRequest): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
+                    assertHarTilgangTilKlage(request.klageId)
+                    return services.klageService.vilkårsvurder(request)
                 }
             }
         )
@@ -769,6 +777,11 @@ open class AccessCheckProxy(
 
     private fun assertHarTilgangTilVedtak(vedtakId: UUID) {
         personRepo.hentFnrForVedtak(vedtakId)
+            .forEach { assertHarTilgangTilPerson(it) }
+    }
+
+    private fun assertHarTilgangTilKlage(klageId: String) {
+        personRepo.hentFnrForKlage(klageId)
             .forEach { assertHarTilgangTilPerson(it) }
     }
 }

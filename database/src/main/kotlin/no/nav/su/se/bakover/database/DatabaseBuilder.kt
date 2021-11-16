@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.database.hendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
-import no.nav.su.se.bakover.database.klage.KlageRepo
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonRepo
@@ -41,6 +40,7 @@ import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotRepo
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
+import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
 import org.jetbrains.annotations.TestOnly
 import java.time.Clock
@@ -144,7 +144,7 @@ object DatabaseBuilder {
         )
         val hendelseRepo = PersonhendelsePostgresRepo(dataSource, clock)
         val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource)
-        val klageRepo = KlagePostgresRepo(dataSource)
+        val klageRepo = KlagePostgresRepo(sessionFactory)
 
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(dataSource),

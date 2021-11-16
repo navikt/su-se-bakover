@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingRepo
 import no.nav.su.se.bakover.database.hendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
-import no.nav.su.se.bakover.database.klage.KlageRepo
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.sak.SakRepo
@@ -17,6 +16,7 @@ import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotRepo
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
+import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
 import no.nav.su.se.bakover.test.TestSessionFactory
 import org.mockito.kotlin.mock

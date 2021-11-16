@@ -101,6 +101,13 @@ internal suspend inline fun ApplicationCall.receiveTextUTF8(): String {
     }
 }
 
+internal suspend fun ApplicationCall.withStringParam(parameterName: String, ifRight: suspend (String) -> Unit) {
+    this.parameter(parameterName).fold(
+        ifLeft = { this.svar(it) },
+        ifRight = { ifRight(it) },
+    )
+}
+
 internal suspend fun ApplicationCall.withSakId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("sakId").fold(
         ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "sakId_mangler_eller_feil_format")) },

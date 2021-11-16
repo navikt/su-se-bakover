@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.klage
 
+import arrow.core.Either
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -12,6 +13,11 @@ sealed class Klage {
     abstract val sakId: UUID
     abstract val journalpostId: JournalpostId
     abstract val saksbehandler: NavIdentBruker.Saksbehandler
+
+    abstract fun vilkårsvurder(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        vilkårsvurderinger: VilkårsvurderingerTilKlage,
+    ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage>
 
     companion object {
         fun ny(

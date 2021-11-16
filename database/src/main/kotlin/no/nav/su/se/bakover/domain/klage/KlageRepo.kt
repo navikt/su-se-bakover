@@ -1,10 +1,10 @@
-package no.nav.su.se.bakover.database.klage
+package no.nav.su.se.bakover.domain.klage
 
 import no.nav.su.se.bakover.database.Session
-import no.nav.su.se.bakover.domain.klage.Klage
 import java.util.UUID
 
 interface KlageRepo {
     fun opprett(klage: Klage)
+    fun hentKlage(klageId: UUID): Klage?
     fun hentKlager(sakid: UUID, session: Session): List<Klage>
 }

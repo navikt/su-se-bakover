@@ -9,8 +9,8 @@ import java.util.UUID
 
 data class NyKlageRequest(
     val sakId: UUID,
-    val navIdent: String,
-    val journalpostId: String,
+    private val navIdent: String,
+    private val journalpostId: String,
 ) {
     fun toKlage(clock: Clock): OpprettetKlage {
         return Klage.ny(

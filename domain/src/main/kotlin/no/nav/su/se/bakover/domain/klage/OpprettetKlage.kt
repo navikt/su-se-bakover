@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain.klage
 
+import arrow.core.Either
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -27,5 +29,29 @@ data class OpprettetKlage private constructor(
             journalpostId = journalpostId,
             saksbehandler = saksbehandler,
         )
+    }
+
+    override fun vilkårsvurder(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        vilkårsvurderinger: VilkårsvurderingerTilKlage,
+    ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
+        return when (vilkårsvurderinger) {
+            is VilkårsvurderingerTilKlage.Ferdig -> VilkårsvurdertKlage.Ferdig.create(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                journalpostId = journalpostId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = vilkårsvurderinger,
+            )
+            is VilkårsvurderingerTilKlage.Påbegynt -> VilkårsvurdertKlage.Påbegynt.create(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                journalpostId = journalpostId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = vilkårsvurderinger,
+            )
+        }.right()
     }
 }

@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.service.klage
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.database.klage.KlageRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.fixedClock
@@ -27,14 +27,14 @@ internal class KlageServiceImplTest {
         )
 
         var expectedKlage: OpprettetKlage?
-        klageService.opprettKlage(nyKlage).orNull()!!.also {
+        klageService.opprett(nyKlage).orNull()!!.also {
             expectedKlage = OpprettetKlage.create(
                 id = it.id,
                 opprettet = fixedTidspunkt,
                 sakId = nyKlage.sakId,
-                journalpostId = JournalpostId(value = nyKlage.journalpostId),
+                journalpostId = JournalpostId(value = "1"),
                 saksbehandler = NavIdentBruker.Saksbehandler(
-                    navIdent = nyKlage.navIdent,
+                    navIdent = "2",
                 ),
             )
             it shouldBe expectedKlage

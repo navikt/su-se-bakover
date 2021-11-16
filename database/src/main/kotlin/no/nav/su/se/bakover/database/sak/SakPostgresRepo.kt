@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSessio
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.insert
-import no.nav.su.se.bakover.database.klage.KlageRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
@@ -21,6 +20,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
 import no.nav.su.se.bakover.domain.sak.SakRestans
 import java.util.UUID

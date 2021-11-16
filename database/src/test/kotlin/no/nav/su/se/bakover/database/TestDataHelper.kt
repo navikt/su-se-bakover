@@ -257,7 +257,7 @@ internal class TestDataHelper(
     internal val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource = dataSource)
     internal val dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory)
     internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(dataSource, fixedClock)
-    internal val klagePostgresRepo = KlagePostgresRepo(dataSource)
+    internal val klagePostgresRepo = KlagePostgresRepo(sessionFactory)
 
     internal val sakRepo = SakPostgresRepo(
         sessionFactory = sessionFactory,
