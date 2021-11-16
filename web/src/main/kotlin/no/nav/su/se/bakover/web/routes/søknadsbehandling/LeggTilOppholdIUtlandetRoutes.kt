@@ -46,6 +46,9 @@ internal fun Route.leggTilOppholdIUtlandet(
                                     is SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.UgyldigTilstand -> {
                                         Feilresponser.ugyldigTilstand(fra = it.fra, til = it.til)
                                     }
+                                    SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.VurderingsperiodeUtenforBehandlingsperiode -> {
+                                        Feilresponser.utenforBehandlingsperioden
+                                    }
                                 },
                             )
                         }.map {

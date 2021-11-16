@@ -108,7 +108,7 @@ fun innvilgetUførevilkårForventetInntekt0(
 fun utlandsoppholdInnvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = periode2021,
-): OppholdIUtlandetVilkår {
+): OppholdIUtlandetVilkår.Vurdert {
     return OppholdIUtlandetVilkår.Vurdert.tryCreate(
         vurderingsperioder = nonEmptyListOf(
             VurderingsperiodeOppholdIUtlandet.create(
@@ -125,7 +125,7 @@ fun utlandsoppholdInnvilget(
 fun utlandsoppholdAvslag(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = periode2021,
-): OppholdIUtlandetVilkår {
+): OppholdIUtlandetVilkår.Vurdert {
     return OppholdIUtlandetVilkår.Vurdert.tryCreate(
         vurderingsperioder = nonEmptyListOf(
             VurderingsperiodeOppholdIUtlandet.create(

@@ -730,10 +730,15 @@ internal class SøknadsbehandlingServiceImpl(
         val vilkårsvurdert = søknadsbehandling.leggTilOppholdIUtlandet(vilkår, clock)
             .getOrHandle {
                 return when (it) {
-                    Søknadsbehandling.KunneIkkeLeggeTilOppholdIUtlandet.IkkeLovÅLeggeTilOppholdIUtlandetIDenneStatusen -> SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.UgyldigTilstand(
-                        fra = søknadsbehandling::class,
-                        til = Søknadsbehandling.Vilkårsvurdert::class,
-                    )
+                    Søknadsbehandling.KunneIkkeLeggeTilOppholdIUtlandet.IkkeLovÅLeggeTilOppholdIUtlandetIDenneStatusen -> {
+                        SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.UgyldigTilstand(
+                            fra = søknadsbehandling::class,
+                            til = Søknadsbehandling.Vilkårsvurdert::class,
+                        )
+                    }
+                    Søknadsbehandling.KunneIkkeLeggeTilOppholdIUtlandet.VurderingsperiodeUtenforBehandlingsperiode -> {
+                        SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.VurderingsperiodeUtenforBehandlingsperiode
+                    }
                 }.left()
             }
 

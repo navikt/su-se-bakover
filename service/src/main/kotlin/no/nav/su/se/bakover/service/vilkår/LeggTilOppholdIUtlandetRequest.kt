@@ -30,7 +30,7 @@ data class LeggTilOppholdIUtlandetRequest(
         Uavklart
     }
 
-    fun toVilkår(behandlingsperiode: Periode, clock: Clock): Either<UgyldigOppholdIUtlandet, OppholdIUtlandetVilkår> {
+    fun toVilkår(behandlingsperiode: Periode, clock: Clock): Either<UgyldigOppholdIUtlandet, OppholdIUtlandetVilkår.Vurdert> {
         return when (status) {
             Status.SkalVæreMerEnn90DagerIUtlandet -> {
                 lagVurdertVilkår(
@@ -68,7 +68,7 @@ data class LeggTilOppholdIUtlandetRequest(
         resultat: Resultat,
         clock: Clock,
         periode: Periode,
-    ): Either<UgyldigOppholdIUtlandet, OppholdIUtlandetVilkår> {
+    ): Either<UgyldigOppholdIUtlandet, OppholdIUtlandetVilkår.Vurdert> {
         return OppholdIUtlandetVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(
                 VurderingsperiodeOppholdIUtlandet.tryCreate(
