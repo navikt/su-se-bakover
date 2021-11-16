@@ -658,47 +658,37 @@ internal class RevurderingServiceImpl(
         periode = periode,
     ).resultat
 
-    override fun forhåndsvarsleEllerSendTilAttestering(
+    override fun lagreOgSendForhåndsvarsel(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        revurderingshandling: Revurderingshandling,
+        forhåndsvarselhandling: Forhåndsvarselhandling,
         fritekst: String,
     ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
         val revurdering = hent(revurderingId)
             .getOrHandle { return KunneIkkeForhåndsvarsle.FantIkkeRevurdering.left() }
 
         when (revurdering) {
-            is SimulertRevurdering -> {
+            !is SimulertRevurdering -> {
+                return KunneIkkeForhåndsvarsle.UgyldigTilstand(revurdering::class, SimulertRevurdering::class).left()
+            }
+            else -> {
                 kanSendesTilAttestering(revurdering).getOrHandle {
                     return KunneIkkeForhåndsvarsle.Attestering(it).left()
                 }
                 val forhåndsvarselErSendt = revurdering.forhåndsvarsel is Forhåndsvarsel.SkalForhåndsvarsles
 
-                if (forhåndsvarselErSendt) {
-                    return KunneIkkeForhåndsvarsle.AlleredeForhåndsvarslet.left()
+                return if (forhåndsvarselErSendt) {
+                    KunneIkkeForhåndsvarsle.AlleredeForhåndsvarslet.left()
                 } else {
-                    return when (revurderingshandling) {
-                        Revurderingshandling.SEND_TIL_ATTESTERING -> {
-                            lagreForhåndsvarsling(revurdering, Forhåndsvarsel.IngenForhåndsvarsel)
-                            sendTilAttestering(
-                                SendTilAttesteringRequest(
-                                    revurderingId = revurderingId,
-                                    saksbehandler = saksbehandler,
-                                    fritekstTilBrev = fritekst,
-                                    skalFøreTilBrevutsending = true,
-                                ),
-                            ).mapLeft {
-                                KunneIkkeForhåndsvarsle.Attestering(it)
-                            }
+                    when (forhåndsvarselhandling) {
+                        Forhåndsvarselhandling.INGEN_FORHÅNDSVARSEL -> {
+                            lagreForhåndsvarsling(revurdering, Forhåndsvarsel.IngenForhåndsvarsel).right()
                         }
-                        Revurderingshandling.FORHÅNDSVARSLE -> {
+                        Forhåndsvarselhandling.FORHÅNDSVARSLE -> {
                             sendForhåndsvarsling(revurdering, fritekst)
                         }
                     }
                 }
-            }
-            else -> {
-                return KunneIkkeForhåndsvarsle.UgyldigTilstand(revurdering::class, SimulertRevurdering::class).left()
             }
         }
     }
@@ -1257,6 +1247,15 @@ internal class RevurderingServiceImpl(
             }.getOrHandle {
                 return KunneIkkeAvslutteRevurdering.KunneIkkeLageAvsluttetRevurdering(it).left()
             }
+        }
+
+        if (avsluttetRevurdering is Revurdering) {
+            oppgaveService.lukkOppgave(avsluttetRevurdering.oppgaveId)
+                .mapLeft {
+                    log.error("Kunne ikke lukke oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering. Dette må gjøres manuelt.")
+                }.map {
+                    log.info("Lukket oppgave ${avsluttetRevurdering.oppgaveId} ved avslutting av revurdering.")
+                }
         }
 
         if (avsluttetRevurdering is Revurdering && skalSendeBrev) {

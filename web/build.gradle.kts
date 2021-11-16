@@ -3,7 +3,7 @@ val ktorVersion: String by project
 plugins {
     /** Det ser ut som disse genererte filene ikke blir ekskludert av ktlint-tasken.
      * Gradle gir oss noen warnings om at vi ikke kan oppdatere til Gradle 8. */
-    id("com.github.davidmc24.gradle.plugin.avro") version "1.2.1"
+    id("com.github.davidmc24.gradle.plugin.avro") version "1.3.0"
 }
 
 avro {
@@ -24,7 +24,7 @@ dependencies {
         exclude(group = "junit")
     }
     implementation("io.ktor:ktor-metrics-micrometer:$ktorVersion")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.7.5")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.8.0")
     implementation("io.ktor:ktor-locations:$ktorVersion")
     implementation("io.ktor:ktor-jackson:$ktorVersion")
     implementation("com.papertrailapp", "logback-syslog4j", "1.0.0")

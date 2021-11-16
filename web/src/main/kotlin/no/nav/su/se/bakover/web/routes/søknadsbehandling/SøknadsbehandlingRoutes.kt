@@ -40,7 +40,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.VilkårsvurderRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
@@ -51,9 +51,11 @@ import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeGenerereBrev
+import no.nav.su.se.bakover.web.routes.Feilresponser.depositumErHøyereEnnInnskudd
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSak
+import no.nav.su.se.bakover.web.routes.Feilresponser.harIkkeEktefelle
 import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeAvgjøreOmFørstegangEllerNyPeriode
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -222,14 +224,6 @@ internal fun Route.søknadsbehandlingRoutes(
         patch("$behandlingPath/{behandlingId}/informasjon") {
             call.withBehandlingId { behandlingId ->
                 call.withBody<BehandlingsinformasjonJson> { body ->
-                    if (body.formue != null && !body.formue.harVerdierOgErGyldig()) {
-                        return@withBehandlingId call.svar(
-                            BadRequest.errorJson(
-                                "Ugyldige verdier på formue",
-                                "ugyldige_verdier_på_formue",
-                            ),
-                        )
-                    }
                     søknadsbehandlingService.vilkårsvurder(
                         VilkårsvurderRequest(
                             behandlingId = behandlingId,
@@ -240,12 +234,8 @@ internal fun Route.søknadsbehandlingRoutes(
                             call.svar(
                                 when (it) {
                                     KunneIkkeVilkårsvurdere.FantIkkeBehandling -> fantIkkeBehandling
-                                    KunneIkkeVilkårsvurdere.HarIkkeEktefelle -> {
-                                        BadRequest.errorJson(
-                                            "Kan ikke ha formue for eps når søker ikke har eps",
-                                            "har_ikke_ektefelle",
-                                        )
-                                    }
+                                    KunneIkkeVilkårsvurdere.HarIkkeEktefelle -> harIkkeEktefelle
+                                    is KunneIkkeVilkårsvurdere.FeilVedValideringAvBehandlingsinformasjon -> it.feil.tilResultat()
                                 },
                             )
                         },
@@ -494,5 +484,19 @@ internal fun Route.søknadsbehandlingRoutes(
                 )
             }
         }
+    }
+}
+
+internal fun VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.tilResultat(): Resultat {
+    return when (this) {
+        VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.DepositumErHøyereEnnInnskudd -> depositumErHøyereEnnInnskudd
+        VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.BosituasjonOgFormueForEpsErIkkeKonsistent -> BadRequest.errorJson(
+            "Bosituasjon og formue for EPS er ikke konsistent",
+            "bosituasjon_og_formue_for_eps_er_ikke_konsistent",
+        )
+        VilkårsvurderRequest.FeilVedValideringAvBehandlingsinformasjon.KanIkkeLeggeTilFormueFørBosituasjon -> BadRequest.errorJson(
+            "Kan ikke legge til formue før det er lagt til en bosituasjon",
+            "legger_til_formue_før_bosituasjon",
+        )
     }
 }

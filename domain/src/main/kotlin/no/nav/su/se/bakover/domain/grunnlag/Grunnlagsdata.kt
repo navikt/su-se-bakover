@@ -106,3 +106,16 @@ fun List<Bosituasjon>.periode(): Periode? = this.map { it.periode }.let { period
             tilOgMed = perioder.maxOf { it.tilOgMed },
         )
 }
+
+fun List<Fradragsgrunnlag>.fjernInntekterForEPSDersomFradragIkkeErKonsistentMedOppdatertBosituasjon(b: Bosituasjon): List<Fradragsgrunnlag> {
+    return when (b) {
+        is Bosituasjon.Ufullstendig.HarIkkeEps,
+        is Bosituasjon.Fullstendig.Enslig,
+        is Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen,
+        -> this.filter { it.tilhører == FradragTilhører.BRUKER }
+
+        is Bosituasjon.Ufullstendig.HarEps,
+        is Bosituasjon.Fullstendig.EktefellePartnerSamboer,
+        -> this
+    }
+}

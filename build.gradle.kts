@@ -7,7 +7,7 @@ buildscript {
 plugins {
     kotlin("jvm")
     // Støtter unicode filer (i motsetning til https://github.com/JLLeitschuh/ktlint-gradle 10.0.0) og har nyere dependencies som gradle. Virker som den oppdateres hyppigere.
-    id("org.jmailen.kotlinter") version "3.6.0"
+    id("org.jmailen.kotlinter") version "3.7.0"
 }
 
 version = "0.0.1"
@@ -37,11 +37,11 @@ allprojects {
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
         implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
-        implementation("ch.qos.logback:logback-classic:1.2.6")
-        implementation("net.logstash.logback:logstash-logback-encoder:6.6")
+        implementation("ch.qos.logback:logback-classic:1.2.7")
+        implementation("net.logstash.logback:logstash-logback-encoder:7.0")
         implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
         implementation("org.apache.kafka:kafka-clients:3.0.0")
-        implementation("com.networknt:json-schema-validator:1.0.63")
+        implementation("com.networknt:json-schema-validator:1.0.64")
         implementation("no.finn.unleash:unleash-client-java:4.4.1")
 
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.3.0")

@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.fjernInntekterForEPSDersomFradragIkkeErKonsistentMedOppdatertBosituasjon
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -33,6 +34,7 @@ import no.nav.su.se.bakover.domain.visitor.Visitable
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
+import kotlin.reflect.KClass
 
 private val log = LoggerFactory.getLogger("Søknadsbehandling.kt")
 
@@ -87,8 +89,55 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     open fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> =
         KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
 
+    fun oppdaterBosituasjon(
+        bosituasjon: Grunnlag.Bosituasjon,
+        clock: Clock,
+    ): Either<KunneIkkeOppdatereBosituasjon, Vilkårsvurdert> {
+        val oppdatertGrunnlagsdata = Grunnlagsdata.tryCreate(
+            fradragsgrunnlag = this.grunnlagsdata.fradragsgrunnlag.fjernInntekterForEPSDersomFradragIkkeErKonsistentMedOppdatertBosituasjon(
+                bosituasjon,
+            ),
+            bosituasjon = listOf(bosituasjon),
+        ).getOrHandle {
+            // TODO - håndter oppdatering av bosituasjon inne i grunnlagsdata. Den skal også fjerne potensielle fradrag for EPS
+            when (it) {
+                KunneIkkeLageGrunnlagsdata.FradragForEpsSomIkkeHarEPS -> throw IllegalStateException("Fradrag for EPS skulle ha vært fjernet.")
+                KunneIkkeLageGrunnlagsdata.FradragManglerBosituasjon -> throw IllegalStateException("Bosituasjonsperioden har blitt satt feil sammenlignet med fradrag")
+                KunneIkkeLageGrunnlagsdata.MåLeggeTilBosituasjonFørFradrag -> throw IllegalStateException("Dette er metoden for å oppdatere bosituasjon. Vi har en implementasjonsfeil ved at fradrag blir lagt til uten bosituasjon")
+                is KunneIkkeLageGrunnlagsdata.UgyldigFradragsgrunnlag -> throw IllegalStateException("Eneste endringen vi potensialt har gjort, er å fjerne fradrag for EPS")
+            }
+        }
+        val oppdatertBehandlingsinformasjon = this.behandlingsinformasjon.copy(
+            formue = this.behandlingsinformasjon.formue?.nullstillEpsFormueHvisIngenEps(bosituasjon),
+        )
+        return when (this) {
+            is Vilkårsvurdert -> tilVilkårsvurdert(
+                oppdatertBehandlingsinformasjon,
+                oppdatertGrunnlagsdata,
+                clock,
+            ).right()
+            is Beregnet -> tilVilkårsvurdert(oppdatertBehandlingsinformasjon, oppdatertGrunnlagsdata, clock).right()
+            is Simulert -> tilVilkårsvurdert(oppdatertBehandlingsinformasjon, oppdatertGrunnlagsdata, clock).right()
+            is Underkjent -> tilVilkårsvurdert(oppdatertBehandlingsinformasjon, oppdatertGrunnlagsdata, clock).right()
+
+            is TilAttestering,
+            is LukketSøknadsbehandling,
+            is Iverksatt,
+            -> KunneIkkeOppdatereBosituasjon.UgyldigTilstand(this::class, Vilkårsvurdert::class).left()
+        }
+    }
+
+    sealed class KunneIkkeOppdatereBosituasjon {
+        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Vilkårsvurdert>) :
+            KunneIkkeOppdatereBosituasjon()
+    }
+
     sealed class Vilkårsvurdert : Søknadsbehandling() {
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon, clock: Clock): Vilkårsvurdert =
+        fun tilVilkårsvurdert(
+            behandlingsinformasjon: Behandlingsinformasjon,
+            grunnlagsdata: Grunnlagsdata = this.grunnlagsdata,
+            clock: Clock,
+        ): Vilkårsvurdert =
             opprett(
                 id,
                 opprettet,
@@ -342,7 +391,11 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         abstract val beregning: Beregning
         abstract override val stønadsperiode: Stønadsperiode
 
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon, clock: Clock): Vilkårsvurdert =
+        fun tilVilkårsvurdert(
+            behandlingsinformasjon: Behandlingsinformasjon,
+            grunnlagsdata: Grunnlagsdata = this.grunnlagsdata,
+            clock: Clock,
+        ): Vilkårsvurdert =
             Vilkårsvurdert.opprett(
                 id,
                 opprettet,
@@ -637,7 +690,11 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             ).right()
         }
 
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon, clock: Clock): Vilkårsvurdert =
+        fun tilVilkårsvurdert(
+            behandlingsinformasjon: Behandlingsinformasjon,
+            grunnlagsdata: Grunnlagsdata = this.grunnlagsdata,
+            clock: Clock,
+        ): Vilkårsvurdert =
             Vilkårsvurdert.opprett(
                 id,
                 opprettet,
@@ -975,7 +1032,11 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
         abstract fun nyOppgaveId(nyOppgaveId: OppgaveId): Underkjent
 
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon, clock: Clock): Vilkårsvurdert =
+        fun tilVilkårsvurdert(
+            behandlingsinformasjon: Behandlingsinformasjon,
+            grunnlagsdata: Grunnlagsdata = this.grunnlagsdata,
+            clock: Clock,
+        ): Vilkårsvurdert =
             Vilkårsvurdert.opprett(
                 id,
                 opprettet,

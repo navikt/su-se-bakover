@@ -125,7 +125,7 @@ object BehandlingsinformasjonTestData {
         )
         val Uavklart = Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.MåInnhenteMerInformasjon,
-            verdier = null,
+            verdier = Behandlingsinformasjon.Formue.Verdier.lagTomVerdier(),
             epsVerdier = null,
             begrunnelse = null
         )
