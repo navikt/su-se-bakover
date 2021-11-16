@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSessio
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
-import no.nav.su.se.bakover.database.beregning.serialiserBeregning
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
@@ -515,7 +514,7 @@ internal class SøknadsbehandlingPostgresRepo(
         """.trimIndent()
             .oppdatering(
                 params = defaultParams(søknadsbehandling).plus(
-                    "beregning" to serialiserBeregning(søknadsbehandling.beregning),
+                    "beregning" to søknadsbehandling.beregning,
                 ),
                 session = session,
             )
@@ -528,7 +527,7 @@ internal class SøknadsbehandlingPostgresRepo(
             .oppdatering(
                 defaultParams(søknadsbehandling).plus(
                     listOf(
-                        "beregning" to serialiserBeregning(søknadsbehandling.beregning),
+                        "beregning" to søknadsbehandling.beregning,
                         "simulering" to objectMapper.writeValueAsString(søknadsbehandling.simulering),
                     ),
                 ),

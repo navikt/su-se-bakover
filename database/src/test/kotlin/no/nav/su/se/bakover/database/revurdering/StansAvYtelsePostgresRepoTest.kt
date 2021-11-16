@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.revurdering
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.persistertVariant
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -43,14 +44,14 @@ internal class StansAvYtelsePostgresRepoTest {
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
 
-            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering
+            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering.persistertVariant()
 
             val iverksattRevurdering = simulertRevurdering.iverksett(
                 Attestering.Iverksatt(NavIdentBruker.Attestant("atte"), fixedTidspunkt),
             ).getOrFail("Feil i oppsett av testdata")
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
-            testDataHelper.revurderingRepo.hent(iverksattRevurdering.id) shouldBe iverksattRevurdering
+            testDataHelper.revurderingRepo.hent(iverksattRevurdering.id) shouldBe iverksattRevurdering.persistertVariant()
         }
     }
 
@@ -129,7 +130,9 @@ internal class StansAvYtelsePostgresRepoTest {
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
 
-            val avsluttet = simulertRevurdering.avslutt(
+            val persistertSimulert = testDataHelper.revurderingRepo.hent(simulertRevurdering.id) as StansAvYtelseRevurdering.SimulertStansAvYtelse
+
+            val avsluttet = persistertSimulert.avslutt(
                 begrunnelse = "jeg opprettet en stans av ytelse, så gjennom, og så teknte 'neh'", tidspunktAvsluttet = fixedTidspunkt
             ).getOrFail("her skulle vi ha hatt en avsluttet stans av ytelse revurdering")
 

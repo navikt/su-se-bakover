@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import no.nav.su.se.bakover.common.objectMapper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -98,6 +99,66 @@ internal class DatabaseExKtTest {
             }.let {
                 it.message shouldContain """relation "test" does not exist"""
             }
+        }
+    }
+
+    @Test
+    fun `krever at beregning er en instans eller null ved insert`() {
+        assertThrows<IllegalArgumentException> {
+            "update what ever u like where id=:id".insert(
+                mapOf(
+                    "beregning" to objectMapper.writeValueAsString(innvilgetBeregning()),
+                ),
+                mock(),
+            )
+        }
+
+        assertDoesNotThrow {
+            "update what ever u like where id=:id".insert(
+                mapOf(
+                    "beregning" to null,
+                ),
+                mock(),
+            )
+        }
+
+        assertDoesNotThrow {
+            "update what ever u like where id=:id".insert(
+                mapOf(
+                    "beregning" to innvilgetBeregning(),
+                ),
+                mock(),
+            )
+        }
+    }
+
+    @Test
+    fun `krever at beregning er en instans eller null ved oppdatering`() {
+        assertThrows<IllegalArgumentException> {
+            "update what ever u like where id=:id".oppdatering(
+                mapOf(
+                    "beregning" to objectMapper.writeValueAsString(innvilgetBeregning()),
+                ),
+                mock(),
+            )
+        }
+
+        assertDoesNotThrow {
+            "update what ever u like where id=:id".oppdatering(
+                mapOf(
+                    "beregning" to null,
+                ),
+                mock(),
+            )
+        }
+
+        assertDoesNotThrow {
+            "update what ever u like where id=:id".oppdatering(
+                mapOf(
+                    "beregning" to innvilgetBeregning(),
+                ),
+                mock(),
+            )
         }
     }
 }
