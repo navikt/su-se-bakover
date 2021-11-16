@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
+import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -380,7 +381,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     ),
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-                    Vilkår.Uførhet.Vurdert.create(
+                    uføre = Vilkår.Uførhet.Vurdert.create(
                         vurderingsperioder = nonEmptyListOf(
                             Vurderingsperiode.Uføre.create(
                                 id = UUID.randomUUID(),
@@ -392,6 +393,8 @@ internal class RevurderingLeggTilFormueServiceTest {
                             ),
                         ),
                     ),
+                    formue = Vilkår.Formue.IkkeVurdert,
+                    oppholdIUtlandet = OppholdIUtlandetVilkår.IkkeVurdert
                 ),
             ),
         ).second
@@ -553,6 +556,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                 ),
             ),
         ),
+        formue = Vilkår.Formue.IkkeVurdert,
         oppholdIUtlandet = utlandsoppholdInnvilget(periode = periodeHele2021)
     )
 

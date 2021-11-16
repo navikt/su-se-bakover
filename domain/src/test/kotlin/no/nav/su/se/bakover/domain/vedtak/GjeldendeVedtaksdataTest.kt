@@ -248,7 +248,7 @@ internal class GjeldendeVedtaksdataTest {
                 bosituasjon = listOf(),
             ),
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-                Vilkår.Uførhet.Vurdert.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -260,7 +260,8 @@ internal class GjeldendeVedtaksdataTest {
                         ),
                     ),
                 ),
-                innvilgetFormueVilkår(periode),
+                formue = innvilgetFormueVilkår(periode),
+                oppholdIUtlandet = utlandsoppholdInnvilget(periode = periode)
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 revurderingsteg = mapOf(

@@ -266,9 +266,9 @@ sealed class Vilkårsvurderinger {
     }
 
     data class Revurdering(
-        val uføre: Vilkår.Uførhet = Vilkår.Uførhet.IkkeVurdert,
-        val formue: Vilkår.Formue = Vilkår.Formue.IkkeVurdert,
-        val oppholdIUtlandet: OppholdIUtlandetVilkår = OppholdIUtlandetVilkår.IkkeVurdert,
+        val uføre: Vilkår.Uførhet,
+        val formue: Vilkår.Formue,
+        val oppholdIUtlandet: OppholdIUtlandetVilkår,
     ) : Vilkårsvurderinger() {
         override val vilkår: Set<Vilkår>
             get() {

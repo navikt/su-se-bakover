@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
+import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -48,7 +49,7 @@ internal class RevurderingLeggTilUføregrunnlagTest {
                     ),
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-                    Vilkår.Uførhet.Vurdert.create(
+                    uføre = Vilkår.Uførhet.Vurdert.create(
                         vurderingsperioder = nonEmptyListOf(
                             Vurderingsperiode.Uføre.create(
                                 id = UUID.randomUUID(),
@@ -60,7 +61,7 @@ internal class RevurderingLeggTilUføregrunnlagTest {
                             ),
                         ),
                     ),
-                    Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
+                    formue = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
                         vurderingsperioder = nonEmptyListOf(
                             Vurderingsperiode.Formue.create(
                                 id = UUID.randomUUID(), opprettet = fixedTidspunkt, resultat = Resultat.Avslag,
@@ -83,7 +84,7 @@ internal class RevurderingLeggTilUføregrunnlagTest {
                             ),
                         ),
                     ),
-
+                    oppholdIUtlandet = OppholdIUtlandetVilkår.IkkeVurdert
                 )
             ),
         ).second

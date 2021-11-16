@@ -77,7 +77,7 @@ sealed class OppholdIUtlandetVilkår : Vilkår() {
         }
 
         fun slåSammenVurderingsperioder(): Either<UgyldigOppholdIUtlandetVilkår, OppholdIUtlandetVilkår> {
-            return fromVurderingsperioder(vurderingsperioder = vurderingsperioder.slåSammenVurderingsperioder())
+            return tryCreateFromVurderingsperioder(vurderingsperioder = vurderingsperioder.slåSammenVurderingsperioder())
         }
 
         companion object {
@@ -93,9 +93,9 @@ sealed class OppholdIUtlandetVilkår : Vilkår() {
             fun createFromVilkårsvurderinger(
                 vurderingsperioder: Nel<VurderingsperiodeOppholdIUtlandet>,
             ): Vurdert =
-                fromVurderingsperioder(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
+                tryCreateFromVurderingsperioder(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
 
-            fun fromVurderingsperioder(
+            fun tryCreateFromVurderingsperioder(
                 vurderingsperioder: Nel<VurderingsperiodeOppholdIUtlandet>,
             ): Either<UgyldigOppholdIUtlandetVilkår, Vurdert> {
                 if (vurderingsperioder.overlappende()) {
@@ -208,7 +208,7 @@ data class VurderingsperiodeOppholdIUtlandet private constructor(
                 .fold(mutableListOf<MutableList<VurderingsperiodeOppholdIUtlandet>>()) { acc, oppholdIUtlandet ->
                     if (acc.isEmpty()) {
                         acc.add(mutableListOf(oppholdIUtlandet))
-                    } else if (acc.last().sisteFormueperiodeErLikOgTilstøtende(oppholdIUtlandet)) {
+                    } else if (acc.last().sistePeriodeErLikOgTilstøtende(oppholdIUtlandet)) {
                         acc.last().add(oppholdIUtlandet)
                     } else {
                         acc.add(mutableListOf(oppholdIUtlandet))
@@ -221,7 +221,7 @@ data class VurderingsperiodeOppholdIUtlandet private constructor(
             return NonEmptyList.fromListUnsafe(slåttSammen)
         }
 
-        private fun List<VurderingsperiodeOppholdIUtlandet>.sisteFormueperiodeErLikOgTilstøtende(other: VurderingsperiodeOppholdIUtlandet) =
+        private fun List<VurderingsperiodeOppholdIUtlandet>.sistePeriodeErLikOgTilstøtende(other: VurderingsperiodeOppholdIUtlandet) =
             this.last().tilstøterOgErLik(other)
     }
 

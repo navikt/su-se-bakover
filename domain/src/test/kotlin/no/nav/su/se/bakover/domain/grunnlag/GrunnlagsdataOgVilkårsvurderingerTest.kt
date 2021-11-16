@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -48,13 +49,14 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                     ),
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-                    innvilgetUførevilkårForventetInntekt0(
+                    uføre = innvilgetUførevilkårForventetInntekt0(
                         periode = Periode.create(
                             1.januar(2021),
                             31.mai(2021),
                         ),
                     ),
-                    Vilkår.Formue.IkkeVurdert,
+                    formue = Vilkår.Formue.IkkeVurdert,
+                    oppholdIUtlandet = OppholdIUtlandetVilkår.IkkeVurdert,
                 ),
             )
         }.message shouldBe "Grunnlagsdataperioden (Periode(fraOgMed=2021-01-01, tilOgMed=2021-04-30)) må være lik vilkårsvurderingerperioden (Periode(fraOgMed=2021-01-01, tilOgMed=2021-05-31))"
@@ -85,13 +87,14 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
                 ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-                innvilgetUførevilkårForventetInntekt0(
+                uføre = innvilgetUførevilkårForventetInntekt0(
                     periode = Periode.create(
                         1.januar(2021),
                         31.mai(2021),
                     ),
                 ),
-                Vilkår.Formue.IkkeVurdert,
+                formue = Vilkår.Formue.IkkeVurdert,
+                oppholdIUtlandet = OppholdIUtlandetVilkår.IkkeVurdert,
             ),
         )
     }
@@ -101,13 +104,14 @@ internal class GrunnlagsdataOgVilkårsvurderingerTest {
         GrunnlagsdataOgVilkårsvurderinger(
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-                innvilgetUførevilkårForventetInntekt0(
+                uføre = innvilgetUførevilkårForventetInntekt0(
                     periode = Periode.create(
                         1.januar(2021),
                         31.mai(2021),
                     ),
                 ),
-                Vilkår.Formue.IkkeVurdert,
+                formue = Vilkår.Formue.IkkeVurdert,
+                oppholdIUtlandet = OppholdIUtlandetVilkår.IkkeVurdert,
             ),
         )
     }

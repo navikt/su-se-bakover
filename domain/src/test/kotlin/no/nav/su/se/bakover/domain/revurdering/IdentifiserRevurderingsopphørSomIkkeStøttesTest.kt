@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.test.periodeNovember2021
 import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt0
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttAlleRevurdering
-import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgInnvilgetFormue
+import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 
@@ -34,7 +34,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
         val beregning = beregning(periode = Periode.create(1.mai(2021), 31.desember(2021)))
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = beregning.periode,
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(periode = periodeJuni2021),
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = periodeJuni2021),
             tidligereBeregning = beregning,
             nyBeregning = beregning,
             clock = fixedClock,
@@ -63,7 +63,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
     fun `identifiserer at opphør av uførevilkår skjer i kombinasjon med beløpsendringer`() {
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = periode2021,
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(periode = periodeJuni2021),
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = periodeJuni2021),
             tidligereBeregning = beregning(
                 periode = periodeDesember2021,
                 uføregrunnlag = nonEmptyListOf(
@@ -258,7 +258,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
     fun `identifiserer ingen problemer ved opphør av uførevilkår med endring i forventet inntekt`() {
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = periodeDesember2021,
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(periode = periodeDesember2021),
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = periodeDesember2021),
             tidligereBeregning = beregning(
                 periode = periodeDesember2021,
                 uføregrunnlag = nonEmptyListOf(
@@ -296,7 +296,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
     fun `skal ikke kunne opphøre og legge til fradrag i kombinasjon`() {
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = periodeDesember2021,
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(periode = periodeDesember2021),
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = periodeDesember2021),
             tidligereBeregning = beregning(periode = periodeDesember2021),
             nyBeregning = beregning(
                 periode = periodeDesember2021,
@@ -317,7 +317,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
     fun `skal ikke kunne opphøre og fjerne fradrag i kombinasjon`() {
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = periodeDesember2021,
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(periode = periodeDesember2021),
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = periodeDesember2021),
             tidligereBeregning = beregning(
                 periode = periodeDesember2021,
                 fradragsgrunnlag = nonEmptyListOf(
@@ -339,7 +339,7 @@ internal class IdentifiserRevurderingsopphørSomIkkeStøttesTest {
         val februarOgUt2021 = Periode.create(1.februar(2021), 31.desember(2021))
         IdentifiserRevurderingsopphørSomIkkeStøttes.MedBeregning(
             revurderingsperiode = februarOgUt2021,
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(periode = februarOgUt2021),
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(periode = februarOgUt2021),
             tidligereBeregning = beregning(
                 periode = periode2021,
                 fradragsgrunnlag = listOf(

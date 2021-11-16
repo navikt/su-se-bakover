@@ -266,7 +266,7 @@ fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         clock,
     ).let {
         it.copy(
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
                 periode = revurderingsperiode,
                 bosituasjon = it.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
             ),
@@ -359,7 +359,7 @@ fun simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         clock,
     ).let {
         it.copy(
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
                 periode = revurderingsperiode,
                 bosituasjon = it.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
             ),
@@ -411,7 +411,7 @@ fun tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
         clock,
     ).let {
         it.copy(
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
                 periode = revurderingsperiode,
                 bosituasjon = it.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
             ),
@@ -460,7 +460,7 @@ fun iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         clock,
     ).let {
         it.copy(
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
                 periode = revurderingsperiode,
                 bosituasjon = it.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
             ),

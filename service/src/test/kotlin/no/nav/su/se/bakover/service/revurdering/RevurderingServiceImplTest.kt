@@ -81,7 +81,6 @@ import no.nav.su.se.bakover.test.attestant
 import no.nav.su.se.bakover.test.avsluttetGjenopptakelseAvYtelseeFraIverksattSøknadsbehandlignsvedtak
 import no.nav.su.se.bakover.test.avsluttetStansAvYtelseFraIverksattSøknadsbehandlignsvedtak
 import no.nav.su.se.bakover.test.beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -106,7 +105,7 @@ import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgInnvilgetFormue
+import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -1401,7 +1400,7 @@ internal class RevurderingServiceImplTest {
         val revurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
             grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
                 grunnlagsdata = grunnlagsdataEnsligMedFradrag(),
-                vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(),
+                vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(),
             ),
         ).second
         val revurderingRepoMock = mock<RevurderingRepo> {

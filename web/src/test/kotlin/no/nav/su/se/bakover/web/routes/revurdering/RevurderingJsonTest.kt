@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.attesteringIverksatt
@@ -80,6 +81,8 @@ internal class RevurderingJsonTest {
                 uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
                 ),
+                formue = Vilkår.Formue.IkkeVurdert,
+                oppholdIUtlandet = OppholdIUtlandetVilkår.IkkeVurdert
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(

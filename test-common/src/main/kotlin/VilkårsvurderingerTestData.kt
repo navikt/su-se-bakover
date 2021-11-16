@@ -392,17 +392,20 @@ fun vilkårsvurderingerAvslåttAlle(
  * uføre: avslag
  * formue: innvilget
  */
-fun vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(
+fun vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
     periode: Periode = periode2021,
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode),
 ): Vilkårsvurderinger.Revurdering {
     return Vilkårsvurderinger.Revurdering(
-        avslåttUførevilkårUtenGrunnlag(
+        uføre = avslåttUførevilkårUtenGrunnlag(
             periode = periode,
         ),
-        formuevilkårUtenEps0Innvilget(
+        formue = formuevilkårUtenEps0Innvilget(
             periode = periode,
             bosituasjon = bosituasjon,
         ),
+        oppholdIUtlandet = utlandsoppholdInnvilget(
+            periode = periode,
+        )
     )
 }
