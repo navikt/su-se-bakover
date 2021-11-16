@@ -126,7 +126,6 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
                   },
                   "oppholdIUtlandet": null
@@ -205,7 +204,6 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
                   },
                   "oppholdIUtlandet": null
@@ -284,7 +282,6 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
                   },
                   "oppholdIUtlandet": null
@@ -363,7 +360,6 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
                   },
                   "oppholdIUtlandet": null
@@ -447,7 +443,6 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
                   },
                   "oppholdIUtlandet": null
@@ -531,7 +526,6 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
                   },
                   "oppholdIUtlandet": null
@@ -616,7 +610,6 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
                   },
                   "oppholdIUtlandet": null
@@ -701,7 +694,6 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
                   },
                   "oppholdIUtlandet": null
@@ -783,7 +775,6 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
                   },
                   "oppholdIUtlandet": null
@@ -884,7 +875,6 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
                   },
                   "oppholdIUtlandet": null
@@ -984,7 +974,6 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
                   },
                   "oppholdIUtlandet": null
@@ -1081,7 +1070,6 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
                   },
                   "oppholdIUtlandet": null
@@ -1172,7 +1160,6 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
                   },
                   "oppholdIUtlandet": null
@@ -1264,7 +1251,6 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
                   },
                   "oppholdIUtlandet": null
@@ -1353,7 +1339,6 @@ internal class RevurderingJsonTest {
                           "beløp": 50676
                       }
                     ],
-                    "vilkår": "Formue",
                     "vurderinger": []
                   },
                   "oppholdIUtlandet": null

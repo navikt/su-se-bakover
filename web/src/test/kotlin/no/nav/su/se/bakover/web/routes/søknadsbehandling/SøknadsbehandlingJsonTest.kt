@@ -127,7 +127,6 @@ internal class SøknadsbehandlingJsonTest {
                       "beløp": 50676
                   }
                 ],
-                "vilkår": "Formue",
                 "vurderinger": []
               },
               "oppholdIUtlandet": $expectedOppholdIUtlandetVurdert
@@ -208,7 +207,6 @@ internal class SøknadsbehandlingJsonTest {
                       "beløp": 50676
                   }
                 ],
-                "vilkår": "Formue",
                 "vurderinger": []
             },
             "oppholdIUtlandet": null

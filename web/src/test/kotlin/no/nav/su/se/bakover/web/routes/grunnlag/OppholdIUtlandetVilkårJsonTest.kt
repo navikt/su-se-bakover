@@ -52,7 +52,6 @@ internal class OppholdIUtlandetVilkårJsonTest {
         //language=JSON
         internal val expectedOppholdIUtlandetVurdert = """
             {
-              "vilkår": "OppholdIUtlandet",
               "status": "SkalHoldeSegINorge",
               "begrunnelse": "jess"
             } 
@@ -61,7 +60,6 @@ internal class OppholdIUtlandetVilkårJsonTest {
         //language=JSON
         internal val expectedOppholdIUtlandetIkkeVurdert = """
             {
-              "vilkår": "OppholdIUtlandet",
               "status": "Uavklart",
               "begrunnelse": null
             } 

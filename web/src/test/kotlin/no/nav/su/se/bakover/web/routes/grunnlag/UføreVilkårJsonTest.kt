@@ -36,7 +36,6 @@ class UføreVilkårJsonTest {
         //language=JSON
         internal val expectedVurderingUføreJson = """
         {
-          "vilkår": "Uførhet",
           "vurderinger": [{
             "id": "$vilkårsvurderingUføreId",
             "opprettet": "${DateTimeFormatter.ISO_INSTANT.format(vilkårsvurderingUføreOpprettet)}",

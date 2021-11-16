@@ -638,7 +638,6 @@ internal class VedtakssnapshotJsonTest {
         """.trimIndent()
 
         val actualJson = objectMapper.writeValueAsString(innvilgelse.toJson())
-        print(actualJson)
         JSONAssert.assertEquals(expectedJson, actualJson, true)
     }
 }
