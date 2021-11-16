@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOppholdIUtlandet
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRequest
@@ -28,6 +29,10 @@ internal class RevurderingLeggTilOppholdIUtlandetTest {
         val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
         val revurderingIkkeVurdert = opprettetRevurdering.copy(
             vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger.leggTil(OppholdIUtlandetVilkår.IkkeVurdert),
+        )
+
+        revurderingIkkeVurdert.vilkårsvurderinger.resultat shouldBe Vilkårsvurderingsresultat.Uavklart(
+            setOf(OppholdIUtlandetVilkår.IkkeVurdert),
         )
 
         val expected = opprettetRevurdering.copy(
@@ -65,8 +70,11 @@ internal class RevurderingLeggTilOppholdIUtlandetTest {
 
             verify(it.revurderingRepo).hent(revurderingId)
             verify(it.revurderingRepo).lagre(
-                argThat {
-                    it shouldBe expected
+                argThat { lagret ->
+                    lagret shouldBe expected
+                    lagret.vilkårsvurderinger.resultat shouldBe Vilkårsvurderingsresultat.Innvilget(
+                        lagret.vilkårsvurderinger.vilkår,
+                    )
                 },
             )
             it.verifyNoMoreInteractions()

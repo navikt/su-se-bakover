@@ -43,12 +43,6 @@ internal fun Route.leggTilOppholdIUtlandet(
                                     SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.FantIkkeBehandling -> {
                                         Feilresponser.fantIkkeBehandling
                                     }
-                                    SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.OverlappendeVurderingsperioder -> {
-                                        Feilresponser.overlappendeVurderingsperioder
-                                    }
-                                    SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.PeriodeForGrunnlagOgVurderingErForskjellig -> {
-                                        Feilresponser.utenforBehandlingsperioden
-                                    }
                                     is SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.UgyldigTilstand -> {
                                         Feilresponser.ugyldigTilstand(fra = it.fra, til = it.til)
                                     }

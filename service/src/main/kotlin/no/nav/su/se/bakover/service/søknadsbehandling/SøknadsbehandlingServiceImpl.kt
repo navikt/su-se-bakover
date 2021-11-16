@@ -717,10 +717,14 @@ internal class SøknadsbehandlingServiceImpl(
             behandlingsperiode = søknadsbehandling.periode,
             clock = clock,
         ).getOrHandle {
-            return when (it) {
-                LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.OverlappendeVurderingsperioder -> SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.OverlappendeVurderingsperioder
-                LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.PeriodeForGrunnlagOgVurderingErForskjellig -> SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.PeriodeForGrunnlagOgVurderingErForskjellig
-            }.left()
+            when (it) {
+                LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.OverlappendeVurderingsperioder -> {
+                    throw IllegalStateException("$it Skal ikke kunne forekomme for søknadsbehandling")
+                }
+                LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.PeriodeForGrunnlagOgVurderingErForskjellig -> {
+                    throw IllegalStateException("$it Skal ikke kunne forekomme for søknadsbehandling")
+                }
+            }
         }
 
         val vilkårsvurdert = søknadsbehandling.leggTilOppholdIUtlandet(vilkår, clock)

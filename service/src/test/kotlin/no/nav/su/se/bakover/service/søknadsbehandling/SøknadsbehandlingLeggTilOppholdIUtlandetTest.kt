@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -38,25 +39,27 @@ class SøknadsbehandlingLeggTilOppholdIUtlandetTest {
     }
 
     @Test
-    fun `svarer med feil hvis ikke vilkår er ugyldige`() {
-        SøknadsbehandlingServiceAndMocks(
-            søknadsbehandlingRepo = mock { on { hent(any()) } doReturn søknadsbehandlingVilkårsvurdertUavklart().second },
-        ).let {
-            it.søknadsbehandlingService.leggTilOppholdIUtlandet(
-                // I praksis ikke mulig at dette tryner per nå
-                mock {
-                    on { behandlingId } doReturn UUID.randomUUID()
-                    on {
-                        toVilkår(
-                            any(),
-                            any(),
-                        )
-                    } doReturn LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.OverlappendeVurderingsperioder.left()
-                },
-            ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.OverlappendeVurderingsperioder.left()
+    fun `kaster exception hvis vilkår har overlappende perioder`() {
+        assertThrows<IllegalStateException> {
+            SøknadsbehandlingServiceAndMocks(
+                søknadsbehandlingRepo = mock { on { hent(any()) } doReturn søknadsbehandlingVilkårsvurdertUavklart().second },
+            ).let {
+                it.søknadsbehandlingService.leggTilOppholdIUtlandet(
+                    // I praksis ikke mulig at dette tryner per nå
+                    mock {
+                        on { behandlingId } doReturn UUID.randomUUID()
+                        on {
+                            toVilkår(
+                                any(),
+                                any(),
+                            )
+                        } doReturn LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.OverlappendeVurderingsperioder.left()
+                    },
+                )
 
-            verify(it.søknadsbehandlingRepo).hent(any())
-            it.verifyNoMoreInteractions()
+                verify(it.søknadsbehandlingRepo).hent(any())
+                it.verifyNoMoreInteractions()
+            }
         }
     }
 
