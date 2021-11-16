@@ -4,7 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.domain.klage.Klage
 
 interface KlageService {
-    fun opprettKlage(klage: Klage): Either<KunneIkkeOppretteKlage, Klage>
+    fun opprettKlage(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, Klage>
 }
 
 sealed class KunneIkkeOppretteKlage {

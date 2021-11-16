@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.database.klage
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
@@ -14,30 +13,48 @@ import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 internal class KlagePostgresRepoTest {
-    val fnr = Fnr.generer()
 
     @Test
     fun `kan opprette og hente klager`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.klagePostgresRepo
-            val nySak = SakFactory(clock = fixedClock).nySakMedNySøknad(fnr, SøknadInnholdTestdataBuilder.build())
-            testDataHelper.sakRepo.opprettSak(nySak)
 
-            val klage = Klage(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
+            // Oppretter en urelatert sak med klage
+            SakFactory(clock = fixedClock).nySakMedNySøknad(Fnr.generer(), SøknadInnholdTestdataBuilder.build()).also {
+                testDataHelper.sakRepo.opprettSak(it)
+                Klage.ny(
+                    sakId = it.id,
+                    journalpostId = JournalpostId(value = "urelatertJournalpostId"),
+                    saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "urelatertSaksbehandler"),
+                    clock = fixedClock,
+                ).also { klage ->
+                    repo.opprett(klage)
+                }
+            }
+
+            val nySak =
+                SakFactory(
+                    clock = fixedClock,
+                ).nySakMedNySøknad(
+                    fnr = Fnr.generer(),
+                    søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+                ).also {
+                    testDataHelper.sakRepo.opprettSak(it)
+                }
+            val klage = Klage.ny(
                 sakId = nySak.id,
-                journalpostId = JournalpostId(value = "1"),
-                saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "2"),
-            )
+                journalpostId = JournalpostId(value = "journalpostId"),
+                saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
+                clock = fixedClock,
+            ).also {
+                repo.opprett(it)
+            }
 
-            repo.opprett(klage)
             dataSource.withSession { session ->
-                repo.hentKlager(nySak.id, session).first() shouldBe klage
+                repo.hentKlager(nySak.id, session) shouldBe listOf(klage)
             }
         }
     }

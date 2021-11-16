@@ -63,6 +63,7 @@ import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KunneIkkeOppretteKlage
+import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -718,9 +719,9 @@ open class AccessCheckProxy(
                 }
             },
             klageService = object : KlageService {
-                override fun opprettKlage(klage: Klage): Either<KunneIkkeOppretteKlage, Klage> {
-                    assertHarTilgangTilSak(klage.id)
-                    return services.klageService.opprettKlage(klage)
+                override fun opprettKlage(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, Klage> {
+                    assertHarTilgangTilSak(request.sakId)
+                    return services.klageService.opprettKlage(request)
                 }
             }
         )

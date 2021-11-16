@@ -7,9 +7,9 @@ import no.nav.su.se.bakover.domain.klage.Klage
 import java.time.Clock
 
 class KlageServiceImpl(private val klageRepo: KlageRepo, val clock: Clock) : KlageService {
-    override fun opprettKlage(klage: Klage): Either<KunneIkkeOppretteKlage, Klage> {
-        klageRepo.opprett(klage)
-
-        return klage.right()
+    override fun opprettKlage(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, Klage> {
+        return request.toKlage(clock).also {
+            klageRepo.opprett(it)
+        }.right()
     }
 }
