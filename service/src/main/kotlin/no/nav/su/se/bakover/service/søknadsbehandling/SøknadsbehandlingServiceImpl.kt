@@ -726,7 +726,7 @@ internal class SøknadsbehandlingServiceImpl(
         val vilkårsvurdert = søknadsbehandling.leggTilOppholdIUtlandet(vilkår, clock)
             .getOrHandle {
                 return when (it) {
-                    Søknadsbehandling.KunneIkkeLeggeTilOppholdIUtlandet.IkkeLovÅLeggeTilFradragIDenneStatusen -> SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.UgyldigTilstand(
+                    Søknadsbehandling.KunneIkkeLeggeTilOppholdIUtlandet.IkkeLovÅLeggeTilOppholdIUtlandetIDenneStatusen -> SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.UgyldigTilstand(
                         fra = søknadsbehandling::class,
                         til = Søknadsbehandling.Vilkårsvurdert::class,
                     )

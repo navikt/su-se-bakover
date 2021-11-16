@@ -73,7 +73,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     sealed class KunneIkkeLeggeTilOppholdIUtlandet {
-        object IkkeLovÅLeggeTilFradragIDenneStatusen : KunneIkkeLeggeTilOppholdIUtlandet()
+        object IkkeLovÅLeggeTilOppholdIUtlandetIDenneStatusen : KunneIkkeLeggeTilOppholdIUtlandet()
     }
 
     internal fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Unit> {
@@ -96,7 +96,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         oppholdIUtlandet: OppholdIUtlandetVilkår,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
-        return KunneIkkeLeggeTilOppholdIUtlandet.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
+        return KunneIkkeLeggeTilOppholdIUtlandet.IkkeLovÅLeggeTilOppholdIUtlandetIDenneStatusen.left()
     }
 
     sealed class Vilkårsvurdert : Søknadsbehandling() {
@@ -270,9 +270,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 oppholdIUtlandet: OppholdIUtlandetVilkår,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
-                return copy(
-                    vilkårsvurderinger = vilkårsvurderinger.leggTil(oppholdIUtlandet),
-                ).tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+                return vilkårsvurder(vilkårsvurderinger.leggTil(oppholdIUtlandet), clock).right()
+            }
+
+            private fun vilkårsvurder(
+                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+                clock: Clock,
+            ): Vilkårsvurdert {
+                return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(behandlingsinformasjon, clock)
             }
         }
 
@@ -331,9 +336,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 oppholdIUtlandet: OppholdIUtlandetVilkår,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
-                return copy(
-                    vilkårsvurderinger = vilkårsvurderinger.leggTil(oppholdIUtlandet),
-                ).tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+                return vilkårsvurder(vilkårsvurderinger.leggTil(oppholdIUtlandet), clock).right()
+            }
+
+            private fun vilkårsvurder(
+                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+                clock: Clock,
+            ): Vilkårsvurdert {
+                return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(behandlingsinformasjon, clock)
             }
         }
 
@@ -355,7 +365,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
             override val periode: Periode
-                get() = stønadsperiode?.periode ?: throw StønadsperiodeIkkeDefinertException("Periode er ikke satt")
+                get() = stønadsperiode?.periode ?: throw StønadsperiodeIkkeDefinertException(id)
 
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
@@ -365,14 +375,19 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 oppholdIUtlandet: OppholdIUtlandetVilkår,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
-                return copy(
-                    vilkårsvurderinger = vilkårsvurderinger.leggTil(oppholdIUtlandet),
-                ).tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+                return vilkårsvurder(vilkårsvurderinger.leggTil(oppholdIUtlandet), clock).right()
+            }
+
+            private fun vilkårsvurder(
+                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+                clock: Clock,
+            ): Vilkårsvurdert {
+                return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(behandlingsinformasjon, clock)
             }
 
             data class StønadsperiodeIkkeDefinertException(
-                val msg: String = "Sønadsperiode er ikke definert",
-            ) : RuntimeException(msg)
+                val id: UUID,
+            ) : RuntimeException("Sønadsperiode er ikke definert for søknadsbehandling:$id")
         }
     }
 
@@ -543,9 +558,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 oppholdIUtlandet: OppholdIUtlandetVilkår,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
-                return copy(
-                    vilkårsvurderinger = vilkårsvurderinger.leggTil(oppholdIUtlandet),
-                ).tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+                return vilkårsvurder(vilkårsvurderinger.leggTil(oppholdIUtlandet), clock).right()
+            }
+
+            private fun vilkårsvurder(
+                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+                clock: Clock,
+            ): Vilkårsvurdert {
+                return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(behandlingsinformasjon, clock)
             }
         }
 
@@ -638,9 +658,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 oppholdIUtlandet: OppholdIUtlandetVilkår,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
-                return copy(
-                    vilkårsvurderinger = vilkårsvurderinger.leggTil(oppholdIUtlandet),
-                ).tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+                return vilkårsvurder(vilkårsvurderinger.leggTil(oppholdIUtlandet), clock).right()
+            }
+
+            private fun vilkårsvurder(
+                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+                clock: Clock,
+            ): Vilkårsvurdert {
+                return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(behandlingsinformasjon, clock)
             }
         }
     }
@@ -776,9 +801,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             oppholdIUtlandet: OppholdIUtlandetVilkår,
             clock: Clock,
         ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
-            return copy(
-                vilkårsvurderinger = vilkårsvurderinger.leggTil(oppholdIUtlandet),
-            ).tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+            return vilkårsvurder(vilkårsvurderinger.leggTil(oppholdIUtlandet), clock).right()
+        }
+
+        private fun vilkårsvurder(
+            vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+            clock: Clock,
+        ): Vilkårsvurdert {
+            return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(behandlingsinformasjon, clock)
         }
     }
 
@@ -1177,9 +1207,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 oppholdIUtlandet: OppholdIUtlandetVilkår,
                 clock: Clock,
             ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
-                return copy(
-                    vilkårsvurderinger = vilkårsvurderinger.leggTil(oppholdIUtlandet),
-                ).tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+                return vilkårsvurder(vilkårsvurderinger.leggTil(oppholdIUtlandet), clock).right()
+            }
+
+            private fun vilkårsvurder(
+                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+                clock: Clock,
+            ): Vilkårsvurdert {
+                return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(behandlingsinformasjon, clock)
             }
         }
 
@@ -1293,9 +1328,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     oppholdIUtlandet: OppholdIUtlandetVilkår,
                     clock: Clock,
                 ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
-                    return copy(
-                        vilkårsvurderinger = vilkårsvurderinger.leggTil(oppholdIUtlandet),
-                    ).tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+                    return vilkårsvurder(vilkårsvurderinger.leggTil(oppholdIUtlandet), clock).right()
+                }
+
+                private fun vilkårsvurder(
+                    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+                    clock: Clock,
+                ): Vilkårsvurdert {
+                    return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(behandlingsinformasjon, clock)
                 }
             }
 
@@ -1355,9 +1395,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     oppholdIUtlandet: OppholdIUtlandetVilkår,
                     clock: Clock,
                 ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
-                    return copy(
-                        vilkårsvurderinger = vilkårsvurderinger.leggTil(oppholdIUtlandet),
-                    ).tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+                    return vilkårsvurder(vilkårsvurderinger.leggTil(oppholdIUtlandet), clock).right()
+                }
+
+                private fun vilkårsvurder(
+                    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+                    clock: Clock,
+                ): Vilkårsvurdert {
+                    return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(behandlingsinformasjon, clock)
                 }
             }
         }
