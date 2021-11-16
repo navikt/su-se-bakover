@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
+import arrow.core.getOrHandle
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
@@ -11,18 +12,21 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRequest
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBehandlingId
 import no.nav.su.se.bakover.web.withBody
 import java.util.UUID
 
 private data class OppholdIUtlandetBody(
+    val periode: PeriodeJson,
     val status: LeggTilOppholdIUtlandetRequest.Status,
     val begrunnelse: String?,
 ) {
     fun toRequest(behandlingId: UUID): LeggTilOppholdIUtlandetRequest {
         return LeggTilOppholdIUtlandetRequest(
             behandlingId = behandlingId,
+            periode = periode.toPeriode().getOrHandle { throw IllegalArgumentException("Ugyldig periodejson") },
             status = status,
             begrunnelse = begrunnelse,
         )

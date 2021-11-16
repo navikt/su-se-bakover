@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.TransactionContext
@@ -39,6 +40,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.medFritekstTilBrev
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
+import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -713,15 +715,19 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.FantIkkeBehandling.left()
 
-        val vilkår = request.toVilkår(
-            behandlingsperiode = søknadsbehandling.periode,
-            clock = clock,
+        val vilkår = OppholdIUtlandetVilkår.Vurdert.tryCreate(
+            vurderingsperioder = nonEmptyListOf(
+                request.toVilkår(clock = clock).getOrHandle {
+                    when (it) {
+                        LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.PeriodeForGrunnlagOgVurderingErForskjellig -> {
+                            throw IllegalStateException("$it Skal ikke kunne forekomme for søknadsbehandling")
+                        }
+                    }
+                },
+            ),
         ).getOrHandle {
             when (it) {
-                LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.OverlappendeVurderingsperioder -> {
-                    throw IllegalStateException("$it Skal ikke kunne forekomme for søknadsbehandling")
-                }
-                LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.PeriodeForGrunnlagOgVurderingErForskjellig -> {
+                OppholdIUtlandetVilkår.Vurdert.UgyldigOppholdIUtlandetVilkår.OverlappendeVurderingsperioder -> {
                     throw IllegalStateException("$it Skal ikke kunne forekomme for søknadsbehandling")
                 }
             }

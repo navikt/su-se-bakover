@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRequest
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
@@ -28,6 +29,7 @@ class SøknadsbehandlingLeggTilOppholdIUtlandetTest {
             it.søknadsbehandlingService.leggTilOppholdIUtlandet(
                 LeggTilOppholdIUtlandetRequest(
                     behandlingId = UUID.randomUUID(),
+                    periode = periode2021,
                     status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
                     begrunnelse = "",
                 ),
@@ -51,9 +53,8 @@ class SøknadsbehandlingLeggTilOppholdIUtlandetTest {
                         on {
                             toVilkår(
                                 any(),
-                                any(),
                             )
-                        } doReturn LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.OverlappendeVurderingsperioder.left()
+                        } doReturn LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.PeriodeForGrunnlagOgVurderingErForskjellig.left()
                     },
                 )
 
@@ -72,6 +73,7 @@ class SøknadsbehandlingLeggTilOppholdIUtlandetTest {
             it.søknadsbehandlingService.leggTilOppholdIUtlandet(
                 LeggTilOppholdIUtlandetRequest(
                     behandlingId = iverksatt.id,
+                    periode = periode2021,
                     status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
                     begrunnelse = "jahoo",
                 ),
@@ -96,6 +98,7 @@ class SøknadsbehandlingLeggTilOppholdIUtlandetTest {
             serviceAndMocks.søknadsbehandlingService.leggTilOppholdIUtlandet(
                 LeggTilOppholdIUtlandetRequest(
                     behandlingId = innvilget.id,
+                    periode = periode2021,
                     status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
                     begrunnelse = "jahoo",
                 ),
@@ -123,6 +126,7 @@ class SøknadsbehandlingLeggTilOppholdIUtlandetTest {
             serviceAndMocks.søknadsbehandlingService.leggTilOppholdIUtlandet(
                 LeggTilOppholdIUtlandetRequest(
                     behandlingId = innvilget.id,
+                    periode = periode2021,
                     status = LeggTilOppholdIUtlandetRequest.Status.SkalVæreMerEnn90DagerIUtlandet,
                     begrunnelse = "jahoo",
                 ),

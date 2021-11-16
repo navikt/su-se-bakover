@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.dbMetricsStub
@@ -288,6 +289,7 @@ internal class BeregnRoutesKtTest {
         services.søknadsbehandling.leggTilOppholdIUtlandet(
             request = LeggTilOppholdIUtlandetRequest(
                 behandlingId = objects.søknadsbehandling.id,
+                periode = periode2021,
                 status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
                 begrunnelse = "Veldig bra"
             )

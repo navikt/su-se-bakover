@@ -124,6 +124,7 @@ import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRevurderingRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import java.time.LocalDate
@@ -631,7 +632,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun leggTilUtlandsopphold(
-                    request: LeggTilOppholdIUtlandetRequest,
+                    request: LeggTilOppholdIUtlandetRevurderingRequest,
                 ): Either<KunneIkkeLeggeTilUtlandsopphold, RevurderingOgFeilmeldingerResponse> {
                     assertHarTilgangTilRevurdering(request.behandlingId)
                     return services.revurdering.leggTilUtlandsopphold(request)

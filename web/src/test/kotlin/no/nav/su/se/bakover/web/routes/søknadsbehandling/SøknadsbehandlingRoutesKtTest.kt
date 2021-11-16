@@ -63,6 +63,7 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
@@ -877,6 +878,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         services.søknadsbehandling.leggTilOppholdIUtlandet(
             LeggTilOppholdIUtlandetRequest(
                 behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
+                periode = periode2021,
                 status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
                 begrunnelse = "Skal være her hele tiden",
             )

@@ -32,7 +32,7 @@ import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
 import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
-import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRevurderingRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -110,7 +110,7 @@ interface RevurderingService {
     ): Either<KunneIkkeLeggeTilGrunnlag, RevurderingOgFeilmeldingerResponse>
 
     fun leggTilUtlandsopphold(
-        request: LeggTilOppholdIUtlandetRequest
+        request: LeggTilOppholdIUtlandetRevurderingRequest
     ): Either<KunneIkkeLeggeTilUtlandsopphold, RevurderingOgFeilmeldingerResponse>
 
     fun leggTilFradragsgrunnlag(
@@ -337,6 +337,7 @@ sealed class KunneIkkeLeggeTilUtlandsopphold {
     object FantIkkeBehandling : KunneIkkeLeggeTilUtlandsopphold()
     object OverlappendeVurderingsperioder : KunneIkkeLeggeTilUtlandsopphold()
     object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilUtlandsopphold()
+    object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUtlandsopphold()
     data class UgyldigTilstand(
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,

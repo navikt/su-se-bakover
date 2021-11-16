@@ -845,6 +845,10 @@ sealed class Vurderingsperiode {
     }
 }
 
+fun Periode.inneholderAlle(vurderingsperioder: NonEmptyList<Vurderingsperiode>): Boolean {
+    return vurderingsperioder.all { this inneholder it.periode }
+}
+
 sealed class Resultat {
     object Avslag : Resultat()
     object Innvilget : Resultat()

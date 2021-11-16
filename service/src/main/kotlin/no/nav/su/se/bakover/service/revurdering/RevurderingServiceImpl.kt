@@ -66,7 +66,7 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
-import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRevurderingRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import java.time.Clock
 import java.time.LocalDate
@@ -301,20 +301,32 @@ internal class RevurderingServiceImpl(
     }
 
     override fun leggTilUtlandsopphold(
-        request: LeggTilOppholdIUtlandetRequest,
+        request: LeggTilOppholdIUtlandetRevurderingRequest
     ): Either<KunneIkkeLeggeTilUtlandsopphold, RevurderingOgFeilmeldingerResponse> {
         val revurdering = hent(request.behandlingId)
             .getOrHandle { return KunneIkkeLeggeTilUtlandsopphold.FantIkkeBehandling.left() }
 
-        val oppholdIUtlandetVilkår = request.toVilkår(revurdering.periode, clock).getOrHandle {
+        val oppholdIUtlandetVilkår = request.toVilkår(clock).getOrHandle {
             return when (it) {
-                LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.OverlappendeVurderingsperioder -> KunneIkkeLeggeTilUtlandsopphold.OverlappendeVurderingsperioder.left()
-                LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.PeriodeForGrunnlagOgVurderingErForskjellig -> KunneIkkeLeggeTilUtlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+                LeggTilOppholdIUtlandetRevurderingRequest.UgyldigOppholdIUtlandet.OverlappendeVurderingsperioder -> {
+                    KunneIkkeLeggeTilUtlandsopphold.OverlappendeVurderingsperioder.left()
+                }
+                LeggTilOppholdIUtlandetRevurderingRequest.UgyldigOppholdIUtlandet.PeriodeForGrunnlagOgVurderingErForskjellig -> {
+                    KunneIkkeLeggeTilUtlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+                }
             }
         }
 
+        // TODO sjekk om vilkår perioder er innenfor revurdering periode enten her eller i oppdeter
         return revurdering.oppdaterOppholdIUtlandetOgMarkerSomVurdert(oppholdIUtlandetVilkår).mapLeft {
-            KunneIkkeLeggeTilUtlandsopphold.UgyldigTilstand(fra = it.fra, til = it.til)
+            when (it) {
+                is Revurdering.KunneIkkeLeggeTilOppholdIUtlandet.UgyldigTilstand -> {
+                    KunneIkkeLeggeTilUtlandsopphold.UgyldigTilstand(fra = it.fra, til = it.til)
+                }
+                Revurdering.KunneIkkeLeggeTilOppholdIUtlandet.VurderingsperiodeUtenforBehandlingsperiode -> {
+                    KunneIkkeLeggeTilUtlandsopphold.VurderingsperiodeUtenforBehandlingsperiode
+                }
+            }
         }.map {
             revurderingRepo.lagre(it)
             identifiserFeilOgLagResponse(it)

@@ -13,9 +13,11 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOppholdIUtlandet
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRevurderingRequest
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.revurderingId
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
@@ -58,10 +60,16 @@ internal class RevurderingLeggTilOppholdIUtlandetTest {
             },
         ).let {
             val actual = it.revurderingService.leggTilUtlandsopphold(
-                request = LeggTilOppholdIUtlandetRequest(
-                    behandlingId = opprettetRevurdering.id,
-                    status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
-                    begrunnelse = "begrunnelse",
+                request = LeggTilOppholdIUtlandetRevurderingRequest(
+                    behandlingId = revurderingId,
+                    request = nonEmptyListOf(
+                        LeggTilOppholdIUtlandetRequest(
+                            behandlingId = opprettetRevurdering.id,
+                            periode = periode2021,
+                            status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
+                            begrunnelse = "begrunnelse",
+                        ),
+                    ),
                 ),
             ).getOrFail()
 
@@ -91,10 +99,16 @@ internal class RevurderingLeggTilOppholdIUtlandetTest {
             },
         ).let {
             it.revurderingService.leggTilUtlandsopphold(
-                request = LeggTilOppholdIUtlandetRequest(
-                    behandlingId = opprettetRevurdering.id,
-                    status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
-                    begrunnelse = "begrunnelse",
+                request = LeggTilOppholdIUtlandetRevurderingRequest(
+                    behandlingId = revurderingId,
+                    request = nonEmptyListOf(
+                        LeggTilOppholdIUtlandetRequest(
+                            behandlingId = opprettetRevurdering.id,
+                            periode = periode2021,
+                            status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
+                            begrunnelse = "begrunnelse",
+                        ),
+                    ),
                 ),
             ) shouldBe KunneIkkeLeggeTilUtlandsopphold.UgyldigTilstand(
                 fra = IverksattRevurdering.Innvilget::class,
@@ -116,10 +130,16 @@ internal class RevurderingLeggTilOppholdIUtlandetTest {
             },
         ).let {
             it.revurderingService.leggTilUtlandsopphold(
-                request = LeggTilOppholdIUtlandetRequest(
-                    behandlingId = opprettetRevurdering.id,
-                    status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
-                    begrunnelse = "begrunnelse",
+                request = LeggTilOppholdIUtlandetRevurderingRequest(
+                    behandlingId = revurderingId,
+                    request = nonEmptyListOf(
+                        LeggTilOppholdIUtlandetRequest(
+                            behandlingId = opprettetRevurdering.id,
+                            periode = periode2021,
+                            status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
+                            begrunnelse = "begrunnelse",
+                        ),
+                    ),
                 ),
             ) shouldBe KunneIkkeLeggeTilUtlandsopphold.FantIkkeBehandling.left()
 

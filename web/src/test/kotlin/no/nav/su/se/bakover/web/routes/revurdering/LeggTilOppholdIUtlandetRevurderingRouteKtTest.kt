@@ -15,9 +15,9 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUtlandsopphold
 import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.requestPath
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.testServices
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -28,15 +28,23 @@ import java.util.UUID
 
 internal class LeggTilOppholdIUtlandetRevurderingRouteKtTest {
     //language=json
-    private val validBody =
+    private fun validBody() =
         """
         {
-            "status": "SkalHoldeSegINorge",
-            "begrunnelse": "begrunnelse"
+            "oppholdIUtlandet" : [ 
+               {
+                    "periode": {
+                        "fraOgMed": "2021-01-01", 
+                        "tilOgMed": "2021-12-31"
+                      },
+                    "status": "SkalHoldeSegINorge",
+                    "begrunnelse": "begrunnelse"
+                }
+            ]
         }
         """.trimIndent()
 
-    private val unvalidBody =
+    private fun invalidBody() =
         """
         {
             "status": "nkdsfdsfkn",
@@ -44,7 +52,7 @@ internal class LeggTilOppholdIUtlandetRevurderingRouteKtTest {
         }
         """.trimIndent()
 
-    private val revurderingId = UUID.randomUUID()
+    private fun revurderingId() = UUID.randomUUID()
 
     @Test
     fun `happy case`() {
@@ -59,15 +67,15 @@ internal class LeggTilOppholdIUtlandetRevurderingRouteKtTest {
 
         withTestApplication(
             {
-                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             },
         ) {
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/$revurderingId/utlandsopphold",
+                "$requestPath/${revurderingId()}/oppholdIUtlandet",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody(validBody)
+                setBody(validBody())
             }.apply {
                 response.status() shouldBe HttpStatusCode.OK
                 // skal vi sjekke JSON ?
@@ -83,15 +91,15 @@ internal class LeggTilOppholdIUtlandetRevurderingRouteKtTest {
 
         withTestApplication(
             {
-                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             },
         ) {
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/$revurderingId/utlandsopphold",
+                "$requestPath/${revurderingId()}/oppholdIUtlandet",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody(validBody)
+                setBody(validBody())
             }.apply {
                 response.status() shouldBe HttpStatusCode.NotFound
                 response.content shouldContain "fant_ikke_revurdering"
@@ -110,15 +118,15 @@ internal class LeggTilOppholdIUtlandetRevurderingRouteKtTest {
 
         withTestApplication(
             {
-                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             },
         ) {
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/$revurderingId/utlandsopphold",
+                "$requestPath/${revurderingId()}/oppholdIUtlandet",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody(validBody)
+                setBody(validBody())
             }.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "ugyldig_tilstand"
@@ -132,17 +140,17 @@ internal class LeggTilOppholdIUtlandetRevurderingRouteKtTest {
 
         withTestApplication(
             {
-                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+                testSusebakover(services = TestServicesBuilder.services(revurdering = revurderingServiceMock))
             },
         ) {
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/$revurderingId/utlandsopphold",
+                "$requestPath/${revurderingId()}/oppholdIUtlandet",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody(unvalidBody)
+                setBody(invalidBody())
             }.apply {
-                response.status() shouldBe HttpStatusCode.InternalServerError
+                response.status() shouldBe HttpStatusCode.BadRequest
             }
             verifyNoMoreInteractions(revurderingServiceMock)
         }

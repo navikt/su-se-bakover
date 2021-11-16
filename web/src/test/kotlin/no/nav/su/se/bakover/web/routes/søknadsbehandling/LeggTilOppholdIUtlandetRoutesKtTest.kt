@@ -70,10 +70,11 @@ internal class LeggTilOppholdIUtlandetRoutesKtTest {
             ) {
                 setBody(
                     """
-                    {
-                        "status": "SkalHoldeSegINorge",
-                        "begrunnelse": "jawol"
-                    }
+                        {
+                            "periode":{"fraOgMed":"2021-01-01","tilOgMed":"2021-12-31"},
+                            "status": "SkalHoldeSegINorge",
+                            "begrunnelse": "jawol" 
+                        }
                     """.trimIndent(),
                 )
             }.apply {
@@ -105,8 +106,10 @@ internal class LeggTilOppholdIUtlandetRoutesKtTest {
                 setBody(
                     """
                     {
+                        "periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"},
                         "status": "SkalHoldeSegINorge",
-                        "begrunnelse": "jawol"
+                        "begrunnelse": "jawol"    
+                                                   
                     }
                     """.trimIndent(),
                 )

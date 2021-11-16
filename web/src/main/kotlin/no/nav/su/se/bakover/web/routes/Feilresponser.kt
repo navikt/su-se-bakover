@@ -135,6 +135,11 @@ internal object Feilresponser {
         )
     }
 
+    val periodeForGrunnlagOgVurderingErForskjellig = BadRequest.errorJson(
+        "Det er ikke samsvar mellom perioden for vurdering og perioden for grunnlaget",
+        "periode_for_grunnlag_og_vurdering_er_forskjellig",
+    )
+
     val kunneIkkeLeggeTilBosituasjonsgrunnlag = BadRequest.errorJson(
         "Kunne ikke legge til bosituasjonsgrunnlag",
         "kunne_ikke_legge_til_bosituasjonsgrunnlag",
