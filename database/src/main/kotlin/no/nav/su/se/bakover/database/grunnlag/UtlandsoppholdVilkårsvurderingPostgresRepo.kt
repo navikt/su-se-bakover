@@ -13,43 +13,36 @@ import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.uuidOrNull
-import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOppholdIUtlandet
 import java.util.UUID
-import javax.sql.DataSource
 
 internal class UtlandsoppholdVilkårsvurderingPostgresRepo(
-    private val dataSource: DataSource,
     private val utlandsoppholdgrunnlagRepo: UtlandsoppholdgrunnlagPostgresRepo,
     private val dbMetrics: DbMetrics,
-) : UtlandsoppholdVilkårsvurderingRepo {
-
-    override fun lagre(behandlingId: UUID, vilkår: OppholdIUtlandetVilkår) {
-        dataSource.withTransaction { tx ->
-            lagre(
-                behandlingId = behandlingId,
-                vilkår = vilkår,
-                tx = tx,
-            )
-        }
-    }
+) {
 
     internal fun lagre(behandlingId: UUID, vilkår: OppholdIUtlandetVilkår, tx: TransactionalSession) {
-        slettForBehandlingId(behandlingId, tx)
-        when (vilkår) {
-            OppholdIUtlandetVilkår.IkkeVurdert -> Unit
-            is OppholdIUtlandetVilkår.Vurdert -> {
-                utlandsoppholdgrunnlagRepo.lagre(behandlingId, vilkår.grunnlag, tx)
-                vilkår.vurderingsperioder.forEach {
-                    lagre(behandlingId, it, tx)
+        dbMetrics.timeQuery("lagreVilkårsvurderingUtlandsopphold") {
+            slettForBehandlingId(behandlingId, tx)
+            when (vilkår) {
+                OppholdIUtlandetVilkår.IkkeVurdert -> Unit
+                is OppholdIUtlandetVilkår.Vurdert -> {
+                    utlandsoppholdgrunnlagRepo.lagre(behandlingId, vilkår.grunnlag, tx)
+                    vilkår.vurderingsperioder.forEach {
+                        lagre(behandlingId, it, tx)
+                    }
                 }
             }
         }
     }
 
-    private fun lagre(behandlingId: UUID, vurderingsperiode: VurderingsperiodeOppholdIUtlandet, tx: TransactionalSession) {
+    private fun lagre(
+        behandlingId: UUID,
+        vurderingsperiode: VurderingsperiodeOppholdIUtlandet,
+        tx: TransactionalSession,
+    ) {
         """
                 insert into vilkårsvurdering_utland
                 (

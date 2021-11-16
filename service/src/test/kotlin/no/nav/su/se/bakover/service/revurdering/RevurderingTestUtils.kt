@@ -125,12 +125,11 @@ object RevurderingTestUtils {
      * - Årsak: Melding fra bruker
      * - Simulering: no.nav.su.se.bakover.test.simulering()
      */
-    internal val simulertRevurderingInnvilget: SimulertRevurdering.Innvilget by lazy {
+    internal val simulertRevurderingInnvilget: SimulertRevurdering.Innvilget =
         simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
             stønadsperiode = stønadsperiodeNesteMånedOgTreMånederFram,
             revurderingsperiode = stønadsperiodeNesteMånedOgTreMånederFram.periode,
         ).second
-    }
 }
 
 internal fun Grunnlag.Uføregrunnlag.ekvivalentMed(other: Grunnlag.Uføregrunnlag) {

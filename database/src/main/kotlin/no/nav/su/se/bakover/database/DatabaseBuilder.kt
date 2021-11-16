@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRep
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UtlandsoppholdVilkårsvurderingPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.UtlandsoppholdVilkårsvurderingRepo
 import no.nav.su.se.bakover.database.grunnlag.UtlandsoppholdgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.hendelse.PersonhendelseRepo
@@ -114,7 +113,6 @@ object DatabaseBuilder {
         )
 
         val utlandsoppholdVilkårsvurderingRepo = UtlandsoppholdVilkårsvurderingPostgresRepo(
-            dataSource = dataSource,
             utlandsoppholdgrunnlagRepo = utlandsoppholdgrunnlagRepo,
             dbMetrics = dbMetrics,
         )
@@ -185,10 +183,9 @@ object DatabaseBuilder {
             vedtakRepo = vedtakRepo,
             grunnlagRepo = grunnlagRepo,
             uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
-            utlandsoppholdVilkårsvurderingRepo = utlandsoppholdVilkårsvurderingRepo,
             formueVilkårsvurderingRepo = formueVilkårsvurderingRepo,
-            dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory),
             personhendelseRepo = hendelseRepo,
+            dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory),
             nøkkeltallRepo = nøkkeltallRepo,
             sessionFactory = sessionFactory,
         )
@@ -208,7 +205,6 @@ data class DatabaseRepos(
     val vedtakRepo: VedtakRepo,
     val grunnlagRepo: GrunnlagRepo,
     val uføreVilkårsvurderingRepo: UføreVilkårsvurderingRepo,
-    val utlandsoppholdVilkårsvurderingRepo: UtlandsoppholdVilkårsvurderingRepo,
     val formueVilkårsvurderingRepo: FormueVilkårsvurderingRepo,
     val personhendelseRepo: PersonhendelseRepo,
     val dokumentRepo: DokumentRepo,

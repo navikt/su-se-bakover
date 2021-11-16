@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingRepo
-import no.nav.su.se.bakover.database.grunnlag.UtlandsoppholdVilkårsvurderingRepo
 import no.nav.su.se.bakover.database.hendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.person.PersonRepo
@@ -40,7 +39,6 @@ object TestDatabaseBuilder {
         dokumentRepo: DokumentRepo = mock(),
         nøkkeltallRepo: NøkkeltallRepo = mock(),
         sessionFactory: TestSessionFactory = TestSessionFactory(),
-        utlandsoppholdVilkårsvurderingRepo: UtlandsoppholdVilkårsvurderingRepo = mock(),
     ): DatabaseRepos {
         return DatabaseRepos(
             avstemming = avstemming,
@@ -60,7 +58,6 @@ object TestDatabaseBuilder {
             dokumentRepo = dokumentRepo,
             nøkkeltallRepo = nøkkeltallRepo,
             sessionFactory = sessionFactory,
-            utlandsoppholdVilkårsvurderingRepo = utlandsoppholdVilkårsvurderingRepo,
         )
     }
 }

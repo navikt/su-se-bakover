@@ -223,7 +223,6 @@ internal class TestDataHelper(
         dbMetrics = dbMetrics,
     )
     internal val utlandsoppholdVilkårsvurderingRepo = UtlandsoppholdVilkårsvurderingPostgresRepo(
-        dataSource = dataSource,
         utlandsoppholdgrunnlagRepo = utlandsoppholdgrunnlagPostgresRepo,
         dbMetrics = dbMetrics,
     )
