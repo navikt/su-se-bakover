@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.hent
-import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
@@ -20,20 +19,6 @@ internal class UtlandsoppholdgrunnlagPostgresRepo {
         utlandsoppholdgrunnlag.forEach {
             lagre(it, behandlingId, tx)
         }
-    }
-
-    internal fun hentUtlandsoppholdgrunnlag(behandlingId: UUID, session: Session): List<OppholdIUtlandetGrunnlag> {
-        return """
-                select * from grunnlag_utland where behandlingId = :behandlingId
-        """.trimIndent()
-            .hentListe(
-                mapOf(
-                    "behandlingId" to behandlingId,
-                ),
-                session,
-            ) {
-                it.toUtlandsoppholdgrunnlag()
-            }
     }
 
     internal fun hentForUtlandsoppholdgrunnlagId(utlandsoppholdgrunnlagId: UUID, session: Session): OppholdIUtlandetGrunnlag? {

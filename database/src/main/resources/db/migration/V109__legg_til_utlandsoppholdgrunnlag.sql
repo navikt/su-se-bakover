@@ -13,9 +13,8 @@ create table if not exists vilkårsvurdering_utland
     opprettet timestamptz not null,
     behandlingId uuid not null,
     grunnlag_utland_id uuid references grunnlag_utland(id),
-    vurdering text not null,
     resultat text not null,
     fraOgMed date not null,
     tilOgMed date not null,
     begrunnelse text
-    );
+);

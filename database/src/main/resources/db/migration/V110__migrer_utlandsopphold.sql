@@ -1,9 +1,8 @@
-with sbehandling (behandlingid, opprettet, fraogmed, tilogmed, vurdering, resultat, begrunnelse) as (
+with sbehandling (behandlingid, opprettet, fraogmed, tilogmed, resultat, begrunnelse) as (
     select id,
            opprettet,
            (stønadsperiode -> 'periode' ->> 'fraOgMed')::date,
             (stønadsperiode -> 'periode' ->> 'tilOgMed')::date,
-            'MANUELL',
            case
                when (behandlingsinformasjon -> 'oppholdIUtlandet' ->> 'status' = 'SkalHoldeSegINorge')
                    then
@@ -24,35 +23,32 @@ with sbehandling (behandlingid, opprettet, fraogmed, tilogmed, vurdering, result
     where behandlingsinformasjon ->> 'oppholdIUtlandet' is not null
     )
 
-insert into vilkårsvurdering_utland(id, opprettet, behandlingid, fraogmed, tilogmed, vurdering, resultat, begrunnelse)
+insert into vilkårsvurdering_utland(id, opprettet, behandlingid, fraogmed, tilogmed, resultat, begrunnelse)
 (select uuid_generate_v4(),
     opprettet,
     behandlingId,
     fraogmed,
     tilogmed,
-    vurdering,
     resultat,
     begrunnelse
     from sbehandling
     );
 
-with rev (behandlingid, opprettet, fraogmed, tilogmed, vurdering, resultat, begrunnelse) as (
+with rev (behandlingid, opprettet, fraogmed, tilogmed, resultat, begrunnelse) as (
     select id,
     opprettet,
     (periode ->> 'fraOgMed')::date,
     (periode ->> 'tilOgMed')::date,
-    'MANUELL',
     'INNVILGET',
     null
     from revurdering
     )
-insert into vilkårsvurdering_utland(id, opprettet, behandlingid, fraogmed, tilogmed, vurdering, resultat, begrunnelse)
+insert into vilkårsvurdering_utland(id, opprettet, behandlingid, fraogmed, tilogmed, resultat, begrunnelse)
 (select uuid_generate_v4(),
     opprettet,
     behandlingId,
     fraogmed,
     tilogmed,
-    vurdering,
     resultat,
     begrunnelse
     from rev

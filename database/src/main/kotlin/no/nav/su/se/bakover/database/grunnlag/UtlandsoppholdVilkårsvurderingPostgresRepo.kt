@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.uuidOrNull
 import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
-import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOppholdIUtlandet
 import java.util.UUID
 
@@ -50,7 +49,6 @@ internal class UtlandsoppholdVilkårsvurderingPostgresRepo(
                     opprettet,
                     behandlingId,
                     grunnlag_utland_id,
-                    vurdering,
                     resultat,
                     begrunnelse,
                     fraOgMed,
@@ -61,7 +59,6 @@ internal class UtlandsoppholdVilkårsvurderingPostgresRepo(
                     :opprettet,
                     :behandlingId,
                     :grunnlag_utland_id,
-                    :vurdering,
                     :resultat,
                     :begrunnelse,
                     :fraOgMed,
@@ -74,7 +71,6 @@ internal class UtlandsoppholdVilkårsvurderingPostgresRepo(
                     "opprettet" to vurderingsperiode.opprettet,
                     "behandlingId" to behandlingId,
                     "grunnlag_utland_id" to vurderingsperiode.grunnlag?.id,
-                    "vurdering" to "MANUELL",
                     "resultat" to vurderingsperiode.resultat.toDto().toString(),
                     "begrunnelse" to vurderingsperiode.begrunnelse,
                     "fraOgMed" to vurderingsperiode.periode.fraOgMed,
@@ -107,12 +103,12 @@ internal class UtlandsoppholdVilkårsvurderingPostgresRepo(
                     ),
                     session,
                 ) {
-                    it.toVurderingsperioder(session)
+                    it.toVurderingsperiode(session)
                 }.let {
                     when (it.isNotEmpty()) {
                         true -> OppholdIUtlandetVilkår.Vurdert.tryCreate(vurderingsperioder = Nel.fromListUnsafe(it))
-                            .getOrHandle {
-                                throw IllegalArgumentException("Kunne ikke instansiere ${OppholdIUtlandetVilkår.Vurdert::class.simpleName}. Melding: $it")
+                            .getOrHandle { feil ->
+                                throw IllegalStateException("Kunne ikke instansiere ${OppholdIUtlandetVilkår.Vurdert::class.simpleName}. Melding: $feil")
                             }
                         false -> OppholdIUtlandetVilkår.IkkeVurdert
                     }
@@ -120,7 +116,7 @@ internal class UtlandsoppholdVilkårsvurderingPostgresRepo(
         }
     }
 
-    private fun Row.toVurderingsperioder(session: Session): VurderingsperiodeOppholdIUtlandet {
+    private fun Row.toVurderingsperiode(session: Session): VurderingsperiodeOppholdIUtlandet {
         return VurderingsperiodeOppholdIUtlandet.create(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
@@ -134,23 +130,5 @@ internal class UtlandsoppholdVilkårsvurderingPostgresRepo(
                 tilOgMed = localDate("tilOgMed"),
             ),
         )
-    }
-
-    private enum class ResultatDto {
-        AVSLAG,
-        INNVILGET,
-        UAVKLART;
-
-        fun toDomain() = when (this) {
-            AVSLAG -> Resultat.Avslag
-            INNVILGET -> Resultat.Innvilget
-            UAVKLART -> Resultat.Uavklart
-        }
-    }
-
-    private fun Resultat.toDto() = when (this) {
-        Resultat.Avslag -> ResultatDto.AVSLAG
-        Resultat.Innvilget -> ResultatDto.INNVILGET
-        Resultat.Uavklart -> ResultatDto.UAVKLART
     }
 }
