@@ -604,7 +604,7 @@ object KanIkkeSendeEnOpphørtGReguleringTilAttestering
 sealed class SimulertRevurdering : Revurdering() {
     abstract val beregning: Beregning
     abstract val simulering: Simulering
-    abstract override var forhåndsvarsel: Forhåndsvarsel?
+    abstract override var forhåndsvarsel: Forhåndsvarsel? // TODO skal denne være en var? Oppdaget pga tester som gikk i beina på hverandre i RevurderingServiceImplTest#fortsettEtterForhåndsvarsling
     abstract override val grunnlagsdata: Grunnlagsdata
 
     abstract override fun accept(visitor: RevurderingVisitor)

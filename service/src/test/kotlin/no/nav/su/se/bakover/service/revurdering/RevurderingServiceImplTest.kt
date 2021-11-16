@@ -1309,6 +1309,7 @@ internal class RevurderingServiceImplTest {
     @Test
     fun `fortsettEtterForhåndsvarsling - beslutter ikke en allerede besluttet forhåndsvarsling ingenEndring`() {
         val simulertRevurdering = simulertRevurderingInnvilget
+            .copy(forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel)
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn simulertRevurdering
