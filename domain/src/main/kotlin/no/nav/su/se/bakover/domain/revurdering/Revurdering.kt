@@ -69,6 +69,7 @@ sealed class AbstraktRevurdering : Behandling {
     override val sakId by lazy { tilRevurdering.behandling.sakId }
     override val saksnummer by lazy { tilRevurdering.behandling.saksnummer }
     override val fnr by lazy { tilRevurdering.behandling.fnr }
+    abstract override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
 }
 
 sealed class Revurdering :
@@ -134,7 +135,7 @@ sealed class Revurdering :
         uføre: Vilkår.Uførhet.Vurdert,
     ): Either<UgyldigTilstand, OpprettetRevurdering> {
         return oppdaterVilkårsvurderinger(
-            vilkårsvurderinger = vilkårsvurderinger.leggTil(uføre) as Vilkårsvurderinger.Revurdering,
+            vilkårsvurderinger = vilkårsvurderinger.leggTil(uføre),
             informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Uførhet),
         ).right()
     }
@@ -143,14 +144,14 @@ sealed class Revurdering :
         vilkår: OppholdIUtlandetVilkår,
     ): Either<UgyldigTilstand, OpprettetRevurdering> {
         return oppdaterVilkårsvurderinger(
-            vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår) as Vilkårsvurderinger.Revurdering,
+            vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår),
             informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.OppholdIUtlandet),
         ).right()
     }
 
     protected fun oppdaterFormueOgMarkerSomVurdertInternal(formue: Vilkår.Formue.Vurdert) =
         oppdaterVilkårsvurderinger(
-            vilkårsvurderinger = vilkårsvurderinger.leggTil(formue) as Vilkårsvurderinger.Revurdering,
+            vilkårsvurderinger = vilkårsvurderinger.leggTil(formue),
             informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Formue),
         ).right()
 
@@ -217,7 +218,7 @@ sealed class Revurdering :
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = forhåndsvarsel,
             grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger as Vilkårsvurderinger.Revurdering,
+            vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer,
         )
@@ -249,7 +250,7 @@ sealed class Revurdering :
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = forhåndsvarsel,
             grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger as Vilkårsvurderinger.Revurdering,
+            vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer,
         )
@@ -266,7 +267,7 @@ sealed class Revurdering :
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = forhåndsvarsel,
             grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger as Vilkårsvurderinger.Revurdering,
+            vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer,
         )
@@ -284,7 +285,7 @@ sealed class Revurdering :
                 revurderingsårsak = revurderingsårsak,
                 forhåndsvarsel = forhåndsvarsel,
                 grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger as Vilkårsvurderinger.Revurdering,
+                vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = attesteringer,
             )

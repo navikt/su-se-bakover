@@ -136,8 +136,8 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 it shouldBe opprettetRevurdering.copy(
                     vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger.copy(
                         uføre = innvilgetUførevilkår(
-                            vurderingsperiodeId = ((it.vilkårsvurderinger as Vilkårsvurderinger.Revurdering).uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.first().id,
-                            grunnlagsId = ((it.vilkårsvurderinger as Vilkårsvurderinger.Revurdering).uføre as Vilkår.Uførhet.Vurdert).grunnlag.first().id,
+                            vurderingsperiodeId = (it.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.first().id,
+                            grunnlagsId = (it.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).grunnlag.first().id,
                             opprettet = fixedTidspunkt,
                             periode = nyttUføregrunnlag.periode,
                             begrunnelse = "grunnbeløpet er høyere",

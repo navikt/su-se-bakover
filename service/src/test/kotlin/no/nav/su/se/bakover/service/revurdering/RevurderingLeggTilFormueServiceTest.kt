@@ -95,7 +95,7 @@ internal class RevurderingLeggTilFormueServiceTest {
             uføre = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
-                        id = ((actual.revurdering.vilkårsvurderinger as Vilkårsvurderinger.Revurdering).uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.first().id,
+                        id = (actual.revurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.first().id,
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Innvilget,
                         grunnlag = Grunnlag.Uføregrunnlag(
@@ -114,11 +114,11 @@ internal class RevurderingLeggTilFormueServiceTest {
             formue = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Formue.tryCreate(
-                        id = ((actual.revurdering.vilkårsvurderinger as Vilkårsvurderinger.Revurdering).formue as Vilkår.Formue.Vurdert).vurderingsperioder.first().id,
+                        id = (actual.revurdering.vilkårsvurderinger.formue as Vilkår.Formue.Vurdert).vurderingsperioder.first().id,
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Innvilget,
                         grunnlag = Formuegrunnlag.create(
-                            id = ((actual.revurdering.vilkårsvurderinger as Vilkårsvurderinger.Revurdering).formue as Vilkår.Formue.Vurdert).grunnlag.first().id,
+                            id = (actual.revurdering.vilkårsvurderinger.formue as Vilkår.Formue.Vurdert).grunnlag.first().id,
                             periode = periodeHele2021,
                             opprettet = fixedTidspunkt,
                             epsFormue = Formuegrunnlag.Verdier.empty(),

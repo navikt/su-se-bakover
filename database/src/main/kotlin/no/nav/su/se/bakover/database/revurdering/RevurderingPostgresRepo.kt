@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionFactory
-import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
@@ -147,21 +146,11 @@ internal class RevurderingPostgresRepo(
         }
 
     override fun lagre(revurdering: AbstraktRevurdering) {
-        when (revurdering) {
-            is Revurdering -> sessionFactory.withTransactionContext {
-                it.withTransaction { tx -> lagre(revurdering, tx) }
-            }
-            is GjenopptaYtelseRevurdering -> sessionFactory.withTransactionContext {
-                gjenopptakAvYtelseRepo.lagre(
-                    revurdering,
-                    it,
-                )
-            }
-            is StansAvYtelseRevurdering -> sessionFactory.withTransactionContext {
-                stansAvYtelseRepo.lagre(
-                    revurdering,
-                    it,
-                )
+        sessionFactory.withTransaction { tx ->
+            when (revurdering) {
+                is Revurdering -> lagre(revurdering, tx)
+                is GjenopptaYtelseRevurdering -> gjenopptakAvYtelseRepo.lagre(revurdering, tx)
+                is StansAvYtelseRevurdering -> stansAvYtelseRepo.lagre(revurdering, tx)
             }
         }
     }
