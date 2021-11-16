@@ -39,7 +39,7 @@ interface SøknadsbehandlingService {
     fun hentForSøknad(søknadId: UUID): Søknadsbehandling?
     fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, tx: TransactionContext)
     fun lagre(avslag: AvslagManglendeDokumentasjon, tx: TransactionContext)
-    fun leggTilOppholdIUtlandet(request: LeggTilOppholdIUtlandetRequest): Either<KunneIkkeLeggeTilOppholdIUtlandet, Søknadsbehandling>
+    fun leggTilOppholdIUtlandet(request: LeggTilOppholdIUtlandetRequest): Either<KunneIkkeLeggeTilOppholdIUtlandet, Søknadsbehandling.Vilkårsvurdert>
 
     data class OpprettRequest(
         val søknadId: UUID,

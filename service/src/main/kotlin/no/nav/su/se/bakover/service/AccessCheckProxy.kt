@@ -495,7 +495,7 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun leggTilOppholdIUtlandet(request: LeggTilOppholdIUtlandetRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet, Søknadsbehandling> {
+                override fun leggTilOppholdIUtlandet(request: LeggTilOppholdIUtlandetRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet, Søknadsbehandling.Vilkårsvurdert> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.leggTilOppholdIUtlandet(request)
                 }

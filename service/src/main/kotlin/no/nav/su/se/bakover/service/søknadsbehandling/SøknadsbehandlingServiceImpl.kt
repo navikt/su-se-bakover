@@ -709,7 +709,7 @@ internal class SøknadsbehandlingServiceImpl(
         return søknadsbehandlingRepo.lagreAvslagManglendeDokumentasjon(avslag, tx)
     }
 
-    override fun leggTilOppholdIUtlandet(request: LeggTilOppholdIUtlandetRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet, Søknadsbehandling> {
+    override fun leggTilOppholdIUtlandet(request: LeggTilOppholdIUtlandetRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet, Søknadsbehandling.Vilkårsvurdert> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.FantIkkeBehandling.left()
 
