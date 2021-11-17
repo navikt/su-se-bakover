@@ -15,9 +15,11 @@ import no.nav.su.se.bakover.database.TestDataHelper.Companion.journalførtSøkna
 import no.nav.su.se.bakover.database.antall
 import no.nav.su.se.bakover.database.avslåttBeregning
 import no.nav.su.se.bakover.database.behandlingsinformasjonMedAlleVilkårOppfylt
+import no.nav.su.se.bakover.database.beregning.toSnapshot
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.innvilgetBeregning
 import no.nav.su.se.bakover.database.iverksattAttestering
+import no.nav.su.se.bakover.database.persistertVariant
 import no.nav.su.se.bakover.database.saksbehandler
 import no.nav.su.se.bakover.database.simulering
 import no.nav.su.se.bakover.database.stønadsperiode
@@ -195,7 +197,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 .tilBeregnet(beregning = innvilgetBeregning())
                 .also {
                     repo.lagre(it)
-                    repo.hent(it.id) shouldBe it
+                    repo.hent(it.id) shouldBe it.persistertVariant()
                     dataSource.withSession { session ->
                         "select * from behandling where id = :id".hent(
                             mapOf("id" to uavklartVilkårsvurdering.id),
@@ -209,7 +211,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val simulert = beregnet.tilSimulert(simulering(beregnet.fnr))
                 .also {
                     repo.lagre(it)
-                    repo.hent(it.id) shouldBe it
+                    repo.hent(it.id) shouldBe it.persistertVariant()
                     dataSource.withSession {
                         "select * from behandling where id = :id".hent(mapOf("id" to uavklartVilkårsvurdering.id), it) {
                             it.stringOrNull("beregning") shouldNotBe null
@@ -221,7 +223,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             simulert.tilVilkårsvurdert(behandlingsinformasjonMedAlleVilkårOppfylt, clock = fixedClock)
                 .also {
                     repo.lagre(it)
-                    repo.hent(it.id) shouldBe it
+                    repo.hent(it.id) shouldBe it.persistertVariant()
                     dataSource.withSession {
                         "select * from behandling where id = :id".hent(mapOf("id" to uavklartVilkårsvurdering.id), it) {
                             it.stringOrNull("beregning") shouldBe null
@@ -243,90 +245,86 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 val tilAttestering = testDataHelper.nyTilInnvilgetAttestering()
                 tilAttestering.nyOppgaveId(nyOppgaveId).also {
                     repo.lagre(it)
-                    repo.hent(it.id).also {
-                        it shouldBe Søknadsbehandling.TilAttestering.Innvilget(
-                            id = tilAttestering.id,
-                            opprettet = tilAttestering.opprettet,
-                            sakId = tilAttestering.sakId,
-                            saksnummer = tilAttestering.saksnummer,
-                            søknad = tilAttestering.søknad,
-                            oppgaveId = nyOppgaveId,
-                            behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
-                            fnr = tilAttestering.fnr,
-                            beregning = innvilgetBeregning(),
-                            simulering = simulering(tilAttestering.fnr),
-                            saksbehandler = saksbehandler,
-                            fritekstTilBrev = "",
-                            stønadsperiode = stønadsperiode,
-                            grunnlagsdata = tilAttestering.grunnlagsdata,
-                            vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
-                            attesteringer = Attesteringshistorikk.empty(),
-                        )
-                    }
+                    repo.hent(it.id) shouldBe Søknadsbehandling.TilAttestering.Innvilget(
+                        id = tilAttestering.id,
+                        opprettet = tilAttestering.opprettet,
+                        sakId = tilAttestering.sakId,
+                        saksnummer = tilAttestering.saksnummer,
+                        søknad = tilAttestering.søknad,
+                        oppgaveId = nyOppgaveId,
+                        behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
+                        fnr = tilAttestering.fnr,
+                        beregning = innvilgetBeregning(),
+                        simulering = simulering(tilAttestering.fnr),
+                        saksbehandler = saksbehandler,
+                        fritekstTilBrev = "",
+                        stønadsperiode = stønadsperiode,
+                        grunnlagsdata = tilAttestering.grunnlagsdata,
+                        vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
+                        attesteringer = Attesteringshistorikk.empty(),
+                    ).persistertVariant()
                 }
             }
         }
+    }
 
-        @Test
-        fun `til attestering avslag uten beregning`() {
-            withMigratedDb { dataSource ->
-                val testDataHelper = TestDataHelper(dataSource)
-                val repo = testDataHelper.søknadsbehandlingRepo
-                val nyOppgaveId = OppgaveId("tilAttesteringOppgaveId")
-                val tilAttestering = testDataHelper.nyTilAvslåttAttesteringUtenBeregning()
-                tilAttestering.nyOppgaveId(nyOppgaveId).also {
-                    repo.lagre(it)
-                    repo.hent(it.id).also {
-                        it shouldBe Søknadsbehandling.TilAttestering.Avslag.UtenBeregning(
-                            id = tilAttestering.id,
-                            opprettet = tilAttestering.opprettet,
-                            sakId = tilAttestering.sakId,
-                            saksnummer = tilAttestering.saksnummer,
-                            søknad = tilAttestering.søknad,
-                            oppgaveId = nyOppgaveId,
-                            behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
-                            fnr = tilAttestering.fnr,
-                            saksbehandler = saksbehandler,
-                            fritekstTilBrev = "",
-                            stønadsperiode = stønadsperiode,
-                            grunnlagsdata = tilAttestering.grunnlagsdata,
-                            vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
-                            attesteringer = Attesteringshistorikk.empty(),
-                        )
-                    }
+    @Test
+    fun `til attestering avslag uten beregning`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.søknadsbehandlingRepo
+            val nyOppgaveId = OppgaveId("tilAttesteringOppgaveId")
+            val tilAttestering = testDataHelper.nyTilAvslåttAttesteringUtenBeregning()
+            tilAttestering.nyOppgaveId(nyOppgaveId).also {
+                repo.lagre(it)
+                repo.hent(it.id).also {
+                    it shouldBe Søknadsbehandling.TilAttestering.Avslag.UtenBeregning(
+                        id = tilAttestering.id,
+                        opprettet = tilAttestering.opprettet,
+                        sakId = tilAttestering.sakId,
+                        saksnummer = tilAttestering.saksnummer,
+                        søknad = tilAttestering.søknad,
+                        oppgaveId = nyOppgaveId,
+                        behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
+                        fnr = tilAttestering.fnr,
+                        saksbehandler = saksbehandler,
+                        fritekstTilBrev = "",
+                        stønadsperiode = stønadsperiode,
+                        grunnlagsdata = tilAttestering.grunnlagsdata,
+                        vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
+                        attesteringer = Attesteringshistorikk.empty(),
+                    )
                 }
             }
         }
+    }
 
-        @Test
-        fun `til attestering avslag med beregning`() {
-            withMigratedDb { dataSource ->
-                val testDataHelper = TestDataHelper(dataSource)
-                val repo = testDataHelper.søknadsbehandlingRepo
-                val nyOppgaveId = OppgaveId("tilAttesteringOppgaveId")
-                val tilAttestering = testDataHelper.tilAvslåttAttesteringMedBeregning()
-                tilAttestering.nyOppgaveId(nyOppgaveId).also {
-                    repo.lagre(it)
-                    repo.hent(it.id).also {
-                        it shouldBe Søknadsbehandling.TilAttestering.Avslag.MedBeregning(
-                            id = tilAttestering.id,
-                            opprettet = tilAttestering.opprettet,
-                            sakId = tilAttestering.sakId,
-                            saksnummer = tilAttestering.saksnummer,
-                            søknad = tilAttestering.søknad,
-                            oppgaveId = nyOppgaveId,
-                            behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
-                            fnr = tilAttestering.fnr,
-                            beregning = avslåttBeregning,
-                            saksbehandler = saksbehandler,
-                            fritekstTilBrev = "",
-                            stønadsperiode = stønadsperiode,
-                            grunnlagsdata = tilAttestering.grunnlagsdata,
-                            vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
-                            attesteringer = Attesteringshistorikk.empty(),
-                        )
-                    }
-                }
+    @Test
+    fun `til attestering avslag med beregning`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.søknadsbehandlingRepo
+            val nyOppgaveId = OppgaveId("tilAttesteringOppgaveId")
+            val tilAttestering = testDataHelper.tilAvslåttAttesteringMedBeregning()
+            tilAttestering.nyOppgaveId(nyOppgaveId).also {
+                repo.lagre(it)
+                repo.hent(it.id) shouldBe Søknadsbehandling.TilAttestering.Avslag.MedBeregning(
+                    id = tilAttestering.id,
+                    opprettet = tilAttestering.opprettet,
+                    sakId = tilAttestering.sakId,
+                    saksnummer = tilAttestering.saksnummer,
+                    søknad = tilAttestering.søknad,
+                    oppgaveId = nyOppgaveId,
+                    behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
+                    fnr = tilAttestering.fnr,
+                    beregning = avslåttBeregning,
+                    saksbehandler = saksbehandler,
+                    fritekstTilBrev = "",
+                    stønadsperiode = stønadsperiode,
+                    grunnlagsdata = tilAttestering.grunnlagsdata,
+                    vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
+                    attesteringer = Attesteringshistorikk.empty(),
+                ).persistertVariant()
             }
         }
     }
@@ -342,90 +340,86 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 val tilAttestering = testDataHelper.nyInnvilgetUnderkjenning()
                 tilAttestering.nyOppgaveId(nyOppgaveId).also {
                     repo.lagre(it)
-                    repo.hent(it.id).also {
-                        it shouldBe Søknadsbehandling.Underkjent.Innvilget(
-                            id = tilAttestering.id,
-                            opprettet = tilAttestering.opprettet,
-                            sakId = tilAttestering.sakId,
-                            saksnummer = tilAttestering.saksnummer,
-                            søknad = tilAttestering.søknad,
-                            oppgaveId = nyOppgaveId,
-                            behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
-                            fnr = tilAttestering.fnr,
-                            beregning = innvilgetBeregning(),
-                            simulering = simulering(tilAttestering.fnr),
-                            saksbehandler = saksbehandler,
-                            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(underkjentAttestering),
-                            fritekstTilBrev = "",
-                            stønadsperiode = stønadsperiode,
-                            grunnlagsdata = tilAttestering.grunnlagsdata,
-                            vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
-                        )
-                    }
+                    repo.hent(it.id) shouldBe Søknadsbehandling.Underkjent.Innvilget(
+                        id = tilAttestering.id,
+                        opprettet = tilAttestering.opprettet,
+                        sakId = tilAttestering.sakId,
+                        saksnummer = tilAttestering.saksnummer,
+                        søknad = tilAttestering.søknad,
+                        oppgaveId = nyOppgaveId,
+                        behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
+                        fnr = tilAttestering.fnr,
+                        beregning = innvilgetBeregning(),
+                        simulering = simulering(tilAttestering.fnr),
+                        saksbehandler = saksbehandler,
+                        attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(underkjentAttestering),
+                        fritekstTilBrev = "",
+                        stønadsperiode = stønadsperiode,
+                        grunnlagsdata = tilAttestering.grunnlagsdata,
+                        vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
+                    ).persistertVariant()
                 }
             }
         }
+    }
 
-        @Test
-        fun `underkjent avslag uten beregning`() {
-            withMigratedDb { dataSource ->
-                val testDataHelper = TestDataHelper(dataSource)
-                val repo = testDataHelper.søknadsbehandlingRepo
-                val nyOppgaveId = OppgaveId("tilAttesteringOppgaveId")
-                val tilAttestering = testDataHelper.nyUnderkjenningUtenBeregning()
-                tilAttestering.nyOppgaveId(nyOppgaveId).also {
-                    repo.lagre(it)
-                    repo.hent(it.id).also {
-                        it shouldBe Søknadsbehandling.Underkjent.Avslag.UtenBeregning(
-                            id = tilAttestering.id,
-                            opprettet = tilAttestering.opprettet,
-                            sakId = tilAttestering.sakId,
-                            saksnummer = tilAttestering.saksnummer,
-                            søknad = tilAttestering.søknad,
-                            oppgaveId = nyOppgaveId,
-                            behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
-                            fnr = tilAttestering.fnr,
-                            saksbehandler = saksbehandler,
-                            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(underkjentAttestering),
-                            fritekstTilBrev = "",
-                            stønadsperiode = stønadsperiode,
-                            grunnlagsdata = tilAttestering.grunnlagsdata,
-                            vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
-                        )
-                    }
+    @Test
+    fun `underkjent avslag uten beregning`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.søknadsbehandlingRepo
+            val nyOppgaveId = OppgaveId("tilAttesteringOppgaveId")
+            val tilAttestering = testDataHelper.nyUnderkjenningUtenBeregning()
+            tilAttestering.nyOppgaveId(nyOppgaveId).also {
+                repo.lagre(it)
+                repo.hent(it.id).also {
+                    it shouldBe Søknadsbehandling.Underkjent.Avslag.UtenBeregning(
+                        id = tilAttestering.id,
+                        opprettet = tilAttestering.opprettet,
+                        sakId = tilAttestering.sakId,
+                        saksnummer = tilAttestering.saksnummer,
+                        søknad = tilAttestering.søknad,
+                        oppgaveId = nyOppgaveId,
+                        behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
+                        fnr = tilAttestering.fnr,
+                        saksbehandler = saksbehandler,
+                        attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(underkjentAttestering),
+                        fritekstTilBrev = "",
+                        stønadsperiode = stønadsperiode,
+                        grunnlagsdata = tilAttestering.grunnlagsdata,
+                        vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
+                    )
                 }
             }
         }
+    }
 
-        @Test
-        fun `underkjent avslag med beregning`() {
-            withMigratedDb { dataSource ->
-                val testDataHelper = TestDataHelper(dataSource)
-                val repo = testDataHelper.søknadsbehandlingRepo
-                val nyOppgaveId = OppgaveId("tilAttesteringOppgaveId")
-                val tilAttestering = testDataHelper.nyUnderkjenningMedBeregning()
-                tilAttestering.nyOppgaveId(nyOppgaveId).also {
-                    repo.lagre(it)
-                    repo.hent(it.id).also {
-                        it shouldBe Søknadsbehandling.Underkjent.Avslag.MedBeregning(
-                            id = tilAttestering.id,
-                            opprettet = tilAttestering.opprettet,
-                            sakId = tilAttestering.sakId,
-                            saksnummer = tilAttestering.saksnummer,
-                            søknad = tilAttestering.søknad,
-                            oppgaveId = nyOppgaveId,
-                            behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
-                            fnr = tilAttestering.fnr,
-                            beregning = avslåttBeregning,
-                            saksbehandler = saksbehandler,
-                            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(underkjentAttestering),
-                            fritekstTilBrev = "",
-                            stønadsperiode = stønadsperiode,
-                            grunnlagsdata = tilAttestering.grunnlagsdata,
-                            vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
-                        )
-                    }
-                }
+    @Test
+    fun `underkjent avslag med beregning`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val repo = testDataHelper.søknadsbehandlingRepo
+            val nyOppgaveId = OppgaveId("tilAttesteringOppgaveId")
+            val tilAttestering = testDataHelper.nyUnderkjenningMedBeregning()
+            tilAttestering.nyOppgaveId(nyOppgaveId).also {
+                repo.lagre(it)
+                repo.hent(it.id) shouldBe Søknadsbehandling.Underkjent.Avslag.MedBeregning(
+                    id = tilAttestering.id,
+                    opprettet = tilAttestering.opprettet,
+                    sakId = tilAttestering.sakId,
+                    saksnummer = tilAttestering.saksnummer,
+                    søknad = tilAttestering.søknad,
+                    oppgaveId = nyOppgaveId,
+                    behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
+                    fnr = tilAttestering.fnr,
+                    beregning = avslåttBeregning,
+                    saksbehandler = saksbehandler,
+                    attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(underkjentAttestering),
+                    fritekstTilBrev = "",
+                    stønadsperiode = stønadsperiode,
+                    grunnlagsdata = tilAttestering.grunnlagsdata,
+                    vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
+                ).persistertVariant()
             }
         }
     }
@@ -439,9 +433,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 val testDataHelper = TestDataHelper(dataSource)
                 val repo = testDataHelper.søknadsbehandlingRepo
                 val iverksatt = testDataHelper.nyIverksattInnvilget().first
-                repo.hent(iverksatt.id).also {
-                    it shouldBe iverksatt
-                }
+                repo.hent(iverksatt.id) shouldBe iverksatt.persistertVariant()
             }
         }
     }
@@ -480,25 +472,23 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
             val iverksatt = testDataHelper.nyIverksattAvslagMedBeregning()
-            repo.hent(iverksatt.id).also {
-                it shouldBe Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
-                    id = iverksatt.id,
-                    opprettet = iverksatt.opprettet,
-                    sakId = iverksatt.sakId,
-                    saksnummer = iverksatt.saksnummer,
-                    søknad = iverksatt.søknad,
-                    oppgaveId = iverksatt.oppgaveId,
-                    behandlingsinformasjon = iverksatt.behandlingsinformasjon,
-                    fnr = iverksatt.fnr,
-                    beregning = avslåttBeregning,
-                    saksbehandler = saksbehandler,
-                    attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(iverksattAttestering),
-                    fritekstTilBrev = "",
-                    stønadsperiode = stønadsperiode,
-                    grunnlagsdata = iverksatt.grunnlagsdata,
-                    vilkårsvurderinger = iverksatt.vilkårsvurderinger,
-                )
-            }
+            repo.hent(iverksatt.id) shouldBe Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
+                id = iverksatt.id,
+                opprettet = iverksatt.opprettet,
+                sakId = iverksatt.sakId,
+                saksnummer = iverksatt.saksnummer,
+                søknad = iverksatt.søknad,
+                oppgaveId = iverksatt.oppgaveId,
+                behandlingsinformasjon = iverksatt.behandlingsinformasjon,
+                fnr = iverksatt.fnr,
+                beregning = avslåttBeregning.toSnapshot(),
+                saksbehandler = saksbehandler,
+                attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(iverksattAttestering),
+                fritekstTilBrev = "",
+                stønadsperiode = stønadsperiode,
+                grunnlagsdata = iverksatt.grunnlagsdata,
+                vilkårsvurderinger = iverksatt.vilkårsvurderinger,
+            )
         }
     }
 
@@ -542,7 +532,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     oppgaveId = iverksatt.oppgaveId,
                     behandlingsinformasjon = iverksatt.behandlingsinformasjon,
                     fnr = iverksatt.fnr,
-                    beregning = avslåttBeregning,
+                    beregning = avslåttBeregning.toSnapshot(),
                     saksbehandler = saksbehandler,
                     attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(iverksattAttestering),
                     fritekstTilBrev = "",

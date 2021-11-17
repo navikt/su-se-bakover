@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
-import no.nav.su.se.bakover.database.beregning.serialiserBeregning
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
@@ -388,7 +387,7 @@ internal class RevurderingPostgresRepo(
                 mapOf(
                     "id" to revurdering.id,
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
-                    "beregning" to serialiserBeregning(revurdering.beregning),
+                    "beregning" to revurdering.beregning,
                     "revurderingsType" to when (revurdering) {
                         is BeregnetRevurdering.IngenEndring -> RevurderingsType.BEREGNET_INGEN_ENDRING
                         is BeregnetRevurdering.Innvilget -> RevurderingsType.BEREGNET_INNVILGET
@@ -420,7 +419,7 @@ internal class RevurderingPostgresRepo(
                 mapOf(
                     "id" to revurdering.id,
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
-                    "beregning" to serialiserBeregning(revurdering.beregning),
+                    "beregning" to revurdering.beregning,
                     "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
@@ -456,7 +455,7 @@ internal class RevurderingPostgresRepo(
                 mapOf(
                     "id" to revurdering.id,
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
-                    "beregning" to serialiserBeregning(revurdering.beregning),
+                    "beregning" to revurdering.beregning,
                     "simulering" to when (revurdering) {
                         is RevurderingTilAttestering.IngenEndring -> null
                         is RevurderingTilAttestering.Innvilget -> objectMapper.writeValueAsString(revurdering.simulering)
@@ -500,7 +499,7 @@ internal class RevurderingPostgresRepo(
                 mapOf(
                     "id" to revurdering.id,
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
-                    "beregning" to serialiserBeregning(revurdering.beregning),
+                    "beregning" to revurdering.beregning,
                     "simulering" to when (revurdering) {
                         is IverksattRevurdering.IngenEndring -> null
                         is IverksattRevurdering.Innvilget -> objectMapper.writeValueAsString(revurdering.simulering)

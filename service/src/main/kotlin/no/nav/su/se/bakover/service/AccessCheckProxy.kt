@@ -70,6 +70,7 @@ import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.revurdering.Forhåndsvarselhandling
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarslingRequest
 import no.nav.su.se.bakover.service.revurdering.GjenopptaYtelseRequest
@@ -98,7 +99,6 @@ import no.nav.su.se.bakover.service.revurdering.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.OpprettRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
-import no.nav.su.se.bakover.service.revurdering.Revurderingshandling
 import no.nav.su.se.bakover.service.revurdering.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.revurdering.StansYtelseRequest
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
@@ -565,17 +565,17 @@ open class AccessCheckProxy(
                     )
                 }
 
-                override fun forhåndsvarsleEllerSendTilAttestering(
+                override fun lagreOgSendForhåndsvarsel(
                     revurderingId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                    revurderingshandling: Revurderingshandling,
+                    forhåndsvarselhandling: Forhåndsvarselhandling,
                     fritekst: String,
                 ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
                     assertHarTilgangTilRevurdering(revurderingId)
-                    return services.revurdering.forhåndsvarsleEllerSendTilAttestering(
+                    return services.revurdering.lagreOgSendForhåndsvarsel(
                         revurderingId,
                         saksbehandler,
-                        revurderingshandling,
+                        forhåndsvarselhandling,
                         fritekst,
                     )
                 }

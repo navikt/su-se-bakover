@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.revurdering
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.persistertVariant
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -42,9 +43,11 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
 
-            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering
+            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering.persistertVariant()
 
-            val iverksattRevurdering = simulertRevurdering.iverksett(
+            val persistertSimulert = testDataHelper.revurderingRepo.hent(simulertRevurdering.id)!! as GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse
+
+            val iverksattRevurdering = persistertSimulert.iverksett(
                 Attestering.Iverksatt(NavIdentBruker.Attestant("atte"), fixedTidspunkt),
             ).getOrFail("Feil i oppsett av testdata")
 
@@ -76,7 +79,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
             )
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
-            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering
+            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe simulertRevurdering.persistertVariant()
 
             val nyInformasjon = simulertRevurdering.copy(
                 periode = periodeMai2021,
@@ -94,7 +97,7 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
             )
 
             testDataHelper.revurderingRepo.lagre(nyInformasjon)
-            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe nyInformasjon
+            testDataHelper.revurderingRepo.hent(simulertRevurdering.id) shouldBe nyInformasjon.persistertVariant()
         }
     }
 
@@ -120,7 +123,9 @@ internal class GjenopptakAvYtelsePostgresRepoTest {
 
             testDataHelper.revurderingRepo.lagre(simulertRevurdering)
 
-            val avsluttetGjenopptaAvYtelse = simulertRevurdering.avslutt(
+            val persistertSimulert = testDataHelper.revurderingRepo.hent(simulertRevurdering.id)!! as GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse
+
+            val avsluttetGjenopptaAvYtelse = persistertSimulert.avslutt(
                 begrunnelse = "Avslutter denne her",
                 tidspunktAvsluttet = fixedTidspunkt,
             ).getOrFail("Her skulle vi ha avsluttet en gjenopptaAvYtelse revurdering")

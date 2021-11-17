@@ -8,8 +8,6 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.beregning.PersistertBeregning
-import no.nav.su.se.bakover.database.beregning.toSnapshot
 import no.nav.su.se.bakover.database.dokument.DokumentPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
@@ -43,6 +41,7 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
+import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -97,9 +96,11 @@ internal val behandlingsinformasjonMedAvslag =
 
 internal val oppgaveId = OppgaveId("oppgaveId")
 internal val journalpostId = JournalpostId("journalpostId")
-internal fun innvilgetBeregning(periode: Periode = stønadsperiode.periode) = no.nav.su.se.bakover.test.beregning(periode).toSnapshot()
 
-internal val avslåttBeregning: PersistertBeregning = beregningAvslagForHøyInntekt().toSnapshot()
+internal fun innvilgetBeregning(periode: Periode = stønadsperiode.periode) =
+    no.nav.su.se.bakover.test.beregning(periode)
+
+internal val avslåttBeregning: Beregning = beregningAvslagForHøyInntekt()
 
 internal fun simulering(fnr: Fnr) = Simulering(
     gjelderId = fnr,

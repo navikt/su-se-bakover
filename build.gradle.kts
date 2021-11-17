@@ -110,6 +110,8 @@ allprojects {
         kotlinOptions {
             jvmTarget = "16"
             freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+            freeCompilerArgs += "-Xenable-builder-inference"
+            freeCompilerArgs += "-progressive"
             allWarningsAsErrors = true
         }
     }
