@@ -40,7 +40,7 @@ internal class KlageServiceImplTest {
             it shouldBe expectedKlage
         }
 
-        verify(klageRepoMock).opprett(
+        verify(klageRepoMock).lagre(
             argThat {
                 it shouldBe expectedKlage
             },

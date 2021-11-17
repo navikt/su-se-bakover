@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.Typer.Companion.databasetype
+import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.uuidOrNull
@@ -21,24 +22,60 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import java.util.UUID
 
 internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFactory) : KlageRepo {
-    override fun opprett(klage: Klage) {
+
+    override fun lagre(klage: Klage) {
         sessionFactory.withSession { session ->
-            """
-                insert into klage(id, sakid, opprettet, journalpostid, saksbehandler, type)
-                values(:id, :sakid, :opprettet, :journalpostid, :saksbehandler, :type)
-            """.trimIndent()
-                .insert(
-                    mapOf(
-                        "id" to klage.id,
-                        "sakid" to klage.sakId,
-                        "opprettet" to klage.opprettet,
-                        "journalpostid" to klage.journalpostId,
-                        "saksbehandler" to klage.saksbehandler,
-                        "type" to klage.databasetype(),
-                    ),
-                    session,
-                )
+            when (klage) {
+                is OpprettetKlage -> lagreOpprettetKlage(klage, session)
+                is VilkårsvurdertKlage -> lagreVilkårsvurdertKlage(klage, session)
+            }
         }
+    }
+
+    private fun lagreOpprettetKlage(klage: OpprettetKlage, session: Session) {
+        println("lol")
+        """
+            insert into klage(id,  sakid,  opprettet,  journalpostid,  saksbehandler,  type)
+                      values(:id, :sakid, :opprettet, :journalpostid, :saksbehandler, :type)
+        """.trimIndent()
+            .insert(
+                params = mapOf(
+                    "id" to klage.id,
+                    "sakid" to klage.sakId,
+                    "opprettet" to klage.opprettet,
+                    "journalpostid" to klage.journalpostId,
+                    "saksbehandler" to klage.saksbehandler,
+                    "type" to klage.databasetype(),
+                ),
+                session = session,
+            )
+    }
+
+    private fun lagreVilkårsvurdertKlage(klage: VilkårsvurdertKlage, session: Session) {
+        """
+            update klage set
+                saksbehandler=:saksbehandler,
+                type=:type,
+                vedtakId=:vedtakId,
+                innenforFristen=:innenforFristen,
+                klagesDetPåKonkreteElementerIVedtaket=:klagesDetPaaKonkreteElementerIVedtaket,
+                erUnderskrevet=:erUnderskrevet,
+                begrunnelse=:begrunnelse
+            where id=:id
+        """.trimIndent()
+            .oppdatering(
+                mapOf(
+                    "id" to klage.id,
+                    "saksbehandler" to klage.saksbehandler,
+                    "type" to klage.databasetype(),
+                    "vedtakId" to klage.vilkårsvurderinger.vedtakId,
+                    "innenforFristen" to klage.vilkårsvurderinger.innenforFristen,
+                    "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
+                    "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet,
+                    "begrunnelse" to klage.vilkårsvurderinger.begrunnelse,
+                ),
+                session,
+            )
     }
 
     override fun hentKlage(klageId: UUID): Klage? {

@@ -13,7 +13,7 @@ import java.time.Clock
 class KlageServiceImpl(private val klageRepo: KlageRepo, val clock: Clock) : KlageService {
     override fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage> {
         return request.toKlage(clock).also {
-            klageRepo.opprett(it)
+            klageRepo.lagre(it)
         }.right()
     }
 
@@ -24,6 +24,9 @@ class KlageServiceImpl(private val klageRepo: KlageRepo, val clock: Clock) : Kla
                 saksbehandler = it.saksbehandler,
                 vilkårsvurderinger = it.vilkårsvurderinger,
             )
+        }.map {
+            klageRepo.lagre(it)
+            it
         }
     }
 }
