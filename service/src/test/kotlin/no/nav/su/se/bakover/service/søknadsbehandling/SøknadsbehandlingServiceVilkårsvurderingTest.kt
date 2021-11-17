@@ -38,7 +38,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).vilkårsvurder(
-            SøknadsbehandlingService.VilkårsvurderRequest(
+            VilkårsvurderRequest(
                 behandlingId = UUID.randomUUID(),
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             ),
@@ -61,7 +61,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).vilkårsvurder(
-            SøknadsbehandlingService.VilkårsvurderRequest(
+            VilkårsvurderRequest(
                 behandlingId = innvilget.id,
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
             ),
@@ -102,7 +102,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).vilkårsvurder(
-            SøknadsbehandlingService.VilkårsvurderRequest(
+            VilkårsvurderRequest(
                 avslag.id,
                 avslag.behandlingsinformasjon,
             ),
@@ -144,7 +144,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             createSøknadsbehandlingService(
                 søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             ).vilkårsvurder(
-                SøknadsbehandlingService.VilkårsvurderRequest(
+                VilkårsvurderRequest(
                     behandlingId = iverksatt.id,
                     behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
                         .withAlleVilkårOppfylt(),

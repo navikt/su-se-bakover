@@ -29,8 +29,6 @@ internal fun Route.revurderingRoutes(
 
     brevutkastForRevurdering(revurderingService)
 
-    fortsettEtterForhåndsvarselRoute(revurderingService)
-
     leggTilGrunnlagRevurderingRoutes(revurderingService)
 
     leggTilUtlandsoppholdRoute(revurderingService)

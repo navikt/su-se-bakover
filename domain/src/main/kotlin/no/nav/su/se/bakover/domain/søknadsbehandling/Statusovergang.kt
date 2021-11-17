@@ -26,39 +26,39 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
     ) : Statusovergang<Nothing, Søknadsbehandling.Vilkårsvurdert>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.UtenBeregning) {
-            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon, clock = clock).right()
         }
     }
 
@@ -251,7 +251,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
                 ).getOrHandle { return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left() },
                 vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger.oppdaterStønadsperiode(oppdatertStønadsperiode),
                 attesteringer = søknadsbehandling.attesteringer,
-            ).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon, clock).right()
+            ).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon, clock = clock).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {

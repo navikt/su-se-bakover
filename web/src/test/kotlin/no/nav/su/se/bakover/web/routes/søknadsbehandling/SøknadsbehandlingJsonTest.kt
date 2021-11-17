@@ -63,7 +63,6 @@ internal class SøknadsbehandlingJsonTest {
                 },
                 "formue": {
                     "status": "VilkårOppfylt",
-                    "borSøkerMedEPS": true,
                     "verdier": {
                         "verdiIkkePrimærbolig": 0,
                         "verdiEiendommer": 0,
@@ -89,8 +88,7 @@ internal class SøknadsbehandlingJsonTest {
                 "personligOppmøte": {
                     "status": "MøttPersonlig",
                     "begrunnelse": null
-                },
-                "utledetSats": "ORDINÆR"
+                }
           },
           "søknad": $søknadJsonString,
           "beregning": $expectedBeregningJson,
@@ -177,8 +175,7 @@ internal class SøknadsbehandlingJsonTest {
             "fastOppholdINorge": null,
             "institusjonsopphold": null,
             "formue": null,
-            "personligOppmøte": null,
-            "utledetSats": null
+            "personligOppmøte": null
           },
           "søknad": $søknadJsonString,
           "beregning": null,

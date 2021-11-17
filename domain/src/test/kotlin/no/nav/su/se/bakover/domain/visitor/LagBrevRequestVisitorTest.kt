@@ -84,7 +84,7 @@ internal class LagBrevRequestVisitorTest {
     fun `responderer med feil dersom vi ikke får til å hente person`() {
         uavklart.tilVilkårsvurdert(
             Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
-            fixedClock,
+            clock = fixedClock,
         )
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
@@ -102,7 +102,7 @@ internal class LagBrevRequestVisitorTest {
     fun `responderer med feil dersom vi ikke får til å hente navn for saksbehandler eller attestant`() {
         uavklart.tilVilkårsvurdert(
             Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-            fixedClock,
+            clock = fixedClock,
         )
             .tilBeregnet(innvilgetBeregning)
             .tilSimulert(simulering)
@@ -136,7 +136,7 @@ internal class LagBrevRequestVisitorTest {
         assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
             uavklart.tilVilkårsvurdert(
                 Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                fixedClock,
+                clock = fixedClock,
             )
                 .let {
                     LagBrevRequestVisitor(
@@ -153,7 +153,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for vilkårsvurdert avslag`() {
         uavklart.tilVilkårsvurdert(
             Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
-            fixedClock,
+            clock = fixedClock,
         )
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
@@ -191,7 +191,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for beregnet innvilget`() {
         uavklart.tilVilkårsvurdert(
             Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-            fixedClock,
+            clock = fixedClock,
         )
             .tilBeregnet(innvilgetBeregning)
             .let { søknadsbehandling ->
@@ -219,7 +219,10 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for beregnet avslag`() {
         uavklart
-            .tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), fixedClock)
+            .tilVilkårsvurdert(
+                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
+                clock = fixedClock,
+            )
             .tilBeregnet(avslagBeregning)
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
@@ -250,7 +253,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for simulert`() {
         uavklart.tilVilkårsvurdert(
             Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-            fixedClock,
+            clock = fixedClock,
         )
             .tilBeregnet(innvilgetBeregning)
             .tilSimulert(simulering)
@@ -287,7 +290,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for avslag til attestering uten beregning`() {
         (
             uavklart.tilVilkårsvurdert(
-                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), fixedClock,
+                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), clock = fixedClock,
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -321,7 +324,7 @@ internal class LagBrevRequestVisitorTest {
         (
             uavklart.tilVilkårsvurdert(
                 Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                fixedClock,
+                clock = fixedClock,
             )
                 .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
             )
@@ -355,7 +358,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for innvilget til attestering`() {
         uavklart.tilVilkårsvurdert(
             Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-            fixedClock,
+            clock = fixedClock,
         )
             .tilBeregnet(innvilgetBeregning)
             .tilSimulert(simulering)
@@ -386,7 +389,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for underkjent avslag uten beregning`() {
         (
             uavklart.tilVilkårsvurdert(
-                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), fixedClock,
+                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), clock = fixedClock,
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -428,7 +431,7 @@ internal class LagBrevRequestVisitorTest {
         (
             uavklart.tilVilkårsvurdert(
                 Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                fixedClock,
+                clock = fixedClock,
             )
                 .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
             )
@@ -471,7 +474,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for underkjent innvilgelse`() {
         uavklart.tilVilkårsvurdert(
             Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-            fixedClock,
+            clock = fixedClock,
         )
             .tilBeregnet(innvilgetBeregning)
             .tilSimulert(simulering)
@@ -510,7 +513,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for iverksatt avslag uten beregning`() {
         (
             uavklart.tilVilkårsvurdert(
-                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), fixedClock,
+                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), clock = fixedClock,
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -547,7 +550,7 @@ internal class LagBrevRequestVisitorTest {
         (
             uavklart.tilVilkårsvurdert(
                 Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(),
-                fixedClock,
+                clock = fixedClock,
             )
                 .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
             )
@@ -584,7 +587,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for iverksatt innvilget`() {
         uavklart.tilVilkårsvurdert(
             Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-            fixedClock,
+            clock = fixedClock,
         )
             .tilBeregnet(innvilgetBeregning)
             .tilSimulert(simulering)
@@ -618,7 +621,7 @@ internal class LagBrevRequestVisitorTest {
         val søknadsbehandling =
             uavklart.tilVilkårsvurdert(
                 Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                fixedClock,
+                clock = fixedClock,
             )
                 .tilBeregnet(innvilgetBeregning)
                 .tilSimulert(simulering)
@@ -660,7 +663,7 @@ internal class LagBrevRequestVisitorTest {
         val søknadsbehandling = (
             uavklart.tilVilkårsvurdert(
                 Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                fixedClock,
+                clock = fixedClock,
             )
                 .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
             )
@@ -704,7 +707,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for vedtak om avslått stønad uten beregning`() {
         val søknadsbehandling = (
             uavklart.tilVilkårsvurdert(
-                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), fixedClock,
+                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAvslåttFlyktning(), clock = fixedClock,
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -752,7 +755,7 @@ internal class LagBrevRequestVisitorTest {
         val søknadsbehandling =
             uavklart.tilVilkårsvurdert(
                 Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                fixedClock,
+                clock = fixedClock,
             )
                 .tilBeregnet(innvilgetBeregning)
                 .tilSimulert(simulering)
@@ -833,7 +836,7 @@ internal class LagBrevRequestVisitorTest {
         val søknadsbehandling =
             uavklart.tilVilkårsvurdert(
                 Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                fixedClock,
+                clock = fixedClock,
             )
                 .tilBeregnet(innvilgetBeregning)
                 .tilSimulert(simulering)
@@ -1065,7 +1068,7 @@ internal class LagBrevRequestVisitorTest {
         val søknadsbehandling =
             uavklart.tilVilkårsvurdert(
                 Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                fixedClock,
+                clock = fixedClock,
             )
                 .tilBeregnet(innvilgetBeregning)
                 .tilSimulert(simulering)

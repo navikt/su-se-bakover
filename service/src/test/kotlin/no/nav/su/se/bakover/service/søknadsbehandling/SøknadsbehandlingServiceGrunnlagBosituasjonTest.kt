@@ -106,13 +106,18 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             on { hent(any()) } doReturn tilAttestering
         }
 
-        shouldThrow<StatusovergangVisitor.UgyldigStatusovergangException> {
-            createSøknadsbehandlingService(
-                søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            ).leggTilBosituasjonEpsgrunnlag(
-                LeggTilBosituasjonEpsRequest(behandlingId = behandlingId, epsFnr = null),
-            )
-        }
+        val actual = createSøknadsbehandlingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+        ).leggTilBosituasjonEpsgrunnlag(
+            LeggTilBosituasjonEpsRequest(behandlingId = behandlingId, epsFnr = null),
+        )
+
+        actual shouldBe KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KunneIkkeOppdatereBosituasjon(
+            feil = Søknadsbehandling.KunneIkkeOppdatereBosituasjon.UgyldigTilstand(
+                Søknadsbehandling.TilAttestering.Avslag.UtenBeregning::class,
+                Søknadsbehandling.Vilkårsvurdert::class,
+            ),
+        ).left()
     }
 
     @Test
@@ -233,7 +238,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             ),
         )
 
-        verify(søknadsbehandlingRepoMock, Times(2)).hent(argThat { it shouldBe behandlingId })
+        verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
         verify(søknadsbehandlingRepoMock).defaultTransactionContext()
         verify(søknadsbehandlingRepoMock).lagre(
             any(),
@@ -242,6 +247,10 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         verify(grunnlagServiceMock).lagreBosituasjongrunnlag(
             argThat { it shouldBe behandlingId },
             argThat { it shouldBe listOf(bosituasjon.copy(id = it.first().id, opprettet = it.first().opprettet)) },
+        )
+        verify(grunnlagServiceMock).lagreFradragsgrunnlag(
+            argThat { it shouldBe behandlingId },
+            argThat { it shouldBe emptyList() }
         )
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, grunnlagServiceMock)
     }
@@ -298,7 +307,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         verify(personServiceMock).hentPerson(bosituasjon.fnr)
-        verify(søknadsbehandlingRepoMock, Times(2)).hent(argThat { it shouldBe uavklart.id })
+        verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe uavklart.id })
         verify(søknadsbehandlingRepoMock).defaultTransactionContext()
         verify(søknadsbehandlingRepoMock).lagre(
             any(),
@@ -307,6 +316,10 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         verify(grunnlagServiceMock).lagreBosituasjongrunnlag(
             argThat { it shouldBe uavklart.id },
             argThat { it shouldBe listOf(bosituasjon.copy(id = it.first().id, opprettet = it.first().opprettet)) },
+        )
+        verify(grunnlagServiceMock).lagreFradragsgrunnlag(
+            argThat { it shouldBe uavklart.id },
+            argThat { it shouldBe emptyList() }
         )
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, grunnlagServiceMock, personServiceMock)
     }
@@ -441,6 +454,10 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         verify(grunnlagServiceMock).lagreBosituasjongrunnlag(
             argThat { it shouldBe behandlingId },
             argThat { it shouldBe listOf(bosituasjon.copy(id = it.first().id, opprettet = it.first().opprettet)) },
+        )
+        verify(grunnlagServiceMock).lagreFradragsgrunnlag(
+            argThat { it shouldBe behandlingId },
+            argThat { it shouldBe emptyList() }
         )
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, grunnlagServiceMock)
     }

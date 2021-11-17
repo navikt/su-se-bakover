@@ -135,6 +135,11 @@ internal object Feilresponser {
         )
     }
 
+    val depositumErHøyereEnnInnskudd = BadRequest.errorJson(
+        "Depositum er høyere enn innskudd",
+        "depositum_høyere_enn_innskudd",
+    )
+
     val periodeForGrunnlagOgVurderingErForskjellig = BadRequest.errorJson(
         "Det er ikke samsvar mellom perioden for vurdering og perioden for grunnlaget",
         "periode_for_grunnlag_og_vurdering_er_forskjellig",
@@ -153,6 +158,11 @@ internal object Feilresponser {
     val kunneIkkeAvgjøreOmFørstegangEllerNyPeriode = InternalServerError.errorJson(
         "Kunne ikke opprette oppgave siden vi ikke kan avgjøre om det er en FØRSTEGANGSSØKNAD eller NY_PERIODE",
         "kunne_ikke_avgjøre_om_førstegang_eller_ny_periode",
+    )
+
+    val harIkkeEktefelle = BadRequest.errorJson(
+        "Kan ikke ha formue for eps når søker ikke har eps",
+        "har_ikke_ektefelle",
     )
 
     object Brev {

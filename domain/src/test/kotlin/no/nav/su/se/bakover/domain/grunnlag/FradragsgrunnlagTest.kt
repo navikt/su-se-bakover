@@ -11,12 +11,14 @@ import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.generer
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -260,6 +262,75 @@ internal class FradragsgrunnlagTest {
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER,
         )
+    }
+
+    @Test
+    fun `fjerner fradrag som tilhører EPS, når vi har bosituasjon uten EPS`() {
+        val f1 = Grunnlag.Fradragsgrunnlag.create(
+            id = UUID.randomUUID(), opprettet = fixedTidspunkt,
+            fradrag = FradragFactory.ny(
+                type = Fradragstype.Sosialstønad,
+                månedsbeløp = 100.0,
+                periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                utenlandskInntekt = null,
+                tilhører = FradragTilhører.EPS,
+            ),
+        )
+
+        val f2 = Grunnlag.Fradragsgrunnlag.create(
+            id = UUID.randomUUID(), opprettet = fixedTidspunkt,
+            fradrag = FradragFactory.ny(
+                type = Fradragstype.PrivatPensjon,
+                månedsbeløp = 100.0,
+                periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                utenlandskInntekt = null,
+                tilhører = FradragTilhører.BRUKER,
+            ),
+        )
+
+        val bosituasjonUtenEPS = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+        )
+
+        listOf(f1, f2)
+            .fjernInntekterForEPSDersomFradragIkkeErKonsistentMedOppdatertBosituasjon(bosituasjonUtenEPS) shouldBe listOf(f2)
+    }
+
+    @Test
+    fun `fjerner ikke fradrag for EPS, dersom søker bor med EPS`() {
+        val f1 = Grunnlag.Fradragsgrunnlag.create(
+            id = UUID.randomUUID(), opprettet = fixedTidspunkt,
+            fradrag = FradragFactory.ny(
+                type = Fradragstype.Sosialstønad,
+                månedsbeløp = 100.0,
+                periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                utenlandskInntekt = null,
+                tilhører = FradragTilhører.EPS,
+            ),
+        )
+
+        val f2 = Grunnlag.Fradragsgrunnlag.create(
+            id = UUID.randomUUID(), opprettet = fixedTidspunkt,
+            fradrag = FradragFactory.ny(
+                type = Fradragstype.PrivatPensjon,
+                månedsbeløp = 100.0,
+                periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                utenlandskInntekt = null,
+                tilhører = FradragTilhører.BRUKER,
+            ),
+        )
+
+        val bosituasjonUtenEPS = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+            fnr = Fnr.generer(),
+        )
+
+        listOf(f1, f2)
+            .fjernInntekterForEPSDersomFradragIkkeErKonsistentMedOppdatertBosituasjon(bosituasjonUtenEPS) shouldBe listOf(f1, f2)
     }
 
     private fun lagFradragsgrunnlag(

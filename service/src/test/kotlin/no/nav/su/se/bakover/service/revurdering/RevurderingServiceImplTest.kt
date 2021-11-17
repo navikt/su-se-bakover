@@ -784,10 +784,10 @@ internal class RevurderingServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             microsoftGraphApiClient = microsoftGraphApiClientMock,
-        ).forhåndsvarsleEllerSendTilAttestering(
+        ).lagreOgSendForhåndsvarsel(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
+            forhåndsvarselhandling = Forhåndsvarselhandling.FORHÅNDSVARSLE,
             fritekst = "",
         ).getOrHandle { throw RuntimeException("Her skulle vi ha fått en revurdering") }
 
@@ -848,10 +848,10 @@ internal class RevurderingServiceImplTest {
 
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-        ).forhåndsvarsleEllerSendTilAttestering(
+        ).lagreOgSendForhåndsvarsel(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
+            forhåndsvarselhandling = Forhåndsvarselhandling.FORHÅNDSVARSLE,
             fritekst = "",
         ) shouldBe KunneIkkeForhåndsvarsle.AlleredeForhåndsvarslet.left()
     }
@@ -888,10 +888,10 @@ internal class RevurderingServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             microsoftGraphApiClient = microsoftGraphApiClientMock,
-        ).forhåndsvarsleEllerSendTilAttestering(
+        ).lagreOgSendForhåndsvarsel(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
+            forhåndsvarselhandling = Forhåndsvarselhandling.FORHÅNDSVARSLE,
             fritekst = "",
         )
 
@@ -922,10 +922,10 @@ internal class RevurderingServiceImplTest {
 
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-        ).forhåndsvarsleEllerSendTilAttestering(
+        ).lagreOgSendForhåndsvarsel(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
+            forhåndsvarselhandling = Forhåndsvarselhandling.FORHÅNDSVARSLE,
             fritekst = "",
         ) shouldBe KunneIkkeForhåndsvarsle.Attestering(
             KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke,
@@ -939,10 +939,10 @@ internal class RevurderingServiceImplTest {
 
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-        ).forhåndsvarsleEllerSendTilAttestering(
+        ).lagreOgSendForhåndsvarsel(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
+            forhåndsvarselhandling = Forhåndsvarselhandling.FORHÅNDSVARSLE,
             fritekst = "",
         ) shouldBe KunneIkkeForhåndsvarsle.UgyldigTilstand(
             revurdering::class,
@@ -1005,10 +1005,10 @@ internal class RevurderingServiceImplTest {
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             personService = personServiceMock,
-        ).forhåndsvarsleEllerSendTilAttestering(
+        ).lagreOgSendForhåndsvarsel(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
+            forhåndsvarselhandling = Forhåndsvarselhandling.FORHÅNDSVARSLE,
             fritekst = "",
         ) shouldBe KunneIkkeForhåndsvarsle.FantIkkePerson.left()
     }
@@ -1041,10 +1041,10 @@ internal class RevurderingServiceImplTest {
             personService = personServiceMock,
             brevService = brevServiceMock,
             microsoftGraphApiClient = microsoftGraphApiClientMock,
-        ).forhåndsvarsleEllerSendTilAttestering(
+        ).lagreOgSendForhåndsvarsel(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
+            forhåndsvarselhandling = Forhåndsvarselhandling.FORHÅNDSVARSLE,
             fritekst = "",
         ) shouldBe KunneIkkeForhåndsvarsle.KunneIkkeGenerereDokument.left()
 
@@ -1084,10 +1084,10 @@ internal class RevurderingServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             microsoftGraphApiClient = microsoftGraphApiClientMock,
-        ).forhåndsvarsleEllerSendTilAttestering(
+        ).lagreOgSendForhåndsvarsel(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
+            forhåndsvarselhandling = Forhåndsvarselhandling.FORHÅNDSVARSLE,
             fritekst = "",
         ) shouldBe KunneIkkeForhåndsvarsle.KunneIkkeOppretteOppgave.left()
 
@@ -1203,11 +1203,15 @@ internal class RevurderingServiceImplTest {
                 generertDokumentJson = "brev",
             ).right()
         }
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { lukkOppgave(any()) } doReturn Unit.right()
+        }
         val sessionFactoryMock = TestSessionFactory()
 
         val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             brevService = brevServiceMock,
+            oppgaveService = oppgaveServiceMock,
             sessionFactory = sessionFactoryMock,
         )
 
@@ -1238,7 +1242,9 @@ internal class RevurderingServiceImplTest {
                 )
             },
         )
-
+        verify(oppgaveServiceMock).lukkOppgave(
+            argThat { it shouldBe simulert.oppgaveId },
+        )
         verify(brevServiceMock).lagDokument(
             argThat {
                 it shouldBe expected
@@ -1681,9 +1687,13 @@ internal class RevurderingServiceImplTest {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering
         }
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { lukkOppgave(any()) } doReturn Unit.right()
+        }
 
         val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
+            oppgaveService = oppgaveServiceMock,
         )
 
         val actual = revurderingService.avsluttRevurdering(
@@ -1700,6 +1710,7 @@ internal class RevurderingServiceImplTest {
         )
 
         verify(revurderingRepoMock).hent(argThat { it shouldBe opprettetRevurdering.id })
+        verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe opprettetRevurdering.oppgaveId })
         verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.getOrFail() })
         verifyNoMoreInteractions(revurderingRepoMock)
     }
@@ -1712,6 +1723,9 @@ internal class RevurderingServiceImplTest {
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn simulert
+        }
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { lukkOppgave(any()) } doReturn Unit.right()
         }
         val brevServiceMock = mock<BrevService1> {
             on { lagDokument(any()) } doReturn Dokument.UtenMetadata.Informasjon(
@@ -1726,6 +1740,7 @@ internal class RevurderingServiceImplTest {
         val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             brevService = brevServiceMock,
+            oppgaveService = oppgaveServiceMock,
             sessionFactory = sessionFactoryMock,
         )
 
@@ -1743,6 +1758,7 @@ internal class RevurderingServiceImplTest {
         )
 
         verify(revurderingRepoMock).hent(argThat { it shouldBe simulert.id })
+        verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe simulert.oppgaveId })
         verify(brevServiceMock).lagreDokument(
             argThat {
                 it should beOfType<Dokument.MedMetadata.Informasjon>()
@@ -1781,9 +1797,9 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
-    fun `får feil dersom generering av brev feiler`() {
+    fun `får feil dersom generering av brev feiler når man avslutter revurdering`() {
         val simulert = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second.copy(
-            forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt
+            forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -1792,10 +1808,14 @@ internal class RevurderingServiceImplTest {
         val brevServiceMock = mock<BrevService1> {
             on { lagDokument(any()) } doReturn KunneIkkeLageDokument.KunneIkkeGenererePDF.left()
         }
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { lukkOppgave(any()) } doReturn Unit.right()
+        }
 
         val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-            brevService = brevServiceMock
+            brevService = brevServiceMock,
+            oppgaveService = oppgaveServiceMock,
         )
 
         revurderingService.avsluttRevurdering(
@@ -1804,6 +1824,7 @@ internal class RevurderingServiceImplTest {
             fritekst = null,
         ) shouldBe KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument.left()
 
+        verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe simulert.oppgaveId })
         verify(revurderingRepoMock).hent(argThat { it shouldBe simulert.id })
         verifyNoMoreInteractions(revurderingRepoMock)
     }

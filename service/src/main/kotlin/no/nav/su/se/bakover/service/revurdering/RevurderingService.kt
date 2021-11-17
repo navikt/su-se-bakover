@@ -74,10 +74,10 @@ interface RevurderingService {
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, RevurderingOgFeilmeldingerResponse>
 
-    fun forhåndsvarsleEllerSendTilAttestering(
+    fun lagreOgSendForhåndsvarsel(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        revurderingshandling: Revurderingshandling,
+        forhåndsvarselhandling: Forhåndsvarselhandling,
         fritekst: String,
     ): Either<KunneIkkeForhåndsvarsle, Revurdering>
 
@@ -190,8 +190,8 @@ data class SendTilAttesteringRequest(
     val skalFøreTilBrevutsending: Boolean,
 )
 
-enum class Revurderingshandling {
-    SEND_TIL_ATTESTERING,
+enum class Forhåndsvarselhandling {
+    INGEN_FORHÅNDSVARSEL,
     FORHÅNDSVARSLE,
 }
 

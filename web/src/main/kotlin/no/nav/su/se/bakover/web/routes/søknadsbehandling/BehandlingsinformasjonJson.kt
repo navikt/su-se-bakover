@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.beregning.Sats
 
 internal data class BehandlingsinformasjonJson(
     val uførhet: UførhetJson? = null,
@@ -11,19 +10,17 @@ internal data class BehandlingsinformasjonJson(
     val institusjonsopphold: InstitusjonsoppholdJson? = null,
     val formue: FormueJson? = null,
     val personligOppmøte: PersonligOppmøteJson? = null,
-    val utledetSats: Sats? = null,
 ) {
     companion object {
-        internal fun Behandlingsinformasjon.toJson(borSøkerMedEPS: Boolean?, sats: Sats?) =
+        internal fun Behandlingsinformasjon.toJson() =
             BehandlingsinformasjonJson(
                 uførhet = uførhet?.toJson(),
                 flyktning = flyktning?.toJson(),
                 lovligOpphold = lovligOpphold?.toJson(),
                 fastOppholdINorge = fastOppholdINorge?.toJson(),
                 institusjonsopphold = institusjonsopphold?.toJson(),
-                formue = formue?.toJson(borSøkerMedEPS!!), // borSøkerMedEps må eksistere før formue
+                formue = formue?.toJson(),
                 personligOppmøte = personligOppmøte?.toJson(),
-                utledetSats = sats,
             )
     }
 }
@@ -66,14 +63,14 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
             Behandlingsinformasjon.Formue(
                 status = Behandlingsinformasjon.Formue.Status.valueOf(f.status),
                 verdier = Behandlingsinformasjon.Formue.Verdier(
-                    verdiIkkePrimærbolig = f.verdier?.verdiIkkePrimærbolig,
-                    verdiEiendommer = f.verdier?.verdiEiendommer,
-                    verdiKjøretøy = f.verdier?.verdiKjøretøy,
-                    innskudd = f.verdier?.innskudd,
-                    verdipapir = f.verdier?.verdipapir,
-                    pengerSkyldt = f.verdier?.pengerSkyldt,
-                    kontanter = f.verdier?.kontanter,
-                    depositumskonto = f.verdier?.depositumskonto,
+                    verdiIkkePrimærbolig = f.verdier.verdiIkkePrimærbolig,
+                    verdiEiendommer = f.verdier.verdiEiendommer,
+                    verdiKjøretøy = f.verdier.verdiKjøretøy,
+                    innskudd = f.verdier.innskudd,
+                    verdipapir = f.verdier.verdipapir,
+                    pengerSkyldt = f.verdier.pengerSkyldt,
+                    kontanter = f.verdier.kontanter,
+                    depositumskonto = f.verdier.depositumskonto,
                 ),
                 epsVerdier = f.epsVerdier?.let {
                     Behandlingsinformasjon.Formue.Verdier(
@@ -130,11 +127,10 @@ internal fun Behandlingsinformasjon.Institusjonsopphold.toJson() =
         begrunnelse = begrunnelse,
     )
 
-internal fun Behandlingsinformasjon.Formue.toJson(borSøkerMedEPS: Boolean) =
+internal fun Behandlingsinformasjon.Formue.toJson() =
     FormueJson(
         status = status.name,
-        verdier = this.verdier?.toJson(),
-        borSøkerMedEPS = borSøkerMedEPS,
+        verdier = this.verdier.toJson(),
         epsVerdier = this.epsVerdier?.toJson(),
         begrunnelse = begrunnelse,
     )
@@ -188,32 +184,21 @@ internal data class InstitusjonsoppholdJson(
 
 internal data class FormueJson(
     val status: String,
-    val verdier: VerdierJson?,
-    val borSøkerMedEPS: Boolean,
+    val verdier: VerdierJson,
     val epsVerdier: VerdierJson?,
     val begrunnelse: String?,
-) {
-    fun harVerdierOgErGyldig(): Boolean = verdier?.let {
-        if (borSøkerMedEPS) {
-            return verdier.depositumErMindreEllerLikInnskudd() && (epsVerdier?.depositumErMindreEllerLikInnskudd() ?: false)
-        }
-
-        return verdier.depositumErMindreEllerLikInnskudd()
-    } ?: false
-}
+)
 
 internal data class VerdierJson(
-    val verdiIkkePrimærbolig: Int?,
-    val verdiEiendommer: Int?,
-    val verdiKjøretøy: Int?,
-    val innskudd: Int?,
-    val verdipapir: Int?,
-    val pengerSkyldt: Int?,
-    val kontanter: Int?,
-    val depositumskonto: Int?,
-) {
-    fun depositumErMindreEllerLikInnskudd() = if (depositumskonto != null && innskudd != null) depositumskonto <= innskudd else false
-}
+    val verdiIkkePrimærbolig: Int,
+    val verdiEiendommer: Int,
+    val verdiKjøretøy: Int,
+    val innskudd: Int,
+    val verdipapir: Int,
+    val pengerSkyldt: Int,
+    val kontanter: Int,
+    val depositumskonto: Int,
+)
 
 internal data class PersonligOppmøteJson(
     val status: String,
