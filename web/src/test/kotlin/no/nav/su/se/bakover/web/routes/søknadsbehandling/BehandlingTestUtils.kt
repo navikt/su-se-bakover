@@ -19,15 +19,13 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.generer
-import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.bosituasjon
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.vurderingsperiodeUføre
-import no.nav.su.se.bakover.web.routes.grunnlag.UtenlandsoppholdVilkårJsonTestTest.Companion.vurderingsperiodeUtenlandsopphold
+import no.nav.su.se.bakover.web.routes.grunnlag.UtenlandsoppholdVilkårJsonTest.Companion.utenlandsopphold
 import java.time.LocalDate
 import java.util.UUID
 
@@ -131,9 +129,7 @@ object BehandlingTestUtils {
             uføre = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
             ),
-            utenlandsopphold = UtenlandsoppholdVilkår.Vurdert.tryCreate(
-                vurderingsperioder = nonEmptyListOf(vurderingsperiodeUtenlandsopphold),
-            ).getOrFail(),
+            utenlandsopphold = utenlandsopphold,
         ),
     )
 }

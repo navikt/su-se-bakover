@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
+import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
@@ -65,7 +66,7 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
                         LeggTilUtenlandsoppholdRequest(
                             behandlingId = opprettetRevurdering.id,
                             periode = periode2021,
-                            status = LeggTilUtenlandsoppholdRequest.Status.SkalHoldeSegINorge,
+                            status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                             begrunnelse = "begrunnelse",
                         ),
                     ),
@@ -104,7 +105,7 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
                         LeggTilUtenlandsoppholdRequest(
                             behandlingId = opprettetRevurdering.id,
                             periode = periode2021,
-                            status = LeggTilUtenlandsoppholdRequest.Status.SkalHoldeSegINorge,
+                            status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                             begrunnelse = "begrunnelse",
                         ),
                     ),
@@ -135,7 +136,7 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
                         LeggTilUtenlandsoppholdRequest(
                             behandlingId = opprettetRevurdering.id,
                             periode = periode2021,
-                            status = LeggTilUtenlandsoppholdRequest.Status.SkalHoldeSegINorge,
+                            status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                             begrunnelse = "begrunnelse",
                         ),
                     ),

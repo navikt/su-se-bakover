@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUtenlandsopphol
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
+import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
@@ -45,8 +46,8 @@ private data class UtenlandsoppholdJson(
     fun toRequest(revurderingId: UUID): LeggTilUtenlandsoppholdRequest {
         return LeggTilUtenlandsoppholdRequest(
             behandlingId = revurderingId,
-            periode = periode.toPeriode().getOrHandle { throw IllegalStateException("dfdsf") },
-            status = LeggTilUtenlandsoppholdRequest.Status.valueOf(status),
+            periode = periode.toPeriode().getOrHandle { throw IllegalStateException("Ugyldig periode") },
+            status = UtenlandsoppholdStatus.valueOf(status),
             begrunnelse = begrunnelse,
         )
     }
@@ -63,17 +64,21 @@ internal fun Route.leggTilUtlandsoppholdRoute(
                     call.svar(
                         revurderingService.leggTilUtenlandsopphold(req).mapLeft {
                             when (it) {
-                                KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling -> HttpStatusCode.NotFound.errorJson(
-                                    "Fant ikke revurdering",
-                                    "fant_ikke_revurdering",
-                                )
-                                KunneIkkeLeggeTilUtenlandsopphold.OverlappendeVurderingsperioder -> Feilresponser.overlappendeVurderingsperioder
-                                KunneIkkeLeggeTilUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig -> Feilresponser.periodeForGrunnlagOgVurderingErForskjellig
-                                is KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand -> Feilresponser.ugyldigTilstand(
-                                    it.fra,
-                                    it.til,
-                                )
-                                KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode -> Feilresponser.utenforBehandlingsperioden
+                                KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling -> {
+                                    HttpStatusCode.NotFound.errorJson("Fant ikke revurdering", "fant_ikke_revurdering")
+                                }
+                                KunneIkkeLeggeTilUtenlandsopphold.OverlappendeVurderingsperioder -> {
+                                    Feilresponser.overlappendeVurderingsperioder
+                                }
+                                KunneIkkeLeggeTilUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig -> {
+                                    Feilresponser.periodeForGrunnlagOgVurderingErForskjellig
+                                }
+                                is KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand -> {
+                                    Feilresponser.ugyldigTilstand(it.fra, it.til)
+                                }
+                                KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode -> {
+                                    Feilresponser.utenforBehandlingsperioden
+                                }
                             }
                         }.map {
                             Resultat.json(HttpStatusCode.OK, serialize(it.toJson()))

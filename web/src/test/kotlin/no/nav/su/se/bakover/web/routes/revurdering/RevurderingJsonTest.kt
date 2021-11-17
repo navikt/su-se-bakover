@@ -1383,7 +1383,7 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": ${serialize(simulertRevurdering.grunnlagsdata.bosituasjon.toJson())},
                   "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson())},
-                  "utenlandsopphold": ${serialize(simulertRevurdering.vilkårsvurderinger.utenlandsopphold.toJson())}
+                  "utenlandsopphold": ${serialize(simulertRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)}
                 },
                 "attesteringer": []
             }
@@ -1417,7 +1417,7 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": ${serialize(iverksattRevurdering.grunnlagsdata.bosituasjon.toJson())},
                   "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson())},
-                  "utenlandsopphold": ${serialize(iverksattRevurdering.vilkårsvurderinger.utenlandsopphold.toJson())}
+                  "utenlandsopphold": ${serialize(iverksattRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)}
                 },
                 "attesteringer": [{"attestant": "attestant", "opprettet": "${attesteringIverksatt.opprettet}", "underkjennelse": null}]
             }
@@ -1453,7 +1453,7 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": ${serialize(simulertRevurdering.grunnlagsdata.bosituasjon.toJson())},
                   "formue": ${serialize(simulertRevurdering.vilkårsvurderinger.formue.toJson())},
-                  "utenlandsopphold": ${serialize(simulertRevurdering.vilkårsvurderinger.utenlandsopphold.toJson())}
+                  "utenlandsopphold": ${serialize(simulertRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)}
                 },
                 "attesteringer": []
 
@@ -1487,7 +1487,7 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": ${serialize(iverksattRevurdering.grunnlagsdata.bosituasjon.toJson())},
                   "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson())},
-                  "utenlandsopphold": ${serialize(iverksattRevurdering.vilkårsvurderinger.utenlandsopphold.toJson())}
+                  "utenlandsopphold": ${serialize(iverksattRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)}
                 },
                 "attesteringer": [{"attestant": "attestant", "opprettet": "${attesteringIverksatt.opprettet}", "underkjennelse": null}]
             }

@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
+import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
@@ -20,7 +21,7 @@ import java.util.UUID
 
 private data class UtenlandsoppholdBody(
     val periode: PeriodeJson,
-    val status: LeggTilUtenlandsoppholdRequest.Status,
+    val status: UtenlandsoppholdStatus,
     val begrunnelse: String?,
 ) {
     fun toRequest(behandlingId: UUID): LeggTilUtenlandsoppholdRequest {

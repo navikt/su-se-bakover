@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
@@ -12,7 +11,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
     val fradrag: List<FradragJson>,
     val bosituasjon: List<BosituasjonJson>,
     val formue: FormuevilkårJson?,
-    val utenlandsopphold: UtenlandsoppholdVilkårJsonTest?,
+    val utenlandsopphold: UtenlandsoppholdVilkårJson?,
 ) {
     companion object {
         fun create(
@@ -24,7 +23,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                 fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag.toJson() },
                 bosituasjon = grunnlagsdata.bosituasjon.toJson(),
                 formue = vilkårsvurderinger.formueJson(),
-                utenlandsopphold = vilkårsvurderinger.oppholdIUtlandJson(),
+                utenlandsopphold = vilkårsvurderinger.utenlandsoppholdJson(),
             )
         }
     }
@@ -58,19 +57,13 @@ internal fun Vilkårsvurderinger.formueJson(): FormuevilkårJson? {
     }
 }
 
-internal fun Vilkårsvurderinger.oppholdIUtlandJson(): UtenlandsoppholdVilkårJsonTest? {
+internal fun Vilkårsvurderinger.utenlandsoppholdJson(): UtenlandsoppholdVilkårJson? {
     return when (this) {
         is Vilkårsvurderinger.Revurdering -> {
-            when (val v = utenlandsopphold) {
-                UtenlandsoppholdVilkår.IkkeVurdert -> null
-                is UtenlandsoppholdVilkår.Vurdert -> v.toJson()
-            }
+            utenlandsopphold.toJson()
         }
         is Vilkårsvurderinger.Søknadsbehandling -> {
-            when (val v = utenlandsopphold) {
-                UtenlandsoppholdVilkår.IkkeVurdert -> null
-                is UtenlandsoppholdVilkår.Vurdert -> v.toJson()
-            }
+            utenlandsopphold.toJson()
         }
     }
 }

@@ -7,6 +7,7 @@ import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
+import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
@@ -30,7 +31,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
                 LeggTilUtenlandsoppholdRequest(
                     behandlingId = UUID.randomUUID(),
                     periode = periode2021,
-                    status = LeggTilUtenlandsoppholdRequest.Status.SkalHoldeSegINorge,
+                    status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                     begrunnelse = "",
                 ),
             ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left()
@@ -74,7 +75,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
                 LeggTilUtenlandsoppholdRequest(
                     behandlingId = iverksatt.id,
                     periode = periode2021,
-                    status = LeggTilUtenlandsoppholdRequest.Status.SkalHoldeSegINorge,
+                    status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                     begrunnelse = "jahoo",
                 ),
             ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(
@@ -99,7 +100,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
                 LeggTilUtenlandsoppholdRequest(
                     behandlingId = innvilget.id,
                     periode = periode2021,
-                    status = LeggTilUtenlandsoppholdRequest.Status.SkalHoldeSegINorge,
+                    status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
                     begrunnelse = "jahoo",
                 ),
             ) shouldBe innvilget.right()
@@ -127,7 +128,7 @@ class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
                 LeggTilUtenlandsoppholdRequest(
                     behandlingId = innvilget.id,
                     periode = periode2021,
-                    status = LeggTilUtenlandsoppholdRequest.Status.SkalVæreMerEnn90DagerIUtlandet,
+                    status = UtenlandsoppholdStatus.SkalVæreMerEnn90DagerIUtlandet,
                     begrunnelse = "jahoo",
                 ),
             )

@@ -42,26 +42,26 @@ data class LeggTilFlereUtenlandsoppholdRequest(
     }
 }
 
+enum class UtenlandsoppholdStatus {
+    SkalVæreMerEnn90DagerIUtlandet,
+    SkalHoldeSegINorge,
+    Uavklart
+}
+
 data class LeggTilUtenlandsoppholdRequest(
     /** Dekker både søknadsbehandlingId og revurderingId */
     val behandlingId: UUID,
     val periode: Periode,
-    val status: Status,
+    val status: UtenlandsoppholdStatus,
     val begrunnelse: String?,
 ) {
     sealed class UgyldigUtenlandsopphold {
         object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigUtenlandsopphold()
     }
 
-    enum class Status {
-        SkalVæreMerEnn90DagerIUtlandet,
-        SkalHoldeSegINorge,
-        Uavklart
-    }
-
     fun tilVurderingsperiode(clock: Clock): Either<UgyldigUtenlandsopphold, VurderingsperiodeUtenlandsopphold> {
         return when (status) {
-            Status.SkalVæreMerEnn90DagerIUtlandet -> {
+            UtenlandsoppholdStatus.SkalVæreMerEnn90DagerIUtlandet -> {
                 lagVurderingsperiode(
                     resultat = Resultat.Avslag,
                     clock = clock,
@@ -70,7 +70,7 @@ data class LeggTilUtenlandsoppholdRequest(
                 }
             }
 
-            Status.SkalHoldeSegINorge -> {
+            UtenlandsoppholdStatus.SkalHoldeSegINorge -> {
                 lagVurderingsperiode(
                     resultat = Resultat.Innvilget,
                     clock = clock,
@@ -79,7 +79,7 @@ data class LeggTilUtenlandsoppholdRequest(
                 }
             }
 
-            Status.Uavklart -> {
+            UtenlandsoppholdStatus.Uavklart -> {
                 lagVurderingsperiode(
                     resultat = Resultat.Uavklart,
                     clock = clock,
