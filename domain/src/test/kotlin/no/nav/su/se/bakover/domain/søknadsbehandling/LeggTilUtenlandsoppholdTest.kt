@@ -1,16 +1,11 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beInstanceOf
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import no.nav.su.se.bakover.test.fixedClock
-import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
@@ -44,24 +39,9 @@ class LeggTilUtenlandsoppholdTest {
         ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
 
         uavklart.leggTilUtenlandsopphold(
-            utenlandsopphold = UtenlandsoppholdVilkår.Vurdert.tryCreate(
-                vurderingsperioder = nonEmptyListOf(
-                    VurderingsperiodeUtenlandsopphold.create(
-                        opprettet = fixedTidspunkt,
-                        resultat = Resultat.Innvilget,
-                        grunnlag = null,
-                        periode = uavklart.periode,
-                        begrunnelse = "begrunnelse",
-                    ),
-                    VurderingsperiodeUtenlandsopphold.create(
-                        opprettet = fixedTidspunkt,
-                        resultat = Resultat.Innvilget,
-                        grunnlag = null,
-                        periode = Periode.create(1.januar(2020), 31.januar(2020)),
-                        begrunnelse = "begrunnelse",
-                    ),
-                ),
-            ).getOrFail(),
+            utenlandsopphold = utlandsoppholdInnvilget(
+                periode = Periode.create(1.januar(2020), 31.januar(2025)),
+            ),
             clock = fixedClock,
         ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
 
@@ -107,7 +87,7 @@ class LeggTilUtenlandsoppholdTest {
             it.leggTilUtenlandsopphold(
                 utlandsoppholdInnvilget(),
                 fixedClock,
-            ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen.left()
+            ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen(fra = it::class, til = Søknadsbehandling.Vilkårsvurdert::class).left()
         }
     }
 }

@@ -4,6 +4,8 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.vilkår.Resultat
@@ -19,6 +21,8 @@ import no.nav.su.se.bakover.test.iverksattRevurderingIngenEndringFraInnvilgetSø
 import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.periodeFebruar2021
+import no.nav.su.se.bakover.test.periodeJanuar2021
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
@@ -105,5 +109,57 @@ class LeggTilUtenlandsoppholdTest {
                 OpprettetRevurdering::class,
             ).left()
         }
+    }
+
+    @Test
+    fun `får ikke legge til vurderingsperioder med både avslag og innvilget`() {
+        val uavklart = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
+
+        uavklart.oppdaterUtenlandsoppholdOgMarkerSomVurdert(
+            utenlandsopphold = UtenlandsoppholdVilkår.Vurdert.tryCreate(
+                vurderingsperioder = nonEmptyListOf(
+                    VurderingsperiodeUtenlandsopphold.create(
+                        opprettet = fixedTidspunkt,
+                        resultat = Resultat.Innvilget,
+                        grunnlag = null,
+                        periode = periodeJanuar2021,
+                        begrunnelse = "begrunnelse",
+                    ),
+                    VurderingsperiodeUtenlandsopphold.create(
+                        opprettet = fixedTidspunkt,
+                        resultat = Resultat.Avslag,
+                        grunnlag = null,
+                        periode = Periode.create(1.februar(2021), 31.desember(2021)),
+                        begrunnelse = "begrunnelse",
+                    ),
+                ),
+            ).getOrFail(),
+        ) shouldBe Revurdering.KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat.left()
+    }
+
+    @Test
+    fun `må vurdere hele revurderingsperioden`() {
+        val uavklart = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
+
+        uavklart.oppdaterUtenlandsoppholdOgMarkerSomVurdert(
+            utenlandsopphold = UtenlandsoppholdVilkår.Vurdert.tryCreate(
+                vurderingsperioder = nonEmptyListOf(
+                    VurderingsperiodeUtenlandsopphold.create(
+                        opprettet = fixedTidspunkt,
+                        resultat = Resultat.Innvilget,
+                        grunnlag = null,
+                        periode = periodeJanuar2021,
+                        begrunnelse = "begrunnelse",
+                    ),
+                    VurderingsperiodeUtenlandsopphold.create(
+                        opprettet = fixedTidspunkt,
+                        resultat = Resultat.Innvilget,
+                        grunnlag = null,
+                        periode = periodeFebruar2021,
+                        begrunnelse = "begrunnelse",
+                    ),
+                ),
+            ).getOrFail(),
+        ) shouldBe Revurdering.KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden.left()
     }
 }

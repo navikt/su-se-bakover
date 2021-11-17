@@ -43,24 +43,35 @@ internal fun Route.leggTilUtenlandsopphold(
                 call.withBody<UtenlandsoppholdBody> { body ->
                     søknadsbehandlingService.leggTilUtenlandsopphold(body.toRequest(behandlingId))
                         .mapLeft {
-                            call.svar(
-                                when (it) {
-                                    SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling -> {
-                                        Feilresponser.fantIkkeBehandling
-                                    }
-                                    is SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand -> {
-                                        Feilresponser.ugyldigTilstand(fra = it.fra, til = it.til)
-                                    }
-                                    SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode -> {
-                                        Feilresponser.utenforBehandlingsperioden
-                                    }
-                                },
-                            )
+                            call.svar(it.tilResultat())
                         }.map {
                             call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson())))
                         }
                 }
             }
+        }
+    }
+}
+
+internal fun SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.tilResultat(): Resultat {
+    return when (this) {
+        SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling -> {
+            Feilresponser.fantIkkeBehandling
+        }
+        is SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand -> {
+            Feilresponser.ugyldigTilstand(fra = this.fra, til = this.til)
+        }
+        SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode -> {
+            Feilresponser.utenforBehandlingsperioden
+        }
+        SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat -> {
+            Feilresponser.alleResultaterMåVæreLike
+        }
+        SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.MåInneholdeKunEnVurderingsperiode -> {
+            Feilresponser.måInnheholdeKunEnVurderingsperiode
+        }
+        SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden -> {
+            Feilresponser.måVurdereHelePerioden
         }
     }
 }

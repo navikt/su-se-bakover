@@ -76,8 +76,11 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     sealed class KunneIkkeLeggeTilUtenlandsopphold {
-        object IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen : KunneIkkeLeggeTilUtenlandsopphold()
+        data class IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Søknadsbehandling>) : KunneIkkeLeggeTilUtenlandsopphold()
         object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUtenlandsopphold()
+        object MåInneholdeKunEnVurderingsperiode : KunneIkkeLeggeTilUtenlandsopphold()
+        object AlleVurderingsperioderMåHaSammeResultat : KunneIkkeLeggeTilUtenlandsopphold()
+        object MåVurdereHelePerioden : KunneIkkeLeggeTilUtenlandsopphold()
     }
 
     internal fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Unit> {
@@ -143,13 +146,28 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
-        return KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen.left()
+        return KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen(fra = this::class, til = Vilkårsvurdert::class).left()
     }
 
     protected open fun valider(utenlandsopphold: UtenlandsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilUtenlandsopphold, Unit> {
-        return if (!periode.inneholderAlle(utenlandsopphold.vurderingsperioder))
-            KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
-        else Unit.right()
+        return when {
+            utenlandsopphold.vurderingsperioder.size != 1 -> {
+                KunneIkkeLeggeTilUtenlandsopphold.MåInneholdeKunEnVurderingsperiode.left()
+            }
+            !periode.inneholderAlle(utenlandsopphold.vurderingsperioder) -> {
+                KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
+            }
+            !utenlandsopphold.vurderingsperioder.all {
+                it.resultat == utenlandsopphold.vurderingsperioder.first().resultat
+            } -> {
+                KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat.left()
+            }
+            !periode.fullstendigOverlapp(utenlandsopphold.vurderingsperioder.map { it.periode }) ->
+                {
+                    KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden.left()
+                }
+            else -> Unit.right()
+        }
     }
 
     sealed class Vilkårsvurdert : Søknadsbehandling() {

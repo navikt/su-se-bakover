@@ -79,6 +79,21 @@ internal object Feilresponser {
         "vurderingsperiode_utenfor_behandlingsperiode",
     )
 
+    val alleResultaterMåVæreLike = BadRequest.errorJson(
+        "Vurderingsperioden(e) kan ikke inneholde forskjellige resultater",
+        "vurderingsperiode_kan_ikke_inneholde_forskjellige_resultater",
+    )
+
+    val måVurdereHelePerioden = BadRequest.errorJson(
+        "Må vurdere hele perioden",
+        "må_vurdere_hele_perioden",
+    )
+
+    val måInnheholdeKunEnVurderingsperiode = BadRequest.errorJson(
+        "Må innheholde kun en vurderingsperiode",
+        "må_inneholde_kun_en_vurderingsperiode",
+    )
+
     val ugyldigBody = BadRequest.errorJson(
         "Ugyldig body",
         "ugyldig_body",

@@ -337,6 +337,8 @@ sealed class KunneIkkeLeggeTilUtenlandsopphold {
     object FantIkkeBehandling : KunneIkkeLeggeTilUtenlandsopphold()
     object OverlappendeVurderingsperioder : KunneIkkeLeggeTilUtenlandsopphold()
     object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilUtenlandsopphold()
+    object AlleVurderingsperioderMåHaSammeResultat : KunneIkkeLeggeTilUtenlandsopphold()
+    object MåVurdereHelePerioden : KunneIkkeLeggeTilUtenlandsopphold()
     object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUtenlandsopphold()
     data class UgyldigTilstand(
         val fra: KClass<out Revurdering>,

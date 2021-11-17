@@ -301,35 +301,49 @@ internal class RevurderingServiceImpl(
     }
 
     override fun leggTilUtenlandsopphold(
-        request: LeggTilFlereUtenlandsoppholdRequest
+        request: LeggTilFlereUtenlandsoppholdRequest,
     ): Either<KunneIkkeLeggeTilUtenlandsopphold, RevurderingOgFeilmeldingerResponse> {
         val revurdering = hent(request.behandlingId)
             .getOrHandle { return KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left() }
 
         val utenlandsoppholdVilkår = request.tilVilkår(clock).getOrHandle {
-            return when (it) {
-                LeggTilFlereUtenlandsoppholdRequest.UgyldigUtenlandsopphold.OverlappendeVurderingsperioder -> {
-                    KunneIkkeLeggeTilUtenlandsopphold.OverlappendeVurderingsperioder.left()
-                }
-                LeggTilFlereUtenlandsoppholdRequest.UgyldigUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig -> {
-                    KunneIkkeLeggeTilUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig.left()
-                }
-            }
+            return it.tilService()
         }
 
-        // TODO sjekk om vilkår perioder er innenfor revurdering periode enten her eller i oppdeter
-        return revurdering.oppdaterUtenlandsoppholdOgMarkerSomVurdert(utenlandsoppholdVilkår).mapLeft {
-            when (it) {
-                is Revurdering.KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand -> {
-                    KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(fra = it.fra, til = it.til)
-                }
-                Revurdering.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode -> {
-                    KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode
-                }
+        return revurdering.oppdaterUtenlandsoppholdOgMarkerSomVurdert(utenlandsoppholdVilkår)
+            .mapLeft {
+                it.tilService()
+            }.map {
+                revurderingRepo.lagre(it)
+                identifiserFeilOgLagResponse(it)
             }
-        }.map {
-            revurderingRepo.lagre(it)
-            identifiserFeilOgLagResponse(it)
+    }
+
+    private fun LeggTilFlereUtenlandsoppholdRequest.UgyldigUtenlandsopphold.tilService(): Either<KunneIkkeLeggeTilUtenlandsopphold, Nothing> {
+        return when (this) {
+            LeggTilFlereUtenlandsoppholdRequest.UgyldigUtenlandsopphold.OverlappendeVurderingsperioder -> {
+                KunneIkkeLeggeTilUtenlandsopphold.OverlappendeVurderingsperioder.left()
+            }
+            LeggTilFlereUtenlandsoppholdRequest.UgyldigUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig -> {
+                KunneIkkeLeggeTilUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+            }
+        }
+    }
+
+    private fun Revurdering.KunneIkkeLeggeTilUtenlandsopphold.tilService(): KunneIkkeLeggeTilUtenlandsopphold {
+        return when (this) {
+            is Revurdering.KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand -> {
+                KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(fra = this.fra, til = this.til)
+            }
+            Revurdering.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode -> {
+                KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode
+            }
+            Revurdering.KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat -> {
+                KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat
+            }
+            Revurdering.KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden -> {
+                KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden
+            }
         }
     }
 
@@ -342,7 +356,10 @@ internal class RevurderingServiceImpl(
                 is Revurdering.KunneIkkeLeggeTilFradrag.Valideringsfeil -> KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(
                     it.feil,
                 )
-                is Revurdering.KunneIkkeLeggeTilFradrag.UgyldigTilstand -> KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(fra = it.fra, til = it.til)
+                is Revurdering.KunneIkkeLeggeTilFradrag.UgyldigTilstand -> KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
+                    fra = it.fra,
+                    til = it.til,
+                )
             }
         }.map {
             // TODO jah: Flytt denne inn i revurderingRepo.lagre
@@ -371,7 +388,10 @@ internal class RevurderingServiceImpl(
                 is Revurdering.KunneIkkeLeggeTilBosituasjon.Valideringsfeil -> KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeEndreBosituasjongrunnlag(
                     it.feil,
                 )
-                is Revurdering.KunneIkkeLeggeTilBosituasjon.UgyldigTilstand -> KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand(fra = it.fra, til = it.til)
+                is Revurdering.KunneIkkeLeggeTilBosituasjon.UgyldigTilstand -> KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand(
+                    fra = it.fra,
+                    til = it.til,
+                )
             }
         }.map {
             // TODO jah: Flytt denne inn i revurderingRepo.lagre

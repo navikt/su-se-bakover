@@ -143,6 +143,8 @@ sealed class Revurdering :
     sealed class KunneIkkeLeggeTilUtenlandsopphold() {
         data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) : KunneIkkeLeggeTilUtenlandsopphold()
         object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUtenlandsopphold()
+        object AlleVurderingsperioderMåHaSammeResultat : KunneIkkeLeggeTilUtenlandsopphold()
+        object MåVurdereHelePerioden : KunneIkkeLeggeTilUtenlandsopphold()
     }
 
     protected fun oppdaterUtenlandsoppholdOgMarkerSomVurdertInternal(
@@ -157,9 +159,21 @@ sealed class Revurdering :
     }
 
     protected open fun valider(utenlandsopphold: UtenlandsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilUtenlandsopphold, Unit> {
-        return if (!periode.inneholderAlle(utenlandsopphold.vurderingsperioder))
-            KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
-        else Unit.right()
+        return when {
+            !periode.inneholderAlle(utenlandsopphold.vurderingsperioder) -> {
+                KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
+            }
+            !utenlandsopphold.vurderingsperioder.all {
+                it.resultat == utenlandsopphold.vurderingsperioder.first().resultat
+            } -> {
+                KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat.left()
+            }
+            !periode.fullstendigOverlapp(utenlandsopphold.vurderingsperioder.map { it.periode }) ->
+                {
+                    KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden.left()
+                }
+            else -> Unit.right()
+        }
     }
 
     protected fun oppdaterFormueOgMarkerSomVurdertInternal(formue: Vilkår.Formue.Vurdert) =

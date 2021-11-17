@@ -63,29 +63,39 @@ internal fun Route.leggTilUtlandsoppholdRoute(
                     val req = body.toRequest(revurderingId)
                     call.svar(
                         revurderingService.leggTilUtenlandsopphold(req).mapLeft {
-                            when (it) {
-                                KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling -> {
-                                    HttpStatusCode.NotFound.errorJson("Fant ikke revurdering", "fant_ikke_revurdering")
-                                }
-                                KunneIkkeLeggeTilUtenlandsopphold.OverlappendeVurderingsperioder -> {
-                                    Feilresponser.overlappendeVurderingsperioder
-                                }
-                                KunneIkkeLeggeTilUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig -> {
-                                    Feilresponser.periodeForGrunnlagOgVurderingErForskjellig
-                                }
-                                is KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand -> {
-                                    Feilresponser.ugyldigTilstand(it.fra, it.til)
-                                }
-                                KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode -> {
-                                    Feilresponser.utenforBehandlingsperioden
-                                }
-                            }
+                            it.tilResultat()
                         }.map {
                             Resultat.json(HttpStatusCode.OK, serialize(it.toJson()))
                         }.getOrHandle { it },
                     )
                 }
             }
+        }
+    }
+}
+
+internal fun KunneIkkeLeggeTilUtenlandsopphold.tilResultat(): Resultat {
+    return when (this) {
+        KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling -> {
+            HttpStatusCode.NotFound.errorJson("Fant ikke revurdering", "fant_ikke_revurdering")
+        }
+        KunneIkkeLeggeTilUtenlandsopphold.OverlappendeVurderingsperioder -> {
+            Feilresponser.overlappendeVurderingsperioder
+        }
+        KunneIkkeLeggeTilUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig -> {
+            Feilresponser.periodeForGrunnlagOgVurderingErForskjellig
+        }
+        is KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand -> {
+            Feilresponser.ugyldigTilstand(this.fra, this.til)
+        }
+        KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode -> {
+            Feilresponser.utenforBehandlingsperioden
+        }
+        KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat -> {
+            Feilresponser.alleResultaterMåVæreLike
+        }
+        KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden -> {
+            Feilresponser.måVurdereHelePerioden
         }
     }
 }
