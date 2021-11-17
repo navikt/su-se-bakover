@@ -9,12 +9,12 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOppholdIUtlandet
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import java.util.UUID
 
 val uføregrunnlagId: UUID = UUID.randomUUID()
@@ -108,10 +108,10 @@ fun innvilgetUførevilkårForventetInntekt0(
 fun utlandsoppholdInnvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = periode2021,
-): OppholdIUtlandetVilkår.Vurdert {
-    return OppholdIUtlandetVilkår.Vurdert.tryCreate(
+): UtenlandsoppholdVilkår.Vurdert {
+    return UtenlandsoppholdVilkår.Vurdert.tryCreate(
         vurderingsperioder = nonEmptyListOf(
-            VurderingsperiodeOppholdIUtlandet.create(
+            VurderingsperiodeUtenlandsopphold.create(
                 opprettet = opprettet,
                 resultat = Resultat.Innvilget,
                 grunnlag = null,
@@ -125,10 +125,10 @@ fun utlandsoppholdInnvilget(
 fun utlandsoppholdAvslag(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = periode2021,
-): OppholdIUtlandetVilkår.Vurdert {
-    return OppholdIUtlandetVilkår.Vurdert.tryCreate(
+): UtenlandsoppholdVilkår.Vurdert {
+    return UtenlandsoppholdVilkår.Vurdert.tryCreate(
         vurderingsperioder = nonEmptyListOf(
-            VurderingsperiodeOppholdIUtlandet.create(
+            VurderingsperiodeUtenlandsopphold.create(
                 opprettet = opprettet,
                 resultat = Resultat.Avslag,
                 grunnlag = null,
@@ -306,11 +306,11 @@ fun vilkårsvurderingerInnvilget(
     uføre: Vilkår.Uførhet = innvilgetUførevilkårForventetInntekt0(periode = periode),
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode),
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
-    oppholdIUtlandet: OppholdIUtlandetVilkår = utlandsoppholdInnvilget(periode = periode)
+    utenlandsopphold: UtenlandsoppholdVilkår = utlandsoppholdInnvilget(periode = periode)
 ): Vilkårsvurderinger.Søknadsbehandling {
     return Vilkårsvurderinger.Søknadsbehandling(
         uføre = uføre,
-        oppholdIUtlandet = oppholdIUtlandet
+        utenlandsopphold = utenlandsopphold
     ).oppdater(
         stønadsperiode = Stønadsperiode.create(periode = periode, begrunnelse = ""),
         behandlingsinformasjon = behandlingsinformasjon,
@@ -327,12 +327,12 @@ fun vilkårsvurderingerInnvilgetRevurdering(
     uføre: Vilkår.Uførhet = innvilgetUførevilkårForventetInntekt0(periode = periode),
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode),
     formue: Vilkår.Formue = formuevilkårUtenEps0Innvilget(periode = periode, bosituasjon = bosituasjon),
-    utlandsopphold: OppholdIUtlandetVilkår = utlandsoppholdInnvilget(periode = periode)
+    utlandsopphold: UtenlandsoppholdVilkår = utlandsoppholdInnvilget(periode = periode)
 ): Vilkårsvurderinger.Revurdering {
     return Vilkårsvurderinger.Revurdering(
         uføre = uføre,
         formue = formue,
-        oppholdIUtlandet = utlandsopphold,
+        utenlandsopphold = utlandsopphold,
     )
 }
 
@@ -341,12 +341,12 @@ fun vilkårsvurderingerAvslåttAlleRevurdering(
     uføre: Vilkår.Uførhet = avslåttUførevilkårUtenGrunnlag(periode = periode),
     bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode),
     formue: Vilkår.Formue = formuevilkårAvslåttPgrBrukersformue(periode = periode, bosituasjon = bosituasjon),
-    oppholdIUtlandet: OppholdIUtlandetVilkår = utlandsoppholdAvslag(periode = periode)
+    utenlandsopphold: UtenlandsoppholdVilkår = utlandsoppholdAvslag(periode = periode)
 ): Vilkårsvurderinger.Revurdering {
     return Vilkårsvurderinger.Revurdering(
         uføre = uføre,
         formue = formue,
-        oppholdIUtlandet = oppholdIUtlandet,
+        utenlandsopphold = utenlandsopphold,
     )
 }
 
@@ -368,7 +368,7 @@ fun vilkårsvurderingerAvslåttAlle(
         uføre = avslåttUførevilkårUtenGrunnlag(
             periode = periode,
         ),
-        oppholdIUtlandet = utlandsoppholdAvslag(periode = periode),
+        utenlandsopphold = utlandsoppholdAvslag(periode = periode),
     ).oppdater(
         stønadsperiode = Stønadsperiode.create(
             periode = periode,
@@ -404,7 +404,7 @@ fun vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
             periode = periode,
             bosituasjon = bosituasjon,
         ),
-        oppholdIUtlandet = utlandsoppholdInnvilget(
+        utenlandsopphold = utlandsoppholdInnvilget(
             periode = periode,
         )
     )

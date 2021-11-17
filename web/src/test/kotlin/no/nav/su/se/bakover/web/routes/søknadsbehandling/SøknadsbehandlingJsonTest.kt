@@ -12,8 +12,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.expectedBosituasjonJson
-import no.nav.su.se.bakover.web.routes.grunnlag.OppholdIUtlandetVilkårJsonTest.Companion.expectedOppholdIUtlandetVurdert
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.expectedVurderingUføreJson
+import no.nav.su.se.bakover.web.routes.grunnlag.UtenlandsoppholdVilkårJsonTestTest.Companion.expectedUtenlandsoppholdVurdert
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJsonTest.Companion.søknadJsonString
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.behandlingId
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.innvilgetSøknadsbehandling
@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.op
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.sakId
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.saksnummer
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJsonTest.Companion.expectedBeregningJson
-import no.nav.su.se.bakover.web.routes.vedtak.toJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.format.DateTimeFormatter
@@ -129,7 +128,7 @@ internal class SøknadsbehandlingJsonTest {
                 ],
                 "vurderinger": []
               },
-              "oppholdIUtlandet": $expectedOppholdIUtlandetVurdert
+              "utenlandsopphold": $expectedUtenlandsoppholdVurdert
           },
           "fritekstTilBrev": "",
           "erLukket": false
@@ -209,7 +208,7 @@ internal class SøknadsbehandlingJsonTest {
                 ],
                 "vurderinger": []
             },
-            "oppholdIUtlandet": null
+            "utenlandsopphold": null
           },
           "fritekstTilBrev": "",
           "erLukket": false

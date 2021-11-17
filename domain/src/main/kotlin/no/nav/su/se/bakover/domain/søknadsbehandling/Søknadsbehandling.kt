@@ -27,7 +27,7 @@ import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.inneholderAlle
@@ -73,9 +73,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             KunneIkkeLeggeTilFradragsgrunnlag()
     }
 
-    sealed class KunneIkkeLeggeTilOppholdIUtlandet {
-        object IkkeLovÅLeggeTilOppholdIUtlandetIDenneStatusen : KunneIkkeLeggeTilOppholdIUtlandet()
-        object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilOppholdIUtlandet()
+    sealed class KunneIkkeLeggeTilUtenlandsopphold {
+        object IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen : KunneIkkeLeggeTilUtenlandsopphold()
+        object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUtenlandsopphold()
     }
 
     internal fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Unit> {
@@ -94,16 +94,16 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     open fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> =
         KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
 
-    open fun leggTilOppholdIUtlandet(
-        oppholdIUtlandet: OppholdIUtlandetVilkår.Vurdert,
+    open fun leggTilUtenlandsopphold(
+        utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
         clock: Clock,
-    ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
-        return KunneIkkeLeggeTilOppholdIUtlandet.IkkeLovÅLeggeTilOppholdIUtlandetIDenneStatusen.left()
+    ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
+        return KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen.left()
     }
 
-    protected open fun valider(oppholdIUtlandet: OppholdIUtlandetVilkår.Vurdert): Either<KunneIkkeLeggeTilOppholdIUtlandet, Unit> {
-        return if (!periode.inneholderAlle(oppholdIUtlandet.vurderingsperioder))
-            KunneIkkeLeggeTilOppholdIUtlandet.VurderingsperiodeUtenforBehandlingsperiode.left()
+    protected open fun valider(utenlandsopphold: UtenlandsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilUtenlandsopphold, Unit> {
+        return if (!periode.inneholderAlle(utenlandsopphold.vurderingsperioder))
+            KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
         else Unit.right()
     }
 
@@ -274,12 +274,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 ).right()
             }
 
-            override fun leggTilOppholdIUtlandet(
-                oppholdIUtlandet: OppholdIUtlandetVilkår.Vurdert,
+            override fun leggTilUtenlandsopphold(
+                utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                 clock: Clock,
-            ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
-                return valider(oppholdIUtlandet)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(oppholdIUtlandet), clock) }
+            ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
+                return valider(utenlandsopphold)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
             }
 
             private fun vilkårsvurder(
@@ -341,12 +341,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 is Vilkårsvurderingsresultat.Uavklart -> emptyList()
             }
 
-            override fun leggTilOppholdIUtlandet(
-                oppholdIUtlandet: OppholdIUtlandetVilkår.Vurdert,
+            override fun leggTilUtenlandsopphold(
+                utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                 clock: Clock,
-            ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
-                return valider(oppholdIUtlandet)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(oppholdIUtlandet), clock) }
+            ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
+                return valider(utenlandsopphold)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
             }
 
             private fun vilkårsvurder(
@@ -381,12 +381,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 visitor.visit(this)
             }
 
-            override fun leggTilOppholdIUtlandet(
-                oppholdIUtlandet: OppholdIUtlandetVilkår.Vurdert,
+            override fun leggTilUtenlandsopphold(
+                utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                 clock: Clock,
-            ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
-                return valider(oppholdIUtlandet)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(oppholdIUtlandet), clock) }
+            ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
+                return valider(utenlandsopphold)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
             }
 
             private fun vilkårsvurder(
@@ -565,12 +565,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 ).right()
             }
 
-            override fun leggTilOppholdIUtlandet(
-                oppholdIUtlandet: OppholdIUtlandetVilkår.Vurdert,
+            override fun leggTilUtenlandsopphold(
+                utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                 clock: Clock,
-            ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
-                return valider(oppholdIUtlandet)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(oppholdIUtlandet), clock) }
+            ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
+                return valider(utenlandsopphold)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
             }
 
             private fun vilkårsvurder(
@@ -666,12 +666,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 is Vilkårsvurderingsresultat.Uavklart -> emptyList()
             } + avslagsgrunnForBeregning
 
-            override fun leggTilOppholdIUtlandet(
-                oppholdIUtlandet: OppholdIUtlandetVilkår.Vurdert,
+            override fun leggTilUtenlandsopphold(
+                utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                 clock: Clock,
-            ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
-                return valider(oppholdIUtlandet)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(oppholdIUtlandet), clock) }
+            ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
+                return valider(utenlandsopphold)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
             }
 
             private fun vilkårsvurder(
@@ -810,12 +810,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 attesteringer,
             )
 
-        override fun leggTilOppholdIUtlandet(
-            oppholdIUtlandet: OppholdIUtlandetVilkår.Vurdert,
+        override fun leggTilUtenlandsopphold(
+            utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
             clock: Clock,
-        ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
-            return valider(oppholdIUtlandet)
-                .map { vilkårsvurder(vilkårsvurderinger.leggTil(oppholdIUtlandet), clock) }
+        ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
+            return valider(utenlandsopphold)
+                .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
         }
 
         private fun vilkårsvurder(
@@ -1217,12 +1217,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     attesteringer,
                 )
 
-            override fun leggTilOppholdIUtlandet(
-                oppholdIUtlandet: OppholdIUtlandetVilkår.Vurdert,
+            override fun leggTilUtenlandsopphold(
+                utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                 clock: Clock,
-            ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
-                return valider(oppholdIUtlandet)
-                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(oppholdIUtlandet), clock) }
+            ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
+                return valider(utenlandsopphold)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
             }
 
             private fun vilkårsvurder(
@@ -1339,12 +1339,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     is Vilkårsvurderingsresultat.Uavklart -> emptyList()
                 } + avslagsgrunnForBeregning
 
-                override fun leggTilOppholdIUtlandet(
-                    oppholdIUtlandet: OppholdIUtlandetVilkår.Vurdert,
+                override fun leggTilUtenlandsopphold(
+                    utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                     clock: Clock,
-                ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
-                    return valider(oppholdIUtlandet)
-                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(oppholdIUtlandet), clock) }
+                ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
+                    return valider(utenlandsopphold)
+                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
                 }
 
                 private fun vilkårsvurder(
@@ -1410,12 +1410,12 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     is Vilkårsvurderingsresultat.Uavklart -> emptyList()
                 }
 
-                override fun leggTilOppholdIUtlandet(
-                    oppholdIUtlandet: OppholdIUtlandetVilkår.Vurdert,
+                override fun leggTilUtenlandsopphold(
+                    utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
                     clock: Clock,
-                ): Either<KunneIkkeLeggeTilOppholdIUtlandet, Vilkårsvurdert> {
-                    return valider(oppholdIUtlandet)
-                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(oppholdIUtlandet), clock) }
+                ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
+                    return valider(utenlandsopphold)
+                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
                 }
 
                 private fun vilkårsvurder(

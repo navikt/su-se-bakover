@@ -16,5 +16,5 @@ internal fun Route.overordnetSøknadsbehandligRoutes(
 
     leggTilGrunnlagFradrag(søknadsbehandlingService, clock)
 
-    leggTilOppholdIUtlandet(søknadsbehandlingService)
+    leggTilUtenlandsopphold(søknadsbehandlingService)
 }

@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.slåS
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
-import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
@@ -54,15 +54,15 @@ data class GjeldendeVedtaksdata(
             }
         }
 
-    private val utlandsoppholdvilkårOgGrunnlag: OppholdIUtlandetVilkår.Vurdert =
+    private val utlandsoppholdvilkårOgGrunnlag: UtenlandsoppholdVilkår.Vurdert =
         when (val vilkårsvurderinger = vilkårsvurderingerFraTidslinje) {
-            is Vilkårsvurderinger.Revurdering -> when (val vilkår = vilkårsvurderinger.oppholdIUtlandet) {
-                OppholdIUtlandetVilkår.IkkeVurdert -> throw IllegalStateException("Kan ikke opprette vilkårsvurdering fra ikke-vurderte vilkår")
-                is OppholdIUtlandetVilkår.Vurdert -> vilkår
+            is Vilkårsvurderinger.Revurdering -> when (val vilkår = vilkårsvurderinger.utenlandsopphold) {
+                UtenlandsoppholdVilkår.IkkeVurdert -> throw IllegalStateException("Kan ikke opprette vilkårsvurdering fra ikke-vurderte vilkår")
+                is UtenlandsoppholdVilkår.Vurdert -> vilkår
             }
-            is Vilkårsvurderinger.Søknadsbehandling -> when (val vilkår = vilkårsvurderinger.oppholdIUtlandet) {
-                OppholdIUtlandetVilkår.IkkeVurdert -> throw IllegalStateException("Kan ikke opprette vilkårsvurdering fra ikke-vurderte vilkår")
-                is OppholdIUtlandetVilkår.Vurdert -> vilkår
+            is Vilkårsvurderinger.Søknadsbehandling -> when (val vilkår = vilkårsvurderinger.utenlandsopphold) {
+                UtenlandsoppholdVilkår.IkkeVurdert -> throw IllegalStateException("Kan ikke opprette vilkårsvurdering fra ikke-vurderte vilkår")
+                is UtenlandsoppholdVilkår.Vurdert -> vilkår
             }
         }
 
@@ -81,7 +81,7 @@ data class GjeldendeVedtaksdata(
                 .getOrHandle { throw IllegalArgumentException("Kunne ikke slå sammen vurderingsperioder uføre: $it") },
             formue = formuevilkårOgGrunnlag.slåSammenVurderingsperioder()
                 .getOrHandle { throw IllegalArgumentException("Kunne ikke slå sammen vurderingsperioder formue: $it") },
-            oppholdIUtlandet = utlandsoppholdvilkårOgGrunnlag.slåSammenVurderingsperioder()
+            utenlandsopphold = utlandsoppholdvilkårOgGrunnlag.slåSammenVurderingsperioder()
                 .getOrHandle { throw IllegalArgumentException("Kunne ikke slå sammen vurderingsperioder utlandsopphold: $it") },
         )
     }
@@ -110,9 +110,9 @@ private fun List<Vedtak.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurde
                 .flatMap { it.vurderingsperioder }
                 .let { Nel.fromListUnsafe(it) },
         ),
-        oppholdIUtlandet = OppholdIUtlandetVilkår.Vurdert.createFromVilkårsvurderinger(
-            this.map { it.vilkårsvurderinger.oppholdIUtlandetVilkår() }
-                .filterIsInstance<OppholdIUtlandetVilkår.Vurdert>()
+        utenlandsopphold = UtenlandsoppholdVilkår.Vurdert.createFromVilkårsvurderinger(
+            this.map { it.vilkårsvurderinger.utenlandsoppholdVilkår() }
+                .filterIsInstance<UtenlandsoppholdVilkår.Vurdert>()
                 .flatMap { it.vurderingsperioder }
                 .let { Nel.fromListUnsafe(it) }
         )
@@ -133,9 +133,9 @@ private fun Vilkårsvurderinger.formueVilkår(): Vilkår.Formue {
     }
 }
 
-private fun Vilkårsvurderinger.oppholdIUtlandetVilkår(): OppholdIUtlandetVilkår {
+private fun Vilkårsvurderinger.utenlandsoppholdVilkår(): UtenlandsoppholdVilkår {
     return when (this) {
-        is Vilkårsvurderinger.Revurdering -> oppholdIUtlandet
-        is Vilkårsvurderinger.Søknadsbehandling -> oppholdIUtlandet
+        is Vilkårsvurderinger.Revurdering -> utenlandsopphold
+        is Vilkårsvurderinger.Søknadsbehandling -> utenlandsopphold
     }
 }

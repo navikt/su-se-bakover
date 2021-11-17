@@ -77,7 +77,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
                     response.vilkårsvurderinger.lovligOpphold,
                     response.vilkårsvurderinger.fastOpphold,
                     response.vilkårsvurderinger.institusjonsopphold,
-                    response.vilkårsvurderinger.oppholdIUtlandet,
+                    response.vilkårsvurderinger.utenlandsopphold,
                     response.vilkårsvurderinger.personligOppmøte,
                 )
             )
@@ -118,7 +118,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
                     response.vilkårsvurderinger.lovligOpphold,
                     response.vilkårsvurderinger.fastOpphold,
                     response.vilkårsvurderinger.institusjonsopphold,
-                    response.vilkårsvurderinger.oppholdIUtlandet,
+                    response.vilkårsvurderinger.utenlandsopphold,
                     response.vilkårsvurderinger.personligOppmøte,
                 )
             )

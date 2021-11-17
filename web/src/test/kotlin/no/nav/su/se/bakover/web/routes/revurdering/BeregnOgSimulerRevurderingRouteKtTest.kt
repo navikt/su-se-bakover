@@ -159,7 +159,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                     ),
                 ),
                 formue = formueVilkår(periode),
-                oppholdIUtlandet = utlandsoppholdInnvilget(periode = periode),
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),

@@ -32,8 +32,8 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
-import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
@@ -111,7 +111,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     ),
                 ),
             ),
-            oppholdIUtlandet = utlandsoppholdInnvilget(periode = periodeHele2021),
+            utenlandsopphold = utlandsoppholdInnvilget(periode = periodeHele2021),
             formue = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Formue.tryCreate(
@@ -394,7 +394,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                         ),
                     ),
                     formue = Vilkår.Formue.IkkeVurdert,
-                    oppholdIUtlandet = OppholdIUtlandetVilkår.IkkeVurdert
+                    utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert
                 ),
             ),
         ).second
@@ -557,7 +557,7 @@ internal class RevurderingLeggTilFormueServiceTest {
             ),
         ),
         formue = Vilkår.Formue.IkkeVurdert,
-        oppholdIUtlandet = utlandsoppholdInnvilget(periode = periodeHele2021)
+        utenlandsopphold = utlandsoppholdInnvilget(periode = periodeHele2021)
     )
 
     private val opprettetRevurdering = OpprettetRevurdering(

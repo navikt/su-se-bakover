@@ -23,7 +23,7 @@ import org.mockito.kotlin.mock
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
-internal class LeggTilOppholdIUtlandetRoutesKtTest {
+internal class LeggTilUtenlandsoppholdRoutesKtTest {
     @Test
     fun `svarer med feilmelding ved ugyldig body`() {
         withTestApplication(
@@ -33,7 +33,7 @@ internal class LeggTilOppholdIUtlandetRoutesKtTest {
         ) {
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/vilkår/oppholdIUtlandet",
+                "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/utenlandsopphold",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -57,7 +57,7 @@ internal class LeggTilOppholdIUtlandetRoutesKtTest {
                 testSusebakover(
                     services = TestServicesBuilder.services().copy(
                         søknadsbehandling = mock {
-                            on { leggTilOppholdIUtlandet(any()) } doReturn SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.FantIkkeBehandling.left()
+                            on { leggTilUtenlandsopphold(any()) } doReturn SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left()
                         },
                     ),
                 )
@@ -65,7 +65,7 @@ internal class LeggTilOppholdIUtlandetRoutesKtTest {
         ) {
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/vilkår/oppholdIUtlandet",
+                "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/utenlandsopphold",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -92,7 +92,7 @@ internal class LeggTilOppholdIUtlandetRoutesKtTest {
                 testSusebakover(
                     services = TestServicesBuilder.services().copy(
                         søknadsbehandling = mock {
-                            on { leggTilOppholdIUtlandet(any()) } doReturn vilkårsvurdert.right()
+                            on { leggTilUtenlandsopphold(any()) } doReturn vilkårsvurdert.right()
                         },
                     ),
                 )
@@ -100,7 +100,7 @@ internal class LeggTilOppholdIUtlandetRoutesKtTest {
         ) {
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/vilkår/oppholdIUtlandet",
+                "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/utenlandsopphold",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(

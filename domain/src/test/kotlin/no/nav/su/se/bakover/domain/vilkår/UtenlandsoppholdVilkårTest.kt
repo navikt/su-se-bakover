@@ -4,7 +4,7 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.grunnlag.OppholdIUtlandetGrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Utenlandsoppholdgrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.getOrFail
@@ -15,17 +15,17 @@ import no.nav.su.se.bakover.test.periodeMai2021
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class OppholdIUtlandetVilkårTest {
+internal class UtenlandsoppholdVilkårTest {
 
     @Test
     fun `oppdaterer periode på vurderingsperioder og grunnlag`() {
-        OppholdIUtlandetVilkår.Vurdert.tryCreate(
+        UtenlandsoppholdVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(
-                VurderingsperiodeOppholdIUtlandet.tryCreate(
+                VurderingsperiodeUtenlandsopphold.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
                     resultat = Resultat.Innvilget,
-                    grunnlag = OppholdIUtlandetGrunnlag(
+                    grunnlag = Utenlandsoppholdgrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
                         periode = periode2021,
@@ -35,13 +35,13 @@ internal class OppholdIUtlandetVilkårTest {
                 ).getOrFail(),
             ),
         ).getOrFail().oppdaterStønadsperiode(Stønadsperiode.create(periodeJuli2021, "")).erLik(
-            OppholdIUtlandetVilkår.Vurdert.tryCreate(
+            UtenlandsoppholdVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
-                    VurderingsperiodeOppholdIUtlandet.tryCreate(
+                    VurderingsperiodeUtenlandsopphold.tryCreate(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
                         resultat = Resultat.Innvilget,
-                        grunnlag = OppholdIUtlandetGrunnlag(
+                        grunnlag = Utenlandsoppholdgrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(fixedClock),
                             periode = periodeJuli2021,
@@ -56,13 +56,13 @@ internal class OppholdIUtlandetVilkårTest {
 
     @Test
     fun `godtar ikke overlappende vurderingsperioder`() {
-        OppholdIUtlandetVilkår.Vurdert.tryCreate(
+        UtenlandsoppholdVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(
-                VurderingsperiodeOppholdIUtlandet.tryCreate(
+                VurderingsperiodeUtenlandsopphold.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
                     resultat = Resultat.Innvilget,
-                    grunnlag = OppholdIUtlandetGrunnlag(
+                    grunnlag = Utenlandsoppholdgrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
                         periode = periode2021,
@@ -70,11 +70,11 @@ internal class OppholdIUtlandetVilkårTest {
                     vurderingsperiode = periode2021,
                     begrunnelse = "jabadoo",
                 ).getOrFail(),
-                VurderingsperiodeOppholdIUtlandet.tryCreate(
+                VurderingsperiodeUtenlandsopphold.tryCreate(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(fixedClock),
                     resultat = Resultat.Innvilget,
-                    grunnlag = OppholdIUtlandetGrunnlag(
+                    grunnlag = Utenlandsoppholdgrunnlag(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
                         periode = periode2021,
@@ -83,16 +83,16 @@ internal class OppholdIUtlandetVilkårTest {
                     begrunnelse = "jabadoo",
                 ).getOrFail(),
             ),
-        ) shouldBe OppholdIUtlandetVilkår.Vurdert.UgyldigOppholdIUtlandetVilkår.OverlappendeVurderingsperioder.left()
+        ) shouldBe UtenlandsoppholdVilkår.Vurdert.UgyldigUtenlandsoppholdVilkår.OverlappendeVurderingsperioder.left()
     }
 
     @Test
     fun `lager tidslinje for vilkår, vurderingsperioder og grunnlag`() {
-        val v1 = VurderingsperiodeOppholdIUtlandet.tryCreate(
+        val v1 = VurderingsperiodeUtenlandsopphold.tryCreate(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
             resultat = Resultat.Innvilget,
-            grunnlag = OppholdIUtlandetGrunnlag(
+            grunnlag = Utenlandsoppholdgrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(fixedClock),
                 periode = periodeMai2021,
@@ -101,11 +101,11 @@ internal class OppholdIUtlandetVilkårTest {
             begrunnelse = "jabadoo",
         ).getOrFail()
 
-        val v2 = VurderingsperiodeOppholdIUtlandet.tryCreate(
+        val v2 = VurderingsperiodeUtenlandsopphold.tryCreate(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
             resultat = Resultat.Innvilget,
-            grunnlag = OppholdIUtlandetGrunnlag(
+            grunnlag = Utenlandsoppholdgrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(fixedClock),
                 periode = periodeJuni2021,
@@ -114,22 +114,22 @@ internal class OppholdIUtlandetVilkårTest {
             begrunnelse = null,
         ).getOrFail()
 
-        OppholdIUtlandetVilkår.Vurdert.tryCreate(
+        UtenlandsoppholdVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(v1, v2),
         ).getOrFail()
             .lagTidslinje(periodeMai2021)
-            .erLik(OppholdIUtlandetVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v1)).getOrFail())
+            .erLik(UtenlandsoppholdVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v1)).getOrFail())
 
-        OppholdIUtlandetVilkår.Vurdert.tryCreate(
+        UtenlandsoppholdVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(v1, v2),
         ).getOrFail()
             .lagTidslinje(periodeJuni2021)
-            .erLik(OppholdIUtlandetVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v2)).getOrFail())
+            .erLik(UtenlandsoppholdVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v2)).getOrFail())
 
-        OppholdIUtlandetVilkår.Vurdert.tryCreate(
+        UtenlandsoppholdVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(v1, v2),
         ).getOrFail()
             .lagTidslinje(periode2021)
-            .erLik(OppholdIUtlandetVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v1, v2)).getOrFail())
+            .erLik(UtenlandsoppholdVilkår.Vurdert.tryCreate(vurderingsperioder = nonEmptyListOf(v1, v2)).getOrFail())
     }
 }

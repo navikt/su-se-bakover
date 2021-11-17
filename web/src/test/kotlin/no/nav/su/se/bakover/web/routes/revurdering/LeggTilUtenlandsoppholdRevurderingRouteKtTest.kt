@@ -11,7 +11,7 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUtlandsopphold
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUtenlandsopphold
 import no.nav.su.se.bakover.service.revurdering.RevurderingOgFeilmeldingerResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
@@ -26,12 +26,12 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
 
-internal class LeggTilOppholdIUtlandetRevurderingRouteKtTest {
+internal class LeggTilUtenlandsoppholdRevurderingRouteKtTest {
     //language=json
     private fun validBody() =
         """
         {
-            "oppholdIUtlandet" : [ 
+            "utenlandsopphold" : [ 
                {
                     "periode": {
                         "fraOgMed": "2021-01-01", 
@@ -59,7 +59,7 @@ internal class LeggTilOppholdIUtlandetRevurderingRouteKtTest {
         val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
 
         val revurderingServiceMock = mock<RevurderingService> {
-            on { leggTilUtlandsopphold(any()) } doReturn RevurderingOgFeilmeldingerResponse(
+            on { leggTilUtenlandsopphold(any()) } doReturn RevurderingOgFeilmeldingerResponse(
                 opprettetRevurdering,
                 emptyList(),
             ).right()
@@ -72,7 +72,7 @@ internal class LeggTilOppholdIUtlandetRevurderingRouteKtTest {
         ) {
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/${revurderingId()}/oppholdIUtlandet",
+                "$requestPath/${revurderingId()}/utenlandsopphold",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody())
@@ -86,7 +86,7 @@ internal class LeggTilOppholdIUtlandetRevurderingRouteKtTest {
     @Test
     fun `feilmelding hvis vi ikke finner revurdering`() {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { leggTilUtlandsopphold(any()) } doReturn KunneIkkeLeggeTilUtlandsopphold.FantIkkeBehandling.left()
+            on { leggTilUtenlandsopphold(any()) } doReturn KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left()
         }
 
         withTestApplication(
@@ -96,7 +96,7 @@ internal class LeggTilOppholdIUtlandetRevurderingRouteKtTest {
         ) {
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/${revurderingId()}/oppholdIUtlandet",
+                "$requestPath/${revurderingId()}/utenlandsopphold",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody())
@@ -110,7 +110,7 @@ internal class LeggTilOppholdIUtlandetRevurderingRouteKtTest {
     @Test
     fun `feilmelding hvis revurdering har ugyldig status`() {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { leggTilUtlandsopphold(any()) } doReturn KunneIkkeLeggeTilUtlandsopphold.UgyldigTilstand(
+            on { leggTilUtenlandsopphold(any()) } doReturn KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(
                 fra = IverksattRevurdering::class,
                 til = OpprettetRevurdering::class,
             ).left()
@@ -123,7 +123,7 @@ internal class LeggTilOppholdIUtlandetRevurderingRouteKtTest {
         ) {
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/${revurderingId()}/oppholdIUtlandet",
+                "$requestPath/${revurderingId()}/utenlandsopphold",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody())
@@ -145,7 +145,7 @@ internal class LeggTilOppholdIUtlandetRevurderingRouteKtTest {
         ) {
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/${revurderingId()}/oppholdIUtlandet",
+                "$requestPath/${revurderingId()}/utenlandsopphold",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(invalidBody())

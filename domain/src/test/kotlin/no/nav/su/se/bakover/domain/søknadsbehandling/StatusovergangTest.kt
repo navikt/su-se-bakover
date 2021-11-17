@@ -175,7 +175,7 @@ internal class StatusovergangTest {
                     grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
                         uføre = innvilgetUførevilkår(),
-                        oppholdIUtlandet = utlandsoppholdInnvilget()
+                        utenlandsopphold = utlandsoppholdInnvilget()
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(
@@ -291,7 +291,7 @@ internal class StatusovergangTest {
                     grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
                         uføre = innvilgetUførevilkår(),
-                        oppholdIUtlandet = utlandsoppholdInnvilget()
+                        utenlandsopphold = utlandsoppholdInnvilget()
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(
@@ -319,7 +319,7 @@ internal class StatusovergangTest {
                     grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
                         uføre = innvilgetUførevilkår(),
-                        oppholdIUtlandet = utlandsoppholdInnvilget()
+                        utenlandsopphold = utlandsoppholdInnvilget()
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(

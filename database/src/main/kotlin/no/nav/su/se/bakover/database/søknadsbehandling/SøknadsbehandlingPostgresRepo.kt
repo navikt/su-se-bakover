@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.database.beregning.serialiserBeregning
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.UtlandsoppholdVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -54,7 +54,7 @@ internal class SøknadsbehandlingPostgresRepo(
     private val uføreVilkårsvurderingRepo: UføreVilkårsvurderingPostgresRepo,
     private val dbMetrics: DbMetrics,
     private val sessionFactory: PostgresSessionFactory,
-    private val oppholdIUtlandetRepo: UtlandsoppholdVilkårsvurderingPostgresRepo,
+    private val utenlandsoppholdVilkårsvurderingRepo: UtenlandsoppholdVilkårsvurderingPostgresRepo,
 ) : SøknadsbehandlingRepo {
     override fun lagre(søknadsbehandling: Søknadsbehandling, sessionContext: TransactionContext) {
         sessionContext.withTransaction { tx ->
@@ -229,7 +229,7 @@ internal class SøknadsbehandlingPostgresRepo(
 
         val vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
             uføre = uføreVilkårsvurderingRepo.hent(behandlingId, session),
-            oppholdIUtlandet = oppholdIUtlandetRepo.hent(behandlingId, session),
+            utenlandsopphold = utenlandsoppholdVilkårsvurderingRepo.hent(behandlingId, session),
         ).let { vv ->
             stønadsperiode?.let {
                 vv.oppdater(
@@ -519,9 +519,9 @@ internal class SøknadsbehandlingPostgresRepo(
         """.trimIndent()
             .oppdatering(defaultParams(søknadsbehandling), tx)
 
-        oppholdIUtlandetRepo.lagre(
+        utenlandsoppholdVilkårsvurderingRepo.lagre(
             behandlingId = søknadsbehandling.id,
-            vilkår = søknadsbehandling.vilkårsvurderinger.oppholdIUtlandet,
+            vilkår = søknadsbehandling.vilkårsvurderinger.utenlandsopphold,
             tx = tx,
         )
     }

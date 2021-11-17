@@ -58,8 +58,8 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
@@ -875,11 +875,11 @@ internal class SøknadsbehandlingRoutesKtTest {
                 begrunnelse = behandlingsinformasjon.uførhet!!.begrunnelse,
             ),
         )
-        services.søknadsbehandling.leggTilOppholdIUtlandet(
-            LeggTilOppholdIUtlandetRequest(
+        services.søknadsbehandling.leggTilUtenlandsopphold(
+            LeggTilUtenlandsoppholdRequest(
                 behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
                 periode = periode2021,
-                status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
+                status = LeggTilUtenlandsoppholdRequest.Status.SkalHoldeSegINorge,
                 begrunnelse = "Skal være her hele tiden",
             )
         )

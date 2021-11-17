@@ -241,7 +241,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     ),
                 ),
                 formue = formueVilkår(periode),
-                oppholdIUtlandet = utlandsoppholdInnvilget(periode = periode),
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(

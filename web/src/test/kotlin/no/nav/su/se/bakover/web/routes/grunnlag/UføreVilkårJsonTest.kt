@@ -7,8 +7,8 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
@@ -67,7 +67,7 @@ class UføreVilkårJsonTest {
         internal val vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
             uføre = uførevurdering,
             formue = Vilkår.Formue.IkkeVurdert,
-            oppholdIUtlandet = OppholdIUtlandetVilkår.IkkeVurdert
+            utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert
         )
     }
 }

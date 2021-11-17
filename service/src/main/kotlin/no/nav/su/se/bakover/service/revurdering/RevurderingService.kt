@@ -32,7 +32,7 @@ import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
 import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
-import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRevurderingRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -109,9 +109,9 @@ interface RevurderingService {
         request: LeggTilUførevurderingerRequest,
     ): Either<KunneIkkeLeggeTilGrunnlag, RevurderingOgFeilmeldingerResponse>
 
-    fun leggTilUtlandsopphold(
-        request: LeggTilOppholdIUtlandetRevurderingRequest
-    ): Either<KunneIkkeLeggeTilUtlandsopphold, RevurderingOgFeilmeldingerResponse>
+    fun leggTilUtenlandsopphold(
+        request: LeggTilFlereUtenlandsoppholdRequest
+    ): Either<KunneIkkeLeggeTilUtenlandsopphold, RevurderingOgFeilmeldingerResponse>
 
     fun leggTilFradragsgrunnlag(
         request: LeggTilFradragsgrunnlagRequest,
@@ -333,15 +333,15 @@ sealed class KunneIkkeLeggeTilFradragsgrunnlag {
         KunneIkkeLeggeTilFradragsgrunnlag()
 }
 
-sealed class KunneIkkeLeggeTilUtlandsopphold {
-    object FantIkkeBehandling : KunneIkkeLeggeTilUtlandsopphold()
-    object OverlappendeVurderingsperioder : KunneIkkeLeggeTilUtlandsopphold()
-    object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilUtlandsopphold()
-    object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUtlandsopphold()
+sealed class KunneIkkeLeggeTilUtenlandsopphold {
+    object FantIkkeBehandling : KunneIkkeLeggeTilUtenlandsopphold()
+    object OverlappendeVurderingsperioder : KunneIkkeLeggeTilUtenlandsopphold()
+    object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilUtenlandsopphold()
+    object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUtenlandsopphold()
     data class UgyldigTilstand(
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,
-    ) : KunneIkkeLeggeTilUtlandsopphold()
+    ) : KunneIkkeLeggeTilUtenlandsopphold()
 }
 
 sealed class KunneIkkeLeggeTilBosituasjongrunnlag {

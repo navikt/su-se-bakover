@@ -184,7 +184,7 @@ internal class GjeldendeVedtaksdataTest {
                     ),
                 ),
                 formue = innvilgetFormueVilkår(periode),
-                oppholdIUtlandet = utlandsoppholdInnvilget(periode = periode),
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periode),
             ),
         ),
         utbetalingId = UUID30.randomUUID(),
@@ -261,7 +261,7 @@ internal class GjeldendeVedtaksdataTest {
                     ),
                 ),
                 formue = innvilgetFormueVilkår(periode),
-                oppholdIUtlandet = utlandsoppholdInnvilget(periode = periode)
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periode)
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 revurderingsteg = mapOf(

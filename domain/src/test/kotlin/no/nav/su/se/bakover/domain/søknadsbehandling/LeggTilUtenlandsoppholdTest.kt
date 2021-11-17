@@ -6,9 +6,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beInstanceOf
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOppholdIUtlandet
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
@@ -30,30 +30,30 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import org.junit.jupiter.api.Test
 
-class LeggTilOppholdIUtlandetTest {
+class LeggTilUtenlandsoppholdTest {
 
     @Test
     fun `får ikke legge til opphold i utlandet utenfor perioden`() {
         val uavklart = søknadsbehandlingVilkårsvurdertUavklart().second
 
-        uavklart.leggTilOppholdIUtlandet(
-            oppholdIUtlandet = utlandsoppholdInnvilget(
+        uavklart.leggTilUtenlandsopphold(
+            utenlandsopphold = utlandsoppholdInnvilget(
                 periode = Periode.create(1.januar(2020), 31.januar(2020)),
             ),
             clock = fixedClock,
-        ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilOppholdIUtlandet.VurderingsperiodeUtenforBehandlingsperiode.left()
+        ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
 
-        uavklart.leggTilOppholdIUtlandet(
-            oppholdIUtlandet = OppholdIUtlandetVilkår.Vurdert.tryCreate(
+        uavklart.leggTilUtenlandsopphold(
+            utenlandsopphold = UtenlandsoppholdVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
-                    VurderingsperiodeOppholdIUtlandet.create(
+                    VurderingsperiodeUtenlandsopphold.create(
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Innvilget,
                         grunnlag = null,
                         periode = uavklart.periode,
                         begrunnelse = "begrunnelse",
                     ),
-                    VurderingsperiodeOppholdIUtlandet.create(
+                    VurderingsperiodeUtenlandsopphold.create(
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Innvilget,
                         grunnlag = null,
@@ -63,10 +63,10 @@ class LeggTilOppholdIUtlandetTest {
                 ),
             ).getOrFail(),
             clock = fixedClock,
-        ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilOppholdIUtlandet.VurderingsperiodeUtenforBehandlingsperiode.left()
+        ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
 
-        uavklart.leggTilOppholdIUtlandet(
-            oppholdIUtlandet = utlandsoppholdInnvilget(
+        uavklart.leggTilUtenlandsopphold(
+            utenlandsopphold = utlandsoppholdInnvilget(
                 periode = uavklart.periode,
             ),
             clock = fixedClock,
@@ -88,7 +88,7 @@ class LeggTilOppholdIUtlandetTest {
         ).map {
             it.second
         }.forEach {
-            it.leggTilOppholdIUtlandet(utlandsoppholdInnvilget(), fixedClock).let { oppdatert ->
+            it.leggTilUtenlandsopphold(utlandsoppholdInnvilget(), fixedClock).let { oppdatert ->
                 oppdatert.isRight() shouldBe true
                 oppdatert.getOrFail() shouldBe beInstanceOf<Søknadsbehandling.Vilkårsvurdert>()
             }
@@ -104,10 +104,10 @@ class LeggTilOppholdIUtlandetTest {
         ).map {
             it.second
         }.forEach {
-            it.leggTilOppholdIUtlandet(
+            it.leggTilUtenlandsopphold(
                 utlandsoppholdInnvilget(),
                 fixedClock,
-            ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilOppholdIUtlandet.IkkeLovÅLeggeTilOppholdIUtlandetIDenneStatusen.left()
+            ) shouldBe Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen.left()
         }
     }
 }

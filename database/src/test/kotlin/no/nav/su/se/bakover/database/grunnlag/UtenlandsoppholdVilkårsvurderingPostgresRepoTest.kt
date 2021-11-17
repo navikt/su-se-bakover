@@ -8,25 +8,25 @@ import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.domain.grunnlag.OppholdIUtlandetGrunnlag
-import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
+import no.nav.su.se.bakover.domain.grunnlag.Utenlandsoppholdgrunnlag
 import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOppholdIUtlandet
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class UtlandsoppholdVilkårsvurderingPostgresRepoTest {
+internal class UtenlandsoppholdVilkårsvurderingPostgresRepoTest {
 
     @Test
     fun `lagrer og henter vilkårsvurdering uten grunnlag`() {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val søknadsbehandling = testDataHelper.nySøknadsbehandling()
-            val vilkår = OppholdIUtlandetVilkår.Vurdert.tryCreate(
+            val vilkår = UtenlandsoppholdVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
-                    VurderingsperiodeOppholdIUtlandet.create(
+                    VurderingsperiodeUtenlandsopphold.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Avslag,
@@ -52,13 +52,13 @@ internal class UtlandsoppholdVilkårsvurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val søknadsbehandling = testDataHelper.nySøknadsbehandling()
-            val vilkår = OppholdIUtlandetVilkår.Vurdert.tryCreate(
+            val vilkår = UtenlandsoppholdVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
-                    VurderingsperiodeOppholdIUtlandet.create(
+                    VurderingsperiodeUtenlandsopphold.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Innvilget,
-                        grunnlag = OppholdIUtlandetGrunnlag(
+                        grunnlag = Utenlandsoppholdgrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             periode = Periode.create(1.januar(2021), 30.november(2021)),
@@ -66,11 +66,11 @@ internal class UtlandsoppholdVilkårsvurderingPostgresRepoTest {
                         periode = Periode.create(1.januar(2021), 30.november(2021)),
                         begrunnelse = "fåkke lov",
                     ),
-                    VurderingsperiodeOppholdIUtlandet.create(
+                    VurderingsperiodeUtenlandsopphold.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Avslag,
-                        grunnlag = OppholdIUtlandetGrunnlag(
+                        grunnlag = Utenlandsoppholdgrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             periode = Periode.create(1.desember(2021), 31.desember(2021)),
@@ -96,13 +96,13 @@ internal class UtlandsoppholdVilkårsvurderingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val søknadsbehandling = testDataHelper.nySøknadsbehandling()
-            val gammel = OppholdIUtlandetVilkår.Vurdert.tryCreate(
+            val gammel = UtenlandsoppholdVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
-                    VurderingsperiodeOppholdIUtlandet.create(
+                    VurderingsperiodeUtenlandsopphold.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Avslag,
-                        grunnlag = OppholdIUtlandetGrunnlag(
+                        grunnlag = Utenlandsoppholdgrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             periode = Periode.create(1.desember(2021), 31.desember(2021)),
@@ -113,13 +113,13 @@ internal class UtlandsoppholdVilkårsvurderingPostgresRepoTest {
                 ),
             ).getOrFail()
 
-            val ny = OppholdIUtlandetVilkår.Vurdert.tryCreate(
+            val ny = UtenlandsoppholdVilkår.Vurdert.tryCreate(
                 vurderingsperioder = nonEmptyListOf(
-                    VurderingsperiodeOppholdIUtlandet.create(
+                    VurderingsperiodeUtenlandsopphold.create(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Innvilget,
-                        grunnlag = OppholdIUtlandetGrunnlag(
+                        grunnlag = Utenlandsoppholdgrunnlag(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             periode = Periode.create(1.januar(2021), 30.november(2021)),

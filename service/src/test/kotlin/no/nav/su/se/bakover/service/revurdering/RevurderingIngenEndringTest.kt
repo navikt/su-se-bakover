@@ -111,7 +111,7 @@ class RevurderingIngenEndringTest {
                     ),
                 ),
                 formue = formueVilkår(periodeNesteMånedOgTreMånederFram),
-                oppholdIUtlandet = utlandsoppholdInnvilget(periode = periodeNesteMånedOgTreMånederFram),
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periodeNesteMånedOgTreMånederFram),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(

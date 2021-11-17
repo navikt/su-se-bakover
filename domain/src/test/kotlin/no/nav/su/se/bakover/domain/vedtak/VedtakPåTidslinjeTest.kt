@@ -19,8 +19,8 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
-import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
@@ -97,7 +97,7 @@ internal class VedtakPåTidslinjeTest {
                     ),
                 ),
                 formue = formuevilkår,
-                oppholdIUtlandet = utlandsoppholdInnvilget(periode = periode)
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periode)
             ),
             originaltVedtak = originaltVedtak,
         )
@@ -155,7 +155,7 @@ internal class VedtakPåTidslinjeTest {
                         }
                     }
 
-                    (vilkårsvurdering.oppholdIUtlandet as OppholdIUtlandetVilkår.Vurdert).let { vilkårcopy ->
+                    (vilkårsvurdering.utenlandsopphold as UtenlandsoppholdVilkår.Vurdert).let { vilkårcopy ->
                         vilkårcopy.vurderingsperioder shouldHaveSize 1
                         vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
                             val expectedVurderingsperiode = formuevilkår.vurderingsperioder.first()
@@ -170,7 +170,7 @@ internal class VedtakPåTidslinjeTest {
                         setOf(
                             vilkårsvurdering.uføre,
                             vilkårsvurdering.formue,
-                            vilkårsvurdering.oppholdIUtlandet,
+                            vilkårsvurdering.utenlandsopphold,
                         )
                     )
                 }
@@ -248,7 +248,7 @@ internal class VedtakPåTidslinjeTest {
                     ),
                 ),
                 formue = formuevilkår,
-                oppholdIUtlandet = utlandsoppholdInnvilget(periode = periode)
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periode)
             ),
             originaltVedtak = originaltVedtak,
         )
@@ -310,7 +310,7 @@ internal class VedtakPåTidslinjeTest {
                             }
                         }
 
-                        (vilkårsvurdering.oppholdIUtlandet as OppholdIUtlandetVilkår.Vurdert).let { vilkårcopy ->
+                        (vilkårsvurdering.utenlandsopphold as UtenlandsoppholdVilkår.Vurdert).let { vilkårcopy ->
                             vilkårcopy.vurderingsperioder shouldHaveSize 1
                             vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
                                 val expectedVurderingsperiode = formuevilkår.vurderingsperioder.first()
@@ -325,7 +325,7 @@ internal class VedtakPåTidslinjeTest {
                             setOf(
                                 vilkårsvurdering.uføre,
                                 vilkårsvurdering.formue,
-                                vilkårsvurdering.oppholdIUtlandet,
+                                vilkårsvurdering.utenlandsopphold,
                             )
                         )
                     }

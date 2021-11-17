@@ -8,7 +8,7 @@ import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.Feilresponser
@@ -18,13 +18,13 @@ import no.nav.su.se.bakover.web.withBehandlingId
 import no.nav.su.se.bakover.web.withBody
 import java.util.UUID
 
-private data class OppholdIUtlandetBody(
+private data class UtenlandsoppholdBody(
     val periode: PeriodeJson,
-    val status: LeggTilOppholdIUtlandetRequest.Status,
+    val status: LeggTilUtenlandsoppholdRequest.Status,
     val begrunnelse: String?,
 ) {
-    fun toRequest(behandlingId: UUID): LeggTilOppholdIUtlandetRequest {
-        return LeggTilOppholdIUtlandetRequest(
+    fun toRequest(behandlingId: UUID): LeggTilUtenlandsoppholdRequest {
+        return LeggTilUtenlandsoppholdRequest(
             behandlingId = behandlingId,
             periode = periode.toPeriode().getOrHandle { throw IllegalArgumentException("Ugyldig periodejson") },
             status = status,
@@ -33,24 +33,24 @@ private data class OppholdIUtlandetBody(
     }
 }
 
-internal fun Route.leggTilOppholdIUtlandet(
+internal fun Route.leggTilUtenlandsopphold(
     søknadsbehandlingService: SøknadsbehandlingService,
 ) {
     authorize(Brukerrolle.Saksbehandler) {
-        post("$behandlingPath/{behandlingId}/vilkår/oppholdIUtlandet") {
+        post("$behandlingPath/{behandlingId}/utenlandsopphold") {
             call.withBehandlingId { behandlingId ->
-                call.withBody<OppholdIUtlandetBody> { body ->
-                    søknadsbehandlingService.leggTilOppholdIUtlandet(body.toRequest(behandlingId))
+                call.withBody<UtenlandsoppholdBody> { body ->
+                    søknadsbehandlingService.leggTilUtenlandsopphold(body.toRequest(behandlingId))
                         .mapLeft {
                             call.svar(
                                 when (it) {
-                                    SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.FantIkkeBehandling -> {
+                                    SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling -> {
                                         Feilresponser.fantIkkeBehandling
                                     }
-                                    is SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.UgyldigTilstand -> {
+                                    is SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand -> {
                                         Feilresponser.ugyldigTilstand(fra = it.fra, til = it.til)
                                     }
-                                    SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.VurderingsperiodeUtenforBehandlingsperiode -> {
+                                    SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode -> {
                                         Feilresponser.utenforBehandlingsperioden
                                     }
                                 },

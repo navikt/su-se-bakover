@@ -40,8 +40,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.medFritekstTilBrev
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
-import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
@@ -64,8 +64,8 @@ import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
@@ -711,15 +711,15 @@ internal class SøknadsbehandlingServiceImpl(
         return søknadsbehandlingRepo.lagreAvslagManglendeDokumentasjon(avslag, tx)
     }
 
-    override fun leggTilOppholdIUtlandet(request: LeggTilOppholdIUtlandetRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet, Søknadsbehandling.Vilkårsvurdert> {
+    override fun leggTilUtenlandsopphold(request: LeggTilUtenlandsoppholdRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold, Søknadsbehandling.Vilkårsvurdert> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.FantIkkeBehandling.left()
+            ?: return SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left()
 
-        val vilkår = OppholdIUtlandetVilkår.Vurdert.tryCreate(
+        val vilkår = UtenlandsoppholdVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(
                 request.tilVurderingsperiode(clock = clock).getOrHandle {
                     when (it) {
-                        LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.PeriodeForGrunnlagOgVurderingErForskjellig -> {
+                        LeggTilUtenlandsoppholdRequest.UgyldigUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig -> {
                             throw IllegalStateException("$it Skal ikke kunne forekomme for søknadsbehandling")
                         }
                     }
@@ -727,23 +727,23 @@ internal class SøknadsbehandlingServiceImpl(
             ),
         ).getOrHandle {
             when (it) {
-                OppholdIUtlandetVilkår.Vurdert.UgyldigOppholdIUtlandetVilkår.OverlappendeVurderingsperioder -> {
+                UtenlandsoppholdVilkår.Vurdert.UgyldigUtenlandsoppholdVilkår.OverlappendeVurderingsperioder -> {
                     throw IllegalStateException("$it Skal ikke kunne forekomme for søknadsbehandling")
                 }
             }
         }
 
-        val vilkårsvurdert = søknadsbehandling.leggTilOppholdIUtlandet(vilkår, clock)
+        val vilkårsvurdert = søknadsbehandling.leggTilUtenlandsopphold(vilkår, clock)
             .getOrHandle {
                 return when (it) {
-                    Søknadsbehandling.KunneIkkeLeggeTilOppholdIUtlandet.IkkeLovÅLeggeTilOppholdIUtlandetIDenneStatusen -> {
-                        SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.UgyldigTilstand(
+                    Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen -> {
+                        SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(
                             fra = søknadsbehandling::class,
                             til = Søknadsbehandling.Vilkårsvurdert::class,
                         )
                     }
-                    Søknadsbehandling.KunneIkkeLeggeTilOppholdIUtlandet.VurderingsperiodeUtenforBehandlingsperiode -> {
-                        SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.VurderingsperiodeUtenforBehandlingsperiode
+                    Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode -> {
+                        SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode
                     }
                 }.left()
             }

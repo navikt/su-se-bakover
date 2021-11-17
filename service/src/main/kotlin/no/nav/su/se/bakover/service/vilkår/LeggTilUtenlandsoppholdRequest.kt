@@ -7,50 +7,50 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOppholdIUtlandet
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import java.time.Clock
 import java.util.UUID
 
-data class LeggTilOppholdIUtlandetRevurderingRequest(
+data class LeggTilFlereUtenlandsoppholdRequest(
     val behandlingId: UUID,
-    val request: Nel<LeggTilOppholdIUtlandetRequest>,
+    val request: Nel<LeggTilUtenlandsoppholdRequest>,
 ) {
-    sealed class UgyldigOppholdIUtlandet {
-        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigOppholdIUtlandet()
-        object OverlappendeVurderingsperioder : UgyldigOppholdIUtlandet()
+    sealed class UgyldigUtenlandsopphold {
+        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigUtenlandsopphold()
+        object OverlappendeVurderingsperioder : UgyldigUtenlandsopphold()
     }
 
-    fun tilVilkår(clock: Clock): Either<UgyldigOppholdIUtlandet, OppholdIUtlandetVilkår.Vurdert> {
-        return OppholdIUtlandetVilkår.Vurdert.tryCreate(
+    fun tilVilkår(clock: Clock): Either<UgyldigUtenlandsopphold, UtenlandsoppholdVilkår.Vurdert> {
+        return UtenlandsoppholdVilkår.Vurdert.tryCreate(
             vurderingsperioder =
             request.map {
                 it.tilVurderingsperiode(
                     clock = clock,
                 ).getOrHandle { feil ->
                     return when (feil) {
-                        LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.PeriodeForGrunnlagOgVurderingErForskjellig -> UgyldigOppholdIUtlandet.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+                        LeggTilUtenlandsoppholdRequest.UgyldigUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig -> UgyldigUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig.left()
                     }
                 }
             },
         ).getOrHandle {
             return when (it) {
-                OppholdIUtlandetVilkår.Vurdert.UgyldigOppholdIUtlandetVilkår.OverlappendeVurderingsperioder -> UgyldigOppholdIUtlandet.OverlappendeVurderingsperioder.left()
+                UtenlandsoppholdVilkår.Vurdert.UgyldigUtenlandsoppholdVilkår.OverlappendeVurderingsperioder -> UgyldigUtenlandsopphold.OverlappendeVurderingsperioder.left()
             }
         }.right()
     }
 }
 
-data class LeggTilOppholdIUtlandetRequest(
+data class LeggTilUtenlandsoppholdRequest(
     /** Dekker både søknadsbehandlingId og revurderingId */
     val behandlingId: UUID,
     val periode: Periode,
     val status: Status,
     val begrunnelse: String?,
 ) {
-    sealed class UgyldigOppholdIUtlandet {
-        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigOppholdIUtlandet()
+    sealed class UgyldigUtenlandsopphold {
+        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigUtenlandsopphold()
     }
 
     enum class Status {
@@ -59,7 +59,7 @@ data class LeggTilOppholdIUtlandetRequest(
         Uavklart
     }
 
-    fun tilVurderingsperiode(clock: Clock): Either<UgyldigOppholdIUtlandet, VurderingsperiodeOppholdIUtlandet> {
+    fun tilVurderingsperiode(clock: Clock): Either<UgyldigUtenlandsopphold, VurderingsperiodeUtenlandsopphold> {
         return when (status) {
             Status.SkalVæreMerEnn90DagerIUtlandet -> {
                 lagVurderingsperiode(
@@ -93,8 +93,8 @@ data class LeggTilOppholdIUtlandetRequest(
     private fun lagVurderingsperiode(
         resultat: Resultat,
         clock: Clock,
-    ): Either<UgyldigOppholdIUtlandet, VurderingsperiodeOppholdIUtlandet> {
-        return VurderingsperiodeOppholdIUtlandet.tryCreate(
+    ): Either<UgyldigUtenlandsopphold, VurderingsperiodeUtenlandsopphold> {
+        return VurderingsperiodeUtenlandsopphold.tryCreate(
             opprettet = Tidspunkt.now(clock),
             resultat = resultat,
             grunnlag = null,
@@ -102,7 +102,7 @@ data class LeggTilOppholdIUtlandetRequest(
             begrunnelse = begrunnelse,
         ).getOrHandle {
             return when (it) {
-                VurderingsperiodeOppholdIUtlandet.UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig -> UgyldigOppholdIUtlandet.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+                VurderingsperiodeUtenlandsopphold.UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig -> UgyldigUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig.left()
             }
         }.right()
     }

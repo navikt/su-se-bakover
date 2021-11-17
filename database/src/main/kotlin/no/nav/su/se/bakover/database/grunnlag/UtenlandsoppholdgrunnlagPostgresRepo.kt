@@ -9,27 +9,27 @@ import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
-import no.nav.su.se.bakover.domain.grunnlag.OppholdIUtlandetGrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Utenlandsoppholdgrunnlag
 import java.util.UUID
 
-internal class UtlandsoppholdgrunnlagPostgresRepo {
+internal class UtenlandsoppholdgrunnlagPostgresRepo {
 
-    internal fun lagre(behandlingId: UUID, utlandsoppholdgrunnlag: List<OppholdIUtlandetGrunnlag>, tx: TransactionalSession) {
+    internal fun lagre(behandlingId: UUID, grunnlag: List<Utenlandsoppholdgrunnlag>, tx: TransactionalSession) {
         slettForBehandlingId(behandlingId, tx)
-        utlandsoppholdgrunnlag.forEach {
+        grunnlag.forEach {
             lagre(it, behandlingId, tx)
         }
     }
 
-    internal fun hentForUtlandsoppholdgrunnlagId(utlandsoppholdgrunnlagId: UUID, session: Session): OppholdIUtlandetGrunnlag? {
+    internal fun hentForUtenlandsoppholdgrunnlagId(id: UUID, session: Session): Utenlandsoppholdgrunnlag? {
         return """ select * from grunnlag_utland where id=:id""".trimIndent()
             .hent(
                 mapOf(
-                    "id" to utlandsoppholdgrunnlagId,
+                    "id" to id,
                 ),
                 session,
             ) {
-                it.toUtlandsoppholdgrunnlag()
+                it.toUtenlandsoppholdgrunnlag()
             }
     }
 
@@ -45,15 +45,15 @@ internal class UtlandsoppholdgrunnlagPostgresRepo {
             )
     }
 
-    private fun Row.toUtlandsoppholdgrunnlag(): OppholdIUtlandetGrunnlag {
-        return OppholdIUtlandetGrunnlag(
+    private fun Row.toUtenlandsoppholdgrunnlag(): Utenlandsoppholdgrunnlag {
+        return Utenlandsoppholdgrunnlag(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
             periode = Periode.create(localDate("fraOgMed"), localDate("tilOgMed")),
         )
     }
 
-    private fun lagre(utlandgrunnlag: OppholdIUtlandetGrunnlag, behandlingId: UUID, tx: TransactionalSession) {
+    private fun lagre(grunnlag: Utenlandsoppholdgrunnlag, behandlingId: UUID, tx: TransactionalSession) {
         """
             insert into grunnlag_utland
             (
@@ -73,11 +73,11 @@ internal class UtlandsoppholdgrunnlagPostgresRepo {
         """.trimIndent()
             .insert(
                 mapOf(
-                    "id" to utlandgrunnlag.id,
-                    "opprettet" to utlandgrunnlag.opprettet,
+                    "id" to grunnlag.id,
+                    "opprettet" to grunnlag.opprettet,
                     "behandlingId" to behandlingId,
-                    "fraOgMed" to utlandgrunnlag.periode.fraOgMed,
-                    "tilOgMed" to utlandgrunnlag.periode.tilOgMed,
+                    "fraOgMed" to grunnlag.periode.fraOgMed,
+                    "tilOgMed" to grunnlag.periode.tilOgMed,
                 ),
                 tx,
             )

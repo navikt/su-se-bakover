@@ -17,8 +17,8 @@ import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.UtlandsoppholdVilkårsvurderingPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.UtlandsoppholdgrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.hendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
@@ -89,7 +89,7 @@ object DatabaseBuilder {
         val sessionFactory = PostgresSessionFactory(dataSource)
 
         val uføregrunnlagRepo = UføregrunnlagPostgresRepo()
-        val utlandsoppholdgrunnlagRepo = UtlandsoppholdgrunnlagPostgresRepo()
+        val utlandsoppholdgrunnlagRepo = UtenlandsoppholdgrunnlagPostgresRepo()
 
         val fradragsgrunnlag = FradragsgrunnlagPostgresRepo(
             dataSource = dataSource,
@@ -112,8 +112,8 @@ object DatabaseBuilder {
             dbMetrics = dbMetrics,
         )
 
-        val utlandsoppholdVilkårsvurderingRepo = UtlandsoppholdVilkårsvurderingPostgresRepo(
-            utlandsoppholdgrunnlagRepo = utlandsoppholdgrunnlagRepo,
+        val utlandsoppholdVilkårsvurderingRepo = UtenlandsoppholdVilkårsvurderingPostgresRepo(
+            utenlandsoppholdgrunnlagRepo = utlandsoppholdgrunnlagRepo,
             dbMetrics = dbMetrics,
         )
 
@@ -130,7 +130,7 @@ object DatabaseBuilder {
             uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
             dbMetrics = dbMetrics,
             sessionFactory = sessionFactory,
-            oppholdIUtlandetRepo = utlandsoppholdVilkårsvurderingRepo,
+            utenlandsoppholdVilkårsvurderingRepo = utlandsoppholdVilkårsvurderingRepo,
         )
 
         val revurderingRepo = RevurderingPostgresRepo(

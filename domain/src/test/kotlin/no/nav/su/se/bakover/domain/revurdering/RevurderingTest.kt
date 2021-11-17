@@ -60,7 +60,7 @@ internal class RevurderingTest {
                     ),
                 ),
                 formue = innvilgetFormueVilkår(periode),
-                oppholdIUtlandet = utlandsoppholdInnvilget(periode = periode),
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -97,7 +97,7 @@ internal class RevurderingTest {
                     ),
                 ),
                 formue = innvilgetFormueVilkår(periode),
-                oppholdIUtlandet = utlandsoppholdInnvilget(periode = periode)
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periode)
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -133,7 +133,7 @@ internal class RevurderingTest {
                     ),
                 ),
                 formue = innvilgetFormueVilkår(periode),
-                oppholdIUtlandet = utlandsoppholdInnvilget(periode = periode),
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -187,7 +187,7 @@ internal class RevurderingTest {
                     ),
                 ),
                 formue = innvilgetFormueVilkår(periode),
-                oppholdIUtlandet = utlandsoppholdInnvilget(periode = periode),
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -222,7 +222,7 @@ internal class RevurderingTest {
                     ),
                 ),
                 formue = innvilgetFormueVilkår(periode),
-                oppholdIUtlandet = utlandsoppholdInnvilget(periode = periode),
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -257,7 +257,7 @@ internal class RevurderingTest {
                     ),
                 ),
                 formue = innvilgetFormueVilkår(periode),
-                oppholdIUtlandet = utlandsoppholdInnvilget(periode = periode),
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -295,7 +295,7 @@ internal class RevurderingTest {
                     ),
                 ),
                 formue = innvilgetFormueVilkår(periode),
-                oppholdIUtlandet = utlandsoppholdInnvilget(periode = periode),
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -338,7 +338,7 @@ internal class RevurderingTest {
                     ),
                 ),
                 formue = innvilgetFormueVilkår(periode),
-                oppholdIUtlandet = utlandsoppholdInnvilget(periode = periode),
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periode),
             ),
             fradrag = listOf(
                 lagFradragsgrunnlag(
@@ -394,7 +394,7 @@ internal class RevurderingTest {
                     ),
                 ),
                 formue = innvilgetFormueVilkår(periode),
-                oppholdIUtlandet = utlandsoppholdInnvilget(periode = periode),
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -444,7 +444,7 @@ internal class RevurderingTest {
                     ),
                 ),
                 formue = innvilgetFormueVilkår(periode),
-                oppholdIUtlandet = utlandsoppholdInnvilget(periode = periode),
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(

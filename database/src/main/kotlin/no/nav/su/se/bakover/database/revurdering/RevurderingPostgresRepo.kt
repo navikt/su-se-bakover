@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.UtlandsoppholdVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -92,7 +92,7 @@ internal class RevurderingPostgresRepo(
     private val fradragsgrunnlagPostgresRepo: FradragsgrunnlagPostgresRepo,
     private val bosituasjonsgrunnlagPostgresRepo: BosituasjongrunnlagPostgresRepo,
     private val uføreVilkårsvurderingRepo: UføreVilkårsvurderingPostgresRepo,
-    private val utlandsoppholdVilkårsvurderingRepo: UtlandsoppholdVilkårsvurderingPostgresRepo,
+    private val utlandsoppholdVilkårsvurderingRepo: UtenlandsoppholdVilkårsvurderingPostgresRepo,
     private val formueVilkårsvurderingRepo: FormueVilkårsvurderingPostgresRepo,
     søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
     private val dbMetrics: DbMetrics,
@@ -237,7 +237,7 @@ internal class RevurderingPostgresRepo(
         val vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
             uføre = uføreVilkårsvurderingRepo.hent(id, session),
             formue = formueVilkårsvurderingRepo.hent(id, session),
-            oppholdIUtlandet = utlandsoppholdVilkårsvurderingRepo.hent(id, session),
+            utenlandsopphold = utlandsoppholdVilkårsvurderingRepo.hent(id, session),
         )
 
         val revurdering = lagRevurdering(
@@ -368,7 +368,7 @@ internal class RevurderingPostgresRepo(
             )
         utlandsoppholdVilkårsvurderingRepo.lagre(
             behandlingId = revurdering.id,
-            vilkår = revurdering.vilkårsvurderinger.oppholdIUtlandet,
+            vilkår = revurdering.vilkårsvurderinger.utenlandsopphold,
             tx = session,
         )
     }

@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
@@ -20,20 +20,20 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import java.util.UUID
 
-class SøknadsbehandlingLeggTilOppholdIUtlandetTest {
+class SøknadsbehandlingLeggTilUtenlandsoppholdTest {
     @Test
     fun `svarer med feil hvis ikke behandling fins`() {
         SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock { on { hent(any()) } doReturn null },
         ).let {
-            it.søknadsbehandlingService.leggTilOppholdIUtlandet(
-                LeggTilOppholdIUtlandetRequest(
+            it.søknadsbehandlingService.leggTilUtenlandsopphold(
+                LeggTilUtenlandsoppholdRequest(
                     behandlingId = UUID.randomUUID(),
                     periode = periode2021,
-                    status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
+                    status = LeggTilUtenlandsoppholdRequest.Status.SkalHoldeSegINorge,
                     begrunnelse = "",
                 ),
-            ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.FantIkkeBehandling.left()
+            ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left()
 
             verify(it.søknadsbehandlingRepo).hent(any())
             it.verifyNoMoreInteractions()
@@ -46,7 +46,7 @@ class SøknadsbehandlingLeggTilOppholdIUtlandetTest {
             SøknadsbehandlingServiceAndMocks(
                 søknadsbehandlingRepo = mock { on { hent(any()) } doReturn søknadsbehandlingVilkårsvurdertUavklart().second },
             ).let {
-                it.søknadsbehandlingService.leggTilOppholdIUtlandet(
+                it.søknadsbehandlingService.leggTilUtenlandsopphold(
                     // I praksis ikke mulig at dette tryner per nå
                     mock {
                         on { behandlingId } doReturn UUID.randomUUID()
@@ -54,7 +54,7 @@ class SøknadsbehandlingLeggTilOppholdIUtlandetTest {
                             tilVurderingsperiode(
                                 any(),
                             )
-                        } doReturn LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+                        } doReturn LeggTilUtenlandsoppholdRequest.UgyldigUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig.left()
                     },
                 )
 
@@ -70,14 +70,14 @@ class SøknadsbehandlingLeggTilOppholdIUtlandetTest {
         SøknadsbehandlingServiceAndMocks(
             søknadsbehandlingRepo = mock { on { hent(any()) } doReturn iverksatt },
         ).let {
-            it.søknadsbehandlingService.leggTilOppholdIUtlandet(
-                LeggTilOppholdIUtlandetRequest(
+            it.søknadsbehandlingService.leggTilUtenlandsopphold(
+                LeggTilUtenlandsoppholdRequest(
                     behandlingId = iverksatt.id,
                     periode = periode2021,
-                    status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
+                    status = LeggTilUtenlandsoppholdRequest.Status.SkalHoldeSegINorge,
                     begrunnelse = "jahoo",
                 ),
-            ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilOppholdIUtlandet.UgyldigTilstand(
+            ) shouldBe SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(
                 fra = iverksatt::class, til = Søknadsbehandling.Vilkårsvurdert::class,
             ).left()
 
@@ -95,11 +95,11 @@ class SøknadsbehandlingLeggTilOppholdIUtlandetTest {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
         ).let { serviceAndMocks ->
-            serviceAndMocks.søknadsbehandlingService.leggTilOppholdIUtlandet(
-                LeggTilOppholdIUtlandetRequest(
+            serviceAndMocks.søknadsbehandlingService.leggTilUtenlandsopphold(
+                LeggTilUtenlandsoppholdRequest(
                     behandlingId = innvilget.id,
                     periode = periode2021,
-                    status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
+                    status = LeggTilUtenlandsoppholdRequest.Status.SkalHoldeSegINorge,
                     begrunnelse = "jahoo",
                 ),
             ) shouldBe innvilget.right()
@@ -123,11 +123,11 @@ class SøknadsbehandlingLeggTilOppholdIUtlandetTest {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
         ).let { serviceAndMocks ->
-            serviceAndMocks.søknadsbehandlingService.leggTilOppholdIUtlandet(
-                LeggTilOppholdIUtlandetRequest(
+            serviceAndMocks.søknadsbehandlingService.leggTilUtenlandsopphold(
+                LeggTilUtenlandsoppholdRequest(
                     behandlingId = innvilget.id,
                     periode = periode2021,
-                    status = LeggTilOppholdIUtlandetRequest.Status.SkalVæreMerEnn90DagerIUtlandet,
+                    status = LeggTilUtenlandsoppholdRequest.Status.SkalVæreMerEnn90DagerIUtlandet,
                     begrunnelse = "jahoo",
                 ),
             )

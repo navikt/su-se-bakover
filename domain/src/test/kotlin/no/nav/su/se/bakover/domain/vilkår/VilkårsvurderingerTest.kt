@@ -49,7 +49,7 @@ internal class VilkårsvurderingerTest {
                         it.lovligOpphold,
                         it.fastOpphold,
                         it.institusjonsopphold,
-                        it.oppholdIUtlandet,
+                        it.utenlandsopphold,
                         it.personligOppmøte,
                     ),
                 )
@@ -152,7 +152,7 @@ internal class VilkårsvurderingerTest {
                     LovligOppholdVilkår.IkkeVurdert,
                     FastOppholdINorgeVilkår.IkkeVurdert,
                     InstitusjonsoppholdVilkår.IkkeVurdert,
-                    OppholdIUtlandetVilkår.IkkeVurdert,
+                    UtenlandsoppholdVilkår.IkkeVurdert,
                     PersonligOppmøteVilkår.IkkeVurdert,
                 ),
             )
@@ -256,7 +256,7 @@ internal class VilkårsvurderingerTest {
                 LovligOppholdVilkår.IkkeVurdert,
                 FastOppholdINorgeVilkår.IkkeVurdert,
                 InstitusjonsoppholdVilkår.IkkeVurdert,
-                OppholdIUtlandetVilkår.IkkeVurdert,
+                UtenlandsoppholdVilkår.IkkeVurdert,
                 PersonligOppmøteVilkår.IkkeVurdert,
             )
 
@@ -269,7 +269,7 @@ internal class VilkårsvurderingerTest {
                 LovligOppholdVilkår.IkkeVurdert,
                 FastOppholdINorgeVilkår.IkkeVurdert,
                 InstitusjonsoppholdVilkår.IkkeVurdert,
-                OppholdIUtlandetVilkår.IkkeVurdert,
+                UtenlandsoppholdVilkår.IkkeVurdert,
                 PersonligOppmøteVilkår.IkkeVurdert,
             )
 
@@ -282,7 +282,7 @@ internal class VilkårsvurderingerTest {
                 LovligOppholdVilkår.IkkeVurdert,
                 FastOppholdINorgeVilkår.IkkeVurdert,
                 InstitusjonsoppholdVilkår.IkkeVurdert,
-                OppholdIUtlandetVilkår.IkkeVurdert,
+                UtenlandsoppholdVilkår.IkkeVurdert,
                 PersonligOppmøteVilkår.IkkeVurdert,
             )
         }
@@ -298,7 +298,7 @@ internal class VilkårsvurderingerTest {
                     setOf(
                         it.uføre,
                         it.formue,
-                        it.oppholdIUtlandet,
+                        it.utenlandsopphold,
                     ),
                 )
             }
@@ -385,7 +385,7 @@ internal class VilkårsvurderingerTest {
                 setOf(
                     Vilkår.Uførhet.IkkeVurdert,
                     Vilkår.Formue.IkkeVurdert,
-                    OppholdIUtlandetVilkår.IkkeVurdert,
+                    UtenlandsoppholdVilkår.IkkeVurdert,
                 ),
             )
         }

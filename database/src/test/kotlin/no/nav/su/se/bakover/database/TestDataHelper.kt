@@ -18,8 +18,8 @@ import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.UtlandsoppholdVilkårsvurderingPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.UtlandsoppholdgrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
@@ -204,7 +204,7 @@ internal class TestDataHelper(
         postgresSessionFactory = sessionFactory,
     )
     internal val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
-    internal val utlandsoppholdgrunnlagPostgresRepo = UtlandsoppholdgrunnlagPostgresRepo()
+    internal val utenlandsoppholdgrunnlagPostgresRepo = UtenlandsoppholdgrunnlagPostgresRepo()
     internal val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(
         dataSource = dataSource,
         dbMetrics = dbMetrics,
@@ -222,8 +222,8 @@ internal class TestDataHelper(
         uføregrunnlagRepo = uføregrunnlagPostgresRepo,
         dbMetrics = dbMetrics,
     )
-    internal val utlandsoppholdVilkårsvurderingRepo = UtlandsoppholdVilkårsvurderingPostgresRepo(
-        utlandsoppholdgrunnlagRepo = utlandsoppholdgrunnlagPostgresRepo,
+    internal val utlandsoppholdVilkårsvurderingRepo = UtenlandsoppholdVilkårsvurderingPostgresRepo(
+        utenlandsoppholdgrunnlagRepo = utenlandsoppholdgrunnlagPostgresRepo,
         dbMetrics = dbMetrics,
     )
     internal val formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo()
@@ -239,7 +239,7 @@ internal class TestDataHelper(
         uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
         dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
-        oppholdIUtlandetRepo = utlandsoppholdVilkårsvurderingRepo,
+        utenlandsoppholdVilkårsvurderingRepo = utlandsoppholdVilkårsvurderingRepo,
     )
     internal val revurderingRepo = RevurderingPostgresRepo(
         dataSource = dataSource,
@@ -588,7 +588,7 @@ internal class TestDataHelper(
                 ),
             ),
         ),
-        oppholdIUtlandet = utlandsoppholdInnvilget(periode = stønadsperiode.periode)
+        utenlandsopphold = utlandsoppholdInnvilget(periode = stønadsperiode.periode)
         // søknadsbehandling benytter enn så lenge formue fra behandlingsinformajson
     ).oppdater(
         stønadsperiode = stønadsperiode,

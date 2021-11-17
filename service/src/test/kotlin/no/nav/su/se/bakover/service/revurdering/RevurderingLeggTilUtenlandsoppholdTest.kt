@@ -3,17 +3,16 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
-import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
-import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeOppholdIUtlandet
+import no.nav.su.se.bakover.domain.vilkår.VurderingsperiodeUtenlandsopphold
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilOppholdIUtlandetRevurderingRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
@@ -24,25 +23,25 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 
-internal class RevurderingLeggTilOppholdIUtlandetTest {
+internal class RevurderingLeggTilUtenlandsoppholdTest {
 
     @Test
-    fun `legg til oppholdIUtlandet vilkår happy case`() {
+    fun `legg til utenlandsopphold vilkår happy case`() {
         val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
         val revurderingIkkeVurdert = opprettetRevurdering.copy(
-            vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger.leggTil(OppholdIUtlandetVilkår.IkkeVurdert),
+            vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger.leggTil(UtenlandsoppholdVilkår.IkkeVurdert),
         )
 
         revurderingIkkeVurdert.vilkårsvurderinger.resultat shouldBe Vilkårsvurderingsresultat.Uavklart(
-            setOf(OppholdIUtlandetVilkår.IkkeVurdert),
+            setOf(UtenlandsoppholdVilkår.IkkeVurdert),
         )
 
         val expected = opprettetRevurdering.copy(
-            informasjonSomRevurderes = opprettetRevurdering.informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.OppholdIUtlandet),
+            informasjonSomRevurderes = opprettetRevurdering.informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Utenlandsopphold),
             vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger.leggTil(
-                OppholdIUtlandetVilkår.Vurdert.tryCreate(
+                UtenlandsoppholdVilkår.Vurdert.tryCreate(
                     vurderingsperioder = nonEmptyListOf(
-                        VurderingsperiodeOppholdIUtlandet.tryCreate(
+                        VurderingsperiodeUtenlandsopphold.tryCreate(
                             opprettet = opprettetRevurdering.opprettet,
                             resultat = Resultat.Innvilget,
                             grunnlag = null,
@@ -55,18 +54,18 @@ internal class RevurderingLeggTilOppholdIUtlandetTest {
         )
 
         RevurderingServiceMocks(
-            revurderingRepo = mock<RevurderingRepo> {
+            revurderingRepo = mock {
                 on { hent(revurderingId) } doReturn revurderingIkkeVurdert
             },
         ).let {
-            val actual = it.revurderingService.leggTilUtlandsopphold(
-                request = LeggTilOppholdIUtlandetRevurderingRequest(
+            val actual = it.revurderingService.leggTilUtenlandsopphold(
+                request = LeggTilFlereUtenlandsoppholdRequest(
                     behandlingId = revurderingId,
                     request = nonEmptyListOf(
-                        LeggTilOppholdIUtlandetRequest(
+                        LeggTilUtenlandsoppholdRequest(
                             behandlingId = opprettetRevurdering.id,
                             periode = periode2021,
-                            status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
+                            status = LeggTilUtenlandsoppholdRequest.Status.SkalHoldeSegINorge,
                             begrunnelse = "begrunnelse",
                         ),
                     ),
@@ -90,27 +89,27 @@ internal class RevurderingLeggTilOppholdIUtlandetTest {
     }
 
     @Test
-    fun `legg til oppholdIUtlandet vilkår ugyldig tilstand`() {
+    fun `legg til utenlandsopphold vilkår ugyldig tilstand`() {
         val opprettetRevurdering = iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
 
         RevurderingServiceMocks(
-            revurderingRepo = mock<RevurderingRepo> {
+            revurderingRepo = mock {
                 on { hent(revurderingId) } doReturn opprettetRevurdering
             },
         ).let {
-            it.revurderingService.leggTilUtlandsopphold(
-                request = LeggTilOppholdIUtlandetRevurderingRequest(
+            it.revurderingService.leggTilUtenlandsopphold(
+                request = LeggTilFlereUtenlandsoppholdRequest(
                     behandlingId = revurderingId,
                     request = nonEmptyListOf(
-                        LeggTilOppholdIUtlandetRequest(
+                        LeggTilUtenlandsoppholdRequest(
                             behandlingId = opprettetRevurdering.id,
                             periode = periode2021,
-                            status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
+                            status = LeggTilUtenlandsoppholdRequest.Status.SkalHoldeSegINorge,
                             begrunnelse = "begrunnelse",
                         ),
                     ),
                 ),
-            ) shouldBe KunneIkkeLeggeTilUtlandsopphold.UgyldigTilstand(
+            ) shouldBe KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(
                 fra = IverksattRevurdering.Innvilget::class,
                 til = OpprettetRevurdering::class,
             ).left()
@@ -121,27 +120,27 @@ internal class RevurderingLeggTilOppholdIUtlandetTest {
     }
 
     @Test
-    fun `legg til oppholdIUtlandet finner ikke revurdering`() {
+    fun `legg til utenlandsopphold finner ikke revurdering`() {
         val opprettetRevurdering = iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
 
         RevurderingServiceMocks(
-            revurderingRepo = mock<RevurderingRepo> {
+            revurderingRepo = mock {
                 on { hent(revurderingId) } doReturn null
             },
         ).let {
-            it.revurderingService.leggTilUtlandsopphold(
-                request = LeggTilOppholdIUtlandetRevurderingRequest(
+            it.revurderingService.leggTilUtenlandsopphold(
+                request = LeggTilFlereUtenlandsoppholdRequest(
                     behandlingId = revurderingId,
                     request = nonEmptyListOf(
-                        LeggTilOppholdIUtlandetRequest(
+                        LeggTilUtenlandsoppholdRequest(
                             behandlingId = opprettetRevurdering.id,
                             periode = periode2021,
-                            status = LeggTilOppholdIUtlandetRequest.Status.SkalHoldeSegINorge,
+                            status = LeggTilUtenlandsoppholdRequest.Status.SkalHoldeSegINorge,
                             begrunnelse = "begrunnelse",
                         ),
                     ),
                 ),
-            ) shouldBe KunneIkkeLeggeTilUtlandsopphold.FantIkkeBehandling.left()
+            ) shouldBe KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left()
 
             verify(it.revurderingRepo).hent(revurderingId)
             it.verifyNoMoreInteractions()
