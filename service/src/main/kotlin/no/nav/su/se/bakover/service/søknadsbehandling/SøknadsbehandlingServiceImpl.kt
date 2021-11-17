@@ -717,7 +717,7 @@ internal class SøknadsbehandlingServiceImpl(
 
         val vilkår = OppholdIUtlandetVilkår.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(
-                request.toVilkår(clock = clock).getOrHandle {
+                request.tilVurderingsperiode(clock = clock).getOrHandle {
                     when (it) {
                         LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.PeriodeForGrunnlagOgVurderingErForskjellig -> {
                             throw IllegalStateException("$it Skal ikke kunne forekomme for søknadsbehandling")

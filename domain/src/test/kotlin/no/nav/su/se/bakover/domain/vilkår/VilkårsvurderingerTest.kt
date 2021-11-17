@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.vilkår
 
-import arrow.core.left
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -26,8 +25,6 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.periodeJuli2021
 import no.nav.su.se.bakover.test.periodeMai2021
-import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
-import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttAlle
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttAlleRevurdering
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
@@ -444,47 +441,6 @@ internal class VilkårsvurderingerTest {
             a shouldBe b
             (a == b) shouldBe true
             a.erLik(b) shouldBe true
-        }
-
-        @Test
-        fun `får ikke legge til opphold i utlandet utenfor perioden`() {
-            val uavklart = søknadsbehandlingVilkårsvurdertUavklart().second
-
-            uavklart.leggTilOppholdIUtlandet(
-                oppholdIUtlandet = utlandsoppholdInnvilget(
-                    periode = Periode.create(1.januar(2020), 31.januar(2020)),
-                ),
-                clock = fixedClock,
-            ) shouldBe no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIkkeLeggeTilOppholdIUtlandet.VurderingsperiodeUtenforBehandlingsperiode.left()
-
-            uavklart.leggTilOppholdIUtlandet(
-                oppholdIUtlandet = OppholdIUtlandetVilkår.Vurdert.tryCreate(
-                    vurderingsperioder = nonEmptyListOf(
-                        VurderingsperiodeOppholdIUtlandet.create(
-                            opprettet = fixedTidspunkt,
-                            resultat = Resultat.Innvilget,
-                            grunnlag = null,
-                            periode = uavklart.periode,
-                            begrunnelse = "begrunnelse",
-                        ),
-                        VurderingsperiodeOppholdIUtlandet.create(
-                            opprettet = fixedTidspunkt,
-                            resultat = Resultat.Innvilget,
-                            grunnlag = null,
-                            periode = Periode.create(1.januar(2020), 31.januar(2020)),
-                            begrunnelse = "begrunnelse",
-                        ),
-                    ),
-                ).getOrFail(),
-                clock = fixedClock,
-            ) shouldBe no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIkkeLeggeTilOppholdIUtlandet.VurderingsperiodeUtenforBehandlingsperiode.left()
-
-            uavklart.leggTilOppholdIUtlandet(
-                oppholdIUtlandet = utlandsoppholdInnvilget(
-                    periode = uavklart.periode,
-                ),
-                clock = fixedClock,
-            ).isRight() shouldBe true
         }
     }
 }

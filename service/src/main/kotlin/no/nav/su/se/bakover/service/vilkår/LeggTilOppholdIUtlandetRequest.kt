@@ -15,21 +15,21 @@ import java.util.UUID
 
 data class LeggTilOppholdIUtlandetRevurderingRequest(
     val behandlingId: UUID,
-    val request: Nel<LeggTilOppholdIUtlandetRequest>
+    val request: Nel<LeggTilOppholdIUtlandetRequest>,
 ) {
     sealed class UgyldigOppholdIUtlandet {
         object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigOppholdIUtlandet()
         object OverlappendeVurderingsperioder : UgyldigOppholdIUtlandet()
     }
 
-    fun toVilkår(clock: Clock): Either<UgyldigOppholdIUtlandet, OppholdIUtlandetVilkår.Vurdert> {
+    fun tilVilkår(clock: Clock): Either<UgyldigOppholdIUtlandet, OppholdIUtlandetVilkår.Vurdert> {
         return OppholdIUtlandetVilkår.Vurdert.tryCreate(
             vurderingsperioder =
             request.map {
-                it.toVilkår(
+                it.tilVurderingsperiode(
                     clock = clock,
-                ).getOrHandle {
-                    return when (it) {
+                ).getOrHandle { feil ->
+                    return when (feil) {
                         LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.PeriodeForGrunnlagOgVurderingErForskjellig -> UgyldigOppholdIUtlandet.PeriodeForGrunnlagOgVurderingErForskjellig.left()
                     }
                 }
@@ -59,10 +59,10 @@ data class LeggTilOppholdIUtlandetRequest(
         Uavklart
     }
 
-    fun toVilkår(clock: Clock): Either<UgyldigOppholdIUtlandet, VurderingsperiodeOppholdIUtlandet> {
+    fun tilVurderingsperiode(clock: Clock): Either<UgyldigOppholdIUtlandet, VurderingsperiodeOppholdIUtlandet> {
         return when (status) {
             Status.SkalVæreMerEnn90DagerIUtlandet -> {
-                lagVilkår(
+                lagVurderingsperiode(
                     resultat = Resultat.Avslag,
                     clock = clock,
                 ).getOrHandle {
@@ -71,7 +71,7 @@ data class LeggTilOppholdIUtlandetRequest(
             }
 
             Status.SkalHoldeSegINorge -> {
-                lagVilkår(
+                lagVurderingsperiode(
                     resultat = Resultat.Innvilget,
                     clock = clock,
                 ).getOrHandle {
@@ -80,7 +80,7 @@ data class LeggTilOppholdIUtlandetRequest(
             }
 
             Status.Uavklart -> {
-                lagVilkår(
+                lagVurderingsperiode(
                     resultat = Resultat.Uavklart,
                     clock = clock,
                 ).getOrHandle {
@@ -90,7 +90,7 @@ data class LeggTilOppholdIUtlandetRequest(
         }.right()
     }
 
-    private fun lagVilkår(
+    private fun lagVurderingsperiode(
         resultat: Resultat,
         clock: Clock,
     ): Either<UgyldigOppholdIUtlandet, VurderingsperiodeOppholdIUtlandet> {

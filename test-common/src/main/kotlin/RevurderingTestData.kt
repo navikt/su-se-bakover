@@ -573,7 +573,7 @@ fun tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
     }
 }
 
-fun underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak(
+fun underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = periode2021,

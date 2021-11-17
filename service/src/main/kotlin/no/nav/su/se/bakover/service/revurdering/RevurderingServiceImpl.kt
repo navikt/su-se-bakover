@@ -306,7 +306,7 @@ internal class RevurderingServiceImpl(
         val revurdering = hent(request.behandlingId)
             .getOrHandle { return KunneIkkeLeggeTilUtlandsopphold.FantIkkeBehandling.left() }
 
-        val oppholdIUtlandetVilkår = request.toVilkår(clock).getOrHandle {
+        val oppholdIUtlandetVilkår = request.tilVilkår(clock).getOrHandle {
             return when (it) {
                 LeggTilOppholdIUtlandetRevurderingRequest.UgyldigOppholdIUtlandet.OverlappendeVurderingsperioder -> {
                     KunneIkkeLeggeTilUtlandsopphold.OverlappendeVurderingsperioder.left()

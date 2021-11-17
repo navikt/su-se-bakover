@@ -51,7 +51,7 @@ class SøknadsbehandlingLeggTilOppholdIUtlandetTest {
                     mock {
                         on { behandlingId } doReturn UUID.randomUUID()
                         on {
-                            toVilkår(
+                            tilVurderingsperiode(
                                 any(),
                             )
                         } doReturn LeggTilOppholdIUtlandetRequest.UgyldigOppholdIUtlandet.PeriodeForGrunnlagOgVurderingErForskjellig.left()

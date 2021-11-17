@@ -103,7 +103,7 @@ import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknad
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak
+import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
@@ -531,7 +531,7 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `beregnOgSimuler - kan beregne og simuler underkjent revurdering på nytt`() {
-        val underkjentRevurdering = underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak().second
+        val underkjentRevurdering = underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn underkjentRevurdering
