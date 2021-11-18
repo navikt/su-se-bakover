@@ -1,9 +1,3 @@
-buildscript {
-    dependencies {
-        classpath("org.ajoberstar:grgit:2.3.0")
-    }
-}
-
 plugins {
     kotlin("jvm")
     // Støtter unicode filer (i motsetning til https://github.com/JLLeitschuh/ktlint-gradle 10.0.0) og har nyere dependencies som gradle. Virker som den oppdateres hyppigere.
@@ -12,7 +6,7 @@ plugins {
 
 version = "0.0.1"
 
-allprojects {
+subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "org.jmailen.kotlinter")
     repositories {
