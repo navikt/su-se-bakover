@@ -59,7 +59,10 @@ class PersonhendelseService(
                         )
                     }
                         .mapLeft {
-                            log.error("Kunne ikke opprette oppgave for personhendelse med id: ${personhendelse.id}")
+                            log.error("Kunne ikke opprette oppgave for personhendelse med id: ${personhendelse.id}. Antall feilede forsøk: ${personhendelse.antallFeiledeForsøk + 1}")
+                            personhendelseRepo.inkrementerAntallFeiledeForsøk(
+                                personhendelse,
+                            )
                         }
                 },
             )
