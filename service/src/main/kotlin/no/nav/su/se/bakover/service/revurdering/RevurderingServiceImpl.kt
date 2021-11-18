@@ -1265,7 +1265,6 @@ internal class RevurderingServiceImpl(
                 val dokumentMedMetaData = dokument.leggTilMetadata(
                     metadata = Dokument.Metadata(
                         sakId = revurdering.sakId,
-                        vedtakId = revurdering.tilRevurdering.id,
                         revurderingId = revurdering.id,
                         bestillBrev = true,
                     ),
