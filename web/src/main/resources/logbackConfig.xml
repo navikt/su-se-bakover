@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <included>
-    <include file="../web/src/main/resources/logback-json-config.xml"/>
-    <include file="../web/src/main/resources/logback-audit-config.xml"/>
-    <include file="../web/src/main/resources/logback-secure-config.xml"/>
+    <include resource="logback-json-config.xml"/>
+    <include resource="logback-audit-config.xml"/>
+    <include resource="logback-secure-config.xml"/>
 
     <logger name="com.zaxxer.hikari" level="INFO"/>
     <logger name="no.nav" level="DEBUG"/>

@@ -6,8 +6,8 @@
         </encoder>
     </appender>
 
-    <include file="../web/src/test/resources/logback-audit-config.xml"/>
-    <include file="../web/src/test/resources/logback-secure-config.xml"/>
+    <include resource="logback-audit-config-test.xml"/>
+    <include resource="logback-secure-config-test.xml"/>
 
     <!-- DB -->
     <logger name="io.zonky" level="WARN"/>
