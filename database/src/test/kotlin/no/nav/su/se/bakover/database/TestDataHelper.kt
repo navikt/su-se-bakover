@@ -223,7 +223,7 @@ internal class TestDataHelper(
         uføregrunnlagRepo = uføregrunnlagPostgresRepo,
         dbMetrics = dbMetrics,
     )
-    internal val utlandsoppholdVilkårsvurderingRepo = UtenlandsoppholdVilkårsvurderingPostgresRepo(
+    internal val utenlandsoppholdVilkårsvurderingRepo = UtenlandsoppholdVilkårsvurderingPostgresRepo(
         utenlandsoppholdgrunnlagRepo = utenlandsoppholdgrunnlagPostgresRepo,
         dbMetrics = dbMetrics,
     )
@@ -240,14 +240,14 @@ internal class TestDataHelper(
         uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
         dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
-        utenlandsoppholdVilkårsvurderingRepo = utlandsoppholdVilkårsvurderingRepo,
+        utenlandsoppholdVilkårsvurderingRepo = utenlandsoppholdVilkårsvurderingRepo,
     )
     internal val revurderingRepo = RevurderingPostgresRepo(
         dataSource = dataSource,
         fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
         bosituasjonsgrunnlagPostgresRepo = bosituasjongrunnlagPostgresRepo,
         uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
-        utlandsoppholdVilkårsvurderingRepo = utlandsoppholdVilkårsvurderingRepo,
+        utlandsoppholdVilkårsvurderingRepo = utenlandsoppholdVilkårsvurderingRepo,
         formueVilkårsvurderingRepo = formueVilkårsvurderingPostgresRepo,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         dbMetrics = dbMetrics,

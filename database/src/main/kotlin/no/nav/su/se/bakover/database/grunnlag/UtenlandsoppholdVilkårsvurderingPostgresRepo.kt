@@ -26,7 +26,9 @@ internal class UtenlandsoppholdVilkårsvurderingPostgresRepo(
         dbMetrics.timeQuery("lagreVilkårsvurderingUtlandsopphold") {
             slettForBehandlingId(behandlingId, tx)
             when (vilkår) {
-                UtenlandsoppholdVilkår.IkkeVurdert -> Unit
+                UtenlandsoppholdVilkår.IkkeVurdert -> {
+                    utenlandsoppholdgrunnlagRepo.lagre(behandlingId, emptyList(), tx)
+                }
                 is UtenlandsoppholdVilkår.Vurdert -> {
                     utenlandsoppholdgrunnlagRepo.lagre(behandlingId, vilkår.grunnlag, tx)
                     vilkår.vurderingsperioder.forEach {

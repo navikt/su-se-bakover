@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.grunnlag.Utenlandsoppholdgrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
@@ -108,13 +109,14 @@ fun innvilgetUførevilkårForventetInntekt0(
 fun utlandsoppholdInnvilget(
     opprettet: Tidspunkt = fixedTidspunkt,
     periode: Periode = periode2021,
+    grunnlag: Utenlandsoppholdgrunnlag? = null
 ): UtenlandsoppholdVilkår.Vurdert {
     return UtenlandsoppholdVilkår.Vurdert.tryCreate(
         vurderingsperioder = nonEmptyListOf(
             VurderingsperiodeUtenlandsopphold.create(
                 opprettet = opprettet,
                 resultat = Resultat.Innvilget,
-                grunnlag = null,
+                grunnlag = grunnlag,
                 periode = periode,
                 begrunnelse = "begrunnelse",
             )
