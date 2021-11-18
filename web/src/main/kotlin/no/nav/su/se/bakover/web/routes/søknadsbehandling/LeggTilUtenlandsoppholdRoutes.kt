@@ -1,6 +1,9 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
+import arrow.core.Either
 import arrow.core.getOrHandle
+import arrow.core.left
+import arrow.core.right
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
@@ -24,13 +27,13 @@ private data class UtenlandsoppholdBody(
     val status: UtenlandsoppholdStatus,
     val begrunnelse: String?,
 ) {
-    fun toRequest(behandlingId: UUID): LeggTilUtenlandsoppholdRequest {
+    fun toRequest(behandlingId: UUID): Either<Resultat, LeggTilUtenlandsoppholdRequest> {
         return LeggTilUtenlandsoppholdRequest(
             behandlingId = behandlingId,
-            periode = periode.toPeriode().getOrHandle { throw IllegalArgumentException("Ugyldig periodejson") },
+            periode = periode.toPeriode().getOrHandle { return it.left() },
             status = status,
             begrunnelse = begrunnelse,
-        )
+        ).right()
     }
 }
 
@@ -41,7 +44,7 @@ internal fun Route.leggTilUtenlandsopphold(
         post("$behandlingPath/{behandlingId}/utenlandsopphold") {
             call.withBehandlingId { behandlingId ->
                 call.withBody<UtenlandsoppholdBody> { body ->
-                    søknadsbehandlingService.leggTilUtenlandsopphold(body.toRequest(behandlingId))
+                    søknadsbehandlingService.leggTilUtenlandsopphold(body.toRequest(behandlingId).getOrHandle { return@withBehandlingId call.svar(it) })
                         .mapLeft {
                             call.svar(it.tilResultat())
                         }.map {

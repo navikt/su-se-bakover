@@ -119,4 +119,33 @@ internal class LeggTilUtenlandsoppholdRoutesKtTest {
             }
         }
     }
+
+    @Test
+    fun `feilmelding for ugyldig periode`() {
+        withTestApplication(
+            {
+                testSusebakover(services = TestServicesBuilder.services())
+            },
+        ) {
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${UUID.randomUUID()}/behandlinger/${UUID.randomUUID()}/utenlandsopphold",
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody(
+                    """
+                    {
+                        "periode": {"fraOgMed": "2021-05-01", "tilOgMed": "2021-01-31"},
+                        "status": "SkalHoldeSegINorge",
+                        "begrunnelse": "jawol"    
+                                                   
+                    }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+                response.content shouldContain "ugyldig_periode_start_slutt"
+            }
+        }
+    }
 }

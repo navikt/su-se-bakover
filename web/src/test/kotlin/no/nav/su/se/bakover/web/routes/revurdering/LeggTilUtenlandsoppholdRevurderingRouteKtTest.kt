@@ -155,4 +155,39 @@ internal class LeggTilUtenlandsoppholdRevurderingRouteKtTest {
             verifyNoMoreInteractions(revurderingServiceMock)
         }
     }
+
+    @Test
+    fun `feilmelding for ugyldig periode`() {
+        withTestApplication(
+            {
+                testSusebakover(services = TestServicesBuilder.services())
+            },
+        ) {
+            defaultRequest(
+                HttpMethod.Post,
+                "$requestPath/${revurderingId()}/utenlandsopphold",
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody(
+                    """
+                {
+                    "utenlandsopphold" : [ 
+                       {
+                            "periode": {
+                                "fraOgMed": "2021-05-01", 
+                                "tilOgMed": "2021-01-31"
+                              },
+                            "status": "SkalHoldeSegINorge",
+                            "begrunnelse": "begrunnelse"
+                        }
+                    ]
+                }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+                response.content shouldContain "ugyldig_periode_start_slutt"
+            }
+        }
+    }
 }

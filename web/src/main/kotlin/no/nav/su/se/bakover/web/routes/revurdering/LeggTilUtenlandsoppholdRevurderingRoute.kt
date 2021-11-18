@@ -1,7 +1,10 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
+import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrHandle
+import arrow.core.left
+import arrow.core.right
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
@@ -26,15 +29,15 @@ import java.util.UUID
 private data class UtlandsoppholdBody(
     val utenlandsopphold: List<UtenlandsoppholdJson>,
 ) {
-    fun toRequest(revurderingId: UUID): LeggTilFlereUtenlandsoppholdRequest {
+    fun toRequest(revurderingId: UUID): Either<Resultat, LeggTilFlereUtenlandsoppholdRequest> {
         return LeggTilFlereUtenlandsoppholdRequest(
             behandlingId = revurderingId,
             request = Nel.fromListUnsafe(
                 utenlandsopphold.map {
-                    it.toRequest(revurderingId)
+                    it.toRequest(revurderingId).getOrHandle { feil -> return feil.left() }
                 },
             ),
-        )
+        ).right()
     }
 }
 
@@ -43,13 +46,13 @@ private data class UtenlandsoppholdJson(
     val status: String,
     val begrunnelse: String?,
 ) {
-    fun toRequest(revurderingId: UUID): LeggTilUtenlandsoppholdRequest {
+    fun toRequest(revurderingId: UUID): Either<Resultat, LeggTilUtenlandsoppholdRequest> {
         return LeggTilUtenlandsoppholdRequest(
             behandlingId = revurderingId,
-            periode = periode.toPeriode().getOrHandle { throw IllegalStateException("Ugyldig periode") },
+            periode = periode.toPeriode().getOrHandle { return it.left() },
             status = UtenlandsoppholdStatus.valueOf(status),
             begrunnelse = begrunnelse,
-        )
+        ).right()
     }
 }
 
@@ -61,6 +64,7 @@ internal fun Route.leggTilUtlandsoppholdRoute(
             call.withRevurderingId { revurderingId ->
                 call.withBody<UtlandsoppholdBody> { body ->
                     val req = body.toRequest(revurderingId)
+                        .getOrHandle { return@withRevurderingId call.svar(it) }
                     call.svar(
                         revurderingService.leggTilUtenlandsopphold(req).mapLeft {
                             it.tilResultat()
