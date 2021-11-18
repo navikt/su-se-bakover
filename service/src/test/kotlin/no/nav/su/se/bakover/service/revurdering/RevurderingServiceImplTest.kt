@@ -1443,7 +1443,6 @@ internal class RevurderingServiceImplTest {
                 it.metadata shouldBe Dokument.Metadata(
                     sakId = simulert.sakId,
                     revurderingId = simulert.id,
-                    vedtakId = simulert.tilRevurdering.id,
                     bestillBrev = true,
                 )
             },
@@ -1951,7 +1950,6 @@ internal class RevurderingServiceImplTest {
                 it.metadata shouldBe Dokument.Metadata(
                     sakId = simulert.sakId,
                     revurderingId = simulert.id,
-                    vedtakId = simulert.tilRevurdering.id,
                     bestillBrev = true,
                 )
             },
