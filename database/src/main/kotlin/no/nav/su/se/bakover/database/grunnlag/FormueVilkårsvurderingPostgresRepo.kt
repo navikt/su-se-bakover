@@ -37,7 +37,9 @@ internal class FormueVilkårsvurderingPostgresRepo(
     internal fun lagre(behandlingId: UUID, vilkår: Vilkår.Formue, tx: TransactionalSession) {
         slettForBehandlingId(behandlingId, tx)
         when (vilkår) {
-            Vilkår.Formue.IkkeVurdert -> Unit
+            Vilkår.Formue.IkkeVurdert -> {
+                formuegrunnlagPostgresRepo.lagreFormuegrunnlag(behandlingId, emptyList(), tx)
+            }
             is Vilkår.Formue.Vurdert -> {
                 formuegrunnlagPostgresRepo.lagreFormuegrunnlag(
                     behandlingId = behandlingId,
