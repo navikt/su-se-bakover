@@ -185,7 +185,6 @@ internal class FormuevilkårJsonTest {
    ]
 }
         """.trimIndent()
-        println(serialize(vilkår))
         JSONAssert.assertEquals(expectedVilkårJson, serialize(vilkår), true)
     }
 }

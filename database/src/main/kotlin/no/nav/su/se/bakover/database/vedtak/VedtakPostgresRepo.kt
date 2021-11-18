@@ -46,6 +46,7 @@ internal enum class VedtakType {
 }
 
 interface VedtakRepo {
+    fun hentForVedtakId(vedtakId: UUID): Vedtak?
     fun hentForSakId(sakId: UUID): List<Vedtak>
     fun hentAktive(dato: LocalDate): List<Vedtak.EndringIYtelse>
     fun lagre(vedtak: Vedtak)
@@ -61,6 +62,19 @@ internal class VedtakPostgresRepo(
     private val dbMetrics: DbMetrics,
     private val sessionFactory: PostgresSessionFactory,
 ) : VedtakRepo {
+
+    override fun hentForVedtakId(vedtakId: UUID): Vedtak? {
+        return sessionFactory.withSession { session ->
+            """
+                SELECT *
+                FROM vedtak
+                WHERE id = :id
+            """.trimIndent()
+                .hent(mapOf("id" to vedtakId), session) {
+                    it.toVedtak(session)
+                }
+        }
+    }
 
     override fun hentForSakId(sakId: UUID): List<Vedtak> {
         return dbMetrics.timeQuery("hentVedtakForSakId") {

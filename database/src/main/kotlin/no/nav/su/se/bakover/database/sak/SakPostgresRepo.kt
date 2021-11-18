@@ -148,7 +148,7 @@ internal class SakPostgresRepo(
                 utbetalinger = UtbetalingInternalRepo.hentUtbetalinger(sakId, session),
                 revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session),
                 vedtakListe = vedtakPostgresRepo.hentForSakId(sakId, session),
-                klager = klageRepo.hentKlager(sakId, session)
+                klager = klageRepo.hentKlager(sakId, sessionContext)
             )
         }
     }

@@ -147,7 +147,12 @@ object ServiceBuilder {
         ).apply {
             addObserver(statistikkService)
         }
-        val klageService = KlageServiceImpl(databaseRepos.klageRepo, clock)
+        val klageService = KlageServiceImpl(
+            sakRepo = databaseRepos.sak,
+            klageRepo = databaseRepos.klageRepo,
+            vedtakRepo = databaseRepos.vedtakRepo,
+            clock = clock,
+        )
         return Services(
             avstemming = AvstemmingServiceImpl(
                 repo = databaseRepos.avstemming,

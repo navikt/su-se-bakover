@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.database.klage
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.SakFactory
@@ -55,8 +54,8 @@ internal class KlagePostgresRepoTest {
                 repo.lagre(it)
             }
 
-            dataSource.withSession { session ->
-                repo.hentKlager(nySak.id, session) shouldBe listOf(klage)
+            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+                repo.hentKlager(nySak.id, sessionContext) shouldBe listOf(klage)
             }
             repo.hentKlage(klage.id) shouldBe klage
         }
@@ -104,15 +103,15 @@ internal class KlagePostgresRepoTest {
                         innenforFristen = null,
                         klagesDetPåKonkreteElementerIVedtaket = null,
                         erUnderskrevet = null,
-                        begrunnelse = null
-                    )
+                        begrunnelse = null,
+                    ),
                 ).orNull()!!.also {
                     repo.lagre(it)
                 }
             }
 
-            dataSource.withSession { session ->
-                repo.hentKlager(nySak.id, session) shouldBe listOf(vilkårsvurdertKlage)
+            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+                repo.hentKlager(nySak.id, sessionContext) shouldBe listOf(vilkårsvurdertKlage)
             }
             repo.hentKlage(vilkårsvurdertKlage.id) shouldBe vilkårsvurdertKlage
         }

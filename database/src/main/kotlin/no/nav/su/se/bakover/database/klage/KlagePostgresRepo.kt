@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.database.klage
 
 import kotliquery.Row
+import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.booleanOrNull
@@ -33,7 +35,6 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
     }
 
     private fun lagreOpprettetKlage(klage: OpprettetKlage, session: Session) {
-        println("lol")
         """
             insert into klage(id,  sakid,  opprettet,  journalpostid,  saksbehandler,  type)
                       values(:id, :sakid, :opprettet, :journalpostid, :saksbehandler, :type)
@@ -87,15 +88,21 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
         }
     }
 
-    override fun hentKlager(sakid: UUID, session: Session): List<Klage> {
-        return """
+    override fun hentKlager(sakid: UUID, sessionContext: SessionContext): List<Klage> {
+        return sessionContext.withSession { session ->
+            """
                     select * from klage where sakid=:sakid
-        """.trimIndent().hentListe(
-            mapOf(
-                "sakid" to sakid,
-            ),
-            session,
-        ) { rowToKlage(it) }
+            """.trimIndent().hentListe(
+                mapOf(
+                    "sakid" to sakid,
+                ),
+                session,
+            ) { rowToKlage(it) }
+        }
+    }
+
+    override fun defaultSessionContext(): SessionContext {
+        return sessionFactory.newSessionContext()
     }
 
     private fun rowToKlage(row: Row): Klage {

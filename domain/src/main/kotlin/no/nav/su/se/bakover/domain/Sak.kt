@@ -177,7 +177,10 @@ class SakFactory(
     private val uuidFactory: UUIDFactory = UUIDFactory(),
     private val clock: Clock,
 ) {
-    fun nySakMedNySøknad(fnr: Fnr, søknadInnhold: SøknadInnhold): NySak {
+    fun nySakMedNySøknad(
+        fnr: Fnr,
+        søknadInnhold: SøknadInnhold,
+    ): NySak {
         val opprettet = Tidspunkt.now(clock)
         val sakId = uuidFactory.newUUID()
         return NySak(

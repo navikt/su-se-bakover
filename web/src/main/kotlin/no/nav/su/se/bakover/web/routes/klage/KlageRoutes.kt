@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.klage
 import arrow.core.getOrHandle
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
@@ -42,6 +43,10 @@ internal fun Route.klageRoutes(
                     ).mapLeft {
                         when (it) {
                             KunneIkkeOppretteKlage.FantIkkeSak -> fantIkkeSak
+                            KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage -> BadRequest.errorJson(
+                                "Det finnes allerede en åpen klage",
+                                "finnes_allerede_en_åpen_klage",
+                            )
                         }
                     }.map {
                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
