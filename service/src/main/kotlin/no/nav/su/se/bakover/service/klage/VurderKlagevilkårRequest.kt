@@ -51,7 +51,7 @@ data class VurderKlagevilkårRequest(
                 begrunnelse = begrunnelse,
             )
         } else {
-            VilkårsvurderingerTilKlage.Ferdig(
+            VilkårsvurderingerTilKlage.Utfylt(
                 vedtakId = vedtakId!!,
                 innenforFristen = innenforFristen!!,
                 klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket!!,

@@ -19,6 +19,11 @@ sealed class Klage {
         vilkårsvurderinger: VilkårsvurderingerTilKlage,
     ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage>
 
+    abstract fun vurder(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        vurderinger: VurderingerTilKlage,
+    ): Either<KunneIkkeVurdereKlage.UgyldigTilstand, VurdertKlage>
+
     companion object {
         fun ny(
             sakId: UUID,

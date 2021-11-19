@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
+import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -36,7 +37,7 @@ data class OpprettetKlage private constructor(
         vilkårsvurderinger: VilkårsvurderingerTilKlage,
     ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
         return when (vilkårsvurderinger) {
-            is VilkårsvurderingerTilKlage.Ferdig -> VilkårsvurdertKlage.Ferdig.create(
+            is VilkårsvurderingerTilKlage.Utfylt -> VilkårsvurdertKlage.Utfylt.create(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -54,4 +55,9 @@ data class OpprettetKlage private constructor(
             )
         }.right()
     }
+
+    override fun vurder(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        vurderinger: VurderingerTilKlage,
+    ) = KunneIkkeVurdereKlage.UgyldigTilstand(this::class, OpprettetKlage::class).left()
 }

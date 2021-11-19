@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.service.klage.KlageService
+import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
 import no.nav.su.se.bakover.service.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
@@ -101,18 +102,32 @@ internal fun Route.klageRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$klagePath/{id}/vurderinger") {
             data class Omgjør(val årsak: String, val utfall: String)
-            data class Oppretthold(val hjemmel: String)
+            data class Oppretthold(val hjemler: List<String> = emptyList())
 
             data class Body(
                 val fritekstTilBrev: String?,
-                val vurdering: String?,
                 val omgjør: Omgjør?,
                 val oppretthold: Oppretthold?,
             )
 
             call.withStringParam("id") { klageId ->
                 call.withBody<Body> {
-                    call.svar(Resultat.json(HttpStatusCode.OK, "{}"))
+                    klageService.vurder(
+                        request = KlageVurderingerRequest(
+                            klageId = klageId,
+                            fritekstTilBrev = it.fritekstTilBrev,
+                            omgjør = it.omgjør?.let { o ->
+                                KlageVurderingerRequest.Omgjør(
+                                    årsak = o.årsak,
+                                    utfall = o.utfall,
+                                )
+                            },
+                            oppretthold = it.oppretthold?.let { o ->
+                                KlageVurderingerRequest.Oppretthold(hjemler = o.hjemler)
+                            },
+                            navIdent = call.suUserContext.navIdent,
+                        ),
+                    )
                 }
             }
         }

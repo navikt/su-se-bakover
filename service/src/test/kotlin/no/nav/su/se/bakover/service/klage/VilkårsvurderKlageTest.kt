@@ -176,15 +176,15 @@ internal class VilkårsvurderKlageTest {
             begrunnelse = "SomeBegrunnelse",
         )
 
-        var expectedKlage: VilkårsvurdertKlage.Ferdig?
+        var expectedKlage: VilkårsvurdertKlage.Utfylt?
         klageService.vilkårsvurder(request).orNull()!!.also {
-            expectedKlage = VilkårsvurdertKlage.Ferdig.create(
+            expectedKlage = VilkårsvurdertKlage.Utfylt.create(
                 id = it.id,
                 opprettet = fixedTidspunkt,
                 sakId = sak.id,
                 journalpostId = påbegyntVilkårsvurdertKlage.journalpostId,
                 saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
-                vilkårsvurderinger = VilkårsvurderingerTilKlage.Ferdig(
+                vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
                     vedtakId = it.vilkårsvurderinger.vedtakId!!,
                     innenforFristen = true,
                     klagesDetPåKonkreteElementerIVedtaket = true,

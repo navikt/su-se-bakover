@@ -22,7 +22,7 @@ sealed class VilkårsvurderingerTilKlage {
         override val begrunnelse: String?,
     ) : VilkårsvurderingerTilKlage()
 
-    data class Ferdig(
+    data class Utfylt(
         override val vedtakId: UUID,
         override val innenforFristen: Boolean,
         override val klagesDetPåKonkreteElementerIVedtaket: Boolean,

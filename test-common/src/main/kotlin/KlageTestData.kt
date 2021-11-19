@@ -55,7 +55,7 @@ fun påbegyntVilkårsvurdertKlage(
         ),
     ).orNull()!!.also {
         assert(it is VilkårsvurdertKlage.Påbegynt) {
-            "Dersom ingen av de vilkårsvurderte feltene er null, vil vi få en VilkårsvurdertKlage.Ferdig istedet for Påbegynt."
+            "Dersom ingen av de vilkårsvurderte feltene er null, vil vi få en VilkårsvurdertKlage.Utfylt istedet for Påbegynt."
         }
     }
 }
@@ -80,7 +80,7 @@ fun ferdigVilkårsvurdertKlage(
         saksbehandler = saksbehandler,
     ).vilkårsvurder(
         saksbehandler = saksbehandler,
-        vilkårsvurderinger = VilkårsvurderingerTilKlage.Ferdig(
+        vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
             vedtakId = vedtakId,
             innenforFristen = innenforFristen,
             klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,

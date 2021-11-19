@@ -10,5 +10,7 @@ create table if not exists klage
     innenforFristen bool null default null,
     klagesDetPåKonkreteElementerIVedtaket bool null default null,
     erUnderskrevet bool null default null,
-    begrunnelse text null default null
+    begrunnelse text null default null,
+    fritekstTilBrev text null default null,
+    vedtaksvurdering jsonb null default null
 )
