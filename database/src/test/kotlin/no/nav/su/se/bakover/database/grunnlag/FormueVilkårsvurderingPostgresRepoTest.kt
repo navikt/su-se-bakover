@@ -15,10 +15,13 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.createFromGrunnlag
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.formuevilkårUtenEps0Innvilget
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -202,6 +205,37 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                     it.erInnvilget shouldBe false
                     it.resultat shouldBe Resultat.Uavklart
                 }
+            }
+        }
+    }
+
+    @Test
+    fun `sletter grunnlag hvis vurdering går fra vurdert til ikke vurdert`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val søknadsbehandling = testDataHelper.nySøknadsbehandling()
+            val (vilkår, grunnlag) = formuevilkårUtenEps0Innvilget(
+                bosituasjon = bosituasjongrunnlagEnslig(periode2021),
+            ).let { it to it.grunnlag }
+
+            testDataHelper.formueVilkårsvurderingPostgresRepo.lagre(søknadsbehandling.id, vilkår)
+
+            dataSource.withSession { session ->
+                testDataHelper.formueVilkårsvurderingPostgresRepo.hent(søknadsbehandling.id, session) shouldBe vilkår
+            }
+
+            testDataHelper.formueVilkårsvurderingPostgresRepo.lagre(søknadsbehandling.id, Vilkår.Formue.IkkeVurdert)
+
+            dataSource.withSession { session ->
+                testDataHelper.formueVilkårsvurderingPostgresRepo.hent(
+                    behandlingId = søknadsbehandling.id,
+                    session = session,
+                ) shouldBe Vilkår.Formue.IkkeVurdert
+
+                testDataHelper.formuegrunnlagPostgresRepo.hentForFormuegrunnlagId(
+                    formuegrunnlagId = grunnlag.first().id,
+                    session = session,
+                ) shouldBe null
             }
         }
     }
