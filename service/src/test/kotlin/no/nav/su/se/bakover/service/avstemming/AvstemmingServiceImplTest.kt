@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.endOfDay
+import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
@@ -20,6 +21,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 internal class AvstemmingServiceImplTest {
@@ -102,5 +104,22 @@ internal class AvstemmingServiceImplTest {
             verify(publisherMock).publish(any<Avstemming.Konsistensavstemming.Ny>())
             verify(avstemmingRepoMock, never()).opprettKonsistensavstemming(any())
         }
+    }
+
+    @Test
+    fun `automatiskKonsistensavstemmingUtførtFor kaller repo med korrekte parametere`() {
+        val avstemmingRepoMock = mock<AvstemmingRepo> {
+            on { konsistensavstemmingUtførtForOgPåDato(any()) } doReturn false
+        }
+
+        AvstemmingServiceImpl(
+            repo = avstemmingRepoMock,
+            publisher = mock(),
+            clock = fixedClock,
+        ).konsistensavstemmingUtførtForOgPåDato(dato = 1.juni(2021)) shouldBe false
+
+        verify(avstemmingRepoMock).konsistensavstemmingUtførtForOgPåDato(
+            dato = 1.juni(2021),
+        )
     }
 }

@@ -151,6 +151,10 @@ open class AccessCheckProxy(
                 ): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming.Ny> {
                     return services.avstemming.konsistensavstemming(løpendeFraOgMed)
                 }
+
+                override fun konsistensavstemmingUtførtForOgPåDato(dato: LocalDate): Boolean {
+                    return services.avstemming.konsistensavstemmingUtførtForOgPåDato(dato)
+                }
             },
             utbetaling = object : UtbetalingService {
                 override fun hentUtbetaling(utbetalingId: UUID30): Either<FantIkkeUtbetaling, Utbetaling> {

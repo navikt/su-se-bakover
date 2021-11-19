@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
+import java.time.LocalDate
 import javax.sql.DataSource
 
 internal class AvstemmingPostgresRepo(
@@ -157,55 +158,69 @@ internal class AvstemmingPostgresRepo(
                 }
         }
     }
-}
 
-private fun Row.toKonsistensavstemming(session: Session): Avstemming.Konsistensavstemming.Fullført {
-    val id = uuid30("id")
-    val opprettet = tidspunkt("opprettet")
-    val løpendeFraOgMed = tidspunkt("løpendeFraOgMed")
-    val oppretettTilOgMed = tidspunkt("opprettetTilOgMed")
-    val avstemmingXmlRequest = stringOrNull("avstemmingXmlRequest")
-
-    val utbetalingerPerSak: Map<Long, List<String>> = stringOrNull("utbetalinger")
-        ?.let { objectMapper.readMap(it) } ?: emptyMap()
-
-    val utbetalinger = utbetalingerPerSak
-        .mapKeys { Saksnummer(it.key) }
-        .mapValues { utbetalingslinjeId -> utbetalingslinjeId.value.map { UUID30.fromString(it) } }
-        .mapValues {
-            it.value.map { UtbetalingInternalRepo.hentUtbetalingslinje(it, session)!! }
-        }
-
-    return Avstemming.Konsistensavstemming.Fullført(
-        id = id,
-        opprettet = opprettet,
-        løpendeFraOgMed = løpendeFraOgMed,
-        opprettetTilOgMed = oppretettTilOgMed,
-        utbetalinger = utbetalinger,
-        avstemmingXmlRequest = avstemmingXmlRequest,
-    )
-}
-
-private fun Row.toGrensesnittsavstemming(session: Session): Avstemming.Grensesnittavstemming {
-    val id = uuid30("id")
-    val opprettet = tidspunkt("opprettet")
-    val fraOgMed = tidspunkt("fom")
-    val tilOgMed = tidspunkt("tom")
-    val avstemmingXmlRequest = stringOrNull("avstemmingXmlRequest")
-
-    return Avstemming.Grensesnittavstemming(
-        id = id,
-        opprettet = opprettet,
-        fraOgMed = fraOgMed,
-        tilOgMed = tilOgMed,
-        utbetalinger = stringOrNull("utbetalinger")?.let {
-            it.deserializeList<String>().map { utbetalingId ->
-                UtbetalingInternalRepo.hentUtbetalingInternal(
-                    UUID30(utbetalingId),
-                    session,
-                )!!
+    override fun konsistensavstemmingUtførtForOgPåDato(dato: LocalDate): Boolean {
+        val opprettetOgLøpendeFraOgMed = dataSource.withSession { session ->
+            """select opprettet, løpendeFraOgMed from konsistensavstemming""".hentListe(emptyMap(), session) {
+                it.tidspunkt("opprettet") to it.tidspunkt("løpendeFraOgMed")
             }
-        }!!,
-        avstemmingXmlRequest = avstemmingXmlRequest,
-    )
+        }
+        return opprettetOgLøpendeFraOgMed
+            .map { (opprettet, løpendeFraOgMed) ->
+                opprettet.toLocalDate(zoneIdOslo) to løpendeFraOgMed.toLocalDate(zoneIdOslo)
+            }.any {
+                it.first == dato && it.second == dato
+            }
+    }
+
+    private fun Row.toKonsistensavstemming(session: Session): Avstemming.Konsistensavstemming.Fullført {
+        val id = uuid30("id")
+        val opprettet = tidspunkt("opprettet")
+        val løpendeFraOgMed = tidspunkt("løpendeFraOgMed")
+        val oppretettTilOgMed = tidspunkt("opprettetTilOgMed")
+        val avstemmingXmlRequest = stringOrNull("avstemmingXmlRequest")
+
+        val utbetalingerPerSak: Map<Long, List<String>> = stringOrNull("utbetalinger")
+            ?.let { objectMapper.readMap(it) } ?: emptyMap()
+
+        val utbetalinger = utbetalingerPerSak
+            .mapKeys { Saksnummer(it.key) }
+            .mapValues { utbetalingslinjeId -> utbetalingslinjeId.value.map { UUID30.fromString(it) } }
+            .mapValues {
+                it.value.map { UtbetalingInternalRepo.hentUtbetalingslinje(it, session)!! }
+            }
+
+        return Avstemming.Konsistensavstemming.Fullført(
+            id = id,
+            opprettet = opprettet,
+            løpendeFraOgMed = løpendeFraOgMed,
+            opprettetTilOgMed = oppretettTilOgMed,
+            utbetalinger = utbetalinger,
+            avstemmingXmlRequest = avstemmingXmlRequest,
+        )
+    }
+
+    private fun Row.toGrensesnittsavstemming(session: Session): Avstemming.Grensesnittavstemming {
+        val id = uuid30("id")
+        val opprettet = tidspunkt("opprettet")
+        val fraOgMed = tidspunkt("fom")
+        val tilOgMed = tidspunkt("tom")
+        val avstemmingXmlRequest = stringOrNull("avstemmingXmlRequest")
+
+        return Avstemming.Grensesnittavstemming(
+            id = id,
+            opprettet = opprettet,
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
+            utbetalinger = stringOrNull("utbetalinger")?.let {
+                it.deserializeList<String>().map { utbetalingId ->
+                    UtbetalingInternalRepo.hentUtbetalingInternal(
+                        UUID30(utbetalingId),
+                        session,
+                    )!!
+                }
+            }!!,
+            avstemmingXmlRequest = avstemmingXmlRequest,
+        )
+    }
 }
