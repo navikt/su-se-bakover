@@ -31,10 +31,6 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
             begrunnelse = institusjonsopphold?.begrunnelse,
         ),
-        oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
-            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
-            begrunnelse = oppholdIUtlandet?.begrunnelse,
-        ),
         formue = Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
             verdier = Behandlingsinformasjon.Formue.Verdier(
@@ -81,10 +77,6 @@ fun Behandlingsinformasjon.withAlleVilkårAvslått() =
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårIkkeOppfylt,
             begrunnelse = institusjonsopphold?.begrunnelse,
         ),
-        oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
-            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalVæreMerEnn90DagerIUtlandet,
-            begrunnelse = oppholdIUtlandet?.begrunnelse,
-        ),
         formue = Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt,
             verdier = Behandlingsinformasjon.Formue.Verdier(
@@ -126,7 +118,6 @@ fun withVilkårIkkeVurdert() =
         lovligOpphold = null,
         fastOppholdINorge = null,
         institusjonsopphold = null,
-        oppholdIUtlandet = null,
         formue = null,
         personligOppmøte = null,
     )

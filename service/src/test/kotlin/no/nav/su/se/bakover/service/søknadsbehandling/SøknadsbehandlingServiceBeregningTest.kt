@@ -193,7 +193,7 @@ class SøknadsbehandlingServiceBeregningTest {
 
         inOrder(søknadsbehandlingRepoMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
-            verify(søknadsbehandlingRepoMock).defaultSessionContext()
+            verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(eq(expected), anyOrNull())
         }
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)

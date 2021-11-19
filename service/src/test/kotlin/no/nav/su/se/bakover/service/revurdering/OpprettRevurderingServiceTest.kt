@@ -6,7 +6,6 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -20,7 +19,6 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -37,7 +35,9 @@ import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
@@ -60,12 +60,14 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt12000
-import no.nav.su.se.bakover.test.revurderingsårsak
+import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.plus
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt12000
+import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -73,8 +75,6 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
-import java.time.Clock
-import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
@@ -467,6 +467,7 @@ internal class OpprettRevurderingServiceTest {
             on { vilkårsvurderinger } doReturn Vilkårsvurderinger.Revurdering(
                 vilkårsvurderingUføre,
                 formueVilkår(periodeNesteMånedOgTreMånederFram),
+                utlandsoppholdInnvilget(periode = periodeNesteMånedOgTreMånederFram)
             )
         }
         val vedtakForFørsteJanuarLagetNå = mock<Vedtak.EndringIYtelse.InnvilgetRevurdering> {
@@ -556,48 +557,15 @@ internal class OpprettRevurderingServiceTest {
 
     @Test
     fun `kan revurdere en periode med eksisterende revurdering`() {
-        val opprinneligVedtak =
-            Vedtak.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID(), fixedClock)
-        val revurdering = Vedtak.from(
-            revurdering = IverksattRevurdering.Innvilget(
-                id = UUID.randomUUID(),
-                periode = periodeNesteMånedOgTreMånederFram,
-                opprettet = Tidspunkt.EPOCH,
-                tilRevurdering = opprinneligVedtak,
-                saksbehandler = saksbehandler,
-                oppgaveId = OppgaveId("null"),
-                beregning = opprinneligVedtak.beregning,
-                simulering = opprinneligVedtak.simulering,
-                attesteringer = Attesteringshistorikk.empty()
-                    .leggTilNyAttestering(Attestering.Iverksatt(opprinneligVedtak.attestant, fixedTidspunkt)),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                grunnlagsdata = Grunnlagsdata.create(
-                    bosituasjon = listOf(
-                        Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            periode = periodeNesteMånedOgTreMånederFram,
-                            begrunnelse = null,
-                        ),
-                    ),
-                ),
-                vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-                    vilkårsvurderingUføre,
-                    formueVilkår(periodeNesteMånedOgTreMånederFram),
-                ),
-                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            ),
-            utbetalingId = UUID30.randomUUID(),
-            clock = Clock.fixed(fixedClock.instant().plus(1, ChronoUnit.DAYS), ZoneOffset.UTC),
-        )
+        val (sak, iverksattRevurdering) = iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak()
+        val søknadsbehandlingVedtak = sak.vedtakListe.first() as VedtakSomKanRevurderes
+        val revurderingVedtak = Vedtak.from(iverksattRevurdering, UUID30.randomUUID(), fixedClock.plus(1, ChronoUnit.SECONDS))
 
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
             periode = periodeNesteMånedOgTreMånederFram,
             vedtakListe = nonEmptyListOf(
-                opprinneligVedtak,
-                revurdering,
+                søknadsbehandlingVedtak,
+                revurderingVedtak,
             ),
             clock = fixedClock,
         )
@@ -636,7 +604,7 @@ internal class OpprettRevurderingServiceTest {
 
         actual.orNull()!!.also {
             it.saksnummer shouldBe saksnummer
-            it.tilRevurdering.id shouldBe revurdering.id
+            it.tilRevurdering.id shouldBe revurderingVedtak.id
         }
 
         verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(sakId, periodeNesteMånedOgTreMånederFram.fraOgMed)
@@ -915,7 +883,9 @@ internal class OpprettRevurderingServiceTest {
                 ),
             )
             on { vilkårsvurderinger } doReturn Vilkårsvurderinger.Revurdering(
-                vilkårsvurderingUføre,
+                uføre = vilkårsvurderingUføre,
+                formue = Vilkår.Formue.IkkeVurdert,
+                utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert
             )
         }
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(

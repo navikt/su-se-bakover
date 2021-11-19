@@ -38,6 +38,7 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.formueVilkår
@@ -146,7 +147,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-                Vilkår.Uførhet.Vurdert.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             resultat = Resultat.Innvilget,
@@ -157,7 +158,8 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                         ),
                     ),
                 ),
-                formueVilkår(periode),
+                formue = formueVilkår(periode),
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),

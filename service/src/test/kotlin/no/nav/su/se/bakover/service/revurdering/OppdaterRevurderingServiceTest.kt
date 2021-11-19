@@ -40,6 +40,7 @@ import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
@@ -103,7 +104,9 @@ internal class OppdaterRevurderingServiceTest {
             ),
         ),
         vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-            vilkårsvurderingUføre
+            uføre = vilkårsvurderingUføre,
+            formue = Vilkår.Formue.IkkeVurdert,
+            utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert
         ),
         informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert)),
     )
@@ -452,9 +455,7 @@ internal class OppdaterRevurderingServiceTest {
             on { hent(any()) } doReturn opprettetRevurdering.copy(
                 // simuler at det er gjort endringer før oppdatering
                 grunnlagsdata = Grunnlagsdata.create(),
-                vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-                    Vilkår.Uførhet.IkkeVurdert,
-                )
+                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert
             )
         }
 
@@ -632,7 +633,9 @@ internal class OppdaterRevurderingServiceTest {
                 ),
             )
             on { vilkårsvurderinger } doReturn Vilkårsvurderinger.Revurdering(
-                vilkårsvurderingUføre,
+                uføre = vilkårsvurderingUføre,
+                formue = Vilkår.Formue.IkkeVurdert,
+                utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert
             )
         }
 

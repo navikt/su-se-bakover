@@ -8,7 +8,6 @@ object BehandlingsinformasjonTestData {
         lovligOpphold = LovligOpphold.Oppfylt,
         fastOppholdINorge = FastOppholdINorge.Oppfylt,
         institusjonsopphold = Institusjonsopphold.Oppfylt,
-        oppholdIUtlandet = OppholdIUtlandet.Oppfylt,
         formue = Formue.OppfyltMedEPS,
         personligOppmøte = PersonligOppmøte.Oppfylt,
     )
@@ -68,17 +67,6 @@ object BehandlingsinformasjonTestData {
         )
         val Uavklart = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.Uavklart,
-            begrunnelse = "det stemmer"
-        )
-    }
-
-    object OppholdIUtlandet {
-        val Oppfylt = Behandlingsinformasjon.OppholdIUtlandet(
-            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
-            begrunnelse = "det stemmer"
-        )
-        val Uavklart = Behandlingsinformasjon.OppholdIUtlandet(
-            status = Behandlingsinformasjon.OppholdIUtlandet.Status.Uavklart,
             begrunnelse = "det stemmer"
         )
     }

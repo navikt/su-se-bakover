@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
@@ -50,6 +51,7 @@ import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandl
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.stønadsperiode2021
+import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
@@ -91,10 +93,10 @@ internal class RevurderingLeggTilFormueServiceTest {
 
         actual shouldBe beOfType<RevurderingOgFeilmeldingerResponse>()
         val expectedVilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-            Vilkår.Uførhet.Vurdert.create(
+            uføre = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
-                        id = ((actual.revurdering.vilkårsvurderinger as Vilkårsvurderinger.Revurdering).uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.first().id,
+                        id = (actual.revurdering.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).vurderingsperioder.first().id,
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Innvilget,
                         grunnlag = Grunnlag.Uføregrunnlag(
@@ -109,14 +111,15 @@ internal class RevurderingLeggTilFormueServiceTest {
                     ),
                 ),
             ),
-            Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
+            utenlandsopphold = utlandsoppholdInnvilget(periode = periodeHele2021),
+            formue = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Formue.tryCreate(
-                        id = ((actual.revurdering.vilkårsvurderinger as Vilkårsvurderinger.Revurdering).formue as Vilkår.Formue.Vurdert).vurderingsperioder.first().id,
+                        id = (actual.revurdering.vilkårsvurderinger.formue as Vilkår.Formue.Vurdert).vurderingsperioder.first().id,
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Innvilget,
                         grunnlag = Formuegrunnlag.create(
-                            id = ((actual.revurdering.vilkårsvurderinger as Vilkårsvurderinger.Revurdering).formue as Vilkår.Formue.Vurdert).grunnlag.first().id,
+                            id = (actual.revurdering.vilkårsvurderinger.formue as Vilkår.Formue.Vurdert).grunnlag.first().id,
                             periode = periodeHele2021,
                             opprettet = fixedTidspunkt,
                             epsFormue = Formuegrunnlag.Verdier.empty(),
@@ -378,7 +381,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                     ),
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-                    Vilkår.Uførhet.Vurdert.create(
+                    uføre = Vilkår.Uførhet.Vurdert.create(
                         vurderingsperioder = nonEmptyListOf(
                             Vurderingsperiode.Uføre.create(
                                 id = UUID.randomUUID(),
@@ -390,6 +393,8 @@ internal class RevurderingLeggTilFormueServiceTest {
                             ),
                         ),
                     ),
+                    formue = Vilkår.Formue.IkkeVurdert,
+                    utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert
                 ),
             ),
         ).second
@@ -533,7 +538,7 @@ internal class RevurderingLeggTilFormueServiceTest {
     private val uføreId = UUID.randomUUID()
 
     private val vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-        Vilkår.Uførhet.Vurdert.create(
+        uføre = Vilkår.Uførhet.Vurdert.create(
             vurderingsperioder = nonEmptyListOf(
                 Vurderingsperiode.Uføre.create(
                     id = uføreId,
@@ -550,7 +555,9 @@ internal class RevurderingLeggTilFormueServiceTest {
                     begrunnelse = "ok2k",
                 ),
             ),
-        )
+        ),
+        formue = Vilkår.Formue.IkkeVurdert,
+        utenlandsopphold = utlandsoppholdInnvilget(periode = periodeHele2021)
     )
 
     private val opprettetRevurdering = OpprettetRevurdering(

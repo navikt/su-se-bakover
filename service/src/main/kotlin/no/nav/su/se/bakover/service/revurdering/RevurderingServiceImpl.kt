@@ -66,6 +66,7 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import java.time.Clock
 import java.time.LocalDate
@@ -290,15 +291,59 @@ internal class RevurderingServiceImpl(
             }
         }
         return revurdering.oppdaterUføreOgMarkerSomVurdert(uførevilkår).mapLeft {
-            KunneIkkeLeggeTilGrunnlag.UgyldigTilstand(
-                revurdering::class,
-                OpprettetRevurdering::class,
-            )
+            KunneIkkeLeggeTilGrunnlag.UgyldigTilstand(fra = it.fra, til = it.til)
         }.map {
             // TODO jah: Flytt denne inn i revurderingRepo.lagre
             vilkårsvurderingService.lagre(it.id, it.vilkårsvurderinger)
             revurderingRepo.lagre(it)
             identifiserFeilOgLagResponse(it)
+        }
+    }
+
+    override fun leggTilUtenlandsopphold(
+        request: LeggTilFlereUtenlandsoppholdRequest,
+    ): Either<KunneIkkeLeggeTilUtenlandsopphold, RevurderingOgFeilmeldingerResponse> {
+        val revurdering = hent(request.behandlingId)
+            .getOrHandle { return KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left() }
+
+        val utenlandsoppholdVilkår = request.tilVilkår(clock).getOrHandle {
+            return it.tilService()
+        }
+
+        return revurdering.oppdaterUtenlandsoppholdOgMarkerSomVurdert(utenlandsoppholdVilkår)
+            .mapLeft {
+                it.tilService()
+            }.map {
+                revurderingRepo.lagre(it)
+                identifiserFeilOgLagResponse(it)
+            }
+    }
+
+    private fun LeggTilFlereUtenlandsoppholdRequest.UgyldigUtenlandsopphold.tilService(): Either<KunneIkkeLeggeTilUtenlandsopphold, Nothing> {
+        return when (this) {
+            LeggTilFlereUtenlandsoppholdRequest.UgyldigUtenlandsopphold.OverlappendeVurderingsperioder -> {
+                KunneIkkeLeggeTilUtenlandsopphold.OverlappendeVurderingsperioder.left()
+            }
+            LeggTilFlereUtenlandsoppholdRequest.UgyldigUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig -> {
+                KunneIkkeLeggeTilUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+            }
+        }
+    }
+
+    private fun Revurdering.KunneIkkeLeggeTilUtenlandsopphold.tilService(): KunneIkkeLeggeTilUtenlandsopphold {
+        return when (this) {
+            is Revurdering.KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand -> {
+                KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(fra = this.fra, til = this.til)
+            }
+            Revurdering.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode -> {
+                KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode
+            }
+            Revurdering.KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat -> {
+                KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat
+            }
+            Revurdering.KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden -> {
+                KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden
+            }
         }
     }
 
@@ -312,8 +357,8 @@ internal class RevurderingServiceImpl(
                     it.feil,
                 )
                 is Revurdering.KunneIkkeLeggeTilFradrag.UgyldigTilstand -> KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
-                    revurdering::class,
-                    OpprettetRevurdering::class,
+                    fra = it.fra,
+                    til = it.til,
                 )
             }
         }.map {
@@ -344,8 +389,8 @@ internal class RevurderingServiceImpl(
                     it.feil,
                 )
                 is Revurdering.KunneIkkeLeggeTilBosituasjon.UgyldigTilstand -> KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigTilstand(
-                    revurdering::class,
-                    OpprettetRevurdering::class,
+                    fra = it.fra,
+                    til = it.til,
                 )
             }
         }.map {
@@ -366,10 +411,7 @@ internal class RevurderingServiceImpl(
             return it.left()
         }
         return revurdering.oppdaterFormueOgMarkerSomVurdert(vilkår).mapLeft {
-            KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand(
-                revurdering::class,
-                OpprettetRevurdering::class,
-            )
+            KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand(fra = it.fra, til = it.til)
         }.map {
             // TODO jah: Flytt denne inn i revurderingRepo.lagre
             vilkårsvurderingService.lagre(it.id, it.vilkårsvurderinger)
@@ -1265,7 +1307,6 @@ internal class RevurderingServiceImpl(
                 val dokumentMedMetaData = dokument.leggTilMetadata(
                     metadata = Dokument.Metadata(
                         sakId = revurdering.sakId,
-                        vedtakId = revurdering.tilRevurdering.id,
                         revurderingId = revurdering.id,
                         bestillBrev = true,
                     ),

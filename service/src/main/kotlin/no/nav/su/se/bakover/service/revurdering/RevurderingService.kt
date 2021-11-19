@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.service.utbetaling.SimulerGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.SimulerStansFeilet
 import no.nav.su.se.bakover.service.utbetaling.UtbetalGjenopptakFeil
 import no.nav.su.se.bakover.service.utbetaling.UtbetalStansFeil
+import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -107,6 +108,10 @@ interface RevurderingService {
     fun leggTilUføregrunnlag(
         request: LeggTilUførevurderingerRequest,
     ): Either<KunneIkkeLeggeTilGrunnlag, RevurderingOgFeilmeldingerResponse>
+
+    fun leggTilUtenlandsopphold(
+        request: LeggTilFlereUtenlandsoppholdRequest
+    ): Either<KunneIkkeLeggeTilUtenlandsopphold, RevurderingOgFeilmeldingerResponse>
 
     fun leggTilFradragsgrunnlag(
         request: LeggTilFradragsgrunnlagRequest,
@@ -326,6 +331,19 @@ sealed class KunneIkkeLeggeTilFradragsgrunnlag {
 
     data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
         KunneIkkeLeggeTilFradragsgrunnlag()
+}
+
+sealed class KunneIkkeLeggeTilUtenlandsopphold {
+    object FantIkkeBehandling : KunneIkkeLeggeTilUtenlandsopphold()
+    object OverlappendeVurderingsperioder : KunneIkkeLeggeTilUtenlandsopphold()
+    object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilUtenlandsopphold()
+    object AlleVurderingsperioderMåHaSammeResultat : KunneIkkeLeggeTilUtenlandsopphold()
+    object MåVurdereHelePerioden : KunneIkkeLeggeTilUtenlandsopphold()
+    object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUtenlandsopphold()
+    data class UgyldigTilstand(
+        val fra: KClass<out Revurdering>,
+        val til: KClass<out Revurdering>,
+    ) : KunneIkkeLeggeTilUtenlandsopphold()
 }
 
 sealed class KunneIkkeLeggeTilBosituasjongrunnlag {

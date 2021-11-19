@@ -10,15 +10,15 @@ import no.nav.su.se.bakover.test.periodeMai2021
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class OppholdIUtlandetGrunnlagTest {
+internal class UtenlandsoppholdgrunnlagTest {
     @Test
     fun `oppdaterer periode`() {
-        OppholdIUtlandetGrunnlag(
+        Utenlandsoppholdgrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = periode2021,
         ).let {
-            it.oppdaterPeriode(periodeFebruar2021) shouldBe OppholdIUtlandetGrunnlag(
+            it.oppdaterPeriode(periodeFebruar2021) shouldBe Utenlandsoppholdgrunnlag(
                 id = it.id,
                 opprettet = it.opprettet,
                 periode = periodeFebruar2021,
@@ -28,7 +28,7 @@ internal class OppholdIUtlandetGrunnlagTest {
 
     @Test
     fun `kopierer korrekte verdier`() {
-        OppholdIUtlandetGrunnlag(
+        Utenlandsoppholdgrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = periode2021,
@@ -36,7 +36,7 @@ internal class OppholdIUtlandetGrunnlagTest {
             it shouldBe it.copy()
         }
 
-        OppholdIUtlandetGrunnlag(
+        Utenlandsoppholdgrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = periode2021,
@@ -47,12 +47,12 @@ internal class OppholdIUtlandetGrunnlagTest {
 
     @Test
     fun `er lik ser kun på funksjonelle verdier`() {
-        OppholdIUtlandetGrunnlag(
+        Utenlandsoppholdgrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = periode2021,
         ).erLik(
-            OppholdIUtlandetGrunnlag(
+            Utenlandsoppholdgrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
                 periode = periodeFebruar2021,

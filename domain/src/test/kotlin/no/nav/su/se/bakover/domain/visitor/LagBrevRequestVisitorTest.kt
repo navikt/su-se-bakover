@@ -69,7 +69,8 @@ import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
-import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgInnvilgetFormue
+import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -883,6 +884,7 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
                 innvilgetFormueVilkår(revurderingsperiode),
+                utlandsoppholdInnvilget(periode = revurderingsperiode)
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -944,7 +946,7 @@ internal class LagBrevRequestVisitorTest {
                             bosituasjongrunnlagEnslig(opphørsperiode),
                         ),
                     ),
-                    vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(
+                    vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
                         periode = opphørsperiode,
                     ),
                 ),

@@ -7,13 +7,11 @@ import no.nav.su.se.bakover.domain.grunnlag.FastOppholdINorgeGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.FlyktningGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.InstitusjonsoppholdGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.LovligOppholdGrunnlag
-import no.nav.su.se.bakover.domain.grunnlag.OppholdIUtlandetGrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.PersonligOppmøteGrunnlag
 import no.nav.su.se.bakover.domain.vilkår.FastOppholdINorgeVilkår
 import no.nav.su.se.bakover.domain.vilkår.FlyktningVilkår
 import no.nav.su.se.bakover.domain.vilkår.InstitusjonsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.LovligOppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.OppholdIUtlandetVilkår
 import no.nav.su.se.bakover.domain.vilkår.PersonligOppmøteVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.test.fixedClock
@@ -239,61 +237,6 @@ class BehandlingsinformasjonTilVilkårTest {
                         periode = stønadsperiode2021.periode,
                     ),
                     InstitusjonsoppholdGrunnlag::id,
-                )
-            }
-        }
-    }
-
-    @Test
-    fun `konverterer opphold i utlandet til vilkår`() {
-        Behandlingsinformasjon.OppholdIUtlandet(
-            status = Behandlingsinformasjon.OppholdIUtlandet.Status.Uavklart,
-            begrunnelse = "jambo",
-        ).tilVilkår(
-            stønadsperiode = stønadsperiode2021,
-            clock = fixedClock,
-        ) shouldBe OppholdIUtlandetVilkår.IkkeVurdert
-
-        Behandlingsinformasjon.OppholdIUtlandet(
-            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
-            begrunnelse = "jambo",
-        ).tilVilkår(
-            stønadsperiode = stønadsperiode2021,
-            clock = fixedClock,
-        ).let { vilkår ->
-            vilkår shouldBe beOfType<OppholdIUtlandetVilkår.Vurdert>()
-            (vilkår as OppholdIUtlandetVilkår.Vurdert).let {
-                it.resultat shouldBe Resultat.Innvilget
-                it.vurderingsperioder.single().begrunnelse shouldBe "jambo"
-                it.grunnlag.single().shouldBeEqualToIgnoringFields(
-                    OppholdIUtlandetGrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = stønadsperiode2021.periode,
-                    ),
-                    OppholdIUtlandetGrunnlag::id,
-                )
-            }
-        }
-
-        Behandlingsinformasjon.OppholdIUtlandet(
-            status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalVæreMerEnn90DagerIUtlandet,
-            begrunnelse = "jambo",
-        ).tilVilkår(
-            stønadsperiode = stønadsperiode2021,
-            clock = fixedClock,
-        ).let { vilkår ->
-            vilkår shouldBe beOfType<OppholdIUtlandetVilkår.Vurdert>()
-            (vilkår as OppholdIUtlandetVilkår.Vurdert).let {
-                it.resultat shouldBe Resultat.Avslag
-                it.vurderingsperioder.single().begrunnelse shouldBe "jambo"
-                it.grunnlag.single().shouldBeEqualToIgnoringFields(
-                    OppholdIUtlandetGrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = stønadsperiode2021.periode,
-                    ),
-                    OppholdIUtlandetGrunnlag::id,
                 )
             }
         }

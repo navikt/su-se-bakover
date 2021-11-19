@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak
+import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -170,7 +170,7 @@ internal class SakServiceImplTest {
         val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(saknr1).second
 
         val underkjentInnvilgetRevurdering =
-            underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak(saknr2).second
+            underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(saknr2).second
         val tilAttesteringRevurdering =
             tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(saknr2).second
 

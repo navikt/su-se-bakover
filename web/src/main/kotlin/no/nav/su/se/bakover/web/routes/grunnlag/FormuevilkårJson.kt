@@ -10,7 +10,6 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 internal data class FormuevilkårJson(
-    val vilkår: String,
     val vurderinger: List<VurderingsperiodeFormueJson>,
     val resultat: Behandlingsinformasjon.Formue.Status,
     val formuegrenser: List<FormuegrenseJson>,
@@ -26,7 +25,6 @@ internal data class VurderingsperiodeFormueJson(
 
 internal fun Vilkår.Formue.toJson(): FormuevilkårJson {
     return FormuevilkårJson(
-        vilkår = vilkår.toJson(),
         vurderinger = when (this) {
             is Vilkår.Formue.IkkeVurdert -> emptyList()
             is Vilkår.Formue.Vurdert -> vurderingsperioder.map { it.toJson() }
