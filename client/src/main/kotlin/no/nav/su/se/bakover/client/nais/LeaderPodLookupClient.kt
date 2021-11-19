@@ -11,7 +11,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 internal class LeaderPodLookupClient(
-    private val leaderLookupPath: String
+    private val leaderLookupPath: String,
 ) : LeaderPodLookup {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
@@ -32,9 +32,8 @@ internal class LeaderPodLookupClient(
                         } else {
                             null
                         }
-                    }
-                )
-                    .mapLeft { LeaderPodLookupFeil.UkjentSvarFraLeaderElectorContainer }
+                    },
+                ).mapLeft { LeaderPodLookupFeil.UkjentSvarFraLeaderElectorContainer }
             }
             .map { leaderName ->
                 log.debug("Fant leder med navn '$leaderName'. Mitt hostname er '$localHostName'.")
