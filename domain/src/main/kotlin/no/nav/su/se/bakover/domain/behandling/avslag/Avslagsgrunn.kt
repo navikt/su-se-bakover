@@ -55,7 +55,7 @@ enum class Avslagsgrunn {
             BOR_OG_OPPHOLDER_SEG_I_NORGE -> TODO()
             FOR_HØY_INNTEKT -> Opphørsgrunn.FOR_HØY_INNTEKT
             SU_UNDER_MINSTEGRENSE -> Opphørsgrunn.SU_UNDER_MINSTEGRENSE
-            UTENLANDSOPPHOLD_OVER_90_DAGER -> Opphørsgrunn.OPPHOLD_I_UTLANDET
+            UTENLANDSOPPHOLD_OVER_90_DAGER -> Opphørsgrunn.UTENLANDSOPPHOLD
             INNLAGT_PÅ_INSTITUSJON -> TODO()
             MANGLENDE_DOKUMENTASJON -> TODO()
         }
@@ -71,7 +71,7 @@ enum class Opphørsgrunn {
     FOR_HØY_INNTEKT,
     SU_UNDER_MINSTEGRENSE,
     FORMUE,
-    OPPHOLD_I_UTLANDET;
+    UTENLANDSOPPHOLD;
 
     companion object {
         fun List<Opphørsgrunn>.getDistinkteParagrafer(): List<Int> =
@@ -84,6 +84,6 @@ enum class Opphørsgrunn {
         FOR_HØY_INNTEKT -> listOf(5, 6, 7)
         SU_UNDER_MINSTEGRENSE -> listOf(5, 6, 9)
         FORMUE -> listOf(8)
-        OPPHOLD_I_UTLANDET -> listOf(1, 2, 4)
+        UTENLANDSOPPHOLD -> listOf(1, 2, 4)
     }
 }

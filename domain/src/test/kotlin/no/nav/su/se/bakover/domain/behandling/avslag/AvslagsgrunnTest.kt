@@ -11,7 +11,7 @@ internal class AvslagsgrunnTest {
         Avslagsgrunn.FOR_HØY_INNTEKT.tilOpphørsgrunn() shouldBe Opphørsgrunn.FOR_HØY_INNTEKT
         Avslagsgrunn.FORMUE.tilOpphørsgrunn() shouldBe Opphørsgrunn.FORMUE
         Avslagsgrunn.SU_UNDER_MINSTEGRENSE.tilOpphørsgrunn() shouldBe Opphørsgrunn.SU_UNDER_MINSTEGRENSE
-        Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER.tilOpphørsgrunn() shouldBe Opphørsgrunn.OPPHOLD_I_UTLANDET
+        Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER.tilOpphørsgrunn() shouldBe Opphørsgrunn.UTENLANDSOPPHOLD
 
         listOf(
             Avslagsgrunn.PERSONLIG_OPPMØTE,
