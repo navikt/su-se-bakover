@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.bosituasjon
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.vurderingsperiodeUføre
+import no.nav.su.se.bakover.web.routes.grunnlag.UtenlandsoppholdVilkårJsonTest.Companion.utenlandsopphold
 import java.time.LocalDate
 import java.util.UUID
 
@@ -78,10 +79,6 @@ object BehandlingTestUtils {
                 status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
                 begrunnelse = null,
             ),
-            oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
-                status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
-                begrunnelse = null,
-            ),
             formue = Behandlingsinformasjon.Formue(
                 status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
                 verdier = Behandlingsinformasjon.Formue.Verdier(
@@ -129,9 +126,10 @@ object BehandlingTestUtils {
             bosituasjon = listOf(bosituasjon),
         ),
         vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-            Vilkår.Uførhet.Vurdert.create(
+            uføre = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
             ),
+            utenlandsopphold = utenlandsopphold,
         ),
     )
 }

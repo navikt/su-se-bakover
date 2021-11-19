@@ -85,7 +85,7 @@ class SøknadsbehandlingServiceLeggTilFradragsgrunnlagTest {
             argThat { it shouldBe behandling.id },
             argThat { it shouldBe request.fradragsgrunnlag },
         )
-        verify(søknadsbehandlingRepoMock).defaultSessionContext()
+        verify(søknadsbehandlingRepoMock).defaultTransactionContext()
         verify(søknadsbehandlingRepoMock).lagre(
             argThat {
                 it shouldBe behandling.copy(grunnlagsdata = behandling.grunnlagsdata.copy(fradragsgrunnlag = fradragsgrunnlag))

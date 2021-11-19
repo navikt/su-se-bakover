@@ -4,9 +4,10 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -39,6 +40,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
@@ -62,6 +64,7 @@ import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotServic
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
@@ -663,11 +666,65 @@ internal class SøknadsbehandlingServiceImpl(
         return oppdatertBehandling.right()
     }
 
-    override fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, sessionContext: SessionContext) {
-        søknadsbehandlingRepo.lagre(lukketSøknadbehandling, sessionContext)
+    override fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, tx: TransactionContext) {
+        søknadsbehandlingRepo.lagre(lukketSøknadbehandling, tx)
     }
 
-    override fun lagre(avslag: AvslagManglendeDokumentasjon, sessionContext: SessionContext) {
-        return søknadsbehandlingRepo.lagreAvslagManglendeDokumentasjon(avslag, sessionContext)
+    override fun lagre(avslag: AvslagManglendeDokumentasjon, tx: TransactionContext) {
+        return søknadsbehandlingRepo.lagreAvslagManglendeDokumentasjon(avslag, tx)
+    }
+
+    override fun leggTilUtenlandsopphold(request: LeggTilUtenlandsoppholdRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold, Søknadsbehandling.Vilkårsvurdert> {
+        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
+            ?: return SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.FantIkkeBehandling.left()
+
+        val vilkår = UtenlandsoppholdVilkår.Vurdert.tryCreate(
+            vurderingsperioder = nonEmptyListOf(
+                request.tilVurderingsperiode(clock = clock).getOrHandle {
+                    when (it) {
+                        LeggTilUtenlandsoppholdRequest.UgyldigUtenlandsopphold.PeriodeForGrunnlagOgVurderingErForskjellig -> {
+                            throw IllegalStateException("$it Skal ikke kunne forekomme for søknadsbehandling")
+                        }
+                    }
+                },
+            ),
+        ).getOrHandle {
+            when (it) {
+                UtenlandsoppholdVilkår.Vurdert.UgyldigUtenlandsoppholdVilkår.OverlappendeVurderingsperioder -> {
+                    throw IllegalStateException("$it Skal ikke kunne forekomme for søknadsbehandling")
+                }
+            }
+        }
+
+        val vilkårsvurdert = søknadsbehandling.leggTilUtenlandsopphold(vilkår, clock)
+            .getOrHandle {
+                return it.tilService().left()
+            }
+
+        søknadsbehandlingRepo.lagre(vilkårsvurdert)
+        return vilkårsvurdert.right()
+    }
+
+    private fun Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.tilService(): SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold {
+        return when (this) {
+            is Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen -> {
+                SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(
+                    fra = this.fra,
+                    til = this.til,
+                )
+            }
+            Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode -> {
+                SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode
+            }
+            Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat -> {
+                SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat
+            }
+            Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.MåInneholdeKunEnVurderingsperiode -> {
+                SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.MåInneholdeKunEnVurderingsperiode
+            }
+            Søknadsbehandling.KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden -> {
+                SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden
+            }
+        }
     }
 }

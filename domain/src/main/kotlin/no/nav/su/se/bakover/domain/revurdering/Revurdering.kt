@@ -28,8 +28,10 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.inneholderAlle
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 import java.time.LocalDate
@@ -68,6 +70,7 @@ sealed class AbstraktRevurdering : Behandling {
     override val sakId by lazy { tilRevurdering.behandling.sakId }
     override val saksnummer by lazy { tilRevurdering.behandling.saksnummer }
     override val fnr by lazy { tilRevurdering.behandling.fnr }
+    abstract override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
 }
 
 sealed class Revurdering :
@@ -84,7 +87,6 @@ sealed class Revurdering :
     abstract val informasjonSomRevurderes: InformasjonSomRevurderes
 
     abstract val forhåndsvarsel: Forhåndsvarsel?
-
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>)
 
     fun avslutt(
@@ -117,6 +119,9 @@ sealed class Revurdering :
     open fun oppdaterUføreOgMarkerSomVurdert(uføre: Vilkår.Uførhet.Vurdert): Either<UgyldigTilstand, OpprettetRevurdering> =
         UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
 
+    open fun oppdaterUtenlandsoppholdOgMarkerSomVurdert(utenlandsopphold: UtenlandsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilUtenlandsopphold, OpprettetRevurdering> =
+        KunneIkkeLeggeTilUtenlandsopphold.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
+
     open fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert): Either<UgyldigTilstand, OpprettetRevurdering> =
         UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
 
@@ -130,14 +135,50 @@ sealed class Revurdering :
         uføre: Vilkår.Uførhet.Vurdert,
     ): Either<UgyldigTilstand, OpprettetRevurdering> {
         return oppdaterVilkårsvurderinger(
-            vilkårsvurderinger = vilkårsvurderinger.leggTil(uføre) as Vilkårsvurderinger.Revurdering,
+            vilkårsvurderinger = vilkårsvurderinger.leggTil(uføre),
             informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Uførhet),
         ).right()
     }
 
+    sealed class KunneIkkeLeggeTilUtenlandsopphold() {
+        data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) : KunneIkkeLeggeTilUtenlandsopphold()
+        object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUtenlandsopphold()
+        object AlleVurderingsperioderMåHaSammeResultat : KunneIkkeLeggeTilUtenlandsopphold()
+        object MåVurdereHelePerioden : KunneIkkeLeggeTilUtenlandsopphold()
+    }
+
+    protected fun oppdaterUtenlandsoppholdOgMarkerSomVurdertInternal(
+        vilkår: UtenlandsoppholdVilkår.Vurdert,
+    ): Either<KunneIkkeLeggeTilUtenlandsopphold, OpprettetRevurdering> {
+        return valider(vilkår).map {
+            oppdaterVilkårsvurderinger(
+                vilkårsvurderinger = vilkårsvurderinger.leggTil(vilkår),
+                informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Utenlandsopphold),
+            )
+        }
+    }
+
+    protected open fun valider(utenlandsopphold: UtenlandsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilUtenlandsopphold, Unit> {
+        return when {
+            !periode.inneholderAlle(utenlandsopphold.vurderingsperioder) -> {
+                KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
+            }
+            !utenlandsopphold.vurderingsperioder.all {
+                it.resultat == utenlandsopphold.vurderingsperioder.first().resultat
+            } -> {
+                KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat.left()
+            }
+            !periode.fullstendigOverlapp(utenlandsopphold.vurderingsperioder.map { it.periode }) ->
+                {
+                    KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden.left()
+                }
+            else -> Unit.right()
+        }
+    }
+
     protected fun oppdaterFormueOgMarkerSomVurdertInternal(formue: Vilkår.Formue.Vurdert) =
         oppdaterVilkårsvurderinger(
-            vilkårsvurderinger = vilkårsvurderinger.leggTil(formue) as Vilkårsvurderinger.Revurdering,
+            vilkårsvurderinger = vilkårsvurderinger.leggTil(formue),
             informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Formue),
         ).right()
 
@@ -204,7 +245,7 @@ sealed class Revurdering :
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = forhåndsvarsel,
             grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger as Vilkårsvurderinger.Revurdering,
+            vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer,
         )
@@ -236,7 +277,7 @@ sealed class Revurdering :
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = forhåndsvarsel,
             grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger as Vilkårsvurderinger.Revurdering,
+            vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer,
         )
@@ -253,7 +294,7 @@ sealed class Revurdering :
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = forhåndsvarsel,
             grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger as Vilkårsvurderinger.Revurdering,
+            vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
             attesteringer = attesteringer,
         )
@@ -271,7 +312,7 @@ sealed class Revurdering :
                 revurderingsårsak = revurderingsårsak,
                 forhåndsvarsel = forhåndsvarsel,
                 grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = vilkårsvurderinger as Vilkårsvurderinger.Revurdering,
+                vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = attesteringer,
             )
@@ -370,6 +411,10 @@ data class OpprettetRevurdering(
         uføre: Vilkår.Uførhet.Vurdert,
     ) = oppdaterUføreOgMarkerSomVurdertInternal(uføre)
 
+    override fun oppdaterUtenlandsoppholdOgMarkerSomVurdert(
+        utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
+    ) = oppdaterUtenlandsoppholdOgMarkerSomVurdertInternal(utenlandsopphold)
+
     override fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert) =
         oppdaterFormueOgMarkerSomVurdertInternal(formue)
 
@@ -405,6 +450,10 @@ sealed class BeregnetRevurdering : Revurdering() {
     override fun oppdaterUføreOgMarkerSomVurdert(
         uføre: Vilkår.Uførhet.Vurdert,
     ) = oppdaterUføreOgMarkerSomVurdertInternal(uføre)
+
+    override fun oppdaterUtenlandsoppholdOgMarkerSomVurdert(
+        utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
+    ) = oppdaterUtenlandsoppholdOgMarkerSomVurdertInternal(utenlandsopphold)
 
     override fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert) =
         oppdaterFormueOgMarkerSomVurdertInternal(formue)
@@ -583,7 +632,7 @@ object KanIkkeSendeEnOpphørtGReguleringTilAttestering
 sealed class SimulertRevurdering : Revurdering() {
     abstract val beregning: Beregning
     abstract val simulering: Simulering
-    abstract override var forhåndsvarsel: Forhåndsvarsel?
+    abstract override var forhåndsvarsel: Forhåndsvarsel? // TODO skal denne være en var? Oppdaget pga tester som gikk i beina på hverandre i RevurderingServiceImplTest#fortsettEtterForhåndsvarsling
     abstract override val grunnlagsdata: Grunnlagsdata
 
     abstract override fun accept(visitor: RevurderingVisitor)
@@ -592,6 +641,10 @@ sealed class SimulertRevurdering : Revurdering() {
     override fun oppdaterUføreOgMarkerSomVurdert(
         uføre: Vilkår.Uførhet.Vurdert,
     ) = oppdaterUføreOgMarkerSomVurdertInternal(uføre)
+
+    override fun oppdaterUtenlandsoppholdOgMarkerSomVurdert(
+        utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
+    ) = oppdaterUtenlandsoppholdOgMarkerSomVurdertInternal(utenlandsopphold)
 
     override fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert) =
         oppdaterFormueOgMarkerSomVurdertInternal(formue)
@@ -1111,6 +1164,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
     abstract val beregning: Beregning
     abstract override val attesteringer: Attesteringshistorikk
     abstract override val grunnlagsdata: Grunnlagsdata
+    abstract override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering
     val attestering: Attestering.Underkjent
         get() = attesteringer.hentSisteAttestering() as Attestering.Underkjent
 
@@ -1119,6 +1173,10 @@ sealed class UnderkjentRevurdering : Revurdering() {
     override fun oppdaterUføreOgMarkerSomVurdert(
         uføre: Vilkår.Uførhet.Vurdert,
     ) = oppdaterUføreOgMarkerSomVurdertInternal(uføre)
+
+    override fun oppdaterUtenlandsoppholdOgMarkerSomVurdert(
+        utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
+    ) = oppdaterUtenlandsoppholdOgMarkerSomVurdertInternal(utenlandsopphold)
 
     override fun oppdaterFormueOgMarkerSomVurdert(formue: Vilkår.Formue.Vurdert) =
         oppdaterFormueOgMarkerSomVurdertInternal(formue)
@@ -1345,6 +1403,6 @@ enum class Revurderingsteg(val vilkår: String) {
     Bosituasjon("Bosituasjon"),
 
     // InnlagtPåInstitusjon("InnlagtPåInstitusjon"),
-    // UtenlandsoppholdOver90Dager("UtenlandsoppholdOver90Dager"),
+    Utenlandsopphold("Utenlandsopphold"),
     Inntekt("Inntekt"),
 }

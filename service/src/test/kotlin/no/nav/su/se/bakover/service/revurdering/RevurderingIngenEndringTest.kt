@@ -56,6 +56,7 @@ import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -97,7 +98,7 @@ class RevurderingIngenEndringTest {
                 ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-                Vilkår.Uførhet.Vurdert.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -109,7 +110,8 @@ class RevurderingIngenEndringTest {
                         ),
                     ),
                 ),
-                formueVilkår(periodeNesteMånedOgTreMånederFram),
+                formue = formueVilkår(periodeNesteMånedOgTreMånederFram),
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periodeNesteMånedOgTreMånederFram),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(

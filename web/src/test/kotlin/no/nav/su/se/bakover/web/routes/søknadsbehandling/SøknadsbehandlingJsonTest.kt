@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.expectedBosituasjonJson
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.expectedVurderingUføreJson
+import no.nav.su.se.bakover.web.routes.grunnlag.UtenlandsoppholdVilkårJsonTest.Companion.expectedUtenlandsoppholdVurdert
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJsonTest.Companion.søknadJsonString
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.behandlingId
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.innvilgetSøknadsbehandling
@@ -58,10 +59,6 @@ internal class SøknadsbehandlingJsonTest {
                 },
                 "institusjonsopphold": {
                     "status": "VilkårOppfylt",
-                    "begrunnelse": null
-                },
-                "oppholdIUtlandet": {
-                    "status": "SkalHoldeSegINorge",
                     "begrunnelse": null
                 },
                 "formue": {
@@ -127,9 +124,9 @@ internal class SøknadsbehandlingJsonTest {
                       "beløp": 50676
                   }
                 ],
-                "vilkår": "Formue",
                 "vurderinger": []
-              }
+              },
+              "utenlandsopphold": $expectedUtenlandsoppholdVurdert
           },
           "fritekstTilBrev": "",
           "erLukket": false
@@ -177,7 +174,6 @@ internal class SøknadsbehandlingJsonTest {
             "lovligOpphold": null,
             "fastOppholdINorge": null,
             "institusjonsopphold": null,
-            "oppholdIUtlandet": null,
             "formue": null,
             "personligOppmøte": null
           },
@@ -207,9 +203,9 @@ internal class SøknadsbehandlingJsonTest {
                       "beløp": 50676
                   }
                 ],
-                "vilkår": "Formue",
                 "vurderinger": []
-            }
+            },
+            "utenlandsopphold": null
           },
           "fritekstTilBrev": "",
           "erLukket": false

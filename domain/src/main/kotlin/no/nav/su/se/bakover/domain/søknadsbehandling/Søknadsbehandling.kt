@@ -28,8 +28,10 @@ import no.nav.su.se.bakover.domain.grunnlag.fjernInntekterForEPSDersomFradragIkk
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
+import no.nav.su.se.bakover.domain.vilkår.inneholderAlle
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -71,6 +73,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         object PeriodeMangler : KunneIkkeLeggeTilFradragsgrunnlag()
         data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
             KunneIkkeLeggeTilFradragsgrunnlag()
+    }
+
+    sealed class KunneIkkeLeggeTilUtenlandsopphold {
+        data class IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Søknadsbehandling>) : KunneIkkeLeggeTilUtenlandsopphold()
+        object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUtenlandsopphold()
+        object MåInneholdeKunEnVurderingsperiode : KunneIkkeLeggeTilUtenlandsopphold()
+        object AlleVurderingsperioderMåHaSammeResultat : KunneIkkeLeggeTilUtenlandsopphold()
+        object MåVurdereHelePerioden : KunneIkkeLeggeTilUtenlandsopphold()
     }
 
     internal fun validerFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Unit> {
@@ -130,6 +140,34 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     sealed class KunneIkkeOppdatereBosituasjon {
         data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Vilkårsvurdert>) :
             KunneIkkeOppdatereBosituasjon()
+    }
+
+    open fun leggTilUtenlandsopphold(
+        utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
+        clock: Clock,
+    ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
+        return KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen(fra = this::class, til = Vilkårsvurdert::class).left()
+    }
+
+    protected open fun valider(utenlandsopphold: UtenlandsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilUtenlandsopphold, Unit> {
+        return when {
+            utenlandsopphold.vurderingsperioder.size != 1 -> {
+                KunneIkkeLeggeTilUtenlandsopphold.MåInneholdeKunEnVurderingsperiode.left()
+            }
+            !periode.inneholderAlle(utenlandsopphold.vurderingsperioder) -> {
+                KunneIkkeLeggeTilUtenlandsopphold.VurderingsperiodeUtenforBehandlingsperiode.left()
+            }
+            !utenlandsopphold.vurderingsperioder.all {
+                it.resultat == utenlandsopphold.vurderingsperioder.first().resultat
+            } -> {
+                KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat.left()
+            }
+            !periode.fullstendigOverlapp(utenlandsopphold.vurderingsperioder.map { it.periode }) ->
+                {
+                    KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden.left()
+                }
+            else -> Unit.right()
+        }
     }
 
     sealed class Vilkårsvurdert : Søknadsbehandling() {
@@ -302,6 +340,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     attesteringer,
                 ).right()
             }
+
+            override fun leggTilUtenlandsopphold(
+                utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
+                return valider(utenlandsopphold)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
+            }
+
+            private fun vilkårsvurder(
+                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+                clock: Clock,
+            ): Vilkårsvurdert {
+                return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(
+                    behandlingsinformasjon,
+                    grunnlagsdata,
+                    clock,
+                )
+            }
         }
 
         data class Avslag(
@@ -354,6 +411,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 is Vilkårsvurderingsresultat.Innvilget -> emptyList()
                 is Vilkårsvurderingsresultat.Uavklart -> emptyList()
             }
+
+            override fun leggTilUtenlandsopphold(
+                utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
+                return valider(utenlandsopphold)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
+            }
+
+            private fun vilkårsvurder(
+                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+                clock: Clock,
+            ): Vilkårsvurdert {
+                return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(
+                    behandlingsinformasjon,
+                    grunnlagsdata,
+                    clock,
+                )
+            }
         }
 
         data class Uavklart(
@@ -374,16 +450,35 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
             override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
             override val periode: Periode
-                get() = stønadsperiode?.periode ?: throw StønadsperiodeIkkeDefinertException("Periode er ikke satt")
+                get() = stønadsperiode?.periode ?: throw StønadsperiodeIkkeDefinertException(id)
 
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
             }
-        }
 
-        data class StønadsperiodeIkkeDefinertException(
-            val msg: String = "Sønadsperiode er ikke definert",
-        ) : RuntimeException(msg)
+            override fun leggTilUtenlandsopphold(
+                utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
+                return valider(utenlandsopphold)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
+            }
+
+            private fun vilkårsvurder(
+                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+                clock: Clock,
+            ): Vilkårsvurdert {
+                return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(
+                    behandlingsinformasjon,
+                    grunnlagsdata,
+                    clock,
+                )
+            }
+
+            data class StønadsperiodeIkkeDefinertException(
+                val id: UUID,
+            ) : RuntimeException("Sønadsperiode er ikke definert for søknadsbehandling:$id")
+        }
     }
 
     sealed class Beregnet : Søknadsbehandling() {
@@ -552,6 +647,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     attesteringer,
                 ).right()
             }
+
+            override fun leggTilUtenlandsopphold(
+                utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
+                return valider(utenlandsopphold)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
+            }
+
+            private fun vilkårsvurder(
+                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+                clock: Clock,
+            ): Vilkårsvurdert {
+                return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(
+                    behandlingsinformasjon,
+                    grunnlagsdata,
+                    clock,
+                )
+            }
         }
 
         data class Avslag(
@@ -638,6 +752,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 is Vilkårsvurderingsresultat.Innvilget -> emptyList()
                 is Vilkårsvurderingsresultat.Uavklart -> emptyList()
             } + avslagsgrunnForBeregning
+
+            override fun leggTilUtenlandsopphold(
+                utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
+                return valider(utenlandsopphold)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
+            }
+
+            private fun vilkårsvurder(
+                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+                clock: Clock,
+            ): Vilkårsvurdert {
+                return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(
+                    behandlingsinformasjon,
+                    grunnlagsdata,
+                    clock,
+                )
+            }
         }
     }
 
@@ -771,6 +904,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 vilkårsvurderinger,
                 attesteringer,
             )
+
+        override fun leggTilUtenlandsopphold(
+            utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
+            clock: Clock,
+        ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
+            return valider(utenlandsopphold)
+                .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
+        }
+
+        private fun vilkårsvurder(
+            vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+            clock: Clock,
+        ): Vilkårsvurdert {
+            return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(
+                behandlingsinformasjon,
+                grunnlagsdata,
+                clock,
+            )
+        }
     }
 
     sealed class TilAttestering : Søknadsbehandling() {
@@ -1167,6 +1319,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     vilkårsvurderinger,
                     attesteringer,
                 )
+
+            override fun leggTilUtenlandsopphold(
+                utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
+                return valider(utenlandsopphold)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
+            }
+
+            private fun vilkårsvurder(
+                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+                clock: Clock,
+            ): Vilkårsvurdert {
+                return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(
+                    behandlingsinformasjon,
+                    grunnlagsdata,
+                    clock,
+                )
+            }
         }
 
         sealed class Avslag : Underkjent(), ErAvslag {
@@ -1274,6 +1445,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     is Vilkårsvurderingsresultat.Innvilget -> emptyList()
                     is Vilkårsvurderingsresultat.Uavklart -> emptyList()
                 } + avslagsgrunnForBeregning
+
+                override fun leggTilUtenlandsopphold(
+                    utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
+                    clock: Clock,
+                ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
+                    return valider(utenlandsopphold)
+                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
+                }
+
+                private fun vilkårsvurder(
+                    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+                    clock: Clock,
+                ): Vilkårsvurdert {
+                    return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(
+                        behandlingsinformasjon,
+                        grunnlagsdata,
+                        clock,
+                    )
+                }
             }
 
             data class UtenBeregning(
@@ -1326,6 +1516,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     is Vilkårsvurderingsresultat.Avslag -> vilkår.avslagsgrunner
                     is Vilkårsvurderingsresultat.Innvilget -> emptyList()
                     is Vilkårsvurderingsresultat.Uavklart -> emptyList()
+                }
+
+                override fun leggTilUtenlandsopphold(
+                    utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
+                    clock: Clock,
+                ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
+                    return valider(utenlandsopphold)
+                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(utenlandsopphold), clock) }
+                }
+
+                private fun vilkårsvurder(
+                    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
+                    clock: Clock,
+                ): Vilkårsvurdert {
+                    return copy(vilkårsvurderinger = vilkårsvurderinger).tilVilkårsvurdert(
+                        behandlingsinformasjon,
+                        grunnlagsdata,
+                        clock,
+                    )
                 }
             }
         }

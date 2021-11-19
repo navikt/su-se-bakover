@@ -9,13 +9,13 @@ import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import java.util.UUID
 
-data class OppholdIUtlandetGrunnlag(
+data class Utenlandsoppholdgrunnlag(
     override val id: UUID = UUID.randomUUID(),
     override val opprettet: Tidspunkt,
     override val periode: Periode,
-) : Grunnlag(), KanPlasseresPåTidslinje<OppholdIUtlandetGrunnlag> {
+) : Grunnlag(), KanPlasseresPåTidslinje<Utenlandsoppholdgrunnlag> {
 
-    fun oppdaterPeriode(periode: Periode): OppholdIUtlandetGrunnlag {
+    fun oppdaterPeriode(periode: Periode): Utenlandsoppholdgrunnlag {
         return tryCreate(
             id = id,
             opprettet = opprettet,
@@ -23,7 +23,7 @@ data class OppholdIUtlandetGrunnlag(
         ).getOrHandle { throw IllegalArgumentException(it.toString()) }
     }
 
-    override fun copy(args: CopyArgs.Tidslinje): OppholdIUtlandetGrunnlag = when (args) {
+    override fun copy(args: CopyArgs.Tidslinje): Utenlandsoppholdgrunnlag = when (args) {
         CopyArgs.Tidslinje.Full -> {
             copy(id = UUID.randomUUID())
         }
@@ -33,7 +33,7 @@ data class OppholdIUtlandetGrunnlag(
     }
 
     override fun erLik(other: Grunnlag): Boolean {
-        return other is OppholdIUtlandetGrunnlag
+        return other is Utenlandsoppholdgrunnlag
     }
 
     companion object {
@@ -41,8 +41,8 @@ data class OppholdIUtlandetGrunnlag(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
             periode: Periode,
-        ): Either<KunneIkkeLageOppholdIUtlandetGrunnlag, OppholdIUtlandetGrunnlag> {
-            return OppholdIUtlandetGrunnlag(
+        ): Either<KunneIkkeLageUtenlandsoppholdgrunnlag, Utenlandsoppholdgrunnlag> {
+            return Utenlandsoppholdgrunnlag(
                 id = id,
                 opprettet = opprettet,
                 periode = periode,
@@ -51,4 +51,4 @@ data class OppholdIUtlandetGrunnlag(
     }
 }
 
-sealed class KunneIkkeLageOppholdIUtlandetGrunnlag
+sealed class KunneIkkeLageUtenlandsoppholdgrunnlag

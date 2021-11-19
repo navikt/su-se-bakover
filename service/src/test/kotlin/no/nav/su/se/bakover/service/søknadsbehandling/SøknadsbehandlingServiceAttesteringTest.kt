@@ -149,7 +149,7 @@ class SøknadsbehandlingServiceAttesteringTest {
                     tilordnetRessurs = null,
                 ),
             )
-            verify(søknadsbehandlingRepoMock).defaultSessionContext()
+            verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(eq(expected), anyOrNull())
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
             verify(eventObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(expected) })
@@ -307,7 +307,7 @@ class SøknadsbehandlingServiceAttesteringTest {
                     tilordnetRessurs = null,
                 ),
             )
-            verify(søknadsbehandlingRepoMock).defaultSessionContext()
+            verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(eq(expected), anyOrNull())
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
             verify(eventObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(expected) })
