@@ -97,4 +97,49 @@ internal fun Route.klageRoutes(
             }
         }
     }
+
+    authorize(Brukerrolle.Saksbehandler) {
+        post("$klagePath/{id}/vurderinger") {
+            data class Omgjør(val årsak: String, val utfall: String)
+            data class Oppretthold(val hjemmel: String)
+
+            data class Body(
+                val fritekstTilBrev: String?,
+                val vurdering: String?,
+                val omgjør: Omgjør?,
+                val oppretthold: Oppretthold?,
+            )
+
+            call.withStringParam("id") { klageId ->
+                call.withBody<Body> {
+                    call.svar(Resultat.json(HttpStatusCode.OK, "{}"))
+                }
+            }
+        }
+    }
+
+    authorize(Brukerrolle.Saksbehandler) {
+        post("$klagePath/{id}/brevutkast") {
+            call.svar(Resultat.json(HttpStatusCode.OK, "{}"))
+        }
+    }
+
+    authorize(Brukerrolle.Saksbehandler) {
+        post("$klagePath/{id}/tilAttestering") {
+            call.svar(Resultat.json(HttpStatusCode.OK, "{}"))
+        }
+    }
+
+    authorize(Brukerrolle.Attestant) {
+        data class Body(val årsak: String, val begrunnelse: String)
+        post("$klagePath/{id}/underkjenn") {
+            call.svar(Resultat.json(HttpStatusCode.OK, "{}"))
+        }
+    }
+
+    authorize(Brukerrolle.Attestant) {
+        post("$klagePath/{id}/iverksett") {
+            call.svar(Resultat.json(HttpStatusCode.OK, "{}"))
+        }
+    }
 }
