@@ -38,7 +38,9 @@ internal class UføreVilkårsvurderingPostgresRepo(
     internal fun lagre(behandlingId: UUID, vilkår: Vilkår.Uførhet, tx: TransactionalSession) {
         slettForBehandlingId(behandlingId, tx)
         when (vilkår) {
-            Vilkår.Uførhet.IkkeVurdert -> Unit
+            Vilkår.Uførhet.IkkeVurdert -> {
+                uføregrunnlagRepo.lagre(behandlingId, emptyList(), tx)
+            }
             is Vilkår.Uførhet.Vurdert -> {
                 uføregrunnlagRepo.lagre(behandlingId, vilkår.grunnlag, tx)
                 vilkår.vurderingsperioder.forEach {
