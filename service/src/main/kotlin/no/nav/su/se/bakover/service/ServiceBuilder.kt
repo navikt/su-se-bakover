@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagServiceImpl
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingServiceImpl
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleServiceImpl
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
@@ -188,6 +189,15 @@ object ServiceBuilder {
                 sessionFactory = databaseRepos.sessionFactory,
                 sakService = sakService,
             ),
+            kontrollsamtale = KontrollsamtaleServiceImpl(
+                sakService = sakService,
+                personService = personService,
+                brevService = brevService,
+                oppgaveService = oppgaveService,
+                microsoftGraphApiOppslag = clients.microsoftGraphApiClient,
+                sessionFactory = databaseRepos.sessionFactory,
+                clock = clock,
+            )
         )
     }
 }

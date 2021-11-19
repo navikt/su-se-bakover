@@ -63,6 +63,7 @@ import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.dokument.dokumentRoutes
 import no.nav.su.se.bakover.web.routes.drift.driftRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
+import no.nav.su.se.bakover.web.routes.kontrollsamtale.kontrollsamtaleRoutes
 import no.nav.su.se.bakover.web.routes.me.meRoutes
 import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
@@ -255,6 +256,7 @@ fun Application.susebakover(
                     revurderingRoutes(accessProtectedServices.revurdering, accessProtectedServices.vedtakService, clock)
                     dokumentRoutes(accessProtectedServices.brev)
                     nøkkeltallRoutes(accessProtectedServices.nøkkeltallService)
+                    kontrollsamtaleRoutes(accessProtectedServices.kontrollsamtale)
                 }
             }
         }

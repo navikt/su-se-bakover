@@ -60,6 +60,8 @@ import no.nav.su.se.bakover.service.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
+import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeKalleInnTilKontrollsamtale
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -729,6 +731,15 @@ open class AccessCheckProxy(
                     return services.avslåSøknadManglendeDokumentasjonService.avslå(request)
                 }
             },
+            kontrollsamtale = object : KontrollsamtaleService {
+                override fun kallInn(
+                    sakId: UUID,
+                    saksbehandler: NavIdentBruker
+                ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.kontrollsamtale.kallInn(sakId, saksbehandler)
+                }
+            }
         )
     }
 

@@ -12,7 +12,7 @@ import java.util.Base64
 
 sealed class Journalpost {
     val tema: String = Tema.SUPPLERENDE_STØNAD.value
-    val behandlingstema: String = Behandlingstema.SU_UFØRE_FLYKNING.value
+    val behandlingstema: String = Behandlingstema.SU_UFØRE_FLYKTNING.value
     abstract val journalfoerendeEnhet: String
     abstract val tittel: String
     abstract val journalpostType: JournalPostType
