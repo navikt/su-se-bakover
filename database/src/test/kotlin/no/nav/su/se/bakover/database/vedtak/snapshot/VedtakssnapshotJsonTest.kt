@@ -73,10 +73,6 @@ internal class VedtakssnapshotJsonTest {
                         "status":"VilkårIkkeOppfylt",
                         "begrunnelse":null
                      },
-                     "oppholdIUtlandet":{
-                        "status":"SkalVæreMerEnn90DagerIUtlandet",
-                        "begrunnelse":null
-                     },
                      "formue":{
                         "status":"VilkårIkkeOppfylt",
                         "verdier":{
@@ -363,10 +359,6 @@ internal class VedtakssnapshotJsonTest {
                         "status":"VilkårOppfylt",
                         "begrunnelse":null
                      },
-                     "oppholdIUtlandet":{
-                        "status":"SkalHoldeSegINorge",
-                        "begrunnelse":null
-                     },
                      "formue":{
                         "status":"VilkårOppfylt",
                         "verdier":{
@@ -646,7 +638,6 @@ internal class VedtakssnapshotJsonTest {
         """.trimIndent()
 
         val actualJson = objectMapper.writeValueAsString(innvilgelse.toJson())
-        print(actualJson)
         JSONAssert.assertEquals(expectedJson, actualJson, true)
     }
 }

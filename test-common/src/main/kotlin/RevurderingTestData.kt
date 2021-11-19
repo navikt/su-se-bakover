@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.test
 
 import arrow.core.Either
 import arrow.core.getOrHandle
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -132,7 +133,18 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
     grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
         revurderingsperiode,
         clock,
-    ),
+    ).let {
+        it.copy(
+            grunnlagsdata = it.grunnlagsdata.copy(
+                fradragsgrunnlag = nonEmptyListOf(
+                    fradragsgrunnlagArbeidsinntekt(
+                        periode = revurderingsperiode,
+                        arbeidsinntekt = 7500.0
+                    )
+                )
+            )
+        )
+    },
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
 ): Pair<Sak, BeregnetRevurdering.Innvilget> {
 
@@ -254,7 +266,7 @@ fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         clock,
     ).let {
         it.copy(
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
                 periode = revurderingsperiode,
                 bosituasjon = it.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
             ),
@@ -347,7 +359,7 @@ fun simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         clock,
     ).let {
         it.copy(
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
                 periode = revurderingsperiode,
                 bosituasjon = it.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
             ),
@@ -399,7 +411,7 @@ fun tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
         clock,
     ).let {
         it.copy(
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
                 periode = revurderingsperiode,
                 bosituasjon = it.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
             ),
@@ -448,7 +460,7 @@ fun iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         clock,
     ).let {
         it.copy(
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
                 periode = revurderingsperiode,
                 bosituasjon = it.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
             ),
@@ -561,7 +573,7 @@ fun tilAttesteringRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
     }
 }
 
-fun underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlignsVedtak(
+fun underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = periode2021,

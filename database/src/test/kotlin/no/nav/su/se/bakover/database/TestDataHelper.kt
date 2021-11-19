@@ -16,6 +16,8 @@ import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
@@ -82,6 +84,7 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
+import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import java.time.Clock
 import java.util.UUID
 import javax.sql.DataSource
@@ -202,6 +205,7 @@ internal class TestDataHelper(
         postgresSessionFactory = sessionFactory,
     )
     internal val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
+    internal val utenlandsoppholdgrunnlagPostgresRepo = UtenlandsoppholdgrunnlagPostgresRepo()
     internal val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(
         dataSource = dataSource,
         dbMetrics = dbMetrics,
@@ -219,6 +223,10 @@ internal class TestDataHelper(
         uføregrunnlagRepo = uføregrunnlagPostgresRepo,
         dbMetrics = dbMetrics,
     )
+    internal val utenlandsoppholdVilkårsvurderingRepo = UtenlandsoppholdVilkårsvurderingPostgresRepo(
+        utenlandsoppholdgrunnlagRepo = utenlandsoppholdgrunnlagPostgresRepo,
+        dbMetrics = dbMetrics,
+    )
     internal val formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo()
     internal val formueVilkårsvurderingPostgresRepo = FormueVilkårsvurderingPostgresRepo(
         dataSource = dataSource,
@@ -232,12 +240,14 @@ internal class TestDataHelper(
         uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
         dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
+        utenlandsoppholdVilkårsvurderingRepo = utenlandsoppholdVilkårsvurderingRepo,
     )
     internal val revurderingRepo = RevurderingPostgresRepo(
         dataSource = dataSource,
         fradragsgrunnlagPostgresRepo = fradragsgrunnlagPostgresRepo,
         bosituasjonsgrunnlagPostgresRepo = bosituasjongrunnlagPostgresRepo,
         uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
+        utlandsoppholdVilkårsvurderingRepo = utenlandsoppholdVilkårsvurderingRepo,
         formueVilkårsvurderingRepo = formueVilkårsvurderingPostgresRepo,
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         dbMetrics = dbMetrics,
@@ -579,6 +589,7 @@ internal class TestDataHelper(
                 ),
             ),
         ),
+        utenlandsopphold = utlandsoppholdInnvilget(periode = stønadsperiode.periode)
         // søknadsbehandling benytter enn så lenge formue fra behandlingsinformajson
     ).oppdater(
         stønadsperiode = stønadsperiode,
@@ -588,7 +599,6 @@ internal class TestDataHelper(
             bosituasjon = listOf(bosituasjongrunnlagEnslig(stønadsperiode.periode)),
         ).getOrFail(),
         clock = fixedClock,
-
     )
 
     private fun innvilgetGrunnlagsdataSøknadsbehandling(epsFnr: Fnr? = null) = Grunnlagsdata.create(

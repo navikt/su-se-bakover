@@ -39,8 +39,11 @@ import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
+import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.dbMetricsStub
@@ -283,6 +286,14 @@ internal class BeregnRoutesKtTest {
                 oppfylt = behandlingsinformasjon.uførhet!!.status,
                 begrunnelse = behandlingsinformasjon.uførhet!!.begrunnelse,
             ),
+        )
+        services.søknadsbehandling.leggTilUtenlandsopphold(
+            request = LeggTilUtenlandsoppholdRequest(
+                behandlingId = objects.søknadsbehandling.id,
+                periode = periode2021,
+                status = UtenlandsoppholdStatus.SkalHoldeSegINorge,
+                begrunnelse = "Veldig bra"
+            )
         )
         services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
             LeggTilBosituasjonEpsRequest(

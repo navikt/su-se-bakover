@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.web.withBehandlingId
 import no.nav.su.se.bakover.web.withBody
 import java.util.UUID
 
-internal fun Route.leggTilGrunnlagSøknadsbehandlingRoutes(
+internal fun Route.leggTilUføregrunnlagRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
 ) {
     data class UføregrunnlagBody(
