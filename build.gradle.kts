@@ -38,7 +38,7 @@ allprojects {
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
         implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
         implementation("ch.qos.logback:logback-classic:1.2.7")
-        implementation("net.logstash.logback:logstash-logback-encoder:7.0")
+        implementation("net.logstash.logback:logstash-logback-encoder:7.0.1")
         implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
         implementation("org.apache.kafka:kafka-clients:3.0.0")
         implementation("com.networknt:json-schema-validator:1.0.64")
