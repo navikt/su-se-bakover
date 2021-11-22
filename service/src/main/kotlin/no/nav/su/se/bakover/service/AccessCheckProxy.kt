@@ -67,6 +67,7 @@ import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
+import no.nav.su.se.bakover.service.klage.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
@@ -758,7 +759,16 @@ open class AccessCheckProxy(
                     assertHarTilgangTilKlage(request.klageId)
                     return services.klageService.vurder(request)
                 }
-            },
+
+                override fun brevutkast(
+                    sakId: UUID,
+                    klageId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler
+                ): Either<KunneIkkeLageBrevutkast, ByteArray> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.klageService.brevutkast(sakId, klageId, saksbehandler)
+                }
+            }
         )
     }
 

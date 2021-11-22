@@ -2,23 +2,34 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
+import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.person.PersonService
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
+import java.time.LocalDate
+import java.util.UUID
 
 class KlageServiceImpl(
     private val sakRepo: SakRepo,
     private val klageRepo: KlageRepo,
     private val vedtakRepo: VedtakRepo,
+    private val brevService: BrevService,
+    private val personService: PersonService,
+    private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     val clock: Clock,
 ) : KlageService {
 
@@ -62,5 +73,24 @@ class KlageServiceImpl(
                 klageRepo.lagre(vurdertKlage)
             }
         }
+    }
+
+    override fun brevutkast(sakId: UUID, klageId: UUID, saksbehandler: NavIdentBruker.Saksbehandler): Either<KunneIkkeLageBrevutkast, ByteArray> {
+        val sak = sakRepo.hentSak(sakId) ?: return KunneIkkeLageBrevutkast.FantIkkeSak.left()
+        // val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkePerson.left()
+
+        return personService.hentPerson(sak.fnr)
+            .fold(
+                ifLeft = { KunneIkkeLageBrevutkast.FantIkkePerson.left() },
+                ifRight = { person ->
+                    val brevRequest = LagBrevRequest.Klage.Oppretthold(
+                        person = person,
+                        dagensDato = LocalDate.now(clock),
+                        saksbehandlerNavn = microsoftGraphApiClient.hentNavnForNavIdent(saksbehandler).getOrElse { return KunneIkkeLageBrevutkast.FantIkkeSaksbehandler.left() },
+                    )
+
+                    brevService.lagBrev(brevRequest).mapLeft { KunneIkkeLageBrevutkast.GenereringAvBrevFeilet }
+                }
+            )
     }
 }

@@ -2,12 +2,16 @@ package no.nav.su.se.bakover.web.routes.klage
 
 import arrow.core.getOrHandle
 import io.ktor.application.call
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.response.respondBytes
 import io.ktor.routing.Route
+import io.ktor.routing.get
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
@@ -22,6 +26,7 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
+import no.nav.su.se.bakover.web.withKlageId
 import no.nav.su.se.bakover.web.withSakId
 import no.nav.su.se.bakover.web.withStringParam
 
@@ -95,6 +100,21 @@ internal fun Route.klageRoutes(
                     }.getOrHandle { it }
                     call.svar(resultat)
                 }
+            }
+        }
+    }
+
+    get("$klagePath/{klageId}/brevutkast") {
+        call.withSakId { sakId ->
+            call.withKlageId { klageId ->
+                klageService.brevutkast(sakId, klageId, NavIdentBruker.Saksbehandler(call.suUserContext.navIdent)).fold(
+                    ifLeft = {
+                        // Legg til feilmeldinger til frontend
+                    },
+                    ifRight = {
+                        call.respondBytes(it, ContentType.Application.Pdf)
+                    },
+                )
             }
         }
     }

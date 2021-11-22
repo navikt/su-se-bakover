@@ -160,6 +160,13 @@ abstract class BrevInnhold {
     ) : BrevInnhold() {
         override val brevTemplate = BrevTemplate.Revurdering.AvsluttRevurdering
     }
+
+    data class Klage(
+        val personalia: Personalia,
+        val saksbehandlerNavn: String,
+    ) : BrevInnhold() {
+        override val brevTemplate = BrevTemplate.Klage.Oppretthold
+    }
 }
 
 fun List<Beregningsperiode>.harFradrag() = this.any { it.fradrag.bruker.isNotEmpty() || it.fradrag.eps.fradrag.isNotEmpty() }

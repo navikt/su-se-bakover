@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
@@ -29,10 +30,14 @@ internal class OpprettKlageTest {
         }
         val klageRepoMock = mock<KlageRepo>()
         val vedtakRepoMock: VedtakRepo = mock()
+        val brevServiceMock: BrevService = mock()
         val klageService = KlageServiceImpl(
             sakRepo = sakRepoMock,
             klageRepo = klageRepoMock,
             vedtakRepo = vedtakRepoMock,
+            brevService = brevServiceMock,
+            personService = mock(),
+            microsoftGraphApiClient = mock(),
             clock = fixedClock,
         )
 
@@ -67,10 +72,14 @@ internal class OpprettKlageTest {
         }
         val klageRepoMock: KlageRepo = mock()
         val vedtakRepoMock: VedtakRepo = mock()
+        val brevServiceMock: BrevService = mock()
         val klageService = KlageServiceImpl(
             sakRepo = sakRepoMock,
             klageRepo = klageRepoMock,
             vedtakRepo = vedtakRepoMock,
+            brevService = brevServiceMock,
+            personService = mock(),
+            microsoftGraphApiClient = mock(),
             clock = fixedClock,
         )
 
@@ -93,10 +102,15 @@ internal class OpprettKlageTest {
         }
         val klageRepoMock: KlageRepo = mock()
         val vedtakRepoMock: VedtakRepo = mock()
+        val brevServiceMock: BrevService = mock()
+
         val klageService = KlageServiceImpl(
             sakRepo = sakRepoMock,
             klageRepo = klageRepoMock,
             vedtakRepo = vedtakRepoMock,
+            brevService = brevServiceMock,
+            personService = mock(),
+            microsoftGraphApiClient = mock(),
             clock = fixedClock,
         )
         val request = NyKlageRequest(

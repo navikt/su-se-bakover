@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.opprettetKlage
@@ -34,11 +35,15 @@ internal class VilkårsvurderKlageTest {
         val vedtakRepoMock: VedtakRepo = mock {
             on { hentForVedtakId(any()) } doReturn null
         }
+        val brevServiceMock: BrevService = mock()
 
         val klageService = KlageServiceImpl(
             sakRepo = sakRepoMock,
             klageRepo = klageRepoMock,
             vedtakRepo = vedtakRepoMock,
+            brevService = brevServiceMock,
+            personService = mock(),
+            microsoftGraphApiClient = mock(),
             clock = fixedClock,
         )
 
@@ -65,10 +70,14 @@ internal class VilkårsvurderKlageTest {
         }
         val sakRepoMock: SakRepo = mock()
         val vedtakRepoMock: VedtakRepo = mock()
+        val brevServiceMock: BrevService = mock()
         val klageService = KlageServiceImpl(
             sakRepo = sakRepoMock,
             klageRepo = klageRepoMock,
             vedtakRepo = vedtakRepoMock,
+            brevService = brevServiceMock,
+            personService = mock(),
+            microsoftGraphApiClient = mock(),
             clock = fixedClock,
         )
 
@@ -101,10 +110,15 @@ internal class VilkårsvurderKlageTest {
             on { hentForVedtakId(any()) } doReturn vedtak
         }
         val sakRepoMock: SakRepo = mock()
+        val brevServiceMock: BrevService = mock()
+
         val klageService = KlageServiceImpl(
             sakRepo = sakRepoMock,
             klageRepo = klageRepoMock,
             vedtakRepo = vedtakRepoMock,
+            brevService = brevServiceMock,
+            personService = mock(),
+            microsoftGraphApiClient = mock(),
             clock = fixedClock,
         )
 
@@ -159,10 +173,15 @@ internal class VilkårsvurderKlageTest {
             on { hentForVedtakId(any()) } doReturn vedtak
         }
         val sakRepoMock: SakRepo = mock()
+        val brevServiceMock: BrevService = mock()
+
         val klageService = KlageServiceImpl(
             sakRepo = sakRepoMock,
             klageRepo = klageRepoMock,
             vedtakRepo = vedtakRepoMock,
+            brevService = brevServiceMock,
+            personService = mock(),
+            microsoftGraphApiClient = mock(),
             clock = fixedClock,
         )
 

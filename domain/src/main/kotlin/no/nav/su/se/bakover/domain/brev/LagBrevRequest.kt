@@ -291,6 +291,31 @@ interface LagBrevRequest {
             }
         }
     }
+
+    sealed class Klage : LagBrevRequest {
+        data class Oppretthold(
+            override val person: Person,
+            override val dagensDato: LocalDate,
+            val saksbehandlerNavn: String,
+        ) : Klage() {
+            override val brevInnhold: BrevInnhold = BrevInnhold.Klage(
+                personalia = lagPersonalia(),
+                saksbehandlerNavn = saksbehandlerNavn
+            )
+
+            override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata> {
+                return genererDokument(genererPdf).map {
+                    Dokument.UtenMetadata.Informasjon(
+                        id = UUID.randomUUID(),
+                        opprettet = Tidspunkt.now(),
+                        tittel = it.first,
+                        generertDokument = it.second,
+                        generertDokumentJson = it.third,
+                    )
+                }
+            }
+        }
+    }
 }
 
 fun LagBrevRequest.lagPersonalia() = this.person.let {

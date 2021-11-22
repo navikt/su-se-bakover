@@ -151,6 +151,9 @@ object ServiceBuilder {
             sakRepo = databaseRepos.sak,
             klageRepo = databaseRepos.klageRepo,
             vedtakRepo = databaseRepos.vedtakRepo,
+            brevService = brevService,
+            personService = personService,
+            microsoftGraphApiClient = clients.microsoftGraphApiClient,
             clock = clock,
         )
         return Services(

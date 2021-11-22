@@ -20,4 +20,7 @@ sealed class PdfTemplate(
         object Inntekt : Revurdering("revurderingAvInntekt")
         object Avslutt : Revurdering("avsluttRevurdering")
     }
+    sealed class Klage(templateName: String) : PdfTemplate(templateName) {
+        object Oppretthold : Klage("sendtTilKlageinstans")
+    }
 }
