@@ -74,7 +74,8 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.overordnetSøknadsbehandligRoutes
 import no.nav.su.se.bakover.web.routes.togglePaths
 import no.nav.su.se.bakover.web.routes.toggleRoutes
-import no.nav.su.se.bakover.web.services.avstemming.AvstemmingJob
+import no.nav.su.se.bakover.web.services.avstemming.GrensesnittsavstemingJob
+import no.nav.su.se.bakover.web.services.avstemming.KonsistensavstemmingJob
 import no.nav.su.se.bakover.web.services.dokument.DistribuerDokumentJob
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseConsumer
 import no.nav.su.se.bakover.web.services.personhendelser.PersonhendelseOppgaveJob
@@ -272,19 +273,27 @@ fun Application.susebakover(
             globalJmsContext = jmsConfig.jmsContext,
             kvitteringConsumer = utbetalingKvitteringConsumer,
         )
-        AvstemmingJob(
+        GrensesnittsavstemingJob(
             avstemmingService = services.avstemming,
             leaderPodLookup = clients.leaderPodLookup,
         ).schedule()
+
         PersonhendelseConsumer(
             consumer = KafkaConsumer(applicationConfig.kafkaConfig.consumerCfg.kafkaConfig),
             personhendelseService = personhendelseService,
-            maxBatchSize = applicationConfig.kafkaConfig.consumerCfg.kafkaConfig[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] as? Int
+            maxBatchSize = applicationConfig.kafkaConfig.consumerCfg.kafkaConfig[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] as? Int,
         )
 
         DistribuerDokumentJob(
             brevService = services.brev,
             leaderPodLookup = clients.leaderPodLookup,
+        ).schedule()
+
+        KonsistensavstemmingJob(
+            avstemmingService = services.avstemming,
+            leaderPodLookup = clients.leaderPodLookup,
+            jobConfig = applicationConfig.jobConfig.konsistensavstemming,
+            clock = clock,
         ).schedule()
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         LokalKvitteringJob(LokalKvitteringService(databaseRepos.utbetaling, utbetalingKvitteringConsumer)).schedule()
@@ -293,12 +302,24 @@ fun Application.susebakover(
             brevService = services.brev,
             leaderPodLookup = clients.leaderPodLookup,
         ).schedule()
+
+        GrensesnittsavstemingJob(
+            avstemmingService = services.avstemming,
+            leaderPodLookup = clients.leaderPodLookup,
+        ).schedule()
+
+        KonsistensavstemmingJob(
+            avstemmingService = services.avstemming,
+            leaderPodLookup = clients.leaderPodLookup,
+            jobConfig = applicationConfig.jobConfig.konsistensavstemming,
+            clock = clock,
+        ).schedule()
     }
 
     PersonhendelseOppgaveJob(
         personhendelseService = personhendelseService,
         leaderPodLookup = clients.leaderPodLookup,
-        intervall = applicationConfig.jobConfig.personhendelse.intervall
+        intervall = applicationConfig.jobConfig.personhendelse.intervall,
     ).schedule()
 }
 

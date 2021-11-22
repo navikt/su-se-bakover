@@ -124,10 +124,13 @@ internal class ApplicationConfigTest {
                     "enable.auto.commit" to "false",
                     "max.poll.records" to 100,
                 ),
-            )
+            ),
         ),
         unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover"),
-        jobConfig = ApplicationConfig.JobConfig(ApplicationConfig.JobConfig.Personhendelse(ApplicationConfig.NaisCluster.Prod))
+        jobConfig = ApplicationConfig.JobConfig(
+            personhendelse = ApplicationConfig.JobConfig.Personhendelse(ApplicationConfig.NaisCluster.Prod),
+            konsistensavstemming = ApplicationConfig.JobConfig.Konsistensavstemming.Prod(),
+        ),
     )
 
     @Test
@@ -237,7 +240,10 @@ internal class ApplicationConfigTest {
                     consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(emptyMap()),
                 ),
                 unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover"),
-                jobConfig = ApplicationConfig.JobConfig(ApplicationConfig.JobConfig.Personhendelse(null))
+                jobConfig = ApplicationConfig.JobConfig(
+                    personhendelse = ApplicationConfig.JobConfig.Personhendelse(null),
+                    konsistensavstemming = ApplicationConfig.JobConfig.Konsistensavstemming.Local(),
+                ),
             )
         }
     }
