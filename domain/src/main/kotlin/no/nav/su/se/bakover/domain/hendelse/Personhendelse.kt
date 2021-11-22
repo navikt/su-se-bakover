@@ -32,7 +32,8 @@ sealed class Personhendelse {
             id = id,
             sakId = sakIdOgNummer.sakId,
             saksnummer = sakIdOgNummer.saksnummer,
-            metadata = metadata
+            metadata = metadata,
+            antallFeiledeForsøk = 0
         )
     }
 
@@ -40,6 +41,7 @@ sealed class Personhendelse {
         abstract val id: UUID
         abstract val sakId: UUID
         abstract val saksnummer: Saksnummer
+        abstract val antallFeiledeForsøk: Int
 
         data class IkkeSendtTilOppgave(
             override val endringstype: Endringstype,
@@ -48,6 +50,7 @@ sealed class Personhendelse {
             override val sakId: UUID,
             override val saksnummer: Saksnummer,
             override val metadata: Metadata,
+            override val antallFeiledeForsøk: Int,
         ) : TilknyttetSak() {
             fun tilSendtTilOppgave(oppgaveId: OppgaveId) =
                 SendtTilOppgave(
@@ -57,7 +60,8 @@ sealed class Personhendelse {
                     sakId = sakId,
                     saksnummer = saksnummer,
                     oppgaveId = oppgaveId,
-                    metadata = metadata
+                    metadata = metadata,
+                    antallFeiledeForsøk = antallFeiledeForsøk
                 )
         }
 
@@ -69,6 +73,7 @@ sealed class Personhendelse {
             override val saksnummer: Saksnummer,
             override val metadata: Metadata,
             val oppgaveId: OppgaveId,
+            override val antallFeiledeForsøk: Int,
         ) : TilknyttetSak()
     }
 

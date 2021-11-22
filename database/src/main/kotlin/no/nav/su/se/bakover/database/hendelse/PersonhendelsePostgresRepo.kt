@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo.Metadat
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
+import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
@@ -50,7 +51,7 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource, private val
                     "hendelse" to objectMapper.writeValueAsString(personhendelse.hendelse.toJson()),
                     "oppgaveId" to null,
                     "type" to personhendelse.hendelse.toDatabasetype(),
-                    "metadata" to objectMapper.writeValueAsString(personhendelse.metadata.toJson()),
+                    "metadata" to objectMapper.writeValueAsString(personhendelse.metadata.toJson())
                 ),
                 session,
             )
@@ -75,12 +76,36 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource, private val
 
     override fun hentPersonhendelserUtenOppgave(): List<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> =
         datasource.withSession { session ->
-            """ 
-                select p.*, s.saksnummer as saksnummer from personhendelse p left join sak s on s.id = p.sakId where oppgaveId is null
+            """
+                select
+                    p.*, s.saksnummer as saksnummer
+                from
+                    personhendelse p
+                    left join sak s on s.id = p.sakId
+                where
+                    oppgaveId is null and antallFeiledeForsøk < 3
             """.trimIndent().hentListe(mapOf(), session) { row ->
                 row.toIkkeSendtTilOppgave()
             }
         }
+
+    override fun inkrementerAntallFeiledeForsøk(personhendelse: Personhendelse.TilknyttetSak) {
+        datasource.withSession { session ->
+            """
+                update
+                    personhendelse
+                set
+                    antallFeiledeForsøk = antallFeiledeForsøk + 1
+                where
+                    id = :id
+            """.trimIndent().oppdatering(
+                mapOf(
+                    "id" to personhendelse.id,
+                ),
+                session,
+            )
+        }
+    }
 
     internal fun hent(id: UUID): Personhendelse.TilknyttetSak? = datasource.withSession { session ->
         """
@@ -103,6 +128,7 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource, private val
         hendelse = hentHendelse(),
         saksnummer = Saksnummer(long("saksnummer")),
         metadata = objectMapper.readValue<MetadataJson>(string("metadata")).toDomain(),
+        antallFeiledeForsøk = int("antallFeiledeForsøk")
     )
     private fun Row.toSendtTilOppgave(oppgaveId: OppgaveId) = Personhendelse.TilknyttetSak.SendtTilOppgave(
         id = UUID.fromString(string("id")),
@@ -112,6 +138,7 @@ class PersonhendelsePostgresRepo(private val datasource: DataSource, private val
         saksnummer = Saksnummer(long("saksnummer")),
         metadata = objectMapper.readValue<MetadataJson>(string("metadata")).toDomain(),
         oppgaveId = oppgaveId,
+        antallFeiledeForsøk = int("antallFeiledeForsøk")
     )
 
     private fun Row.toPersonhendelse(): Personhendelse.TilknyttetSak =
