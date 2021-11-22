@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.personhendelser
 
 import arrow.core.NonEmptyList
+import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
@@ -11,6 +12,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
 import no.nav.su.se.bakover.service.argThat
@@ -116,6 +118,49 @@ internal class PersonhendelseServiceTest {
         verifyNoMoreInteractions(oppgaveServiceMock, personhendelseRepoMock, sakRepoMock, personServiceMock)
     }
 
+    @Test
+    internal fun `inkrementerer antall forsøk dersom oppretting av oppgave feiler`() {
+        val sak = nySakMedjournalførtSøknadOgOppgave().first
+        val personhendelse = lagPersonhendelseTilknyttetSak(sakId = sak.id)
+
+        val sakRepoMock = mock<SakRepo> {
+            on { hentSak(any<UUID>()) } doReturn sak
+        }
+        val personhendelseRepoMock = mock<PersonhendelseRepo> {
+            on { hentPersonhendelserUtenOppgave() } doReturn listOf(personhendelse)
+        }
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveFeil.KunneIkkeOppretteOppgave.left()
+        }
+        val personServiceMock = mock<PersonService> {
+            on { hentAktørIdMedSystembruker(any()) } doReturn AktørId("aktørId").right()
+        }
+
+        val personhendelseService = PersonhendelseService(
+            sakRepo = sakRepoMock,
+            personhendelseRepo = personhendelseRepoMock,
+            oppgaveServiceImpl = oppgaveServiceMock,
+            personService = personServiceMock
+        )
+        personhendelseService.opprettOppgaverForPersonhendelser()
+
+        verify(sakRepoMock).hentSak(argThat<UUID> { it shouldBe sak.id })
+        verify(personhendelseRepoMock).hentPersonhendelserUtenOppgave()
+        verify(personServiceMock).hentAktørIdMedSystembruker(argThat { it shouldBe sak.fnr })
+        verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
+            argThat {
+                it shouldBe OppgaveConfig.Personhendelse(
+                    saksnummer = personhendelse.saksnummer,
+                    personhendelsestype = personhendelse.hendelse,
+                    aktørId = AktørId("aktørId"),
+                )
+            },
+        )
+
+        verify(personhendelseRepoMock).inkrementerAntallFeiledeForsøk(argThat<Personhendelse.TilknyttetSak.IkkeSendtTilOppgave> { it shouldBe personhendelse })
+        verifyNoMoreInteractions(oppgaveServiceMock, personhendelseRepoMock, sakRepoMock, personServiceMock)
+    }
+
     private fun lagNyPersonhendelse() = Personhendelse.IkkeTilknyttetSak(
         endringstype = Personhendelse.Endringstype.OPPRETTET,
         hendelse = Personhendelse.Hendelse.Dødsfall(dødsdato = fixedLocalDate),
@@ -144,6 +189,7 @@ internal class PersonhendelseServiceTest {
             master = "FREG",
             key = "key",
             personidenter = NonEmptyList.fromListUnsafe(listOf(UUID.randomUUID().toString()))
-        )
+        ),
+        antallFeiledeForsøk = 0
     )
 }
