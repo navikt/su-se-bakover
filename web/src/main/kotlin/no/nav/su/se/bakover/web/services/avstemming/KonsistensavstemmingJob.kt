@@ -37,7 +37,7 @@ internal class KonsistensavstemmingJob(
             initialDelay = initialDelay,
             period = periode,
         ) {
-            Konsistemsavstemming(
+            Konsistensavstemming(
                 avstemmingService = avstemmingService,
                 leaderPodLookup = leaderPodLookup,
                 jobName = jobName,
@@ -47,7 +47,7 @@ internal class KonsistensavstemmingJob(
         }
     }
 
-    class Konsistemsavstemming(
+    class Konsistensavstemming(
         val avstemmingService: AvstemmingService,
         val leaderPodLookup: LeaderPodLookup,
         val jobName: String,

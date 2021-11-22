@@ -7,12 +7,5 @@ import java.net.InetAddress
 internal fun LeaderPodLookup.erLeaderPod(
     hostname: String = InetAddress.getLocalHost().hostName,
 ): Boolean {
-    return amITheLeader(hostname)
-        .getOrHandle { return false }
-        .let {
-            when (it) {
-                true -> true
-                false -> false
-            }
-        }
+    return amITheLeader(hostname).getOrHandle { return false }
 }

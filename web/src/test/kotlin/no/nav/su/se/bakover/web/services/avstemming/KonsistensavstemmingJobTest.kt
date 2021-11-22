@@ -23,7 +23,7 @@ internal class KonsistensavstemmingJobTest {
 
     @Test
     fun `eksekverer ikke hvis ikke kjøreplan ikke inneholder dagens dato`() {
-        KonsistensavstemmingJob.Konsistemsavstemming(
+        KonsistensavstemmingJob.Konsistensavstemming(
             avstemmingService = mock(),
             leaderPodLookup = mock {
                 on { amITheLeader(any()) } doReturn false.right()
@@ -40,7 +40,7 @@ internal class KonsistensavstemmingJobTest {
 
     @Test
     fun `eksekveres kun hvis pod er leader`() {
-        KonsistensavstemmingJob.Konsistemsavstemming(
+        KonsistensavstemmingJob.Konsistensavstemming(
             avstemmingService = mock(),
             leaderPodLookup = mock {
                 on { amITheLeader(any()) } doReturn false.right()
@@ -60,7 +60,7 @@ internal class KonsistensavstemmingJobTest {
 
     @Test
     fun `eksekveres ikke hvis allerede utført for aktuell dato`() {
-        KonsistensavstemmingJob.Konsistemsavstemming(
+        KonsistensavstemmingJob.Konsistensavstemming(
             avstemmingService = mock {
                 on { konsistensavstemming(any()) } doReturn Avstemming.Konsistensavstemming.Ny(
                     id = UUID30.randomUUID(),
@@ -91,7 +91,7 @@ internal class KonsistensavstemmingJobTest {
 
     @Test
     fun `eksekveres hvis enda ikke utført for aktuell dato`() {
-        KonsistensavstemmingJob.Konsistemsavstemming(
+        KonsistensavstemmingJob.Konsistensavstemming(
             avstemmingService = mock {
                 on { konsistensavstemming(any()) } doReturn Avstemming.Konsistensavstemming.Ny(
                     id = UUID30.randomUUID(),
@@ -122,7 +122,7 @@ internal class KonsistensavstemmingJobTest {
 
     @Test
     fun `eksekverer ikke hvis leader-election svarer med feil`() {
-        KonsistensavstemmingJob.Konsistemsavstemming(
+        KonsistensavstemmingJob.Konsistensavstemming(
             avstemmingService = mock(),
             leaderPodLookup = mock {
                 on { amITheLeader(any()) } doReturn LeaderPodLookupFeil.UkjentSvarFraLeaderElectorContainer.left()
