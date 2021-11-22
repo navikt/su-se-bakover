@@ -214,7 +214,7 @@ internal class SøknadServiceImpl(
                 aktørId = person.ident.aktørId,
             ),
         ).mapLeft {
-            log.error("Ny søknad: Kunne ikke opprette oppgave. Originalfeil: $it")
+            log.error("Ny søknad: Kunne ikke opprette oppgave for sak ${søknad.sakId} og søknad ${søknad.id}. Originalfeil: $it")
             KunneIkkeOppretteOppgave(søknad.sakId, søknad.id, søknad.journalpostId, "Kunne ikke opprette oppgave")
         }.map { oppgaveId ->
             return søknad.medOppgave(oppgaveId).also {
