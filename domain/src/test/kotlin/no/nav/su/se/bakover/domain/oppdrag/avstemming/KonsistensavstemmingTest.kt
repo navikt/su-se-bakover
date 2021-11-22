@@ -139,8 +139,20 @@ internal class KonsistensavstemmingTest {
                 saksnummer = saksnummer,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
-                    første.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(NavIdentBruker.Attestant("første")),
-                    andre.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(NavIdentBruker.Attestant("andre")),
+                    første.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(
+                        nonEmptyListOf(
+                            NavIdentBruker.Attestant(
+                                "første",
+                            ),
+                        ),
+                    ),
+                    andre.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(
+                        nonEmptyListOf(
+                            NavIdentBruker.Attestant(
+                                "andre",
+                            ),
+                        ),
+                    ),
                 ),
             ),
         )
@@ -431,8 +443,13 @@ internal class KonsistensavstemmingTest {
                 saksnummer = saksnummer,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
-                    første.utbetalingslinjer[0],
-                ).toOppdragslinjeForKonsistensavstemming(defaultAttestant),
+                    første.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(
+                        nonEmptyListOf(
+                            defaultAttestant,
+                            defaultAttestant,
+                        ),
+                    ),
+                ),
             ),
         )
     }
@@ -494,9 +511,14 @@ internal class KonsistensavstemmingTest {
                 saksnummer = saksnummer,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
-                    første.utbetalingslinjer[0],
-                    tredje.utbetalingslinjer[0],
-                ).toOppdragslinjeForKonsistensavstemming(defaultAttestant),
+                    første.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(
+                        nonEmptyListOf(
+                            defaultAttestant,
+                            defaultAttestant,
+                        ),
+                    ),
+                    tredje.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(nonEmptyListOf(defaultAttestant)),
+                ),
             ),
         )
     }
@@ -564,6 +586,7 @@ internal class KonsistensavstemmingTest {
             utbetalingsLinjer = nonEmptyListOf(
                 ny1, ny2,
             ),
+            behandler = NavIdentBruker.Attestant("a1"),
         )
 
         val stans1 = Utbetalingslinje.Endring.Stans(
@@ -578,6 +601,7 @@ internal class KonsistensavstemmingTest {
             utbetalingsLinjer = nonEmptyListOf(
                 stans1,
             ),
+            behandler = defaultAttestant,
         )
 
         val ny3 = createUtbetalingslinje(
@@ -595,6 +619,7 @@ internal class KonsistensavstemmingTest {
             utbetalingsLinjer = nonEmptyListOf(
                 ny3,
             ),
+            behandler = defaultAttestant,
         )
 
         val stans2 = Utbetalingslinje.Endring.Stans(
@@ -610,6 +635,7 @@ internal class KonsistensavstemmingTest {
             utbetalingsLinjer = nonEmptyListOf(
                 stans2,
             ),
+            behandler = NavIdentBruker.Attestant("a2"),
         )
 
         val gjen1 = Utbetalingslinje.Endring.Reaktivering(
@@ -625,6 +651,7 @@ internal class KonsistensavstemmingTest {
             utbetalingsLinjer = nonEmptyListOf(
                 gjen1,
             ),
+            behandler = NavIdentBruker.Attestant("a3"),
         )
 
         Avstemming.Konsistensavstemming.Ny(
@@ -639,8 +666,14 @@ internal class KonsistensavstemmingTest {
                 saksnummer = saksnummer,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
-                    ny3,
-                ).toOppdragslinjeForKonsistensavstemming(defaultAttestant),
+                    ny3.toOppdragslinjeForKonsistensavstemming(
+                        nonEmptyListOf(
+                            defaultAttestant,
+                            NavIdentBruker.Attestant("a2"),
+                            NavIdentBruker.Attestant("a3"),
+                        ),
+                    ),
+                ),
             ),
         )
 
@@ -656,8 +689,106 @@ internal class KonsistensavstemmingTest {
                 saksnummer = saksnummer,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
-                    ny1, ny2, ny3,
-                ).toOppdragslinjeForKonsistensavstemming(defaultAttestant),
+                    ny1.toOppdragslinjeForKonsistensavstemming(
+                        nonEmptyListOf(
+                            NavIdentBruker.Attestant("a1"),
+                        ),
+                    ),
+                    ny2.toOppdragslinjeForKonsistensavstemming(
+                        nonEmptyListOf(
+                            NavIdentBruker.Attestant("a1"),
+                            defaultAttestant,
+                        ),
+                    ),
+                    ny3.toOppdragslinjeForKonsistensavstemming(
+                        nonEmptyListOf(
+                            defaultAttestant,
+                            NavIdentBruker.Attestant("a2"),
+                            NavIdentBruker.Attestant("a3"),
+                        ),
+                    ),
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun `inkluderer alle attestanter for linjer som er endret`() {
+        val ny1 = createUtbetalingslinje(
+            opprettet = Tidspunkt.now(førsteKlokke),
+            fraOgMed = 1.januar(2021),
+            tilOgMed = 30.april(2021),
+            beløp = 10000,
+            forrigeUtbetalingslinjeId = null,
+        )
+        val ny2 = createUtbetalingslinje(
+            opprettet = Tidspunkt.now(førsteKlokke),
+            fraOgMed = 1.mai(2021),
+            tilOgMed = 31.desember(2021),
+            beløp = 15000,
+            forrigeUtbetalingslinjeId = ny1.id,
+        )
+        val første = createUtbetaling(
+            fnr = fnr,
+            saksnummer = saksnummer,
+            opprettet = Tidspunkt.now(førsteKlokke),
+            utbetalingsLinjer = nonEmptyListOf(
+                ny1, ny2,
+            ),
+            behandler = NavIdentBruker.Attestant("a1"),
+        )
+
+        val stans1 = Utbetalingslinje.Endring.Stans(
+            utbetalingslinje = første.sisteUtbetalingslinje(),
+            virkningstidspunkt = 1.august(2021),
+            clock = andreKlokke,
+        )
+        val andre = createUtbetaling(
+            fnr = fnr,
+            saksnummer = saksnummer,
+            opprettet = Tidspunkt.now(andreKlokke),
+            utbetalingsLinjer = nonEmptyListOf(
+                stans1,
+            ),
+            behandler = NavIdentBruker.Attestant("a2"),
+        )
+
+        val gjen1 = Utbetalingslinje.Endring.Reaktivering(
+            utbetalingslinje = andre.sisteUtbetalingslinje(),
+            virkningstidspunkt = 1.august(2021),
+            clock = tredjeKlokke,
+        )
+
+        val tredje = createUtbetaling(
+            fnr = fnr,
+            saksnummer = saksnummer,
+            opprettet = Tidspunkt.now(tredjeKlokke),
+            utbetalingsLinjer = nonEmptyListOf(
+                gjen1,
+            ),
+            behandler = NavIdentBruker.Attestant("a3"),
+        )
+
+        Avstemming.Konsistensavstemming.Ny(
+            id = UUID30.randomUUID(),
+            opprettet = fixedTidspunkt,
+            løpendeFraOgMed = 1.september(2021).startOfDay(zoneIdOslo),
+            opprettetTilOgMed = 5.september(2021).endOfDay(zoneIdOslo),
+            utbetalinger = listOf(første, andre, tredje),
+            avstemmingXmlRequest = "",
+        ).løpendeUtbetalinger shouldBe listOf(
+            OppdragForKonsistensavstemming(
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utbetalingslinjer = listOf(
+                    ny2.toOppdragslinjeForKonsistensavstemming(
+                        nonEmptyListOf(
+                            NavIdentBruker.Attestant("a1"),
+                            NavIdentBruker.Attestant("a2"),
+                            NavIdentBruker.Attestant("a3"),
+                        ),
+                    ),
+                ),
             ),
         )
     }
@@ -715,9 +846,27 @@ internal class KonsistensavstemmingTest {
                 saksnummer = saksnummer,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
-                    første.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(NavIdentBruker.Attestant("første")),
-                    første.utbetalingslinjer[1].toOppdragslinjeForKonsistensavstemming(NavIdentBruker.Attestant("første")),
-                    andre.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(NavIdentBruker.Attestant("andre")),
+                    første.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(
+                        nonEmptyListOf(
+                            NavIdentBruker.Attestant(
+                                "første",
+                            ),
+                        ),
+                    ),
+                    første.utbetalingslinjer[1].toOppdragslinjeForKonsistensavstemming(
+                        nonEmptyListOf(
+                            NavIdentBruker.Attestant(
+                                "første",
+                            ),
+                        ),
+                    ),
+                    andre.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(
+                        nonEmptyListOf(
+                            NavIdentBruker.Attestant(
+                                "andre",
+                            ),
+                        ),
+                    ),
                 ),
             ),
         )
@@ -734,8 +883,20 @@ internal class KonsistensavstemmingTest {
                 saksnummer = saksnummer,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
-                    første.utbetalingslinjer[1].toOppdragslinjeForKonsistensavstemming(NavIdentBruker.Attestant("første")),
-                    andre.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(NavIdentBruker.Attestant("andre")),
+                    første.utbetalingslinjer[1].toOppdragslinjeForKonsistensavstemming(
+                        nonEmptyListOf(
+                            NavIdentBruker.Attestant(
+                                "første",
+                            ),
+                        ),
+                    ),
+                    andre.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(
+                        nonEmptyListOf(
+                            NavIdentBruker.Attestant(
+                                "andre",
+                            ),
+                        ),
+                    ),
                 ),
             ),
         )
@@ -752,7 +913,13 @@ internal class KonsistensavstemmingTest {
                 saksnummer = saksnummer,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
-                    andre.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(NavIdentBruker.Attestant("andre")),
+                    andre.utbetalingslinjer[0].toOppdragslinjeForKonsistensavstemming(
+                        nonEmptyListOf(
+                            NavIdentBruker.Attestant(
+                                "andre",
+                            ),
+                        ),
+                    ),
                 ),
             ),
         )
@@ -800,10 +967,10 @@ internal class KonsistensavstemmingTest {
         tilOgMed = tilOgMed,
         beløp = beløp,
         forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
-        uføregrad = uføregrad
+        uføregrad = uføregrad,
     )
 
     private fun List<Utbetalingslinje>.toOppdragslinjeForKonsistensavstemming(attestant: NavIdentBruker): List<OppdragslinjeForKonsistensavstemming> {
-        return map { it.toOppdragslinjeForKonsistensavstemming(attestant) }
+        return map { it.toOppdragslinjeForKonsistensavstemming(nonEmptyListOf(attestant)) }
     }
 }
