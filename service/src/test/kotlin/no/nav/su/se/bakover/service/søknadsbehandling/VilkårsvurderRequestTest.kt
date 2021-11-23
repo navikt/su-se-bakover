@@ -33,7 +33,6 @@ internal class VilkårsvurderRequestTest {
         val request = VilkårsvurderRequest(
             behandlingId = UUID.randomUUID(),
             behandlingsinformasjon = Behandlingsinformasjon(
-                uførhet = null,
                 flyktning = null,
                 lovligOpphold = null,
                 fastOppholdINorge = null,
@@ -54,7 +53,6 @@ internal class VilkårsvurderRequestTest {
 
         request.hentValidertBehandlingsinformasjon(bosituasjonUtenEPS) shouldBe
             Behandlingsinformasjon(
-                uførhet = null,
                 flyktning = null,
                 lovligOpphold = null,
                 fastOppholdINorge = null,
@@ -78,7 +76,6 @@ internal class VilkårsvurderRequestTest {
         val request = VilkårsvurderRequest(
             behandlingId = UUID.randomUUID(),
             behandlingsinformasjon = Behandlingsinformasjon(
-                uførhet = null,
                 flyktning = null,
                 lovligOpphold = null,
                 fastOppholdINorge = null,
@@ -106,7 +103,6 @@ internal class VilkårsvurderRequestTest {
         val request = VilkårsvurderRequest(
             behandlingId = UUID.randomUUID(),
             behandlingsinformasjon = Behandlingsinformasjon(
-                uførhet = null,
                 flyktning = null,
                 lovligOpphold = null,
                 fastOppholdINorge = null,
@@ -134,7 +130,6 @@ internal class VilkårsvurderRequestTest {
         val request = VilkårsvurderRequest(
             behandlingId = UUID.randomUUID(),
             behandlingsinformasjon = Behandlingsinformasjon(
-                uførhet = null,
                 flyktning = null,
                 lovligOpphold = null,
                 fastOppholdINorge = null,

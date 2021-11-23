@@ -209,9 +209,6 @@ sealed class Vilkårsvurderinger {
         ): Søknadsbehandling {
             return behandlingsinformasjon.vilkår.mapNotNull {
                 when (it) {
-                    is Behandlingsinformasjon.Uførhet -> {
-                        null // legges til via grunnlags-flyt
-                    }
                     is Behandlingsinformasjon.Flyktning -> {
                         it.tilVilkår(stønadsperiode, clock)
                     }

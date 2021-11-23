@@ -29,7 +29,6 @@ import java.time.Clock
 import java.util.UUID
 
 data class Behandlingsinformasjon(
-    val uførhet: Uførhet? = null,
     val flyktning: Flyktning? = null,
     val lovligOpphold: LovligOpphold? = null,
     val fastOppholdINorge: FastOppholdINorge? = null,
@@ -39,7 +38,6 @@ data class Behandlingsinformasjon(
 ) {
     @JsonIgnore
     val vilkår = listOf(
-        uførhet,
         flyktning,
         lovligOpphold,
         fastOppholdINorge,
@@ -51,7 +49,6 @@ data class Behandlingsinformasjon(
     fun patch(
         b: Behandlingsinformasjon,
     ) = Behandlingsinformasjon(
-        uførhet = b.uførhet ?: this.uførhet,
         flyktning = b.flyktning ?: this.flyktning,
         lovligOpphold = b.lovligOpphold ?: this.lovligOpphold,
         fastOppholdINorge = b.fastOppholdINorge ?: this.fastOppholdINorge,
@@ -60,37 +57,9 @@ data class Behandlingsinformasjon(
         personligOppmøte = b.personligOppmøte ?: this.personligOppmøte,
     )
 
-    /** Gjelder for utleding av sats, satsgrunn og beregningsstrategi */
-    sealed class UfullstendigBehandlingsinformasjon {
-        object BosituasjonErUbesvart : UfullstendigBehandlingsinformasjon()
-        object EktefelleErUbesvart : UfullstendigBehandlingsinformasjon()
-
-        /** Dersom man bor med ektefelle kan ikke bosituasjon->ektemakeEllerSamboerUførFlyktning være ubesvart */
-        object EpsUførFlyktningErUbesvart : UfullstendigBehandlingsinformasjon()
-
-        /** Når man ikke bor med ektefelle kan ikke bosituasjon->deler_bolig være ubesvart */
-        object DelerBoligErUbesvart : UfullstendigBehandlingsinformasjon()
-    }
-
     abstract class Base {
         abstract fun erVilkårOppfylt(): Boolean
         abstract fun erVilkårIkkeOppfylt(): Boolean
-    }
-
-    data class Uførhet(
-        val status: Status,
-        val uføregrad: Int?,
-        val forventetInntekt: Int?,
-        val begrunnelse: String?,
-    ) : Base() {
-        enum class Status {
-            VilkårOppfylt,
-            VilkårIkkeOppfylt,
-            HarUføresakTilBehandling
-        }
-
-        override fun erVilkårOppfylt(): Boolean = status == Status.VilkårOppfylt
-        override fun erVilkårIkkeOppfylt(): Boolean = status == Status.VilkårIkkeOppfylt
     }
 
     data class Flyktning(
@@ -496,7 +465,6 @@ data class Behandlingsinformasjon(
 
     companion object {
         fun lagTomBehandlingsinformasjon() = Behandlingsinformasjon(
-            uførhet = null,
             flyktning = null,
             lovligOpphold = null,
             fastOppholdINorge = null,

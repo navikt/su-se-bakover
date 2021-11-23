@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.inneholderAlle
@@ -76,7 +77,11 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     sealed class KunneIkkeLeggeTilUtenlandsopphold {
-        data class IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Søknadsbehandling>) : KunneIkkeLeggeTilUtenlandsopphold()
+        data class IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen(
+            val fra: KClass<out Søknadsbehandling>,
+            val til: KClass<out Søknadsbehandling>,
+        ) : KunneIkkeLeggeTilUtenlandsopphold()
+
         object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUtenlandsopphold()
         object MåInneholdeKunEnVurderingsperiode : KunneIkkeLeggeTilUtenlandsopphold()
         object AlleVurderingsperioderMåHaSammeResultat : KunneIkkeLeggeTilUtenlandsopphold()
@@ -146,7 +151,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilUtenlandsopphold, Vilkårsvurdert> {
-        return KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen(fra = this::class, til = Vilkårsvurdert::class).left()
+        return KunneIkkeLeggeTilUtenlandsopphold.IkkeLovÅLeggeTilUtenlandsoppholdIDenneStatusen(
+            fra = this::class,
+            til = Vilkårsvurdert::class,
+        ).left()
     }
 
     protected open fun valider(utenlandsopphold: UtenlandsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilUtenlandsopphold, Unit> {
@@ -162,12 +170,34 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             } -> {
                 KunneIkkeLeggeTilUtenlandsopphold.AlleVurderingsperioderMåHaSammeResultat.left()
             }
-            !periode.fullstendigOverlapp(utenlandsopphold.vurderingsperioder.map { it.periode }) ->
-                {
-                    KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden.left()
-                }
+            !periode.fullstendigOverlapp(utenlandsopphold.vurderingsperioder.map { it.periode }) -> {
+                KunneIkkeLeggeTilUtenlandsopphold.MåVurdereHelePerioden.left()
+            }
             else -> Unit.right()
         }
+    }
+
+    open fun leggTilUførevilkår(
+        uførhet: Vilkår.Uførhet.Vurdert,
+        clock: Clock,
+    ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
+        return KunneIkkeLeggeTilUførevilkår.UgyldigTilstand(this::class, Vilkårsvurdert::class).left()
+    }
+
+    protected open fun valider(uførhet: Vilkår.Uførhet.Vurdert): Either<KunneIkkeLeggeTilUførevilkår, Unit> {
+        return when {
+            !periode.inneholderAlle(uførhet.vurderingsperioder) -> {
+                KunneIkkeLeggeTilUførevilkår.VurderingsperiodeUtenforBehandlingsperiode.left()
+            }
+            else -> Unit.right()
+        }
+    }
+
+    sealed class KunneIkkeLeggeTilUførevilkår {
+        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Vilkårsvurdert>) :
+            KunneIkkeLeggeTilUførevilkår()
+
+        object VurderingsperiodeUtenforBehandlingsperiode : KunneIkkeLeggeTilUførevilkår()
     }
 
     sealed class Vilkårsvurdert : Søknadsbehandling() {
@@ -359,6 +389,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     clock,
                 )
             }
+
+            override fun leggTilUførevilkår(
+                uførhet: Vilkår.Uførhet.Vurdert,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
+                return valider(uførhet)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
+            }
         }
 
         data class Avslag(
@@ -430,6 +468,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     clock,
                 )
             }
+
+            override fun leggTilUførevilkår(
+                uførhet: Vilkår.Uførhet.Vurdert,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
+                return valider(uførhet)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
+            }
         }
 
         data class Uavklart(
@@ -473,6 +519,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     grunnlagsdata,
                     clock,
                 )
+            }
+
+            override fun leggTilUførevilkår(
+                uførhet: Vilkår.Uførhet.Vurdert,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
+                return valider(uførhet)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
             }
 
             data class StønadsperiodeIkkeDefinertException(
@@ -666,6 +720,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     clock,
                 )
             }
+
+            override fun leggTilUførevilkår(
+                uførhet: Vilkår.Uførhet.Vurdert,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
+                return valider(uførhet)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
+            }
         }
 
         data class Avslag(
@@ -770,6 +832,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     grunnlagsdata,
                     clock,
                 )
+            }
+
+            override fun leggTilUførevilkår(
+                uførhet: Vilkår.Uførhet.Vurdert,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
+                return valider(uførhet)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
             }
         }
     }
@@ -922,6 +992,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 grunnlagsdata,
                 clock,
             )
+        }
+
+        override fun leggTilUførevilkår(
+            uførhet: Vilkår.Uførhet.Vurdert,
+            clock: Clock,
+        ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
+            return valider(uførhet)
+                .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
         }
     }
 
@@ -1338,6 +1416,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     clock,
                 )
             }
+
+            override fun leggTilUførevilkår(
+                uførhet: Vilkår.Uførhet.Vurdert,
+                clock: Clock,
+            ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
+                return valider(uførhet)
+                    .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
+            }
         }
 
         sealed class Avslag : Underkjent(), ErAvslag {
@@ -1464,6 +1550,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         clock,
                     )
                 }
+
+                override fun leggTilUførevilkår(
+                    uførhet: Vilkår.Uførhet.Vurdert,
+                    clock: Clock,
+                ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
+                    return valider(uførhet)
+                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
+                }
             }
 
             data class UtenBeregning(
@@ -1535,6 +1629,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         grunnlagsdata,
                         clock,
                     )
+                }
+
+                override fun leggTilUførevilkår(
+                    uførhet: Vilkår.Uførhet.Vurdert,
+                    clock: Clock,
+                ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
+                    return valider(uførhet)
+                        .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
                 }
             }
         }

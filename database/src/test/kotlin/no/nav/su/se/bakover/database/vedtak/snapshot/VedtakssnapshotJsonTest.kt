@@ -51,12 +51,6 @@ internal class VedtakssnapshotJsonTest {
                   "oppgaveId":"oppgaveIdSøknad",
                   "beregning": null,
                   "behandlingsinformasjon":{
-                     "uførhet":{
-                        "status":"VilkårIkkeOppfylt",
-                        "uføregrad":20,
-                        "forventetInntekt":10,
-                        "begrunnelse":null
-                     },
                      "flyktning":{
                         "status":"VilkårIkkeOppfylt",
                         "begrunnelse":null
@@ -337,12 +331,6 @@ internal class VedtakssnapshotJsonTest {
                     "begrunnelse": null
                 },
                   "behandlingsinformasjon":{
-                     "uførhet":{
-                        "status":"VilkårOppfylt",
-                        "uføregrad":20,
-                        "forventetInntekt":10,
-                        "begrunnelse":null
-                     },
                      "flyktning":{
                         "status":"VilkårOppfylt",
                         "begrunnelse":null

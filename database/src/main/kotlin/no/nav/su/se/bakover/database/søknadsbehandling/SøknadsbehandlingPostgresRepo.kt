@@ -523,6 +523,12 @@ internal class SøknadsbehandlingPostgresRepo(
             vilkår = søknadsbehandling.vilkårsvurderinger.utenlandsopphold,
             tx = tx,
         )
+
+        uføreVilkårsvurderingRepo.lagre(
+            behandlingId = søknadsbehandling.id,
+            vilkår = søknadsbehandling.vilkårsvurderinger.uføre,
+            tx = tx,
+        )
     }
 
     private fun lagre(søknadsbehandling: Søknadsbehandling.Beregnet, tx: TransactionalSession) {

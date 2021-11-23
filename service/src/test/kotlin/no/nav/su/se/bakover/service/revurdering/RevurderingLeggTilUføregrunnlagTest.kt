@@ -5,7 +5,6 @@ import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -18,8 +17,9 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
+import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -101,12 +101,12 @@ internal class RevurderingLeggTilUføregrunnlagTest {
             request = LeggTilUførevurderingerRequest(
                 behandlingId = opprettetRevurdering.id,
                 vurderinger = nonEmptyListOf(
-                    LeggTilUførevurderingRequest(
+                    LeggTilUførevilkårRequest(
                         behandlingId = opprettetRevurdering.id,
                         periode = stønadsperiode2021.periode,
                         uføregrad = Uføregrad.parse(1),
                         forventetInntekt = 0,
-                        oppfylt = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
+                        oppfylt = UførevilkårStatus.VilkårIkkeOppfylt,
                         begrunnelse = ":<",
                     ),
                 ),

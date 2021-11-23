@@ -140,7 +140,6 @@ object ServiceBuilder {
             clock = clock,
             vedtakRepo = databaseRepos.vedtakRepo,
             ferdigstillVedtakService = ferdigstillVedtakService,
-            vilkårsvurderingService = vilkårsvurderingService,
             grunnlagService = grunnlagService,
             sakService = sakService,
         ).apply {
