@@ -46,6 +46,7 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import java.util.UUID
@@ -170,7 +171,7 @@ internal class GjeldendeVedtaksdataTest {
                 ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-                Vilkår.Uførhet.Vurdert.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -182,7 +183,8 @@ internal class GjeldendeVedtaksdataTest {
                         ),
                     ),
                 ),
-                innvilgetFormueVilkår(periode),
+                formue = innvilgetFormueVilkår(periode),
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periode),
             ),
         ),
         utbetalingId = UUID30.randomUUID(),
@@ -246,7 +248,7 @@ internal class GjeldendeVedtaksdataTest {
                 bosituasjon = listOf(),
             ),
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-                Vilkår.Uførhet.Vurdert.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -258,7 +260,8 @@ internal class GjeldendeVedtaksdataTest {
                         ),
                     ),
                 ),
-                innvilgetFormueVilkår(periode),
+                formue = innvilgetFormueVilkår(periode),
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periode)
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 revurderingsteg = mapOf(

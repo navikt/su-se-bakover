@@ -114,7 +114,6 @@ internal class FormuevilkårJsonTest {
         //language=JSON
         val expectedVilkårJson = """
 {
-   "vilkår":"Formue",
    "vurderinger":[
       {
          "id":"2e9a75ea-20ca-47e9-8c31-0c091bb4e316",

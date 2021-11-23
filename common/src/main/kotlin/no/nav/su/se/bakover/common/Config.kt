@@ -15,6 +15,7 @@ import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.LoggerFactory
 import java.time.Duration
+import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
 private object EnvironmentConfig {
@@ -139,7 +140,10 @@ data class ApplicationConfig(
             )
 
             fun createLocalConfig() = AzureConfig(
-                clientSecret = getEnvironmentVariableOrDefault("AZURE_APP_CLIENT_SECRET", "Denne brukes bare dersom man bruker en reell PDL/Oppgave-integrasjon o.l."),
+                clientSecret = getEnvironmentVariableOrDefault(
+                    "AZURE_APP_CLIENT_SECRET",
+                    "Denne brukes bare dersom man bruker en reell PDL/Oppgave-integrasjon o.l.",
+                ),
                 wellKnownUrl = getEnvironmentVariableOrDefault(
                     "AZURE_APP_WELL_KNOWN_URL",
                     "http://localhost:4321/default/.well-known/openid-configuration",
@@ -414,10 +418,15 @@ data class ApplicationConfig(
         )
 
         data class ConsumerCfg(
-            val kafkaConfig: Map<String, Any>
+            val kafkaConfig: Map<String, Any>,
         ) {
             companion object {
-                fun getUserInfoConfig() = "${getEnvironmentVariableOrDefault("KAFKA_SCHEMA_REGISTRY_USER", "usr")}:${getEnvironmentVariableOrDefault("KAFKA_SCHEMA_REGISTRY_PASSWORD", "pwd")}"
+                fun getUserInfoConfig() = "${
+                getEnvironmentVariableOrDefault(
+                    "KAFKA_SCHEMA_REGISTRY_USER",
+                    "usr",
+                )
+                }:${getEnvironmentVariableOrDefault("KAFKA_SCHEMA_REGISTRY_PASSWORD", "pwd")}"
             }
         }
 
@@ -449,11 +458,12 @@ data class ApplicationConfig(
 
         private data class Onprem(
             val brokers: String = getEnvironmentVariableOrDefault("KAFKA_ONPREM_BROKERS", "kafka_onprem_brokers"),
-            val saslConfigs: Map<String, String> = SaslConfig().configure()
+            val saslConfigs: Map<String, String> = SaslConfig().configure(),
         ) {
             fun configure(): Map<String, String> =
                 mapOf(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to brokers) + saslConfigs
         }
+
         private data class SaslConfig(
             val truststorePath: String = getEnvironmentVariableOrDefault("NAV_TRUSTSTORE_PATH", "truststorePath"),
             val credstorePwd: String = getEnvironmentVariableOrDefault("NAV_TRUSTSTORE_PASSWORD", "credstorePwd"),
@@ -466,7 +476,7 @@ data class ApplicationConfig(
                 SaslConfigs.SASL_JAAS_CONFIG to "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"$username\" password=\"$password\";",
                 SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG to truststorePath,
                 SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG to credstorePwd,
-                SslConfigs.SSL_KEY_PASSWORD_CONFIG to credstorePwd
+                SslConfigs.SSL_KEY_PASSWORD_CONFIG to credstorePwd,
             )
         }
     }
@@ -495,7 +505,12 @@ data class ApplicationConfig(
             kafkaConfig = KafkaConfig.createFromEnvironmentVariables(),
             unleash = UnleashConfig.createFromEnvironmentVariables(),
             jobConfig = JobConfig(
-                personhendelse = JobConfig.Personhendelse(naisCluster())
+                personhendelse = JobConfig.Personhendelse(naisCluster()),
+                konsistensavstemming = when (naisCluster()) {
+                    NaisCluster.Dev -> JobConfig.Konsistensavstemming.Dev()
+                    NaisCluster.Prod -> JobConfig.Konsistensavstemming.Prod()
+                    null -> throw IllegalStateException("Kunne ikke identifsiere nais-cluster")
+                },
             ),
         )
 
@@ -513,7 +528,8 @@ data class ApplicationConfig(
             kafkaConfig = KafkaConfig.createLocalConfig(),
             unleash = UnleashConfig.createFromEnvironmentVariables(),
             jobConfig = JobConfig(
-                personhendelse = JobConfig.Personhendelse(naisCluster())
+                personhendelse = JobConfig.Personhendelse(naisCluster()),
+                konsistensavstemming = JobConfig.Konsistensavstemming.Local(),
             ),
         ).also {
             log.warn("**********  Using local config (the environment variable 'NAIS_CLUSTER_NAME' is missing.)")
@@ -532,7 +548,11 @@ data class ApplicationConfig(
         fun isNotProd() = isRunningLocally() || naisCluster() == NaisCluster.Dev
         fun fnrKode6() = getEnvironmentVariableOrNull("FNR_KODE6")
     }
-    data class JobConfig(val personhendelse: Personhendelse) {
+
+    data class JobConfig(
+        val personhendelse: Personhendelse,
+        val konsistensavstemming: Konsistensavstemming,
+    ) {
         data class Personhendelse(private val naisCluster: NaisCluster?) {
             private val PREPROD: Long = Duration.of(10, ChronoUnit.MINUTES).toMillis()
             private val PROD: Long = Duration.of(1, ChronoUnit.DAYS).toMillis()
@@ -542,6 +562,31 @@ data class ApplicationConfig(
                     NaisCluster.Prod -> PROD
                     else -> PREPROD
                 }
+        }
+
+        sealed class Konsistensavstemming {
+            abstract val kjøreplan: Set<LocalDate>
+
+            data class Prod(
+                override val kjøreplan: Set<LocalDate> = setOf(
+                    22.november(2021),
+                    5.januar(2022),
+                    28.januar(2022),
+                    25.februar(2022),
+                    25.mars(2022),
+                    26.april(2022),
+                    27.mai(2022),
+                    29.juni(2022),
+                    29.juli(2022),
+                    30.august(2022),
+                    29.september(2022),
+                    28.oktober(2022),
+                    21.november(2022),
+                ),
+            ) : Konsistensavstemming()
+
+            data class Dev(override val kjøreplan: Set<LocalDate> = emptySet()) : Konsistensavstemming()
+            data class Local(override val kjøreplan: Set<LocalDate> = emptySet()) : Konsistensavstemming()
         }
     }
 }

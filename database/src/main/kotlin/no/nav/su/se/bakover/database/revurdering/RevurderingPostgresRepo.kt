@@ -12,12 +12,14 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.Session
+import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.deserialiserBeregning
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -89,6 +91,7 @@ internal class RevurderingPostgresRepo(
     private val fradragsgrunnlagPostgresRepo: FradragsgrunnlagPostgresRepo,
     private val bosituasjonsgrunnlagPostgresRepo: BosituasjongrunnlagPostgresRepo,
     private val uføreVilkårsvurderingRepo: UføreVilkårsvurderingPostgresRepo,
+    private val utlandsoppholdVilkårsvurderingRepo: UtenlandsoppholdVilkårsvurderingPostgresRepo,
     private val formueVilkårsvurderingRepo: FormueVilkårsvurderingPostgresRepo,
     søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
     private val dbMetrics: DbMetrics,
@@ -101,6 +104,7 @@ internal class RevurderingPostgresRepo(
         bosituasjonsgrunnlagPostgresRepo = bosituasjonsgrunnlagPostgresRepo,
         uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
         formueVilkårsvurderingRepo = formueVilkårsvurderingRepo,
+        utlandsoppholdVilkårsvurderingRepo = utlandsoppholdVilkårsvurderingRepo,
     )
 
     private val gjenopptakAvYtelseRepo = GjenopptakAvYtelsePostgresRepo(
@@ -108,6 +112,7 @@ internal class RevurderingPostgresRepo(
         bosituasjonsgrunnlagPostgresRepo = bosituasjonsgrunnlagPostgresRepo,
         uføreVilkårsvurderingRepo = uføreVilkårsvurderingRepo,
         formueVilkårsvurderingRepo = formueVilkårsvurderingRepo,
+        utlandsoppholdVilkårsvurderingRepo = utlandsoppholdVilkårsvurderingRepo,
     )
 
     override fun hent(id: UUID): AbstraktRevurdering? {
@@ -140,24 +145,16 @@ internal class RevurderingPostgresRepo(
         }
 
     override fun lagre(revurdering: AbstraktRevurdering) {
-        when (revurdering) {
-            is Revurdering -> dataSource.withSession { lagre(revurdering, it) }
-            is GjenopptaYtelseRevurdering -> sessionFactory.withTransactionContext {
-                gjenopptakAvYtelseRepo.lagre(
-                    revurdering,
-                    it,
-                )
-            }
-            is StansAvYtelseRevurdering -> sessionFactory.withTransactionContext {
-                stansAvYtelseRepo.lagre(
-                    revurdering,
-                    it,
-                )
+        sessionFactory.withTransaction { tx ->
+            when (revurdering) {
+                is Revurdering -> lagre(revurdering, tx)
+                is GjenopptaYtelseRevurdering -> gjenopptakAvYtelseRepo.lagre(revurdering, tx)
+                is StansAvYtelseRevurdering -> stansAvYtelseRepo.lagre(revurdering, tx)
             }
         }
     }
 
-    internal fun lagre(revurdering: Revurdering, session: Session) {
+    internal fun lagre(revurdering: Revurdering, session: TransactionalSession) {
         when (revurdering) {
             is OpprettetRevurdering -> lagre(revurdering, session)
             is BeregnetRevurdering -> lagre(revurdering, session)
@@ -239,6 +236,7 @@ internal class RevurderingPostgresRepo(
         val vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
             uføre = uføreVilkårsvurderingRepo.hent(id, session),
             formue = formueVilkårsvurderingRepo.hent(id, session),
+            utenlandsopphold = utlandsoppholdVilkårsvurderingRepo.hent(id, session),
         )
 
         val revurdering = lagRevurdering(
@@ -296,7 +294,7 @@ internal class RevurderingPostgresRepo(
         return revurdering
     }
 
-    private fun lagre(revurdering: OpprettetRevurdering, session: Session) =
+    private fun lagre(revurdering: OpprettetRevurdering, session: TransactionalSession) {
         """
                     insert into revurdering (
                         id,
@@ -367,8 +365,14 @@ internal class RevurderingPostgresRepo(
                 ),
                 session,
             )
+        utlandsoppholdVilkårsvurderingRepo.lagre(
+            behandlingId = revurdering.id,
+            vilkår = revurdering.vilkårsvurderinger.utenlandsopphold,
+            tx = session,
+        )
+    }
 
-    private fun lagre(revurdering: BeregnetRevurdering, session: Session) =
+    private fun lagre(revurdering: BeregnetRevurdering, session: TransactionalSession) =
         """
                     update
                         revurdering
@@ -400,7 +404,7 @@ internal class RevurderingPostgresRepo(
                 session,
             )
 
-    private fun lagre(revurdering: SimulertRevurdering, session: Session) =
+    private fun lagre(revurdering: SimulertRevurdering, session: TransactionalSession) =
         """
                     update
                         revurdering
@@ -434,7 +438,7 @@ internal class RevurderingPostgresRepo(
                 session,
             )
 
-    private fun lagre(revurdering: RevurderingTilAttestering, session: Session) =
+    private fun lagre(revurdering: RevurderingTilAttestering, session: TransactionalSession) =
         """
                     update
                         revurdering
@@ -479,7 +483,7 @@ internal class RevurderingPostgresRepo(
                 session,
             )
 
-    private fun lagre(revurdering: IverksattRevurdering, session: Session) =
+    private fun lagre(revurdering: IverksattRevurdering, session: TransactionalSession) =
         """
                     update
                         revurdering
@@ -518,7 +522,7 @@ internal class RevurderingPostgresRepo(
                 session,
             )
 
-    private fun lagre(revurdering: UnderkjentRevurdering, session: Session) =
+    private fun lagre(revurdering: UnderkjentRevurdering, session: TransactionalSession) =
         """
                     update
                         revurdering
@@ -547,7 +551,7 @@ internal class RevurderingPostgresRepo(
                 session,
             )
 
-    private fun lagre(revurdering: AvsluttetRevurdering, session: Session) =
+    private fun lagre(revurdering: AvsluttetRevurdering, session: TransactionalSession) =
         """
                     update
                         revurdering

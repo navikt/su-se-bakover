@@ -1,0 +1,1 @@
+update dokument set vedtakid = null where type = 'INFORMASJON' and tittel = 'Ikke grunnlag for revurdering'

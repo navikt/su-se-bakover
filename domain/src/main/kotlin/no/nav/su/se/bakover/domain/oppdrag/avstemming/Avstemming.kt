@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain.oppdrag.avstemming
 
+import arrow.core.NonEmptyList
+import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
@@ -72,13 +74,14 @@ sealed class Avstemming {
                             saksnummer = utbetaling.saksnummer,
                             fnr = utbetaling.fnr,
                             utbetalingslinjer = utbetaling.utbetalingslinjer,
-                            utbetalingslinjerTilAttestant = utbetaling.utbetalingslinjer.map { it.id }
-                                .keysToMap { utbetaling.behandler },
+                            utbetalingslinjerTilAttestanter = utbetaling.utbetalingslinjer.map { it.id }
+                                .keysToMap { nonEmptyListOf(utbetaling.behandler) },
                         )
                     }.reduce { acc, other ->
                         acc.copy(
                             utbetalingslinjer = acc.utbetalingslinjer + other.utbetalingslinjer,
-                            utbetalingslinjerTilAttestant = acc.utbetalingslinjerTilAttestant + other.utbetalingslinjerTilAttestant,
+                            utbetalingslinjerTilAttestanter = (acc.utbetalingslinjerTilAttestanter.keys + other.utbetalingslinjerTilAttestanter.keys)
+                                .associateWith { key -> NonEmptyList.fromListUnsafe((acc.utbetalingslinjerTilAttestanter[key] ?: emptyList()) + (other.utbetalingslinjerTilAttestanter[key] ?: emptyList())) },
                         )
                     }
                 }
@@ -108,7 +111,7 @@ sealed class Avstemming {
                         utbetalingslinjer = entry.value.first.utbetalingslinjer
                             .filterIsInstance<Utbetalingslinje.Ny>()
                             .filter { entry.value.second.contains(it.id) }
-                            .map { it.toOppdragslinjeForKonsistensavstemming(entry.value.first.attestant(it.id)) },
+                            .map { it.toOppdragslinjeForKonsistensavstemming(entry.value.first.attestanter(it.id)) },
                     )
                 }
         }
@@ -124,7 +127,7 @@ sealed class Avstemming {
     }
 }
 
-internal fun Utbetalingslinje.toOppdragslinjeForKonsistensavstemming(attestant: NavIdentBruker): OppdragslinjeForKonsistensavstemming {
+internal fun Utbetalingslinje.toOppdragslinjeForKonsistensavstemming(attestanter: NonEmptyList<NavIdentBruker>): OppdragslinjeForKonsistensavstemming {
     return OppdragslinjeForKonsistensavstemming(
         id = id,
         opprettet = opprettet,
@@ -132,7 +135,7 @@ internal fun Utbetalingslinje.toOppdragslinjeForKonsistensavstemming(attestant: 
         tilOgMed = tilOgMed,
         forrigeUtbetalingslinjeId = forrigeUtbetalingslinjeId,
         beløp = beløp,
-        attestant = attestant,
+        attestanter = attestanter,
     )
 }
 
@@ -140,10 +143,10 @@ private data class UtbetalingslinjerPerSak(
     val saksnummer: Saksnummer,
     val fnr: Fnr,
     val utbetalingslinjer: List<Utbetalingslinje>,
-    val utbetalingslinjerTilAttestant: Map<UUID30, NavIdentBruker>,
+    val utbetalingslinjerTilAttestanter: Map<UUID30, NonEmptyList<NavIdentBruker>>,
 ) {
-    fun attestant(utbetalingslinjeId: UUID30): NavIdentBruker {
-        return utbetalingslinjerTilAttestant[utbetalingslinjeId]!!
+    fun attestanter(utbetalingslinjeId: UUID30): NonEmptyList<NavIdentBruker> {
+        return utbetalingslinjerTilAttestanter[utbetalingslinjeId]!!
     }
 }
 
@@ -160,5 +163,5 @@ data class OppdragslinjeForKonsistensavstemming(
     val tilOgMed: LocalDate,
     var forrigeUtbetalingslinjeId: UUID30?,
     val beløp: Int,
-    val attestant: NavIdentBruker,
+    val attestanter: NonEmptyList<NavIdentBruker>,
 )

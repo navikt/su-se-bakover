@@ -1,9 +1,3 @@
-buildscript {
-    dependencies {
-        classpath("org.ajoberstar:grgit:2.3.0")
-    }
-}
-
 plugins {
     kotlin("jvm")
     // Støtter unicode filer (i motsetning til https://github.com/JLLeitschuh/ktlint-gradle 10.0.0) og har nyere dependencies som gradle. Virker som den oppdateres hyppigere.
@@ -12,7 +6,7 @@ plugins {
 
 version = "0.0.1"
 
-allprojects {
+subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "org.jmailen.kotlinter")
     repositories {
@@ -38,13 +32,13 @@ allprojects {
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
         implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
         implementation("ch.qos.logback:logback-classic:1.2.7")
-        implementation("net.logstash.logback:logstash-logback-encoder:7.0")
+        implementation("net.logstash.logback:logstash-logback-encoder:7.0.1")
         implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
         implementation("org.apache.kafka:kafka-clients:3.0.0")
         implementation("com.networknt:json-schema-validator:1.0.64")
         implementation("no.finn.unleash:unleash-client-java:4.4.1")
 
-        implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.3.0")
+        implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.4.0")
         implementation("io.confluent:kafka-avro-serializer:6.2.1")
         implementation("org.apache.avro:avro:1.11.0")
 
@@ -108,7 +102,7 @@ allprojects {
 
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         kotlinOptions {
-            jvmTarget = "16"
+            jvmTarget = "17"
             freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
             freeCompilerArgs += "-Xenable-builder-inference"
             freeCompilerArgs += "-progressive"

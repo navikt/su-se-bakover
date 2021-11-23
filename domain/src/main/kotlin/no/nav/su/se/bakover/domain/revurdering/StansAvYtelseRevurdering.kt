@@ -38,7 +38,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
         override val opprettet: Tidspunkt = underliggendeStansAvYtelse.opprettet
         override val periode: Periode = underliggendeStansAvYtelse.periode
         override val grunnlagsdata: Grunnlagsdata = underliggendeStansAvYtelse.grunnlagsdata
-        override val vilkårsvurderinger: Vilkårsvurderinger = underliggendeStansAvYtelse.vilkårsvurderinger
+        override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering = underliggendeStansAvYtelse.vilkårsvurderinger
         val saksbehandler: NavIdentBruker.Saksbehandler = underliggendeStansAvYtelse.saksbehandler
         val simulering: Simulering = underliggendeStansAvYtelse.simulering
         val revurderingsårsak: Revurderingsårsak = underliggendeStansAvYtelse.revurderingsårsak

@@ -11,6 +11,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
     val fradrag: List<FradragJson>,
     val bosituasjon: List<BosituasjonJson>,
     val formue: FormuevilkårJson?,
+    val utenlandsopphold: UtenlandsoppholdVilkårJson?,
 ) {
     companion object {
         fun create(
@@ -22,6 +23,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                 fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag.toJson() },
                 bosituasjon = grunnlagsdata.bosituasjon.toJson(),
                 formue = vilkårsvurderinger.formueJson(),
+                utenlandsopphold = vilkårsvurderinger.utenlandsoppholdJson(),
             )
         }
     }
@@ -51,6 +53,17 @@ internal fun Vilkårsvurderinger.formueJson(): FormuevilkårJson? {
         }
         is Vilkårsvurderinger.Søknadsbehandling -> {
             formue.toJson()
+        }
+    }
+}
+
+internal fun Vilkårsvurderinger.utenlandsoppholdJson(): UtenlandsoppholdVilkårJson? {
+    return when (this) {
+        is Vilkårsvurderinger.Revurdering -> {
+            utenlandsopphold.toJson()
+        }
+        is Vilkårsvurderinger.Søknadsbehandling -> {
+            utenlandsopphold.toJson()
         }
     }
 }

@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
@@ -35,7 +36,6 @@ class UføreVilkårJsonTest {
         //language=JSON
         internal val expectedVurderingUføreJson = """
         {
-          "vilkår": "Uførhet",
           "vurderinger": [{
             "id": "$vilkårsvurderingUføreId",
             "opprettet": "${DateTimeFormatter.ISO_INSTANT.format(vilkårsvurderingUføreOpprettet)}",
@@ -65,7 +65,9 @@ class UføreVilkårJsonTest {
         )
 
         internal val vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-            uførevurdering,
+            uføre = uførevurdering,
+            formue = Vilkår.Formue.IkkeVurdert,
+            utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert
         )
     }
 }

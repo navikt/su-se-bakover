@@ -148,6 +148,7 @@ internal class OppgaveHttpClient(
                     objectMapper.readValue(body, OppgaveResponse::class.java).getOppgaveId().right()
                 } else {
                     log.error("Feil i kallet mot oppgave. status=${it.statusCode()}, body=$body")
+                    sikkerLogg.error("Feil i kallet mot oppgave. Requestcontent=$config, ${it.statusCode()}, body=$body")
                     OppgaveFeil.KunneIkkeOppretteOppgave.left()
                 }
             }

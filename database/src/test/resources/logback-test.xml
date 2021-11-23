@@ -1,10 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <include file="../web/src/main/resources/logbackConfig.xml"/>
-
-    <logger name="org.flywaydb" level="INFO"/>
-
-    <root level="INFO">
-        <appender-ref ref="STDOUT_JSON"/>
-    </root>
+    <include file="../web/src/test/resources/logbackConfig.xml"/>
 </configuration>

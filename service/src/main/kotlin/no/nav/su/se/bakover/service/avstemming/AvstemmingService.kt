@@ -13,4 +13,5 @@ interface AvstemmingService {
     ): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming>
 
     fun konsistensavstemming(løpendeFraOgMed: LocalDate): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming.Ny>
+    fun konsistensavstemmingUtførtForOgPåDato(dato: LocalDate): Boolean
 }
