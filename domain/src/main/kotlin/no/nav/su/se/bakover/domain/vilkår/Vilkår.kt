@@ -43,7 +43,7 @@ sealed class Inngangsvilkår {
     object Flyktning : Inngangsvilkår()
     object LovligOpphold : Inngangsvilkår()
     object Institusjonsopphold : Inngangsvilkår()
-    object OppholdIUtlandet : Inngangsvilkår()
+    object Utenlandsopphold : Inngangsvilkår()
     object PersonligOppmøte : Inngangsvilkår()
     object FastOppholdINorge : Inngangsvilkår()
 }
@@ -82,7 +82,7 @@ sealed class Vilkårsvurderinger {
                     is LovligOppholdVilkår.Vurdert -> {
                         vilkår.vurderingsperioder.map { it.periode }
                     }
-                    is OppholdIUtlandetVilkår.Vurdert -> {
+                    is UtenlandsoppholdVilkår.Vurdert -> {
                         vilkår.vurderingsperioder.map { it.periode }
                     }
                     is PersonligOppmøteVilkår.Vurdert -> {
@@ -127,7 +127,7 @@ sealed class Vilkårsvurderinger {
         val lovligOpphold: LovligOppholdVilkår = LovligOppholdVilkår.IkkeVurdert,
         val fastOpphold: FastOppholdINorgeVilkår = FastOppholdINorgeVilkår.IkkeVurdert,
         val institusjonsopphold: InstitusjonsoppholdVilkår = InstitusjonsoppholdVilkår.IkkeVurdert,
-        val oppholdIUtlandet: OppholdIUtlandetVilkår = OppholdIUtlandetVilkår.IkkeVurdert,
+        val utenlandsopphold: UtenlandsoppholdVilkår = UtenlandsoppholdVilkår.IkkeVurdert,
         val personligOppmøte: PersonligOppmøteVilkår = PersonligOppmøteVilkår.IkkeVurdert,
     ) : Vilkårsvurderinger() {
         override val vilkår: Set<Vilkår>
@@ -139,7 +139,7 @@ sealed class Vilkårsvurderinger {
                     lovligOpphold,
                     fastOpphold,
                     institusjonsopphold,
-                    oppholdIUtlandet,
+                    utenlandsopphold,
                     personligOppmøte,
                 )
             }
@@ -152,7 +152,7 @@ sealed class Vilkårsvurderinger {
                 lovligOpphold = lovligOpphold.lagTidslinje(periode),
                 fastOpphold = fastOpphold.lagTidslinje(periode),
                 institusjonsopphold = institusjonsopphold.lagTidslinje(periode),
-                oppholdIUtlandet = oppholdIUtlandet.lagTidslinje(periode),
+                utenlandsopphold = utenlandsopphold.lagTidslinje(periode),
                 personligOppmøte = personligOppmøte.lagTidslinje(periode),
             )
         }
@@ -164,7 +164,7 @@ sealed class Vilkårsvurderinger {
                 is Vilkår.Formue -> copy(formue = vilkår)
                 is InstitusjonsoppholdVilkår -> copy(institusjonsopphold = vilkår)
                 is LovligOppholdVilkår -> copy(lovligOpphold = vilkår)
-                is OppholdIUtlandetVilkår -> copy(oppholdIUtlandet = vilkår)
+                is UtenlandsoppholdVilkår -> copy(utenlandsopphold = vilkår)
                 is PersonligOppmøteVilkår -> copy(personligOppmøte = vilkår)
                 is Vilkår.Uførhet -> copy(uføre = vilkår)
             }
@@ -174,6 +174,7 @@ sealed class Vilkårsvurderinger {
             return Revurdering(
                 uføre = uføre,
                 formue = formue,
+                utenlandsopphold = utenlandsopphold,
             )
         }
 
@@ -182,8 +183,7 @@ sealed class Vilkårsvurderinger {
         }
 
         override fun erLik(other: Vilkårsvurderinger): Boolean {
-            return other is Søknadsbehandling &&
-                vilkår.erLik(other.vilkår)
+            return other is Søknadsbehandling && vilkår.erLik(other.vilkår)
         }
 
         /**
@@ -224,9 +224,6 @@ sealed class Vilkårsvurderinger {
                     is Behandlingsinformasjon.Institusjonsopphold -> {
                         it.tilVilkår(stønadsperiode, clock)
                     }
-                    is Behandlingsinformasjon.OppholdIUtlandet -> {
-                        it.tilVilkår(stønadsperiode, clock)
-                    }
                     is Behandlingsinformasjon.Formue -> {
                         it.tilVilkår(stønadsperiode, grunnlagsdata.bosituasjon, clock)
                     }
@@ -250,7 +247,7 @@ sealed class Vilkårsvurderinger {
             lovligOpphold = lovligOpphold.oppdaterStønadsperiode(stønadsperiode),
             fastOpphold = fastOpphold.oppdaterStønadsperiode(stønadsperiode),
             institusjonsopphold = institusjonsopphold.oppdaterStønadsperiode(stønadsperiode),
-            oppholdIUtlandet = oppholdIUtlandet.oppdaterStønadsperiode(stønadsperiode),
+            utenlandsopphold = utenlandsopphold.oppdaterStønadsperiode(stønadsperiode),
             personligOppmøte = personligOppmøte.oppdaterStønadsperiode(stønadsperiode),
         )
 
@@ -262,21 +259,23 @@ sealed class Vilkårsvurderinger {
                 lovligOpphold = LovligOppholdVilkår.IkkeVurdert,
                 fastOpphold = FastOppholdINorgeVilkår.IkkeVurdert,
                 institusjonsopphold = InstitusjonsoppholdVilkår.IkkeVurdert,
-                oppholdIUtlandet = OppholdIUtlandetVilkår.IkkeVurdert,
+                utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
                 personligOppmøte = PersonligOppmøteVilkår.IkkeVurdert,
             )
         }
     }
 
     data class Revurdering(
-        val uføre: Vilkår.Uførhet = Vilkår.Uførhet.IkkeVurdert,
-        val formue: Vilkår.Formue = Vilkår.Formue.IkkeVurdert,
+        val uføre: Vilkår.Uførhet,
+        val formue: Vilkår.Formue,
+        val utenlandsopphold: UtenlandsoppholdVilkår,
     ) : Vilkårsvurderinger() {
         override val vilkår: Set<Vilkår>
             get() {
                 return setOf(
                     uføre,
                     formue,
+                    utenlandsopphold,
                 )
             }
 
@@ -284,6 +283,7 @@ sealed class Vilkårsvurderinger {
             return when (vilkår) {
                 is Vilkår.Formue -> copy(formue = vilkår)
                 is Vilkår.Uførhet -> copy(uføre = vilkår)
+                is UtenlandsoppholdVilkår -> copy(utenlandsopphold = vilkår)
                 else -> throw IllegalArgumentException("Ukjent vilkår for revurdering: ${vilkår::class}")
             }
         }
@@ -296,6 +296,7 @@ sealed class Vilkårsvurderinger {
             return Søknadsbehandling(
                 uføre = uføre,
                 formue = formue,
+                utenlandsopphold = utenlandsopphold,
             )
         }
 
@@ -315,18 +316,21 @@ sealed class Vilkårsvurderinger {
             return copy(
                 uføre = uføre.lagTidslinje(periode),
                 formue = formue.lagTidslinje(periode),
+                utenlandsopphold = utenlandsopphold.lagTidslinje(periode),
             )
         }
 
         fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Revurdering = copy(
             uføre = uføre.oppdaterStønadsperiode(stønadsperiode),
             formue = formue.oppdaterStønadsperiode(stønadsperiode),
+            utenlandsopphold = utenlandsopphold.oppdaterStønadsperiode(stønadsperiode),
         )
 
         companion object {
             val IkkeVurdert = Revurdering(
                 uføre = Vilkår.Uførhet.IkkeVurdert,
                 formue = Vilkår.Formue.IkkeVurdert,
+                utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
             )
         }
     }
@@ -353,7 +357,7 @@ sealed class Vilkårsvurderingsresultat {
                 Inngangsvilkår.Formue -> Avslagsgrunn.FORMUE
                 Inngangsvilkår.Institusjonsopphold -> Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON
                 Inngangsvilkår.LovligOpphold -> Avslagsgrunn.OPPHOLDSTILLATELSE
-                Inngangsvilkår.OppholdIUtlandet -> Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER
+                Inngangsvilkår.Utenlandsopphold -> Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER
                 Inngangsvilkår.PersonligOppmøte -> Avslagsgrunn.PERSONLIG_OPPMØTE
                 Inngangsvilkår.Uførhet -> Avslagsgrunn.UFØRHET
             }
@@ -839,6 +843,10 @@ sealed class Vurderingsperiode {
             object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigVurderingsperiode()
         }
     }
+}
+
+fun Periode.inneholderAlle(vurderingsperioder: NonEmptyList<Vurderingsperiode>): Boolean {
+    return vurderingsperioder.all { this inneholder it.periode }
 }
 
 sealed class Resultat {

@@ -30,8 +30,8 @@ internal class ServiceBuilderTest {
                 formueVilkårsvurderingRepo = mock(),
                 personhendelseRepo = mock(),
                 dokumentRepo = mock(),
-                sessionFactory = mock(),
                 nøkkeltallRepo = mock(),
+                sessionFactory = mock(),
                 klageRepo = mock()
             ),
             clients = Clients(

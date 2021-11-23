@@ -14,8 +14,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Flyktning.S
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Formue
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Formue.Verdier
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.LovligOpphold
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.OppholdIUtlandet
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.PersonligOppmøte
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Uførhet
@@ -65,10 +63,6 @@ object BehandlingTestUtils {
         ),
         institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
             status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
-            begrunnelse = null
-        ),
-        oppholdIUtlandet = OppholdIUtlandet(
-            status = SkalHoldeSegINorge,
             begrunnelse = null
         ),
         formue = Formue(

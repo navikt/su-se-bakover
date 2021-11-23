@@ -390,7 +390,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
                 },
             )
             verify(behandlingMetricsMock).incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.OPPRETTET_OPPGAVE)
-            verify(søknadsbehandlingRepoMock).defaultSessionContext()
+            verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(
                 søknadsbehandling = argThat { it shouldBe underkjentMedNyOppgaveIdOgAttestering },
                 sessionContext = anyOrNull(),
@@ -480,7 +480,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
                 }
             )
             verify(behandlingMetricsMock).incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.OPPRETTET_OPPGAVE)
-            verify(søknadsbehandlingRepoMock).defaultSessionContext()
+            verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(eq(underkjentMedNyOppgaveIdOgAttestering), anyOrNull())
             verify(behandlingMetricsMock).incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.PERSISTERT)
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })

@@ -33,8 +33,11 @@ internal class VilkårsvurderRequestTest {
         val request = VilkårsvurderRequest(
             behandlingId = UUID.randomUUID(),
             behandlingsinformasjon = Behandlingsinformasjon(
-                uførhet = null, flyktning = null, lovligOpphold = null, fastOppholdINorge = null,
-                institusjonsopphold = null, oppholdIUtlandet = null,
+                uførhet = null,
+                flyktning = null,
+                lovligOpphold = null,
+                fastOppholdINorge = null,
+                institusjonsopphold = null,
                 formue = Behandlingsinformasjon.Formue(
                     status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
                     verdier = Behandlingsinformasjon.Formue.Verdier(
@@ -51,8 +54,11 @@ internal class VilkårsvurderRequestTest {
 
         request.hentValidertBehandlingsinformasjon(bosituasjonUtenEPS) shouldBe
             Behandlingsinformasjon(
-                uførhet = null, flyktning = null, lovligOpphold = null, fastOppholdINorge = null,
-                institusjonsopphold = null, oppholdIUtlandet = null,
+                uførhet = null,
+                flyktning = null,
+                lovligOpphold = null,
+                fastOppholdINorge = null,
+                institusjonsopphold = null,
                 formue = Behandlingsinformasjon.Formue(
                     status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
                     verdier = Behandlingsinformasjon.Formue.Verdier(
@@ -72,8 +78,11 @@ internal class VilkårsvurderRequestTest {
         val request = VilkårsvurderRequest(
             behandlingId = UUID.randomUUID(),
             behandlingsinformasjon = Behandlingsinformasjon(
-                uførhet = null, flyktning = null, lovligOpphold = null, fastOppholdINorge = null,
-                institusjonsopphold = null, oppholdIUtlandet = null,
+                uførhet = null,
+                flyktning = null,
+                lovligOpphold = null,
+                fastOppholdINorge = null,
+                institusjonsopphold = null,
                 formue = Behandlingsinformasjon.Formue(
                     status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
                     verdier = Behandlingsinformasjon.Formue.Verdier(
@@ -97,8 +106,11 @@ internal class VilkårsvurderRequestTest {
         val request = VilkårsvurderRequest(
             behandlingId = UUID.randomUUID(),
             behandlingsinformasjon = Behandlingsinformasjon(
-                uførhet = null, flyktning = null, lovligOpphold = null, fastOppholdINorge = null,
-                institusjonsopphold = null, oppholdIUtlandet = null,
+                uførhet = null,
+                flyktning = null,
+                lovligOpphold = null,
+                fastOppholdINorge = null,
+                institusjonsopphold = null,
                 formue = Behandlingsinformasjon.Formue(
                     status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
                     verdier = Behandlingsinformasjon.Formue.Verdier(
@@ -122,8 +134,11 @@ internal class VilkårsvurderRequestTest {
         val request = VilkårsvurderRequest(
             behandlingId = UUID.randomUUID(),
             behandlingsinformasjon = Behandlingsinformasjon(
-                uførhet = null, flyktning = null, lovligOpphold = null, fastOppholdINorge = null,
-                institusjonsopphold = null, oppholdIUtlandet = null,
+                uførhet = null,
+                flyktning = null,
+                lovligOpphold = null,
+                fastOppholdINorge = null,
+                institusjonsopphold = null,
                 formue = Behandlingsinformasjon.Formue(
                     status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
                     verdier = Behandlingsinformasjon.Formue.Verdier(

@@ -20,13 +20,16 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import java.util.UUID
@@ -88,12 +91,13 @@ internal class VedtakPåTidslinjeTest {
                 bosituasjon = listOf(bosituasjon),
             ),
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-                Vilkår.Uførhet.Vurdert.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         uføreVurderingsperiode,
                     ),
                 ),
-                formuevilkår,
+                formue = formuevilkår,
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periode)
             ),
             originaltVedtak = originaltVedtak,
         )
@@ -150,6 +154,25 @@ internal class VedtakPåTidslinjeTest {
                             }
                         }
                     }
+
+                    (vilkårsvurdering.utenlandsopphold as UtenlandsoppholdVilkår.Vurdert).let { vilkårcopy ->
+                        vilkårcopy.vurderingsperioder shouldHaveSize 1
+                        vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
+                            val expectedVurderingsperiode = formuevilkår.vurderingsperioder.first()
+                            vurderingsperiodecopy.id shouldNotBe expectedVurderingsperiode.id
+                            vurderingsperiodecopy.resultat shouldBe expectedVurderingsperiode.resultat
+                            vurderingsperiodecopy.periode shouldBe expectedVurderingsperiode.periode
+                            vurderingsperiodecopy.grunnlag shouldBe null
+                        }
+                    }
+
+                    vilkårsvurdering.resultat shouldBe Vilkårsvurderingsresultat.Innvilget(
+                        setOf(
+                            vilkårsvurdering.uføre,
+                            vilkårsvurdering.formue,
+                            vilkårsvurdering.utenlandsopphold,
+                        )
+                    )
                 }
 
             vedtakPåTidslinje.grunnlagsdata.fradragsgrunnlag.first().fradrag shouldBe f1.fradrag
@@ -219,12 +242,13 @@ internal class VedtakPåTidslinjeTest {
                 fradragsgrunnlag = listOf(f1, f2),
             ),
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
-                Vilkår.Uførhet.Vurdert.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         vurderingsperiode,
                     ),
                 ),
-                formuevilkår,
+                formue = formuevilkår,
+                utenlandsopphold = utlandsoppholdInnvilget(periode = periode)
             ),
             originaltVedtak = originaltVedtak,
         )
@@ -285,6 +309,25 @@ internal class VedtakPåTidslinjeTest {
                                 }
                             }
                         }
+
+                        (vilkårsvurdering.utenlandsopphold as UtenlandsoppholdVilkår.Vurdert).let { vilkårcopy ->
+                            vilkårcopy.vurderingsperioder shouldHaveSize 1
+                            vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
+                                val expectedVurderingsperiode = formuevilkår.vurderingsperioder.first()
+                                vurderingsperiodecopy.id shouldNotBe expectedVurderingsperiode.id
+                                vurderingsperiodecopy.resultat shouldBe expectedVurderingsperiode.resultat
+                                vurderingsperiodecopy.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
+                                vurderingsperiodecopy.grunnlag shouldBe null
+                            }
+                        }
+
+                        vilkårsvurdering.resultat shouldBe Vilkårsvurderingsresultat.Innvilget(
+                            setOf(
+                                vilkårsvurdering.uføre,
+                                vilkårsvurdering.formue,
+                                vilkårsvurdering.utenlandsopphold,
+                            )
+                        )
                     }
                 vedtakPåTidslinje.grunnlagsdata.bosituasjon[0].let {
                     (it as Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen)

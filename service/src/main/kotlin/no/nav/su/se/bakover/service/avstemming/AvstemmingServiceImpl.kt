@@ -58,6 +58,10 @@ internal class AvstemmingServiceImpl(
         )
     }
 
+    override fun konsistensavstemmingUtførtForOgPåDato(dato: LocalDate): Boolean {
+        return repo.konsistensavstemmingUtførtForOgPåDato(dato)
+    }
+
     private fun grensesnittsavstemming(periode: AvstemmingsPeriode): Either<AvstemmingFeilet, Avstemming.Grensesnittavstemming> {
         val utbetalinger = repo.hentUtbetalingerForGrensesnittsavstemming(periode.fraOgMed, periode.tilOgMed)
 

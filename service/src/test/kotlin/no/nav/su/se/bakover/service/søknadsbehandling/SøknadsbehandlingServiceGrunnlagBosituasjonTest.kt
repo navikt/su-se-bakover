@@ -238,8 +238,8 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             ),
         )
 
-        verify(søknadsbehandlingRepoMock, Times(1)).hent(argThat { it shouldBe behandlingId })
-        verify(søknadsbehandlingRepoMock).defaultSessionContext()
+        verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
+        verify(søknadsbehandlingRepoMock).defaultTransactionContext()
         verify(søknadsbehandlingRepoMock).lagre(
             any(),
             anyOrNull(),
@@ -307,8 +307,8 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         verify(personServiceMock).hentPerson(bosituasjon.fnr)
-        verify(søknadsbehandlingRepoMock, Times(1)).hent(argThat { it shouldBe uavklart.id })
-        verify(søknadsbehandlingRepoMock).defaultSessionContext()
+        verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe uavklart.id })
+        verify(søknadsbehandlingRepoMock).defaultTransactionContext()
         verify(søknadsbehandlingRepoMock).lagre(
             any(),
             anyOrNull(),
@@ -449,7 +449,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         verify(søknadsbehandlingRepoMock, Times(2)).hent(argThat { it shouldBe behandlingId })
-        verify(søknadsbehandlingRepoMock).defaultSessionContext()
+        verify(søknadsbehandlingRepoMock).defaultTransactionContext()
         verify(søknadsbehandlingRepoMock).lagre(any(), anyOrNull())
         verify(grunnlagServiceMock).lagreBosituasjongrunnlag(
             argThat { it shouldBe behandlingId },

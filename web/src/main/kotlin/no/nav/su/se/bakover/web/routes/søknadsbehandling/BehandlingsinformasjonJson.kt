@@ -8,7 +8,6 @@ internal data class BehandlingsinformasjonJson(
     val lovligOpphold: LovligOppholdJson? = null,
     val fastOppholdINorge: FastOppholdINorgeJson? = null,
     val institusjonsopphold: InstitusjonsoppholdJson? = null,
-    val oppholdIUtlandet: OppholdIUtlandetJson? = null,
     val formue: FormueJson? = null,
     val personligOppmøte: PersonligOppmøteJson? = null,
 ) {
@@ -20,7 +19,6 @@ internal data class BehandlingsinformasjonJson(
                 lovligOpphold = lovligOpphold?.toJson(),
                 fastOppholdINorge = fastOppholdINorge?.toJson(),
                 institusjonsopphold = institusjonsopphold?.toJson(),
-                oppholdIUtlandet = oppholdIUtlandet?.toJson(),
                 formue = formue?.toJson(),
                 personligOppmøte = personligOppmøte?.toJson(),
             )
@@ -59,12 +57,6 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
             Behandlingsinformasjon.Institusjonsopphold(
                 status = Behandlingsinformasjon.Institusjonsopphold.Status.valueOf(i.status),
                 begrunnelse = i.begrunnelse,
-            )
-        },
-        oppholdIUtlandet = b.oppholdIUtlandet?.let { o ->
-            Behandlingsinformasjon.OppholdIUtlandet(
-                status = Behandlingsinformasjon.OppholdIUtlandet.Status.valueOf(o.status),
-                begrunnelse = o.begrunnelse,
             )
         },
         formue = b.formue?.let { f ->
@@ -135,12 +127,6 @@ internal fun Behandlingsinformasjon.Institusjonsopphold.toJson() =
         begrunnelse = begrunnelse,
     )
 
-internal fun Behandlingsinformasjon.OppholdIUtlandet.toJson() =
-    OppholdIUtlandetJson(
-        status = status.name,
-        begrunnelse = begrunnelse,
-    )
-
 internal fun Behandlingsinformasjon.Formue.toJson() =
     FormueJson(
         status = status.name,
@@ -192,11 +178,6 @@ internal data class FastOppholdINorgeJson(
 )
 
 internal data class InstitusjonsoppholdJson(
-    val status: String,
-    val begrunnelse: String?,
-)
-
-internal data class OppholdIUtlandetJson(
     val status: String,
     val begrunnelse: String?,
 )

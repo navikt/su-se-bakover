@@ -252,7 +252,7 @@ fun vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         clock = clock,
     ).let {
         it.copy(
-            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(
+            vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
                 periode = revurderingsperiode,
                 bosituasjon = it.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
             ),

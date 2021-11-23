@@ -91,6 +91,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilBosituasjongrun
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilGrunnlag
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilUtenlandsopphold
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAttestering
@@ -133,8 +134,10 @@ import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import java.time.LocalDate
 import java.util.UUID
 
@@ -160,6 +163,10 @@ open class AccessCheckProxy(
                     løpendeFraOgMed: LocalDate,
                 ): Either<AvstemmingFeilet, Avstemming.Konsistensavstemming.Ny> {
                     return services.avstemming.konsistensavstemming(løpendeFraOgMed)
+                }
+
+                override fun konsistensavstemmingUtførtForOgPåDato(dato: LocalDate): Boolean {
+                    return services.avstemming.konsistensavstemmingUtførtForOgPåDato(dato)
                 }
             },
             utbetaling = object : UtbetalingService {
@@ -496,12 +503,17 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, sessionContext: SessionContext) {
+                override fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, tx: TransactionContext) {
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun lagre(avslag: AvslagManglendeDokumentasjon, sessionContext: SessionContext) {
+                override fun lagre(avslag: AvslagManglendeDokumentasjon, tx: TransactionContext) {
                     kastKanKunKallesFraAnnenService()
+                }
+
+                override fun leggTilUtenlandsopphold(request: LeggTilUtenlandsoppholdRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilUtenlandsopphold, Søknadsbehandling.Vilkårsvurdert> {
+                    assertHarTilgangTilBehandling(request.behandlingId)
+                    return services.søknadsbehandling.leggTilUtenlandsopphold(request)
                 }
             },
             ferdigstillVedtak = object : FerdigstillVedtakService {
@@ -632,6 +644,13 @@ open class AccessCheckProxy(
                 ): Either<KunneIkkeLeggeTilGrunnlag, RevurderingOgFeilmeldingerResponse> {
                     assertHarTilgangTilRevurdering(request.behandlingId)
                     return services.revurdering.leggTilUføregrunnlag(request)
+                }
+
+                override fun leggTilUtenlandsopphold(
+                    request: LeggTilFlereUtenlandsoppholdRequest,
+                ): Either<KunneIkkeLeggeTilUtenlandsopphold, RevurderingOgFeilmeldingerResponse> {
+                    assertHarTilgangTilRevurdering(request.behandlingId)
+                    return services.revurdering.leggTilUtenlandsopphold(request)
                 }
 
                 override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, RevurderingOgFeilmeldingerResponse> {

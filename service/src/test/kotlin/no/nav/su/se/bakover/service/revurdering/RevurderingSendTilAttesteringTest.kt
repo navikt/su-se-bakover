@@ -36,7 +36,7 @@ import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgInnvilgetFormue
+import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilgetRevurdering
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -301,7 +301,7 @@ class RevurderingSendTilAttesteringTest {
                 grunnlagsdataOgVilkårsvurderinger = grunnlagsdataEnsligMedFradrag(periode = revurderingsperiode).let {
                     GrunnlagsdataOgVilkårsvurderinger(
                         it,
-                        vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgInnvilgetFormue(
+                        vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
                             periode = stønadsperiode.periode,
                             bosituasjon = it.bosituasjon.singleFullstendigOrThrow(),
                         ),

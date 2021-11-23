@@ -59,6 +59,10 @@ internal class AvstemmingRoutesKtTest {
                 avstemmingXmlRequest = null,
             ).right()
         }
+
+        override fun konsistensavstemmingUtførtForOgPåDato(dato: LocalDate): Boolean {
+            return false
+        }
     }
 
     private fun services() = TestServicesBuilder.services().copy(
