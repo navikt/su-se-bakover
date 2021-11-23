@@ -7,6 +7,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.Session
@@ -103,7 +104,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 erUnderskrevet=:erUnderskrevet,
                 begrunnelse=:begrunnelse,
                 fritekstTilBrev=:fritekstTilBrev,
-                vedtaksvurdering=:vedtaksvurdering
+                vedtaksvurdering=to_jsonb(:vedtaksvurdering::jsonb)
             where id=:id
         """.trimIndent()
             .oppdatering(
@@ -454,7 +455,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
         }
 
         companion object {
-            fun VurderingerTilKlage.Vedtaksvurdering.toJson(): VedtaksvurderingJson {
+            fun VurderingerTilKlage.Vedtaksvurdering.toJson(): String {
                 return when (this) {
                     is VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Omgjør -> Omgjør(
                         årsak = årsak?.toDatabasetype(),
@@ -470,6 +471,8 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> Oppretthold(
                         hjemler = hjemler.toDatabasetype(),
                     )
+                }.let {
+                    serialize(it)
                 }
             }
         }

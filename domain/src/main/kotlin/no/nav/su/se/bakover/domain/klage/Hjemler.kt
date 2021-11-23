@@ -33,7 +33,7 @@ sealed class Hjemler : List<Hjemmel> {
             }
 
             fun tryCreate(hjemler: NonEmptyList<Hjemmel>): Either<KunneIkkeLageHjemler, Utfylt> {
-                return if (hjemler == hjemler.distinct()) {
+                return if (hjemler.toList() == hjemler.distinct()) {
                     Utfylt(hjemler).right()
                 } else {
                     KunneIkkeLageHjemler.left()
