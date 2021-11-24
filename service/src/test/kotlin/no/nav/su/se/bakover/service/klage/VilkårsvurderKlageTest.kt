@@ -2,16 +2,12 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.left
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.database.sak.SakRepo
-import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
@@ -21,32 +17,18 @@ import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
 
 internal class VilkårsvurderKlageTest {
 
     @Test
     fun `fant ikke vedtak`() {
-        val klageRepoMock = mock<KlageRepo>()
 
-        val sakRepoMock: SakRepo = mock()
-
-        val vedtakRepoMock: VedtakRepo = mock {
-            on { hentForVedtakId(any()) } doReturn null
-        }
-        val brevServiceMock: BrevService = mock()
-
-        val klageService = KlageServiceImpl(
-            sakRepo = sakRepoMock,
-            klageRepo = klageRepoMock,
-            vedtakRepo = vedtakRepoMock,
-            brevService = brevServiceMock,
-            personService = mock(),
-            microsoftGraphApiClient = mock(),
-            clock = fixedClock,
+        val mocks = KlageServiceMocks(
+            vedtakRepoMock = mock {
+                on { hentForVedtakId(any()) } doReturn null
+            },
         )
-
         val vedtakId = UUID.randomUUID()
         val request = VurderKlagevilkårRequest(
             navIdent = "nySaksbehandler",
@@ -57,30 +39,20 @@ internal class VilkårsvurderKlageTest {
             erUnderskrevet = null,
             begrunnelse = null,
         )
-        klageService.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak.left()
+        mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak.left()
 
-        verify(vedtakRepoMock).hentForVedtakId(vedtakId)
-        verifyNoMoreInteractions(sakRepoMock, klageRepoMock, vedtakRepoMock)
+        verify(mocks.vedtakRepoMock).hentForVedtakId(vedtakId)
+        mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `fant ikke klage`() {
-        val klageRepoMock = mock<KlageRepo> {
-            on { hentKlage(any()) } doReturn null
-        }
-        val sakRepoMock: SakRepo = mock()
-        val vedtakRepoMock: VedtakRepo = mock()
-        val brevServiceMock: BrevService = mock()
-        val klageService = KlageServiceImpl(
-            sakRepo = sakRepoMock,
-            klageRepo = klageRepoMock,
-            vedtakRepo = vedtakRepoMock,
-            brevService = brevServiceMock,
-            personService = mock(),
-            microsoftGraphApiClient = mock(),
-            clock = fixedClock,
-        )
 
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentKlage(any()) } doReturn null
+            },
+        )
         val klageId = UUID.randomUUID()
         val request = VurderKlagevilkårRequest(
             navIdent = "s2",
@@ -91,35 +63,28 @@ internal class VilkårsvurderKlageTest {
             erUnderskrevet = null,
             begrunnelse = null,
         )
-        klageService.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.FantIkkeKlage.left()
+        mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.FantIkkeKlage.left()
 
-        verify(klageRepoMock).hentKlage(argThat { it shouldBe klageId })
-        verifyNoMoreInteractions(sakRepoMock, klageRepoMock, vedtakRepoMock)
+        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
+        mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `kan påbegynne vilkårsvurdering`() {
+
         val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
+
         val opprettetKlage = opprettetKlage(
             sakId = sak.id,
         )
-        val klageRepoMock = mock<KlageRepo> {
-            on { hentKlage(any()) } doReturn opprettetKlage
-        }
-        val vedtakRepoMock: VedtakRepo = mock {
-            on { hentForVedtakId(any()) } doReturn vedtak
-        }
-        val sakRepoMock: SakRepo = mock()
-        val brevServiceMock: BrevService = mock()
 
-        val klageService = KlageServiceImpl(
-            sakRepo = sakRepoMock,
-            klageRepo = klageRepoMock,
-            vedtakRepo = vedtakRepoMock,
-            brevService = brevServiceMock,
-            personService = mock(),
-            microsoftGraphApiClient = mock(),
-            clock = fixedClock,
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock<KlageRepo> {
+                on { hentKlage(any()) } doReturn opprettetKlage
+            },
+            vedtakRepoMock = mock {
+                on { hentForVedtakId(any()) } doReturn vedtak
+            },
         )
 
         val request = VurderKlagevilkårRequest(
@@ -133,7 +98,7 @@ internal class VilkårsvurderKlageTest {
         )
 
         var expectedKlage: VilkårsvurdertKlage.Påbegynt?
-        klageService.vilkårsvurder(request).orNull()!!.also {
+        mocks.service.vilkårsvurder(request).orNull()!!.also {
             expectedKlage = VilkårsvurdertKlage.Påbegynt.create(
                 id = it.id,
                 opprettet = fixedTidspunkt,
@@ -145,13 +110,13 @@ internal class VilkårsvurderKlageTest {
             it shouldBe expectedKlage
         }
 
-        verify(klageRepoMock).hentKlage(argThat { it shouldBe opprettetKlage.id })
-        verify(klageRepoMock).lagre(
+        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe opprettetKlage.id })
+        verify(mocks.klageRepoMock).lagre(
             argThat {
                 it shouldBe expectedKlage
             },
         )
-        verifyNoMoreInteractions(sakRepoMock, klageRepoMock, vedtakRepoMock)
+        mocks.verifyNoMoreInteractions()
     }
 
     @Test
@@ -160,25 +125,14 @@ internal class VilkårsvurderKlageTest {
         val påbegyntVilkårsvurdertKlage = vilkårsvurdertKlage(
             sakId = sak.id,
         )
-        val klageRepoMock = mock<KlageRepo> {
-            on { hentKlage(any()) } doReturn påbegyntVilkårsvurdertKlage
-        }
-        val vedtakRepoMock: VedtakRepo = mock {
-            on { hentForVedtakId(any()) } doReturn vedtak
-        }
-        val sakRepoMock: SakRepo = mock()
-        val brevServiceMock: BrevService = mock()
-
-        val klageService = KlageServiceImpl(
-            sakRepo = sakRepoMock,
-            klageRepo = klageRepoMock,
-            vedtakRepo = vedtakRepoMock,
-            brevService = brevServiceMock,
-            personService = mock(),
-            microsoftGraphApiClient = mock(),
-            clock = fixedClock,
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentKlage(any()) } doReturn påbegyntVilkårsvurdertKlage
+            },
+            vedtakRepoMock = mock {
+                on { hentForVedtakId(any()) } doReturn vedtak
+            },
         )
-
         val request = VurderKlagevilkårRequest(
             navIdent = "nySaksbehandler",
             klageId = påbegyntVilkårsvurdertKlage.id.toString(),
@@ -188,9 +142,8 @@ internal class VilkårsvurderKlageTest {
             erUnderskrevet = true,
             begrunnelse = "SomeBegrunnelse",
         )
-
         var expectedKlage: VilkårsvurdertKlage.Utfylt?
-        klageService.vilkårsvurder(request).orNull()!!.also {
+        mocks.service.vilkårsvurder(request).orNull()!!.also {
             expectedKlage = VilkårsvurdertKlage.Utfylt.create(
                 id = it.id,
                 opprettet = fixedTidspunkt,
@@ -208,13 +161,13 @@ internal class VilkårsvurderKlageTest {
             it shouldBe expectedKlage
         }
 
-        verify(vedtakRepoMock).hentForVedtakId(vedtak.id)
-        verify(klageRepoMock).hentKlage(argThat { it shouldBe påbegyntVilkårsvurdertKlage.id })
-        verify(klageRepoMock).lagre(
+        verify(mocks.vedtakRepoMock).hentForVedtakId(vedtak.id)
+        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe påbegyntVilkårsvurdertKlage.id })
+        verify(mocks.klageRepoMock).lagre(
             argThat {
                 it shouldBe expectedKlage
             },
         )
-        verifyNoMoreInteractions(sakRepoMock, klageRepoMock, vedtakRepoMock)
+        mocks.verifyNoMoreInteractions()
     }
 }
