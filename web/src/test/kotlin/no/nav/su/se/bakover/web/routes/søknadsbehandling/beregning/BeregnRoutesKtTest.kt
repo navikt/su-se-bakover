@@ -38,8 +38,9 @@ import no.nav.su.se.bakover.service.søknadsbehandling.VilkårsvurderRequest
 import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
+import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.service.vilkår.UtenlandsoppholdStatus
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
@@ -277,14 +278,14 @@ internal class BeregnRoutesKtTest {
         val objects = setup(services, repos)
 
         val behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
-        services.søknadsbehandling.leggTilUføregrunnlag(
-            LeggTilUførevurderingRequest(
+        services.søknadsbehandling.leggTilUførevilkår(
+            LeggTilUførevilkårRequest(
                 behandlingId = objects.søknadsbehandling.id,
                 periode = objects.søknadsbehandling.periode,
-                uføregrad = Uføregrad.parse(behandlingsinformasjon.uførhet!!.uføregrad!!),
-                forventetInntekt = behandlingsinformasjon.uførhet!!.forventetInntekt,
-                oppfylt = behandlingsinformasjon.uførhet!!.status,
-                begrunnelse = behandlingsinformasjon.uførhet!!.begrunnelse,
+                uføregrad = Uføregrad.parse(100),
+                forventetInntekt = 0,
+                oppfylt = UførevilkårStatus.VilkårOppfylt,
+                begrunnelse = "Må få være ufør vel",
             ),
         )
         services.søknadsbehandling.leggTilUtenlandsopphold(

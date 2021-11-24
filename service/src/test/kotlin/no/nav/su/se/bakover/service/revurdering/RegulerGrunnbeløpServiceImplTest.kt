@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Merknad
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -63,8 +62,9 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurdering
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
+import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
@@ -118,12 +118,12 @@ internal class RegulerGrunnbeløpServiceImplTest {
             LeggTilUførevurderingerRequest(
                 behandlingId = revurderingId,
                 vurderinger = nonEmptyListOf(
-                    LeggTilUførevurderingRequest(
+                    LeggTilUførevilkårRequest(
                         behandlingId = nyttUføregrunnlag.id,
                         periode = nyttUføregrunnlag.periode,
                         uføregrad = nyttUføregrunnlag.uføregrad,
                         forventetInntekt = nyttUføregrunnlag.forventetInntekt,
-                        oppfylt = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
+                        oppfylt = UførevilkårStatus.VilkårOppfylt,
                         begrunnelse = "grunnbeløpet er høyere",
                     ),
                 ),

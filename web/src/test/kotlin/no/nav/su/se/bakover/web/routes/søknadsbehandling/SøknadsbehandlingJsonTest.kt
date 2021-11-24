@@ -39,12 +39,6 @@ internal class SøknadsbehandlingJsonTest {
           "id": "$behandlingId",
           "opprettet": "${DateTimeFormatter.ISO_INSTANT.format(søknadsbehandling.opprettet)}",
           "behandlingsinformasjon": {
-                "uførhet": {
-                    "status": "VilkårOppfylt",
-                    "uføregrad": 20,
-                    "forventetInntekt": 10,
-                    "begrunnelse": null
-                },
                 "flyktning": {
                     "status" : "VilkårOppfylt",
                     "begrunnelse" : null
@@ -169,7 +163,6 @@ internal class SøknadsbehandlingJsonTest {
         {
           "id": "$behandlingId",
           "behandlingsinformasjon": {
-            "uførhet": null,
             "flyktning": null,
             "lovligOpphold": null,
             "fastOppholdINorge": null,

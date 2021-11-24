@@ -220,31 +220,6 @@ internal class VilkårsvurderingerTest {
         }
 
         @Test
-        fun `ignorerer uføre, bosituasjon og null fra behandlingsinformasjon ved oppdatering`() {
-            val uavklart = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert
-
-            uavklart.resultat shouldBe beOfType<Vilkårsvurderingsresultat.Uavklart>()
-
-            val behandlingsinformasjon = Behandlingsinformasjon
-                .lagTomBehandlingsinformasjon()
-                .copy(
-                    uførhet = Behandlingsinformasjon.Uførhet(
-                        status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
-                        uføregrad = 20,
-                        forventetInntekt = 10,
-                        begrunnelse = "",
-                    ),
-                )
-
-            uavklart.oppdater(
-                stønadsperiode = Stønadsperiode.create(periode2021, ""),
-                behandlingsinformasjon = behandlingsinformasjon,
-                grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                clock = fixedClock,
-            ) shouldBe uavklart
-        }
-
-        @Test
         fun `legg til erstatter eksisternde vilkår med nytt`() {
             val innvilget = vilkårsvurderingerInnvilget()
             val uavklart = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert

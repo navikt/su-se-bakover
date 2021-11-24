@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 
 internal data class BehandlingsinformasjonJson(
-    val uførhet: UførhetJson? = null,
     val flyktning: FlyktningJson? = null,
     val lovligOpphold: LovligOppholdJson? = null,
     val fastOppholdINorge: FastOppholdINorgeJson? = null,
@@ -14,7 +13,6 @@ internal data class BehandlingsinformasjonJson(
     companion object {
         internal fun Behandlingsinformasjon.toJson() =
             BehandlingsinformasjonJson(
-                uførhet = uførhet?.toJson(),
                 flyktning = flyktning?.toJson(),
                 lovligOpphold = lovligOpphold?.toJson(),
                 fastOppholdINorge = fastOppholdINorge?.toJson(),
@@ -27,14 +25,6 @@ internal data class BehandlingsinformasjonJson(
 
 internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
     Behandlingsinformasjon(
-        uførhet = b.uførhet?.let { u ->
-            Behandlingsinformasjon.Uførhet(
-                status = Behandlingsinformasjon.Uførhet.Status.valueOf(u.status),
-                uføregrad = u.uføregrad,
-                forventetInntekt = u.forventetInntekt,
-                begrunnelse = u.begrunnelse,
-            )
-        },
         flyktning = b.flyktning?.let { f ->
             Behandlingsinformasjon.Flyktning(
                 status = Behandlingsinformasjon.Flyktning.Status.valueOf(f.status),
@@ -95,14 +85,6 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
         },
     )
 
-internal fun Behandlingsinformasjon.Uførhet.toJson() =
-    UførhetJson(
-        status = status.name,
-        uføregrad = uføregrad,
-        forventetInntekt = forventetInntekt,
-        begrunnelse = begrunnelse,
-    )
-
 internal fun Behandlingsinformasjon.Flyktning.toJson() =
     FlyktningJson(
         status = status.name,
@@ -154,13 +136,6 @@ internal fun Behandlingsinformasjon.PersonligOppmøte.toJson() =
     )
 
 internal inline fun <reified T : Enum<T>> enumContains(s: String) = enumValues<T>().any { it.name == s }
-
-internal data class UførhetJson(
-    val status: String,
-    val uføregrad: Int?,
-    val forventetInntekt: Int?,
-    val begrunnelse: String?,
-)
 
 internal data class FlyktningJson(
     val status: String,

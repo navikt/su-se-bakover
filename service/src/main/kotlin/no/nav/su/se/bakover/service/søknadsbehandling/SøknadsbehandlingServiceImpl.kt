@@ -39,14 +39,11 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.medFritekstTilBrev
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
-import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
-import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
@@ -57,13 +54,13 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilFradragsgrunnlag
-import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -81,7 +78,6 @@ internal class SøknadsbehandlingServiceImpl(
     private val clock: Clock,
     private val vedtakRepo: VedtakRepo,
     private val ferdigstillVedtakService: FerdigstillVedtakService,
-    private val vilkårsvurderingService: VilkårsvurderingService,
     private val grunnlagService: GrunnlagService,
     private val sakService: SakService,
 ) : SøknadsbehandlingService {
@@ -495,10 +491,6 @@ internal class SøknadsbehandlingServiceImpl(
             SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)
-            vilkårsvurderingService.lagre(
-                behandlingId = it.id,
-                vilkårsvurderinger = it.vilkårsvurderinger,
-            )
             grunnlagService.lagreBosituasjongrunnlag(
                 behandlingId = it.id,
                 bosituasjongrunnlag = it.grunnlagsdata.bosituasjon,
@@ -511,48 +503,43 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun leggTilUføregrunnlag(
-        request: LeggTilUførevurderingRequest,
-    ): Either<KunneIkkeLeggeTilGrunnlag, Søknadsbehandling> {
+    override fun leggTilUførevilkår(
+        request: LeggTilUførevilkårRequest,
+    ): Either<KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling.left()
+            ?: return KunneIkkeLeggeTilUføreVilkår.FantIkkeBehandling.left()
 
-        val vilkår = request.toVilkår(søknadsbehandling.periode, clock).getOrHandle {
+        val vilkår = request.toVilkår(clock).getOrHandle {
             return when (it) {
-                LeggTilUførevurderingRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler.left()
-                LeggTilUførevurderingRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig.left()
-                LeggTilUførevurderingRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder.left()
-                LeggTilUførevurderingRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> KunneIkkeLeggeTilGrunnlag.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden.left()
+                LeggTilUførevilkårRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> {
+                    KunneIkkeLeggeTilUføreVilkår.UføregradOgForventetInntektMangler
+                }
+                LeggTilUførevilkårRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> {
+                    KunneIkkeLeggeTilUføreVilkår.PeriodeForGrunnlagOgVurderingErForskjellig
+                }
+                LeggTilUførevilkårRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> {
+                    KunneIkkeLeggeTilUføreVilkår.OverlappendeVurderingsperioder
+                }
+                LeggTilUførevilkårRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> {
+                    KunneIkkeLeggeTilUføreVilkår.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden
+                }
+            }.left()
+        }
+
+        val vilkårsvurdert = søknadsbehandling.leggTilUførevilkår(vilkår, clock)
+            .getOrHandle {
+                return when (it) {
+                    is Søknadsbehandling.KunneIkkeLeggeTilUførevilkår.UgyldigTilstand -> {
+                        KunneIkkeLeggeTilUføreVilkår.UgyldigTilstand(fra = it.fra, til = it.til)
+                    }
+                    Søknadsbehandling.KunneIkkeLeggeTilUførevilkår.VurderingsperiodeUtenforBehandlingsperiode -> {
+                        KunneIkkeLeggeTilUføreVilkår.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden
+                    }
+                }.left()
             }
-        }
-        // TODO midliertidig til behandlingsinformasjon er borte
-        val grunnlag = (vilkår as? Vilkår.Uførhet.Vurdert)?.grunnlag?.firstOrNull()
-        return vilkårsvurder(
-            VilkårsvurderRequest(
-                behandlingId = søknadsbehandling.id,
-                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.copy(
-                    uførhet = Behandlingsinformasjon.Uførhet(
-                        status = when (vilkår.resultat) {
-                            Resultat.Avslag -> Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt
-                            Resultat.Innvilget -> Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt
-                            Resultat.Uavklart -> Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling
-                        },
-                        uføregrad = grunnlag?.uføregrad?.value,
-                        forventetInntekt = grunnlag?.forventetInntekt,
-                        begrunnelse = request.begrunnelse,
-                    ),
-                ),
-            ),
-        ).mapLeft {
-            KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling
-        }.map {
-            // TODO jah: Legg til Søknadsbehandling.leggTilUføre(...) som for Revurdering og persister Søknadsbehandlingen som returnerers. Da slipper man og det ekstra hent(...) kallet.
-            vilkårsvurderingService.lagre(
-                it.id,
-                it.vilkårsvurderinger.leggTil(vilkår),
-            )
-            søknadsbehandlingRepo.hent(søknadsbehandling.id)!!
-        }
+
+        søknadsbehandlingRepo.lagre(vilkårsvurdert)
+        return vilkårsvurdert.right()
     }
 
     override fun leggTilBosituasjonEpsgrunnlag(request: LeggTilBosituasjonEpsRequest): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling> {
