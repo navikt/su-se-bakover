@@ -36,7 +36,7 @@ internal class SakRestansRepo(
                      from sak
                               join behandling_vedtak bv on bv.sakid = sak.sakId
                               join revurdering r on r.vedtaksomrevurderesid = bv.vedtakid
-                     where r.revurderingstype not like ('IVERKSATT%')
+                     where r.revurderingstype not like ('IVERKSATT%') and r.avsluttet is null
                  ),
                  søknader as (
                      select 
