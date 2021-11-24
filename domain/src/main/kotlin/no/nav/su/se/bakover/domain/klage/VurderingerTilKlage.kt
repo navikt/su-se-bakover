@@ -94,18 +94,14 @@ sealed class VurderingerTilKlage {
 
         companion object {
 
+            /**
+             * @return [Vedtaksvurdering.Påbegynt.Omgjør] eller [Vedtaksvurdering.Utfylt.Omgjør]
+             */
             fun createOmgjør(årsak: Årsak?, utfall: Utfall?): Vedtaksvurdering {
-                return if (årsak != null && utfall != null) {
-                    Utfylt.Omgjør(
-                        årsak = årsak,
-                        utfall = utfall,
-                    )
-                } else {
-                    Påbegynt.Omgjør(
-                        årsak = årsak,
-                        utfall = utfall,
-                    )
-                }
+                return Påbegynt.Omgjør.create(
+                    årsak = årsak,
+                    utfall = utfall,
+                )
             }
 
             fun createOppretthold(hjemler: List<Hjemmel>): Either<Hjemler.KunneIkkeLageHjemler, Vedtaksvurdering> {
@@ -119,16 +115,34 @@ sealed class VurderingerTilKlage {
         }
 
         sealed class Påbegynt : Vedtaksvurdering() {
-            data class Omgjør internal constructor(val årsak: Årsak?, val utfall: Utfall?) : Påbegynt() {
-                init {
-                    // Siden vi ikke har union types føles det unaturlig å bytte til private ctor + create(): Vedtaksvurdering (mister for mye typeinformasjon)
-                    assert(årsak == null || utfall == null) {
-                        "En påbegynt Vedtaksvurdering.Omgjør kan ikke ha alle felter utfylt(årsak, utfall)"
+            data class Omgjør private constructor(val årsak: Årsak?, val utfall: Utfall?) : Påbegynt() {
+
+                companion object {
+                    /**
+                     * Bruk heller [Vedtaksvurdering.createOmgjør]
+                     *
+                     * @return [Vedtaksvurdering.Påbegynt.Omgjør] eller [Vedtaksvurdering.Utfylt.Omgjør]
+                     */
+                    internal fun create(
+                        årsak: Årsak?,
+                        utfall: Utfall?,
+                    ): Vedtaksvurdering {
+                        return if (årsak != null && utfall != null) {
+                            Utfylt.Omgjør(
+                                årsak = årsak,
+                                utfall = utfall,
+                            )
+                        } else {
+                            Omgjør(
+                                årsak = årsak,
+                                utfall = utfall,
+                            )
+                        }
                     }
                 }
             }
 
-            data class Oppretthold internal constructor(val hjemler: Hjemler.IkkeUtfylt) : Påbegynt()
+            data class Oppretthold(val hjemler: Hjemler.IkkeUtfylt) : Påbegynt()
         }
 
         sealed class Utfylt : Vedtaksvurdering() {
