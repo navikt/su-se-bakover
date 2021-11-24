@@ -294,12 +294,10 @@ interface LagBrevRequest {
 
     data class InnkallingTilKontrollsamtale(
         override val person: Person,
-        private val saksbehandlerNavn: String,
         override val dagensDato: LocalDate,
     ) : LagBrevRequest {
         override val brevInnhold = BrevInnhold.InnkallingTilKontrollsamtale(
             personalia = lagPersonalia(),
-            saksbehandlerNavn = saksbehandlerNavn,
         )
 
         override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {

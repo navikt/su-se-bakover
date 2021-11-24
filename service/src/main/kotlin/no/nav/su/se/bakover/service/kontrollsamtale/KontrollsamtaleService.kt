@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -31,7 +30,6 @@ class KontrollsamtaleServiceImpl(
     private val personService: PersonService,
     private val brevService: BrevService,
     private val oppgaveService: OppgaveService,
-    private val microsoftGraphApiOppslag: MicrosoftGraphApiOppslag,
     private val sessionFactory: SessionFactory,
     private val clock: Clock,
 ) : KontrollsamtaleService {
@@ -50,12 +48,7 @@ class KontrollsamtaleServiceImpl(
             return KunneIkkeKalleInnTilKontrollsamtale.FantIkkePerson.left()
         }
 
-        val saksbehandlerNavn = microsoftGraphApiOppslag.hentNavnForNavIdent(saksbehandler).getOrElse {
-            log.error("Fant ikke saksbehandlernavn for saksbehandler: $saksbehandler")
-            return KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
-        }
-
-        val dokument = lagDokument(person, saksbehandlerNavn, sakId).getOrElse {
+        val dokument = lagDokument(person, sakId).getOrElse {
             log.error("Klarte ikke lage dokument for innkalling til kontrollsamtale på sakId $sakId")
             return KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeGenerereDokument.left()
         }
@@ -78,12 +71,10 @@ class KontrollsamtaleServiceImpl(
 
     private fun lagDokument(
         person: Person,
-        saksbehandlerNavn: String,
         sakId: UUID,
     ): Either<KunneIkkeLageBrev, Dokument.MedMetadata.Informasjon> {
         val brevRequest = LagBrevRequest.InnkallingTilKontrollsamtale(
             person = person,
-            saksbehandlerNavn = saksbehandlerNavn,
             dagensDato = LocalDate.now(clock),
         )
         return brevService.lagBrev(brevRequest).map {

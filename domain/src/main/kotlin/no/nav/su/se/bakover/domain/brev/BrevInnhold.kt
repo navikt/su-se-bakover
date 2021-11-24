@@ -163,7 +163,6 @@ abstract class BrevInnhold {
 
     data class InnkallingTilKontrollsamtale(
         val personalia: Personalia,
-        val saksbehandlerNavn: String,
     ) : BrevInnhold() {
         override val brevTemplate = BrevTemplate.InnkallingTilKontrollsamtale
     }

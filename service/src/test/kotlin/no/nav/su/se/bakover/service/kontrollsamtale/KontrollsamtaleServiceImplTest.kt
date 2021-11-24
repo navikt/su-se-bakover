@@ -3,8 +3,6 @@ package no.nav.su.se.bakover.service.kontrollsamtale
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.AktørId
@@ -95,26 +93,6 @@ internal class KontrollsamtaleServiceImplTest {
     }
 
     @Test
-    fun `feiler hvis vi ikke finner saksbehandler-navn`() {
-        val graphApi = mock<MicrosoftGraphApiOppslag> {
-            on { hentNavnForNavIdent(any()) } doReturn MicrosoftGraphApiOppslagFeil.FantIkkeBrukerForNavIdent.left()
-        }
-
-        ServiceOgMocks(
-            sakService = mock {
-                on { hentSak(any<UUID>()) } doReturn sak.right()
-            },
-            personService = mock {
-                on { hentPerson(any()) } doReturn person.right()
-            },
-            microsoftGraphApiOppslag = graphApi,
-        ).kontrollsamtaleService.kallInn(
-            sakId,
-            saksbehandler,
-        ) shouldBe KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
-    }
-
-    @Test
     fun `feiler hvis vi ikke klarer å lage brev`() {
         val brevService = mock<BrevService> {
             on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
@@ -126,9 +104,6 @@ internal class KontrollsamtaleServiceImplTest {
             },
             personService = mock {
                 on { hentPerson(any()) } doReturn person.right()
-            },
-            microsoftGraphApiOppslag = mock {
-                on { hentNavnForNavIdent(any()) } doReturn "Saksbehandlers Navn".right()
             },
             brevService = brevService,
             clock = Clock.systemUTC(),
@@ -150,9 +125,6 @@ internal class KontrollsamtaleServiceImplTest {
             },
             personService = mock {
                 on { hentPerson(any()) } doReturn person.right()
-            },
-            microsoftGraphApiOppslag = mock {
-                on { hentNavnForNavIdent(any()) } doReturn "Saksbehandlers Navn".right()
             },
             brevService = mock {
                 on { lagBrev(any()) } doReturn ByteArray(1).right()
@@ -176,9 +148,6 @@ internal class KontrollsamtaleServiceImplTest {
             },
             personService = mock {
                 on { hentPerson(any()) } doReturn person.right()
-            },
-            microsoftGraphApiOppslag = mock {
-                on { hentNavnForNavIdent(any()) } doReturn "Saksbehandlers Navn".right()
             },
             brevService = mock {
                 on { lagBrev(any()) } doReturn pdf.right()
@@ -215,7 +184,6 @@ internal class KontrollsamtaleServiceImplTest {
         val personService: PersonService = mock(),
         val brevService: BrevService = mock(),
         val oppgaveService: OppgaveService = mock(),
-        val microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = mock(),
         val sessionFactory: SessionFactory = mock(),
         val clock: Clock = mock(),
     ) {
@@ -224,7 +192,6 @@ internal class KontrollsamtaleServiceImplTest {
             personService = personService,
             brevService = brevService,
             oppgaveService = oppgaveService,
-            microsoftGraphApiOppslag = microsoftGraphApiOppslag,
             sessionFactory = sessionFactory,
             clock = clock,
         )

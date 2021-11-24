@@ -193,7 +193,6 @@ object ServiceBuilder {
                 personService = personService,
                 brevService = brevService,
                 oppgaveService = oppgaveService,
-                microsoftGraphApiOppslag = clients.microsoftGraphApiClient,
                 sessionFactory = databaseRepos.sessionFactory,
                 clock = clock,
             )
