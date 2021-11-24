@@ -67,10 +67,10 @@ data class KlageVurderingerRequest(
         fun toDomain(): Either<KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler, VurderingerTilKlage.Vedtaksvurdering> {
             return hjemmelToDomain(hjemler).map {
                 when (it) {
-                    is Hjemler.IkkeUtfylt -> VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold(
+                    is Hjemler.IkkeUtfylt -> VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Oppretthold(
                         hjemler = it,
                     )
-                    is Hjemler.Utfylt -> VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Oppretthold(
+                    is Hjemler.Utfylt -> VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold(
                         hjemler = it,
                     )
                 }
