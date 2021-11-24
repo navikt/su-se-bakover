@@ -297,10 +297,14 @@ interface LagBrevRequest {
             override val person: Person,
             override val dagensDato: LocalDate,
             val saksbehandlerNavn: String,
+            val fritekst: String,
+            val hjemler: List<Int>,
         ) : Klage() {
             override val brevInnhold: BrevInnhold = BrevInnhold.Klage(
                 personalia = lagPersonalia(),
-                saksbehandlerNavn = saksbehandlerNavn
+                saksbehandlerNavn = saksbehandlerNavn,
+                fritekst = fritekst,
+                hjemler = listOf()
             )
 
             override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata> {

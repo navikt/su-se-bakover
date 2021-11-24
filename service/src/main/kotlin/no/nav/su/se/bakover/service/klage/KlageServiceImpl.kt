@@ -10,11 +10,13 @@ import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
+import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -75,22 +77,47 @@ class KlageServiceImpl(
         }
     }
 
-    override fun brevutkast(sakId: UUID, klageId: UUID, saksbehandler: NavIdentBruker.Saksbehandler): Either<KunneIkkeLageBrevutkast, ByteArray> {
+    override fun brevutkast(
+        sakId: UUID,
+        klageId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        fritekst: String,
+        hjemler: Hjemler.Utfylt,
+    ): Either<KunneIkkeLageBrevutkast, ByteArray> {
         val sak = sakRepo.hentSak(sakId) ?: return KunneIkkeLageBrevutkast.FantIkkeSak.left()
-        // val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkePerson.left()
+        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkePerson.left()
 
-        return personService.hentPerson(sak.fnr)
-            .fold(
-                ifLeft = { KunneIkkeLageBrevutkast.FantIkkePerson.left() },
-                ifRight = { person ->
-                    val brevRequest = LagBrevRequest.Klage.Oppretthold(
-                        person = person,
-                        dagensDato = LocalDate.now(clock),
-                        saksbehandlerNavn = microsoftGraphApiClient.hentNavnForNavIdent(saksbehandler).getOrElse { return KunneIkkeLageBrevutkast.FantIkkeSaksbehandler.left() },
-                    )
+        return when (klage) {
+            is OpprettetKlage,
+            is VilkårsvurdertKlage.Påbegynt,
+            is VilkårsvurdertKlage.Utfylt,
+            is VurdertKlage.Påbegynt,
+            -> return KunneIkkeLageBrevutkast.UgyldigKlagetyp.left().also { println("errorz")}
+            is VurdertKlage.Utfylt -> when (klage.vurderinger.vedtaksvurdering) {
+                is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> throw RuntimeException("Ikke støtte for Omgjør")
+                is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> {
+                    println("les go")
+                    personService.hentPerson(sak.fnr)
+                        .fold(
+                            ifLeft = { KunneIkkeLageBrevutkast.FantIkkePerson.left() },
+                            ifRight = { person ->
+                                val brevRequest = LagBrevRequest.Klage.Oppretthold(
+                                    person = person,
+                                    dagensDato = LocalDate.now(clock),
+                                    saksbehandlerNavn = microsoftGraphApiClient.hentNavnForNavIdent(saksbehandler)
+                                        .getOrElse { return KunneIkkeLageBrevutkast.FantIkkeSaksbehandler.left() },
+                                    fritekst = fritekst,
+                                    hjemler = hjemler.hjemler.map {
+                                        it.paragrafnummer
+                                    },
+                                )
 
-                    brevService.lagBrev(brevRequest).mapLeft { KunneIkkeLageBrevutkast.GenereringAvBrevFeilet }
+                                brevService.lagBrev(brevRequest)
+                                    .mapLeft { KunneIkkeLageBrevutkast.GenereringAvBrevFeilet }
+                            },
+                        )
                 }
-            )
+            }
+        }
     }
 }

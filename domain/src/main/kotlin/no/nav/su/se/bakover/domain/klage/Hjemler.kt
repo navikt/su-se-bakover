@@ -69,34 +69,34 @@ sealed class Hjemler : List<Hjemmel> {
  *
  * TODO jah: Flytt disse ut i et eget lov/paragraf konsept (utenfor klage). Bør kunne gjenbrukes for referanser til loven i søknadsbehandling og revurderinger.
  */
-enum class Hjemmel {
+enum class Hjemmel(val paragrafnummer: Int) {
     /** Kapittel 2 - § 3.Kven som kan få stønad (2021-01-01) */
-    SU_PARAGRAF_3,
+    SU_PARAGRAF_3(3),
 
     /** Kapittel 2 - § 4.Opphald i utlandet (2021-01-01) */
-    SU_PARAGRAF_4,
+    SU_PARAGRAF_4(4),
 
     /** Kapittel 3 - § 5.Full supplerande stønad (2021-01-01) */
-    SU_PARAGRAF_5,
+    SU_PARAGRAF_5(5),
 
     /** Kapittel 3 - § 6.Inntekt som går til frådrag i supplerande stønad (2021-01-01) */
-    SU_PARAGRAF_6,
+    SU_PARAGRAF_6(6),
 
     /** Kapittel 3 - § 8.Formue (2021-01-01) */
-    SU_PARAGRAF_8,
+    SU_PARAGRAF_8(8),
 
     /** Kapittel 3 - § 9.Låge stønadsbeløp (2021-01-01) */
-    SU_PARAGRAF_9,
+    SU_PARAGRAF_9(9),
 
     /** Kapittel 3 - § 10.Endringar (2021-01-01) */
-    SU_PARAGRAF_10,
+    SU_PARAGRAF_10(10),
 
     /** Kapittel 3 - § 12.Opphald i institusjon mv. (2021-01-01) */
-    SU_PARAGRAF_12,
+    SU_PARAGRAF_12(12),
 
     /** Kapittel 3 - § 13.Tilbakekrevjing (2021-01-01) */
-    SU_PARAGRAF_13,
+    SU_PARAGRAF_13(13),
 
     /** Kapittel 4 - § 18.Plikt til å gi opplysningar (2021-01-01) */
-    SU_PARAGRAF_18;
+    SU_PARAGRAF_18(18);
 }

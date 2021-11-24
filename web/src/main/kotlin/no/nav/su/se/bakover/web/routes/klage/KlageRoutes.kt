@@ -1,19 +1,23 @@
 package no.nav.su.se.bakover.web.routes.klage
 
+import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.http.HttpStatusCode.Companion.InternalServerError
+import io.ktor.response.respond
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.response.respond
 import io.ktor.response.respondBytes
 import io.ktor.routing.Route
-import io.ktor.routing.get
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.klage.Hjemler
+import no.nav.su.se.bakover.domain.klage.Hjemmel
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.service.klage.KlageService
@@ -22,6 +26,7 @@ import no.nav.su.se.bakover.service.klage.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
+import no.nav.su.se.bakover.web.ErrorJson
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
@@ -36,9 +41,9 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
-import no.nav.su.se.bakover.web.withKlageId
 import no.nav.su.se.bakover.web.withSakId
 import no.nav.su.se.bakover.web.withStringParam
+import java.util.UUID
 
 internal const val klagePath = "$sakPath/{sakId}/klager"
 
@@ -108,23 +113,34 @@ internal fun Route.klageRoutes(
         }
     }
 
-    get("$klagePath/{klageId}/brevutkast") {
+    post("$klagePath/{klageId}/brevutkast") {
+        data class Body(val fritekst: String, val hjemler: List<String>)
         call.withSakId { sakId ->
-            call.withKlageId { klageId ->
-                klageService.brevutkast(sakId, klageId, NavIdentBruker.Saksbehandler(call.suUserContext.navIdent)).fold(
-                    ifLeft = {
-                        val resultat = when (it) {
+            call.withStringParam("klageId") { klageId ->
+                call.withBody<Body> { body ->
+                    klageService.brevutkast(
+                        sakId = sakId,
+                        klageId = UUID.fromString(klageId),
+                        saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                        fritekst = body.fritekst,
+                        hjemler = Hjemler.Utfylt.create(NonEmptyList.fromListUnsafe(body.hjemler.map { Hjemmel.valueOf(it) })), // ai: add validation
+                    ).fold(
+                        ifLeft = {
+                            val resultat = when (it) {
                             KunneIkkeLageBrevutkast.FantIkkePerson -> fantIkkePerson
                             KunneIkkeLageBrevutkast.FantIkkeSak -> fantIkkeSak
                             KunneIkkeLageBrevutkast.FantIkkeSaksbehandler -> fantIkkeSaksbehandlerEllerAttestant
                             KunneIkkeLageBrevutkast.GenereringAvBrevFeilet -> kunneIkkeGenerereBrev
-                        }
+                                KunneIkkeLageBrevutkast.UgyldigKlagetyp -> TODO()
+                            }
                         call.respond(resultat)
-                    },
-                    ifRight = {
-                        call.respondBytes(it, ContentType.Application.Pdf)
-                    },
-                )
+                                 call.svar(InternalServerError.errorJson("Ukjent feil ;))", "ukjent_feil"))
+                        },
+                        ifRight = {
+                            call.respondBytes(it, ContentType.Application.Pdf)
+                        },
+                    )
+                }
             }
         }
     }

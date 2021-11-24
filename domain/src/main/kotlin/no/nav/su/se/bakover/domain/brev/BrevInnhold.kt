@@ -164,6 +164,8 @@ abstract class BrevInnhold {
     data class Klage(
         val personalia: Personalia,
         val saksbehandlerNavn: String,
+        val fritekst: String,
+        val hjemler: List<Int>,
     ) : BrevInnhold() {
         override val brevTemplate = BrevTemplate.Klage.Oppretthold
     }

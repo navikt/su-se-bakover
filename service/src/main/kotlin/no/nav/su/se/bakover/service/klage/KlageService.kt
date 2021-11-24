@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.Either
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
@@ -16,6 +17,8 @@ interface KlageService {
         sakId: UUID,
         klageId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
+        fritekst: String,
+        hjemler: Hjemler.Utfylt
     ): Either<KunneIkkeLageBrevutkast, ByteArray>
     fun vurder(request: KlageVurderingerRequest): Either<KunneIkkeVurdereKlage, VurdertKlage>
 }
@@ -29,5 +32,6 @@ sealed class KunneIkkeLageBrevutkast {
     object FantIkkeSak : KunneIkkeLageBrevutkast()
     object FantIkkePerson : KunneIkkeLageBrevutkast()
     object FantIkkeSaksbehandler : KunneIkkeLageBrevutkast()
+    object UgyldigKlagetyp : KunneIkkeLageBrevutkast()
     object GenereringAvBrevFeilet : KunneIkkeLageBrevutkast()
 }
