@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -36,4 +37,5 @@ data class Services(
     val vedtakService: VedtakService,
     val nøkkeltallService: NøkkeltallService,
     val avslåSøknadManglendeDokumentasjonService: AvslåSøknadManglendeDokumentasjonService,
+    val kontrollsamtale: KontrollsamtaleService,
 )

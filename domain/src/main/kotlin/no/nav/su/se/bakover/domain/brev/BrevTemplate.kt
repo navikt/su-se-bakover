@@ -47,6 +47,11 @@ sealed class BrevTemplate(
         brevTittel = "Varsel om at vi vil ta opp stønaden din til ny vurdering"
     )
 
+    object InnkallingTilKontrollsamtale : BrevTemplate(
+        pdfTemplate = PdfTemplate.InnkallingTilKontrollsamtale,
+        brevTittel = "Supplerende stønad ufør flyktning – innkalling til samtale"
+    )
+
     sealed class Revurdering(pdfTemplate: PdfTemplate, brevTittel: String) : BrevTemplate(pdfTemplate, brevTittel) {
         object Inntekt : Revurdering(
             pdfTemplate = PdfTemplate.Revurdering.Inntekt,
