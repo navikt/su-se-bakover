@@ -7,9 +7,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
-import io.ktor.response.respond
 import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.response.respond
 import io.ktor.response.respondBytes
 import io.ktor.routing.Route
 import io.ktor.routing.post
@@ -26,7 +24,6 @@ import no.nav.su.se.bakover.service.klage.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
-import no.nav.su.se.bakover.web.ErrorJson
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
@@ -123,18 +120,26 @@ internal fun Route.klageRoutes(
                         klageId = UUID.fromString(klageId),
                         saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                         fritekst = body.fritekst,
-                        hjemler = Hjemler.Utfylt.create(NonEmptyList.fromListUnsafe(body.hjemler.map { Hjemmel.valueOf(it) })), // ai: add validation
+                        hjemler = Hjemler.Utfylt.create(
+                            NonEmptyList.fromListUnsafe(
+                                body.hjemler.map {
+                                    Hjemmel.valueOf(it)
+                                },
+                            ),
+                        ), // ai: add validation
                     ).fold(
                         ifLeft = {
                             val resultat = when (it) {
-                            KunneIkkeLageBrevutkast.FantIkkePerson -> fantIkkePerson
-                            KunneIkkeLageBrevutkast.FantIkkeSak -> fantIkkeSak
-                            KunneIkkeLageBrevutkast.FantIkkeSaksbehandler -> fantIkkeSaksbehandlerEllerAttestant
-                            KunneIkkeLageBrevutkast.GenereringAvBrevFeilet -> kunneIkkeGenerereBrev
-                                KunneIkkeLageBrevutkast.UgyldigKlagetyp -> TODO()
+                                KunneIkkeLageBrevutkast.FantIkkePerson -> fantIkkePerson
+                                KunneIkkeLageBrevutkast.FantIkkeSak -> fantIkkeSak
+                                KunneIkkeLageBrevutkast.FantIkkeSaksbehandler -> fantIkkeSaksbehandlerEllerAttestant
+                                KunneIkkeLageBrevutkast.GenereringAvBrevFeilet -> kunneIkkeGenerereBrev
+                                KunneIkkeLageBrevutkast.UgyldigKlagetype -> InternalServerError.errorJson(
+                                    "Ugyldig klagetype",
+                                    "ugyldig_klagetype",
+                                )
                             }
-                        call.respond(resultat)
-                                 call.svar(InternalServerError.errorJson("Ukjent feil ;))", "ukjent_feil"))
+                            call.svar(resultat)
                         },
                         ifRight = {
                             call.respondBytes(it, ContentType.Application.Pdf)
@@ -200,12 +205,6 @@ internal fun Route.klageRoutes(
                     call.svar(resultat)
                 }
             }
-        }
-    }
-
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$klagePath/{id}/brevutkast") {
-            call.svar(Resultat.json(OK, "{}"))
         }
     }
 

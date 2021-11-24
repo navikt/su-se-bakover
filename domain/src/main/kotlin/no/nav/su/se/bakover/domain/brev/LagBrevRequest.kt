@@ -304,7 +304,7 @@ interface LagBrevRequest {
                 personalia = lagPersonalia(),
                 saksbehandlerNavn = saksbehandlerNavn,
                 fritekst = fritekst,
-                hjemler = listOf()
+                hjemler = hjemler,
             )
 
             override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata> {

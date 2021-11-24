@@ -32,6 +32,6 @@ sealed class KunneIkkeLageBrevutkast {
     object FantIkkeSak : KunneIkkeLageBrevutkast()
     object FantIkkePerson : KunneIkkeLageBrevutkast()
     object FantIkkeSaksbehandler : KunneIkkeLageBrevutkast()
-    object UgyldigKlagetyp : KunneIkkeLageBrevutkast()
+    object UgyldigKlagetype : KunneIkkeLageBrevutkast()
     object GenereringAvBrevFeilet : KunneIkkeLageBrevutkast()
 }
