@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.database.klage
 
-import arrow.core.NonEmptyList
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import kotliquery.Row
@@ -186,13 +185,13 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 sakId = sakId,
                 journalpostId = journalpostId,
                 saksbehandler = saksbehandler,
-                vilkårsvurderinger = VilkårsvurderingerTilKlage.Påbegynt(
+                vilkårsvurderinger = VilkårsvurderingerTilKlage.create(
                     vedtakId = vedtakId,
                     innenforFristen = innenforFristen,
                     klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                     erUnderskrevet = erUnderskrevet,
                     begrunnelse = begrunnelse,
-                ),
+                ) as VilkårsvurderingerTilKlage.Påbegynt,
             )
             Tilstand.VILKÅRSVURDERT_UTFYLT -> VilkårsvurdertKlage.Utfylt.create(
                 id = id,
@@ -221,9 +220,9 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     erUnderskrevet = erUnderskrevet!!,
                     begrunnelse = begrunnelse!!,
                 ),
-                vurderinger = VurderingerTilKlage.Påbegynt(
+                vurderinger = VurderingerTilKlage.create(
                     fritekstTilBrev = fritekstTilBrev,
-                    vedtaksvurdering = vedtaksvurdering?.toPåbegynt(),
+                    vedtaksvurdering = vedtaksvurdering?.toDomain(),
                 ),
             )
             Tilstand.VURDERT_UTFYLT -> VurdertKlage.Utfylt.create(
@@ -241,7 +240,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 ),
                 vurderinger = VurderingerTilKlage.Utfylt(
                     fritekstTilBrev = fritekstTilBrev!!,
-                    vedtaksvurdering = vedtaksvurdering!!.toUtfylt(),
+                    vedtaksvurdering = vedtaksvurdering!!.toDomain() as VurderingerTilKlage.Vedtaksvurdering.Utfylt,
                 ),
             )
         }
@@ -295,20 +294,13 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
         ),
     )
     private sealed class VedtaksvurderingJson {
-        abstract fun toPåbegynt(): VurderingerTilKlage.Vedtaksvurdering.Påbegynt
-        abstract fun toUtfylt(): VurderingerTilKlage.Vedtaksvurdering.Utfylt
+        abstract fun toDomain(): VurderingerTilKlage.Vedtaksvurdering
         data class Omgjør(val årsak: String?, val utfall: String?) : VedtaksvurderingJson() {
-            override fun toPåbegynt(): VurderingerTilKlage.Vedtaksvurdering.Påbegynt {
-                return VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Omgjør(
+
+            override fun toDomain(): VurderingerTilKlage.Vedtaksvurdering {
+                return VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
                     årsak = årsak?.let { Omgjøringsårsak.fromString(it).toDomain() },
                     utfall = utfall?.let { Omgjøringsutfall.fromString(it).toDomain() },
-                )
-            }
-
-            override fun toUtfylt(): VurderingerTilKlage.Vedtaksvurdering.Utfylt {
-                return VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør(
-                    årsak = årsak!!.let { Omgjøringsårsak.fromString(it).toDomain() },
-                    utfall = Omgjøringsutfall.fromString(utfall!!).toDomain(),
                 )
             }
 
@@ -431,26 +423,10 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 override fun toString() = verdi
             }
 
-            override fun toPåbegynt(): VurderingerTilKlage.Vedtaksvurdering.Påbegynt {
-                return VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Oppretthold(
-                    hjemler = hjemler.map { Hjemmel.fromString(it).toDomain() }.let {
-                        if (it.isEmpty()) {
-                            Hjemler.IkkeUtfylt.create()
-                        } else {
-                            Hjemler.Utfylt.create(NonEmptyList.fromListUnsafe(it))
-                        }
-                    },
-                )
-            }
-
-            override fun toUtfylt(): VurderingerTilKlage.Vedtaksvurdering.Utfylt {
-                return VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold(
-                    hjemler = Hjemler.Utfylt.create(
-                        NonEmptyList.fromListUnsafe(
-                            hjemler.map { Hjemmel.fromString(it).toDomain() },
-                        ),
-                    ),
-                )
+            override fun toDomain(): VurderingerTilKlage.Vedtaksvurdering {
+                return VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
+                    hjemler = hjemler.map { Hjemmel.fromString(it).toDomain() },
+                ).orNull()!!
             }
         }
 

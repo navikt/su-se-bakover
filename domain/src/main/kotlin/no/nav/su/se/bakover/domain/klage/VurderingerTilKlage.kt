@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain.klage
 
+import arrow.core.Either
+
 /**
  * Støtter kun opprettholdelse i MVP, men vi har støtte for å lagre alle feltene.
  * Validerer at vi kan bekrefte eller sende til attestering.
@@ -9,11 +11,79 @@ sealed class VurderingerTilKlage {
     abstract val fritekstTilBrev: String?
     abstract val vedtaksvurdering: Vedtaksvurdering?
 
-    data class Påbegynt(
+    companion object {
+
+        fun empty(): Påbegynt {
+            // Går via create for å verifisere at vi bruker de samme reglene.
+            return create(
+                fritekstTilBrev = null,
+                vedtaksvurdering = null,
+            ) as Påbegynt
+        }
+
+        /**
+         * [VurderingerTilKlage.Påbegynt] dersom minst en av disse er oppfylt:
+         * 1. fritekstTilBrev er null
+         * 2. vedtaksvurdering er null
+         * 3. vedtaksvurdering er [Vedtaksvurdering.Påbegynt]
+         *
+         * Ellers [VurderingerTilKlage.Utfylt]
+         *
+         * @param vedtaksvurdering En [VurderingerTilKlage.Påbegynt] kan inneholde enten en [Vedtaksvurdering.Påbegynt] eller [Vedtaksvurdering.Utfylt]
+         * */
+        fun create(
+            fritekstTilBrev: String?,
+            vedtaksvurdering: Vedtaksvurdering?,
+        ): VurderingerTilKlage {
+            return Påbegynt.create(
+                fritekstTilBrev = fritekstTilBrev,
+                vedtaksvurdering = vedtaksvurdering,
+            )
+        }
+    }
+
+    /**
+     * Påbegynt dersom en av disse er oppfylt:
+     * 1. fritekstTilBrev er null
+     * 2. vedtaksvurdering er null
+     * 3. vedtaksvurdering er [Vedtaksvurdering.Påbegynt]
+     */
+    data class Påbegynt private constructor(
         override val fritekstTilBrev: String?,
-        /** En påbegynt vurderingerTilKlage kan inneholde både en påbegynt eller utfylt vedtaksvurdering. */
         override val vedtaksvurdering: Vedtaksvurdering?,
-    ) : VurderingerTilKlage()
+    ) : VurderingerTilKlage() {
+
+        companion object {
+            /**
+             * [VurderingerTilKlage.Påbegynt] dersom minst en av disse er oppfylt:
+             * 1. fritekstTilBrev er null
+             * 2. vedtaksvurdering er null
+             * 3. vedtaksvurdering er [Vedtaksvurdering.Påbegynt]
+             *
+             * Ellers [VurderingerTilKlage.Utfylt]
+             *
+             * @param vedtaksvurdering En [VurderingerTilKlage.Påbegynt] kan inneholde enten en [Vedtaksvurdering.Påbegynt] eller [Vedtaksvurdering.Utfylt]
+             * */
+            internal fun create(
+                fritekstTilBrev: String?,
+                vedtaksvurdering: Vedtaksvurdering?,
+            ): VurderingerTilKlage {
+                val erUtfylt =
+                    fritekstTilBrev != null && vedtaksvurdering != null && vedtaksvurdering is Vedtaksvurdering.Utfylt
+                return if (erUtfylt) {
+                    Utfylt(
+                        fritekstTilBrev = fritekstTilBrev!!,
+                        vedtaksvurdering = vedtaksvurdering!! as Vedtaksvurdering.Utfylt,
+                    )
+                } else {
+                    Påbegynt(
+                        fritekstTilBrev = fritekstTilBrev,
+                        vedtaksvurdering = vedtaksvurdering,
+                    )
+                }
+            }
+        }
+    }
 
     data class Utfylt(
         override val fritekstTilBrev: String,
@@ -21,14 +91,49 @@ sealed class VurderingerTilKlage {
     ) : VurderingerTilKlage()
 
     sealed class Vedtaksvurdering {
+
+        companion object {
+
+            fun createOmgjør(årsak: Årsak?, utfall: Utfall?): Vedtaksvurdering {
+                return if (årsak != null && utfall != null) {
+                    Utfylt.Omgjør(
+                        årsak = årsak,
+                        utfall = utfall,
+                    )
+                } else {
+                    Påbegynt.Omgjør(
+                        årsak = årsak,
+                        utfall = utfall,
+                    )
+                }
+            }
+
+            fun createOppretthold(hjemler: List<Hjemmel>): Either<Hjemler.KunneIkkeLageHjemler, Vedtaksvurdering> {
+                return Hjemler.tryCreate(hjemler).map {
+                    when (it) {
+                        is Hjemler.IkkeUtfylt -> Påbegynt.Oppretthold(hjemler = it)
+                        is Hjemler.Utfylt -> Utfylt.Oppretthold(hjemler = it)
+                    }
+                }
+            }
+        }
+
         sealed class Påbegynt : Vedtaksvurdering() {
-            data class Omgjør(val årsak: Årsak?, val utfall: Utfall?) : Påbegynt()
-            data class Oppretthold(val hjemler: Hjemler) : Påbegynt()
+            data class Omgjør internal constructor(val årsak: Årsak?, val utfall: Utfall?) : Påbegynt() {
+                init {
+                    // Siden vi ikke har union types føles det unaturlig å bytte til private ctor + create(): Vedtaksvurdering (mister for mye typeinformasjon)
+                    assert(årsak == null || utfall == null) {
+                        "En påbegynt Vedtaksvurdering.Omgjør kan ikke ha alle felter utfylt(årsak, utfall)"
+                    }
+                }
+            }
+
+            data class Oppretthold internal constructor(val hjemler: Hjemler.IkkeUtfylt) : Påbegynt()
         }
 
         sealed class Utfylt : Vedtaksvurdering() {
             data class Omgjør(val årsak: Årsak, val utfall: Utfall) : Utfylt()
-            data class Oppretthold(val hjemler: Hjemler) : Utfylt()
+            data class Oppretthold(val hjemler: Hjemler.Utfylt) : Utfylt()
         }
 
         /** Kopiert fra K9 */

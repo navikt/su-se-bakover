@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
+import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
@@ -25,20 +26,11 @@ data class KlageVurderingerRequest(
 ) {
     data class Omgjør(val årsak: String?, val utfall: String?) {
 
-        private fun erUtfylt(): Boolean = this.årsak != null && this.utfall != null
-
         fun toDomain(): Either<KunneIkkeVurdereKlage, VurderingerTilKlage.Vedtaksvurdering> {
-            return if (erUtfylt()) {
-                VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør(
-                    årsak = årsakToDomain(årsak!!).getOrHandle { return it.left() },
-                    utfall = utfallToDomain(utfall!!).getOrHandle { return it.left() },
-                )
-            } else {
-                VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Omgjør(
-                    årsak = årsak?.let { årsakToDomain(it) }?.getOrHandle { return it.left() },
-                    utfall = utfall?.let { utfallToDomain(it) }?.getOrHandle { return it.left() },
-                )
-            }.right()
+            return VurderingerTilKlage.Vedtaksvurdering.createOmgjør(
+                årsak = årsak?.let { årsakToDomain(it) }?.getOrHandle { return it.left() },
+                utfall = utfall?.let { utfallToDomain(it) }?.getOrHandle { return it.left() },
+            ).right()
         }
 
         private fun årsakToDomain(årsak: String): Either<KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak, VurderingerTilKlage.Vedtaksvurdering.Årsak> {
@@ -65,16 +57,14 @@ data class KlageVurderingerRequest(
     data class Oppretthold(val hjemler: List<String>) {
 
         fun toDomain(): Either<KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler, VurderingerTilKlage.Vedtaksvurdering> {
-            return hjemmelToDomain(hjemler).map {
-                when (it) {
-                    is Hjemler.IkkeUtfylt -> VurderingerTilKlage.Vedtaksvurdering.Påbegynt.Oppretthold(
+            return hjemmelToDomain(hjemler)
+                .flatMap {
+                    VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
                         hjemler = it,
-                    )
-                    is Hjemler.Utfylt -> VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold(
-                        hjemler = it,
-                    )
+                    ).mapLeft {
+                        KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler
+                    }
                 }
-            }
         }
 
         private fun hjemmelToDomain(hjemler: List<String>): Either<KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler, Hjemler> {
@@ -94,20 +84,11 @@ data class KlageVurderingerRequest(
                     else -> return KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler.left()
                 }
             }.let {
-                if (it.isEmpty()) {
-                    Hjemler.IkkeUtfylt.create()
-                } else {
-                    Hjemler.Utfylt.tryCreate(NonEmptyList.fromListUnsafe(it)).getOrHandle {
-                        return KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler.left()
-                    }
+                Hjemler.tryCreate(NonEmptyList.fromListUnsafe(it)).getOrHandle {
+                    return KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler.left()
                 }.right()
             }
         }
-    }
-
-    private fun erUtfylt(): Boolean {
-        if (omgjør != null && oppretthold != null) throw IllegalStateException("Håndterer at ikke begge har lov til å være utfylt tidligere.")
-        return fritekstTilBrev != null && (omgjør == null).xor(oppretthold == null)
     }
 
     private fun toVedtaksvurdering(): Either<KunneIkkeVurdereKlage, VurderingerTilKlage.Vedtaksvurdering?> {
@@ -119,12 +100,6 @@ data class KlageVurderingerRequest(
         }
     }
 
-    private fun toUtfyltVedtaksvurdering(): Either<KunneIkkeVurdereKlage, VurderingerTilKlage.Vedtaksvurdering.Utfylt> {
-        return toVedtaksvurdering().map {
-            it!! as VurderingerTilKlage.Vedtaksvurdering.Utfylt
-        }
-    }
-
     fun toDomain(): Either<KunneIkkeVurdereKlage, Domain> {
         if (omgjør != null && oppretthold != null) {
             return KunneIkkeVurdereKlage.KanIkkeVelgeBådeOmgjørOgOppretthold.left()
@@ -132,18 +107,11 @@ data class KlageVurderingerRequest(
         return Domain(
             klageId = Either.catch { UUID.fromString(klageId) }
                 .getOrElse { return KunneIkkeVurdereKlage.FantIkkeKlage.left() },
-            vurderinger = if (erUtfylt()) {
-                VurderingerTilKlage.Utfylt(
-                    fritekstTilBrev = fritekstTilBrev!!,
-                    vedtaksvurdering = toUtfyltVedtaksvurdering().getOrHandle { return it.left() },
-                )
-            } else {
-                VurderingerTilKlage.Påbegynt(
-                    fritekstTilBrev = fritekstTilBrev,
-                    vedtaksvurdering = toVedtaksvurdering().getOrHandle { return it.left() },
-                )
-            },
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent)
+            vurderinger = VurderingerTilKlage.create(
+                fritekstTilBrev = fritekstTilBrev,
+                vedtaksvurdering = toVedtaksvurdering().getOrHandle { return it.left() },
+            ),
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
         ).right()
     }
 

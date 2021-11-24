@@ -7,7 +7,22 @@ import arrow.core.left
 import arrow.core.right
 
 sealed class Hjemler : List<Hjemmel> {
+
     abstract val hjemler: List<Hjemmel>
+
+    companion object {
+        fun empty(): IkkeUtfylt {
+            return IkkeUtfylt.create()
+        }
+
+        fun tryCreate(hjemler: List<Hjemmel>): Either<KunneIkkeLageHjemler, Hjemler> {
+            return if (hjemler.isEmpty()) {
+                empty().right()
+            } else {
+                Utfylt.tryCreate(NonEmptyList.fromListUnsafe(hjemler))
+            }
+        }
+    }
 
     data class IkkeUtfylt private constructor(
         override val hjemler: List<Hjemmel> = emptyList(),
@@ -19,6 +34,9 @@ sealed class Hjemler : List<Hjemmel> {
         }
     }
 
+    /**
+     * Hjemlene blir sortert alfabetisk.
+     */
     data class Utfylt private constructor(
         override val hjemler: NonEmptyList<Hjemmel>,
     ) : Hjemler(), List<Hjemmel> by hjemler {
@@ -34,7 +52,7 @@ sealed class Hjemler : List<Hjemmel> {
 
             fun tryCreate(hjemler: NonEmptyList<Hjemmel>): Either<KunneIkkeLageHjemler, Utfylt> {
                 return if (hjemler.toList() == hjemler.distinct()) {
-                    Utfylt(hjemler).right()
+                    Utfylt(NonEmptyList.fromListUnsafe(hjemler.sorted())).right()
                 } else {
                     KunneIkkeLageHjemler.left()
                 }

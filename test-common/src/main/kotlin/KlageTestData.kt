@@ -26,7 +26,10 @@ fun opprettetKlage(
     )
 }
 
-fun påbegyntVilkårsvurdertKlage(
+/**
+ * @return default [VilkårsvurdertKlage.Påbegynt], men hvis alle feltene er utfylt (vedtakId,innenforFristen,klagesDetPåKonkreteElementerIVedtaket,erUnderskrevet,begrunnelse) vil man ende opp med [VilkårsvurdertKlage.Utfylt]
+ */
+fun vilkårsvurdertKlage(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
@@ -46,7 +49,7 @@ fun påbegyntVilkårsvurdertKlage(
         saksbehandler = saksbehandler,
     ).vilkårsvurder(
         saksbehandler = saksbehandler,
-        vilkårsvurderinger = VilkårsvurderingerTilKlage.Påbegynt(
+        vilkårsvurderinger = VilkårsvurderingerTilKlage.create(
             vedtakId = vedtakId,
             innenforFristen = innenforFristen,
             klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,

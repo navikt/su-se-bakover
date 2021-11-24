@@ -35,34 +35,16 @@ data class VurderKlagevilkårRequest(
             Either.catch { UUID.fromString(it) }
                 .getOrElse { return KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak.left() }
         }
-        val vilkårsvurderinger = if (listOf<Any?>(
-                vedtakId,
-                innenforFristen,
-                klagesDetPåKonkreteElementerIVedtaket,
-                erUnderskrevet,
-                begrunnelse,
-            ).any { it == null }
-        ) {
-            VilkårsvurderingerTilKlage.Påbegynt(
+        return Domain(
+            klageId = klageId,
+            saksbehandler = saksbehandler,
+            vilkårsvurderinger = VilkårsvurderingerTilKlage.create(
                 vedtakId = vedtakId,
                 innenforFristen = innenforFristen,
                 klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
                 erUnderskrevet = erUnderskrevet,
                 begrunnelse = begrunnelse,
-            )
-        } else {
-            VilkårsvurderingerTilKlage.Utfylt(
-                vedtakId = vedtakId!!,
-                innenforFristen = innenforFristen!!,
-                klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket!!,
-                erUnderskrevet = erUnderskrevet!!,
-                begrunnelse = begrunnelse!!,
-            )
-        }
-        return Domain(
-            klageId = klageId,
-            saksbehandler = saksbehandler,
-            vilkårsvurderinger = vilkårsvurderinger,
+            ),
         ).right()
     }
 }

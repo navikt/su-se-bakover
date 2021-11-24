@@ -14,8 +14,8 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.opprettetKlage
-import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurdertKlage
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
@@ -140,13 +140,7 @@ internal class VilkårsvurderKlageTest {
                 sakId = sak.id,
                 journalpostId = opprettetKlage.journalpostId,
                 saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
-                vilkårsvurderinger = VilkårsvurderingerTilKlage.Påbegynt(
-                    vedtakId = null,
-                    innenforFristen = null,
-                    klagesDetPåKonkreteElementerIVedtaket = null,
-                    erUnderskrevet = null,
-                    begrunnelse = null,
-                ),
+                vilkårsvurderinger = VilkårsvurderingerTilKlage.empty(),
             )
             it shouldBe expectedKlage
         }
@@ -163,7 +157,7 @@ internal class VilkårsvurderKlageTest {
     @Test
     fun `kan ferdigstille vilkårsvurdering`() {
         val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val påbegyntVilkårsvurdertKlage = påbegyntVilkårsvurdertKlage(
+        val påbegyntVilkårsvurdertKlage = vilkårsvurdertKlage(
             sakId = sak.id,
         )
         val klageRepoMock = mock<KlageRepo> {
