@@ -518,7 +518,7 @@ data class ApplicationConfig(
             runtimeEnvironment = RuntimeEnvironment.Local,
             naisCluster = naisCluster(),
             leaderPodLookupPath = "",
-            pdfgenLocal = true,
+            pdfgenLocal = getEnvironmentVariableOrDefault("PDFGEN_LOCAL", "false").toBoolean(),
             serviceUser = ServiceUserConfig.createLocalConfig(),
             azure = AzureConfig.createLocalConfig(),
             frikort = FrikortConfig.createLocalConfig(),
