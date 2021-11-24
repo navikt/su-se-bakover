@@ -5,6 +5,8 @@ import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.http.HttpStatusCode.Companion.OK
+import io.ktor.response.respond
 import io.ktor.response.respondBytes
 import io.ktor.routing.Route
 import io.ktor.routing.get
@@ -13,8 +15,10 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
+import no.nav.su.se.bakover.service.klage.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
@@ -22,7 +26,13 @@ import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
+import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeGenerereBrev
+import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeKlage
+import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSak
+import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSaksbehandlerEllerAttestant
+import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeVedtak
+import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -46,7 +56,9 @@ internal fun Route.klageRoutes(
                             navIdent = body.journalpostId,
                             journalpostId = call.suUserContext.navIdent,
                         ),
-                    ).mapLeft {
+                    ).map {
+                        Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
+                    }.getOrHandle {
                         when (it) {
                             KunneIkkeOppretteKlage.FantIkkeSak -> fantIkkeSak
                             KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage -> BadRequest.errorJson(
@@ -54,9 +66,7 @@ internal fun Route.klageRoutes(
                                 "finnes_allerede_en_åpen_klage",
                             )
                         }
-                    }.map {
-                        Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
-                    }.getOrHandle { it }
+                    }
                     call.svar(resultat)
                 }
             }
@@ -84,20 +94,14 @@ internal fun Route.klageRoutes(
                             erUnderskrevet = body.erUnderskrevet,
                             begrunnelse = body.begrunnelse,
                         ),
-                    ).mapLeft {
+                    ).map {
+                        Resultat.json(OK, serialize(it.toJson()))
+                    }.getOrHandle {
                         when (it) {
-                            KunneIkkeVilkårsvurdereKlage.FantIkkeKlage -> HttpStatusCode.NotFound.errorJson(
-                                "Fant ikke klage",
-                                "fant_ikke_klage",
-                            )
-                            KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak -> HttpStatusCode.NotFound.errorJson(
-                                "Fant ikke vedtak",
-                                "fant_ikke_vedtak",
-                            )
+                            KunneIkkeVilkårsvurdereKlage.FantIkkeKlage -> fantIkkeKlage
+                            KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak -> fantIkkeVedtak
                         }
-                    }.map {
-                        Resultat.json(HttpStatusCode.OK, serialize(it.toJson()))
-                    }.getOrHandle { it }
+                    }
                     call.svar(resultat)
                 }
             }
@@ -109,7 +113,13 @@ internal fun Route.klageRoutes(
             call.withKlageId { klageId ->
                 klageService.brevutkast(sakId, klageId, NavIdentBruker.Saksbehandler(call.suUserContext.navIdent)).fold(
                     ifLeft = {
-                        // Legg til feilmeldinger til frontend
+                        val resultat = when (it) {
+                            KunneIkkeLageBrevutkast.FantIkkePerson -> fantIkkePerson
+                            KunneIkkeLageBrevutkast.FantIkkeSak -> fantIkkeSak
+                            KunneIkkeLageBrevutkast.FantIkkeSaksbehandler -> fantIkkeSaksbehandlerEllerAttestant
+                            KunneIkkeLageBrevutkast.GenereringAvBrevFeilet -> kunneIkkeGenerereBrev
+                        }
+                        call.respond(resultat)
                     },
                     ifRight = {
                         call.respondBytes(it, ContentType.Application.Pdf)
@@ -131,23 +141,47 @@ internal fun Route.klageRoutes(
             )
 
             call.withStringParam("id") { klageId ->
-                call.withBody<Body> {
-                    klageService.vurder(
+                call.withBody<Body> { body ->
+                    val resultat: Resultat = klageService.vurder(
                         request = KlageVurderingerRequest(
                             klageId = klageId,
-                            fritekstTilBrev = it.fritekstTilBrev,
-                            omgjør = it.omgjør?.let { o ->
+                            fritekstTilBrev = body.fritekstTilBrev,
+                            omgjør = body.omgjør?.let { o ->
                                 KlageVurderingerRequest.Omgjør(
                                     årsak = o.årsak,
                                     utfall = o.utfall,
                                 )
                             },
-                            oppretthold = it.oppretthold?.let { o ->
+                            oppretthold = body.oppretthold?.let { o ->
                                 KlageVurderingerRequest.Oppretthold(hjemler = o.hjemler)
                             },
                             navIdent = call.suUserContext.navIdent,
                         ),
-                    )
+                    ).map { vurdertKlage ->
+                        Resultat.json(OK, serialize(vurdertKlage.toJson()))
+                    }.getOrHandle { error ->
+                        when (error) {
+                            KunneIkkeVurdereKlage.FantIkkeKlage -> fantIkkeKlage
+                            KunneIkkeVurdereKlage.KanIkkeVelgeBådeOmgjørOgOppretthold -> BadRequest.errorJson(
+                                "Kan ikke velge både omgjør og oppretthold.",
+                                "kan_ikke_velge_både_omgjør_og_oppretthold",
+                            )
+                            KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall -> BadRequest.errorJson(
+                                "Ugyldig omgjøringsutfall",
+                                "ugyldig_omgjøringsutfall",
+                            )
+                            KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak -> BadRequest.errorJson(
+                                "Ugyldig omgjøringsårsak",
+                                "ugyldig_omgjøringsårsak",
+                            )
+                            KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler -> BadRequest.errorJson(
+                                "Ugyldig opprettholdeseshjemler",
+                                "ugyldig_opprettholdeseshjemler",
+                            )
+                            is KunneIkkeVurdereKlage.UgyldigTilstand -> ugyldigTilstand(error.fra, error.til)
+                        }
+                    }
+                    call.svar(resultat)
                 }
             }
         }
@@ -155,26 +189,26 @@ internal fun Route.klageRoutes(
 
     authorize(Brukerrolle.Saksbehandler) {
         post("$klagePath/{id}/brevutkast") {
-            call.svar(Resultat.json(HttpStatusCode.OK, "{}"))
+            call.svar(Resultat.json(OK, "{}"))
         }
     }
 
     authorize(Brukerrolle.Saksbehandler) {
         post("$klagePath/{id}/tilAttestering") {
-            call.svar(Resultat.json(HttpStatusCode.OK, "{}"))
+            call.svar(Resultat.json(OK, "{}"))
         }
     }
 
     authorize(Brukerrolle.Attestant) {
         data class Body(val årsak: String, val begrunnelse: String)
         post("$klagePath/{id}/underkjenn") {
-            call.svar(Resultat.json(HttpStatusCode.OK, "{}"))
+            call.svar(Resultat.json(OK, "{}"))
         }
     }
 
     authorize(Brukerrolle.Attestant) {
         post("$klagePath/{id}/iverksett") {
-            call.svar(Resultat.json(HttpStatusCode.OK, "{}"))
+            call.svar(Resultat.json(OK, "{}"))
         }
     }
 }

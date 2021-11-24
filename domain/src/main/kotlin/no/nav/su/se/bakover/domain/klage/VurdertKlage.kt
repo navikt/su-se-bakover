@@ -14,27 +14,32 @@ sealed class VurdertKlage : Klage() {
     abstract val vurderinger: VurderingerTilKlage
 
     /**
-     * @return Dersom vilkårsvurderinga
+     * Dersom vi allerede har vurderinger vil vi ta vare på disse videre.
      */
     override fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
         vilkårsvurderinger: VilkårsvurderingerTilKlage,
     ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
-        //    return when(vilkårsvurderinger) {
-        //        is VilkårsvurderingerTilKlage.Påbegynt -> VilkårsvurdertKlage.Påbegynt.create(
-        //            id =id,
-        //            opprettet = opprettet,
-        //            sakId =sakId,
-        //            journalpostId = journalpostId,
-        //            saksbehandler = saksbehandler,
-        //            vilkårsvurderinger = vilkårsvurderinger
-        //
-        //        )
-        //        is VilkårsvurderingerTilKlage.Utfylt -> TODO()
-        //        }
-        //    }
-        // }
-        TODO()
+        return when (vilkårsvurderinger) {
+            is VilkårsvurderingerTilKlage.Påbegynt -> VilkårsvurdertKlage.Påbegynt.create(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                journalpostId = journalpostId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = vilkårsvurderinger,
+                vurderinger = vurderinger,
+            )
+            is VilkårsvurderingerTilKlage.Utfylt -> VilkårsvurdertKlage.Utfylt.create(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                journalpostId = journalpostId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = vilkårsvurderinger,
+                vurderinger = vurderinger,
+            )
+        }.right()
     }
 
     override fun vurder(

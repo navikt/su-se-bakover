@@ -21,6 +21,11 @@ internal object Feilresponser {
         "fant_ikke_sak",
     )
 
+    val fantIkkeVedtak = NotFound.errorJson(
+        "Fant ikke vedtak",
+        "fant_ikke_vedtak",
+    )
+
     val ikkeTilgangTilPerson = Forbidden.errorJson(
         "Ikke tilgang til å se person", "ikke_tilgang_til_person",
     )
@@ -31,12 +36,17 @@ internal object Feilresponser {
     )
 
     val feilVedOppslagPåPerson = InternalServerError.errorJson(
-        "Feil ved oppslag på person", "feil_ved_oppslag_person"
+        "Feil ved oppslag på person", "feil_ved_oppslag_person",
     )
 
     val fantIkkeSøknad = NotFound.errorJson(
         "Fant ikke søknad",
         "fant_ikke_søknad",
+    )
+
+    val fantIkkeKlage = NotFound.errorJson(
+        "Fant ikke klage",
+        "fant_ikke_klage",
     )
 
     val harAlleredeÅpenBehandling = BadRequest.errorJson(
