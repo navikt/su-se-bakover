@@ -115,6 +115,15 @@ internal fun Route.klageRoutes(
         call.withSakId { sakId ->
             call.withStringParam("klageId") { klageId ->
                 call.withBody<Body> { body ->
+                    if (body.hjemler.isEmpty()) {
+                        return@withBody call.svar(
+                            InternalServerError.errorJson(
+                                "må angi hjemler",
+                                "må_angi_hjemler",
+                            ),
+                        )
+                    }
+
                     klageService.brevutkast(
                         sakId = sakId,
                         klageId = UUID.fromString(klageId),
