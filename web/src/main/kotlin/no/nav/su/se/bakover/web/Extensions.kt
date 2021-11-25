@@ -143,6 +143,13 @@ internal suspend fun ApplicationCall.withVedtakId(ifRight: suspend (UUID) -> Uni
     )
 }
 
+internal suspend fun ApplicationCall.withKlageId(ifRight: suspend (UUID) -> Unit) {
+    this.lesUUID("klageId").fold(
+        ifLeft = { this.svar(HttpStatusCode.BadRequest.errorJson(it, "klageId_mangler_eller_feil_format")) },
+        ifRight = { ifRight(it) },
+    )
+}
+
 internal suspend inline fun <reified T> ApplicationCall.withBody(ifRight: (T) -> Unit) {
     Either.catch { deserialize<T>(this) }.fold(
         ifLeft = {

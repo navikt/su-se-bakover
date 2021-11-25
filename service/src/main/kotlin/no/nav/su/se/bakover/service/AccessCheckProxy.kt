@@ -761,6 +761,11 @@ open class AccessCheckProxy(
                     return services.klageService.vurder(request)
                 }
 
+                override fun bekrekftVurderinger(klageId: UUID): Either<KunneIkkeVurdereKlage, VurdertKlage> {
+                    assertHarTilgangTilKlage(klageId.toString())
+                    return services.klageService.bekrekftVurderinger(klageId)
+                }
+
                 override fun brevutkast(
                     sakId: UUID,
                     klageId: UUID,
@@ -771,7 +776,7 @@ open class AccessCheckProxy(
                     assertHarTilgangTilSak(sakId)
                     return services.klageService.brevutkast(sakId, klageId, saksbehandler, fritekst, hjemler)
                 }
-            }
+            },
         )
     }
 

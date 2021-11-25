@@ -38,6 +38,7 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
+import no.nav.su.se.bakover.web.withKlageId
 import no.nav.su.se.bakover.web.withSakId
 import no.nav.su.se.bakover.web.withStringParam
 import java.util.UUID
@@ -190,28 +191,23 @@ internal fun Route.klageRoutes(
                     ).map { vurdertKlage ->
                         Resultat.json(OK, serialize(vurdertKlage.toJson()))
                     }.getOrHandle { error ->
-                        when (error) {
-                            KunneIkkeVurdereKlage.FantIkkeKlage -> fantIkkeKlage
-                            KunneIkkeVurdereKlage.KanIkkeVelgeBådeOmgjørOgOppretthold -> BadRequest.errorJson(
-                                "Kan ikke velge både omgjør og oppretthold.",
-                                "kan_ikke_velge_både_omgjør_og_oppretthold",
-                            )
-                            KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall -> BadRequest.errorJson(
-                                "Ugyldig omgjøringsutfall",
-                                "ugyldig_omgjøringsutfall",
-                            )
-                            KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak -> BadRequest.errorJson(
-                                "Ugyldig omgjøringsårsak",
-                                "ugyldig_omgjøringsårsak",
-                            )
-                            KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler -> BadRequest.errorJson(
-                                "Ugyldig opprettholdeseshjemler",
-                                "ugyldig_opprettholdeseshjemler",
-                            )
-                            is KunneIkkeVurdereKlage.UgyldigTilstand -> ugyldigTilstand(error.fra, error.til)
-                        }
+                        error.tilResultat()
                     }
                     call.svar(resultat)
+                }
+            }
+        }
+    }
+
+    authorize(Brukerrolle.Saksbehandler) {
+        post("$klagePath/{klageId}/bekreftVurderinger") {
+            call.withSakId {
+                call.withKlageId { klageId ->
+                    klageService.bekrekftVurderinger(klageId).map {
+                        call.svar(Resultat.json(OK, serialize(it.toJson())))
+                    }.mapLeft {
+                        call.svar(it.tilResultat())
+                    }
                 }
             }
         }
@@ -234,5 +230,28 @@ internal fun Route.klageRoutes(
         post("$klagePath/{id}/iverksett") {
             call.svar(Resultat.json(OK, "{}"))
         }
+    }
+}
+
+internal fun KunneIkkeVurdereKlage.tilResultat(): Resultat {
+    return when (this) {
+        KunneIkkeVurdereKlage.FantIkkeKlage -> fantIkkeKlage
+        KunneIkkeVurdereKlage.KanIkkeVelgeBådeOmgjørOgOppretthold -> BadRequest.errorJson(
+            "Kan ikke velge både omgjør og oppretthold.",
+            "kan_ikke_velge_både_omgjør_og_oppretthold",
+        )
+        KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall -> BadRequest.errorJson(
+            "Ugyldig omgjøringsutfall",
+            "ugyldig_omgjøringsutfall",
+        )
+        KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak -> BadRequest.errorJson(
+            "Ugyldig omgjøringsårsak",
+            "ugyldig_omgjøringsårsak",
+        )
+        KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler -> BadRequest.errorJson(
+            "Ugyldig opprettholdelseshjemler",
+            "ugyldig_opprettholdesleshjemler",
+        )
+        is KunneIkkeVurdereKlage.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
     }
 }

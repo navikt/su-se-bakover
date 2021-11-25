@@ -110,6 +110,19 @@ sealed class VurdertKlage : Klage() {
         override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
         override val vurderinger: VurderingerTilKlage.Utfylt,
     ) : VurdertKlage() {
+
+        fun bekreft(): Either<KunneIkkeVurdereKlage, Bekreftet> {
+            return Bekreftet.create(
+                this.id,
+                this.opprettet,
+                this.sakId,
+                this.journalpostId,
+                this.saksbehandler,
+                this.vilkårsvurderinger,
+                this.vurderinger,
+            ).right()
+        }
+
         companion object {
             fun create(
                 id: UUID,
@@ -128,6 +141,38 @@ sealed class VurdertKlage : Klage() {
                     saksbehandler = saksbehandler,
                     vilkårsvurderinger = vilkårsvurderinger,
                     vurderinger = vurderinger,
+                )
+            }
+        }
+    }
+
+    data class Bekreftet private constructor(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        override val sakId: UUID,
+        override val journalpostId: JournalpostId,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
+        override val vurderinger: VurderingerTilKlage.Utfylt,
+    ) : VurdertKlage() {
+        companion object {
+            fun create(
+                id: UUID,
+                opprettet: Tidspunkt,
+                sakId: UUID,
+                journalpostId: JournalpostId,
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
+                vurderinger: VurderingerTilKlage.Utfylt,
+            ): Bekreftet {
+                return Bekreftet(
+                    id,
+                    opprettet,
+                    sakId,
+                    journalpostId,
+                    saksbehandler,
+                    vilkårsvurderinger,
+                    vurderinger,
                 )
             }
         }

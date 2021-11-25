@@ -76,6 +76,16 @@ class KlageServiceImpl(
         }
     }
 
+    override fun bekrekftVurderinger(klageId: UUID): Either<KunneIkkeVurdereKlage, VurdertKlage> {
+        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeVurdereKlage.FantIkkeKlage.left()
+
+        if (klage !is VurdertKlage.Utfylt) {
+            return KunneIkkeVurdereKlage.UgyldigTilstand(klage::class, VurdertKlage.Bekreftet::class).left()
+        }
+
+        return klage.bekreft()
+    }
+
     override fun brevutkast(
         sakId: UUID,
         klageId: UUID,

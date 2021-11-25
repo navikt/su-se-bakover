@@ -21,6 +21,7 @@ interface KlageService {
         hjemler: Hjemler.Utfylt
     ): Either<KunneIkkeLageBrevutkast, ByteArray>
     fun vurder(request: KlageVurderingerRequest): Either<KunneIkkeVurdereKlage, VurdertKlage>
+    fun bekrekftVurderinger(klageId: UUID): Either<KunneIkkeVurdereKlage, VurdertKlage>
 }
 
 sealed class KunneIkkeOppretteKlage {

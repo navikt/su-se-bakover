@@ -15,6 +15,7 @@ data class KlageJson(
     val sakid: String,
     val opprettet: String,
     val journalpostId: String,
+    val saksbehandler: String,
     val status: String,
     val vedtakId: String?,
     val innenforFristen: Boolean?,
@@ -90,6 +91,7 @@ internal fun Klage.toJson(): KlageJson {
             sakid = this.sakId.toString(),
             opprettet = this.opprettet.toString(),
             journalpostId = this.journalpostId.toString(),
+            saksbehandler = this.saksbehandler.navIdent,
             status = this.frontendStatus(),
             vedtakId = null,
             innenforFristen = null,
@@ -104,6 +106,7 @@ internal fun Klage.toJson(): KlageJson {
             sakid = this.sakId.toString(),
             opprettet = this.opprettet.toString(),
             journalpostId = this.journalpostId.toString(),
+            saksbehandler = this.saksbehandler.navIdent,
             status = this.frontendStatus(),
             vedtakId = this.vilkårsvurderinger.vedtakId.toString(),
             innenforFristen = this.vilkårsvurderinger.innenforFristen,
@@ -118,6 +121,7 @@ internal fun Klage.toJson(): KlageJson {
             sakid = this.sakId.toString(),
             opprettet = this.opprettet.toString(),
             journalpostId = this.journalpostId.toString(),
+            saksbehandler = this.saksbehandler.navIdent,
             status = this.frontendStatus(),
             vedtakId = this.vilkårsvurderinger.vedtakId?.toString(),
             innenforFristen = this.vilkårsvurderinger.innenforFristen,
@@ -132,6 +136,7 @@ internal fun Klage.toJson(): KlageJson {
             sakid = this.sakId.toString(),
             opprettet = this.opprettet.toString(),
             journalpostId = this.journalpostId.toString(),
+            saksbehandler = this.saksbehandler.navIdent,
             status = this.frontendStatus(),
             vedtakId = this.vilkårsvurderinger.vedtakId.toString(),
             innenforFristen = this.vilkårsvurderinger.innenforFristen,
@@ -146,6 +151,22 @@ internal fun Klage.toJson(): KlageJson {
             sakid = this.sakId.toString(),
             opprettet = this.opprettet.toString(),
             journalpostId = this.journalpostId.toString(),
+            saksbehandler = this.saksbehandler.navIdent,
+            status = this.frontendStatus(),
+            vedtakId = this.vilkårsvurderinger.vedtakId.toString(),
+            innenforFristen = this.vilkårsvurderinger.innenforFristen,
+            klagesDetPåKonkreteElementerIVedtaket = this.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
+            erUnderskrevet = this.vilkårsvurderinger.erUnderskrevet,
+            begrunnelse = this.vilkårsvurderinger.begrunnelse,
+            fritekstTilBrev = this.vurderinger.fritekstTilBrev,
+            vedtaksvurdering = this.vurderinger.vedtaksvurdering.toJson(),
+        )
+        is VurdertKlage.Bekreftet -> KlageJson(
+            id = this.id.toString(),
+            sakid = this.sakId.toString(),
+            opprettet = this.opprettet.toString(),
+            journalpostId = this.journalpostId.toString(),
+            saksbehandler = this.saksbehandler.navIdent,
             status = this.frontendStatus(),
             vedtakId = this.vilkårsvurderinger.vedtakId.toString(),
             innenforFristen = this.vilkårsvurderinger.innenforFristen,
@@ -227,6 +248,7 @@ private enum class Typer(val verdi: String) {
                 is VilkårsvurdertKlage.Utfylt -> VILKÅRSVURDERT_UTFYLT
                 is VurdertKlage.Påbegynt -> VURDERT_PÅBEGYNT
                 is VurdertKlage.Utfylt -> VURDERT_UTFYLT
+                is VurdertKlage.Bekreftet -> VURDERT_BEKREFTET
             }.toString()
         }
     }
