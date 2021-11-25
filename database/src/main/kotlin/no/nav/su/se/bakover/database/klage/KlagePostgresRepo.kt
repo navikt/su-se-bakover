@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageRepo
+import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
@@ -43,6 +44,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 is OpprettetKlage -> lagreOpprettetKlage(klage, session)
                 is VilkårsvurdertKlage -> lagreVilkårsvurdertKlage(klage, session)
                 is VurdertKlage -> lagreVurdertKlage(klage, session)
+                is KlageTilAttestering -> lagreTilAttestering(klage, session)
             }
         }
     }
@@ -118,6 +120,23 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     "begrunnelse" to klage.vilkårsvurderinger.begrunnelse,
                     "fritekstTilBrev" to klage.vurderinger.fritekstTilBrev,
                     "vedtaksvurdering" to klage.vurderinger.vedtaksvurdering?.toJson(),
+                ),
+                session,
+            )
+    }
+
+    private fun lagreTilAttestering(klage: KlageTilAttestering, session: Session) {
+        """
+            update 
+                klage 
+            set
+                type=:type
+            where id=:id
+        """.trimIndent()
+            .oppdatering(
+                mapOf(
+                    "id" to klage.id,
+                    "type" to klage.databasetype(),
                 ),
                 session,
             )
@@ -275,6 +294,24 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     vedtaksvurdering = vedtaksvurdering!!.toDomain() as VurderingerTilKlage.Vedtaksvurdering.Utfylt,
                 ),
             )
+            Tilstand.TIL_ATTESTERING -> KlageTilAttestering.create(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                journalpostId = journalpostId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+                    vedtakId = vedtakId!!,
+                    innenforFristen = innenforFristen!!,
+                    klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket!!,
+                    erUnderskrevet = erUnderskrevet!!,
+                    begrunnelse = begrunnelse!!,
+                ),
+                vurderinger = VurderingerTilKlage.Utfylt(
+                    fritekstTilBrev = fritekstTilBrev!!,
+                    vedtaksvurdering = vedtaksvurdering!!.toDomain() as VurderingerTilKlage.Vedtaksvurdering.Utfylt,
+                ),
+            )
         }
     }
 
@@ -285,7 +322,8 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
         VILKÅRSVURDERT_BEKREFTET("vilkårsvurdert_bekreftet"),
         VURDERT_PÅBEGYNT("vurdert_påbegynt"),
         VURDERT_UTFYLT("vurdert_utfylt"),
-        VURDERT_BEKREFTET("vurdert_bekreftet");
+        VURDERT_BEKREFTET("vurdert_bekreftet"),
+        TIL_ATTESTERING("til_attestering");
 
         companion object {
             fun Klage.databasetype(): String {
@@ -297,6 +335,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     is VurdertKlage.Påbegynt -> VURDERT_PÅBEGYNT
                     is VurdertKlage.Utfylt -> VURDERT_UTFYLT
                     is VurdertKlage.Bekreftet -> VURDERT_BEKREFTET
+                    is KlageTilAttestering -> TIL_ATTESTERING
                 }.toString()
             }
 

@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.Hjemmel
+import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.service.klage.KlageService
@@ -217,7 +218,7 @@ internal fun Route.klageRoutes(
     }
 
     authorize(Brukerrolle.Saksbehandler) {
-        post("$klagePath/{klageId}/bekreftVurderinger") {
+        post("$klagePath/{klageId}/vurderinger/bekreft") {
             call.withSakId {
                 call.withKlageId { klageId ->
                     klageService.bekreftVurderinger(klageId).map {
@@ -234,8 +235,16 @@ internal fun Route.klageRoutes(
     }
 
     authorize(Brukerrolle.Saksbehandler) {
-        post("$klagePath/{id}/tilAttestering") {
-            call.svar(Resultat.json(OK, "{}"))
+        post("$klagePath/{klageId}/tilAttestering") {
+            call.withSakId {
+                call.withKlageId { klageId ->
+                    klageService.sendTilAttestering(klageId).map {
+                        call.svar(Resultat.json(OK, serialize(it.toJson())))
+                    }.mapLeft {
+                        call.svar(it.tilResultat())
+                    }
+                }
+            }
         }
     }
 
@@ -273,5 +282,12 @@ internal fun KunneIkkeVurdereKlage.tilResultat(): Resultat {
             "ugyldig_opprettholdesleshjemler",
         )
         is KunneIkkeVurdereKlage.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
+    }
+}
+
+internal fun KunneIkkeSendeTilAttestering.tilResultat(): Resultat {
+    return when (this) {
+        KunneIkkeSendeTilAttestering.FantIkkeKlage -> fantIkkeKlage
+        is KunneIkkeSendeTilAttestering.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
     }
 }

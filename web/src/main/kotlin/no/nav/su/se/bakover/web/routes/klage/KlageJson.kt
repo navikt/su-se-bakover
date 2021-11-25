@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.klage
 
 import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
@@ -191,6 +192,21 @@ internal fun Klage.toJson(): KlageJson {
             fritekstTilBrev = this.vurderinger.fritekstTilBrev,
             vedtaksvurdering = this.vurderinger.vedtaksvurdering.toJson(),
         )
+        is KlageTilAttestering -> KlageJson(
+            id = this.id.toString(),
+            sakid = this.sakId.toString(),
+            opprettet = this.opprettet.toString(),
+            journalpostId = this.journalpostId.toString(),
+            saksbehandler = this.saksbehandler.navIdent,
+            status = this.frontendStatus(),
+            vedtakId = this.vilkårsvurderinger.vedtakId.toString(),
+            innenforFristen = this.vilkårsvurderinger.innenforFristen,
+            klagesDetPåKonkreteElementerIVedtaket = this.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
+            erUnderskrevet = this.vilkårsvurderinger.erUnderskrevet,
+            begrunnelse = this.vilkårsvurderinger.begrunnelse,
+            fritekstTilBrev = this.vurderinger.fritekstTilBrev,
+            vedtaksvurdering = this.vurderinger.vedtaksvurdering.toJson(),
+        )
     }
 }
 
@@ -274,6 +290,7 @@ private enum class Typer(val verdi: String) {
                 is VurdertKlage.Påbegynt -> VURDERT_PÅBEGYNT
                 is VurdertKlage.Utfylt -> VURDERT_UTFYLT
                 is VurdertKlage.Bekreftet -> VURDERT_BEKREFTET
+                is KlageTilAttestering -> TIL_ATTESTERING
             }.toString()
         }
     }

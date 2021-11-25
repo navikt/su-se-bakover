@@ -155,6 +155,13 @@ sealed class VurdertKlage : Klage() {
         override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
         override val vurderinger: VurderingerTilKlage.Utfylt,
     ) : VurdertKlage() {
+
+        fun sendTilAttestering(): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
+            return KlageTilAttestering.create(
+                id, opprettet, sakId, journalpostId, saksbehandler, vilkårsvurderinger, vurderinger,
+            ).right()
+        }
+
         companion object {
             fun create(
                 id: UUID,

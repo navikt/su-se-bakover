@@ -24,6 +24,8 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.klage.Hjemler
+import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
+import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
@@ -770,6 +772,11 @@ open class AccessCheckProxy(
                 override fun bekreftVurderinger(klageId: UUID): Either<KunneIkkeBekrefteKlagesteg, VurdertKlage> {
                     assertHarTilgangTilKlage(klageId.toString())
                     return services.klageService.bekreftVurderinger(klageId)
+                }
+
+                override fun sendTilAttestering(klageId: UUID): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
+                    assertHarTilgangTilKlage(klageId.toString())
+                    return services.klageService.sendTilAttestering(klageId)
                 }
 
                 override fun brevutkast(
