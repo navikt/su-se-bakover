@@ -243,6 +243,24 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     vedtaksvurdering = vedtaksvurdering!!.toDomain() as VurderingerTilKlage.Vedtaksvurdering.Utfylt,
                 ),
             )
+            Tilstand.VURDERT_BEKREFTET -> VurdertKlage.Bekreftet.create(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                journalpostId = journalpostId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+                    vedtakId = vedtakId!!,
+                    innenforFristen = innenforFristen!!,
+                    klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket!!,
+                    erUnderskrevet = erUnderskrevet!!,
+                    begrunnelse = begrunnelse!!,
+                ),
+                vurderinger = VurderingerTilKlage.Utfylt(
+                    fritekstTilBrev = fritekstTilBrev!!,
+                    vedtaksvurdering = vedtaksvurdering!!.toDomain() as VurderingerTilKlage.Vedtaksvurdering.Utfylt,
+                ),
+            )
         }
     }
 
@@ -251,7 +269,8 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
         VILKÅRSVURDERT_PÅBEGYNT("vilkårsvurdert_påbegynt"),
         VILKÅRSVURDERT_UTFYLT("vilkårsvurdert_utfylt"),
         VURDERT_PÅBEGYNT("vurdert_påbegynt"),
-        VURDERT_UTFYLT("vurdert_utfylt");
+        VURDERT_UTFYLT("vurdert_utfylt"),
+        VURDERT_BEKREFTET("vurdert_bekreftet");
 
         companion object {
             fun Klage.databasetype(): String {
@@ -261,6 +280,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     is VilkårsvurdertKlage.Utfylt -> VILKÅRSVURDERT_UTFYLT
                     is VurdertKlage.Påbegynt -> VURDERT_PÅBEGYNT
                     is VurdertKlage.Utfylt -> VURDERT_UTFYLT
+                    is VurdertKlage.Bekreftet -> VURDERT_BEKREFTET
                 }.toString()
             }
 

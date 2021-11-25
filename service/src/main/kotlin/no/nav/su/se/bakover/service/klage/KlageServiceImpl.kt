@@ -83,7 +83,9 @@ class KlageServiceImpl(
             return KunneIkkeVurdereKlage.UgyldigTilstand(klage::class, VurdertKlage.Bekreftet::class).left()
         }
 
-        return klage.bekreft()
+        return klage.bekreft().tap {
+            klageRepo.lagre(it)
+        }
     }
 
     override fun brevutkast(
