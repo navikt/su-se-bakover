@@ -44,38 +44,6 @@ sealed class VilkårsvurdertKlage : Klage() {
         }.right()
     }
 
-    override fun vurder(
-        saksbehandler: NavIdentBruker.Saksbehandler,
-        vurderinger: VurderingerTilKlage,
-    ): Either<KunneIkkeVurdereKlage.UgyldigTilstand, VurdertKlage> {
-        return when (val vilkårsvurderinger = vilkårsvurderinger) {
-            is VilkårsvurderingerTilKlage.Påbegynt -> KunneIkkeVurdereKlage.UgyldigTilstand(
-                Påbegynt::class,
-                VurdertKlage::class,
-            ).left()
-            is VilkårsvurderingerTilKlage.Utfylt -> when (vurderinger) {
-                is VurderingerTilKlage.Påbegynt -> VurdertKlage.Påbegynt.create(
-                    id = id,
-                    opprettet = opprettet,
-                    sakId = sakId,
-                    journalpostId = journalpostId,
-                    saksbehandler = saksbehandler,
-                    vilkårsvurderinger = vilkårsvurderinger,
-                    vurderinger = vurderinger,
-                )
-                is VurderingerTilKlage.Utfylt -> VurdertKlage.Utfylt.create(
-                    id = id,
-                    opprettet = opprettet,
-                    sakId = sakId,
-                    journalpostId = journalpostId,
-                    saksbehandler = saksbehandler,
-                    vilkårsvurderinger = vilkårsvurderinger,
-                    vurderinger = vurderinger,
-                )
-            }.right()
-        }
-    }
-
     data class Påbegynt private constructor(
         override val id: UUID,
         override val opprettet: Tidspunkt,
@@ -105,6 +73,11 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vurderinger = vurderinger,
             )
         }
+
+        override fun vurder(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            vurderinger: VurderingerTilKlage,
+        ) = KunneIkkeVurdereKlage.UgyldigTilstand(this::class, VurdertKlage::class).left()
     }
 
     data class Utfylt private constructor(
@@ -117,6 +90,23 @@ sealed class VilkårsvurdertKlage : Klage() {
         override val vurderinger: VurderingerTilKlage?,
     ) : VilkårsvurdertKlage() {
 
+        override fun vurder(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            vurderinger: VurderingerTilKlage,
+        ) = KunneIkkeVurdereKlage.UgyldigTilstand(this::class, VurdertKlage::class).left()
+
+        fun bekreft(): Bekreftet {
+            return Bekreftet.create(
+                id = this.id,
+                opprettet = this.opprettet,
+                sakId = this.sakId,
+                journalpostId = this.journalpostId,
+                saksbehandler = this.saksbehandler,
+                vilkårsvurderinger = this.vilkårsvurderinger,
+                vurderinger = this.vurderinger,
+            )
+        }
+
         companion object {
             fun create(
                 id: UUID,
@@ -127,6 +117,66 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger: VurderingerTilKlage? = null,
             ) = Utfylt(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                journalpostId = journalpostId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = vilkårsvurderinger,
+                vurderinger = vurderinger,
+            )
+        }
+    }
+
+    data class Bekreftet private constructor(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
+        override val sakId: UUID,
+        override val journalpostId: JournalpostId,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
+        override val vurderinger: VurderingerTilKlage?,
+    ) : VilkårsvurdertKlage() {
+
+        /**
+         * Vi kan kun begynne/fortsette å vurdere en [VilkårsvurdertKlage] dersom den er [VilkårsvurdertKlage.Bekreftet]
+         */
+        override fun vurder(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            vurderinger: VurderingerTilKlage,
+        ): Either<KunneIkkeVurdereKlage.UgyldigTilstand, VurdertKlage> {
+            return when (vurderinger) {
+                is VurderingerTilKlage.Påbegynt -> VurdertKlage.Påbegynt.create(
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    journalpostId = journalpostId,
+                    saksbehandler = saksbehandler,
+                    vilkårsvurderinger = vilkårsvurderinger,
+                    vurderinger = vurderinger,
+                )
+                is VurderingerTilKlage.Utfylt -> VurdertKlage.Utfylt.create(
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    journalpostId = journalpostId,
+                    saksbehandler = saksbehandler,
+                    vilkårsvurderinger = vilkårsvurderinger,
+                    vurderinger = vurderinger,
+                )
+            }.right()
+        }
+
+        companion object {
+            fun create(
+                id: UUID,
+                opprettet: Tidspunkt,
+                sakId: UUID,
+                journalpostId: JournalpostId,
+                saksbehandler: NavIdentBruker.Saksbehandler,
+                vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
+                vurderinger: VurderingerTilKlage? = null,
+            ) = Bekreftet(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,

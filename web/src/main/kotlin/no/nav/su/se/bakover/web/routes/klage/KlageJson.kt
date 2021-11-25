@@ -101,6 +101,21 @@ internal fun Klage.toJson(): KlageJson {
             fritekstTilBrev = null,
             vedtaksvurdering = null,
         )
+        is VilkårsvurdertKlage.Påbegynt -> KlageJson(
+            id = this.id.toString(),
+            sakid = this.sakId.toString(),
+            opprettet = this.opprettet.toString(),
+            journalpostId = this.journalpostId.toString(),
+            saksbehandler = this.saksbehandler.navIdent,
+            status = this.frontendStatus(),
+            vedtakId = this.vilkårsvurderinger.vedtakId?.toString(),
+            innenforFristen = this.vilkårsvurderinger.innenforFristen,
+            klagesDetPåKonkreteElementerIVedtaket = this.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
+            erUnderskrevet = this.vilkårsvurderinger.erUnderskrevet,
+            begrunnelse = this.vilkårsvurderinger.begrunnelse,
+            fritekstTilBrev = null,
+            vedtaksvurdering = null,
+        )
         is VilkårsvurdertKlage.Utfylt -> KlageJson(
             id = this.id.toString(),
             sakid = this.sakId.toString(),
@@ -116,14 +131,14 @@ internal fun Klage.toJson(): KlageJson {
             fritekstTilBrev = null,
             vedtaksvurdering = null,
         )
-        is VilkårsvurdertKlage.Påbegynt -> KlageJson(
+        is VilkårsvurdertKlage.Bekreftet -> KlageJson(
             id = this.id.toString(),
             sakid = this.sakId.toString(),
             opprettet = this.opprettet.toString(),
             journalpostId = this.journalpostId.toString(),
             saksbehandler = this.saksbehandler.navIdent,
             status = this.frontendStatus(),
-            vedtakId = this.vilkårsvurderinger.vedtakId?.toString(),
+            vedtakId = this.vilkårsvurderinger.vedtakId.toString(),
             innenforFristen = this.vilkårsvurderinger.innenforFristen,
             klagesDetPåKonkreteElementerIVedtaket = this.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
             erUnderskrevet = this.vilkårsvurderinger.erUnderskrevet,
@@ -200,12 +215,19 @@ private enum class Typer(val verdi: String) {
     /**
      * Man kommer i denne tilstanden når man fyller ut alle vilkårsvurderingene.
      * Kan kun gå tilbake til tilstanden VILKÅRSVURDERT_PÅBEGYNT.
-     * Går fram til VURDERT_PÅBEGYNT etter man 'bekrefter'.
+     * Går fram til VILKÅRSVURDERT_BEKREFTET etter man 'bekrefter'.
      */
     VILKÅRSVURDERT_UTFYLT("VILKÅRSVURDERT_UTFYLT"),
 
     /**
-     * Man kommer i denne tilstanden etter man 'bekrefter' tilstanden VILKÅRSVURDERT_UTFYLT
+     * Man kommer i denne tilstanden dersom man bekrefter VILKÅRSVURDERT_UTFYLT
+     * Kan gå tilbake til VILKÅRSVURDERT_PÅBEGYNT
+     * Går fram til VURDERT_PÅBEGYNT eller VURDERT_UTFYLT
+     */
+    VILKÅRSVURDERT_BEKREFTET("VILKÅRSVURDERT_BEKREFTET"),
+
+    /**
+     * Man kommer i denne tilstanden dersom man begynner å vurdere (påbegynt/ferdig) etter man er i tilstanden VILKÅRSVURDERT_BEKREFTET
      * Kan gå tilbake til VILKÅRSVURDERT_PÅBEGYNT dersom man fyller ut ingen eller N-1 vilkårsvurderinger.
      * Kan gå fram til VURDERT_UTFYLT dersom man fyller ut alle vurderingene.
      */
@@ -244,8 +266,11 @@ private enum class Typer(val verdi: String) {
         fun Klage.frontendStatus(): String {
             return when (this) {
                 is OpprettetKlage -> OPPRETTET
+
                 is VilkårsvurdertKlage.Påbegynt -> VILKÅRSVURDERT_PÅBEGYNT
                 is VilkårsvurdertKlage.Utfylt -> VILKÅRSVURDERT_UTFYLT
+                is VilkårsvurdertKlage.Bekreftet -> VILKÅRSVURDERT_BEKREFTET
+
                 is VurdertKlage.Påbegynt -> VURDERT_PÅBEGYNT
                 is VurdertKlage.Utfylt -> VURDERT_UTFYLT
                 is VurdertKlage.Bekreftet -> VURDERT_BEKREFTET

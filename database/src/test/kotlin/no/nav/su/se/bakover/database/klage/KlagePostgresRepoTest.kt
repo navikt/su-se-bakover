@@ -155,16 +155,18 @@ internal class KlagePostgresRepoTest {
                 clock = fixedClock,
             ).let { opprettetKlage ->
                 klageRepo.lagre(opprettetKlage)
-                opprettetKlage.vilkårsvurder(
-                    saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler2"),
-                    vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
-                        vedtakId = vedtak.id,
-                        innenforFristen = true,
-                        klagesDetPåKonkreteElementerIVedtaket = true,
-                        erUnderskrevet = true,
-                        begrunnelse = "enBegrunnelse",
-                    ),
-                ).orNull()!!.let { vilkårsvurdertKlage ->
+                (
+                    opprettetKlage.vilkårsvurder(
+                        saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler2"),
+                        vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+                            vedtakId = vedtak.id,
+                            innenforFristen = true,
+                            klagesDetPåKonkreteElementerIVedtaket = true,
+                            erUnderskrevet = true,
+                            begrunnelse = "enBegrunnelse",
+                        ),
+                    ).orNull()!! as VilkårsvurdertKlage.Utfylt
+                    ).bekreft().let { vilkårsvurdertKlage ->
                     klageRepo.lagre(vilkårsvurdertKlage)
                     vilkårsvurdertKlage.vurder(
                         saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler3"),
@@ -200,16 +202,18 @@ internal class KlagePostgresRepoTest {
                 clock = fixedClock,
             ).let { opprettetKlage ->
                 klageRepo.lagre(opprettetKlage)
-                opprettetKlage.vilkårsvurder(
-                    saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler2"),
-                    vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
-                        vedtakId = vedtak.id,
-                        innenforFristen = true,
-                        klagesDetPåKonkreteElementerIVedtaket = true,
-                        erUnderskrevet = true,
-                        begrunnelse = "enBegrunnelse",
-                    ),
-                ).orNull()!!.let { vilkårsvurdertKlage ->
+                (
+                    opprettetKlage.vilkårsvurder(
+                        saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler2"),
+                        vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+                            vedtakId = vedtak.id,
+                            innenforFristen = true,
+                            klagesDetPåKonkreteElementerIVedtaket = true,
+                            erUnderskrevet = true,
+                            begrunnelse = "enBegrunnelse",
+                        ),
+                    ).orNull()!! as VilkårsvurdertKlage.Utfylt
+                    ).bekreft().let { vilkårsvurdertKlage ->
                     klageRepo.lagre(vilkårsvurdertKlage)
                     vilkårsvurdertKlage.vurder(
                         saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler3"),

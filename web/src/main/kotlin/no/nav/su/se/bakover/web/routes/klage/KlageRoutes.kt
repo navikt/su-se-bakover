@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
+import no.nav.su.se.bakover.service.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.service.klage.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
@@ -107,6 +108,22 @@ internal fun Route.klageRoutes(
                     }
                     call.svar(resultat)
                 }
+            }
+        }
+    }
+
+    authorize(Brukerrolle.Saksbehandler) {
+        post("$klagePath/{klageId}/vilkår/vurderinger/bekreft") {
+            call.withKlageId { klageId ->
+                val resultat = klageService.bekreftVilkårsvurderinger(klageId).map {
+                    Resultat.json(OK, serialize(it.toJson()))
+                }.getOrHandle {
+                    return@getOrHandle when (it) {
+                        KunneIkkeBekrefteKlagesteg.FantIkkeKlage -> fantIkkeKlage
+                        is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                    }
+                }
+                call.svar(resultat)
             }
         }
     }
@@ -203,10 +220,13 @@ internal fun Route.klageRoutes(
         post("$klagePath/{klageId}/bekreftVurderinger") {
             call.withSakId {
                 call.withKlageId { klageId ->
-                    klageService.bekrekftVurderinger(klageId).map {
+                    klageService.bekreftVurderinger(klageId).map {
                         call.svar(Resultat.json(OK, serialize(it.toJson())))
                     }.mapLeft {
-                        call.svar(it.tilResultat())
+                        return@mapLeft when (it) {
+                            KunneIkkeBekrefteKlagesteg.FantIkkeKlage -> fantIkkeKlage
+                            is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                        }
                     }
                 }
             }

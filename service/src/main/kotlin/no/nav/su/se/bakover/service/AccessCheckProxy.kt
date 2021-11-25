@@ -68,6 +68,7 @@ import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
+import no.nav.su.se.bakover.service.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.service.klage.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
@@ -756,14 +757,19 @@ open class AccessCheckProxy(
                     return services.klageService.vilkårsvurder(request)
                 }
 
+                override fun bekreftVilkårsvurderinger(klageId: UUID): Either<KunneIkkeBekrefteKlagesteg, VilkårsvurdertKlage> {
+                    assertHarTilgangTilKlage(klageId.toString())
+                    return services.klageService.bekreftVilkårsvurderinger(klageId)
+                }
+
                 override fun vurder(request: KlageVurderingerRequest): Either<KunneIkkeVurdereKlage, VurdertKlage> {
                     assertHarTilgangTilKlage(request.klageId)
                     return services.klageService.vurder(request)
                 }
 
-                override fun bekrekftVurderinger(klageId: UUID): Either<KunneIkkeVurdereKlage, VurdertKlage> {
+                override fun bekreftVurderinger(klageId: UUID): Either<KunneIkkeBekrefteKlagesteg, VurdertKlage> {
                     assertHarTilgangTilKlage(klageId.toString())
-                    return services.klageService.bekrekftVurderinger(klageId)
+                    return services.klageService.bekreftVurderinger(klageId)
                 }
 
                 override fun brevutkast(

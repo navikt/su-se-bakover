@@ -111,16 +111,16 @@ sealed class VurdertKlage : Klage() {
         override val vurderinger: VurderingerTilKlage.Utfylt,
     ) : VurdertKlage() {
 
-        fun bekreft(): Either<KunneIkkeVurdereKlage, Bekreftet> {
+        fun bekreft(): Bekreftet {
             return Bekreftet.create(
-                this.id,
-                this.opprettet,
-                this.sakId,
-                this.journalpostId,
-                this.saksbehandler,
-                this.vilkårsvurderinger,
-                this.vurderinger,
-            ).right()
+                id = this.id,
+                opprettet = this.opprettet,
+                sakId = this.sakId,
+                journalpostId = this.journalpostId,
+                saksbehandler = this.saksbehandler,
+                vilkårsvurderinger = this.vilkårsvurderinger,
+                vurderinger = this.vurderinger,
+            )
         }
 
         companion object {

@@ -207,6 +207,20 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     begrunnelse = begrunnelse!!,
                 ),
             )
+            Tilstand.VILKÅRSVURDERT_BEKREFTET -> VilkårsvurdertKlage.Bekreftet.create(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                journalpostId = journalpostId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+                    vedtakId = vedtakId!!,
+                    innenforFristen = innenforFristen!!,
+                    klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket!!,
+                    erUnderskrevet = erUnderskrevet!!,
+                    begrunnelse = begrunnelse!!,
+                ),
+            )
             Tilstand.VURDERT_PÅBEGYNT -> VurdertKlage.Påbegynt.create(
                 id = id,
                 opprettet = opprettet,
@@ -268,6 +282,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
         OPPRETTET("opprettet"),
         VILKÅRSVURDERT_PÅBEGYNT("vilkårsvurdert_påbegynt"),
         VILKÅRSVURDERT_UTFYLT("vilkårsvurdert_utfylt"),
+        VILKÅRSVURDERT_BEKREFTET("vilkårsvurdert_bekreftet"),
         VURDERT_PÅBEGYNT("vurdert_påbegynt"),
         VURDERT_UTFYLT("vurdert_utfylt"),
         VURDERT_BEKREFTET("vurdert_bekreftet");
@@ -278,6 +293,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     is OpprettetKlage -> OPPRETTET
                     is VilkårsvurdertKlage.Påbegynt -> VILKÅRSVURDERT_PÅBEGYNT
                     is VilkårsvurdertKlage.Utfylt -> VILKÅRSVURDERT_UTFYLT
+                    is VilkårsvurdertKlage.Bekreftet -> VILKÅRSVURDERT_BEKREFTET
                     is VurdertKlage.Påbegynt -> VURDERT_PÅBEGYNT
                     is VurdertKlage.Utfylt -> VURDERT_UTFYLT
                     is VurdertKlage.Bekreftet -> VURDERT_BEKREFTET
