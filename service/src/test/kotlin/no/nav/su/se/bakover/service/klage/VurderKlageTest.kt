@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.left
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.service.argThat
 import org.junit.jupiter.api.Test
@@ -9,7 +10,6 @@ import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
 
 internal class VurderKlageTest {
@@ -25,8 +25,8 @@ internal class VurderKlageTest {
 
         val klageId = UUID.randomUUID()
         val request = KlageVurderingerRequest(
-            navIdent = "saksbehandler",
-            klageId = klageId.toString(),
+            saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
+            klageId = klageId,
             fritekstTilBrev = null,
             omgjør = null,
             oppretthold = null,

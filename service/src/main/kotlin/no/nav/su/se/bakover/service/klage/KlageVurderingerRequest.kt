@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.klage
 import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.flatMap
-import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -18,8 +17,8 @@ import java.util.UUID
  * Prøver å unngå validering / mapping i web-laget så holder det til primitiver/objekter/arrays
  */
 data class KlageVurderingerRequest(
-    val klageId: String,
-    private val navIdent: String,
+    val klageId: UUID,
+    private val saksbehandler: NavIdentBruker.Saksbehandler,
     private val fritekstTilBrev: String?,
     private val omgjør: Omgjør?,
     private val oppretthold: Oppretthold?,
@@ -105,13 +104,12 @@ data class KlageVurderingerRequest(
             return KunneIkkeVurdereKlage.KanIkkeVelgeBådeOmgjørOgOppretthold.left()
         }
         return Domain(
-            klageId = Either.catch { UUID.fromString(klageId) }
-                .getOrElse { return KunneIkkeVurdereKlage.FantIkkeKlage.left() },
+            klageId = klageId,
             vurderinger = VurderingerTilKlage.create(
                 fritekstTilBrev = fritekstTilBrev,
                 vedtaksvurdering = toVedtaksvurdering().getOrHandle { return it.left() },
             ),
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
+            saksbehandler = saksbehandler,
         ).right()
     }
 

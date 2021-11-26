@@ -4,8 +4,8 @@ import arrow.core.Either
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.IverksattKlage
-import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
+import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
@@ -15,18 +15,26 @@ import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import java.util.UUID
-import kotlin.reflect.KClass
 
 interface KlageService {
     fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage>
 
     fun vilkårsvurder(request: VurderKlagevilkårRequest): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage>
-    fun bekreftVilkårsvurderinger(klageId: UUID): Either<KunneIkkeBekrefteKlagesteg, VilkårsvurdertKlage>
+    fun bekreftVilkårsvurderinger(
+        klageId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeBekrefteKlagesteg, VilkårsvurdertKlage.Bekreftet>
 
     fun vurder(request: KlageVurderingerRequest): Either<KunneIkkeVurdereKlage, VurdertKlage>
-    fun bekreftVurderinger(klageId: UUID): Either<KunneIkkeBekrefteKlagesteg, VurdertKlage>
+    fun bekreftVurderinger(
+        klageId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeBekrefteKlagesteg, VurdertKlage.Bekreftet>
 
-    fun sendTilAttestering(klageId: UUID): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering>
+    fun sendTilAttestering(
+        klageId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering>
 
     fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenne, VurdertKlage.Bekreftet>
 
@@ -52,10 +60,4 @@ sealed class KunneIkkeLageBrevutkast {
     object FantIkkeSaksbehandler : KunneIkkeLageBrevutkast()
     object UgyldigKlagetype : KunneIkkeLageBrevutkast()
     object GenereringAvBrevFeilet : KunneIkkeLageBrevutkast()
-}
-
-sealed class KunneIkkeBekrefteKlagesteg {
-    object FantIkkeKlage : KunneIkkeBekrefteKlagesteg()
-    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) :
-        KunneIkkeBekrefteKlagesteg()
 }

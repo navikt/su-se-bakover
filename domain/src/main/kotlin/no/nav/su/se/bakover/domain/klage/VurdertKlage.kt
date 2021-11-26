@@ -15,9 +15,6 @@ sealed class VurdertKlage : Klage() {
     abstract val vurderinger: VurderingerTilKlage
     abstract val attesteringer: Attesteringshistorikk
 
-    /**
-     * Dersom vi allerede har vurderinger vil vi ta vare på disse videre.
-     */
     override fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
         vilkårsvurderinger: VilkårsvurderingerTilKlage,
@@ -59,7 +56,7 @@ sealed class VurdertKlage : Klage() {
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
-                attesteringshistorikk = attesteringer,
+                attesteringer = attesteringer,
             )
             is VurderingerTilKlage.Utfylt -> Utfylt.create(
                 id = id,
@@ -69,7 +66,7 @@ sealed class VurdertKlage : Klage() {
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
-                attesteringshistorikk = attesteringer,
+                attesteringer = attesteringer,
             )
         }.right()
     }
@@ -81,7 +78,7 @@ sealed class VurdertKlage : Klage() {
         override val journalpostId: JournalpostId,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
-        override val vurderinger: VurderingerTilKlage,
+        override val vurderinger: VurderingerTilKlage.Påbegynt,
         override val attesteringer: Attesteringshistorikk,
     ) : VurdertKlage() {
         companion object {
@@ -93,8 +90,8 @@ sealed class VurdertKlage : Klage() {
                 journalpostId: JournalpostId,
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
-                vurderinger: VurderingerTilKlage,
-                attesteringshistorikk: Attesteringshistorikk,
+                vurderinger: VurderingerTilKlage.Påbegynt,
+                attesteringer: Attesteringshistorikk,
             ): Påbegynt {
                 return Påbegynt(
                     id = id,
@@ -104,7 +101,7 @@ sealed class VurdertKlage : Klage() {
                     saksbehandler = saksbehandler,
                     vilkårsvurderinger = vilkårsvurderinger,
                     vurderinger = vurderinger,
-                    attesteringer = attesteringshistorikk,
+                    attesteringer = attesteringer,
                 )
             }
         }
@@ -121,17 +118,19 @@ sealed class VurdertKlage : Klage() {
         override val attesteringer: Attesteringshistorikk,
     ) : VurdertKlage() {
 
-        fun bekreft(): Bekreftet {
+        override fun bekreftVurderinger(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+        ): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, Bekreftet> {
             return Bekreftet.create(
-                id = this.id,
-                opprettet = this.opprettet,
-                sakId = this.sakId,
-                journalpostId = this.journalpostId,
-                saksbehandler = this.saksbehandler,
-                vilkårsvurderinger = this.vilkårsvurderinger,
-                vurderinger = this.vurderinger,
-                attesteringer,
-            )
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                journalpostId = journalpostId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = vilkårsvurderinger,
+                vurderinger = vurderinger,
+                attesteringer = attesteringer,
+            ).right()
         }
 
         companion object {
@@ -143,7 +142,7 @@ sealed class VurdertKlage : Klage() {
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger: VurderingerTilKlage.Utfylt,
-                attesteringshistorikk: Attesteringshistorikk,
+                attesteringer: Attesteringshistorikk,
             ): Utfylt {
                 return Utfylt(
                     id = id,
@@ -153,7 +152,7 @@ sealed class VurdertKlage : Klage() {
                     saksbehandler = saksbehandler,
                     vilkårsvurderinger = vilkårsvurderinger,
                     vurderinger = vurderinger,
-                    attesteringer = attesteringshistorikk,
+                    attesteringer = attesteringer,
                 )
             }
         }
@@ -174,7 +173,24 @@ sealed class VurdertKlage : Klage() {
         override val attesteringer: Attesteringshistorikk,
     ) : VurdertKlage() {
 
-        fun sendTilAttestering(): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
+        override fun bekreftVurderinger(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+        ): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, Bekreftet> {
+            return Bekreftet.create(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                journalpostId = journalpostId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = vilkårsvurderinger,
+                vurderinger = vurderinger,
+                attesteringer = attesteringer,
+            ).right()
+        }
+
+        fun sendTilAttestering(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+        ): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
             return KlageTilAttestering.create(
                 id = id,
                 opprettet = opprettet,
@@ -196,7 +212,7 @@ sealed class VurdertKlage : Klage() {
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger: VurderingerTilKlage.Utfylt,
-                attesteringshistorikk: Attesteringshistorikk,
+                attesteringer: Attesteringshistorikk,
             ): Bekreftet {
                 return Bekreftet(
                     id,
@@ -206,7 +222,7 @@ sealed class VurdertKlage : Klage() {
                     saksbehandler,
                     vilkårsvurderinger,
                     vurderinger,
-                    attesteringshistorikk,
+                    attesteringer,
                 )
             }
         }

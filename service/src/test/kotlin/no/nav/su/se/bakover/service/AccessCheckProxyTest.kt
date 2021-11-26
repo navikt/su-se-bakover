@@ -239,7 +239,7 @@ internal class AccessCheckProxyTest {
                     return listOf(Fnr.generer())
                 }
 
-                override fun hentFnrForKlage(klageId: String): List<Fnr> {
+                override fun hentFnrForKlage(klageId: UUID): List<Fnr> {
                     return listOf(Fnr.generer())
                 }
             },

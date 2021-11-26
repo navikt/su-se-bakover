@@ -19,8 +19,10 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.Hjemmel
+import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
@@ -28,7 +30,6 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
-import no.nav.su.se.bakover.service.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.service.klage.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
@@ -50,7 +51,6 @@ import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withKlageId
 import no.nav.su.se.bakover.web.withSakId
-import no.nav.su.se.bakover.web.withStringParam
 import java.util.UUID
 
 internal const val klagePath = "$sakPath/{sakId}/klager"
@@ -74,8 +74,8 @@ internal fun Route.klageRoutes(
                     val resultat = klageService.opprett(
                         NyKlageRequest(
                             sakId = sakId,
-                            navIdent = body.journalpostId,
-                            journalpostId = call.suUserContext.navIdent,
+                            saksbehandler = call.suUserContext.saksbehandler,
+                            journalpostId = JournalpostId(body.journalpostId),
                         ),
                     ).map {
                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
@@ -95,7 +95,7 @@ internal fun Route.klageRoutes(
     }
 
     authorize(Brukerrolle.Saksbehandler) {
-        post("$klagePath/{id}/vilkår/vurderinger") {
+        post("$klagePath/{klageId}/vilkår/vurderinger") {
             data class Body(
                 val vedtakId: String?,
                 val innenforFristen: Boolean?,
@@ -103,13 +103,13 @@ internal fun Route.klageRoutes(
                 val erUnderskrevet: Boolean?,
                 val begrunnelse: String?,
             )
-            call.withStringParam("id") { klageId ->
+            call.withKlageId { klageId ->
                 call.withBody<Body> { body ->
                     val resultat = klageService.vilkårsvurder(
                         VurderKlagevilkårRequest(
                             klageId = klageId,
-                            navIdent = call.suUserContext.navIdent,
-                            vedtakId = body.vedtakId,
+                            saksbehandler = call.suUserContext.saksbehandler,
+                            vedtakId = body.vedtakId?.let { UUID.fromString(it) },
                             innenforFristen = body.innenforFristen,
                             klagesDetPåKonkreteElementerIVedtaket = body.klagesDetPåKonkreteElementerIVedtaket,
                             erUnderskrevet = body.erUnderskrevet,
@@ -133,7 +133,10 @@ internal fun Route.klageRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$klagePath/{klageId}/vilkår/vurderinger/bekreft") {
             call.withKlageId { klageId ->
-                val resultat = klageService.bekreftVilkårsvurderinger(klageId).map {
+                val resultat = klageService.bekreftVilkårsvurderinger(
+                    klageId = klageId,
+                    saksbehandler = call.suUserContext.saksbehandler,
+                ).map {
                     Resultat.json(OK, serialize(it.toJson()))
                 }.getOrHandle {
                     return@getOrHandle when (it) {
@@ -149,7 +152,7 @@ internal fun Route.klageRoutes(
     post("$klagePath/{klageId}/brevutkast") {
         data class Body(val fritekst: String, val hjemler: List<String>)
         call.withSakId { sakId ->
-            call.withStringParam("klageId") { klageId ->
+            call.withKlageId { klageId ->
                 call.withBody<Body> { body ->
                     if (body.hjemler.isEmpty()) {
                         return@withBody call.svar(
@@ -162,8 +165,8 @@ internal fun Route.klageRoutes(
 
                     klageService.brevutkast(
                         sakId = sakId,
-                        klageId = UUID.fromString(klageId),
-                        saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                        klageId = klageId,
+                        saksbehandler = call.suUserContext.saksbehandler,
                         fritekst = body.fritekst,
                         hjemler = Hjemler.Utfylt.create(
                             NonEmptyList.fromListUnsafe(
@@ -196,7 +199,7 @@ internal fun Route.klageRoutes(
     }
 
     authorize(Brukerrolle.Saksbehandler) {
-        post("$klagePath/{id}/vurderinger") {
+        post("$klagePath/{klageId}/vurderinger") {
             data class Omgjør(val årsak: String, val utfall: String)
             data class Oppretthold(val hjemler: List<String> = emptyList())
 
@@ -206,7 +209,7 @@ internal fun Route.klageRoutes(
                 val oppretthold: Oppretthold?,
             )
 
-            call.withStringParam("id") { klageId ->
+            call.withKlageId { klageId ->
                 call.withBody<Body> { body ->
                     val resultat: Resultat = klageService.vurder(
                         request = KlageVurderingerRequest(
@@ -221,7 +224,7 @@ internal fun Route.klageRoutes(
                             oppretthold = body.oppretthold?.let { o ->
                                 KlageVurderingerRequest.Oppretthold(hjemler = o.hjemler)
                             },
-                            navIdent = call.suUserContext.navIdent,
+                            saksbehandler = call.suUserContext.saksbehandler,
                         ),
                     ).map { vurdertKlage ->
                         Resultat.json(OK, serialize(vurdertKlage.toJson()))
@@ -238,7 +241,10 @@ internal fun Route.klageRoutes(
         post("$klagePath/{klageId}/vurderinger/bekreft") {
             call.withSakId {
                 call.withKlageId { klageId ->
-                    klageService.bekreftVurderinger(klageId).map {
+                    klageService.bekreftVurderinger(
+                        klageId = klageId,
+                        saksbehandler = call.suUserContext.saksbehandler,
+                    ).map {
                         call.svar(Resultat.json(OK, serialize(it.toJson())))
                     }.mapLeft {
                         return@mapLeft when (it) {
@@ -255,7 +261,7 @@ internal fun Route.klageRoutes(
         post("$klagePath/{klageId}/tilAttestering") {
             call.withSakId {
                 call.withKlageId { klageId ->
-                    klageService.sendTilAttestering(klageId).map {
+                    klageService.sendTilAttestering(klageId, call.suUserContext.saksbehandler).map {
                         call.svar(Resultat.json(OK, serialize(it.toJson())))
                     }.mapLeft {
                         call.svar(it.tilResultat())
@@ -268,10 +274,13 @@ internal fun Route.klageRoutes(
     authorize(Brukerrolle.Attestant) {
         data class Body(val grunn: String, val kommentar: String) {
 
-            fun toRequest(klageId: UUID, attestantIdent: String): Either<KunneIkkeUnderkjenne, UnderkjennKlageRequest> {
+            fun toRequest(
+                klageId: UUID,
+                attestant: NavIdentBruker.Attestant,
+            ): Either<KunneIkkeUnderkjenne, UnderkjennKlageRequest> {
                 return UnderkjennKlageRequest(
                     klageId = klageId,
-                    attestant = NavIdentBruker.Attestant(attestantIdent),
+                    attestant = attestant,
                     grunn = Either.catch { Grunn.valueOf(grunn) }.map {
                         when (it) {
                             Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT -> Attestering.Underkjent.Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT
@@ -289,7 +298,7 @@ internal fun Route.klageRoutes(
             call.withSakId {
                 call.withKlageId { klageId ->
                     call.withBody<Body> { body ->
-                        body.toRequest(klageId, call.suUserContext.navIdent).map {
+                        body.toRequest(klageId, call.suUserContext.attestant).map {
                             klageService.underkjenn(it).map { vurdertKlage ->
                                 call.svar(Resultat.json(OK, serialize(vurdertKlage.toJson())))
                             }.mapLeft { error ->

@@ -21,7 +21,7 @@ data class KlageTilAttestering private constructor(
     val vurderinger: VurderingerTilKlage.Utfylt,
 ) : Klage() {
 
-    fun underkjenn(underkjentAttestering: Attestering.Underkjent): Either<KunneIkkeUnderkjenne, VurdertKlage.Bekreftet> {
+    override fun underkjenn(underkjentAttestering: Attestering.Underkjent): Either<KunneIkkeUnderkjenne, VurdertKlage.Bekreftet> {
         return VurdertKlage.Bekreftet.create(
             id = id,
             opprettet = opprettet,
@@ -30,7 +30,7 @@ data class KlageTilAttestering private constructor(
             saksbehandler = saksbehandler,
             vilkårsvurderinger = vilkårsvurderinger,
             vurderinger = vurderinger,
-            attesteringshistorikk = attesteringer.leggTilNyAttestering(underkjentAttestering),
+            attesteringer = attesteringer.leggTilNyAttestering(underkjentAttestering),
         ).right()
     }
 

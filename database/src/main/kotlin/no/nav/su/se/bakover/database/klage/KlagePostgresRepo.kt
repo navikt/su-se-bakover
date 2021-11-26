@@ -166,7 +166,6 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 mapOf(
                     "id" to klage.id,
                     "type" to klage.databasetype(),
-                    // TODO jah: Kopiert fra revurdering. Gå over søknadsbehandling, revurdering og klage og lag en AttesteringshistorikkJson
                     "attestering" to klage.attesteringer.toDatabaseJson(),
                 ),
                 session,
@@ -201,26 +200,30 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
 
     private fun rowToKlage(row: Row): Klage {
 
-        // not null felter i databasen (settes i statusen OPPRETTET)
         val id: UUID = row.uuid("id")
         val opprettet: Tidspunkt = row.tidspunkt("opprettet")
         val sakId: UUID = row.uuid("sakid")
         val journalpostId = JournalpostId(row.string("journalpostid"))
         val saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(row.string("saksbehandler"))
+
         val attesteringer = deserialize<List<AttesteringJson>>(row.string("attestering")).toDomain()
 
-        // nullable felter i databasen (settes i statusen VILKÅRSVURDERT_*)
-        val vedtakId: UUID? = row.uuidOrNull("vedtakId")
-        val innenforFristen: Boolean? = row.booleanOrNull("innenforFristen")
-        val klagesDetPåKonkreteElementerIVedtaket: Boolean? = row.booleanOrNull("klagesDetPåKonkreteElementerIVedtaket")
-        val erUnderskrevet: Boolean? = row.booleanOrNull("erUnderskrevet")
-        val begrunnelse: String? = row.stringOrNull("begrunnelse")
+        val vilkårsvurderingerTilKlage = VilkårsvurderingerTilKlage.create(
+            vedtakId = row.uuidOrNull("vedtakId"),
+            innenforFristen = row.booleanOrNull("innenforFristen"),
+            klagesDetPåKonkreteElementerIVedtaket = row.booleanOrNull("klagesDetPåKonkreteElementerIVedtaket"),
+            erUnderskrevet = row.booleanOrNull("erUnderskrevet"),
+            begrunnelse = row.stringOrNull("begrunnelse"),
+        )
 
-        // nullable felter i databasen (settes i statusen VURDERT_*)
-        val fritekstTilBrev: String? = row.stringOrNull("fritekstTilBrev")
-        val vedtaksvurdering: VedtaksvurderingJson? = row.stringOrNull("vedtaksvurdering")?.let {
-            deserialize<VedtaksvurderingJson>(it)
+        val fritekstTilBrev = row.stringOrNull("fritekstTilBrev")
+        val vedtaksvurdering = row.stringOrNull("vedtaksvurdering")?.let {
+            deserialize<VedtaksvurderingJson>(it).toDomain()
         }
+        val vurderinger = VurderingerTilKlage.create(
+            fritekstTilBrev = fritekstTilBrev,
+            vedtaksvurdering = vedtaksvurdering,
+        )
 
         return when (Tilstand.fromString(row.string("type"))) {
             Tilstand.OPPRETTET -> OpprettetKlage.create(
@@ -230,34 +233,27 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 journalpostId = journalpostId,
                 saksbehandler = saksbehandler,
             )
-            Tilstand.VILKÅRSVURDERT_PÅBEGYNT -> VilkårsvurdertKlage.Påbegynt.create(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                journalpostId = journalpostId,
-                saksbehandler = saksbehandler,
-                vilkårsvurderinger = VilkårsvurderingerTilKlage.create(
-                    vedtakId = vedtakId,
-                    innenforFristen = innenforFristen,
-                    klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
-                    erUnderskrevet = erUnderskrevet,
-                    begrunnelse = begrunnelse,
-                ) as VilkårsvurderingerTilKlage.Påbegynt,
-                attesteringer = attesteringer,
-            )
+            Tilstand.VILKÅRSVURDERT_PÅBEGYNT -> {
+
+                VilkårsvurdertKlage.Påbegynt.create(
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    journalpostId = journalpostId,
+                    saksbehandler = saksbehandler,
+                    vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Påbegynt,
+                    vurderinger = vurderinger,
+                    attesteringer = attesteringer,
+                )
+            }
             Tilstand.VILKÅRSVURDERT_UTFYLT -> VilkårsvurdertKlage.Utfylt.create(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
                 journalpostId = journalpostId,
                 saksbehandler = saksbehandler,
-                vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
-                    vedtakId = vedtakId!!,
-                    innenforFristen = innenforFristen!!,
-                    klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket!!,
-                    erUnderskrevet = erUnderskrevet!!,
-                    begrunnelse = begrunnelse!!,
-                ),
+                vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
+                vurderinger = vurderinger,
                 attesteringer = attesteringer,
             )
             Tilstand.VILKÅRSVURDERT_BEKREFTET -> VilkårsvurdertKlage.Bekreftet.create(
@@ -266,13 +262,8 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 sakId = sakId,
                 journalpostId = journalpostId,
                 saksbehandler = saksbehandler,
-                vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
-                    vedtakId = vedtakId!!,
-                    innenforFristen = innenforFristen!!,
-                    klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket!!,
-                    erUnderskrevet = erUnderskrevet!!,
-                    begrunnelse = begrunnelse!!,
-                ),
+                vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
+                vurderinger = vurderinger,
                 attesteringer = attesteringer,
             )
             Tilstand.VURDERT_PÅBEGYNT -> VurdertKlage.Påbegynt.create(
@@ -281,18 +272,9 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 sakId = sakId,
                 journalpostId = journalpostId,
                 saksbehandler = saksbehandler,
-                vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
-                    vedtakId = vedtakId!!,
-                    innenforFristen = innenforFristen!!,
-                    klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket!!,
-                    erUnderskrevet = erUnderskrevet!!,
-                    begrunnelse = begrunnelse!!,
-                ),
-                vurderinger = VurderingerTilKlage.create(
-                    fritekstTilBrev = fritekstTilBrev,
-                    vedtaksvurdering = vedtaksvurdering?.toDomain(),
-                ),
-                attesteringshistorikk = attesteringer,
+                vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
+                vurderinger = vurderinger as VurderingerTilKlage.Påbegynt,
+                attesteringer = attesteringer,
             )
             Tilstand.VURDERT_UTFYLT -> VurdertKlage.Utfylt.create(
                 id = id,
@@ -300,18 +282,9 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 sakId = sakId,
                 journalpostId = journalpostId,
                 saksbehandler = saksbehandler,
-                vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
-                    vedtakId = vedtakId!!,
-                    innenforFristen = innenforFristen!!,
-                    klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket!!,
-                    erUnderskrevet = erUnderskrevet!!,
-                    begrunnelse = begrunnelse!!,
-                ),
-                vurderinger = VurderingerTilKlage.Utfylt(
-                    fritekstTilBrev = fritekstTilBrev!!,
-                    vedtaksvurdering = vedtaksvurdering!!.toDomain() as VurderingerTilKlage.Vedtaksvurdering.Utfylt,
-                ),
-                attesteringshistorikk = attesteringer,
+                vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
+                vurderinger = vurderinger as VurderingerTilKlage.Utfylt,
+                attesteringer = attesteringer,
             )
             Tilstand.VURDERT_BEKREFTET -> VurdertKlage.Bekreftet.create(
                 id = id,
@@ -319,18 +292,9 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 sakId = sakId,
                 journalpostId = journalpostId,
                 saksbehandler = saksbehandler,
-                vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
-                    vedtakId = vedtakId!!,
-                    innenforFristen = innenforFristen!!,
-                    klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket!!,
-                    erUnderskrevet = erUnderskrevet!!,
-                    begrunnelse = begrunnelse!!,
-                ),
-                vurderinger = VurderingerTilKlage.Utfylt(
-                    fritekstTilBrev = fritekstTilBrev!!,
-                    vedtaksvurdering = vedtaksvurdering!!.toDomain() as VurderingerTilKlage.Vedtaksvurdering.Utfylt,
-                ),
-                attesteringshistorikk = attesteringer,
+                vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
+                vurderinger = vurderinger as VurderingerTilKlage.Utfylt,
+                attesteringer = attesteringer,
             )
             Tilstand.TIL_ATTESTERING -> KlageTilAttestering.create(
                 id = id,
@@ -338,17 +302,8 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 sakId = sakId,
                 journalpostId = journalpostId,
                 saksbehandler = saksbehandler,
-                vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
-                    vedtakId = vedtakId!!,
-                    innenforFristen = innenforFristen!!,
-                    klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket!!,
-                    erUnderskrevet = erUnderskrevet!!,
-                    begrunnelse = begrunnelse!!,
-                ),
-                vurderinger = VurderingerTilKlage.Utfylt(
-                    fritekstTilBrev = fritekstTilBrev!!,
-                    vedtaksvurdering = vedtaksvurdering!!.toDomain() as VurderingerTilKlage.Vedtaksvurdering.Utfylt,
-                ),
+                vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
+                vurderinger = vurderinger as VurderingerTilKlage.Utfylt,
                 attesteringer = attesteringer,
             )
             Tilstand.IVERKSATT -> IverksattKlage.create(
@@ -357,18 +312,9 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 sakId = sakId,
                 journalpostId = journalpostId,
                 saksbehandler = saksbehandler,
-                vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
-                    vedtakId = vedtakId!!,
-                    innenforFristen = innenforFristen!!,
-                    klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket!!,
-                    erUnderskrevet = erUnderskrevet!!,
-                    begrunnelse = begrunnelse!!,
-                ),
-                vurderinger = VurderingerTilKlage.Utfylt(
-                    fritekstTilBrev = fritekstTilBrev!!,
-                    vedtaksvurdering = vedtaksvurdering!!.toDomain() as VurderingerTilKlage.Vedtaksvurdering.Utfylt,
-                ),
-                attesteringer = attesteringer
+                vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
+                vurderinger = vurderinger as VurderingerTilKlage.Utfylt,
+                attesteringer = attesteringer,
             )
         }
     }

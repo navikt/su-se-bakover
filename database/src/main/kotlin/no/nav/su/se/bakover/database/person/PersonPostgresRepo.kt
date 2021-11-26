@@ -165,7 +165,7 @@ internal class PersonPostgresRepo(
         }
     }
 
-    override fun hentFnrForKlage(klageId: String): List<Fnr> {
+    override fun hentFnrForKlage(klageId: UUID): List<Fnr> {
         return dataSource.withSession { session ->
             """
                SELECT 

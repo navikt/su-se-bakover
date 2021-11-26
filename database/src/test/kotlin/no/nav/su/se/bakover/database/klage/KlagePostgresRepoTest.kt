@@ -155,27 +155,34 @@ internal class KlagePostgresRepoTest {
                 clock = fixedClock,
             ).let { opprettetKlage ->
                 klageRepo.lagre(opprettetKlage)
-                (
-                    opprettetKlage.vilkårsvurder(
-                        saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler2"),
-                        vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
-                            vedtakId = vedtak.id,
-                            innenforFristen = true,
-                            klagesDetPåKonkreteElementerIVedtaket = true,
-                            erUnderskrevet = true,
-                            begrunnelse = "enBegrunnelse",
-                        ),
-                    ).orNull()!! as VilkårsvurdertKlage.Utfylt
-                    ).bekreft().let { vilkårsvurdertKlage ->
-                    klageRepo.lagre(vilkårsvurdertKlage)
-                    vilkårsvurdertKlage.vurder(
+
+                val utfyltVilkårsvurdertKlage: VilkårsvurdertKlage.Utfylt = opprettetKlage.vilkårsvurder(
+                    saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler2"),
+                    vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+                        vedtakId = vedtak.id,
+                        innenforFristen = true,
+                        klagesDetPåKonkreteElementerIVedtaket = true,
+                        erUnderskrevet = true,
+                        begrunnelse = "enBegrunnelse",
+                    ),
+                ).orNull()!! as VilkårsvurdertKlage.Utfylt
+
+                klageRepo.lagre(utfyltVilkårsvurdertKlage)
+
+                val bekreftetVilkårsvurdertKlage: VilkårsvurdertKlage.Bekreftet =
+                    utfyltVilkårsvurdertKlage.bekreftVilkårsvurderinger(
                         saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler3"),
-                        vurderinger = VurderingerTilKlage.empty(),
                     ).orNull()!!
-                }.also {
-                    klageRepo.lagre(it)
-                }
-            } as VurdertKlage.Påbegynt
+                klageRepo.lagre(bekreftetVilkårsvurdertKlage)
+
+                val vurdertKlage: VurdertKlage.Påbegynt = bekreftetVilkårsvurdertKlage.vurder(
+                    saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler3"),
+                    vurderinger = VurderingerTilKlage.empty(),
+                ).orNull()!! as VurdertKlage.Påbegynt
+
+                klageRepo.lagre(vurdertKlage)
+                vurdertKlage
+            }
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(utbetaling.sakId, sessionContext) shouldBe listOf(vurdertKlage)
@@ -213,22 +220,23 @@ internal class KlagePostgresRepoTest {
                             begrunnelse = "enBegrunnelse",
                         ),
                     ).orNull()!! as VilkårsvurdertKlage.Utfylt
-                    ).bekreft().let { vilkårsvurdertKlage ->
-                    klageRepo.lagre(vilkårsvurdertKlage)
-                    vilkårsvurdertKlage.vurder(
-                        saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler3"),
-                        vurderinger = VurderingerTilKlage.create(
-                            fritekstTilBrev = "Friteksten til brevet er som følge: ",
-                            vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold(
-                                hjemler = Hjemler.Utfylt.create(
-                                    nonEmptyListOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4),
+                    ).bekreftVilkårsvurderinger(NavIdentBruker.Saksbehandler(navIdent = "saksbehandler3")).orNull()!!
+                    .let { vilkårsvurdertKlage ->
+                        klageRepo.lagre(vilkårsvurdertKlage)
+                        vilkårsvurdertKlage.vurder(
+                            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler3"),
+                            vurderinger = VurderingerTilKlage.create(
+                                fritekstTilBrev = "Friteksten til brevet er som følge: ",
+                                vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold(
+                                    hjemler = Hjemler.Utfylt.create(
+                                        nonEmptyListOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4),
+                                    ),
                                 ),
-                            ),
-                        ) as VurderingerTilKlage.Utfylt,
-                    ).orNull()!!
-                }.also {
-                    klageRepo.lagre(it)
-                }
+                            ) as VurderingerTilKlage.Utfylt,
+                        ).orNull()!!
+                    }.also {
+                        klageRepo.lagre(it)
+                    }
             } as VurdertKlage.Utfylt
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->

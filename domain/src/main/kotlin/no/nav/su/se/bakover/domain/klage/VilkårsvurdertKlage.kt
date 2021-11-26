@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
-import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -35,6 +34,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 journalpostId = journalpostId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
+                vurderinger = vurderinger,
                 attesteringer = attesteringer,
             )
             is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt.create(
@@ -44,6 +44,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 journalpostId = journalpostId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
+                vurderinger = vurderinger,
                 attesteringer = attesteringer,
             )
         }.right()
@@ -68,7 +69,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 journalpostId: JournalpostId,
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vilkårsvurderinger: VilkårsvurderingerTilKlage.Påbegynt,
-                vurderinger: VurderingerTilKlage? = null,
+                vurderinger: VurderingerTilKlage?,
                 attesteringer: Attesteringshistorikk,
             ) = Påbegynt(
                 id = id,
@@ -81,11 +82,6 @@ sealed class VilkårsvurdertKlage : Klage() {
                 attesteringer = attesteringer,
             )
         }
-
-        override fun vurder(
-            saksbehandler: NavIdentBruker.Saksbehandler,
-            vurderinger: VurderingerTilKlage,
-        ) = KunneIkkeVurdereKlage.UgyldigTilstand(this::class, VurdertKlage::class).left()
     }
 
     data class Utfylt private constructor(
@@ -99,22 +95,19 @@ sealed class VilkårsvurdertKlage : Klage() {
         override val attesteringer: Attesteringshistorikk,
     ) : VilkårsvurdertKlage() {
 
-        override fun vurder(
+        override fun bekreftVilkårsvurderinger(
             saksbehandler: NavIdentBruker.Saksbehandler,
-            vurderinger: VurderingerTilKlage,
-        ) = KunneIkkeVurdereKlage.UgyldigTilstand(this::class, VurdertKlage::class).left()
-
-        fun bekreft(): Bekreftet {
+        ): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, Bekreftet> {
             return Bekreftet.create(
-                id = this.id,
-                opprettet = this.opprettet,
-                sakId = this.sakId,
-                journalpostId = this.journalpostId,
-                saksbehandler = this.saksbehandler,
-                vilkårsvurderinger = this.vilkårsvurderinger,
-                vurderinger = this.vurderinger,
-                attesteringer = this.attesteringer,
-            )
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                journalpostId = journalpostId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = vilkårsvurderinger,
+                vurderinger = vurderinger,
+                attesteringer = attesteringer,
+            ).right()
         }
 
         companion object {
@@ -125,7 +118,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 journalpostId: JournalpostId,
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
-                vurderinger: VurderingerTilKlage? = null,
+                vurderinger: VurderingerTilKlage?,
                 attesteringer: Attesteringshistorikk,
             ) = Utfylt(
                 id = id,
@@ -151,9 +144,21 @@ sealed class VilkårsvurdertKlage : Klage() {
         override val attesteringer: Attesteringshistorikk,
     ) : VilkårsvurdertKlage() {
 
-        /**
-         * Vi kan kun begynne/fortsette å vurdere en [VilkårsvurdertKlage] dersom den er [VilkårsvurdertKlage.Bekreftet]
-         */
+        override fun bekreftVilkårsvurderinger(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+        ): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, Bekreftet> {
+            return Bekreftet.create(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                journalpostId = journalpostId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = vilkårsvurderinger,
+                vurderinger = vurderinger,
+                attesteringer = attesteringer,
+            ).right()
+        }
+
         override fun vurder(
             saksbehandler: NavIdentBruker.Saksbehandler,
             vurderinger: VurderingerTilKlage,
@@ -167,7 +172,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                     saksbehandler = saksbehandler,
                     vilkårsvurderinger = vilkårsvurderinger,
                     vurderinger = vurderinger,
-                    attesteringshistorikk = attesteringer,
+                    attesteringer = attesteringer,
                 )
                 is VurderingerTilKlage.Utfylt -> VurdertKlage.Utfylt.create(
                     id = id,
@@ -177,7 +182,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                     saksbehandler = saksbehandler,
                     vilkårsvurderinger = vilkårsvurderinger,
                     vurderinger = vurderinger,
-                    attesteringshistorikk = attesteringer,
+                    attesteringer = attesteringer,
                 )
             }.right()
         }
@@ -190,7 +195,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 journalpostId: JournalpostId,
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
-                vurderinger: VurderingerTilKlage? = null,
+                vurderinger: VurderingerTilKlage?,
                 attesteringer: Attesteringshistorikk,
             ) = Bekreftet(
                 id = id,

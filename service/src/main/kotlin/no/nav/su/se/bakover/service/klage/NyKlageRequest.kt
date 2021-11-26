@@ -9,14 +9,14 @@ import java.util.UUID
 
 data class NyKlageRequest(
     val sakId: UUID,
-    private val navIdent: String,
-    private val journalpostId: String,
+    private val saksbehandler: NavIdentBruker.Saksbehandler,
+    private val journalpostId: JournalpostId,
 ) {
     fun toKlage(clock: Clock): OpprettetKlage {
         return Klage.ny(
             sakId = sakId,
-            journalpostId = JournalpostId(value = journalpostId),
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = navIdent),
+            journalpostId = journalpostId,
+            saksbehandler = saksbehandler,
             clock = clock,
         )
     }

@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.IverksattKlage
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
+import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
@@ -71,22 +72,23 @@ class KlageServiceImpl(
         }
     }
 
-    override fun bekreftVilkårsvurderinger(klageId: UUID): Either<KunneIkkeBekrefteKlagesteg, VilkårsvurdertKlage> {
+    override fun bekreftVilkårsvurderinger(
+        klageId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeBekrefteKlagesteg, VilkårsvurdertKlage.Bekreftet> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeBekrefteKlagesteg.FantIkkeKlage.left()
 
-        // TODO jah: Flytt domenelogikken inn i domenet
-        if (klage !is VilkårsvurdertKlage.Utfylt) {
-            return KunneIkkeBekrefteKlagesteg.UgyldigTilstand(klage::class, VilkårsvurdertKlage.Bekreftet::class).left()
-        }
-
-        return klage.bekreft().also {
+        return klage.bekreftVilkårsvurderinger(
+            saksbehandler = saksbehandler,
+        ).tap {
             klageRepo.lagre(it)
-        }.right()
+        }
     }
 
     override fun vurder(request: KlageVurderingerRequest): Either<KunneIkkeVurdereKlage, VurdertKlage> {
         return request.toDomain().flatMap {
             val klage = klageRepo.hentKlage(it.klageId) ?: return KunneIkkeVurdereKlage.FantIkkeKlage.left()
+
             klage.vurder(
                 saksbehandler = it.saksbehandler,
                 vurderinger = it.vurderinger,
@@ -96,20 +98,21 @@ class KlageServiceImpl(
         }
     }
 
-    override fun bekreftVurderinger(klageId: UUID): Either<KunneIkkeBekrefteKlagesteg, VurdertKlage> {
+    override fun bekreftVurderinger(
+        klageId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeBekrefteKlagesteg, VurdertKlage.Bekreftet> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeBekrefteKlagesteg.FantIkkeKlage.left()
 
-        // TODO jah: Flytt domenelogikken inn i domenet
-        if (klage !is VurdertKlage.Utfylt) {
-            return KunneIkkeBekrefteKlagesteg.UgyldigTilstand(klage::class, VurdertKlage.Bekreftet::class).left()
-        }
-
-        return klage.bekreft().also {
+        return klage.bekreftVurderinger(saksbehandler = saksbehandler).tap {
             klageRepo.lagre(it)
-        }.right()
+        }
     }
 
-    override fun sendTilAttestering(klageId: UUID): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
+    override fun sendTilAttestering(
+        klageId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeSendeTilAttestering.FantIkkeKlage.left()
 
         if (klage !is VurdertKlage.Bekreftet) {

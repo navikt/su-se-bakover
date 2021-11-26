@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
-import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -45,7 +44,8 @@ data class OpprettetKlage private constructor(
                 journalpostId = journalpostId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
-                attesteringer = Attesteringshistorikk.empty()
+                vurderinger = null,
+                attesteringer = Attesteringshistorikk.empty(),
             )
             is VilkårsvurderingerTilKlage.Påbegynt -> VilkårsvurdertKlage.Påbegynt.create(
                 id = id,
@@ -54,13 +54,9 @@ data class OpprettetKlage private constructor(
                 journalpostId = journalpostId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
-                attesteringer = Attesteringshistorikk.empty()
+                vurderinger = null,
+                attesteringer = Attesteringshistorikk.empty(),
             )
         }.right()
     }
-
-    override fun vurder(
-        saksbehandler: NavIdentBruker.Saksbehandler,
-        vurderinger: VurderingerTilKlage,
-    ) = KunneIkkeVurdereKlage.UgyldigTilstand(this::class, OpprettetKlage::class).left()
 }

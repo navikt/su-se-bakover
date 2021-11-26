@@ -4,7 +4,6 @@ import arrow.core.left
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
@@ -32,9 +31,9 @@ internal class VilkårsvurderKlageTest {
         )
         val vedtakId = UUID.randomUUID()
         val request = VurderKlagevilkårRequest(
-            navIdent = "nySaksbehandler",
-            klageId = UUID.randomUUID().toString(),
-            vedtakId = vedtakId.toString(),
+            saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
+            klageId = UUID.randomUUID(),
+            vedtakId = vedtakId,
             innenforFristen = null,
             klagesDetPåKonkreteElementerIVedtaket = null,
             erUnderskrevet = null,
@@ -56,8 +55,8 @@ internal class VilkårsvurderKlageTest {
         )
         val klageId = UUID.randomUUID()
         val request = VurderKlagevilkårRequest(
-            navIdent = "s2",
-            klageId = klageId.toString(),
+            saksbehandler = NavIdentBruker.Saksbehandler("s2"),
+            klageId = klageId,
             vedtakId = null,
             innenforFristen = null,
             klagesDetPåKonkreteElementerIVedtaket = null,
@@ -80,7 +79,7 @@ internal class VilkårsvurderKlageTest {
         )
 
         val mocks = KlageServiceMocks(
-            klageRepoMock = mock<KlageRepo> {
+            klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn opprettetKlage
             },
             vedtakRepoMock = mock {
@@ -89,8 +88,8 @@ internal class VilkårsvurderKlageTest {
         )
 
         val request = VurderKlagevilkårRequest(
-            navIdent = "nySaksbehandler",
-            klageId = opprettetKlage.id.toString(),
+            saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
+            klageId = opprettetKlage.id,
             vedtakId = null,
             innenforFristen = null,
             klagesDetPåKonkreteElementerIVedtaket = null,
@@ -107,6 +106,7 @@ internal class VilkårsvurderKlageTest {
                 journalpostId = opprettetKlage.journalpostId,
                 saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
                 vilkårsvurderinger = VilkårsvurderingerTilKlage.empty(),
+                vurderinger = null,
                 attesteringer = Attesteringshistorikk.empty(),
             )
             it shouldBe expectedKlage
@@ -136,9 +136,9 @@ internal class VilkårsvurderKlageTest {
             },
         )
         val request = VurderKlagevilkårRequest(
-            navIdent = "nySaksbehandler",
-            klageId = påbegyntVilkårsvurdertKlage.id.toString(),
-            vedtakId = vedtak.id.toString(),
+            saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
+            klageId = påbegyntVilkårsvurdertKlage.id,
+            vedtakId = vedtak.id,
             innenforFristen = true,
             klagesDetPåKonkreteElementerIVedtaket = true,
             erUnderskrevet = true,
@@ -159,6 +159,7 @@ internal class VilkårsvurderKlageTest {
                     erUnderskrevet = true,
                     begrunnelse = "SomeBegrunnelse",
                 ),
+                vurderinger = null,
                 attesteringer = Attesteringshistorikk.empty(),
             )
             it shouldBe expectedKlage

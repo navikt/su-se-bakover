@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.IverksattKlage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
+import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
@@ -73,7 +74,6 @@ import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
-import no.nav.su.se.bakover.service.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.service.klage.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
@@ -763,9 +763,12 @@ open class AccessCheckProxy(
                     return services.klageService.vilkårsvurder(request)
                 }
 
-                override fun bekreftVilkårsvurderinger(klageId: UUID): Either<KunneIkkeBekrefteKlagesteg, VilkårsvurdertKlage> {
-                    assertHarTilgangTilKlage(klageId.toString())
-                    return services.klageService.bekreftVilkårsvurderinger(klageId)
+                override fun bekreftVilkårsvurderinger(
+                    klageId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                ): Either<KunneIkkeBekrefteKlagesteg, VilkårsvurdertKlage.Bekreftet> {
+                    assertHarTilgangTilKlage(klageId)
+                    return services.klageService.bekreftVilkårsvurderinger(klageId, saksbehandler)
                 }
 
                 override fun vurder(request: KlageVurderingerRequest): Either<KunneIkkeVurdereKlage, VurdertKlage> {
@@ -773,18 +776,24 @@ open class AccessCheckProxy(
                     return services.klageService.vurder(request)
                 }
 
-                override fun bekreftVurderinger(klageId: UUID): Either<KunneIkkeBekrefteKlagesteg, VurdertKlage> {
-                    assertHarTilgangTilKlage(klageId.toString())
-                    return services.klageService.bekreftVurderinger(klageId)
+                override fun bekreftVurderinger(
+                    klageId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                ): Either<KunneIkkeBekrefteKlagesteg, VurdertKlage.Bekreftet> {
+                    assertHarTilgangTilKlage(klageId)
+                    return services.klageService.bekreftVurderinger(klageId, saksbehandler)
                 }
 
-                override fun sendTilAttestering(klageId: UUID): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
-                    assertHarTilgangTilKlage(klageId.toString())
-                    return services.klageService.sendTilAttestering(klageId)
+                override fun sendTilAttestering(
+                    klageId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                ): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
+                    assertHarTilgangTilKlage(klageId)
+                    return services.klageService.sendTilAttestering(klageId, saksbehandler)
                 }
 
                 override fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenne, VurdertKlage.Bekreftet> {
-                    assertHarTilgangTilKlage(request.klageId.toString())
+                    assertHarTilgangTilKlage(request.klageId)
                     return services.klageService.underkjenn(request)
                 }
 
@@ -792,7 +801,7 @@ open class AccessCheckProxy(
                     klageId: UUID,
                     attestant: NavIdentBruker.Attestant,
                 ): Either<KunneIkkeIverksetteKlage, IverksattKlage> {
-                    assertHarTilgangTilKlage(klageId.toString())
+                    assertHarTilgangTilKlage(klageId)
                     return services.klageService.iverksett(klageId, attestant)
                 }
 
@@ -855,7 +864,7 @@ open class AccessCheckProxy(
             .forEach { assertHarTilgangTilPerson(it) }
     }
 
-    private fun assertHarTilgangTilKlage(klageId: String) {
+    private fun assertHarTilgangTilKlage(klageId: UUID) {
         personRepo.hentFnrForKlage(klageId)
             .forEach { assertHarTilgangTilPerson(it) }
     }

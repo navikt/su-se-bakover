@@ -13,7 +13,6 @@ import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
 
 internal class OpprettKlageTest {
@@ -28,8 +27,8 @@ internal class OpprettKlageTest {
 
         val request = NyKlageRequest(
             sakId = UUID.randomUUID(),
-            journalpostId = "j2",
-            navIdent = "s2",
+            journalpostId = JournalpostId("j2"),
+            saksbehandler = NavIdentBruker.Saksbehandler("s2"),
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.FantIkkeSak.left()
 
@@ -60,8 +59,8 @@ internal class OpprettKlageTest {
         )
         val request = NyKlageRequest(
             sakId = sakId,
-            journalpostId = "j2",
-            navIdent = "s2",
+            journalpostId = JournalpostId("j2"),
+            saksbehandler = NavIdentBruker.Saksbehandler("s2"),
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage.left()
 
@@ -80,8 +79,8 @@ internal class OpprettKlageTest {
         )
         val request = NyKlageRequest(
             sakId = sak.id,
-            journalpostId = "1",
-            navIdent = "2",
+            journalpostId = JournalpostId("1"),
+            saksbehandler = NavIdentBruker.Saksbehandler("2"),
         )
         var expectedKlage: OpprettetKlage?
         mocks.service.opprett(request).orNull()!!.also {

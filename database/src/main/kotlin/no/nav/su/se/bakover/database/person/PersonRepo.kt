@@ -14,5 +14,5 @@ interface PersonRepo {
     fun hentFnrForUtbetaling(utbetalingId: UUID30): List<Fnr>
     fun hentFnrForRevurdering(revurderingId: UUID): List<Fnr>
     fun hentFnrForVedtak(vedtakId: UUID): List<Fnr>
-    fun hentFnrForKlage(klageId: String): List<Fnr>
+    fun hentFnrForKlage(klageId: UUID): List<Fnr>
 }
