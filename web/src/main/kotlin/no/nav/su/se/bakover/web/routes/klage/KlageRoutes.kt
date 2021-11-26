@@ -283,13 +283,19 @@ internal fun Route.klageRoutes(
                 ).right()
             }
         }
-        post("$klagePath/{id}/underkjenn") {
-            call.withKlageId { klageId ->
-                call.withBody<Body> { body ->
-                    body.toRequest(klageId, call.suUserContext.navIdent).map {
-                        klageService.underkjenn(it)
-                    }.mapLeft {
-                        call.svar(it.tilResultat())
+        post("$klagePath/{klageId}/underkjenn") {
+            call.withSakId {
+                call.withKlageId { klageId ->
+                    call.withBody<Body> { body ->
+                        body.toRequest(klageId, call.suUserContext.navIdent).map {
+                            klageService.underkjenn(it).map { vurdertKlage ->
+                                call.svar(Resultat.json(OK, serialize(vurdertKlage.toJson())))
+                            }.mapLeft { error ->
+                                call.svar(error.tilResultat())
+                            }
+                        }.mapLeft {
+                            call.svar(it.tilResultat())
+                        }
                     }
                 }
             }

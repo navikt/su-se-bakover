@@ -80,6 +80,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 klagesDetPåKonkreteElementerIVedtaket=:klagesDetPaaKonkreteElementerIVedtaket,
                 erUnderskrevet=:erUnderskrevet,
                 begrunnelse=:begrunnelse
+                attestering = to_jsonb(:attestering::jsonb),
             where id=:id
         """.trimIndent()
             .oppdatering(
@@ -92,6 +93,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
                     "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet,
                     "begrunnelse" to klage.vilkårsvurderinger.begrunnelse,
+                    "attestering" to klage.attesteringer.attesteringer.serialize(),
                 ),
                 session,
             )
@@ -108,7 +110,8 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 erUnderskrevet=:erUnderskrevet,
                 begrunnelse=:begrunnelse,
                 fritekstTilBrev=:fritekstTilBrev,
-                vedtaksvurdering=to_jsonb(:vedtaksvurdering::jsonb)
+                vedtaksvurdering=to_jsonb(:vedtaksvurdering::jsonb),
+                attestering=to_jsonb(:attestering::jsonb)
             where id=:id
         """.trimIndent()
             .oppdatering(
@@ -123,6 +126,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     "begrunnelse" to klage.vilkårsvurderinger.begrunnelse,
                     "fritekstTilBrev" to klage.vurderinger.fritekstTilBrev,
                     "vedtaksvurdering" to klage.vurderinger.vedtaksvurdering?.toJson(),
+                    "attestering" to klage.attesteringer.attesteringer.serialize(),
                 ),
                 session,
             )
