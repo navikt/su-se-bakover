@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.attesteringIverksatt
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
@@ -1392,7 +1393,7 @@ internal class RevurderingJsonTest {
         JSONAssert.assertEquals(simulertRevurderingJson, serialize(simulertRevurdering.toJson()), true)
 
         val iverksattRevurdering = simulertRevurdering.iverksett(
-            attestering = attesteringIverksatt,
+            attestering = attesteringIverksatt(clock = fixedClock),
         ).getOrFail("Feil med oppsett av testdata")
 
         val iverksattRevurderingJson =
@@ -1419,7 +1420,7 @@ internal class RevurderingJsonTest {
                   "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson())},
                   "utenlandsopphold": ${serialize(iverksattRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)}
                 },
-                "attesteringer": [{"attestant": "attestant", "opprettet": "${attesteringIverksatt.opprettet}", "underkjennelse": null}]
+                "attesteringer": [{"attestant": "attestant", "opprettet": "$fixedTidspunkt", "underkjennelse": null}]
             }
             """.trimIndent()
 
@@ -1462,7 +1463,7 @@ internal class RevurderingJsonTest {
 
         JSONAssert.assertEquals(simulertRevurderingJson, serialize(simulertRevurdering.toJson()), true)
 
-        val iverksattRevurdering = simulertRevurdering.iverksett(attesteringIverksatt)
+        val iverksattRevurdering = simulertRevurdering.iverksett(attesteringIverksatt(clock = fixedClock))
             .getOrFail("Feil i oppsett av testdata")
 
         val iverksattRevurderingJson =
@@ -1489,7 +1490,7 @@ internal class RevurderingJsonTest {
                   "formue": ${serialize(iverksattRevurdering.vilkårsvurderinger.formue.toJson())},
                   "utenlandsopphold": ${serialize(iverksattRevurdering.vilkårsvurderinger.utenlandsopphold.toJson()!!)}
                 },
-                "attesteringer": [{"attestant": "attestant", "opprettet": "${attesteringIverksatt.opprettet}", "underkjennelse": null}]
+                "attesteringer": [{"attestant": "attestant", "opprettet": "$fixedTidspunkt", "underkjennelse": null}]
             }
             """.trimIndent()
 

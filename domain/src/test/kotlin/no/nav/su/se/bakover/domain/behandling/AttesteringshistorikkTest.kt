@@ -13,16 +13,21 @@ internal class AttesteringshistorikkTest {
 
     @Test
     fun `attesteringer er sortert etter tidspunkt`() {
-        val attestering1 = Attestering.Iverksatt(
-            NavIdentBruker.Attestant("Attestant1"),
-            fixedTidspunkt.plus(1, ChronoUnit.DAYS),
+        val attestering1 = Attestering.Underkjent(
+            attestant = NavIdentBruker.Attestant("Attestant1"),
+            opprettet = fixedTidspunkt,
+            grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+            kommentar = "kommentar",
         )
         val attestering2 = Attestering.Iverksatt(
             NavIdentBruker.Attestant("Attestant2"),
             fixedTidspunkt.plus(2, ChronoUnit.DAYS),
         )
 
-        Attesteringshistorikk(mutableListOf(attestering2, attestering1)).hentAttesteringer() shouldBe listOf(attestering1, attestering2)
+        Attesteringshistorikk.create(mutableListOf(attestering2, attestering1)) shouldBe listOf(
+            attestering1,
+            attestering2,
+        )
     }
 
     @Test
@@ -34,7 +39,7 @@ internal class AttesteringshistorikkTest {
             opprettet.plus(1, ChronoUnit.DAYS), Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL, "kommentar"
         )
 
-        val actual = Attesteringshistorikk(mutableListOf(attestering1, attestering2)).hentAttesteringer().serialize()
+        val actual = Attesteringshistorikk.create(mutableListOf(attestering1, attestering2)).serialize()
         val expected = """
                 [
                   {
@@ -57,7 +62,7 @@ internal class AttesteringshistorikkTest {
 
     @Test
     fun `serializerer tom liste riktig`() {
-        val actual = Attesteringshistorikk(listOf()).hentAttesteringer().serialize()
+        val actual = Attesteringshistorikk.create(listOf()).serialize()
         val expected = """
                 []
         """.trimIndent()
@@ -92,9 +97,9 @@ internal class AttesteringshistorikkTest {
         """.trimIndent()
 
         val deserialized: List<Attestering> = json.deserializeList()
-        val expected = Attesteringshistorikk(mutableListOf(attestering1, attestering2))
+        val expected = Attesteringshistorikk.create(mutableListOf(attestering1, attestering2))
 
-        Attesteringshistorikk(deserialized) shouldBe expected
+        Attesteringshistorikk.create(deserialized) shouldBe expected
     }
 
     @Test
@@ -115,6 +120,6 @@ internal class AttesteringshistorikkTest {
             .leggTilNyAttestering(attestering2)
             .leggTilNyAttestering(attestering3)
 
-        actual.hentAttesteringer() shouldBe listOf(attestering1, attestering2, attestering3)
+        actual shouldBe listOf(attestering1, attestering2, attestering3)
     }
 }

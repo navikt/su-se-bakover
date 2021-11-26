@@ -176,14 +176,14 @@ sealed class VurdertKlage : Klage() {
 
         fun sendTilAttestering(): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
             return KlageTilAttestering.create(
-                id,
-                opprettet,
-                sakId,
-                journalpostId,
-                saksbehandler,
-                vilkårsvurderinger,
-                vurderinger,
-                attesteringer,
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                journalpostId = journalpostId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = vilkårsvurderinger,
+                vurderinger = vurderinger,
+                attesteringer = attesteringer,
             ).right()
         }
 

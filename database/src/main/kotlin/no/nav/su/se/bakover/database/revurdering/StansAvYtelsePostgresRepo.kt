@@ -68,7 +68,7 @@ internal class StansAvYtelsePostgresRepo(
                             "vedtakSomRevurderesId" to revurdering.tilRevurdering.id,
                             "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                             "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                            "attestering" to Attesteringshistorikk.empty().hentAttesteringer().serialize(),
+                            "attestering" to Attesteringshistorikk.empty().serialize(),
                             "skalFoereTilBrevutsending" to false,
                         ),
                         tx,
@@ -108,7 +108,7 @@ internal class StansAvYtelsePostgresRepo(
                 """.trimIndent()
                     .oppdatering(
                         mapOf(
-                            "attestering" to revurdering.attesteringer.hentAttesteringer().serialize(),
+                            "attestering" to revurdering.attesteringer.serialize(),
                             "revurderingsType" to RevurderingsType.IVERKSATT_STANS,
                             "id" to revurdering.id,
                         ),

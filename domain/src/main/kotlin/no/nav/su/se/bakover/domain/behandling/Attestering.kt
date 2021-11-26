@@ -1,24 +1,50 @@
 package no.nav.su.se.bakover.domain.behandling
 
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.NavIdentBruker
 
-data class Attesteringshistorikk(val attesteringer: List<Attestering>) {
-    private val sortedAttesteringer = attesteringer.sortedBy { it.opprettet.instant }
+data class Attesteringshistorikk private constructor(
+    @JsonValue private val underlying: List<Attestering>,
+) : List<Attestering> by underlying {
 
     companion object {
         fun empty(): Attesteringshistorikk {
-            return Attesteringshistorikk(listOf())
+            // Ønsker gjenbruke logikk + validering til create(...)
+            return create(emptyList())
+        }
+
+        /**
+         * For å gjenopprette en persistert [Attesteringshistorikk]
+         */
+        @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+        fun create(
+            attesteringer: List<Attestering>,
+        ): Attesteringshistorikk {
+            assert(attesteringer.filterIsInstance<Attestering.Iverksatt>().size <= 1) {
+                "Attesteringshistorikk kan maks inneholde en iverksetting, men var: $attesteringer"
+            }
+            return Attesteringshistorikk(
+                attesteringer.sortedBy { it.opprettet.instant },
+            )
         }
     }
+
     fun leggTilNyAttestering(attestering: Attestering): Attesteringshistorikk {
-        return this.copy(attesteringer = sortedAttesteringer + attestering)
+        assert(this.all { it.opprettet.instant < attestering.opprettet.instant }) {
+            "Kan ikke legge til en attestering som ikke er nyere enn den forrige attesteringen"
+        }
+        return create(attesteringer = this + attestering)
     }
 
-    fun hentSisteAttestering() = sortedAttesteringer.last()
-    fun hentAttesteringer(): List<Attestering> = sortedAttesteringer
+    /** @throws NoSuchElementException hvis lista er tom */
+    fun hentSisteAttestering() = this.last()
+
+    /** @throws NoSuchElementException hvis lista er tom */
+    fun sisteAttesteringErIverksatt(): Boolean = hentSisteAttestering() is Attestering.Iverksatt
 }
 
 @JsonTypeInfo(

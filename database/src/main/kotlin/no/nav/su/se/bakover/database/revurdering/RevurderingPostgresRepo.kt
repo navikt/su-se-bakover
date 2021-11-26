@@ -138,8 +138,8 @@ internal class RevurderingPostgresRepo(
             "select * from revurdering where id = :id"
                 .hent(mapOf("id" to id), session) { row ->
                     row.string("attestering").let {
-                        val attesteringer = Attesteringshistorikk(objectMapper.readValue(it))
-                        attesteringer.hentAttesteringer().lastOrNull()
+                        val attesteringer = Attesteringshistorikk.create(objectMapper.readValue(it))
+                        attesteringer.lastOrNull()
                     }
                 }
         }
@@ -210,7 +210,7 @@ internal class RevurderingPostgresRepo(
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val saksbehandler = string("saksbehandler")
         val oppgaveId = stringOrNull("oppgaveid")
-        val attesteringer = Attesteringshistorikk(objectMapper.readValue(string("attestering")))
+        val attesteringer = Attesteringshistorikk.create(objectMapper.readValue(string("attestering")))
         val fritekstTilBrev = stringOrNull("fritekstTilBrev")
         val årsak = string("årsak")
         val begrunnelse = string("begrunnelse")
@@ -361,7 +361,7 @@ internal class RevurderingPostgresRepo(
                         objectMapper.writeValueAsString(ForhåndsvarselDto.from(it))
                     },
                     "informasjonSomRevurderes" to objectMapper.writeValueAsString(revurdering.informasjonSomRevurderes),
-                    "attestering" to revurdering.attesteringer.hentAttesteringer().serialize(),
+                    "attestering" to revurdering.attesteringer.serialize(),
                 ),
                 session,
             )
@@ -510,7 +510,7 @@ internal class RevurderingPostgresRepo(
                         is IverksattRevurdering.Opphørt -> objectMapper.writeValueAsString(revurdering.simulering)
                     },
                     "oppgaveId" to revurdering.oppgaveId.toString(),
-                    "attestering" to revurdering.attesteringer.hentAttesteringer().serialize(),
+                    "attestering" to revurdering.attesteringer.serialize(),
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                     "revurderingsType" to when (revurdering) {
@@ -539,7 +539,7 @@ internal class RevurderingPostgresRepo(
                 mapOf(
                     "id" to revurdering.id,
                     "oppgaveId" to revurdering.oppgaveId.toString(),
-                    "attestering" to revurdering.attesteringer.hentAttesteringer().serialize(),
+                    "attestering" to revurdering.attesteringer.serialize(),
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                     "revurderingsType" to when (revurdering) {

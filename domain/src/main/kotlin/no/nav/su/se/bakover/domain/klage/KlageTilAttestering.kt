@@ -34,18 +34,19 @@ data class KlageTilAttestering private constructor(
         ).right()
     }
 
-    override fun vilkårsvurder(
-        saksbehandler: NavIdentBruker.Saksbehandler,
-        vilkårsvurderinger: VilkårsvurderingerTilKlage,
-    ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
-        throw IllegalStateException("Skal ikke kunne vilkårsvurdere en klage som er til attestering. id $id")
-    }
-
-    override fun vurder(
-        saksbehandler: NavIdentBruker.Saksbehandler,
-        vurderinger: VurderingerTilKlage,
-    ): Either<KunneIkkeVurdereKlage.UgyldigTilstand, VurdertKlage> {
-        throw IllegalStateException("Skal ikke kunne vurdere en klage som er til attestering. id $id")
+    override fun iverksett(
+        iverksattAttestering: Attestering.Iverksatt
+    ): Either<KunneIkkeIverksetteKlage.UgyldigTilstand, IverksattKlage> {
+        return IverksattKlage.create(
+            id = id,
+            opprettet = opprettet,
+            sakId = sakId,
+            journalpostId = journalpostId,
+            saksbehandler = saksbehandler,
+            vilkårsvurderinger = vilkårsvurderinger,
+            vurderinger = vurderinger,
+            attesteringer = attesteringer.leggTilNyAttestering(iverksattAttestering),
+        ).right()
     }
 
     companion object {

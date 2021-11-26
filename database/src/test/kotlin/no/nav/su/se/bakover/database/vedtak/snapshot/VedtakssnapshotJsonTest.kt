@@ -46,7 +46,7 @@ internal class VedtakssnapshotJsonTest {
                   "attestering":{
                      "type": "Iverksatt",
                      "attestant": "attestant",
-                     "opprettet": "2021-01-01T01:02:03.456789Z"
+                     "opprettet": "2021-01-01T01:02:04.456789Z"
                   },
                   "oppgaveId":"oppgaveIdSøknad",
                   "beregning": null,

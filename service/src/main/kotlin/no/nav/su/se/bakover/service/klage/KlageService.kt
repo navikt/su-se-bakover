@@ -3,8 +3,10 @@ package no.nav.su.se.bakover.service.klage
 import arrow.core.Either
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.Hjemler
+import no.nav.su.se.bakover.domain.klage.IverksattKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
+import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
@@ -27,6 +29,8 @@ interface KlageService {
     fun sendTilAttestering(klageId: UUID): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering>
 
     fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenne, VurdertKlage.Bekreftet>
+
+    fun iverksett(klageId: UUID, attestant: NavIdentBruker.Attestant): Either<KunneIkkeIverksetteKlage, IverksattKlage>
 
     fun brevutkast(
         sakId: UUID,

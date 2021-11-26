@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.Hjemmel
+import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
@@ -120,6 +121,7 @@ internal fun Route.klageRoutes(
                         when (it) {
                             KunneIkkeVilkårsvurdereKlage.FantIkkeKlage -> fantIkkeKlage
                             KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak -> fantIkkeVedtak
+                            is KunneIkkeVilkårsvurdereKlage.UgyldigTilstand -> TODO()
                         }
                     }
                     call.svar(resultat)
@@ -303,8 +305,26 @@ internal fun Route.klageRoutes(
     }
 
     authorize(Brukerrolle.Attestant) {
-        post("$klagePath/{id}/iverksett") {
-            call.svar(Resultat.json(OK, "{}"))
+        post("$klagePath/{klageId}/iverksett") {
+            call.withSakId {
+                call.withKlageId { klageId ->
+                    klageService.iverksett(
+                        klageId = klageId,
+                        attestant = NavIdentBruker.Attestant(
+                            call.suUserContext.navIdent,
+                        ),
+                    ).map {
+                        call.svar(Resultat.json(OK, serialize(it.toJson())))
+                    }.mapLeft {
+                        call.svar(
+                            when (it) {
+                                KunneIkkeIverksetteKlage.FantIkkeKlage -> fantIkkeKlage
+                                is KunneIkkeIverksetteKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                            },
+                        )
+                    }
+                }
+            }
         }
     }
 }

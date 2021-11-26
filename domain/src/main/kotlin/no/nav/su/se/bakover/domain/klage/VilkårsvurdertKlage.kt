@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import java.util.UUID
+import kotlin.reflect.KClass
 
 /**
  * TODO jah: Vi støtter ikke avvisning i MVP, men vi må i så fall legge til noe validering på at vi ikke kan ha false på de vurderingene.
@@ -208,4 +209,5 @@ sealed class VilkårsvurdertKlage : Klage() {
 sealed class KunneIkkeVilkårsvurdereKlage {
     object FantIkkeKlage : KunneIkkeVilkårsvurdereKlage()
     object FantIkkeVedtak : KunneIkkeVilkårsvurdereKlage()
+    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeVilkårsvurdereKlage()
 }

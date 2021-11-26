@@ -64,16 +64,16 @@ val stønadsperiode2021 = Stønadsperiode.create(periode2021, "stønadsperiode20
 val attestant = NavIdentBruker.Attestant("attestant")
 const val attestantNavn = "Att E. Stant"
 
-val attesteringIverksatt = Attestering.Iverksatt(
+fun attesteringIverksatt(clock: Clock) = Attestering.Iverksatt(
     attestant = attestant,
-    opprettet = fixedTidspunkt,
+    opprettet = Tidspunkt.now(clock),
 )
 
-val attesteringUnderkjent = Attestering.Underkjent(
+fun attesteringUnderkjent(clock: Clock) = Attestering.Underkjent(
     attestant = attestant,
     grunn = Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER,
     kommentar = "attesteringUnderkjent",
-    opprettet = fixedTidspunkt
+    opprettet = Tidspunkt.now(clock)
 )
 
 class TestSessionFactory : SessionFactory {
