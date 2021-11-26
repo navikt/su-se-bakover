@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import java.util.UUID
 
@@ -44,6 +45,7 @@ data class OpprettetKlage private constructor(
                 journalpostId = journalpostId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
+                attesteringer = Attesteringshistorikk.empty()
             )
             is VilkårsvurderingerTilKlage.Påbegynt -> VilkårsvurdertKlage.Påbegynt.create(
                 id = id,
@@ -52,6 +54,7 @@ data class OpprettetKlage private constructor(
                 journalpostId = journalpostId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
+                attesteringer = Attesteringshistorikk.empty()
             )
         }.right()
     }

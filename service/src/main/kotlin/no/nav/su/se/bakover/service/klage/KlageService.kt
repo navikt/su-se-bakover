@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
+import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
@@ -24,6 +25,8 @@ interface KlageService {
     fun bekreftVurderinger(klageId: UUID): Either<KunneIkkeBekrefteKlagesteg, VurdertKlage>
 
     fun sendTilAttestering(klageId: UUID): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering>
+
+    fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenne, VurdertKlage.Bekreftet>
 
     fun brevutkast(
         sakId: UUID,

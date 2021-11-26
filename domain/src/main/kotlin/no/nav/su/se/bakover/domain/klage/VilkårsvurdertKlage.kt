@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import java.util.UUID
 
@@ -14,6 +15,7 @@ import java.util.UUID
 sealed class VilkårsvurdertKlage : Klage() {
 
     abstract val vilkårsvurderinger: VilkårsvurderingerTilKlage
+    abstract val attesteringer: Attesteringshistorikk
 
     /**
      * Siden det er mulig å gå tilbake fra [VurdertKlage] til [VilkårsvurdertKlage] må vå holde på den informasjon.
@@ -32,6 +34,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 journalpostId = journalpostId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
+                attesteringer = attesteringer,
             )
             is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt.create(
                 id = id,
@@ -40,6 +43,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 journalpostId = journalpostId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
+                attesteringer = attesteringer,
             )
         }.right()
     }
@@ -52,6 +56,7 @@ sealed class VilkårsvurdertKlage : Klage() {
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Påbegynt,
         override val vurderinger: VurderingerTilKlage?,
+        override val attesteringer: Attesteringshistorikk,
     ) : VilkårsvurdertKlage() {
 
         companion object {
@@ -63,6 +68,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vilkårsvurderinger: VilkårsvurderingerTilKlage.Påbegynt,
                 vurderinger: VurderingerTilKlage? = null,
+                attesteringer: Attesteringshistorikk,
             ) = Påbegynt(
                 id = id,
                 opprettet = opprettet,
@@ -71,6 +77,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
+                attesteringer = attesteringer,
             )
         }
 
@@ -88,6 +95,7 @@ sealed class VilkårsvurdertKlage : Klage() {
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
         override val vurderinger: VurderingerTilKlage?,
+        override val attesteringer: Attesteringshistorikk,
     ) : VilkårsvurdertKlage() {
 
         override fun vurder(
@@ -104,6 +112,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 saksbehandler = this.saksbehandler,
                 vilkårsvurderinger = this.vilkårsvurderinger,
                 vurderinger = this.vurderinger,
+                attesteringer = this.attesteringer,
             )
         }
 
@@ -116,6 +125,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger: VurderingerTilKlage? = null,
+                attesteringer: Attesteringshistorikk,
             ) = Utfylt(
                 id = id,
                 opprettet = opprettet,
@@ -124,6 +134,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
+                attesteringer = attesteringer,
             )
         }
     }
@@ -136,6 +147,7 @@ sealed class VilkårsvurdertKlage : Klage() {
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
         override val vurderinger: VurderingerTilKlage?,
+        override val attesteringer: Attesteringshistorikk,
     ) : VilkårsvurdertKlage() {
 
         /**
@@ -154,6 +166,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                     saksbehandler = saksbehandler,
                     vilkårsvurderinger = vilkårsvurderinger,
                     vurderinger = vurderinger,
+                    attesteringshistorikk = attesteringer,
                 )
                 is VurderingerTilKlage.Utfylt -> VurdertKlage.Utfylt.create(
                     id = id,
@@ -163,6 +176,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                     saksbehandler = saksbehandler,
                     vilkårsvurderinger = vilkårsvurderinger,
                     vurderinger = vurderinger,
+                    attesteringshistorikk = attesteringer,
                 )
             }.right()
         }
@@ -176,6 +190,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger: VurderingerTilKlage? = null,
+                attesteringer: Attesteringshistorikk,
             ) = Bekreftet(
                 id = id,
                 opprettet = opprettet,
@@ -184,6 +199,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
+                attesteringer = attesteringer,
             )
         }
     }

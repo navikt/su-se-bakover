@@ -6,6 +6,7 @@ create table if not exists klage
     journalpostid text not null,
     saksbehandler text not null,
     type text not null,
+    attestering jsonb not null default '[]'::jsonb,
     vedtakId uuid references vedtak(id) null default null,
     innenforFristen bool null default null,
     klagesDetPåKonkreteElementerIVedtaket bool null default null,

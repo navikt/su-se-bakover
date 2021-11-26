@@ -2,9 +2,11 @@ package no.nav.su.se.bakover.database.klage
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
@@ -24,6 +26,7 @@ import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.uuidOrNull
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.Klage
@@ -189,6 +192,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
         val vedtaksvurdering: VedtaksvurderingJson? = row.stringOrNull("vedtaksvurdering")?.let {
             deserialize<VedtaksvurderingJson>(it)
         }
+        val attesteringer = Attesteringshistorikk(objectMapper.readValue(row.string("attestering")))
 
         return when (Tilstand.fromString(row.string("type"))) {
             Tilstand.OPPRETTET -> OpprettetKlage.create(
@@ -211,6 +215,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     erUnderskrevet = erUnderskrevet,
                     begrunnelse = begrunnelse,
                 ) as VilkårsvurderingerTilKlage.Påbegynt,
+                attesteringer = attesteringer,
             )
             Tilstand.VILKÅRSVURDERT_UTFYLT -> VilkårsvurdertKlage.Utfylt.create(
                 id = id,
@@ -225,6 +230,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     erUnderskrevet = erUnderskrevet!!,
                     begrunnelse = begrunnelse!!,
                 ),
+                attesteringer = attesteringer,
             )
             Tilstand.VILKÅRSVURDERT_BEKREFTET -> VilkårsvurdertKlage.Bekreftet.create(
                 id = id,
@@ -239,6 +245,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     erUnderskrevet = erUnderskrevet!!,
                     begrunnelse = begrunnelse!!,
                 ),
+                attesteringer = attesteringer,
             )
             Tilstand.VURDERT_PÅBEGYNT -> VurdertKlage.Påbegynt.create(
                 id = id,
@@ -257,6 +264,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     fritekstTilBrev = fritekstTilBrev,
                     vedtaksvurdering = vedtaksvurdering?.toDomain(),
                 ),
+                attesteringshistorikk = attesteringer,
             )
             Tilstand.VURDERT_UTFYLT -> VurdertKlage.Utfylt.create(
                 id = id,
@@ -275,6 +283,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     fritekstTilBrev = fritekstTilBrev!!,
                     vedtaksvurdering = vedtaksvurdering!!.toDomain() as VurderingerTilKlage.Vedtaksvurdering.Utfylt,
                 ),
+                attesteringshistorikk = attesteringer,
             )
             Tilstand.VURDERT_BEKREFTET -> VurdertKlage.Bekreftet.create(
                 id = id,
@@ -293,6 +302,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     fritekstTilBrev = fritekstTilBrev!!,
                     vedtaksvurdering = vedtaksvurdering!!.toDomain() as VurderingerTilKlage.Vedtaksvurdering.Utfylt,
                 ),
+                attesteringshistorikk = attesteringer,
             )
             Tilstand.TIL_ATTESTERING -> KlageTilAttestering.create(
                 id = id,
@@ -311,6 +321,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     fritekstTilBrev = fritekstTilBrev!!,
                     vedtaksvurdering = vedtaksvurdering!!.toDomain() as VurderingerTilKlage.Vedtaksvurdering.Utfylt,
                 ),
+                attesteringer = attesteringer,
             )
         }
     }

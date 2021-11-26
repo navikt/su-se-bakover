@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
+import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
@@ -74,6 +75,7 @@ import no.nav.su.se.bakover.service.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.service.klage.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
+import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -777,6 +779,11 @@ open class AccessCheckProxy(
                 override fun sendTilAttestering(klageId: UUID): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
                     assertHarTilgangTilKlage(klageId.toString())
                     return services.klageService.sendTilAttestering(klageId)
+                }
+
+                override fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenne, VurdertKlage.Bekreftet> {
+                    assertHarTilgangTilKlage(request.klageId.toString())
+                    return services.klageService.underkjenn(request)
                 }
 
                 override fun brevutkast(

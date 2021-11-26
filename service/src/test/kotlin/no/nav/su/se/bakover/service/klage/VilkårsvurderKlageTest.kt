@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.klage
 import arrow.core.left
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
@@ -106,6 +107,7 @@ internal class VilkårsvurderKlageTest {
                 journalpostId = opprettetKlage.journalpostId,
                 saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
                 vilkårsvurderinger = VilkårsvurderingerTilKlage.empty(),
+                attesteringer = Attesteringshistorikk.empty(),
             )
             it shouldBe expectedKlage
         }
@@ -157,6 +159,7 @@ internal class VilkårsvurderKlageTest {
                     erUnderskrevet = true,
                     begrunnelse = "SomeBegrunnelse",
                 ),
+                attesteringer = Attesteringshistorikk.empty(),
             )
             it shouldBe expectedKlage
         }

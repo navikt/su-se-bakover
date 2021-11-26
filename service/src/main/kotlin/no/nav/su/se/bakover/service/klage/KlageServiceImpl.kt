@@ -6,14 +6,17 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
+import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
@@ -112,6 +115,25 @@ class KlageServiceImpl(
         }
 
         return klage.sendTilAttestering().tap {
+            klageRepo.lagre(it)
+        }
+    }
+
+    override fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenne, VurdertKlage.Bekreftet> {
+        val klage = klageRepo.hentKlage(request.klageId) ?: return KunneIkkeUnderkjenne.FantIkkeKlage.left()
+
+        if (klage !is KlageTilAttestering) {
+            return KunneIkkeUnderkjenne.UgyldigTilstand(klage::class, VurdertKlage.Bekreftet::class).left()
+        }
+
+        return klage.underkjenn(
+            Attestering.Underkjent(
+                attestant = request.attestant,
+                opprettet = Tidspunkt.now(clock),
+                grunn = request.grunn,
+                kommentar = request.kommentar,
+            ),
+        ).tap {
             klageRepo.lagre(it)
         }
     }

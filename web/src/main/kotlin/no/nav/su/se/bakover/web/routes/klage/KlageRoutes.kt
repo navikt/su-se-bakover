@@ -1,7 +1,11 @@
 package no.nav.su.se.bakover.web.routes.klage
 
+import arrow.core.Either
 import arrow.core.NonEmptyList
+import arrow.core.getOrElse
 import arrow.core.getOrHandle
+import arrow.core.left
+import arrow.core.right
 import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -14,9 +18,11 @@ import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.Hjemmel
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
+import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.service.klage.KlageService
@@ -25,6 +31,7 @@ import no.nav.su.se.bakover.service.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.service.klage.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
+import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
@@ -46,6 +53,14 @@ import no.nav.su.se.bakover.web.withStringParam
 import java.util.UUID
 
 internal const val klagePath = "$sakPath/{sakId}/klager"
+
+private enum class Grunn {
+    INNGANGSVILKÅRENE_ER_FEILVURDERT,
+    BEREGNINGEN_ER_FEIL,
+    DOKUMENTASJON_MANGLER,
+    VEDTAKSBREVET_ER_FEIL,
+    ANDRE_FORHOLD,
+}
 
 internal fun Route.klageRoutes(
     klageService: KlageService,
@@ -249,9 +264,35 @@ internal fun Route.klageRoutes(
     }
 
     authorize(Brukerrolle.Attestant) {
-        data class Body(val årsak: String, val begrunnelse: String)
+        data class Body(val grunn: String, val kommentar: String) {
+
+            fun toRequest(klageId: UUID, attestantIdent: String): Either<KunneIkkeUnderkjenne, UnderkjennKlageRequest> {
+                return UnderkjennKlageRequest(
+                    klageId = klageId,
+                    attestant = NavIdentBruker.Attestant(attestantIdent),
+                    grunn = Either.catch { Grunn.valueOf(grunn) }.map {
+                        when (it) {
+                            Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT -> Attestering.Underkjent.Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT
+                            Grunn.BEREGNINGEN_ER_FEIL -> Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL
+                            Grunn.DOKUMENTASJON_MANGLER -> Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER
+                            Grunn.VEDTAKSBREVET_ER_FEIL -> Attestering.Underkjent.Grunn.VEDTAKSBREVET_ER_FEIL
+                            Grunn.ANDRE_FORHOLD -> Attestering.Underkjent.Grunn.ANDRE_FORHOLD
+                        }
+                    }.getOrElse { return KunneIkkeUnderkjenne.UgyldigGrunn.left() },
+                    kommentar = kommentar,
+                ).right()
+            }
+        }
         post("$klagePath/{id}/underkjenn") {
-            call.svar(Resultat.json(OK, "{}"))
+            call.withKlageId { klageId ->
+                call.withBody<Body> { body ->
+                    body.toRequest(klageId, call.suUserContext.navIdent).map {
+                        klageService.underkjenn(it)
+                    }.mapLeft {
+                        call.svar(it.tilResultat())
+                    }
+                }
+            }
         }
     }
 
@@ -282,6 +323,17 @@ internal fun KunneIkkeVurdereKlage.tilResultat(): Resultat {
             "ugyldig_opprettholdesleshjemler",
         )
         is KunneIkkeVurdereKlage.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
+    }
+}
+
+internal fun KunneIkkeUnderkjenne.tilResultat(): Resultat {
+    return when (this) {
+        KunneIkkeUnderkjenne.FantIkkeKlage -> fantIkkeKlage
+        KunneIkkeUnderkjenne.UgyldigGrunn -> BadRequest.errorJson(
+            "Ugyldig grunn for underkjenning",
+            "ugyldig_grunn_for_underkjenning",
+        )
+        is KunneIkkeUnderkjenne.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
     }
 }
 
