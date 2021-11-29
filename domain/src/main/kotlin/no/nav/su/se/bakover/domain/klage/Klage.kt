@@ -63,7 +63,9 @@ sealed class Klage {
     }
 
     /** @return [KlageTilAttestering] */
-    open fun sendTilAttestering(): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
+    open fun sendTilAttestering(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
         return KunneIkkeSendeTilAttestering.UgyldigTilstand(this::class, KlageTilAttestering::class).left()
     }
 

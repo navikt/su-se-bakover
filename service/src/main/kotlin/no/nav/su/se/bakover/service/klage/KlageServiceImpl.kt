@@ -115,21 +115,13 @@ class KlageServiceImpl(
     ): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeSendeTilAttestering.FantIkkeKlage.left()
 
-        if (klage !is VurdertKlage.Bekreftet) {
-            return KunneIkkeSendeTilAttestering.UgyldigTilstand(klage::class, KlageTilAttestering::class).left()
-        }
-
-        return klage.sendTilAttestering().tap {
+        return klage.sendTilAttestering(saksbehandler).tap {
             klageRepo.lagre(it)
         }
     }
 
     override fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenne, VurdertKlage.Bekreftet> {
         val klage = klageRepo.hentKlage(request.klageId) ?: return KunneIkkeUnderkjenne.FantIkkeKlage.left()
-
-        if (klage !is KlageTilAttestering) {
-            return KunneIkkeUnderkjenne.UgyldigTilstand(klage::class, VurdertKlage.Bekreftet::class).left()
-        }
 
         return klage.underkjenn(
             Attestering.Underkjent(

@@ -176,7 +176,7 @@ sealed class VurdertKlage : Klage() {
         override fun bekreftVurderinger(
             saksbehandler: NavIdentBruker.Saksbehandler,
         ): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, Bekreftet> {
-            return Bekreftet.create(
+            return create(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -188,7 +188,7 @@ sealed class VurdertKlage : Klage() {
             ).right()
         }
 
-        fun sendTilAttestering(
+        override fun sendTilAttestering(
             saksbehandler: NavIdentBruker.Saksbehandler,
         ): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
             return KlageTilAttestering.create(

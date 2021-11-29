@@ -90,12 +90,12 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     "id" to klage.id,
                     "saksbehandler" to klage.saksbehandler,
                     "type" to klage.databasetype(),
+                    "attestering" to klage.attesteringer.toDatabaseJson(),
                     "vedtakId" to klage.vilkårsvurderinger.vedtakId,
                     "innenforFristen" to klage.vilkårsvurderinger.innenforFristen,
                     "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
                     "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet,
                     "begrunnelse" to klage.vilkårsvurderinger.begrunnelse,
-                    "attestering" to klage.attesteringer.toDatabaseJson(),
                 ),
                 session,
             )
@@ -220,7 +220,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
         val vedtaksvurdering = row.stringOrNull("vedtaksvurdering")?.let {
             deserialize<VedtaksvurderingJson>(it).toDomain()
         }
-        val vurderinger = VurderingerTilKlage.create(
+        val vurderinger = if (fritekstTilBrev == null && vedtaksvurdering == null) null else VurderingerTilKlage.create(
             fritekstTilBrev = fritekstTilBrev,
             vedtaksvurdering = vedtaksvurdering,
         )
@@ -273,7 +273,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 journalpostId = journalpostId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
-                vurderinger = vurderinger as VurderingerTilKlage.Påbegynt,
+                vurderinger = if (vurderinger == null) VurderingerTilKlage.empty() else vurderinger as VurderingerTilKlage.Påbegynt,
                 attesteringer = attesteringer,
             )
             Tilstand.VURDERT_UTFYLT -> VurdertKlage.Utfylt.create(
