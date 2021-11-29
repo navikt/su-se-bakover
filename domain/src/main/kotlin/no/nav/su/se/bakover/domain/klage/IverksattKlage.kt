@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -13,6 +14,7 @@ data class IverksattKlage private constructor(
     override val sakId: UUID,
     override val journalpostId: JournalpostId,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
+    override val datoKlageMottatt: LocalDate,
     val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
     val vurderinger: VurderingerTilKlage.Utfylt,
     val attesteringer: Attesteringshistorikk,
@@ -28,6 +30,7 @@ data class IverksattKlage private constructor(
             vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
             vurderinger: VurderingerTilKlage.Utfylt,
             attesteringer: Attesteringshistorikk,
+            datoKlageMottatt: LocalDate,
         ): IverksattKlage {
             if (!attesteringer.sisteAttesteringErIverksatt()) {
                 throw IllegalArgumentException("Kan ikke iverksette klage siden siste attestering ikke var iverksatt. Denne feilen kan forventes i testene, men ikke via implementasjonen.")
@@ -41,6 +44,7 @@ data class IverksattKlage private constructor(
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt
             )
         }
     }

@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -36,6 +37,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
             )
             is VilkårsvurderingerTilKlage.Påbegynt -> Påbegynt.create(
                 id = id,
@@ -46,6 +48,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
             )
         }.right()
     }
@@ -59,6 +62,7 @@ sealed class VilkårsvurdertKlage : Klage() {
         override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Påbegynt,
         override val vurderinger: VurderingerTilKlage?,
         override val attesteringer: Attesteringshistorikk,
+        override val datoKlageMottatt: LocalDate,
     ) : VilkårsvurdertKlage() {
 
         companion object {
@@ -71,6 +75,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vilkårsvurderinger: VilkårsvurderingerTilKlage.Påbegynt,
                 vurderinger: VurderingerTilKlage?,
                 attesteringer: Attesteringshistorikk,
+                datoKlageMottatt: LocalDate,
             ) = Påbegynt(
                 id = id,
                 opprettet = opprettet,
@@ -80,6 +85,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
             )
         }
     }
@@ -93,6 +99,7 @@ sealed class VilkårsvurdertKlage : Klage() {
         override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
         override val vurderinger: VurderingerTilKlage?,
         override val attesteringer: Attesteringshistorikk,
+        override val datoKlageMottatt: LocalDate,
     ) : VilkårsvurdertKlage() {
 
         override fun bekreftVilkårsvurderinger(
@@ -107,6 +114,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
             ).right()
         }
 
@@ -120,6 +128,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger: VurderingerTilKlage?,
                 attesteringer: Attesteringshistorikk,
+                datoKlageMottatt: LocalDate,
             ) = Utfylt(
                 id = id,
                 opprettet = opprettet,
@@ -129,6 +138,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
             )
         }
     }
@@ -142,12 +152,13 @@ sealed class VilkårsvurdertKlage : Klage() {
         override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
         override val vurderinger: VurderingerTilKlage?,
         override val attesteringer: Attesteringshistorikk,
+        override val datoKlageMottatt: LocalDate,
     ) : VilkårsvurdertKlage() {
 
         override fun bekreftVilkårsvurderinger(
             saksbehandler: NavIdentBruker.Saksbehandler,
         ): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, Bekreftet> {
-            return Bekreftet.create(
+            return create(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -156,6 +167,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
             ).right()
         }
 
@@ -173,6 +185,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                     vilkårsvurderinger = vilkårsvurderinger,
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
+                    datoKlageMottatt = datoKlageMottatt,
                 )
                 is VurderingerTilKlage.Utfylt -> VurdertKlage.Utfylt.create(
                     id = id,
@@ -183,6 +196,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                     vilkårsvurderinger = vilkårsvurderinger,
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
+                    datoKlageMottatt = datoKlageMottatt,
                 )
             }.right()
         }
@@ -197,6 +211,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger: VurderingerTilKlage?,
                 attesteringer: Attesteringshistorikk,
+                datoKlageMottatt: LocalDate,
             ) = Bekreftet(
                 id = id,
                 opprettet = opprettet,
@@ -206,6 +221,7 @@ sealed class VilkårsvurdertKlage : Klage() {
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
             )
         }
     }

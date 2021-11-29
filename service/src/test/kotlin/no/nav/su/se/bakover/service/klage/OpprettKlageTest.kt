@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.left
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
@@ -29,6 +30,7 @@ internal class OpprettKlageTest {
             sakId = UUID.randomUUID(),
             journalpostId = JournalpostId("j2"),
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
+            datoKlageMottatt = 1.desember(2021),
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.FantIkkeSak.left()
 
@@ -48,6 +50,7 @@ internal class OpprettKlageTest {
                     sakId = sakId,
                     journalpostId = JournalpostId(value = "j1"),
                     saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "s1"),
+                    datoKlageMottatt = 1.desember(2021),
                 ),
             ),
         ).first
@@ -61,6 +64,7 @@ internal class OpprettKlageTest {
             sakId = sakId,
             journalpostId = JournalpostId("j2"),
             saksbehandler = NavIdentBruker.Saksbehandler("s2"),
+            datoKlageMottatt = 1.desember(2021),
         )
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage.left()
 
@@ -81,6 +85,7 @@ internal class OpprettKlageTest {
             sakId = sak.id,
             journalpostId = JournalpostId("1"),
             saksbehandler = NavIdentBruker.Saksbehandler("2"),
+            datoKlageMottatt = 1.desember(2021),
         )
         var expectedKlage: OpprettetKlage?
         mocks.service.opprett(request).orNull()!!.also {
@@ -92,6 +97,7 @@ internal class OpprettKlageTest {
                 saksbehandler = NavIdentBruker.Saksbehandler(
                     navIdent = "2",
                 ),
+                datoKlageMottatt = 1.desember(2021),
             )
             it shouldBe expectedKlage
         }

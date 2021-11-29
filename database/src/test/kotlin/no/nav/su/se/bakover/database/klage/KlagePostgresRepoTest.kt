@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.klage
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.database.withMigratedDb
@@ -47,6 +48,7 @@ internal class KlagePostgresRepoTest {
                 journalpostId = JournalpostId(value = "journalpostId"),
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
                 clock = fixedClock,
+                datoKlageMottatt = 1.desember(2021),
             ).also {
                 klageRepo.lagre(it)
             }
@@ -80,6 +82,7 @@ internal class KlagePostgresRepoTest {
                 sakId = nySak.id,
                 journalpostId = JournalpostId(value = "journalpostId"),
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
+                datoKlageMottatt = 1.desember(2021),
                 clock = fixedClock,
             ).let { opprettetKlage ->
                 klageRepo.lagre(opprettetKlage)
@@ -113,6 +116,7 @@ internal class KlagePostgresRepoTest {
                 sakId = utbetaling.sakId,
                 journalpostId = JournalpostId(value = "journalpostId"),
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
+                datoKlageMottatt = 1.desember(2021),
                 clock = fixedClock,
             ).let { opprettetKlage ->
                 klageRepo.lagre(opprettetKlage)
@@ -152,6 +156,7 @@ internal class KlagePostgresRepoTest {
                 sakId = utbetaling.sakId,
                 journalpostId = JournalpostId(value = "journalpostId"),
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
+                datoKlageMottatt = 1.desember(2021),
                 clock = fixedClock,
             ).let { opprettetKlage ->
                 klageRepo.lagre(opprettetKlage)
@@ -206,6 +211,7 @@ internal class KlagePostgresRepoTest {
                 sakId = utbetaling.sakId,
                 journalpostId = JournalpostId(value = "journalpostId"),
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
+                datoKlageMottatt = 1.desember(2021),
                 clock = fixedClock,
             ).let { opprettetKlage ->
                 klageRepo.lagre(opprettetKlage)
@@ -256,6 +262,7 @@ internal class KlagePostgresRepoTest {
                 sakId = it.id,
                 journalpostId = JournalpostId(value = "urelatertJournalpostId"),
                 saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "urelatertSaksbehandler"),
+                datoKlageMottatt = 1.desember(2021),
                 clock = fixedClock,
             ).also { klage ->
                 klageRepo.lagre(klage)

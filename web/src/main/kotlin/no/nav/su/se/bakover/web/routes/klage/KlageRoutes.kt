@@ -51,6 +51,7 @@ import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withKlageId
 import no.nav.su.se.bakover.web.withSakId
+import java.time.LocalDate
 import java.util.UUID
 
 internal const val klagePath = "$sakPath/{sakId}/klager"
@@ -68,7 +69,7 @@ internal fun Route.klageRoutes(
 ) {
     authorize(Brukerrolle.Saksbehandler) {
         post(klagePath) {
-            data class Body(val journalpostId: String)
+            data class Body(val journalpostId: String, val datoKlageMottatt: LocalDate)
             call.withSakId { sakId ->
                 call.withBody<Body> { body ->
                     val resultat = klageService.opprett(
@@ -76,6 +77,7 @@ internal fun Route.klageRoutes(
                             sakId = sakId,
                             saksbehandler = call.suUserContext.saksbehandler,
                             journalpostId = JournalpostId(body.journalpostId),
+                            datoKlageMottatt = body.datoKlageMottatt
                         ),
                     ).map {
                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))

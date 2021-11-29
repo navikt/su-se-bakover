@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -27,6 +28,7 @@ sealed class Klage {
     abstract val opprettet: Tidspunkt
     abstract val sakId: UUID
     abstract val journalpostId: JournalpostId
+    abstract val datoKlageMottatt: LocalDate
     abstract val saksbehandler: NavIdentBruker.Saksbehandler
 
     /**
@@ -88,6 +90,7 @@ sealed class Klage {
             sakId: UUID,
             journalpostId: JournalpostId,
             saksbehandler: NavIdentBruker.Saksbehandler,
+            datoKlageMottatt: LocalDate,
             clock: Clock,
         ): OpprettetKlage {
             return OpprettetKlage.create(
@@ -95,6 +98,7 @@ sealed class Klage {
                 opprettet = Tidspunkt.now(clock),
                 sakId = sakId,
                 journalpostId = journalpostId,
+                datoKlageMottatt = datoKlageMottatt,
                 saksbehandler = saksbehandler,
             )
         }

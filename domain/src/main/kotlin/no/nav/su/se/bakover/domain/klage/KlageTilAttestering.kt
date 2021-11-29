@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -16,6 +17,7 @@ data class KlageTilAttestering private constructor(
     override val sakId: UUID,
     override val journalpostId: JournalpostId,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
+    override val datoKlageMottatt: LocalDate,
     val attesteringer: Attesteringshistorikk,
     val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
     val vurderinger: VurderingerTilKlage.Utfylt,
@@ -31,6 +33,7 @@ data class KlageTilAttestering private constructor(
             vilkårsvurderinger = vilkårsvurderinger,
             vurderinger = vurderinger,
             attesteringer = attesteringer.leggTilNyAttestering(underkjentAttestering),
+            datoKlageMottatt = datoKlageMottatt
         ).right()
     }
 
@@ -46,6 +49,7 @@ data class KlageTilAttestering private constructor(
             vilkårsvurderinger = vilkårsvurderinger,
             vurderinger = vurderinger,
             attesteringer = attesteringer.leggTilNyAttestering(iverksattAttestering),
+            datoKlageMottatt = datoKlageMottatt
         ).right()
     }
 
@@ -59,6 +63,7 @@ data class KlageTilAttestering private constructor(
             vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
             vurderinger: VurderingerTilKlage.Utfylt,
             attesteringer: Attesteringshistorikk,
+            datoKlageMottatt: LocalDate,
         ): KlageTilAttestering {
             return KlageTilAttestering(
                 id = id,
@@ -69,6 +74,7 @@ data class KlageTilAttestering private constructor(
                 attesteringer = attesteringer,
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
+                datoKlageMottatt = datoKlageMottatt
             )
         }
     }

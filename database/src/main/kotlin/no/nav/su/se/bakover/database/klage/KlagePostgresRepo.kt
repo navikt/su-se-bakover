@@ -56,8 +56,8 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
 
     private fun lagreOpprettetKlage(klage: OpprettetKlage, session: Session) {
         """
-            insert into klage(id,  sakid,  opprettet,  journalpostid,  saksbehandler,  type)
-                      values(:id, :sakid, :opprettet, :journalpostid, :saksbehandler, :type)
+            insert into klage(id,  sakid,  opprettet,  journalpostid,  saksbehandler,  datoKlageMottatt,  type)
+                      values(:id, :sakid, :opprettet, :journalpostid, :saksbehandler, :datoKlageMottatt, :type)
         """.trimIndent()
             .insert(
                 params = mapOf(
@@ -66,6 +66,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     "opprettet" to klage.opprettet,
                     "journalpostid" to klage.journalpostId,
                     "saksbehandler" to klage.saksbehandler,
+                    "datoKlageMottatt" to klage.datoKlageMottatt,
                     "type" to klage.databasetype(),
                 ),
                 session = session,
@@ -204,6 +205,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
         val opprettet: Tidspunkt = row.tidspunkt("opprettet")
         val sakId: UUID = row.uuid("sakid")
         val journalpostId = JournalpostId(row.string("journalpostid"))
+        val datoKlageMottatt = row.localDate("datoKlageMottatt")
         val saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(row.string("saksbehandler"))
 
         val attesteringer = deserialize<List<AttesteringJson>>(row.string("attestering")).toDomain()
@@ -232,9 +234,9 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 sakId = sakId,
                 journalpostId = journalpostId,
                 saksbehandler = saksbehandler,
+                datoKlageMottatt = datoKlageMottatt,
             )
             Tilstand.VILKÅRSVURDERT_PÅBEGYNT -> {
-
                 VilkårsvurdertKlage.Påbegynt.create(
                     id = id,
                     opprettet = opprettet,
@@ -244,6 +246,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Påbegynt,
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
+                    datoKlageMottatt = datoKlageMottatt,
                 )
             }
             Tilstand.VILKÅRSVURDERT_UTFYLT -> VilkårsvurdertKlage.Utfylt.create(
@@ -255,6 +258,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
             )
             Tilstand.VILKÅRSVURDERT_BEKREFTET -> VilkårsvurdertKlage.Bekreftet.create(
                 id = id,
@@ -265,6 +269,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
             )
             Tilstand.VURDERT_PÅBEGYNT -> VurdertKlage.Påbegynt.create(
                 id = id,
@@ -275,6 +280,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger = if (vurderinger == null) VurderingerTilKlage.empty() else vurderinger as VurderingerTilKlage.Påbegynt,
                 attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
             )
             Tilstand.VURDERT_UTFYLT -> VurdertKlage.Utfylt.create(
                 id = id,
@@ -285,6 +291,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger = vurderinger as VurderingerTilKlage.Utfylt,
                 attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
             )
             Tilstand.VURDERT_BEKREFTET -> VurdertKlage.Bekreftet.create(
                 id = id,
@@ -295,6 +302,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger = vurderinger as VurderingerTilKlage.Utfylt,
                 attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
             )
             Tilstand.TIL_ATTESTERING -> KlageTilAttestering.create(
                 id = id,
@@ -305,6 +313,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger = vurderinger as VurderingerTilKlage.Utfylt,
                 attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
             )
             Tilstand.IVERKSATT -> IverksattKlage.create(
                 id = id,
@@ -315,6 +324,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger = vurderinger as VurderingerTilKlage.Utfylt,
                 attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
             )
         }
     }

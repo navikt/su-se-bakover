@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -29,6 +30,7 @@ sealed class VurdertKlage : Klage() {
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt
             )
             is VilkårsvurderingerTilKlage.Utfylt -> VilkårsvurdertKlage.Utfylt.create(
                 id = id,
@@ -39,6 +41,7 @@ sealed class VurdertKlage : Klage() {
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt
             )
         }.right()
     }
@@ -57,6 +60,7 @@ sealed class VurdertKlage : Klage() {
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt
             )
             is VurderingerTilKlage.Utfylt -> Utfylt.create(
                 id = id,
@@ -67,6 +71,7 @@ sealed class VurdertKlage : Klage() {
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt
             )
         }.right()
     }
@@ -80,6 +85,7 @@ sealed class VurdertKlage : Klage() {
         override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
         override val vurderinger: VurderingerTilKlage.Påbegynt,
         override val attesteringer: Attesteringshistorikk,
+        override val datoKlageMottatt: LocalDate,
     ) : VurdertKlage() {
         companion object {
 
@@ -92,6 +98,7 @@ sealed class VurdertKlage : Klage() {
                 vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger: VurderingerTilKlage.Påbegynt,
                 attesteringer: Attesteringshistorikk,
+                datoKlageMottatt: LocalDate,
             ): Påbegynt {
                 return Påbegynt(
                     id = id,
@@ -102,6 +109,7 @@ sealed class VurdertKlage : Klage() {
                     vilkårsvurderinger = vilkårsvurderinger,
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
+                    datoKlageMottatt = datoKlageMottatt
                 )
             }
         }
@@ -116,6 +124,7 @@ sealed class VurdertKlage : Klage() {
         override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
         override val vurderinger: VurderingerTilKlage.Utfylt,
         override val attesteringer: Attesteringshistorikk,
+        override val datoKlageMottatt: LocalDate
     ) : VurdertKlage() {
 
         override fun bekreftVurderinger(
@@ -130,6 +139,7 @@ sealed class VurdertKlage : Klage() {
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt
             ).right()
         }
 
@@ -143,6 +153,7 @@ sealed class VurdertKlage : Klage() {
                 vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger: VurderingerTilKlage.Utfylt,
                 attesteringer: Attesteringshistorikk,
+                datoKlageMottatt: LocalDate,
             ): Utfylt {
                 return Utfylt(
                     id = id,
@@ -153,6 +164,7 @@ sealed class VurdertKlage : Klage() {
                     vilkårsvurderinger = vilkårsvurderinger,
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
+                    datoKlageMottatt = datoKlageMottatt
                 )
             }
         }
@@ -171,6 +183,7 @@ sealed class VurdertKlage : Klage() {
         override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
         override val vurderinger: VurderingerTilKlage.Utfylt,
         override val attesteringer: Attesteringshistorikk,
+        override val datoKlageMottatt: LocalDate
     ) : VurdertKlage() {
 
         override fun bekreftVurderinger(
@@ -185,6 +198,7 @@ sealed class VurdertKlage : Klage() {
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt
             ).right()
         }
 
@@ -200,6 +214,7 @@ sealed class VurdertKlage : Klage() {
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
             ).right()
         }
 
@@ -213,6 +228,7 @@ sealed class VurdertKlage : Klage() {
                 vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger: VurderingerTilKlage.Utfylt,
                 attesteringer: Attesteringshistorikk,
+                datoKlageMottatt: LocalDate,
             ): Bekreftet {
                 return Bekreftet(
                     id,
@@ -223,6 +239,7 @@ sealed class VurdertKlage : Klage() {
                     vilkårsvurderinger,
                     vurderinger,
                     attesteringer,
+                    datoKlageMottatt
                 )
             }
         }

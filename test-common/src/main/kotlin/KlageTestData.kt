@@ -3,11 +3,13 @@
 package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
+import java.time.LocalDate
 import java.util.UUID
 
 fun opprettetKlage(
@@ -16,6 +18,7 @@ fun opprettetKlage(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    datoKlageMottatt: LocalDate = 1.desember(2021)
 ): OpprettetKlage {
     return OpprettetKlage.create(
         id = id,
@@ -23,6 +26,7 @@ fun opprettetKlage(
         sakId = sakId,
         journalpostId = journalpostId,
         saksbehandler = saksbehandler,
+        datoKlageMottatt = datoKlageMottatt,
     )
 }
 
@@ -35,6 +39,7 @@ fun vilkårsvurdertKlage(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    datoKlageMottatt: LocalDate = 1.desember(2021),
     vedtakId: UUID? = null,
     innenforFristen: Boolean? = null,
     klagesDetPåKonkreteElementerIVedtaket: Boolean? = null,
@@ -47,6 +52,7 @@ fun vilkårsvurdertKlage(
         sakId = sakId,
         journalpostId = journalpostId,
         saksbehandler = saksbehandler,
+        datoKlageMottatt = datoKlageMottatt
     ).vilkårsvurder(
         saksbehandler = saksbehandler,
         vilkårsvurderinger = VilkårsvurderingerTilKlage.create(
@@ -69,6 +75,7 @@ fun ferdigVilkårsvurdertKlage(
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    datoKlageMottatt: LocalDate = 1.desember(2021),
     vedtakId: UUID = UUID.randomUUID(),
     innenforFristen: Boolean = true,
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
@@ -81,6 +88,7 @@ fun ferdigVilkårsvurdertKlage(
         sakId = sakId,
         journalpostId = journalpostId,
         saksbehandler = saksbehandler,
+        datoKlageMottatt = datoKlageMottatt
     ).vilkårsvurder(
         saksbehandler = saksbehandler,
         vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
