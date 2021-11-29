@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagServiceImpl
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleServiceImpl
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
@@ -141,7 +142,6 @@ object ServiceBuilder {
             clock = clock,
             vedtakRepo = databaseRepos.vedtakRepo,
             ferdigstillVedtakService = ferdigstillVedtakService,
-            vilkårsvurderingService = vilkårsvurderingService,
             grunnlagService = grunnlagService,
             sakService = sakService,
         ).apply {
@@ -198,7 +198,15 @@ object ServiceBuilder {
                 sessionFactory = databaseRepos.sessionFactory,
                 sakService = sakService,
             ),
-            klageService = klageService
+            kontrollsamtale = KontrollsamtaleServiceImpl(
+                sakService = sakService,
+                personService = personService,
+                brevService = brevService,
+                oppgaveService = oppgaveService,
+                sessionFactory = databaseRepos.sessionFactory,
+                clock = clock,
+            ),
+            klageService = klageService,
         )
     }
 }

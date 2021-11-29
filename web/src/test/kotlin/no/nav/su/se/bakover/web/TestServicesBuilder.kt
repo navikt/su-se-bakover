@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.klage.KlageService
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -40,6 +41,7 @@ object TestServicesBuilder {
         grunnlagService: GrunnlagService = mock(),
         nøkkeltallService: NøkkeltallService = mock(),
         avslåSøknadManglendeDokumentasjonService: AvslåSøknadManglendeDokumentasjonService = mock(),
+        kontrollsamtaleService: KontrollsamtaleService = mock(),
         klageService: KlageService = mock()
     ): Services = Services(
         avstemming = avstemming,
@@ -59,6 +61,7 @@ object TestServicesBuilder {
         grunnlagService = grunnlagService,
         nøkkeltallService = nøkkeltallService,
         avslåSøknadManglendeDokumentasjonService = avslåSøknadManglendeDokumentasjonService,
+        kontrollsamtale = kontrollsamtaleService,
         klageService = klageService
     )
 }

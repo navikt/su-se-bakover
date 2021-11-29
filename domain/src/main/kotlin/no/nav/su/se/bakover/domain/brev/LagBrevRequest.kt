@@ -292,6 +292,27 @@ interface LagBrevRequest {
         }
     }
 
+    data class InnkallingTilKontrollsamtale(
+        override val person: Person,
+        override val dagensDato: LocalDate,
+    ) : LagBrevRequest {
+        override val brevInnhold = BrevInnhold.InnkallingTilKontrollsamtale(
+            personalia = lagPersonalia(),
+        )
+
+        override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {
+            return genererDokument(genererPdf).map {
+                Dokument.UtenMetadata.Informasjon(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(), // TODO jah: Ta inn clock
+                    tittel = it.first,
+                    generertDokument = it.second,
+                    generertDokumentJson = it.third,
+                )
+            }
+        }
+    }
+
     sealed class Klage : LagBrevRequest {
         data class Oppretthold(
             override val person: Person,

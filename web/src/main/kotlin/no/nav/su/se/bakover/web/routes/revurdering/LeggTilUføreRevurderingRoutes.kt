@@ -13,12 +13,12 @@ import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
+import no.nav.su.se.bakover.service.vilkår.UførevilkårStatus
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
@@ -52,11 +52,11 @@ private data class Body(val vurderinger: List<Vurdering>) {
         val uføregrad: Int?,
         val forventetInntekt: Int?,
         // TODO jah: Bruk en egen type for dette
-        val resultat: Behandlingsinformasjon.Uførhet.Status,
+        val resultat: UførevilkårStatus,
         val begrunnelse: String?,
     ) {
 
-        fun toServiceCommand(revurderingId: UUID): Either<Resultat, LeggTilUførevurderingRequest> {
+        fun toServiceCommand(revurderingId: UUID): Either<Resultat, LeggTilUførevilkårRequest> {
 
             val periode = periode.toPeriode().getOrHandle {
                 return it.left()
@@ -66,7 +66,7 @@ private data class Body(val vurderinger: List<Vurdering>) {
                     return Feilresponser.Uføre.uføregradMåVæreMellomEnOgHundre.left()
                 }
             }
-            return LeggTilUførevurderingRequest(
+            return LeggTilUførevilkårRequest(
                 behandlingId = revurderingId,
                 periode = periode,
                 uføregrad = validUføregrad,

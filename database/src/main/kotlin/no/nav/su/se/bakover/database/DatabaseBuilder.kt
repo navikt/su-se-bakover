@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.database
 
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.RotatingCredentials
 import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.StaticCredentials
@@ -81,6 +83,28 @@ object DatabaseBuilder {
     ): DatabaseRepos {
         // I testene ønsker vi ikke noe herjing med rolle; embedded-oppsettet sørger for at vi har riktige tilganger og er ferdigmigrert her.
         return buildInternal(embeddedDatasource, dbMetrics, clock)
+    }
+
+    @TestOnly
+    fun newLocalDataSource(): DataSource {
+        val dbConfig = ApplicationConfig.DatabaseConfig.createLocalConfig()
+        return HikariDataSource(
+            HikariConfig().apply {
+                this.jdbcUrl = dbConfig.jdbcUrl
+                this.maximumPoolSize = 3
+                this.minimumIdle = 1
+                this.idleTimeout = 10001
+                this.connectionTimeout = 1000
+                this.maxLifetime = 30001
+                this.username = dbConfig.username
+                this.password = dbConfig.password
+            },
+        )
+    }
+
+    @TestOnly
+    fun migrateDatabase(dataSource: DataSource) {
+        Flyway(dataSource).migrate()
     }
 
     internal fun buildInternal(

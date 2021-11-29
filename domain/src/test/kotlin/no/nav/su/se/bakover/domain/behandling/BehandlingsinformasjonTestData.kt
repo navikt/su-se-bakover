@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.behandling
 object BehandlingsinformasjonTestData {
 
     val behandlingsinformasjonMedAlleVilkårOppfylt = Behandlingsinformasjon(
-        uførhet = Uførhet.Oppfylt,
         flyktning = Flyktning.Oppfylt,
         lovligOpphold = LovligOpphold.Oppfylt,
         fastOppholdINorge = FastOppholdINorge.Oppfylt,
@@ -11,21 +10,6 @@ object BehandlingsinformasjonTestData {
         formue = Formue.OppfyltMedEPS,
         personligOppmøte = PersonligOppmøte.Oppfylt,
     )
-
-    object Uførhet {
-        val Oppfylt = Behandlingsinformasjon.Uførhet(
-            Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
-            uføregrad = 100,
-            forventetInntekt = 5000,
-            begrunnelse = null
-        )
-        val Uavklart = Behandlingsinformasjon.Uførhet(
-            Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling,
-            uføregrad = 1,
-            forventetInntekt = 1,
-            begrunnelse = null
-        )
-    }
 
     object Flyktning {
         val Oppfylt = Behandlingsinformasjon.Flyktning(

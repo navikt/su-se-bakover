@@ -29,7 +29,7 @@ enum class Behandlingstype(val value: String) {
  * https://github.com/navikt/kodeverksmapper/blob/master/web/src/main/resources/underkategori.csv
  */
 enum class Behandlingstema(val value: String) {
-    SU_UFØRE_FLYKNING("ab0431"),
+    SU_UFØRE_FLYKTNING("ab0431"),
     SU_ALDER("ab0432");
 
     override fun toString() = this.value

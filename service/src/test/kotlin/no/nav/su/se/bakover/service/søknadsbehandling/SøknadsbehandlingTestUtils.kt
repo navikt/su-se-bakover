@@ -45,7 +45,6 @@ internal fun createSøknadsbehandlingService(
     clock: Clock = Clock.systemUTC(),
     vedtakRepo: VedtakRepo = mock(),
     ferdigstillVedtakService: FerdigstillVedtakService = mock(),
-    vilkårsvurderingService: VilkårsvurderingService = mock(),
     grunnlagService: GrunnlagService = mock(),
     sakService: SakService = mock(),
 ) = SøknadsbehandlingServiceImpl(
@@ -60,7 +59,6 @@ internal fun createSøknadsbehandlingService(
     clock,
     vedtakRepo,
     ferdigstillVedtakService,
-    vilkårsvurderingService,
     grunnlagService,
     sakService,
 ).apply { addObserver(observer) }
@@ -94,7 +92,6 @@ internal data class SøknadsbehandlingServiceAndMocks(
         clock = clock,
         vedtakRepo = vedtakRepo,
         ferdigstillVedtakService = ferdigstillVedtakService,
-        vilkårsvurderingService = vilkårsvurderingService,
         grunnlagService = grunnlagService,
         sakService = sakService,
     ).apply { addObserver(observer) }

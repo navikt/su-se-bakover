@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -31,7 +31,7 @@ interface SøknadsbehandlingService {
     fun brev(request: BrevRequest): Either<KunneIkkeLageBrev, ByteArray>
     fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling>
     fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling>
-    fun leggTilUføregrunnlag(request: LeggTilUførevurderingRequest): Either<KunneIkkeLeggeTilGrunnlag, Søknadsbehandling>
+    fun leggTilUførevilkår(request: LeggTilUførevilkårRequest): Either<KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling>
     fun leggTilBosituasjonEpsgrunnlag(request: LeggTilBosituasjonEpsRequest): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling>
     fun fullførBosituasjongrunnlag(request: FullførBosituasjonRequest): Either<KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling>
     fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, Søknadsbehandling>
@@ -147,12 +147,16 @@ interface SøknadsbehandlingService {
         val stønadsperiode: Stønadsperiode,
     )
 
-    sealed class KunneIkkeLeggeTilGrunnlag {
-        object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
-        object UføregradOgForventetInntektMangler : KunneIkkeLeggeTilGrunnlag()
-        object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilGrunnlag()
-        object OverlappendeVurderingsperioder : KunneIkkeLeggeTilGrunnlag()
-        object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilGrunnlag()
+    sealed class KunneIkkeLeggeTilUføreVilkår {
+        object FantIkkeBehandling : KunneIkkeLeggeTilUføreVilkår()
+        object UføregradOgForventetInntektMangler : KunneIkkeLeggeTilUføreVilkår()
+        object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilUføreVilkår()
+        object OverlappendeVurderingsperioder : KunneIkkeLeggeTilUføreVilkår()
+        object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilUføreVilkår()
+        data class UgyldigTilstand(
+            val fra: KClass<out Søknadsbehandling>,
+            val til: KClass<out Søknadsbehandling>,
+        ) : KunneIkkeLeggeTilUføreVilkår()
     }
 
     sealed class KunneIkkeLeggeTilBosituasjonEpsGrunnlag {

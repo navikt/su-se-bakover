@@ -16,8 +16,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Formue.Verd
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.LovligOpphold
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.PersonligOppmøte
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Uførhet
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.test.generer
@@ -43,12 +41,6 @@ object BehandlingTestUtils {
     )
 
     internal val behandlingsinformasjon = Behandlingsinformasjon(
-        uførhet = Uførhet(
-            status = VilkårOppfylt,
-            uføregrad = 20,
-            forventetInntekt = 10,
-            begrunnelse = null
-        ),
         flyktning = Flyktning(
             status = Status.VilkårOppfylt,
             begrunnelse = null

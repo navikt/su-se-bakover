@@ -161,6 +161,12 @@ abstract class BrevInnhold {
         override val brevTemplate = BrevTemplate.Revurdering.AvsluttRevurdering
     }
 
+    data class InnkallingTilKontrollsamtale(
+        val personalia: Personalia,
+    ) : BrevInnhold() {
+        override val brevTemplate = BrevTemplate.InnkallingTilKontrollsamtale
+    }
+
     data class Klage(
         val personalia: Personalia,
         val saksbehandlerNavn: String,

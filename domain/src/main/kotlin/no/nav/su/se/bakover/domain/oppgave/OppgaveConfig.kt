@@ -34,7 +34,7 @@ sealed class OppgaveConfig {
         override val clock: Clock = Clock.systemUTC(),
     ) : OppgaveConfig() {
         override val saksreferanse = søknadId.toString()
-        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
+        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKTNING
         override val oppgavetype = Oppgavetype.BEHANDLE_SAK
         override val behandlingstype = Behandlingstype.SØKNAD
         override val aktivDato: LocalDate = LocalDate.now(clock)
@@ -49,7 +49,7 @@ sealed class OppgaveConfig {
     ) : OppgaveConfig() {
         override val saksreferanse = søknadId.toString()
         override val journalpostId: JournalpostId? = null
-        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
+        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKTNING
         override val oppgavetype = Oppgavetype.ATTESTERING
         override val behandlingstype = Behandlingstype.SØKNAD
         override val aktivDato: LocalDate = LocalDate.now(clock)
@@ -64,7 +64,7 @@ sealed class OppgaveConfig {
     ) : OppgaveConfig() {
         override val saksreferanse = saksnummer.toString()
         override val journalpostId: JournalpostId? = null
-        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
+        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKTNING
         override val behandlingstype = Behandlingstype.REVURDERING
         override val oppgavetype = Oppgavetype.BEHANDLE_SAK
         override val aktivDato: LocalDate = LocalDate.now(clock)
@@ -79,7 +79,7 @@ sealed class OppgaveConfig {
     ) : OppgaveConfig() {
         override val saksreferanse = saksnummer.toString()
         override val journalpostId: JournalpostId? = null
-        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
+        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKTNING
         override val behandlingstype = Behandlingstype.REVURDERING
         override val oppgavetype = Oppgavetype.ATTESTERING
         override val aktivDato: LocalDate = LocalDate.now(clock)
@@ -90,15 +90,30 @@ sealed class OppgaveConfig {
         val saksnummer: Saksnummer,
         val personhendelsestype: no.nav.su.se.bakover.domain.hendelse.Personhendelse.Hendelse,
         override val aktørId: AktørId,
-        override val tilordnetRessurs: NavIdentBruker? = null,
         override val clock: Clock = Clock.systemUTC(),
     ) : OppgaveConfig() {
         override val saksreferanse = saksnummer.toString()
         override val journalpostId: JournalpostId? = null
-        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
+        override val tilordnetRessurs: NavIdentBruker? = null
+        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKTNING
         override val behandlingstype = Behandlingstype.REVURDERING
         override val oppgavetype = Oppgavetype.VURDER_KONSEKVENS_FOR_YTELSE
         override val aktivDato: LocalDate = LocalDate.now(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(7)
+    }
+
+    data class Kontrollsamtale(
+        val saksnummer: Saksnummer,
+        override val aktørId: AktørId,
+        override val clock: Clock = Clock.systemUTC(),
+    ) : OppgaveConfig() {
+        override val saksreferanse = saksnummer.toString()
+        override val journalpostId: JournalpostId? = null
+        override val tilordnetRessurs: NavIdentBruker? = null
+        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKTNING
+        override val behandlingstype = Behandlingstype.REVURDERING
+        override val oppgavetype = Oppgavetype.FREMLEGGING
+        override val aktivDato: LocalDate = LocalDate.now(clock)
+        override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
     }
 }

@@ -79,6 +79,8 @@ import no.nav.su.se.bakover.service.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
+import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeKalleInnTilKontrollsamtale
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -144,7 +146,7 @@ import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilFlereUtenlandsoppholdRequest
-import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevilkårRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import java.time.LocalDate
@@ -488,9 +490,9 @@ open class AccessCheckProxy(
                     return services.søknadsbehandling.oppdaterStønadsperiode(request)
                 }
 
-                override fun leggTilUføregrunnlag(request: LeggTilUførevurderingRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag, Søknadsbehandling> {
+                override fun leggTilUførevilkår(request: LeggTilUførevilkårRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilUføreVilkår, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.leggTilUføregrunnlag(request)
+                    return services.søknadsbehandling.leggTilUførevilkår(request)
                 }
 
                 override fun leggTilBosituasjonEpsgrunnlag(request: LeggTilBosituasjonEpsRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling> {
@@ -750,6 +752,15 @@ open class AccessCheckProxy(
                 override fun avslå(request: AvslåManglendeDokumentasjonRequest): Either<KunneIkkeAvslåSøknad, Sak> {
                     assertHarTilgangTilSøknad(request.søknadId)
                     return services.avslåSøknadManglendeDokumentasjonService.avslå(request)
+                }
+            },
+            kontrollsamtale = object : KontrollsamtaleService {
+                override fun kallInn(
+                    sakId: UUID,
+                    saksbehandler: NavIdentBruker
+                ): Either<KunneIkkeKalleInnTilKontrollsamtale, Unit> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.kontrollsamtale.kallInn(sakId, saksbehandler)
                 }
             },
             klageService = object : KlageService {

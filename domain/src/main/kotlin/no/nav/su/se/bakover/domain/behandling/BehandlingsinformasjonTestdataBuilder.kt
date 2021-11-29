@@ -9,12 +9,6 @@ import org.jetbrains.annotations.TestOnly
 @TestOnly
 fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
     Behandlingsinformasjon(
-        uførhet = Behandlingsinformasjon.Uførhet(
-            status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
-            uføregrad = uførhet?.uføregrad ?: 20,
-            forventetInntekt = uførhet?.forventetInntekt ?: 10,
-            begrunnelse = uførhet?.begrunnelse,
-        ),
         flyktning = Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
             begrunnelse = flyktning?.begrunnelse,
@@ -55,12 +49,6 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
 @TestOnly
 fun Behandlingsinformasjon.withAlleVilkårAvslått() =
     Behandlingsinformasjon(
-        uførhet = Behandlingsinformasjon.Uførhet(
-            status = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
-            uføregrad = uførhet?.uføregrad ?: 20,
-            forventetInntekt = uførhet?.forventetInntekt ?: 10,
-            begrunnelse = uførhet?.begrunnelse,
-        ),
         flyktning = Behandlingsinformasjon.Flyktning(
             status = Behandlingsinformasjon.Flyktning.Status.VilkårIkkeOppfylt,
             begrunnelse = flyktning?.begrunnelse,
@@ -113,7 +101,6 @@ fun Behandlingsinformasjon.withAvslåttFlyktning(): Behandlingsinformasjon {
 @TestOnly
 fun withVilkårIkkeVurdert() =
     Behandlingsinformasjon(
-        uførhet = null,
         flyktning = null,
         lovligOpphold = null,
         fastOppholdINorge = null,

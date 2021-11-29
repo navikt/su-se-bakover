@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingId
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
@@ -142,17 +141,12 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
                 argThat {
                     it shouldBe response
                     it.stønadsperiode shouldBe nyStønadsperiode
-                },
-                anyOrNull(),
-            )
-            verify(it.vilkårsvurderingService).lagre(
-                argThat { it shouldBe uavklart.id },
-                argThat { vilkårsvurderinger ->
-                    (vilkårsvurderinger as Vilkårsvurderinger.Søknadsbehandling).let {
+                    it.vilkårsvurderinger.let { vilkårsvurderinger ->
                         vilkårsvurderinger.uføre.grunnlag.all { it.periode == nyStønadsperiode.periode } shouldBe true
                         vilkårsvurderinger.formue.grunnlag.all { it.periode == nyStønadsperiode.periode } shouldBe true
                     }
                 },
+                anyOrNull(),
             )
             verify(it.grunnlagService).lagreBosituasjongrunnlag(
                 argThat { it shouldBe uavklart.id },

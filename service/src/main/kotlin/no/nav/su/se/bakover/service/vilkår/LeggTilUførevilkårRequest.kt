@@ -6,7 +6,6 @@ import arrow.core.left
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.vilkår.Resultat
@@ -15,12 +14,18 @@ import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import java.time.Clock
 import java.util.UUID
 
-data class LeggTilUførevurderingRequest(
+enum class UførevilkårStatus {
+    VilkårOppfylt,
+    VilkårIkkeOppfylt,
+    HarUføresakTilBehandling
+}
+
+data class LeggTilUførevilkårRequest(
     val behandlingId: UUID,
     val periode: Periode,
     val uføregrad: Uføregrad?,
     val forventetInntekt: Int?,
-    val oppfylt: Behandlingsinformasjon.Uførhet.Status,
+    val oppfylt: UførevilkårStatus,
     val begrunnelse: String?,
 ) {
     sealed class UgyldigUførevurdering {
@@ -34,12 +39,10 @@ data class LeggTilUførevurderingRequest(
      * @param behandlingsperiode Ved en søknadsbehandling kan det være støndadsperiode. Ved en revurdering kan det være revurderingsperioden.
      */
     fun toVurderingsperiode(
-        behandlingsperiode: Periode,
         clock: Clock,
     ): Either<UgyldigUførevurdering, Vurderingsperiode.Uføre> {
-        if (!(behandlingsperiode inneholder periode)) return UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden.left()
         return when (oppfylt) {
-            Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt -> {
+            UførevilkårStatus.VilkårOppfylt -> {
                 if (uføregrad == null || forventetInntekt == null) return UgyldigUførevurdering.UføregradOgForventetInntektMangler.left()
                 Vurderingsperiode.Uføre.tryCreate(
                     resultat = Resultat.Innvilget,
@@ -54,14 +57,14 @@ data class LeggTilUførevurderingRequest(
                     opprettet = Tidspunkt.now(clock),
                 )
             }
-            Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt -> Vurderingsperiode.Uføre.tryCreate(
+            UførevilkårStatus.VilkårIkkeOppfylt -> Vurderingsperiode.Uføre.tryCreate(
                 resultat = Resultat.Avslag,
                 grunnlag = null,
                 vurderingsperiode = periode,
                 begrunnelse = begrunnelse,
                 opprettet = Tidspunkt.now(clock),
             )
-            Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling -> Vurderingsperiode.Uføre.tryCreate(
+            UførevilkårStatus.HarUføresakTilBehandling -> Vurderingsperiode.Uføre.tryCreate(
                 resultat = Resultat.Uavklart,
                 grunnlag = null,
                 vurderingsperiode = periode,
@@ -75,8 +78,8 @@ data class LeggTilUførevurderingRequest(
         }
     }
 
-    fun toVilkår(behandlingsperiode: Periode, clock: Clock): Either<UgyldigUførevurdering, Vilkår.Uførhet.Vurdert> {
-        return toVurderingsperiode(behandlingsperiode, clock)
+    fun toVilkår(clock: Clock): Either<UgyldigUførevurdering, Vilkår.Uførhet.Vurdert> {
+        return toVurderingsperiode(clock)
             .flatMap { vurderingsperiode ->
                 Vilkår.Uførhet.Vurdert.tryCreate(nonEmptyListOf(vurderingsperiode))
                     .mapLeft {
