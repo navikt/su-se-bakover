@@ -31,7 +31,9 @@ fun opprettetKlage(
 }
 
 /**
- * @return default [VilkårsvurdertKlage.Påbegynt], men hvis alle feltene er utfylt (vedtakId,innenforFristen,klagesDetPåKonkreteElementerIVedtaket,erUnderskrevet,begrunnelse) vil man ende opp med [VilkårsvurdertKlage.Utfylt]
+ * @return [VilkårsvurdertKlage.Påbegynt]
+ * @throws RuntimeException dersom alle ingen av feltene: (vedtakId, innenforFristen, klagesDetPåKonkreteElementerIVedtaket, erUnderskrevet, begrunnelse) er null.
+ *
  */
 fun vilkårsvurdertKlage(
     id: UUID = UUID.randomUUID(),
@@ -45,7 +47,7 @@ fun vilkårsvurdertKlage(
     klagesDetPåKonkreteElementerIVedtaket: Boolean? = null,
     erUnderskrevet: Boolean? = null,
     begrunnelse: String? = null,
-): VilkårsvurdertKlage {
+): VilkårsvurdertKlage.Påbegynt {
     return OpprettetKlage.create(
         id = id,
         opprettet = opprettet,
@@ -66,10 +68,10 @@ fun vilkårsvurdertKlage(
         assert(it is VilkårsvurdertKlage.Påbegynt) {
             "Dersom ingen av de vilkårsvurderte feltene er null, vil vi få en VilkårsvurdertKlage.Utfylt istedet for Påbegynt."
         }
-    }
+    } as VilkårsvurdertKlage.Påbegynt
 }
 
-fun ferdigVilkårsvurdertKlage(
+fun utfyltVilkårsvurdertKlage(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
@@ -81,7 +83,7 @@ fun ferdigVilkårsvurdertKlage(
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: Boolean = true,
     begrunnelse: String = "begrunnelse",
-): VilkårsvurdertKlage {
+): VilkårsvurdertKlage.Utfylt {
     return OpprettetKlage.create(
         id = id,
         opprettet = opprettet,
@@ -98,5 +100,5 @@ fun ferdigVilkårsvurdertKlage(
             erUnderskrevet = erUnderskrevet,
             begrunnelse = begrunnelse,
         ),
-    ).orNull()!!
+    )
 }

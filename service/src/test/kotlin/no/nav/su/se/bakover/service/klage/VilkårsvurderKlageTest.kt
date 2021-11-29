@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.left
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
@@ -108,6 +109,7 @@ internal class VilkårsvurderKlageTest {
                 vilkårsvurderinger = VilkårsvurderingerTilKlage.empty(),
                 vurderinger = null,
                 attesteringer = Attesteringshistorikk.empty(),
+                datoKlageMottatt = 1.desember(2021),
             )
             it shouldBe expectedKlage
         }
@@ -161,6 +163,7 @@ internal class VilkårsvurderKlageTest {
                 ),
                 vurderinger = null,
                 attesteringer = Attesteringshistorikk.empty(),
+                datoKlageMottatt = 1.desember(2021),
             )
             it shouldBe expectedKlage
         }

@@ -12,29 +12,28 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 
 internal fun Attesteringshistorikk.toDatabaseJson(): String {
-    return serialize(
-        this.map {
-            when (it) {
-                is Attestering.Iverksatt -> AttesteringJson.IverksattJson(
-                    attestant = it.attestant.navIdent,
-                    opprettet = it.opprettet,
 
-                )
-                is Attestering.Underkjent -> AttesteringJson.UnderkjentJson(
-                    attestant = it.attestant.navIdent,
-                    opprettet = it.opprettet,
-                    grunn = when (it.grunn) {
-                        Attestering.Underkjent.Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT -> AttesteringJson.UnderkjentJson.GrunnJson.INNGANGSVILKÅRENE_ER_FEILVURDERT
-                        Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL -> AttesteringJson.UnderkjentJson.GrunnJson.BEREGNINGEN_ER_FEIL
-                        Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER -> AttesteringJson.UnderkjentJson.GrunnJson.DOKUMENTASJON_MANGLER
-                        Attestering.Underkjent.Grunn.VEDTAKSBREVET_ER_FEIL -> AttesteringJson.UnderkjentJson.GrunnJson.VEDTAKSBREVET_ER_FEIL
-                        Attestering.Underkjent.Grunn.ANDRE_FORHOLD -> AttesteringJson.UnderkjentJson.GrunnJson.ANDRE_FORHOLD
-                    },
-                    kommentar = it.kommentar,
-                )
-            }
-        },
-    )
+    return this.map {
+        when (it) {
+            is Attestering.Iverksatt -> AttesteringJson.IverksattJson(
+                attestant = it.attestant.navIdent,
+                opprettet = it.opprettet,
+
+            )
+            is Attestering.Underkjent -> AttesteringJson.UnderkjentJson(
+                attestant = it.attestant.navIdent,
+                opprettet = it.opprettet,
+                grunn = when (it.grunn) {
+                    Attestering.Underkjent.Grunn.INNGANGSVILKÅRENE_ER_FEILVURDERT -> AttesteringJson.UnderkjentJson.GrunnJson.INNGANGSVILKÅRENE_ER_FEILVURDERT
+                    Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL -> AttesteringJson.UnderkjentJson.GrunnJson.BEREGNINGEN_ER_FEIL
+                    Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER -> AttesteringJson.UnderkjentJson.GrunnJson.DOKUMENTASJON_MANGLER
+                    Attestering.Underkjent.Grunn.VEDTAKSBREVET_ER_FEIL -> AttesteringJson.UnderkjentJson.GrunnJson.VEDTAKSBREVET_ER_FEIL
+                    Attestering.Underkjent.Grunn.ANDRE_FORHOLD -> AttesteringJson.UnderkjentJson.GrunnJson.ANDRE_FORHOLD
+                },
+                kommentar = it.kommentar,
+            )
+        }
+    }.serialize()
 }
 
 internal fun List<AttesteringJson>.toDomain(): Attesteringshistorikk {
@@ -71,7 +70,7 @@ internal fun List<AttesteringJson>.toDomain(): Attesteringshistorikk {
     JsonSubTypes.Type(value = AttesteringJson.IverksattJson::class, name = "Iverksatt"),
     JsonSubTypes.Type(value = AttesteringJson.UnderkjentJson::class, name = "Underkjent"),
 )
-sealed class AttesteringJson {
+internal sealed class AttesteringJson {
     abstract val attestant: String
     abstract val opprettet: Tidspunkt
 

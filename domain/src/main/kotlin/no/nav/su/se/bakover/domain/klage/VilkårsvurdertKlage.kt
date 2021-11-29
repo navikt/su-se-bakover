@@ -176,29 +176,42 @@ sealed class VilkårsvurdertKlage : Klage() {
             vurderinger: VurderingerTilKlage,
         ): Either<KunneIkkeVurdereKlage.UgyldigTilstand, VurdertKlage> {
             return when (vurderinger) {
-                is VurderingerTilKlage.Påbegynt -> VurdertKlage.Påbegynt.create(
-                    id = id,
-                    opprettet = opprettet,
-                    sakId = sakId,
-                    journalpostId = journalpostId,
-                    saksbehandler = saksbehandler,
-                    vilkårsvurderinger = vilkårsvurderinger,
-                    vurderinger = vurderinger,
-                    attesteringer = attesteringer,
-                    datoKlageMottatt = datoKlageMottatt,
-                )
-                is VurderingerTilKlage.Utfylt -> VurdertKlage.Utfylt.create(
-                    id = id,
-                    opprettet = opprettet,
-                    sakId = sakId,
-                    journalpostId = journalpostId,
-                    saksbehandler = saksbehandler,
-                    vilkårsvurderinger = vilkårsvurderinger,
-                    vurderinger = vurderinger,
-                    attesteringer = attesteringer,
-                    datoKlageMottatt = datoKlageMottatt,
-                )
+                is VurderingerTilKlage.Påbegynt -> vurder(saksbehandler, vurderinger)
+                is VurderingerTilKlage.Utfylt -> vurder(saksbehandler, vurderinger)
             }.right()
+        }
+
+        fun vurder(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            vurderinger: VurderingerTilKlage.Påbegynt,
+        ): VurdertKlage.Påbegynt {
+            return VurdertKlage.Påbegynt.create(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                journalpostId = journalpostId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = vilkårsvurderinger,
+                vurderinger = vurderinger,
+                attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
+            )
+        }
+
+        fun vurder(
+            saksbehandler: NavIdentBruker.Saksbehandler,
+            vurderinger: VurderingerTilKlage.Utfylt,
+        ): VurdertKlage.Utfylt {
+            return VurdertKlage.Utfylt.create(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                journalpostId = journalpostId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = vilkårsvurderinger,
+                vurderinger = vurderinger,
+                attesteringer = attesteringer, datoKlageMottatt = datoKlageMottatt,
+            )
         }
 
         companion object {

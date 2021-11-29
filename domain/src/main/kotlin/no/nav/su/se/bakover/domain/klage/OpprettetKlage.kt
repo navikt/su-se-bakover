@@ -41,28 +41,41 @@ data class OpprettetKlage private constructor(
         vilkårsvurderinger: VilkårsvurderingerTilKlage,
     ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
         return when (vilkårsvurderinger) {
-            is VilkårsvurderingerTilKlage.Utfylt -> VilkårsvurdertKlage.Utfylt.create(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                journalpostId = journalpostId,
-                saksbehandler = saksbehandler,
-                vilkårsvurderinger = vilkårsvurderinger,
-                vurderinger = null,
-                attesteringer = Attesteringshistorikk.empty(),
-                datoKlageMottatt = datoKlageMottatt
-            )
-            is VilkårsvurderingerTilKlage.Påbegynt -> VilkårsvurdertKlage.Påbegynt.create(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                journalpostId = journalpostId,
-                saksbehandler = saksbehandler,
-                vilkårsvurderinger = vilkårsvurderinger,
-                vurderinger = null,
-                attesteringer = Attesteringshistorikk.empty(),
-                datoKlageMottatt = datoKlageMottatt
-            )
+            is VilkårsvurderingerTilKlage.Utfylt -> vilkårsvurder(saksbehandler, vilkårsvurderinger)
+            is VilkårsvurderingerTilKlage.Påbegynt -> vilkårsvurder(saksbehandler, vilkårsvurderinger)
         }.right()
+    }
+
+    fun vilkårsvurder(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        vilkårsvurderinger: VilkårsvurderingerTilKlage.Påbegynt,
+    ): VilkårsvurdertKlage.Påbegynt {
+        return VilkårsvurdertKlage.Påbegynt.create(
+            id = id,
+            opprettet = opprettet,
+            sakId = sakId,
+            journalpostId = journalpostId,
+            saksbehandler = saksbehandler,
+            vilkårsvurderinger = vilkårsvurderinger,
+            vurderinger = null,
+            attesteringer = Attesteringshistorikk.empty(),
+            datoKlageMottatt = datoKlageMottatt
+        )
+    }
+
+    fun vilkårsvurder(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
+    ): VilkårsvurdertKlage.Utfylt {
+        return VilkårsvurdertKlage.Utfylt.create(
+            id = id,
+            opprettet = opprettet,
+            sakId = sakId,
+            journalpostId = journalpostId,
+            saksbehandler = saksbehandler,
+            vilkårsvurderinger = vilkårsvurderinger,
+            vurderinger = null,
+            attesteringer = Attesteringshistorikk.empty(), datoKlageMottatt = datoKlageMottatt
+        )
     }
 }

@@ -141,6 +141,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 klage 
             set
                 type=:type,
+                saksbehandler=:saksbehandler,
                 attestering=to_jsonb(:attestering::jsonb)
             where id=:id
         """.trimIndent()
@@ -148,6 +149,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 mapOf(
                     "id" to klage.id,
                     "type" to klage.databasetype(),
+                    "saksbehandler" to klage.saksbehandler,
                     "attestering" to klage.attesteringer.toDatabaseJson(),
                 ),
                 session,
@@ -160,7 +162,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 klage
             set
                 type=:type,
-                attestering=:to_json(:attestering::json)
+                attestering=to_jsonb(:attestering::jsonb)
             where id=:id
         """.trimIndent()
             .oppdatering(

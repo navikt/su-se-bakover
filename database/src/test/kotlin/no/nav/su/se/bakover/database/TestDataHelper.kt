@@ -50,6 +50,16 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.Hjemler
+import no.nav.su.se.bakover.domain.klage.Hjemmel
+import no.nav.su.se.bakover.domain.klage.IverksattKlage
+import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
+import no.nav.su.se.bakover.domain.klage.OpprettetKlage
+import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
+import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
+import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
+import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -866,6 +876,113 @@ internal class TestDataHelper(
             iverksattAttestering,
         ).also {
             søknadsbehandlingRepo.lagre(it)
+        }
+    }
+
+    fun nyKlage(
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+    ): OpprettetKlage {
+        return Klage.ny(
+            sakId = vedtak.behandling.sakId,
+            journalpostId = JournalpostId(value = "journalpostIdKlage"),
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerNyKlage"),
+            clock = fixedClock,
+            datoKlageMottatt = fixedLocalDate,
+        ).also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun utfyltVilkårsvurdertKlage(
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+    ): VilkårsvurdertKlage.Utfylt {
+        return nyKlage(vedtak = vedtak).vilkårsvurder(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVilkårsvurdertKlage"),
+            vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+                vedtakId = vedtak.id,
+                innenforFristen = true,
+                klagesDetPåKonkreteElementerIVedtaket = true,
+                erUnderskrevet = true,
+                begrunnelse = "enBegrunnelse",
+            ),
+        ).also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun bekreftetVilkårsvurdertKlage(
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+    ): VilkårsvurdertKlage.Bekreftet {
+        return utfyltVilkårsvurdertKlage(vedtak = vedtak).bekreftVilkårsvurderinger(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerBekreftetVilkårsvurdertKlage"),
+        ).orNull()!!.also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun utfyltVurdertKlage(
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+    ): VurdertKlage.Utfylt {
+        return bekreftetVilkårsvurdertKlage(vedtak = vedtak).vurder(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVUrdertKlage"),
+            vurderinger = VurderingerTilKlage.Utfylt(
+                fritekstTilBrev = "Friteksten til brevet er som følge: ",
+                vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold(
+                    hjemler = Hjemler.Utfylt.create(
+                        nonEmptyListOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4),
+                    ),
+                ),
+            ),
+        ).also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun bekreftetVurdertKlage(
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+    ): VurdertKlage.Bekreftet {
+        return utfyltVurdertKlage(vedtak = vedtak).bekreftVurderinger(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerBekreftetVurdertKlage"),
+        ).orNull()!!.also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun klageTilAttestering(
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+    ): KlageTilAttestering {
+        return bekreftetVurdertKlage(vedtak = vedtak).sendTilAttestering(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerKlageTilAttestering"),
+        ).orNull()!!.also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun underkjentKlage(
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+    ): VurdertKlage.Bekreftet {
+        return klageTilAttestering(vedtak = vedtak).underkjenn(
+            underkjentAttestering = Attestering.Underkjent(
+                attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerUnderkjentKlage"),
+                opprettet = fixedTidspunkt,
+                grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                kommentar = "underkjennelseskommentar",
+            ),
+        ).orNull()!!.also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun iverksattKlage(
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+    ): IverksattKlage {
+        return klageTilAttestering(vedtak = vedtak).iverksett(
+            iverksattAttestering = Attestering.Iverksatt(
+                attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerIverksattKlage"),
+                opprettet = fixedTidspunkt,
+            ),
+        ).orNull()!!.also {
+            klagePostgresRepo.lagre(it)
         }
     }
 
