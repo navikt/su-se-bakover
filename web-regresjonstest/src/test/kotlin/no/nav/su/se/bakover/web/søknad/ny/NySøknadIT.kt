@@ -20,7 +20,7 @@ internal class NySøknadIT {
     fun `ny digital søknad`() {
         val fnr = SharedRegressionTestData.fnr
         withMigratedDb { dataSource ->
-            val actualResponseJson = nyDigitalSøknad(
+            val actualResponseJson = nyDigitalSøknadOgVerifiser(
                 fnr = fnr,
                 expectedSaksnummerInResponse = 2021, // Første saksnummer er alltid 2021 i en ny-migrert database.
                 dataSource = dataSource,
@@ -42,7 +42,7 @@ internal class NySøknadIT {
     fun `ny papirsøknad`() {
         val fnr = SharedRegressionTestData.fnr
         withMigratedDb { dataSource ->
-            val actualResponseJson = nyPapirsøknad(
+            val actualResponseJson = nyPapirsøknadOgVerifiser(
                 fnr = fnr,
                 expectedSaksnummerInResponse = 2021, // Første saksnummer er alltid 2021 i en ny-migrert database.
                 mottaksdato = fixedLocalDate.toString(),
