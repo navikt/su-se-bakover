@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.dkif.DkifClient
 import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordelingClient
+import no.nav.su.se.bakover.client.kabal.KabalRestClient
 import no.nav.su.se.bakover.client.kafka.KafkaPublisherClient
 import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.nais.LeaderPodLookupClient
@@ -56,6 +57,7 @@ data class ProdClientsBuilder(
                 pdlClientConfig = pdlClientConfig,
             ),
         )
+        val kabalClient = KabalRestClient(applicationConfig.clientsConfig.kabalUrl)
 
         return Clients(
             oauth = oAuth,
@@ -103,6 +105,7 @@ data class ProdClientsBuilder(
             digitalKontaktinformasjon = dkif,
             leaderPodLookup = LeaderPodLookupClient(applicationConfig.leaderPodLookupPath),
             kafkaPublisher = KafkaPublisherClient(applicationConfig.kafkaConfig.producerCfg),
+            kabalClient = kabalClient
         )
     }
 }

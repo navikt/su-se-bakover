@@ -85,6 +85,7 @@ val applicationConfig = ApplicationConfig(
         stsUrl = "stsUrl",
         skjermingUrl = "skjermingUrl",
         dkifUrl = "dkifUrl",
+        kabalUrl = "kabalUrl"
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(
         common = emptyMap(),

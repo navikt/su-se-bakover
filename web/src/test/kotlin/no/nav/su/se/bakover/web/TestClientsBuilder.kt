@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web
 
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ClientsBuilder
+import no.nav.su.se.bakover.client.kabal.KabalClientStub
 import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.client.stubs.dkif.DkifClientStub
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
@@ -37,6 +38,7 @@ object TestClientsBuilder : ClientsBuilder {
         digitalKontaktinformasjon = DkifClientStub,
         leaderPodLookup = LeaderPodLookupStub,
         kafkaPublisher = KafkaPublisherStub,
+        kabalClient = KabalClientStub
     )
 
     override fun build(applicationConfig: ApplicationConfig): Clients = testClients
