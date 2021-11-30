@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.klage
 
+import no.nav.su.se.bakover.client.kabal.KabalClient
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
@@ -17,6 +18,7 @@ internal data class KlageServiceMocks(
     val brevServiceMock: BrevService = mock(),
     val personServiceMock: PersonService = mock(),
     val microsoftGraphApiMock: MicrosoftGraphApiOppslag = mock(),
+    val kabalClient: KabalClient = mock(),
     val clock: Clock = fixedClock,
 ) {
     val service = KlageServiceImpl(
@@ -26,6 +28,7 @@ internal data class KlageServiceMocks(
         brevService = brevServiceMock,
         personService = personServiceMock,
         microsoftGraphApiClient = microsoftGraphApiMock,
+        kabalClient = kabalClient,
         clock = clock,
     )
 
@@ -36,6 +39,7 @@ internal data class KlageServiceMocks(
         brevServiceMock,
         personServiceMock,
         microsoftGraphApiMock,
+        kabalClient,
     ).toTypedArray()
 
     fun verifyNoMoreInteractions() {

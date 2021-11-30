@@ -6,14 +6,15 @@ import arrow.core.right
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.common.getOrCreateCorrelationId
+import no.nav.su.se.bakover.domain.klage.IverksattKlage
 import org.slf4j.LoggerFactory
 
 const val oversendelsePath = "/api/oversendelse/v1/klage"
 
-class KabalRestClient(val baseUrl: String): KabalClient {
+class KabalRestClient(val baseUrl: String) : KabalClient {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    override fun sendTilKlageinstans(): Either<OversendelseFeilet, Unit> {
+    override fun sendTilKlageinstans(klage: IverksattKlage): Either<OversendelseFeilet, Unit> {
         val (_, res, result) = "$baseUrl$oversendelsePath".httpPost()
             .authentication()
             .header("Content-Type", "application/json")
@@ -22,7 +23,9 @@ class KabalRestClient(val baseUrl: String): KabalClient {
             .responseString()
 
         return result.fold(
-            { _ -> Unit.right()
+            { _ ->
+                log.info("Sender klage til Kabal")
+                Unit.right()
             },
             {
                 log.error("Feil ved oversendelse til Kabal/KA, status=${res.statusCode} body=${String(res.data)}", it)

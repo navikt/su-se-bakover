@@ -154,6 +154,7 @@ object ServiceBuilder {
             brevService = brevService,
             personService = personService,
             microsoftGraphApiClient = clients.microsoftGraphApiClient,
+            kabalClient = clients.kabalClient,
             clock = clock,
         )
         return Services(

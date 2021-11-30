@@ -5,6 +5,7 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.client.kabal.KabalClient
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.sak.SakRepo
@@ -39,6 +40,7 @@ class KlageServiceImpl(
     private val brevService: BrevService,
     private val personService: PersonService,
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
+    private val kabalClient: KabalClient,
     val clock: Clock,
 ) : KlageService {
 
@@ -140,7 +142,15 @@ class KlageServiceImpl(
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteKlage, IverksattKlage> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeIverksetteKlage.FantIkkeKlage.left()
-        return klage.iverksett(Attestering.Iverksatt(attestant, Tidspunkt.now(clock)))
+        /* Test */
+        val iverksattKlage = klage.iverksett(Attestering.Iverksatt(attestant, Tidspunkt.now(clock)))
+        kabalClient.sendTilKlageinstans(iverksattKlage.getOrElse { throw RuntimeException("Error!") }).mapLeft {
+            throw RuntimeException("Kall mot kabal feilet")
+        }
+        /* Test */
+
+        // return klage.iverksett(Attestering.Iverksatt(attestant, Tidspunkt.now(clock)))
+        return iverksattKlage
     }
 
     override fun brevutkast(
