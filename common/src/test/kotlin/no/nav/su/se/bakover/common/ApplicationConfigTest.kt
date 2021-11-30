@@ -72,7 +72,7 @@ internal class ApplicationConfigTest {
             stsUrl = "stsUrl",
             skjermingUrl = "skjermingUrl",
             dkifUrl = "http://dkif.default.svc.nais.local",
-            kabalUrl = "http://kabal-api.default.svc.nais.local"
+            kabalUrl = "http://kabal-api.dev.intern.nav.no"
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             common = mapOf(

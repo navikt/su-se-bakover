@@ -29,7 +29,6 @@
     "FRIKORT_SERVICE_USERNAME": "srvfrikortborger",
     "PDL_CLIENT_ID": "api://dev-fss.pdl.pdl-api",
     "KAFKA_ONPREM_BROKERS": "b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443",
-    "KAFKA_ONPREM_SCHEMA_REGISTRY": "https://kafka-schema-registry.nais.preprod.local",
-    "KABAL_URL": "http://kabal-api.dev.intern.no"
+    "KAFKA_ONPREM_SCHEMA_REGISTRY": "https://kafka-schema-registry.nais.preprod.local"
   }
 }

@@ -142,15 +142,8 @@ class KlageServiceImpl(
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteKlage, IverksattKlage> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeIverksetteKlage.FantIkkeKlage.left()
-        /* Test */
-        val iverksattKlage = klage.iverksett(Attestering.Iverksatt(attestant, Tidspunkt.now(clock)))
-        kabalClient.sendTilKlageinstans(iverksattKlage.getOrElse { throw RuntimeException("Error!") }).mapLeft {
-            throw RuntimeException("Kall mot kabal feilet")
-        }
-        /* Test */
 
-        // return klage.iverksett(Attestering.Iverksatt(attestant, Tidspunkt.now(clock)))
-        return iverksattKlage
+        return klage.iverksett(Attestering.Iverksatt(attestant, Tidspunkt.now(clock)))
     }
 
     override fun brevutkast(

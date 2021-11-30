@@ -316,7 +316,7 @@ data class ApplicationConfig(
                 ),
                 skjermingUrl = getEnvironmentVariableOrThrow("SKJERMING_URL"),
                 dkifUrl = getEnvironmentVariableOrDefault("DKIF_URL", "http://dkif.default.svc.nais.local"),
-                kabalUrl = getEnvironmentVariableOrDefault("KABAL_URL", "http://kabal-api.dev.intern.no"),
+                kabalUrl = getEnvironmentVariableOrDefault("KABAL_URL", "http://kabal-api.dev.intern.nav.no"),
             )
 
             fun createLocalConfig() = ClientsConfig(
