@@ -72,7 +72,10 @@ internal class ApplicationConfigTest {
             stsUrl = "stsUrl",
             skjermingUrl = "skjermingUrl",
             dkifUrl = "http://dkif.default.svc.nais.local",
-            kabalUrl = "http://kabal-api.dev.intern.nav.no"
+            kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(
+                url = "kabalUrl",
+                clientId = "kabalClientId"
+            )
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             common = mapOf(
@@ -169,6 +172,8 @@ internal class ApplicationConfigTest {
                 "SKJERMING_URL" to "skjermingUrl",
                 "ELECTOR_PATH" to "leaderPodLookupPath",
                 "PDL_CLIENT_ID" to "pdlClientId",
+                "KABAL_URL" to "kabalUrl",
+                "KABAL_CLIENT_ID" to "kabalClientId",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -234,7 +239,7 @@ internal class ApplicationConfigTest {
                     stsUrl = "mocked",
                     skjermingUrl = "mocked",
                     dkifUrl = "mocked",
-                    kabalUrl = "mocked"
+                    kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig("mocked", "mocked")
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
                     common = emptyMap(),

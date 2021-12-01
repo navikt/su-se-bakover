@@ -169,10 +169,11 @@ class KlageServiceImpl(
             )
         }.getOrHandle { return KunneIkkeIverksetteKlage.DokumentGenereringFeilet.left() }
 
+        kabalClient.sendTilKlageinstans(iverksattKlage).getOrHandle { throw RuntimeException("Kall mot kabal feilet") }
         brevService.lagreDokument(dokument)
-        return klage.iverksett(Attestering.Iverksatt(attestant, Tidspunkt.now(clock))).tap {
-            klageRepo.lagre(it)
-        }
+        klageRepo.lagre(iverksattKlage)
+
+        return iverksattKlage.right()
     }
 
     override fun brevutkast(

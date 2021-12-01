@@ -300,7 +300,7 @@ data class ApplicationConfig(
         val stsUrl: String,
         val skjermingUrl: String,
         val dkifUrl: String,
-        val kabalUrl: String,
+        val kabalConfig: KabalConfig,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = ClientsConfig(
@@ -316,7 +316,7 @@ data class ApplicationConfig(
                 ),
                 skjermingUrl = getEnvironmentVariableOrThrow("SKJERMING_URL"),
                 dkifUrl = getEnvironmentVariableOrDefault("DKIF_URL", "http://dkif.default.svc.nais.local"),
-                kabalUrl = getEnvironmentVariableOrDefault("KABAL_URL", "http://kabal-api.dev.intern.nav.no"),
+                kabalConfig = KabalConfig.createFromEnvironmentVariables(),
             )
 
             fun createLocalConfig() = ClientsConfig(
@@ -332,7 +332,7 @@ data class ApplicationConfig(
                 ),
                 skjermingUrl = "mocked",
                 dkifUrl = "mocked",
-                kabalUrl = "mocked"
+                kabalConfig = KabalConfig.createLocalConfig()
             )
         }
 
@@ -364,6 +364,23 @@ data class ApplicationConfig(
                 )
 
                 fun createLocalConfig() = PdlConfig(
+                    url = "mocked",
+                    clientId = "mocked",
+                )
+            }
+        }
+
+        data class KabalConfig(
+            val url: String,
+            val clientId: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = KabalConfig(
+                    url = getEnvironmentVariableOrDefault("KABAL_URL", "http://kabal-api.dev.intern.nav.no"),
+                    clientId = getEnvironmentVariableOrThrow("KABAL_CLIENT_ID"),
+                )
+
+                fun createLocalConfig() = KabalConfig(
                     url = "mocked",
                     clientId = "mocked",
                 )

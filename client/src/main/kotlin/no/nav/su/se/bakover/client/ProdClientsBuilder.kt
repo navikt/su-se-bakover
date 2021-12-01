@@ -57,7 +57,7 @@ data class ProdClientsBuilder(
                 pdlClientConfig = pdlClientConfig,
             ),
         )
-        val kabalClient = KabalRestClient(applicationConfig.clientsConfig.kabalUrl)
+        val kabalClient = KabalRestClient(applicationConfig.clientsConfig.kabalConfig, oAuth)
 
         return Clients(
             oauth = oAuth,
