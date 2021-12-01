@@ -198,7 +198,21 @@ sealed class VurdertKlage : Klage() {
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
-                datoKlageMottatt = datoKlageMottatt
+                datoKlageMottatt = datoKlageMottatt,
+            ).right()
+        }
+
+        override fun bekreftVilkårsvurderinger(saksbehandler: NavIdentBruker.Saksbehandler): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, VilkårsvurdertKlage.Bekreftet> {
+            return VilkårsvurdertKlage.Bekreftet.create(
+                id = id,
+                opprettet = opprettet,
+                sakId = sakId,
+                journalpostId = journalpostId,
+                saksbehandler = saksbehandler,
+                vilkårsvurderinger = vilkårsvurderinger,
+                vurderinger = vurderinger,
+                attesteringer = attesteringer,
+                datoKlageMottatt = datoKlageMottatt,
             ).right()
         }
 
