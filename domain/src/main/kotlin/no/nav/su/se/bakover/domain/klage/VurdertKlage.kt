@@ -76,6 +76,20 @@ sealed class VurdertKlage : Klage() {
         }.right()
     }
 
+    override fun bekreftVilkårsvurderinger(saksbehandler: NavIdentBruker.Saksbehandler): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, VilkårsvurdertKlage.Bekreftet> {
+        return VilkårsvurdertKlage.Bekreftet.create(
+            id = id,
+            opprettet = opprettet,
+            sakId = sakId,
+            journalpostId = journalpostId,
+            saksbehandler = saksbehandler,
+            vilkårsvurderinger = vilkårsvurderinger,
+            vurderinger = vurderinger,
+            attesteringer = attesteringer,
+            datoKlageMottatt = datoKlageMottatt,
+        ).right()
+    }
+
     data class Påbegynt private constructor(
         override val id: UUID,
         override val opprettet: Tidspunkt,
@@ -190,20 +204,6 @@ sealed class VurdertKlage : Klage() {
             saksbehandler: NavIdentBruker.Saksbehandler,
         ): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, Bekreftet> {
             return create(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                journalpostId = journalpostId,
-                saksbehandler = saksbehandler,
-                vilkårsvurderinger = vilkårsvurderinger,
-                vurderinger = vurderinger,
-                attesteringer = attesteringer,
-                datoKlageMottatt = datoKlageMottatt,
-            ).right()
-        }
-
-        override fun bekreftVilkårsvurderinger(saksbehandler: NavIdentBruker.Saksbehandler): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, VilkårsvurdertKlage.Bekreftet> {
-            return VilkårsvurdertKlage.Bekreftet.create(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
