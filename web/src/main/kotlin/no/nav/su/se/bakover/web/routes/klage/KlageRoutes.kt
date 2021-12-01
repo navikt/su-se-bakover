@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSaksbehandlerEllerAttestant
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeVedtak
+import no.nav.su.se.bakover.web.routes.Feilresponser.feilVedGenereringAvDokument
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
@@ -329,7 +330,10 @@ internal fun Route.klageRoutes(
                     }.mapLeft {
                         call.svar(
                             when (it) {
+                                KunneIkkeIverksetteKlage.FantIkkeSak -> fantIkkeSak
                                 KunneIkkeIverksetteKlage.FantIkkeKlage -> fantIkkeKlage
+                                KunneIkkeIverksetteKlage.DokumentGenereringFeilet -> feilVedGenereringAvDokument
+                                KunneIkkeIverksetteKlage.KunneIkkeLageBrevRequest -> kunneIkkeGenerereBrev
                                 is KunneIkkeIverksetteKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
                             },
                         )

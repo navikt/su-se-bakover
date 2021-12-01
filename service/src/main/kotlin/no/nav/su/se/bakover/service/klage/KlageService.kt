@@ -61,3 +61,8 @@ sealed class KunneIkkeLageBrevutkast {
     object UgyldigKlagetype : KunneIkkeLageBrevutkast()
     object GenereringAvBrevFeilet : KunneIkkeLageBrevutkast()
 }
+
+sealed class KunneIkkeLageBrevRequest {
+    object FantIkkePerson : KunneIkkeLageBrevRequest()
+    object FantIkkeSaksbehandler : KunneIkkeLageBrevRequest()
+}

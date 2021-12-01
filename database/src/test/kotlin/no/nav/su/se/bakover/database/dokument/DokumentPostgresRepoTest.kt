@@ -27,6 +27,7 @@ internal class DokumentPostgresRepoTest {
             val sak = testDataHelper.nySakMedNySøknad()
             val etVedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
             val enRevurdering = testDataHelper.tilIverksattRevurdering()
+            val enKlage = testDataHelper.iverksattKlage(testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first)
 
             val original = Dokument.MedMetadata.Vedtak(
                 id = UUID.randomUUID(),
@@ -39,6 +40,7 @@ internal class DokumentPostgresRepoTest {
                     søknadId = sak.søknad.id,
                     vedtakId = etVedtak.id,
                     revurderingId = enRevurdering.id,
+                    klageId = enKlage.id,
                     bestillBrev = false,
                 ),
             )
@@ -57,6 +59,7 @@ internal class DokumentPostgresRepoTest {
             dokumentRepo.hentForSøknad(sak.søknad.id) shouldHaveSize 1
             dokumentRepo.hentForVedtak(etVedtak.id) shouldHaveSize 1
             dokumentRepo.hentForRevurdering(enRevurdering.id) shouldHaveSize 1
+            dokumentRepo.hentForKlage(enKlage.id) shouldHaveSize 1
         }
     }
 
