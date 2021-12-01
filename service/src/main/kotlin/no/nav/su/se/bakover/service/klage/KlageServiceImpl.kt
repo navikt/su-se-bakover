@@ -169,6 +169,7 @@ class KlageServiceImpl(
             )
         }.getOrHandle { return KunneIkkeIverksetteKlage.DokumentGenereringFeilet.left() }
 
+        /* TODO ai: Legg det nedan i en transaction */
         kabalClient.sendTilKlageinstans(iverksattKlage).getOrHandle { throw RuntimeException("Kall mot kabal feilet") }
         brevService.lagreDokument(dokument)
         klageRepo.lagre(iverksattKlage)

@@ -14,7 +14,10 @@ import org.slf4j.MDC
 
 const val oversendelsePath = "/api/oversendelse/v1/klage"
 
-class KabalRestClient(val kabalConfig: ApplicationConfig.ClientsConfig.KabalConfig, private val exchange: OAuth) : KabalClient {
+class KabalRestClient(
+    private val kabalConfig: ApplicationConfig.ClientsConfig.KabalConfig,
+    private val exchange: OAuth,
+) : KabalClient {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     private fun onBehalfOfToken(): Either<OppgaveFeil.KunneIkkeLageToken, String> {
@@ -49,7 +52,7 @@ class KabalRestClient(val kabalConfig: ApplicationConfig.ClientsConfig.KabalConf
             {
                 log.error("Feil ved oversendelse til Kabal/KA, status=${res.statusCode} body=${String(res.data)}", it)
                 return OversendelseFeilet.left()
-            }
+            },
         )
     }
 }
