@@ -203,7 +203,7 @@ internal fun Route.klageRoutes(
 
     authorize(Brukerrolle.Saksbehandler) {
         post("$klagePath/{klageId}/vurderinger") {
-            data class Omgjør(val årsak: String, val utfall: String)
+            data class Omgjør(val årsak: String?, val utfall: String?)
             data class Oppretthold(val hjemler: List<String> = emptyList())
 
             data class Body(

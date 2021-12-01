@@ -83,6 +83,7 @@ data class KlageVurderingerRequest(
                     else -> return KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler.left()
                 }
             }.let {
+                if (it.isEmpty()) return Hjemler.empty().right()
                 Hjemler.tryCreate(NonEmptyList.fromListUnsafe(it)).getOrHandle {
                     return KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler.left()
                 }.right()
