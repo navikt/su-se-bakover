@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
 internal data class NøkkeltallJson(
     val søknader: SøknaderJson,
     val antallUnikePersoner: Int,
+    val løpendeSaker: Int,
 ) {
     data class SøknaderJson(
         val totaltAntall: Int,
@@ -19,7 +20,8 @@ internal data class NøkkeltallJson(
 
 internal fun Nøkkeltall.toJson() = NøkkeltallJson(
     søknader = søknader.toJson(),
-    antallUnikePersoner = antallUnikePersoner
+    antallUnikePersoner = antallUnikePersoner,
+    løpendeSaker = løpendeSaker,
 )
 
 internal fun Nøkkeltall.Søknader.toJson() =

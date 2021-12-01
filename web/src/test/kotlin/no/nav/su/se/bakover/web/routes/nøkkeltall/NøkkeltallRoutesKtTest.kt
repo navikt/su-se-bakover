@@ -44,6 +44,7 @@ internal class NøkkeltallRoutesKtTest {
                     papirsøknader = 0,
                 ),
                 antallUnikePersoner = 1,
+                løpendeSaker = 0,
             )
         }
 
@@ -65,7 +66,8 @@ internal class NøkkeltallRoutesKtTest {
                         "digitalsøknader" : 0,
                         "papirsøknader" : 0
                     },
-                    "antallUnikePersoner" : 1
+                    "antallUnikePersoner" : 1,
+                    "løpendeSaker": 0
                 }
             """.trimIndent()
             val actual = response.content

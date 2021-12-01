@@ -25,7 +25,8 @@ internal class NøkkeltallPostgresRepoTest {
                     digitalsøknader = 0,
                     papirsøknader = 0,
                 ),
-                antallUnikePersoner = 0
+                antallUnikePersoner = 0,
+                løpendeSaker = 0,
             )
         }
     }
@@ -48,7 +49,8 @@ internal class NøkkeltallPostgresRepoTest {
                     digitalsøknader = 2,
                     papirsøknader = 0,
                 ),
-                antallUnikePersoner = 1
+                antallUnikePersoner = 1,
+                løpendeSaker = 0,
             )
         }
     }
@@ -70,7 +72,8 @@ internal class NøkkeltallPostgresRepoTest {
                     digitalsøknader = 2,
                     papirsøknader = 0,
                 ),
-                antallUnikePersoner = 2
+                antallUnikePersoner = 2,
+                løpendeSaker = 1,
             )
         }
     }
@@ -95,7 +98,8 @@ internal class NøkkeltallPostgresRepoTest {
                     digitalsøknader = 4,
                     papirsøknader = 0,
                 ),
-                antallUnikePersoner = 1
+                antallUnikePersoner = 1,
+                løpendeSaker = 0,
             )
         }
     }
@@ -125,7 +129,8 @@ internal class NøkkeltallPostgresRepoTest {
                     digitalsøknader = 0,
                     papirsøknader = 1,
                 ),
-                antallUnikePersoner = 1
+                antallUnikePersoner = 1,
+                løpendeSaker = 0,
             )
         }
     }
@@ -150,7 +155,8 @@ internal class NøkkeltallPostgresRepoTest {
                     digitalsøknader = 2,
                     papirsøknader = 0,
                 ),
-                antallUnikePersoner = 1
+                antallUnikePersoner = 1,
+                løpendeSaker = 0,
             )
         }
     }

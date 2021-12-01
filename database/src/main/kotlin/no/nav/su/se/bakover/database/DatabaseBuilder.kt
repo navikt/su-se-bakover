@@ -176,7 +176,7 @@ object DatabaseBuilder {
             sessionFactory = sessionFactory,
         )
         val hendelseRepo = PersonhendelsePostgresRepo(dataSource, clock)
-        val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource)
+        val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource, clock)
 
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(dataSource),

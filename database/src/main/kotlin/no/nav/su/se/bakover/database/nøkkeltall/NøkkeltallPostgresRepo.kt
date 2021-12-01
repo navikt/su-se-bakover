@@ -5,32 +5,35 @@ import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
 import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
+import java.time.Clock
+import java.time.LocalDate
 import javax.sql.DataSource
 
 internal class NøkkeltallPostgresRepo(
     private val dataSource: DataSource,
+    private val clock: Clock,
 ) : NøkkeltallRepo {
     override fun hentNøkkeltall(): Nøkkeltall {
-        return dataSource.withSession {
-            session ->
+        val dato = LocalDate.now(clock)
+        return dataSource.withSession { session ->
             """
-                with søknadsinfo as (
-                    select s.lukket, s.søknadinnhold, b.status
-                    from søknad s
-                             left join behandling b on s.id = b.søknadid),
-
-                     behandlingsstatus as (select status, count(*) antall from søknadsinfo group by status)
-
-                select count(*) as totalt,
-                       coalesce((select antall from behandlingsstatus where status = 'IVERKSATT_AVSLAG'), 0) as iverksattAvslag,
-                       coalesce(( select antall from behandlingsstatus where status = 'IVERKSATT_INNVILGET' ), 0) as iverksattInnvilget,
-                       (select count(*) as påbegynt from søknadsinfo where søknadsinfo.lukket is null and status is not null and status not like '%IVERKSATT%' ) as påbegynt,
-                       (select count(*) as ikkePåbegynt from søknadsinfo where søknadsinfo.lukket is null and status is null),
-                       (select count(*) as digitalsøknader from søknadsinfo where søknadsinfo.søknadinnhold -> 'forNav' ->> 'type' = 'DigitalSøknad' ),
-                       (select count(*) as papirsøknader from søknadsinfo where søknadsinfo.søknadinnhold -> 'forNav' ->> 'type' = 'Papirsøknad' ),
-                       (select count(*) as personer from sak)
-                from søknadsinfo;
-            """.trimIndent().hent(mapOf(), session) { row ->
+                with søknadsinfo as (select s.lukket, s.søknadinnhold, b.status from søknad s left join behandling b on s.id = b.søknadid),
+                     behandlingsstatus as (select status, count(*) antall from søknadsinfo group by status),
+                     gjeldende_vedtak as (select * from vedtak where :dato >= vedtak.fraogmed and :dato <= vedtak.tilogmed),
+                     innvilgelser as (select count(*) from gjeldende_vedtak where vedtaktype = 'SØKNAD'),
+                     opphør as (select count(*) from gjeldende_vedtak where vedtaktype = 'OPPHØR')
+                     
+                select
+                (select count(*) from søknadsinfo) as totalt,
+                (select count(*) from søknadsinfo where søknadsinfo.lukket is null and status is not null and status not like '%IVERKSATT%') as påbegynt,
+                (select count(*) from søknadsinfo where søknadsinfo.lukket is null and status is null) as ikkePåbegynt,
+                (select count(*) from søknadsinfo where søknadsinfo.søknadinnhold -> 'forNav' ->> 'type' = 'DigitalSøknad') as digitalsøknader,
+                (select count(*) from søknadsinfo where søknadsinfo.søknadinnhold -> 'forNav' ->> 'type' = 'Papirsøknad') as papirsøknader,
+                coalesce((select antall from behandlingsstatus where status = 'IVERKSATT_AVSLAG'), 0) as iverksattAvslag,
+                coalesce((select antall from behandlingsstatus where status = 'IVERKSATT_INNVILGET' ), 0) as iverksattInnvilget,
+                (select count(*) from sak) as personer,
+                (select (select * from innvilgelser) - (select * from opphør)) as løpendeSaker;
+            """.trimIndent().hent(mapOf("dato" to dato), session) { row ->
                 row.toNøkkeltall()
             }
         }!!
@@ -46,6 +49,7 @@ internal class NøkkeltallPostgresRepo(
             digitalsøknader = int("digitalsøknader"),
             papirsøknader = int("papirsøknader"),
         ),
-        antallUnikePersoner = int("personer")
+        antallUnikePersoner = int("personer"),
+        løpendeSaker = int("løpendeSaker")
     )
 }

@@ -89,7 +89,7 @@ import java.time.Clock
 import java.util.UUID
 import javax.sql.DataSource
 
-internal val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.januar(2021)))
+internal val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))
 internal val tomBehandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
 internal val behandlingsinformasjonMedAlleVilkårOppfylt =
     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
@@ -271,7 +271,7 @@ internal class TestDataHelper(
         dataSource = dataSource,
         dbMetrics = dbMetrics,
     )
-    internal val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource = dataSource)
+    internal val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource = dataSource, fixedClock)
     internal val dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory)
     internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(dataSource, fixedClock)
 
@@ -829,6 +829,7 @@ internal class TestDataHelper(
         ).copy(id = utbetalingId)
         utbetalingRepo.opprettUtbetaling(utbetaling)
         søknadsbehandlingRepo.lagre(innvilget)
+        vedtakRepo.lagre(Vedtak.fromSøknadsbehandling(innvilget, utbetalingId, fixedClock))
         return innvilget to utbetaling
     }
 
