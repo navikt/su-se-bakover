@@ -143,7 +143,9 @@ class KlageServiceImpl(
     ): Either<KunneIkkeIverksetteKlage, IverksattKlage> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeIverksetteKlage.FantIkkeKlage.left()
 
-        return klage.iverksett(Attestering.Iverksatt(attestant, Tidspunkt.now(clock)))
+        return klage.iverksett(Attestering.Iverksatt(attestant, Tidspunkt.now(clock))).tap {
+            klageRepo.lagre(it)
+        }
     }
 
     override fun brevutkast(
