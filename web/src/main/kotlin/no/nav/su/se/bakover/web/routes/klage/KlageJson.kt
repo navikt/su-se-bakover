@@ -11,8 +11,10 @@ import no.nav.su.se.bakover.web.routes.klage.KlageJson.VedtaksvurderingJson.Comp
 import no.nav.su.se.bakover.web.routes.klage.Typer.Companion.frontendStatus
 import no.nav.su.se.bakover.web.routes.klage.UtfallJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.klage.ÅrsakJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.AttesteringJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.AttesteringJson.Companion.toJson
 
-data class KlageJson(
+internal data class KlageJson(
     val id: String,
     val sakid: String,
     val opprettet: String,
@@ -27,6 +29,7 @@ data class KlageJson(
     val begrunnelse: String?,
     val fritekstTilBrev: String?,
     val vedtaksvurdering: VedtaksvurderingJson?,
+    val attesteringer: List<AttesteringJson>,
 ) {
     data class VedtaksvurderingJson(
         val type: String,
@@ -104,6 +107,7 @@ internal fun Klage.toJson(): KlageJson {
             begrunnelse = null,
             fritekstTilBrev = null,
             vedtaksvurdering = null,
+            attesteringer = emptyList()
         )
         is VilkårsvurdertKlage.Påbegynt -> KlageJson(
             id = this.id.toString(),
@@ -120,6 +124,7 @@ internal fun Klage.toJson(): KlageJson {
             begrunnelse = this.vilkårsvurderinger.begrunnelse,
             fritekstTilBrev = null,
             vedtaksvurdering = null,
+            attesteringer = this.attesteringer.toJson()
         )
         is VilkårsvurdertKlage.Utfylt -> KlageJson(
             id = this.id.toString(),
@@ -136,6 +141,7 @@ internal fun Klage.toJson(): KlageJson {
             begrunnelse = this.vilkårsvurderinger.begrunnelse,
             fritekstTilBrev = null,
             vedtaksvurdering = null,
+            attesteringer = this.attesteringer.toJson()
         )
         is VilkårsvurdertKlage.Bekreftet -> KlageJson(
             id = this.id.toString(),
@@ -152,6 +158,7 @@ internal fun Klage.toJson(): KlageJson {
             begrunnelse = this.vilkårsvurderinger.begrunnelse,
             fritekstTilBrev = null,
             vedtaksvurdering = null,
+            attesteringer = this.attesteringer.toJson()
         )
         is VurdertKlage.Påbegynt -> KlageJson(
             id = this.id.toString(),
@@ -168,6 +175,7 @@ internal fun Klage.toJson(): KlageJson {
             begrunnelse = this.vilkårsvurderinger.begrunnelse,
             fritekstTilBrev = this.vurderinger.fritekstTilBrev,
             vedtaksvurdering = this.vurderinger.vedtaksvurdering?.toJson(),
+            attesteringer = this.attesteringer.toJson()
         )
         is VurdertKlage.Utfylt -> KlageJson(
             id = this.id.toString(),
@@ -184,6 +192,7 @@ internal fun Klage.toJson(): KlageJson {
             begrunnelse = this.vilkårsvurderinger.begrunnelse,
             fritekstTilBrev = this.vurderinger.fritekstTilBrev,
             vedtaksvurdering = this.vurderinger.vedtaksvurdering.toJson(),
+            attesteringer = this.attesteringer.toJson()
         )
         is VurdertKlage.Bekreftet -> KlageJson(
             id = this.id.toString(),
@@ -200,6 +209,7 @@ internal fun Klage.toJson(): KlageJson {
             begrunnelse = this.vilkårsvurderinger.begrunnelse,
             fritekstTilBrev = this.vurderinger.fritekstTilBrev,
             vedtaksvurdering = this.vurderinger.vedtaksvurdering.toJson(),
+            attesteringer = this.attesteringer.toJson()
         )
         is KlageTilAttestering -> KlageJson(
             id = this.id.toString(),
@@ -216,6 +226,7 @@ internal fun Klage.toJson(): KlageJson {
             begrunnelse = this.vilkårsvurderinger.begrunnelse,
             fritekstTilBrev = this.vurderinger.fritekstTilBrev,
             vedtaksvurdering = this.vurderinger.vedtaksvurdering.toJson(),
+            attesteringer = this.attesteringer.toJson()
         )
         is IverksattKlage -> KlageJson(
             id = this.id.toString(),
@@ -232,6 +243,7 @@ internal fun Klage.toJson(): KlageJson {
             begrunnelse = this.vilkårsvurderinger.begrunnelse,
             fritekstTilBrev = this.vurderinger.fritekstTilBrev,
             vedtaksvurdering = this.vurderinger.vedtaksvurdering.toJson(),
+            attesteringer = this.attesteringer.toJson()
         )
     }
 }
