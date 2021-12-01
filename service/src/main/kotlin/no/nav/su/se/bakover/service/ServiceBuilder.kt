@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.service.toggles.ToggleServiceImpl
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakServiceImpl
 import no.nav.su.se.bakover.service.vedtak.VedtakServiceImpl
-import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import java.time.Clock
 
 object ServiceBuilder {
@@ -125,8 +124,6 @@ object ServiceBuilder {
 
         val nøkkelTallService = NøkkeltallServiceImpl(databaseRepos.nøkkeltallRepo)
 
-        val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)
-
         val toggleService = ToggleServiceImpl(unleash)
 
         val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
@@ -137,7 +134,6 @@ object ServiceBuilder {
             oppgaveService = oppgaveService,
             behandlingMetrics = behandlingMetrics,
             brevService = brevService,
-            opprettVedtakssnapshotService = opprettVedtakssnapshotService,
             clock = clock,
             vedtakRepo = databaseRepos.vedtakRepo,
             ferdigstillVedtakService = ferdigstillVedtakService,

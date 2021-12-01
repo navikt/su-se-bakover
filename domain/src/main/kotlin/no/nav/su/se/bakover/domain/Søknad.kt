@@ -20,7 +20,7 @@ sealed class Søknad {
      * * _opprettet_ dersom søknaden er digital.
      * * _søknadInnhold.forNav.mottaksdatoForSøknad_ dersom det er en papirsøknad.
      */
-    @get:JsonIgnore // TODO jah: La de som serialiserer Søknad ha sin egen DTO. Serialiseres av blant annet Vedtakssnapshot.
+    @get:JsonIgnore // TODO jah: La de som serialiserer Søknad ha sin egen DTO.
     val mottaksdato: LocalDate by lazy {
         when (val søknadstype = søknadInnhold.forNav) {
             is ForNav.DigitalSøknad -> opprettet.toLocalDate(zoneIdOslo)

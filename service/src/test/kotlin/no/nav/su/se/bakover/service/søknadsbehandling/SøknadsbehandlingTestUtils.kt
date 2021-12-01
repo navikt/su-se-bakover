@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
-import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import no.nav.su.se.bakover.test.fixedClock
 import org.mockito.kotlin.mock
 import java.time.Clock
@@ -41,7 +40,6 @@ internal fun createSøknadsbehandlingService(
     behandlingMetrics: BehandlingMetrics = mock(),
     observer: EventObserver = mock(),
     brevService: BrevService = mock(),
-    opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
     clock: Clock = Clock.systemUTC(),
     vedtakRepo: VedtakRepo = mock(),
     ferdigstillVedtakService: FerdigstillVedtakService = mock(),
@@ -55,7 +53,6 @@ internal fun createSøknadsbehandlingService(
     oppgaveService,
     behandlingMetrics,
     brevService,
-    opprettVedtakssnapshotService,
     clock,
     vedtakRepo,
     ferdigstillVedtakService,
@@ -72,7 +69,6 @@ internal data class SøknadsbehandlingServiceAndMocks(
     val behandlingMetrics: BehandlingMetrics = mock(),
     val observer: EventObserver = mock(),
     val brevService: BrevService = mock(),
-    val opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
     val clock: Clock = fixedClock,
     val vedtakRepo: VedtakRepo = mock(),
     val ferdigstillVedtakService: FerdigstillVedtakService = mock(),
@@ -88,7 +84,6 @@ internal data class SøknadsbehandlingServiceAndMocks(
         oppgaveService = oppgaveService,
         behandlingMetrics = behandlingMetrics,
         brevService = brevService,
-        opprettVedtakssnapshotService = opprettVedtakssnapshotService,
         clock = clock,
         vedtakRepo = vedtakRepo,
         ferdigstillVedtakService = ferdigstillVedtakService,
@@ -106,7 +101,6 @@ internal data class SøknadsbehandlingServiceAndMocks(
             behandlingMetrics,
             observer,
             brevService,
-            opprettVedtakssnapshotService,
             vedtakRepo,
             ferdigstillVedtakService,
             vilkårsvurderingService,
@@ -125,7 +119,6 @@ internal data class SøknadsbehandlingServiceAndMocks(
             behandlingMetrics,
             observer,
             brevService,
-            opprettVedtakssnapshotService,
             vedtakRepo,
             ferdigstillVedtakService,
             vilkårsvurderingService,
