@@ -11,8 +11,8 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.opprettetKlage
+import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurdertKlage
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
@@ -126,7 +126,7 @@ internal class VilkårsvurderKlageTest {
     @Test
     fun `kan ferdigstille vilkårsvurdering`() {
         val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val påbegyntVilkårsvurdertKlage = vilkårsvurdertKlage(
+        val påbegyntVilkårsvurdertKlage = påbegyntVilkårsvurdertKlage(
             sakId = sak.id,
         )
         val mocks = KlageServiceMocks(

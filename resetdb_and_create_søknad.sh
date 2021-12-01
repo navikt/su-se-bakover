@@ -1,4 +1,4 @@
 #!/bin/sh
 BASEDIR=$(dirname "$0")
-"${BASEDIR}/resetdb.sh"
+#"${BASEDIR}/resetdb.sh"
 ./gradlew nySøknad

@@ -10,7 +10,6 @@ import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
-import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.response.respondBytes
 import io.ktor.routing.Route
@@ -124,7 +123,7 @@ internal fun Route.klageRoutes(
                         when (it) {
                             KunneIkkeVilkårsvurdereKlage.FantIkkeKlage -> fantIkkeKlage
                             KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak -> fantIkkeVedtak
-                            is KunneIkkeVilkårsvurdereKlage.UgyldigTilstand -> TODO()
+                            is KunneIkkeVilkårsvurdereKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
                         }
                     }
                     call.svar(resultat)
@@ -152,50 +151,48 @@ internal fun Route.klageRoutes(
         }
     }
 
-    post("$klagePath/{klageId}/brevutkast") {
-        data class Body(val fritekst: String, val hjemler: List<String>)
-        call.withSakId { sakId ->
-            call.withKlageId { klageId ->
-                call.withBody<Body> { body ->
-                    if (body.hjemler.isEmpty()) {
-                        return@withBody call.svar(
-                            InternalServerError.errorJson(
-                                "må angi hjemler",
-                                "må_angi_hjemler",
-                            ),
+    authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
+        post("$klagePath/{klageId}/brevutkast") {
+            data class Body(val fritekst: String, val hjemler: List<String>)
+            call.withSakId { sakId ->
+                call.withKlageId { klageId ->
+                    call.withBody<Body> { body ->
+                        if (body.hjemler.isEmpty()) {
+                            return@withBody call.svar(
+                                BadRequest.errorJson(
+                                    "må angi hjemler",
+                                    "må_angi_hjemler",
+                                ),
+                            )
+                        }
+
+                        klageService.brevutkast(
+                            sakId = sakId,
+                            klageId = klageId,
+                            saksbehandler = call.suUserContext.saksbehandler,
+                            fritekst = body.fritekst,
+                            hjemler = Hjemler.Utfylt.create(
+                                NonEmptyList.fromListUnsafe(
+                                    body.hjemler.map {
+                                        Hjemmel.valueOf(it)
+                                    },
+                                ),
+                            ), // TODO ai: add validation
+                        ).fold(
+                            ifLeft = {
+                                val resultat = when (it) {
+                                    KunneIkkeLageBrevutkast.FantIkkePerson -> fantIkkePerson
+                                    KunneIkkeLageBrevutkast.FantIkkeSak -> fantIkkeSak
+                                    KunneIkkeLageBrevutkast.FantIkkeSaksbehandler -> fantIkkeSaksbehandlerEllerAttestant
+                                    KunneIkkeLageBrevutkast.GenereringAvBrevFeilet -> kunneIkkeGenerereBrev
+                                }
+                                call.svar(resultat)
+                            },
+                            ifRight = {
+                                call.respondBytes(it, ContentType.Application.Pdf)
+                            },
                         )
                     }
-
-                    klageService.brevutkast(
-                        sakId = sakId,
-                        klageId = klageId,
-                        saksbehandler = call.suUserContext.saksbehandler,
-                        fritekst = body.fritekst,
-                        hjemler = Hjemler.Utfylt.create(
-                            NonEmptyList.fromListUnsafe(
-                                body.hjemler.map {
-                                    Hjemmel.valueOf(it)
-                                },
-                            ),
-                        ), // ai: add validation
-                    ).fold(
-                        ifLeft = {
-                            val resultat = when (it) {
-                                KunneIkkeLageBrevutkast.FantIkkePerson -> fantIkkePerson
-                                KunneIkkeLageBrevutkast.FantIkkeSak -> fantIkkeSak
-                                KunneIkkeLageBrevutkast.FantIkkeSaksbehandler -> fantIkkeSaksbehandlerEllerAttestant
-                                KunneIkkeLageBrevutkast.GenereringAvBrevFeilet -> kunneIkkeGenerereBrev
-                                KunneIkkeLageBrevutkast.UgyldigKlagetype -> InternalServerError.errorJson(
-                                    "Ugyldig klagetype",
-                                    "ugyldig_klagetype",
-                                )
-                            }
-                            call.svar(resultat)
-                        },
-                        ifRight = {
-                            call.respondBytes(it, ContentType.Application.Pdf)
-                        },
-                    )
                 }
             }
         }
@@ -203,6 +200,30 @@ internal fun Route.klageRoutes(
 
     authorize(Brukerrolle.Saksbehandler) {
         post("$klagePath/{klageId}/vurderinger") {
+
+            fun KunneIkkeVurdereKlage.tilResultat(): Resultat {
+                return when (this) {
+                    KunneIkkeVurdereKlage.FantIkkeKlage -> fantIkkeKlage
+                    KunneIkkeVurdereKlage.KanIkkeVelgeBådeOmgjørOgOppretthold -> BadRequest.errorJson(
+                        "Kan ikke velge både omgjør og oppretthold.",
+                        "kan_ikke_velge_både_omgjør_og_oppretthold",
+                    )
+                    KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall -> BadRequest.errorJson(
+                        "Ugyldig omgjøringsutfall",
+                        "ugyldig_omgjøringsutfall",
+                    )
+                    KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak -> BadRequest.errorJson(
+                        "Ugyldig omgjøringsårsak",
+                        "ugyldig_omgjøringsårsak",
+                    )
+                    KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler -> BadRequest.errorJson(
+                        "Ugyldig opprettholdelseshjemler",
+                        "ugyldig_opprettholdesleshjemler",
+                    )
+                    is KunneIkkeVurdereKlage.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
+                }
+            }
+
             data class Omgjør(val årsak: String?, val utfall: String?)
             data class Oppretthold(val hjemler: List<String> = emptyList())
 
@@ -250,10 +271,12 @@ internal fun Route.klageRoutes(
                     ).map {
                         call.svar(Resultat.json(OK, serialize(it.toJson())))
                     }.mapLeft {
-                        return@mapLeft when (it) {
-                            KunneIkkeBekrefteKlagesteg.FantIkkeKlage -> fantIkkeKlage
-                            is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
-                        }
+                        call.svar(
+                            when (it) {
+                                KunneIkkeBekrefteKlagesteg.FantIkkeKlage -> fantIkkeKlage
+                                is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                            },
+                        )
                     }
                 }
             }
@@ -267,7 +290,12 @@ internal fun Route.klageRoutes(
                     klageService.sendTilAttestering(klageId, call.suUserContext.saksbehandler).map {
                         call.svar(Resultat.json(OK, serialize(it.toJson())))
                     }.mapLeft {
-                        call.svar(it.tilResultat())
+                        call.svar(
+                            when (it) {
+                                KunneIkkeSendeTilAttestering.FantIkkeKlage -> fantIkkeKlage
+                                is KunneIkkeSendeTilAttestering.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                            },
+                        )
                     }
                 }
             }
@@ -280,7 +308,7 @@ internal fun Route.klageRoutes(
             fun toRequest(
                 klageId: UUID,
                 attestant: NavIdentBruker.Attestant,
-            ): Either<KunneIkkeUnderkjenne, UnderkjennKlageRequest> {
+            ): Either<Resultat, UnderkjennKlageRequest> {
                 return UnderkjennKlageRequest(
                     klageId = klageId,
                     attestant = attestant,
@@ -292,7 +320,12 @@ internal fun Route.klageRoutes(
                             Grunn.VEDTAKSBREVET_ER_FEIL -> Attestering.Underkjent.Grunn.VEDTAKSBREVET_ER_FEIL
                             Grunn.ANDRE_FORHOLD -> Attestering.Underkjent.Grunn.ANDRE_FORHOLD
                         }
-                    }.getOrElse { return KunneIkkeUnderkjenne.UgyldigGrunn.left() },
+                    }.getOrElse {
+                        return BadRequest.errorJson(
+                            "Ugyldig underkjennelsesgrunn",
+                            "ugyldig_grunn_for_underkjenning",
+                        ).left()
+                    },
                     kommentar = kommentar,
                 ).right()
             }
@@ -305,10 +338,15 @@ internal fun Route.klageRoutes(
                             klageService.underkjenn(it).map { vurdertKlage ->
                                 call.svar(Resultat.json(OK, serialize(vurdertKlage.toJson())))
                             }.mapLeft { error ->
-                                call.svar(error.tilResultat())
+                                call.svar(
+                                    when (error) {
+                                        KunneIkkeUnderkjenne.FantIkkeKlage -> fantIkkeKlage
+                                        is KunneIkkeUnderkjenne.UgyldigTilstand -> ugyldigTilstand(error.fra, error.til)
+                                    },
+                                )
                             }
                         }.mapLeft {
-                            call.svar(it.tilResultat())
+                            call.svar(it)
                         }
                     }
                 }
@@ -341,46 +379,5 @@ internal fun Route.klageRoutes(
                 }
             }
         }
-    }
-}
-
-internal fun KunneIkkeVurdereKlage.tilResultat(): Resultat {
-    return when (this) {
-        KunneIkkeVurdereKlage.FantIkkeKlage -> fantIkkeKlage
-        KunneIkkeVurdereKlage.KanIkkeVelgeBådeOmgjørOgOppretthold -> BadRequest.errorJson(
-            "Kan ikke velge både omgjør og oppretthold.",
-            "kan_ikke_velge_både_omgjør_og_oppretthold",
-        )
-        KunneIkkeVurdereKlage.UgyldigOmgjøringsutfall -> BadRequest.errorJson(
-            "Ugyldig omgjøringsutfall",
-            "ugyldig_omgjøringsutfall",
-        )
-        KunneIkkeVurdereKlage.UgyldigOmgjøringsårsak -> BadRequest.errorJson(
-            "Ugyldig omgjøringsårsak",
-            "ugyldig_omgjøringsårsak",
-        )
-        KunneIkkeVurdereKlage.UgyldigOpprettholdelseshjemler -> BadRequest.errorJson(
-            "Ugyldig opprettholdelseshjemler",
-            "ugyldig_opprettholdesleshjemler",
-        )
-        is KunneIkkeVurdereKlage.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
-    }
-}
-
-internal fun KunneIkkeUnderkjenne.tilResultat(): Resultat {
-    return when (this) {
-        KunneIkkeUnderkjenne.FantIkkeKlage -> fantIkkeKlage
-        KunneIkkeUnderkjenne.UgyldigGrunn -> BadRequest.errorJson(
-            "Ugyldig grunn for underkjenning",
-            "ugyldig_grunn_for_underkjenning",
-        )
-        is KunneIkkeUnderkjenne.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
-    }
-}
-
-internal fun KunneIkkeSendeTilAttestering.tilResultat(): Resultat {
-    return when (this) {
-        KunneIkkeSendeTilAttestering.FantIkkeKlage -> fantIkkeKlage
-        is KunneIkkeSendeTilAttestering.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
     }
 }

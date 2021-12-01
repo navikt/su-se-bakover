@@ -87,6 +87,5 @@ sealed class KunneIkkeSendeTilAttestering {
 
 sealed class KunneIkkeUnderkjenne {
     object FantIkkeKlage : KunneIkkeUnderkjenne()
-    object UgyldigGrunn : KunneIkkeUnderkjenne()
     data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeUnderkjenne()
 }
