@@ -293,7 +293,7 @@ internal class IverksettKlageTest {
                 on { lagBrev(any()) } doReturn pdfAsBytes.right()
             },
             kabalClient = mock {
-                on { sendTilKlageinstans(any()) } doReturn Unit.right()
+                on { sendTilKlageinstans(any(), any()) } doReturn Unit.right()
             },
         )
 
@@ -340,7 +340,7 @@ internal class IverksettKlageTest {
                 )
             },
         )
-        verify(mocks.kabalClient).sendTilKlageinstans(argThat { it shouldBe expectedKlage })
+        verify(mocks.kabalClient).sendTilKlageinstans(argThat { it shouldBe expectedKlage }, argThat { it shouldBe sak })
         verify(mocks.brevServiceMock).lagreDokument(
             argThat {
                 it shouldBe Dokument.MedMetadata.Informasjon(
