@@ -40,7 +40,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
@@ -348,7 +347,6 @@ internal class SøknadsbehandlingServiceIverksettTest {
                     it should beOfType<Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling>()
                 },
             )
-            verify(serviceAndMocks.opprettVedtakssnapshotService).opprettVedtak(argThat { it is Vedtakssnapshot.Innvilgelse })
             verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
             verify(statistikkObserver, times(2)).handle(any())
             serviceAndMocks.verifyNoMoreInteractions()
@@ -402,7 +400,6 @@ internal class SøknadsbehandlingServiceIverksettTest {
                         it.metadata.bestillBrev shouldBe true
                     },
                 )
-                verify(it.opprettVedtakssnapshotService).opprettVedtak(any())
                 verify(it.behandlingMetrics).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
                 verify(it.ferdigstillVedtakService).lukkOppgaveMedBruker(any())
                 verify(it.observer).handle(
