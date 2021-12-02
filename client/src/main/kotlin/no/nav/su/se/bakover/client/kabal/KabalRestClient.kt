@@ -38,7 +38,7 @@ class KabalRestClient(
     override fun sendTilKlageinstans(klage: IverksattKlage): Either<OversendelseFeilet, Unit> {
         val token = onBehalfOfToken().getOrHandle { return OversendelseFeilet.left() }
 
-        val (_, res, result) = "$${kabalConfig.url}$oversendelsePath".httpPost()
+        val (_, res, result) = "${kabalConfig.url}$oversendelsePath".httpPost()
             .header("Authorization", "Bearer $token")
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
