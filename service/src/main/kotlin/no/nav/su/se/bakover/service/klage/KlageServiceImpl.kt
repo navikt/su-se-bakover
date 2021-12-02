@@ -53,7 +53,7 @@ class KlageServiceImpl(
 
         val sak = sakRepo.hentSak(request.sakId) ?: return KunneIkkeOppretteKlage.FantIkkeSak.left()
 
-        sak.klager.ifNotEmpty {
+        sak.hentÅpneKlager().ifNotEmpty {
             // TODO jah: Justere denne sjekken når vi har konseptet lukket klage.
             return KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage.left()
         }

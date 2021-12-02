@@ -31,6 +31,10 @@ sealed class Klage {
     abstract val datoKlageMottatt: LocalDate
     abstract val saksbehandler: NavIdentBruker.Saksbehandler
 
+    fun erÅpen(): Boolean {
+        return this !is IverksattKlage
+    }
+
     /**
      * Dersom vi allerede har vurderinger vil vi ta vare på disse videre.
      * @return [VilkårsvurdertKlage.Påbegynt] eller [VilkårsvurdertKlage.Utfylt]

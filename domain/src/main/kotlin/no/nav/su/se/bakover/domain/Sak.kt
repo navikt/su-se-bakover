@@ -149,6 +149,8 @@ data class Sak(
                     .reduser()
             }.reduser()
     }
+
+    fun hentÅpneKlager(): List<Klage> = klager.filter { it.erÅpen() }
 }
 
 data class NySak(
