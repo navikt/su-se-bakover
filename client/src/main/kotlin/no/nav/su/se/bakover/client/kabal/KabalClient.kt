@@ -4,7 +4,10 @@ import arrow.core.Either
 import no.nav.su.se.bakover.domain.klage.IverksattKlage
 
 interface KabalClient {
-    fun sendTilKlageinstans(klage: IverksattKlage): Either<OversendelseFeilet, Unit>
+    fun sendTilKlageinstans(klage: IverksattKlage): Either<KabalFeil, Unit>
 }
 
-object OversendelseFeilet
+sealed class KabalFeil {
+    object KunneIkkeLageToken : KabalFeil()
+    object OversendelseFeilet : KabalFeil()
+}

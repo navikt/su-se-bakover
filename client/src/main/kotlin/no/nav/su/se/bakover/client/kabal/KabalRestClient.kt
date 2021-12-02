@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.getOrCreateCorrelationId
 import no.nav.su.se.bakover.domain.klage.IverksattKlage
-import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 
@@ -21,7 +20,7 @@ class KabalRestClient(
 ) : KabalClient {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    private fun onBehalfOfToken(): Either<OppgaveFeil.KunneIkkeLageToken, String> {
+    private fun onBehalfOfToken(): Either<KabalFeil.KunneIkkeLageToken, String> {
         return Either.catch {
             exchange.onBehalfOfToken(MDC.get("Authorization"), kabalConfig.clientId)
         }.mapLeft { throwable ->
@@ -29,14 +28,12 @@ class KabalRestClient(
                 "Kunne ikke lage onBehalfOfToken for oppgave med klient id ${kabalConfig.clientId}",
                 throwable,
             )
-            OppgaveFeil.KunneIkkeLageToken
-        }.map {
-            it
+            KabalFeil.KunneIkkeLageToken
         }
     }
 
-    override fun sendTilKlageinstans(klage: IverksattKlage): Either<OversendelseFeilet, Unit> {
-        val token = onBehalfOfToken().getOrHandle { return OversendelseFeilet.left() }
+    override fun sendTilKlageinstans(klage: IverksattKlage): Either<KabalFeil, Unit> {
+        val token = onBehalfOfToken().getOrHandle { return it.left() }
 
         val (_, res, result) = "${kabalConfig.url}$oversendelsePath".httpPost()
             .header("Authorization", "Bearer $token")
@@ -52,7 +49,7 @@ class KabalRestClient(
             },
             {
                 log.error("Feil ved oversendelse til Kabal/KA, status=${res.statusCode} body=${String(res.data)}", it)
-                return OversendelseFeilet.left()
+                return KabalFeil.OversendelseFeilet.left()
             },
         )
     }
