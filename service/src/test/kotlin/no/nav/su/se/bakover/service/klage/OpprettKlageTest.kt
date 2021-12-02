@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
+import no.nav.su.se.bakover.test.opprettetKlage
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
@@ -39,26 +40,17 @@ internal class OpprettKlageTest {
     }
 
     @Test
-    fun `har allerede en åpen klage`() {
+    fun `finnes allerede en åpen klage`() {
         val sakId = UUID.randomUUID()
         val sak = nySakMedjournalførtSøknadOgOppgave(
             sakId = sakId,
-            klager = listOf(
-                OpprettetKlage.create(
-                    id = UUID.randomUUID(),
-                    opprettet = fixedTidspunkt,
-                    sakId = sakId,
-                    journalpostId = JournalpostId(value = "j1"),
-                    saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "s1"),
-                    datoKlageMottatt = 1.desember(2021),
-                ),
-            ),
+            klager = listOf(opprettetKlage(sakId = sakId)),
         ).first
 
         val mocks = KlageServiceMocks(
             sakRepoMock = mock {
                 on { hentSak(any<UUID>()) } doReturn sak
-            }
+            },
         )
         val request = NyKlageRequest(
             sakId = sakId,

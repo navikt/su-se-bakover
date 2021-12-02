@@ -149,8 +149,12 @@ class KlageServiceImpl(
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeIverksetteKlage.FantIkkeKlage.left()
         val sak = sakRepo.hentSak(klage.sakId) ?: return KunneIkkeIverksetteKlage.FantIkkeSak.left()
 
-        val iverksattKlage =
-            klage.iverksett(Attestering.Iverksatt(attestant, Tidspunkt.now(clock))).getOrHandle { return it.left() }
+        val iverksattKlage = klage.iverksett(
+            Attestering.Iverksatt(
+                attestant = attestant,
+                opprettet = Tidspunkt.now(clock),
+            ),
+        ).getOrHandle { return it.left() }
 
         val dokument = lagBrevRequest(iverksattKlage, sak.fnr).fold(
             ifLeft = { return KunneIkkeIverksetteKlage.KunneIkkeLageBrevRequest.left() },
