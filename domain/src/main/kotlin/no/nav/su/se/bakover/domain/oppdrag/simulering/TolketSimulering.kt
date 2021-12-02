@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
+import no.nav.su.se.bakover.common.periode.Periode
 import java.time.LocalDate
 
 data class TolketSimulering(
@@ -21,27 +22,39 @@ data class TolketSimulering(
         }
 
         TolketPeriode(
-            it.fraOgMed,
-            it.tilOgMed,
-            utbetalinger,
+            periode = Periode.create(it.fraOgMed, it.tilOgMed),
+            utbetalinger = utbetalinger,
         )
     }
 
     fun harFeilutbetalinger() = simulertePerioder.any { it.harFeilutbetalinger() }
+
+    fun hentUtbetalteBeløp(periode: Periode): List<Pair<Periode, Int>> {
+        return simulertePerioder
+            .filter { periode inneholder it.periode }
+            .map { it.hentUtbetaltBeløp() }
+            .filterNot { it.second == 0 }
+    }
 }
 
 data class TolketPeriode(
-    val fraOgMed: LocalDate,
-    val tilOgMed: LocalDate,
+    val periode: Periode,
     val utbetalinger: List<TolketUtbetaling>,
 ) {
     fun harFeilutbetalinger() = utbetalinger.any { it is TolketUtbetaling.Feilutbetaling }
+    fun hentUtbetaltBeløp(): Pair<Periode, Int> {
+        return periode to utbetalinger.sumOf { it.hentUtbetaltBeløp() }
+    }
 }
 
 sealed class TolketUtbetaling {
     abstract val tolketDetalj: List<TolketDetalj>
 
     abstract fun bruttobeløp(): Int
+
+    fun hentUtbetaltBeløp(): Int {
+        return tolketDetalj.filterIsInstance<TolketDetalj.TidligereUtbetalt>().sumOf { it.beløp }
+    }
 
     companion object {
         fun from(tolketDetaljer: List<TolketDetalj>) = when {
@@ -123,7 +136,8 @@ sealed class TolketUtbetaling {
     }
 
     object IngenEntydigTolkning : IllegalStateException("Simulert utbetaling kunne ikke tolkes entydig.")
-    object IndikererFeilutbetaling : IllegalStateException("Indikasjon på feilutbetaling, men detaljer for feilutbetaling mangler.")
+    object IndikererFeilutbetaling :
+        IllegalStateException("Indikasjon på feilutbetaling, men detaljer for feilutbetaling mangler.")
 }
 
 sealed class TolketDetalj {
