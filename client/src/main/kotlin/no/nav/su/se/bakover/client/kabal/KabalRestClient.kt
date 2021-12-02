@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client.kabal
 
 import arrow.core.Either
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import com.github.kittinunf.fuel.httpPost
@@ -35,7 +36,7 @@ class KabalRestClient(
     }
 
     override fun sendTilKlageinstans(klage: IverksattKlage): Either<OversendelseFeilet, Unit> {
-        val token = onBehalfOfToken()
+        val token = onBehalfOfToken().getOrHandle { return OversendelseFeilet.left() }
 
         val (_, res, result) = "$${kabalConfig.url}$oversendelsePath".httpPost()
             .header("Authorization", "Bearer $token")
