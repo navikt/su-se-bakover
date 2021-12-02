@@ -13,6 +13,7 @@ internal data class NøkkeltallJson(
         val iverksatteInnvilget: Int,
         val ikkePåbegynt: Int,
         val påbegynt: Int,
+        val lukket: Int,
         val digitalsøknader: Int,
         val papirsøknader: Int,
     )
@@ -31,6 +32,7 @@ internal fun Nøkkeltall.Søknader.toJson() =
         iverksatteInnvilget = iverksatteInnvilget,
         ikkePåbegynt = ikkePåbegynt,
         påbegynt = påbegynt,
+        lukket = lukket,
         digitalsøknader = digitalsøknader,
         papirsøknader = papirsøknader
     )
