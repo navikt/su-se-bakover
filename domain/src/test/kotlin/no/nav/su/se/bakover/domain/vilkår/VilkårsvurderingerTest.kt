@@ -209,7 +209,7 @@ internal class VilkårsvurderingerTest {
                 behandlingsinformasjon = Behandlingsinformasjon().withAvslåttFlyktning(),
                 grunnlagsdata = Grunnlagsdata.create(
                     fradragsgrunnlag = emptyList(),
-                    bosituasjon = listOf(bosituasjongrunnlagEnslig(periode2021)),
+                    bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = periode2021)),
                 ),
                 clock = fixedClock,
             ).let {

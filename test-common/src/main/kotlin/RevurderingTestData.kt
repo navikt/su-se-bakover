@@ -139,10 +139,10 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
                 fradragsgrunnlag = nonEmptyListOf(
                     fradragsgrunnlagArbeidsinntekt(
                         periode = revurderingsperiode,
-                        arbeidsinntekt = 7500.0
-                    )
-                )
-            )
+                        arbeidsinntekt = 7500.0,
+                    ),
+                ),
+            ),
         )
     },
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
@@ -378,12 +378,13 @@ fun simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
         val opphørtSimulertRevurdering = revurdering.toSimulert(
-            simuleringOpphørt(
-                opphørsdato = revurdering.periode.fraOgMed,
-                eksisterendeUtbetalinger = sak.utbetalinger,
+            simulertUtbetalingOpphør(
+                periode = revurdering.periode,
                 fnr = revurdering.fnr,
                 sakId = revurdering.sakId,
                 saksnummer = revurdering.saksnummer,
+                clock = clock,
+                eksisterendeUtbetalinger = sak.utbetalinger,
             ),
         )
         Pair(

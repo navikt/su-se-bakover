@@ -151,6 +151,43 @@ fun simulertUtbetaling(
     simulering = simuleringNy(fnr = fnr, eksisterendeUtbetalinger = eksisterendeUtbetalinger, clock = clock),
 )
 
+fun simulertUtbetalingOpphør(
+    id: UUID30 = UUID30.randomUUID(),
+    periode: Periode = periode2021,
+    opphørsdato: LocalDate = periode.fraOgMed,
+    fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    clock: Clock = fixedClock,
+    avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
+    eksisterendeUtbetalinger: List<Utbetaling>,
+): Utbetaling.SimulertUtbetaling {
+    return Utbetaling.SimulertUtbetaling(
+        id = id,
+        opprettet = Tidspunkt.now(clock),
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        utbetalingslinjer = nonEmptyListOf(
+            Utbetalingslinje.Endring.Opphør(
+                utbetalingslinje = eksisterendeUtbetalinger.last().sisteUtbetalingslinje(),
+                virkningstidspunkt = opphørsdato,
+                clock = clock,
+            ),
+        ),
+        type = Utbetaling.UtbetalingsType.OPPHØR,
+        behandler = attestant,
+        avstemmingsnøkkel = avstemmingsnøkkel,
+        simulering = simuleringOpphørt(
+            opphørsdato = opphørsdato,
+            eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+            fnr = fnr,
+            sakId = sakId,
+            saksnummer = saksnummer,
+        ),
+    )
+}
+
 /**
  * Defaultverdier:
  * - id: arbitrær

@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.DbMetrics
+import no.nav.su.se.bakover.database.FeilutbetalingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.TransactionalSession
@@ -33,6 +34,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.oppdrag.Feilutbetalingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
@@ -96,6 +98,7 @@ internal class RevurderingPostgresRepo(
     søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
     private val dbMetrics: DbMetrics,
     private val sessionFactory: PostgresSessionFactory,
+    private val feilutbetalingsvarselRepo: FeilutbetalingsvarselPostgresRepo,
 ) : RevurderingRepo {
     private val vedtakRepo = VedtakPostgresRepo(dataSource, søknadsbehandlingRepo, this, dbMetrics, sessionFactory)
 
@@ -239,6 +242,8 @@ internal class RevurderingPostgresRepo(
             utenlandsopphold = utlandsoppholdVilkårsvurderingRepo.hent(id, session),
         )
 
+        val feilutbetalingsvarsel = feilutbetalingsvarselRepo.hentForBehandling(id) ?: Feilutbetalingsvarsel.Ingen
+
         val revurdering = lagRevurdering(
             status = status,
             id = id,
@@ -257,6 +262,7 @@ internal class RevurderingPostgresRepo(
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
+            feilutbetalingsvarsel = feilutbetalingsvarsel,
         )
 
         val avsluttet = stringOrNull("avsluttet")?.let {
@@ -404,8 +410,8 @@ internal class RevurderingPostgresRepo(
                 session,
             )
 
-    private fun lagre(revurdering: SimulertRevurdering, session: TransactionalSession) =
-        """
+    private fun lagre(revurdering: SimulertRevurdering, tx: TransactionalSession) {
+        return """
                     update
                         revurdering
                     set
@@ -435,8 +441,25 @@ internal class RevurderingPostgresRepo(
                         objectMapper.writeValueAsString(ForhåndsvarselDto.from(it))
                     },
                 ),
-                session,
-            )
+                tx,
+            ).let {
+                when (revurdering) {
+                    is SimulertRevurdering.Innvilget -> {
+                        feilutbetalingsvarselRepo.slettForBehandling(
+                            behandlingId = revurdering.id,
+                            tx = tx,
+                        )
+                    }
+                    is SimulertRevurdering.Opphørt -> {
+                        feilutbetalingsvarselRepo.lagre(
+                            sakId = revurdering.sakId,
+                            behandlingId = revurdering.id,
+                            feilutbetalingsvarsel = revurdering.feilutbetalingsvarsel,
+                        )
+                    }
+                }
+            }
+    }
 
     private fun lagre(revurdering: RevurderingTilAttestering, session: TransactionalSession) =
         """
@@ -635,6 +658,7 @@ internal class RevurderingPostgresRepo(
         grunnlagsdata: Grunnlagsdata,
         vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         informasjonSomRevurderes: InformasjonSomRevurderes?,
+        feilutbetalingsvarsel: Feilutbetalingsvarsel,
     ): AbstraktRevurdering {
         return when (status) {
             RevurderingsType.UNDERKJENT_INNVILGET -> UnderkjentRevurdering.Innvilget(
@@ -670,6 +694,7 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
+                feilutbetalingsvarsel = feilutbetalingsvarsel,
             )
             RevurderingsType.IVERKSATT_INNVILGET -> IverksattRevurdering.Innvilget(
                 id = id,
@@ -704,6 +729,7 @@ internal class RevurderingPostgresRepo(
                 forhåndsvarsel = forhåndsvarsel!!,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
+                feilutbetalingsvarsel = feilutbetalingsvarsel,
             )
             RevurderingsType.TIL_ATTESTERING_INNVILGET -> RevurderingTilAttestering.Innvilget(
                 id = id,
@@ -738,6 +764,7 @@ internal class RevurderingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
+                feilutbetalingsvarsel = feilutbetalingsvarsel,
             )
             RevurderingsType.SIMULERT_INNVILGET -> SimulertRevurdering.Innvilget(
                 id = id,
@@ -772,6 +799,7 @@ internal class RevurderingPostgresRepo(
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes!!,
                 attesteringer = attesteringer,
+                feilutbetalingsvarsel = feilutbetalingsvarsel,
             )
             RevurderingsType.BEREGNET_INNVILGET -> BeregnetRevurdering.Innvilget(
                 id = id,

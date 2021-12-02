@@ -215,7 +215,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             val testDataHelper = TestDataHelper(dataSource)
             val søknadsbehandling = testDataHelper.nySøknadsbehandling()
             val (vilkår, grunnlag) = formuevilkårUtenEps0Innvilget(
-                bosituasjon = bosituasjongrunnlagEnslig(periode2021),
+                bosituasjon = bosituasjongrunnlagEnslig(periode = periode2021),
             ).let { it to it.grunnlag }
 
             testDataHelper.formueVilkårsvurderingPostgresRepo.lagre(søknadsbehandling.id, vilkår)

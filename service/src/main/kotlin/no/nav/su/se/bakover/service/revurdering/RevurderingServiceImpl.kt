@@ -664,10 +664,11 @@ internal class RevurderingServiceImpl(
                             opphørsdato = beregnetRevurdering.periode.fraOgMed,
                         ).mapLeft {
                             KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it)
-                        }.map {
-                            val simulert = beregnetRevurdering.toSimulert(it.simulering)
-                            revurderingRepo.lagre(simulert)
-                            identifiserFeilOgLagResponse(simulert)
+                        }.map { simulertUtbetaling ->
+                            beregnetRevurdering.toSimulert(simulertUtbetaling).let {
+                                revurderingRepo.lagre(it)
+                                identifiserFeilOgLagResponse(it)
+                            }
                         }
                     }
                 }

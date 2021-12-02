@@ -43,14 +43,15 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
+import no.nav.su.se.bakover.domain.oppdrag.Feilutbetalingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -65,9 +66,11 @@ import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
@@ -884,9 +887,10 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
                 innvilgetFormueVilkår(revurderingsperiode),
-                utlandsoppholdInnvilget(periode = revurderingsperiode)
+                utlandsoppholdInnvilget(periode = revurderingsperiode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            feilutbetalingsvarsel = Feilutbetalingsvarsel.Ingen,
         )
 
         val opphørsvedtak = Vedtak.from(revurdering, utbetalingId, fixedClock)
@@ -931,47 +935,53 @@ internal class LagBrevRequestVisitorTest {
         val utbetalingId = UUID30.randomUUID()
         val opphørsperiode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
 
-        val revurdering = (
-            opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
-                revurderingsperiode = opphørsperiode,
-                grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
-                    grunnlagsdata = Grunnlagsdata.create(
-                        fradragsgrunnlag = listOf(
-                            fradragsgrunnlagArbeidsinntekt(
-                                arbeidsinntekt = 150000.0,
-                                periode = opphørsperiode,
-                            ),
-                        ),
-                        bosituasjon = listOf(
-                            bosituasjongrunnlagEnslig(opphørsperiode),
+        val (sak, revurdering) = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+            revurderingsperiode = opphørsperiode,
+            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
+                grunnlagsdata = Grunnlagsdata.create(
+                    fradragsgrunnlag = listOf(
+                        fradragsgrunnlagArbeidsinntekt(
+                            arbeidsinntekt = 150000.0,
+                            periode = opphørsperiode,
                         ),
                     ),
-                    vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
-                        periode = opphørsperiode,
+                    bosituasjon = listOf(
+                        bosituasjongrunnlagEnslig(periode = opphørsperiode),
                     ),
                 ),
-            ).second
-                .beregn(eksisterendeUtbetalinger = emptyList(), clock = fixedClock)
-                .getOrHandle { fail("Skulle gått bra") }
-                .toSimulert(simulering) as SimulertRevurdering.Opphørt
-            )
+                vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(
+                    periode = opphørsperiode,
+                ),
+            ),
+        )
+
+        val iverksatt = revurdering
+            .beregn(eksisterendeUtbetalinger = emptyList(), clock = fixedClock)
+            .getOrFail().let {
+                (it as BeregnetRevurdering.Opphørt).toSimulert(
+                    simulertUtbetalingOpphør(
+                        opphørsdato = opphørsperiode.fraOgMed,
+                        eksisterendeUtbetalinger = sak.utbetalinger,
+                    ),
+                )
+            }
             .tilAttestering(
                 attesteringsoppgaveId = oppgaveIdRevurdering,
                 saksbehandler = saksbehandler,
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 fritekstTilBrev = "FRITEKST REVURDERING",
-            ).getOrHandle { fail("Skulle gått bra") }
+            ).getOrFail()
             .tilIverksatt(attestant) { utbetalingId.right() }
-            .getOrHandle { fail("Skulle gått bra") }
+            .getOrFail()
 
-        val opphørsvedtak = Vedtak.from(revurdering, utbetalingId, fixedClock)
+        val opphørsvedtak = Vedtak.from(iverksatt, utbetalingId, fixedClock)
 
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
             hentNavn = { hentNavn(it) },
             hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = fixedClock,
-        ).apply { revurdering.accept(this) }
+        ).apply { iverksatt.accept(this) }
 
         val brevVedtak = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -983,8 +993,8 @@ internal class LagBrevRequestVisitorTest {
         brevRevurdering.brevRequest shouldBe brevVedtak.brevRequest
         brevRevurdering.brevRequest shouldBe LagBrevRequest.Opphørsvedtak(
             person = person,
-            beregning = revurdering.beregning,
-            harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
+            beregning = iverksatt.beregning,
+            harEktefelle = iverksatt.grunnlagsdata.bosituasjon.harEktefelle(),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             fritekst = "FRITEKST REVURDERING",
@@ -1010,7 +1020,7 @@ internal class LagBrevRequestVisitorTest {
                         ),
                     ),
                     bosituasjon = listOf(
-                        bosituasjongrunnlagEnslig(opphørsperiode),
+                        bosituasjongrunnlagEnslig(periode = opphørsperiode),
                     ),
                 ),
                 vilkårsvurderinger = vilkårsvurderingerInnvilget(
@@ -1020,8 +1030,14 @@ internal class LagBrevRequestVisitorTest {
         )
 
         val bereget = revurdering.beregn(eksisterendeUtbetalinger = sak.utbetalinger, clock = fixedClock)
-            .getOrHandle { fail("Skulle gått bra") }
-            .toSimulert(simulering) as SimulertRevurdering.Opphørt
+            .getOrFail().let {
+                (it as BeregnetRevurdering.Opphørt).toSimulert(
+                    simulertUtbetalingOpphør(
+                        opphørsdato = opphørsperiode.fraOgMed,
+                        eksisterendeUtbetalinger = sak.utbetalinger,
+                    ),
+                )
+            }
 
         val attestert = bereget.tilAttestering(
             attesteringsoppgaveId = oppgaveIdRevurdering,

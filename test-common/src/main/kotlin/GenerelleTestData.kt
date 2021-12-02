@@ -45,6 +45,7 @@ const val saksbehandlerNavn = "Sak S. Behandler"
 val saksnummer = Saksnummer(nummer = 12345676)
 
 val fnr = Fnr.generer()
+val epsFnr = Fnr.generer()
 
 val aktørId = AktørId("aktørId")
 

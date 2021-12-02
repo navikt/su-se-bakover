@@ -165,6 +165,9 @@ object DatabaseBuilder {
             søknadsbehandlingRepo = saksbehandlingRepo,
             dbMetrics = dbMetrics,
             sessionFactory = sessionFactory,
+            feilutbetalingsvarselRepo = FeilutbetalingsvarselPostgresRepo(
+                dataSource = dataSource
+            )
         )
         val vedtakRepo = VedtakPostgresRepo(
             dataSource = dataSource,

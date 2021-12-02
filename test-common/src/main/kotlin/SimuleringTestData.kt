@@ -94,7 +94,7 @@ fun simuleringGjenopptak(
 
 fun simuleringOpphørt(
     opphørsdato: LocalDate,
-    eksisterendeUtbetalinger: List<Utbetaling> = emptyList(),
+    eksisterendeUtbetalinger: List<Utbetaling>,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
@@ -109,7 +109,9 @@ fun simuleringOpphørt(
         clock = clock,
         opphørsDato = opphørsdato,
     ).generate().let {
-        SimuleringStub(clock).simulerUtbetaling(it)
+        SimuleringStub(
+            clock = Clock.systemUTC() // Overstyr klokke slik at vi kan simulere feilutbetalinger tilbake i tid,
+        ).simulerUtbetaling(it)
     }.orNull()!!
 }
 

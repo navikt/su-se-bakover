@@ -59,7 +59,7 @@ fun beregningAvslagUnderMinstebeløp(
  */
 fun beregning(
     periode: Periode = periode2021,
-    bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode),
+    bosituasjon: Grunnlag.Bosituasjon.Fullstendig = bosituasjongrunnlagEnslig(periode = periode),
     uføregrunnlag: NonEmptyList<Grunnlag.Uføregrunnlag> = nonEmptyListOf(uføregrunnlagForventetInntekt0(periode = periode)),
     /**
      * Bruk uføregrunnlag for forventet inntekt

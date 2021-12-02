@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
+import no.nav.su.se.bakover.domain.oppdrag.Feilutbetalingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -197,6 +198,14 @@ open class AccessCheckProxy(
                     assertHarTilgangTilSak(sakId)
 
                     return services.utbetaling.simulerOpphør(sakId, saksbehandler, opphørsdato)
+                }
+
+                override fun simulerFeilutbetalingsvarsel(
+                    sakId: UUID,
+                    saksbehandler: NavIdentBruker,
+                    feilutbetalingsvarsel: Feilutbetalingsvarsel.KanAvkortes,
+                ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+                    kastKanKunKallesFraAnnenService()
                 }
 
                 override fun utbetal(

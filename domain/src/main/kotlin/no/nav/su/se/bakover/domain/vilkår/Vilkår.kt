@@ -359,6 +359,10 @@ sealed class Vilkårsvurderingsresultat {
                 Inngangsvilkår.Uførhet -> Avslagsgrunn.UFØRHET
             }
         }
+
+        fun erÅrsak(inngangsvilkår: Inngangsvilkår): Boolean {
+            return vilkår.any { it.vilkår == inngangsvilkår }
+        }
     }
 
     data class Innvilget(

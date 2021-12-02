@@ -25,6 +25,8 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.oppdrag.Feilutbetalingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
@@ -43,20 +45,23 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
+import no.nav.su.se.bakover.test.utlandsoppholdAvslag
+import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttRevurdering
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
 internal class RevurderingPostgresRepoTest {
 
-    private val periode = Periode.create(
-        fraOgMed = 1.januar(2020),
-        tilOgMed = 31.desember(2020),
-    )
     private val revurderingsårsak = Revurderingsårsak(
         Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
         Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
@@ -79,7 +84,7 @@ internal class RevurderingPostgresRepoTest {
 
     private fun opprettet(vedtak: Vedtak.EndringIYtelse) = OpprettetRevurdering(
         id = UUID.randomUUID(),
-        periode = periode,
+        periode = periode2021,
         opprettet = fixedTidspunkt,
         tilRevurdering = vedtak,
         saksbehandler = saksbehandler,
@@ -187,6 +192,7 @@ internal class RevurderingPostgresRepoTest {
         vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
+        feilutbetalingsvarsel = Feilutbetalingsvarsel.Ingen,
     )
 
     @Test
@@ -394,7 +400,7 @@ internal class RevurderingPostgresRepoTest {
 
             val tilAttestering = RevurderingTilAttestering.Innvilget(
                 id = opprettet.id,
-                periode = periode,
+                periode = periode2021,
                 opprettet = fixedTidspunkt,
                 tilRevurdering = vedtak,
                 saksbehandler = saksbehandler,
@@ -415,7 +421,7 @@ internal class RevurderingPostgresRepoTest {
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
-                            periode = periode,
+                            periode = periode2021,
                             begrunnelse = null,
                         ),
                     ),
@@ -427,7 +433,7 @@ internal class RevurderingPostgresRepoTest {
                             PersistertFradrag(
                                 fradragstype = Fradragstype.Introduksjonsstønad,
                                 månedsbeløp = 200.0,
-                                periode = periode,
+                                periode = periode2021,
                                 utenlandskInntekt = null,
                                 tilhører = FradragTilhører.BRUKER,
                             ),
@@ -563,6 +569,7 @@ internal class RevurderingPostgresRepoTest {
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
+                feilutbetalingsvarsel = Feilutbetalingsvarsel.Ingen,
             )
 
             repo.lagre(underkjent)
@@ -598,6 +605,7 @@ internal class RevurderingPostgresRepoTest {
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
+                feilutbetalingsvarsel = Feilutbetalingsvarsel.Ingen,
             )
 
             repo.lagre(underkjent)
@@ -618,13 +626,12 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(beregnet)
             val simulert = simulertOpphørt(beregnet)
             repo.lagre(simulert)
-            val tilAttestering =
-                simulert.tilAttestering(
-                    opprettet.oppgaveId,
-                    opprettet.saksbehandler,
-                    Forhåndsvarsel.IngenForhåndsvarsel,
-                    opprettet.fritekstTilBrev,
-                ).orNull()!!
+            val tilAttestering = simulert.tilAttestering(
+                attesteringsoppgaveId = opprettet.oppgaveId,
+                saksbehandler = opprettet.saksbehandler,
+                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+                fritekstTilBrev = opprettet.fritekstTilBrev,
+            ).getOrFail()
             repo.lagre(tilAttestering)
 
             val underkjent = IverksattRevurdering.Opphørt(
@@ -648,6 +655,7 @@ internal class RevurderingPostgresRepoTest {
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
+                feilutbetalingsvarsel = Feilutbetalingsvarsel.Ingen,
             )
 
             repo.lagre(underkjent)
@@ -1010,5 +1018,65 @@ internal class RevurderingPostgresRepoTest {
             ),
             true,
         )
+    }
+
+    @Test
+    fun `lagrer og henter revurdering med feilutbetalingsvarsel for avkorting`() {
+        withMigratedDb { dataSource ->
+            TestDataHelper(dataSource).also { testDataHelper ->
+                val (vedtak, utbetaling) = testDataHelper.vedtakMedInnvilgetSøknadsbehandling(
+                    periode = periode2021,
+                )
+
+                val (sak, vilkårsvurdert) = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak()
+                    .let { (sak, revurdering) ->
+                        sak.copy(vedtakListe = listOf(vedtak), utbetalinger = listOf(utbetaling)) to revurdering.copy(
+                            tilRevurdering = vedtak,
+                            vilkårsvurderinger = vilkårsvurderingerAvslåttRevurdering(
+                                periode = revurdering.periode,
+                                vilkår = utlandsoppholdAvslag(
+                                    periode = revurdering.periode,
+                                ),
+                            ),
+                        )
+                    }
+
+                testDataHelper.revurderingRepo.lagre(vilkårsvurdert)
+
+                val beregnet = vilkårsvurdert.beregn(sak.utbetalinger, fixedClock)
+                    .getOrFail() as BeregnetRevurdering.Opphørt
+
+                testDataHelper.revurderingRepo.lagre(beregnet)
+
+                val simulert = beregnet.toSimulert(
+                    simulertUtbetalingOpphør(
+                        periode = beregnet.periode,
+                        eksisterendeUtbetalinger = sak.utbetalinger,
+                    ),
+                )
+
+                testDataHelper.revurderingRepo.lagre(simulert)
+
+                (testDataHelper.revurderingRepo.hent(simulert.id) as SimulertRevurdering.Opphørt)
+                    .let { opphørtRevurdering ->
+                        opphørtRevurdering.feilutbetalingsvarsel.let { feilutbetalingsvarsel ->
+                            (feilutbetalingsvarsel as Feilutbetalingsvarsel.KanAvkortes) shouldBe Feilutbetalingsvarsel.KanAvkortes(
+                                id = feilutbetalingsvarsel.id,
+                                opprettet = feilutbetalingsvarsel.opprettet,
+                                simulering = opphørtRevurdering.simulering,
+                                feilutbetalingslinje = Feilutbetalingsvarsel.Feilutbetalingslinje(
+                                    opprettet = fixedTidspunkt,
+                                    fraOgMed = 1.januar(2021),
+                                    tilOgMed = 31.desember(2021),
+                                    forrigeUtbetalingslinjeId = null,
+                                    beløp = 25000,
+                                    virkningstidspunkt = 1.januar(2021),
+                                    uføregrad = Uføregrad.parse(50),
+                                ),
+                            )
+                        }
+                    }
+            }
+        }
     }
 }

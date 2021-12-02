@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.oppdrag.Feilutbetalingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -334,6 +335,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             },
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
+            feilutbetalingsvarsel = Feilutbetalingsvarsel.Ingen,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -393,6 +395,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 on { resultat } doReturn Vilkårsvurderingsresultat.Innvilget(emptySet())
             },
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+            feilutbetalingsvarsel = Feilutbetalingsvarsel.Ingen,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {

@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.oppdrag.Feilutbetalingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -35,6 +36,12 @@ interface UtbetalingService {
         sakId: UUID,
         saksbehandler: NavIdentBruker,
         opphørsdato: LocalDate,
+    ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
+
+    fun simulerFeilutbetalingsvarsel(
+        sakId: UUID,
+        saksbehandler: NavIdentBruker,
+        feilutbetalingsvarsel: Feilutbetalingsvarsel.KanAvkortes,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 
     fun utbetal(
