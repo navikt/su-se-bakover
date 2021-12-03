@@ -1065,7 +1065,6 @@ internal class RevurderingPostgresRepoTest {
                                 opprettet = feilutbetalingsvarsel.opprettet,
                                 simulering = opphørtRevurdering.simulering,
                                 feilutbetalingslinje = Feilutbetalingsvarsel.Feilutbetalingslinje(
-                                    opprettet = fixedTidspunkt,
                                     fraOgMed = 1.januar(2021),
                                     tilOgMed = 31.desember(2021),
                                     forrigeUtbetalingslinjeId = null,
@@ -1076,6 +1075,74 @@ internal class RevurderingPostgresRepoTest {
                             )
                         }
                     }
+            }
+        }
+    }
+
+    @Test
+    fun `sletter eventuelle feilutbetalingsvarsel dersom vi lagrer ny beregning`() {
+        withMigratedDb { dataSource ->
+            TestDataHelper(dataSource).also { testDataHelper ->
+                val (vedtak, utbetaling) = testDataHelper.vedtakMedInnvilgetSøknadsbehandling(
+                    periode = periode2021,
+                )
+
+                val (sak, vilkårsvurdert) = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak()
+                    .let { (sak, revurdering) ->
+                        sak.copy(
+                            vedtakListe = listOf(vedtak),
+                            utbetalinger = listOf(utbetaling),
+                        ) to revurdering.copy(
+                            tilRevurdering = vedtak,
+                            vilkårsvurderinger = vilkårsvurderingerAvslåttRevurdering(
+                                periode = revurdering.periode,
+                                vilkår = utlandsoppholdAvslag(
+                                    periode = revurdering.periode,
+                                ),
+                            ),
+                        )
+                    }
+
+                testDataHelper.revurderingRepo.lagre(vilkårsvurdert)
+
+                val beregnet = vilkårsvurdert.beregn(sak.utbetalinger, fixedClock)
+                    .getOrFail() as BeregnetRevurdering.Opphørt
+
+                testDataHelper.revurderingRepo.lagre(beregnet)
+
+                val simulert = beregnet.toSimulert(
+                    simulertUtbetalingOpphør(
+                        periode = beregnet.periode,
+                        eksisterendeUtbetalinger = sak.utbetalinger,
+                    ),
+                )
+
+                testDataHelper.revurderingRepo.lagre(simulert)
+
+                (testDataHelper.revurderingRepo.hent(simulert.id) as SimulertRevurdering.Opphørt)
+                    .let { opphørtRevurdering ->
+                        opphørtRevurdering.feilutbetalingsvarsel.let { feilutbetalingsvarsel ->
+                            (feilutbetalingsvarsel as Feilutbetalingsvarsel.KanAvkortes) shouldBe Feilutbetalingsvarsel.KanAvkortes(
+                                id = feilutbetalingsvarsel.id,
+                                opprettet = feilutbetalingsvarsel.opprettet,
+                                simulering = opphørtRevurdering.simulering,
+                                feilutbetalingslinje = Feilutbetalingsvarsel.Feilutbetalingslinje(
+                                    fraOgMed = 1.januar(2021),
+                                    tilOgMed = 31.desember(2021),
+                                    forrigeUtbetalingslinjeId = null,
+                                    beløp = 25000,
+                                    virkningstidspunkt = 1.januar(2021),
+                                    uføregrad = Uføregrad.parse(50),
+                                ),
+                            )
+                        }
+                    }
+
+                testDataHelper.feilutbetalingsvarselRepo.hentForBehandling(beregnet.id) shouldNotBe null
+
+                testDataHelper.revurderingRepo.lagre(beregnet)
+
+                testDataHelper.feilutbetalingsvarselRepo.hentForBehandling(beregnet.id) shouldBe null
             }
         }
     }

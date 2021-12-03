@@ -378,7 +378,7 @@ internal class RevurderingPostgresRepo(
         )
     }
 
-    private fun lagre(revurdering: BeregnetRevurdering, session: TransactionalSession) =
+    private fun lagre(revurdering: BeregnetRevurdering, tx: TransactionalSession) =
         """
                     update
                         revurdering
@@ -407,8 +407,16 @@ internal class RevurderingPostgresRepo(
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                     "informasjonSomRevurderes" to objectMapper.writeValueAsString(revurdering.informasjonSomRevurderes),
                 ),
-                session,
-            )
+                tx,
+            ).let {
+                /**
+                 * Håndter tilfeller hvor vi har vært [SimulertRevurdering] og gått tilbake til [BeregnetRevurdering]
+                 */
+                feilutbetalingsvarselRepo.slettForBehandling(
+                    behandlingId = revurdering.id,
+                    tx = tx,
+                )
+            }
 
     private fun lagre(revurdering: SimulertRevurdering, tx: TransactionalSession) {
         return """
