@@ -58,10 +58,13 @@ sealed class KunneIkkeLageBrevutkast {
     object FantIkkeSak : KunneIkkeLageBrevutkast()
     object FantIkkePerson : KunneIkkeLageBrevutkast()
     object FantIkkeSaksbehandler : KunneIkkeLageBrevutkast()
+    object FantIkkeKlage : KunneIkkeLageBrevutkast()
+    object FantIkkeKnyttetVedtak : KunneIkkeLageBrevutkast()
     object GenereringAvBrevFeilet : KunneIkkeLageBrevutkast()
 }
 
 sealed class KunneIkkeLageBrevRequest {
     object FantIkkePerson : KunneIkkeLageBrevRequest()
     object FantIkkeSaksbehandler : KunneIkkeLageBrevRequest()
+    object FantIkkeKnyttetVedtak : KunneIkkeLageBrevRequest()
 }

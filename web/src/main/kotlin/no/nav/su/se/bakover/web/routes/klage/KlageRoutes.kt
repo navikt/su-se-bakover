@@ -84,7 +84,7 @@ internal fun Route.klageRoutes(
                             sakId = sakId,
                             saksbehandler = call.suUserContext.saksbehandler,
                             journalpostId = JournalpostId(body.journalpostId),
-                            datoKlageMottatt = body.datoKlageMottatt
+                            datoKlageMottatt = body.datoKlageMottatt,
                         ),
                     ).map {
                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
@@ -202,6 +202,8 @@ internal fun Route.klageRoutes(
                                     KunneIkkeLageBrevutkast.FantIkkeSak -> fantIkkeSak
                                     KunneIkkeLageBrevutkast.FantIkkeSaksbehandler -> fantIkkeSaksbehandlerEllerAttestant
                                     KunneIkkeLageBrevutkast.GenereringAvBrevFeilet -> kunneIkkeGenerereBrev
+                                    KunneIkkeLageBrevutkast.FantIkkeKlage -> fantIkkeKlage
+                                    KunneIkkeLageBrevutkast.FantIkkeKnyttetVedtak -> fantIkkeVedtak
                                 }
                                 call.svar(resultat)
                             },

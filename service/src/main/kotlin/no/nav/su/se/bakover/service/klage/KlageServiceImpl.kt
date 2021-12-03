@@ -191,12 +191,14 @@ class KlageServiceImpl(
         val sak = sakRepo.hentSak(sakId) ?: return KunneIkkeLageBrevutkast.FantIkkeSak.left()
         val saksbehandlerNavn = microsoftGraphApiClient.hentNavnForNavIdent(saksbehandler)
             .getOrElse { return KunneIkkeLageBrevutkast.FantIkkeSaksbehandler.left() }
+        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
+        val vedtaksdato = klageRepo.hentKnyttetVedtaksdato(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkeKnyttetVedtak.left()
 
         return personService.hentPerson(sak.fnr)
             .fold(
                 ifLeft = { KunneIkkeLageBrevutkast.FantIkkePerson.left() },
                 ifRight = { person ->
-                    val brevRequest = lagBrevRequestForOppretthold(person, saksbehandlerNavn, hjemler, fritekst)
+                    val brevRequest = lagBrevRequestForOppretthold(person, saksbehandlerNavn, hjemler, fritekst, klage.datoKlageMottatt, vedtaksdato)
                     brevService.lagBrev(brevRequest)
                         .mapLeft { KunneIkkeLageBrevutkast.GenereringAvBrevFeilet }
                 },
@@ -209,6 +211,7 @@ class KlageServiceImpl(
     ): Either<KunneIkkeLageBrevRequest, LagBrevRequest.Klage.Oppretthold> {
         val saksbehandlerNavn = microsoftGraphApiClient.hentNavnForNavIdent(klage.saksbehandler)
             .getOrElse { return KunneIkkeLageBrevRequest.FantIkkeSaksbehandler.left() }
+        val vedtakDato = klageRepo.hentKnyttetVedtaksdato(klage.id) ?: return KunneIkkeLageBrevRequest.FantIkkeKnyttetVedtak.left()
 
         return personService.hentPerson(fnr)
             .fold(
@@ -217,10 +220,12 @@ class KlageServiceImpl(
                     when (val vurdering = klage.vurderinger.vedtaksvurdering) {
                         is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> throw RuntimeException("Har ikke støtte for Omgjør")
                         is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> lagBrevRequestForOppretthold(
-                            person,
-                            saksbehandlerNavn,
-                            vurdering.hjemler,
-                            klage.vurderinger.fritekstTilBrev,
+                            person = person,
+                            saksbehandlerNavn = saksbehandlerNavn,
+                            hjemler = vurdering.hjemler,
+                            fritekst = klage.vurderinger.fritekstTilBrev,
+                            klageDato = klage.datoKlageMottatt,
+                            vedtakDato = vedtakDato,
                         ).right()
                     }
                 },
@@ -232,6 +237,8 @@ class KlageServiceImpl(
         saksbehandlerNavn: String,
         hjemler: Hjemler.Utfylt,
         fritekst: String,
+        klageDato: LocalDate,
+        vedtakDato: LocalDate,
     ): LagBrevRequest.Klage.Oppretthold {
         return LagBrevRequest.Klage.Oppretthold(
             person = person,
@@ -241,6 +248,8 @@ class KlageServiceImpl(
             hjemler = hjemler.hjemler.map {
                 it.paragrafnummer
             },
+            klageDato = klageDato,
+            vedtakDato = vedtakDato,
         )
     }
 }

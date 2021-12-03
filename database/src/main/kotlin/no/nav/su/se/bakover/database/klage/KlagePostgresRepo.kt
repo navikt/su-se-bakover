@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
+import java.time.LocalDate
 import java.util.UUID
 
 internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFactory) : KlageRepo {
@@ -195,6 +196,18 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 ),
                 session,
             ) { rowToKlage(it) }
+        }
+    }
+
+    override fun hentKnyttetVedtaksdato(klageId: UUID): LocalDate? {
+        return sessionFactory.withSession {
+            """
+                select v.opprettet from klage k left join vedtak v on k.vedtakid = v.id
+                    where k.id = :id
+            """.trimIndent()
+                .hent(mapOf("id" to klageId), it) { row ->
+                    row.localDate("opprettet")
+                }
         }
     }
 

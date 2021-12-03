@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.getD
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
+import java.time.LocalDate
 
 abstract class BrevInnhold {
     fun toJson(): String = objectMapper.writeValueAsString(this)
@@ -172,6 +173,8 @@ abstract class BrevInnhold {
         val saksbehandlerNavn: String,
         val fritekst: String,
         val hjemler: List<Int>,
+        val klageDato: LocalDate,
+        val vedtakDato: LocalDate
     ) : BrevInnhold() {
         override val brevTemplate = BrevTemplate.Klage.Oppretthold
     }
