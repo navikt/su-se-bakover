@@ -11,6 +11,7 @@ data class Nøkkeltall(
         val iverksatteInnvilget: Int,
         val ikkePåbegynt: Int,
         val påbegynt: Int,
+        val lukket: Int,
         val digitalsøknader: Int,
         val papirsøknader: Int,
     )
