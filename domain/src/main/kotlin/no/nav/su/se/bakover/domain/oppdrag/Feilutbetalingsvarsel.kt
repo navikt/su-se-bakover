@@ -10,7 +10,6 @@ import java.util.UUID
 sealed class Feilutbetalingsvarsel {
 
     data class Feilutbetalingslinje(
-        val opprettet: Tidspunkt,
         val fraOgMed: LocalDate,
         val tilOgMed: LocalDate,
         var forrigeUtbetalingslinjeId: UUID30?,
@@ -33,7 +32,6 @@ sealed class Feilutbetalingsvarsel {
             opprettet = Tidspunkt.now(),
             simulering = simulering,
             feilutbetalingslinje = Feilutbetalingslinje(
-                opprettet = utbetalingslinje.opprettet,
                 fraOgMed = utbetalingslinje.fraOgMed,
                 tilOgMed = utbetalingslinje.tilOgMed,
                 forrigeUtbetalingslinjeId = utbetalingslinje.forrigeUtbetalingslinjeId,

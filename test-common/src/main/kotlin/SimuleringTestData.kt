@@ -110,7 +110,7 @@ fun simuleringOpphørt(
         opphørsDato = opphørsdato,
     ).generate().let {
         SimuleringStub(
-            clock = Clock.systemUTC() // Overstyr klokke slik at vi kan simulere feilutbetalinger tilbake i tid,
+            clock = nåtidForSimuleringStub, // Overstyr klokke slik at vi kan simulere feilutbetalinger tilbake i tid,
         ).simulerUtbetaling(it)
     }.orNull()!!
 }
