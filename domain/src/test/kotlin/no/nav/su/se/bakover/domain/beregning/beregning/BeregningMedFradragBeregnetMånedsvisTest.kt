@@ -462,7 +462,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         beregning.finnMånederMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
         beregning.finnMånederMedMerknad().getOrFail()
             .map { it.second }
-            .all { it.contains(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats) }
+            .all { it.contains(Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats) }
     }
 
     @Test
@@ -491,7 +491,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         beregning.finnMånederMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
         beregning.finnMånederMedMerknad().getOrFail()
             .map { it.second }
-            .all { it.contains(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats) }
+            .all { it.contains(Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats) }
     }
 
     @Test
@@ -532,7 +532,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             fradragStrategy = FradragStrategy.Enslig,
         ).let {
             val sosialstønad =
-                it.getMånedsberegninger()[3] to listOf(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats)
+                it.getMånedsberegninger()[3] to listOf(Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats)
             val beløpNull = it.getMånedsberegninger()[5] to listOf(
                 Merknad.Beregning.BeløpErNull,
             )

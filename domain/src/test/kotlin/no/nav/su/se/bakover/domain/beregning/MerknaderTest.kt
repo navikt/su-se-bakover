@@ -10,7 +10,7 @@ internal class MerknaderTest {
         listOf(
             Merknad.Beregning.BeløpErNull,
             Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats,
-            Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats,
+            Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats,
         ).forEach {
             assertThrows<IllegalArgumentException> {
                 Merknader.Beregningsmerknad().apply {
@@ -22,7 +22,7 @@ internal class MerknaderTest {
         listOf(
             Merknad.Beregning.BeløpErNull,
             Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats,
-            Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats,
+            Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats,
         ).forEach {
             assertThrows<IllegalArgumentException> {
                 Merknader.Beregningsmerknad().apply {
@@ -34,11 +34,11 @@ internal class MerknaderTest {
         listOf(
             Merknad.Beregning.BeløpErNull,
             Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats,
-            Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats,
+            Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats,
         ).forEach {
             assertThrows<IllegalArgumentException> {
                 Merknader.Beregningsmerknad().apply {
-                    leggTil(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats, it)
+                    leggTil(Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats, it)
                 }
             }
         }

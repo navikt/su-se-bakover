@@ -31,7 +31,7 @@ sealed class Merknader {
             merknader.any { it is Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats }
 
         private fun harSosialstønadFørerTilBeløpUnderToProsent() =
-            merknader.any { it is Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats }
+            merknader.any { it is Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats }
     }
 }
 
@@ -41,7 +41,7 @@ sealed class Merknad {
         /**
          * Beregnet beløp for en måned er lavere enn 2% av [Sats.HØY] som følge av sosialstønad.
          */
-        object SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats : Merknad.Beregning()
+        object SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats : Merknad.Beregning()
 
         /**
          * Beregnet beløp for en måned (ex [Fradragstype.Sosialstønad]) er mellom 0 og 2% av [Sats.HØY]

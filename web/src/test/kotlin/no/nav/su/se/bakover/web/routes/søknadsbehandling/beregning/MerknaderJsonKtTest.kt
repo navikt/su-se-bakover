@@ -41,7 +41,7 @@ internal class MerknaderJsonKtTest {
             }
         """.trimIndent()
 
-        val merknad = Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats
+        val merknad = Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats
         JSONAssert.assertEquals(expected, serialize(merknad.toJson()), true)
     }
 }

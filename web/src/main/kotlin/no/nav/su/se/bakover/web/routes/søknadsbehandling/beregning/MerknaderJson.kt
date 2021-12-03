@@ -10,7 +10,7 @@ internal fun Merknad.Beregning.toJson(): MerknadJson.BeregningJson {
     return when (this) {
         is Merknad.Beregning.BeløpErNull -> toJson()
         is Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats -> toJson()
-        is Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats -> toJson()
+        is Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats -> toJson()
     }
 }
 
@@ -18,7 +18,7 @@ internal fun Merknad.Beregning.BeløpErNull.toJson() = MerknadJson.BeregningJson
 internal fun Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats.toJson() =
     MerknadJson.BeregningJson.BeløpMellomNullOgToProsentAvHøySatsJson
 
-internal fun Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats.toJson() =
+internal fun Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats.toJson() =
     MerknadJson.BeregningJson.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySatsJson
 
 internal sealed class MerknadJson {

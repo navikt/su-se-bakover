@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.beregning.fradrag.utenSosialstønad
+import no.nav.su.se.bakover.domain.beregning.fradrag.utenSosialstønadOgAvkorting
 import java.util.UUID
 
 data class BeregningMedFradragBeregnetMånedsvis(
@@ -47,8 +47,8 @@ data class BeregningMedFradragBeregnetMånedsvis(
                 fradrag = fradrag,
             ).let { månedsberegning ->
                 when {
-                    månedsberegning.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(månedsberegning.periode) -> {
-                        månedsberegning.leggTilMerknad(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats)
+                    månedsberegning.sosialstønadOgAvkortingFørerTilBeløpUnderToProsentAvHøySats(månedsberegning.periode) -> {
+                        månedsberegning.leggTilMerknad(Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats)
                         månedsberegning
                     }
                     månedsberegning.beløpStørreEnn0MenMindreEnnToProsentAvHøySats() -> {
@@ -82,9 +82,9 @@ data class BeregningMedFradragBeregnetMånedsvis(
         )
     }
 
-    private fun Månedsberegning.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(periode: Periode): Boolean {
+    private fun Månedsberegning.sosialstønadOgAvkortingFørerTilBeløpUnderToProsentAvHøySats(periode: Periode): Boolean {
         return getSumYtelse() < Sats.toProsentAvHøy(periode) &&
-            sumYtelseUtenSosialstønad(periode) >= Sats.toProsentAvHøy(periode)
+            sumYtelseUtenSosialstønadOgAvkorting(periode) >= Sats.toProsentAvHøy(periode)
     }
 
     /**
@@ -92,10 +92,10 @@ data class BeregningMedFradragBeregnetMånedsvis(
      * filtrert vekk eventuell sosialstønad for EPS. Etter at fradragene har vært gjennom [FradragStrategy.beregnFradrag]
      * vil alle EPS sine fradrag være bakt sammen til et element av typen [Fradragstype.BeregnetFradragEPS]
      */
-    private fun sumYtelseUtenSosialstønad(periode: Periode): Int {
+    private fun sumYtelseUtenSosialstønadOgAvkorting(periode: Periode): Int {
         return beregnMåned(
             periode = periode,
-            fradrag = fradrag.utenSosialstønad(),
+            fradrag = fradrag.utenSosialstønadOgAvkorting(),
         ).getSumYtelse()
     }
 

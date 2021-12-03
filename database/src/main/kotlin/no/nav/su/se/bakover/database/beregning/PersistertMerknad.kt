@@ -57,7 +57,7 @@ internal fun Merknad.Beregning.toSnapshot(): PersistertMerknad.Beregning {
     return when (this) {
         is Merknad.Beregning.BeløpErNull -> toSnapshot()
         is Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats -> toSnapshot()
-        is Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats -> toSnapshot()
+        is Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats -> toSnapshot()
     }
 }
 
@@ -78,7 +78,7 @@ internal fun Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats.toSnapshot(
     return PersistertMerknad.Beregning.BeløpMellomNullOgToProsentAvHøySats
 }
 
-internal fun Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats.toSnapshot(): PersistertMerknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats {
+internal fun Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats.toSnapshot(): PersistertMerknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats {
     return PersistertMerknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats
 }
 
@@ -90,6 +90,6 @@ internal fun PersistertMerknad.Beregning.BeløpMellomNullOgToProsentAvHøySats.t
     return Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats
 }
 
-internal fun PersistertMerknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats.toDomain(): Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats {
-    return Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats
+internal fun PersistertMerknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats.toDomain(): Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats {
+    return Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats
 }

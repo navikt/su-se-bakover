@@ -46,7 +46,7 @@ internal class PersistertMerknadTest {
             }
         """.trimIndent()
 
-        val merknad = Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats
+        val merknad = Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats
         JSONAssert.assertEquals(expected, serialize(merknad.toSnapshot()), true)
 
         merknad shouldBe merknad.toSnapshot().toDomain()

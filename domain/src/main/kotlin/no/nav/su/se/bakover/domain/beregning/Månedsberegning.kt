@@ -54,7 +54,7 @@ fun Månedsberegning.finnMerknadForAvslag(): Either<IngenMerknaderForAvslag, Mer
         when (it) {
             is Merknad.Beregning.BeløpErNull -> it
             is Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats -> it
-            is Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats -> null
+            is Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats -> null
         }
     }.let {
         when (it.isEmpty()) {
