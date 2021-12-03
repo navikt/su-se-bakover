@@ -188,11 +188,12 @@ class KlageServiceImpl(
         fritekst: String,
         hjemler: Hjemler.Utfylt,
     ): Either<KunneIkkeLageBrevutkast, ByteArray> {
+        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
         val sak = sakRepo.hentSak(sakId) ?: return KunneIkkeLageBrevutkast.FantIkkeSak.left()
+        val vedtaksdato =
+            klageRepo.hentKnyttetVedtaksdato(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkeKnyttetVedtak.left()
         val saksbehandlerNavn = microsoftGraphApiClient.hentNavnForNavIdent(saksbehandler)
             .getOrElse { return KunneIkkeLageBrevutkast.FantIkkeSaksbehandler.left() }
-        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
-        val vedtaksdato = klageRepo.hentKnyttetVedtaksdato(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkeKnyttetVedtak.left()
 
         return personService.hentPerson(sak.fnr)
             .fold(
