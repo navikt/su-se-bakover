@@ -9,19 +9,25 @@ import java.util.UUID
 sealed class VilkårsvurderingerTilKlage {
 
     abstract val vedtakId: UUID?
-    abstract val innenforFristen: Boolean?
+    abstract val innenforFristen: Svarord?
     abstract val klagesDetPåKonkreteElementerIVedtaket: Boolean?
-    abstract val erUnderskrevet: Boolean?
+    abstract val erUnderskrevet: Svarord?
     abstract val begrunnelse: String?
+
+    enum class Svarord {
+        JA,
+        NEI_MEN_SKAL_VURDERES,
+        NEI,
+    }
 
     /**
      * Bruk [VilkårsvurderingerTilKlage.create] som returnerer [VilkårsvurderingerTilKlage.Utfylt] dersom alle feltene er utfylt, ellers [VilkårsvurderingerTilKlage.Påbegynt]
      */
     data class Påbegynt private constructor(
         override val vedtakId: UUID?,
-        override val innenforFristen: Boolean?,
+        override val innenforFristen: Svarord?,
         override val klagesDetPåKonkreteElementerIVedtaket: Boolean?,
-        override val erUnderskrevet: Boolean?,
+        override val erUnderskrevet: Svarord?,
         override val begrunnelse: String?,
     ) : VilkårsvurderingerTilKlage() {
         companion object {
@@ -42,9 +48,9 @@ sealed class VilkårsvurderingerTilKlage {
              */
             internal fun create(
                 vedtakId: UUID?,
-                innenforFristen: Boolean?,
+                innenforFristen: Svarord?,
                 klagesDetPåKonkreteElementerIVedtaket: Boolean?,
-                erUnderskrevet: Boolean?,
+                erUnderskrevet: Svarord?,
                 begrunnelse: String?,
             ): VilkårsvurderingerTilKlage {
                 val erAlleFelterUtfylt = listOf(
@@ -79,9 +85,9 @@ sealed class VilkårsvurderingerTilKlage {
 
     data class Utfylt(
         override val vedtakId: UUID,
-        override val innenforFristen: Boolean,
+        override val innenforFristen: Svarord?,
         override val klagesDetPåKonkreteElementerIVedtaket: Boolean,
-        override val erUnderskrevet: Boolean,
+        override val erUnderskrevet: Svarord?,
         override val begrunnelse: String,
     ) : VilkårsvurderingerTilKlage()
 
@@ -96,9 +102,9 @@ sealed class VilkårsvurderingerTilKlage {
          */
         fun create(
             vedtakId: UUID?,
-            innenforFristen: Boolean?,
+            innenforFristen: Svarord?,
             klagesDetPåKonkreteElementerIVedtaket: Boolean?,
-            erUnderskrevet: Boolean?,
+            erUnderskrevet: Svarord?,
             begrunnelse: String?,
         ): VilkårsvurderingerTilKlage {
             return Påbegynt.create(

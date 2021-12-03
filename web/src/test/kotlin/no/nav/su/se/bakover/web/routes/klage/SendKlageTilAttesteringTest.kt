@@ -144,9 +144,9 @@ internal class SendKlageTilAttesteringTest {
                   "datoKlageMottatt":"2021-12-01",
                   "status":"TIL_ATTESTERING",
                   "vedtakId":"${klageTilAttestering.vilkårsvurderinger.vedtakId}",
-                  "innenforFristen":true,
+                  "innenforFristen":"JA",
                   "klagesDetPåKonkreteElementerIVedtaket":true,
-                  "erUnderskrevet":true,
+                  "erUnderskrevet":"JA",
                   "begrunnelse":"begrunnelse",
                   "fritekstTilBrev":"fritekstTilBrev",
                   "vedtaksvurdering":{

@@ -177,9 +177,9 @@ internal class UnderkjennKlageTest {
                   "datoKlageMottatt":"2021-12-01",
                   "status":"VURDERT_BEKREFTET",
                   "vedtakId":"${underkjentKlage.vilkårsvurderinger.vedtakId}",
-                  "innenforFristen":true,
+                  "innenforFristen":"JA",
                   "klagesDetPåKonkreteElementerIVedtaket":true,
-                  "erUnderskrevet":true,
+                  "erUnderskrevet":"JA",
                   "begrunnelse":"begrunnelse",
                   "fritekstTilBrev":"fritekstTilBrev",
                   "vedtaksvurdering":{

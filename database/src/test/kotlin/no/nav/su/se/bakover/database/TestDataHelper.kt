@@ -900,9 +900,9 @@ internal class TestDataHelper(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVilkårsvurdertKlage"),
             vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
                 vedtakId = vedtak.id,
-                innenforFristen = true,
+                innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
                 klagesDetPåKonkreteElementerIVedtaket = true,
-                erUnderskrevet = true,
+                erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
                 begrunnelse = "enBegrunnelse",
             ),
         ).also {

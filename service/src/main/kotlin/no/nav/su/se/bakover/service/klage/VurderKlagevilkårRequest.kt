@@ -14,9 +14,9 @@ data class VurderKlagevilkårRequest(
     val klageId: UUID,
     private val saksbehandler: NavIdentBruker.Saksbehandler,
     private val vedtakId: UUID?,
-    private val innenforFristen: Boolean?,
+    private val innenforFristen: VilkårsvurderingerTilKlage.Svarord?,
     private val klagesDetPåKonkreteElementerIVedtaket: Boolean?,
-    private val erUnderskrevet: Boolean?,
+    private val erUnderskrevet: VilkårsvurderingerTilKlage.Svarord?,
     private val begrunnelse: String?,
 ) {
     data class Domain(

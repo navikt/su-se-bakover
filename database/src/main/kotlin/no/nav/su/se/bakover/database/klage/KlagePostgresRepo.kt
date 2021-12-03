@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.database.booleanOrNull
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
+import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.Svarord.Companion.tilDatabaseType
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.Tilstand.Companion.databasetype
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.VedtaksvurderingJson.Companion.toJson
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo.VedtaksvurderingJson.Omgjør.Omgjøringsutfall.Companion.toDatabasetype
@@ -93,9 +94,9 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     "type" to klage.databasetype(),
                     "attestering" to klage.attesteringer.toDatabaseJson(),
                     "vedtakId" to klage.vilkårsvurderinger.vedtakId,
-                    "innenforFristen" to klage.vilkårsvurderinger.innenforFristen,
+                    "innenforFristen" to klage.vilkårsvurderinger.innenforFristen?.tilDatabaseType(),
                     "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
-                    "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet,
+                    "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet?.tilDatabaseType(),
                     "begrunnelse" to klage.vilkårsvurderinger.begrunnelse,
                 ),
                 session,
@@ -123,9 +124,9 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     "saksbehandler" to klage.saksbehandler,
                     "type" to klage.databasetype(),
                     "vedtakId" to klage.vilkårsvurderinger.vedtakId,
-                    "innenforFristen" to klage.vilkårsvurderinger.innenforFristen,
+                    "innenforFristen" to klage.vilkårsvurderinger.innenforFristen?.tilDatabaseType(),
                     "klagesDetPaaKonkreteElementerIVedtaket" to klage.vilkårsvurderinger.klagesDetPåKonkreteElementerIVedtaket,
-                    "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet,
+                    "erUnderskrevet" to klage.vilkårsvurderinger.erUnderskrevet?.tilDatabaseType(),
                     "begrunnelse" to klage.vilkårsvurderinger.begrunnelse,
                     "fritekstTilBrev" to klage.vurderinger.fritekstTilBrev,
                     "vedtaksvurdering" to klage.vurderinger.vedtaksvurdering?.toJson(),
@@ -214,9 +215,13 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
 
         val vilkårsvurderingerTilKlage = VilkårsvurderingerTilKlage.create(
             vedtakId = row.uuidOrNull("vedtakId"),
-            innenforFristen = row.booleanOrNull("innenforFristen"),
+            innenforFristen = row.stringOrNull("innenforFristen")?.let {
+                VilkårsvurderingerTilKlage.Svarord.valueOf(it)
+            },
             klagesDetPåKonkreteElementerIVedtaket = row.booleanOrNull("klagesDetPåKonkreteElementerIVedtaket"),
-            erUnderskrevet = row.booleanOrNull("erUnderskrevet"),
+            erUnderskrevet = row.stringOrNull("erUnderskrevet")?.let {
+                VilkårsvurderingerTilKlage.Svarord.valueOf(it)
+            },
             begrunnelse = row.stringOrNull("begrunnelse"),
         )
 
@@ -328,6 +333,22 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
             )
+        }
+    }
+
+    private enum class Svarord {
+        JA,
+        NEI_MEN_SKAL_VURDERES,
+        NEI;
+
+        companion object {
+            fun VilkårsvurderingerTilKlage.Svarord.tilDatabaseType(): String {
+                return when (this) {
+                    VilkårsvurderingerTilKlage.Svarord.JA -> JA
+                    VilkårsvurderingerTilKlage.Svarord.NEI_MEN_SKAL_VURDERES -> NEI_MEN_SKAL_VURDERES
+                    VilkårsvurderingerTilKlage.Svarord.NEI -> NEI
+                }.toString()
+            }
         }
     }
 

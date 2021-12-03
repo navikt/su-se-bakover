@@ -9,9 +9,9 @@ create table if not exists klage
     type text not null,
     attestering jsonb not null default '[]'::jsonb,
     vedtakId uuid references vedtak(id) null default null,
-    innenforFristen bool null default null,
+    innenforFristen text null default null,
     klagesDetPåKonkreteElementerIVedtaket bool null default null,
-    erUnderskrevet bool null default null,
+    erUnderskrevet text null default null,
     begrunnelse text null default null,
     fritekstTilBrev text null default null,
     vedtaksvurdering jsonb null default null

@@ -334,9 +334,9 @@ internal class VilkårsvurderKlageTest {
             saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
             klageId = klage.id,
             vedtakId = vedtak.id,
-            innenforFristen = true,
+            innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
             klagesDetPåKonkreteElementerIVedtaket = true,
-            erUnderskrevet = true,
+            erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
             begrunnelse = "SomeBegrunnelse",
         )
         var expectedKlage: VilkårsvurdertKlage.Utfylt?
@@ -349,9 +349,9 @@ internal class VilkårsvurderKlageTest {
                 saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
                 vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
                     vedtakId = it.vilkårsvurderinger.vedtakId!!,
-                    innenforFristen = true,
+                    innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
                     klagesDetPåKonkreteElementerIVedtaket = true,
-                    erUnderskrevet = true,
+                    erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
                     begrunnelse = "SomeBegrunnelse",
                 ),
                 vurderinger = vurderingerTilKlage,

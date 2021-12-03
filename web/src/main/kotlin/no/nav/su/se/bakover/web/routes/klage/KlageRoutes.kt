@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
+import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
 import no.nav.su.se.bakover.service.klage.KunneIkkeLageBrevutkast
@@ -64,6 +65,12 @@ private enum class Grunn {
     ANDRE_FORHOLD,
 }
 
+private enum class Svarord {
+    JA,
+    NEI_MEN_SKAL_VURDERES,
+    NEI,
+}
+
 internal fun Route.klageRoutes(
     klageService: KlageService,
 ) {
@@ -99,10 +106,10 @@ internal fun Route.klageRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$klagePath/{klageId}/vilkår/vurderinger") {
             data class Body(
-                val vedtakId: String?,
-                val innenforFristen: Boolean?,
+                val vedtakId: UUID?,
+                val innenforFristen: Svarord?,
                 val klagesDetPåKonkreteElementerIVedtaket: Boolean?,
-                val erUnderskrevet: Boolean?,
+                val erUnderskrevet: Svarord?,
                 val begrunnelse: String?,
             )
             call.withKlageId { klageId ->
@@ -111,10 +118,20 @@ internal fun Route.klageRoutes(
                         VurderKlagevilkårRequest(
                             klageId = klageId,
                             saksbehandler = call.suUserContext.saksbehandler,
-                            vedtakId = body.vedtakId?.let { UUID.fromString(it) },
-                            innenforFristen = body.innenforFristen,
+                            vedtakId = body.vedtakId,
+                            innenforFristen = when (body.innenforFristen) {
+                                Svarord.JA -> VilkårsvurderingerTilKlage.Svarord.JA
+                                Svarord.NEI_MEN_SKAL_VURDERES -> VilkårsvurderingerTilKlage.Svarord.NEI_MEN_SKAL_VURDERES
+                                Svarord.NEI -> VilkårsvurderingerTilKlage.Svarord.NEI
+                                null -> null
+                            },
                             klagesDetPåKonkreteElementerIVedtaket = body.klagesDetPåKonkreteElementerIVedtaket,
-                            erUnderskrevet = body.erUnderskrevet,
+                            erUnderskrevet = when (body.erUnderskrevet) {
+                                Svarord.JA -> VilkårsvurderingerTilKlage.Svarord.JA
+                                Svarord.NEI_MEN_SKAL_VURDERES -> VilkårsvurderingerTilKlage.Svarord.NEI_MEN_SKAL_VURDERES
+                                Svarord.NEI -> VilkårsvurderingerTilKlage.Svarord.NEI
+                                null -> null
+                            },
                             begrunnelse = body.begrunnelse,
                         ),
                     ).map {
