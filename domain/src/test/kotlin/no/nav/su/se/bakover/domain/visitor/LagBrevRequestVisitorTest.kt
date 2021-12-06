@@ -958,12 +958,13 @@ internal class LagBrevRequestVisitorTest {
         val iverksatt = revurdering
             .beregn(eksisterendeUtbetalinger = emptyList(), clock = fixedClock)
             .getOrFail().let {
-                (it as BeregnetRevurdering.Opphørt).toSimulert(
+                (it as BeregnetRevurdering.Opphørt).toSimulert { sakId, _, opphørsdato ->
                     simulertUtbetalingOpphør(
-                        opphørsdato = opphørsperiode.fraOgMed,
+                        sakId = sakId,
+                        opphørsdato = opphørsdato,
                         eksisterendeUtbetalinger = sak.utbetalinger,
-                    ),
-                )
+                    )
+                }.getOrFail()
             }
             .tilAttestering(
                 attesteringsoppgaveId = oppgaveIdRevurdering,
@@ -1031,12 +1032,13 @@ internal class LagBrevRequestVisitorTest {
 
         val bereget = revurdering.beregn(eksisterendeUtbetalinger = sak.utbetalinger, clock = fixedClock)
             .getOrFail().let {
-                (it as BeregnetRevurdering.Opphørt).toSimulert(
+                (it as BeregnetRevurdering.Opphørt).toSimulert { sakId, _, opphørsdato ->
                     simulertUtbetalingOpphør(
-                        opphørsdato = opphørsperiode.fraOgMed,
+                        sakId = sakId,
+                        opphørsdato = opphørsdato,
                         eksisterendeUtbetalinger = sak.utbetalinger,
-                    ),
-                )
+                    )
+                }.getOrFail()
             }
 
         val attestert = bereget.tilAttestering(

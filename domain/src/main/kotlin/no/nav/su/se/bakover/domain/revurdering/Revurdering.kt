@@ -8,6 +8,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -28,6 +29,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
@@ -591,24 +593,55 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
     ) : BeregnetRevurdering() {
-        fun toSimulert(simulertUtbetaling: Utbetaling.SimulertUtbetaling) = SimulertRevurdering.Opphørt(
-            id = id,
-            periode = periode,
-            opprettet = opprettet,
-            tilRevurdering = tilRevurdering,
-            beregning = beregning,
-            simulering = simulertUtbetaling.simulering,
-            saksbehandler = saksbehandler,
-            oppgaveId = oppgaveId,
-            fritekstTilBrev = fritekstTilBrev,
-            revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = forhåndsvarsel,
-            grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
-            informasjonSomRevurderes = informasjonSomRevurderes,
-            attesteringer = attesteringer,
-            feilutbetalingsvarsel = lagFeilutbetalingsvarsel(simulertUtbetaling),
-        )
+        fun toSimulert(simuler: (sakId: UUID, saksbehandler: NavIdentBruker, opphørsdato: LocalDate) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>): Either<SimuleringFeilet, SimulertRevurdering.Opphørt> {
+            val (simulertUtbetaling, feilutbetalingsvarsel) = simuler(sakId, saksbehandler, periode.fraOgMed)
+                .getOrHandle { return it.left() }
+                .let { simulering ->
+                    when (val feilutbetalingsvarsel = lagFeilutbetalingsvarsel(simulering)) {
+                        is Feilutbetalingsvarsel.Ingen -> {
+                            simulering to feilutbetalingsvarsel
+                        }
+                        is Feilutbetalingsvarsel.KanAvkortes -> {
+                            val tidligsteIkkeUtbetalteMåned = feilutbetalingsvarsel.hentUtbetalteBeløp(periode)
+                                .maxOf { it.first.tilOgMed }
+                                .plusMonths(1)
+                                .startOfMonth()
+
+                            require(periode inneholder tidligsteIkkeUtbetalteMåned)
+
+                            val simuleringMedNyOpphørsdato = simuler(sakId, saksbehandler, tidligsteIkkeUtbetalteMåned)
+                                .getOrHandle { return it.left() }
+                                .also {
+                                    require(!it.simulering.harFeilutbetalinger())
+                                }
+
+                            simuleringMedNyOpphørsdato to feilutbetalingsvarsel
+                        }
+                        is Feilutbetalingsvarsel.MåTilbakekreves -> {
+                            simulering to feilutbetalingsvarsel
+                        }
+                    }
+                }
+
+            return SimulertRevurdering.Opphørt(
+                id = id,
+                periode = periode,
+                opprettet = opprettet,
+                tilRevurdering = tilRevurdering,
+                beregning = beregning,
+                simulering = simulertUtbetaling.simulering,
+                saksbehandler = saksbehandler,
+                oppgaveId = oppgaveId,
+                fritekstTilBrev = fritekstTilBrev,
+                revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = forhåndsvarsel,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
+                informasjonSomRevurderes = informasjonSomRevurderes,
+                attesteringer = attesteringer,
+                feilutbetalingsvarsel = feilutbetalingsvarsel,
+            ).right()
+        }
 
         private fun lagFeilutbetalingsvarsel(simulertUtbetaling: Utbetaling.SimulertUtbetaling): Feilutbetalingsvarsel {
             return when (simulertUtbetaling.simulering.harFeilutbetalinger()) {

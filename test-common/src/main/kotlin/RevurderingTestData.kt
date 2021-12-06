@@ -445,16 +445,17 @@ fun simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
-        val opphørtSimulertRevurdering = revurdering.toSimulert(
+        val opphørtSimulertRevurdering = revurdering.toSimulert { sakId, _, opphørsdato ->
             simulertUtbetalingOpphør(
                 periode = revurdering.periode,
+                opphørsdato = opphørsdato,
                 fnr = revurdering.fnr,
-                sakId = revurdering.sakId,
-                saksnummer = revurdering.saksnummer,
-                clock = clock,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                clock = fixedClock,
                 eksisterendeUtbetalinger = sak.utbetalinger,
-            ),
-        )
+            )
+        }.getOrFail()
         Pair(
             sak.copy(
                 // Erstatter den gamle versjonen av samme revurderinger.

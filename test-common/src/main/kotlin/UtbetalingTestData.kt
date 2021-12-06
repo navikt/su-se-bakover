@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.test
 
+import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
@@ -16,6 +18,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import java.time.Clock
@@ -161,7 +164,7 @@ fun simulertUtbetalingOpphør(
     clock: Clock = fixedClock,
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.test.avstemmingsnøkkel,
     eksisterendeUtbetalinger: List<Utbetaling>,
-): Utbetaling.SimulertUtbetaling {
+): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
     return Utbetaling.SimulertUtbetaling(
         id = id,
         opprettet = Tidspunkt.now(clock),
@@ -185,7 +188,7 @@ fun simulertUtbetalingOpphør(
             sakId = sakId,
             saksnummer = saksnummer,
         ),
-    )
+    ).right()
 }
 
 /**

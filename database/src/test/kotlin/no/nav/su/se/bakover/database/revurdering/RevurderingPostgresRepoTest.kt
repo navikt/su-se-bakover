@@ -1048,12 +1048,14 @@ internal class RevurderingPostgresRepoTest {
 
                 testDataHelper.revurderingRepo.lagre(beregnet)
 
-                val simulert = beregnet.toSimulert(
+                val simulert = beregnet.toSimulert { sakId, _, opphørsdato ->
                     simulertUtbetalingOpphør(
+                        sakId = sakId,
                         periode = beregnet.periode,
+                        opphørsdato = opphørsdato,
                         eksisterendeUtbetalinger = sak.utbetalinger,
-                    ),
-                )
+                    )
+                }.getOrFail()
 
                 testDataHelper.revurderingRepo.lagre(simulert)
 
@@ -1063,7 +1065,7 @@ internal class RevurderingPostgresRepoTest {
                             (feilutbetalingsvarsel as Feilutbetalingsvarsel.KanAvkortes) shouldBe Feilutbetalingsvarsel.KanAvkortes(
                                 id = feilutbetalingsvarsel.id,
                                 opprettet = feilutbetalingsvarsel.opprettet,
-                                simulering = opphørtRevurdering.simulering,
+                                simulering = feilutbetalingsvarsel.simulering,
                                 feilutbetalingslinje = Feilutbetalingsvarsel.Feilutbetalingslinje(
                                     fraOgMed = 1.januar(2021),
                                     tilOgMed = 31.desember(2021),
@@ -1110,12 +1112,14 @@ internal class RevurderingPostgresRepoTest {
 
                 testDataHelper.revurderingRepo.lagre(beregnet)
 
-                val simulert = beregnet.toSimulert(
+                val simulert = beregnet.toSimulert { sakId, _, opphørsdato ->
                     simulertUtbetalingOpphør(
+                        sakId = sakId,
+                        opphørsdato = opphørsdato,
                         periode = beregnet.periode,
                         eksisterendeUtbetalinger = sak.utbetalinger,
-                    ),
-                )
+                    )
+                }.getOrFail()
 
                 testDataHelper.revurderingRepo.lagre(simulert)
 
@@ -1125,7 +1129,7 @@ internal class RevurderingPostgresRepoTest {
                             (feilutbetalingsvarsel as Feilutbetalingsvarsel.KanAvkortes) shouldBe Feilutbetalingsvarsel.KanAvkortes(
                                 id = feilutbetalingsvarsel.id,
                                 opprettet = feilutbetalingsvarsel.opprettet,
-                                simulering = opphørtRevurdering.simulering,
+                                simulering = feilutbetalingsvarsel.simulering,
                                 feilutbetalingslinje = Feilutbetalingsvarsel.Feilutbetalingslinje(
                                     fraOgMed = 1.januar(2021),
                                     tilOgMed = 31.desember(2021),

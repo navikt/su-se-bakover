@@ -26,13 +26,15 @@ class RevurderingSimulerTest {
             revurdering.beregn(sak.utbetalinger, fixedClock)
                 .getOrFail().let {
                     (it as BeregnetRevurdering.Opphørt)
-                        .toSimulert(
+                        .toSimulert { sakId, _, opphørsdato ->
                             simulertUtbetalingOpphør(
+                                sakId = sakId,
                                 periode = it.periode,
-                                opphørsdato = it.periode.fraOgMed,
+                                opphørsdato = opphørsdato,
                                 eksisterendeUtbetalinger = sak.utbetalinger,
-                            ),
-                        ).let {
+                            )
+                        }.getOrFail()
+                        .let {
                             it.feilutbetalingsvarsel.let {
                                 (it as Feilutbetalingsvarsel.KanAvkortes).let {
                                     it shouldBe Feilutbetalingsvarsel.KanAvkortes(
@@ -63,13 +65,15 @@ class RevurderingSimulerTest {
             revurdering.beregn(sak.utbetalinger, fixedClock)
                 .getOrFail().let {
                     (it as BeregnetRevurdering.Opphørt)
-                        .toSimulert(
+                        .toSimulert { sakId, _, opphørsdato ->
                             simulertUtbetalingOpphør(
+                                sakId = sakId,
                                 periode = it.periode,
-                                opphørsdato = it.periode.fraOgMed,
+                                opphørsdato = opphørsdato,
                                 eksisterendeUtbetalinger = sak.utbetalinger,
-                            ),
-                        ).let {
+                            )
+                        }.getOrFail()
+                        .let {
                             it.feilutbetalingsvarsel shouldBe Feilutbetalingsvarsel.MåTilbakekreves
                         }
                 }
@@ -93,13 +97,15 @@ class RevurderingSimulerTest {
                 it.beregn(sak.utbetalinger, fixedClock)
                     .getOrFail().let {
                         (it as BeregnetRevurdering.Opphørt)
-                            .toSimulert(
+                            .toSimulert { sakId, _, opphørsdato ->
                                 simulertUtbetalingOpphør(
+                                    sakId = sakId,
                                     periode = it.periode,
-                                    opphørsdato = it.periode.fraOgMed,
+                                    opphørsdato = opphørsdato,
                                     eksisterendeUtbetalinger = sak.utbetalinger,
-                                ),
-                            ).let {
+                                )
+                            }.getOrFail()
+                            .let {
                                 it.feilutbetalingsvarsel shouldBe Feilutbetalingsvarsel.Ingen
                             }
                     }

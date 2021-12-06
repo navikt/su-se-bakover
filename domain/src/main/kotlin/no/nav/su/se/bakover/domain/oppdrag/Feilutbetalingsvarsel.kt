@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.oppdrag
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.time.LocalDate
@@ -40,6 +41,10 @@ sealed class Feilutbetalingsvarsel {
                 uføregrad = utbetalingslinje.uføregrad,
             ),
         )
+
+        fun hentUtbetalteBeløp(periode: Periode): List<Pair<Periode, Int>> {
+            return simulering.hentUtbetalteBeløp(periode)
+        }
     }
 
     object MåTilbakekreves : Feilutbetalingsvarsel()
