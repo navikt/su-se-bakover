@@ -243,5 +243,6 @@ sealed class VilkårsvurdertKlage : Klage() {
 sealed class KunneIkkeVilkårsvurdereKlage {
     object FantIkkeKlage : KunneIkkeVilkårsvurdereKlage()
     object FantIkkeVedtak : KunneIkkeVilkårsvurdereKlage()
+    object NeiSvarErIkkeStøttet : KunneIkkeVilkårsvurdereKlage()
     data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeVilkårsvurdereKlage()
 }

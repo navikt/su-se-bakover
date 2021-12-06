@@ -267,6 +267,43 @@ internal class VilkårsvurderKlageTest {
         )
     }
 
+    @Test
+    fun `får feil dersom man svarer nei`() {
+        val r1 = VurderKlagevilkårRequest(
+            saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
+            klageId = UUID.randomUUID(),
+            vedtakId = null,
+            innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI,
+            klagesDetPåKonkreteElementerIVedtaket = null,
+            erUnderskrevet = null,
+            begrunnelse = null,
+        )
+
+        val r2 = VurderKlagevilkårRequest(
+            saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
+            klageId = UUID.randomUUID(),
+            vedtakId = null,
+            innenforFristen = null,
+            klagesDetPåKonkreteElementerIVedtaket = null,
+            erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.NEI,
+            begrunnelse = null,
+        )
+
+        val r3 = VurderKlagevilkårRequest(
+            saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
+            klageId = UUID.randomUUID(),
+            vedtakId = null,
+            innenforFristen = null,
+            klagesDetPåKonkreteElementerIVedtaket = false,
+            erUnderskrevet = null,
+            begrunnelse = null,
+        )
+
+        r1.toDomain() shouldBe KunneIkkeVilkårsvurdereKlage.NeiSvarErIkkeStøttet.left()
+        r2.toDomain() shouldBe KunneIkkeVilkårsvurdereKlage.NeiSvarErIkkeStøttet.left()
+        r3.toDomain() shouldBe KunneIkkeVilkårsvurdereKlage.NeiSvarErIkkeStøttet.left()
+    }
+
     private fun verifiserGyldigStatusovergangTilPåbegynt(
         vedtak: Vedtak,
         klage: Klage,

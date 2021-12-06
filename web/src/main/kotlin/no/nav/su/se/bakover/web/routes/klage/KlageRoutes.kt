@@ -141,6 +141,10 @@ internal fun Route.klageRoutes(
                             KunneIkkeVilkårsvurdereKlage.FantIkkeKlage -> fantIkkeKlage
                             KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak -> fantIkkeVedtak
                             is KunneIkkeVilkårsvurdereKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                            KunneIkkeVilkårsvurdereKlage.NeiSvarErIkkeStøttet -> BadRequest.errorJson(
+                                "Vi har ikke støtte for å svare nei",
+                                "nei_er_ikke_støttet",
+                            )
                         }
                     }
                     call.svar(resultat)

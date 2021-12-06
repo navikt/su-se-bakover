@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.klage
 
 import arrow.core.Either
+import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
@@ -26,6 +27,11 @@ data class VurderKlagevilkårRequest(
     )
 
     fun toDomain(): Either<KunneIkkeVilkårsvurdereKlage, Domain> {
+        // TODO: Fjern når vi skal støtte at saksbehandlere kan svare nei
+        if (innenforFristen == VilkårsvurderingerTilKlage.Svarord.NEI || klagesDetPåKonkreteElementerIVedtaket == false || erUnderskrevet == VilkårsvurderingerTilKlage.Svarord.NEI) {
+            return KunneIkkeVilkårsvurdereKlage.NeiSvarErIkkeStøttet.left()
+        }
+
         return Domain(
             klageId = klageId,
             saksbehandler = saksbehandler,
