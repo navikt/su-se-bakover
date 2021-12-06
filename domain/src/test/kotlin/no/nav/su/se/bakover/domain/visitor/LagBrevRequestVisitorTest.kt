@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.visitor
 
 import arrow.core.Either
-import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
@@ -77,8 +76,8 @@ import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilg
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.api.fail
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 internal class LagBrevRequestVisitorTest {
@@ -972,7 +971,7 @@ internal class LagBrevRequestVisitorTest {
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 fritekstTilBrev = "FRITEKST REVURDERING",
             ).getOrFail()
-            .tilIverksatt(attestant) { utbetalingId.right() }
+            .tilIverksatt(attestant) { _: UUID, _: NavIdentBruker.Attestant, _: LocalDate, _: Simulering -> utbetalingId.right() }
             .getOrFail()
 
         val opphørsvedtak = Vedtak.from(iverksatt, utbetalingId, fixedClock)
@@ -1046,9 +1045,9 @@ internal class LagBrevRequestVisitorTest {
             saksbehandler = saksbehandler,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             fritekstTilBrev = "FRITEKST REVURDERING",
-        ).getOrHandle { fail("Skulle gått bra") }
-            .tilIverksatt(attestant) { utbetalingId.right() }
-            .getOrHandle { fail("Skulle gått bra") }
+        ).getOrFail()
+            .tilIverksatt(attestant) { _: UUID, _: NavIdentBruker.Attestant, _: LocalDate, _: Simulering -> utbetalingId.right() }
+            .getOrFail()
 
         val opphørsvedtak = Vedtak.from(attestert, utbetalingId, fixedClock)
 

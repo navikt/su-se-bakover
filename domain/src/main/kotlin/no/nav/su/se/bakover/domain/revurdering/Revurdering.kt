@@ -8,7 +8,6 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -602,15 +601,14 @@ sealed class BeregnetRevurdering : Revurdering() {
                             simulering to feilutbetalingsvarsel
                         }
                         is Feilutbetalingsvarsel.KanAvkortes -> {
-                            val tidligsteIkkeUtbetalteMåned = feilutbetalingsvarsel.hentUtbetalteBeløp(periode)
-                                .maxOf { it.first.tilOgMed }
-                                .plusMonths(1)
-                                .startOfMonth()
-
-                            require(periode inneholder tidligsteIkkeUtbetalteMåned)
-
-                            val simuleringMedNyOpphørsdato = simuler(sakId, saksbehandler, tidligsteIkkeUtbetalteMåned)
-                                .getOrHandle { return it.left() }
+                            val simuleringMedNyOpphørsdato = simuler(
+                                sakId,
+                                saksbehandler,
+                                OpphørsdatoForUtbetalinger(
+                                    revurdering = this,
+                                    feilutbetalingsvarsel = feilutbetalingsvarsel,
+                                ).get(),
+                            ).getOrHandle { return it.left() }
                                 .also {
                                     require(!it.simulering.harFeilutbetalinger())
                                 }
@@ -956,37 +954,39 @@ sealed class RevurderingTilAttestering : Revurdering() {
         fun tilIverksatt(
             attestant: NavIdentBruker.Attestant,
             clock: Clock = Clock.systemUTC(),
-            utbetal: () -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>,
+            utbetal: (sakId: UUID, attestant: NavIdentBruker.Attestant, opphørsdato: LocalDate, simulering: Simulering) -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>,
         ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.Opphørt> {
 
             if (saksbehandler.navIdent == attestant.navIdent) {
                 return KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
-            return utbetal().map {
-                IverksattRevurdering.Opphørt(
-                    id = id,
-                    periode = periode,
-                    opprettet = opprettet,
-                    tilRevurdering = tilRevurdering,
-                    saksbehandler = saksbehandler,
-                    beregning = beregning,
-                    simulering = simulering,
-                    oppgaveId = oppgaveId,
-                    fritekstTilBrev = fritekstTilBrev,
-                    revurderingsårsak = revurderingsårsak,
-                    forhåndsvarsel = forhåndsvarsel,
-                    grunnlagsdata = grunnlagsdata,
-                    vilkårsvurderinger = vilkårsvurderinger,
-                    informasjonSomRevurderes = informasjonSomRevurderes,
-                    attesteringer = attesteringer.leggTilNyAttestering(
-                        Attestering.Iverksatt(
-                            attestant,
-                            Tidspunkt.now(clock),
+
+            return utbetal(sakId, attestant, OpphørsdatoForUtbetalinger(revurdering = this).get(), simulering)
+                .map {
+                    IverksattRevurdering.Opphørt(
+                        id = id,
+                        periode = periode,
+                        opprettet = opprettet,
+                        tilRevurdering = tilRevurdering,
+                        saksbehandler = saksbehandler,
+                        beregning = beregning,
+                        simulering = simulering,
+                        oppgaveId = oppgaveId,
+                        fritekstTilBrev = fritekstTilBrev,
+                        revurderingsårsak = revurderingsårsak,
+                        forhåndsvarsel = forhåndsvarsel,
+                        grunnlagsdata = grunnlagsdata,
+                        vilkårsvurderinger = vilkårsvurderinger,
+                        informasjonSomRevurderes = informasjonSomRevurderes,
+                        attesteringer = attesteringer.leggTilNyAttestering(
+                            Attestering.Iverksatt(
+                                attestant,
+                                Tidspunkt.now(clock),
+                            ),
                         ),
-                    ),
-                    feilutbetalingsvarsel = feilutbetalingsvarsel,
-                )
-            }
+                        feilutbetalingsvarsel = feilutbetalingsvarsel,
+                    )
+                }
         }
     }
 

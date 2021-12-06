@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
 import no.nav.su.se.bakover.domain.grunnlag.harFlerEnnEnBosituasjonsperiode
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -1040,12 +1041,15 @@ internal class RevurderingServiceImpl(
                         }
                     }
                     is RevurderingTilAttestering.Opphørt -> {
-                        revurdering.tilIverksatt(attestant, clock) {
+                        revurdering.tilIverksatt(
+                            attestant,
+                            clock,
+                        ) { sakId: UUID, _: NavIdentBruker.Attestant, opphørsdato: LocalDate, simulering: Simulering ->
                             utbetalingService.opphør(
-                                sakId = revurdering.sakId,
+                                sakId = sakId,
                                 attestant = attestant,
-                                opphørsdato = revurdering.periode.fraOgMed,
-                                simulering = revurdering.simulering,
+                                opphørsdato = opphørsdato,
+                                simulering = simulering,
                             ).mapLeft {
                                 RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale(it)
                             }.map {

@@ -88,6 +88,7 @@ import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt0
 import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -529,21 +530,22 @@ internal class TestDataHelper(
             is RevurderingTilAttestering.IngenEndring -> tilAttestering.tilIverksatt(
                 attestant,
             ).getOrHandle {
-                throw javax.jms.IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
+                throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
             }
             is RevurderingTilAttestering.Innvilget -> tilAttestering.tilIverksatt(
                 attestant = attestant,
             ) {
                 UUID30.randomUUID().right()
             }.getOrHandle {
-                throw javax.jms.IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
+                throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
             }
             is RevurderingTilAttestering.Opphørt -> tilAttestering.tilIverksatt(
                 attestant,
             ) {
+                _: UUID, _: NavIdentBruker.Attestant, _: LocalDate, _: Simulering ->
                 UUID30.randomUUID().right()
             }.getOrHandle {
-                throw javax.jms.IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
+                throw IllegalStateException("Her skulle vi ha hatt en iverksatt revurdering")
             }
         }.also {
             revurderingRepo.lagre(it)
