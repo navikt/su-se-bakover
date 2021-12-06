@@ -3,9 +3,7 @@ updates:
   - package-ecosystem: "gradle"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "sunday"
-      time: "04:00"
+      interval: "daily"
     open-pull-requests-limit: 10
     ignore:
       - dependency-name: org.jetbrains.kotlinx:kotlinx-coroutines-core
