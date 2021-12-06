@@ -1,6 +1,6 @@
 // Contains shared test-data, functions and extension funcions to be used across modules
 dependencies {
-    val kotestVersion = "5.0.0"
+    val kotestVersion = "5.0.1"
 
     implementation(project(":domain"))
     implementation(project(":common"))
