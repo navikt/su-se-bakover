@@ -885,7 +885,10 @@ internal class TestDataHelper(
     ): OpprettetKlage {
         return Klage.ny(
             sakId = vedtak.behandling.sakId,
+            saksnummer = vedtak.behandling.saksnummer,
+            fnr = vedtak.behandling.fnr,
             journalpostId = JournalpostId(value = "journalpostIdKlage"),
+            oppgaveId = oppgaveId,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerNyKlage"),
             clock = fixedClock,
             datoKlageMottatt = fixedLocalDate,
@@ -951,9 +954,11 @@ internal class TestDataHelper(
 
     fun klageTilAttestering(
         vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
     ): KlageTilAttestering {
         return bekreftetVurdertKlage(vedtak = vedtak).sendTilAttestering(
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerKlageTilAttestering"),
+            opprettOppgave = { oppgaveId.right() },
         ).orNull()!!.also {
             klagePostgresRepo.lagre(it)
         }
@@ -961,14 +966,16 @@ internal class TestDataHelper(
 
     fun underkjentKlage(
         vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        oppgaveId: OppgaveId = OppgaveId("underkjentKlageOppgaveId"),
     ): VurdertKlage.Bekreftet {
-        return klageTilAttestering(vedtak = vedtak).underkjenn(
+        return klageTilAttestering(vedtak = vedtak, oppgaveId = oppgaveId).underkjenn(
             underkjentAttestering = Attestering.Underkjent(
                 attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerUnderkjentKlage"),
                 opprettet = fixedTidspunkt,
                 grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                 kommentar = "underkjennelseskommentar",
             ),
+            opprettOppgave = { oppgaveId.right() },
         ).orNull()!!.also {
             klagePostgresRepo.lagre(it)
         }
@@ -976,8 +983,9 @@ internal class TestDataHelper(
 
     fun iverksattKlage(
         vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
     ): IverksattKlage {
-        return klageTilAttestering(vedtak = vedtak).iverksett(
+        return klageTilAttestering(vedtak = vedtak, oppgaveId = oppgaveId).iverksett(
             iverksattAttestering = Attestering.Iverksatt(
                 attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerIverksattKlage"),
                 opprettet = fixedTidspunkt,

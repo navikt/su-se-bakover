@@ -3,9 +3,12 @@ package no.nav.su.se.bakover.domain.klage
 import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -25,23 +28,29 @@ sealed class VurdertKlage : Klage() {
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
-                datoKlageMottatt = datoKlageMottatt
+                datoKlageMottatt = datoKlageMottatt,
             )
             is VilkårsvurderingerTilKlage.Utfylt -> VilkårsvurdertKlage.Utfylt.create(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
-                datoKlageMottatt = datoKlageMottatt
+                datoKlageMottatt = datoKlageMottatt,
             )
         }.right()
     }
@@ -55,23 +64,29 @@ sealed class VurdertKlage : Klage() {
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
-                datoKlageMottatt = datoKlageMottatt
+                datoKlageMottatt = datoKlageMottatt,
             )
             is VurderingerTilKlage.Utfylt -> Utfylt.create(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
-                datoKlageMottatt = datoKlageMottatt
+                datoKlageMottatt = datoKlageMottatt,
             )
         }.right()
     }
@@ -81,7 +96,10 @@ sealed class VurdertKlage : Klage() {
             id = id,
             opprettet = opprettet,
             sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
             journalpostId = journalpostId,
+            oppgaveId = oppgaveId,
             saksbehandler = saksbehandler,
             vilkårsvurderinger = vilkårsvurderinger,
             vurderinger = vurderinger,
@@ -94,7 +112,10 @@ sealed class VurdertKlage : Klage() {
         override val id: UUID,
         override val opprettet: Tidspunkt,
         override val sakId: UUID,
+        override val saksnummer: Saksnummer,
+        override val fnr: Fnr,
         override val journalpostId: JournalpostId,
+        override val oppgaveId: OppgaveId,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
         override val vurderinger: VurderingerTilKlage.Påbegynt,
@@ -107,7 +128,10 @@ sealed class VurdertKlage : Klage() {
                 id: UUID,
                 opprettet: Tidspunkt,
                 sakId: UUID,
+                saksnummer: Saksnummer,
+                fnr: Fnr,
                 journalpostId: JournalpostId,
+                oppgaveId: OppgaveId,
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger: VurderingerTilKlage.Påbegynt,
@@ -118,12 +142,15 @@ sealed class VurdertKlage : Klage() {
                     id = id,
                     opprettet = opprettet,
                     sakId = sakId,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
                     journalpostId = journalpostId,
+                    oppgaveId = oppgaveId,
                     saksbehandler = saksbehandler,
                     vilkårsvurderinger = vilkårsvurderinger,
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
-                    datoKlageMottatt = datoKlageMottatt
+                    datoKlageMottatt = datoKlageMottatt,
                 )
             }
         }
@@ -133,12 +160,15 @@ sealed class VurdertKlage : Klage() {
         override val id: UUID,
         override val opprettet: Tidspunkt,
         override val sakId: UUID,
+        override val saksnummer: Saksnummer,
+        override val fnr: Fnr,
         override val journalpostId: JournalpostId,
+        override val oppgaveId: OppgaveId,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
         override val vurderinger: VurderingerTilKlage.Utfylt,
         override val attesteringer: Attesteringshistorikk,
-        override val datoKlageMottatt: LocalDate
+        override val datoKlageMottatt: LocalDate,
     ) : VurdertKlage() {
 
         override fun bekreftVurderinger(
@@ -148,12 +178,15 @@ sealed class VurdertKlage : Klage() {
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
-                datoKlageMottatt = datoKlageMottatt
+                datoKlageMottatt = datoKlageMottatt,
             ).right()
         }
 
@@ -162,7 +195,10 @@ sealed class VurdertKlage : Klage() {
                 id: UUID,
                 opprettet: Tidspunkt,
                 sakId: UUID,
+                saksnummer: Saksnummer,
+                fnr: Fnr,
                 journalpostId: JournalpostId,
+                oppgaveId: OppgaveId,
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger: VurderingerTilKlage.Utfylt,
@@ -173,12 +209,15 @@ sealed class VurdertKlage : Klage() {
                     id = id,
                     opprettet = opprettet,
                     sakId = sakId,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
                     journalpostId = journalpostId,
+                    oppgaveId = oppgaveId,
                     saksbehandler = saksbehandler,
                     vilkårsvurderinger = vilkårsvurderinger,
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
-                    datoKlageMottatt = datoKlageMottatt
+                    datoKlageMottatt = datoKlageMottatt,
                 )
             }
         }
@@ -192,12 +231,15 @@ sealed class VurdertKlage : Klage() {
         override val id: UUID,
         override val opprettet: Tidspunkt,
         override val sakId: UUID,
+        override val saksnummer: Saksnummer,
+        override val fnr: Fnr,
         override val journalpostId: JournalpostId,
+        override val oppgaveId: OppgaveId,
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
         override val vurderinger: VurderingerTilKlage.Utfylt,
         override val attesteringer: Attesteringshistorikk,
-        override val datoKlageMottatt: LocalDate
+        override val datoKlageMottatt: LocalDate,
     ) : VurdertKlage() {
 
         override fun bekreftVurderinger(
@@ -207,7 +249,10 @@ sealed class VurdertKlage : Klage() {
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
@@ -218,18 +263,24 @@ sealed class VurdertKlage : Klage() {
 
         override fun sendTilAttestering(
             saksbehandler: NavIdentBruker.Saksbehandler,
+            opprettOppgave: () -> Either<KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave, OppgaveId>,
         ): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
-            return KlageTilAttestering.create(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                journalpostId = journalpostId,
-                saksbehandler = saksbehandler,
-                vilkårsvurderinger = vilkårsvurderinger,
-                vurderinger = vurderinger,
-                attesteringer = attesteringer,
-                datoKlageMottatt = datoKlageMottatt,
-            ).right()
+            return opprettOppgave().map { oppgaveId ->
+                KlageTilAttestering.create(
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
+                    journalpostId = journalpostId,
+                    oppgaveId = oppgaveId,
+                    saksbehandler = saksbehandler,
+                    vilkårsvurderinger = vilkårsvurderinger,
+                    vurderinger = vurderinger,
+                    attesteringer = attesteringer,
+                    datoKlageMottatt = datoKlageMottatt,
+                )
+            }
         }
 
         companion object {
@@ -237,7 +288,10 @@ sealed class VurdertKlage : Klage() {
                 id: UUID,
                 opprettet: Tidspunkt,
                 sakId: UUID,
+                saksnummer: Saksnummer,
+                fnr: Fnr,
                 journalpostId: JournalpostId,
+                oppgaveId: OppgaveId,
                 saksbehandler: NavIdentBruker.Saksbehandler,
                 vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger: VurderingerTilKlage.Utfylt,
@@ -245,15 +299,18 @@ sealed class VurdertKlage : Klage() {
                 datoKlageMottatt: LocalDate,
             ): Bekreftet {
                 return Bekreftet(
-                    id,
-                    opprettet,
-                    sakId,
-                    journalpostId,
-                    saksbehandler,
-                    vilkårsvurderinger,
-                    vurderinger,
-                    attesteringer,
-                    datoKlageMottatt
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
+                    journalpostId = journalpostId,
+                    oppgaveId = oppgaveId,
+                    saksbehandler = saksbehandler,
+                    vilkårsvurderinger = vilkårsvurderinger,
+                    vurderinger = vurderinger,
+                    attesteringer = attesteringer,
+                    datoKlageMottatt = datoKlageMottatt,
                 )
             }
         }

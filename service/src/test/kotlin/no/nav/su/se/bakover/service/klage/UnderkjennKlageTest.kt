@@ -2,18 +2,23 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.getOrHandle
 import arrow.core.left
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.iverksattKlage
 import no.nav.su.se.bakover.test.klageTilAttestering
@@ -31,7 +36,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.util.UUID
 
-internal class UnderkjentKlageTest {
+internal class UnderkjennKlageTest {
 
     @Test
     fun `fant ikke klage`() {
@@ -163,6 +168,12 @@ internal class UnderkjentKlageTest {
                 on { hentKlage(any()) } doReturn klage
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
+            personServiceMock = mock {
+                on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
+            },
+            oppgaveService = mock {
+                on { opprettOppgave(any()) } doReturn OppgaveId("nyOppgaveId").right()
+            }
         )
 
         val klageId = UUID.randomUUID()
@@ -180,7 +191,10 @@ internal class UnderkjentKlageTest {
                 id = it.id,
                 opprettet = fixedTidspunkt,
                 sakId = klage.sakId,
+                saksnummer = klage.saksnummer,
+                fnr = klage.fnr,
                 journalpostId = klage.journalpostId,
+                oppgaveId = OppgaveId("nyOppgaveId"),
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
                 vilkårsvurderinger = klage.vilkårsvurderinger,
                 vurderinger = klage.vurderinger,
@@ -201,6 +215,19 @@ internal class UnderkjentKlageTest {
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
         verify(mocks.klageRepoMock).defaultTransactionContext()
         verify(mocks.klageRepoMock).lagre(argThat { it shouldBe expectedKlage }, argThat { it shouldBe TestSessionFactory.transactionContext })
+        verify(mocks.oppgaveService).opprettOppgave(
+            argThat {
+                it shouldBe OppgaveConfig.Klage.Saksbehandler(
+                    saksnummer = klage.saksnummer,
+                    aktørId = AktørId("aktørId"),
+                    journalpostId = klage.journalpostId,
+                    tilordnetRessurs = klage.saksbehandler,
+                    clock = fixedClock,
+                )
+            },
+        )
+        verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe klage.fnr })
+        verify(mocks.oppgaveService).lukkOppgave(klage.oppgaveId)
         mocks.verifyNoMoreInteractions()
     }
 }

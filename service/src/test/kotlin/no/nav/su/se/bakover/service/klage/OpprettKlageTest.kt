@@ -1,13 +1,18 @@
 package no.nav.su.se.bakover.service.klage
 
 import arrow.core.left
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.opprettetKlage
@@ -75,6 +80,12 @@ internal class OpprettKlageTest {
             },
             klageRepoMock = mock {
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+            },
+            personServiceMock = mock {
+                on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
+            },
+            oppgaveService = mock {
+                on { opprettOppgave(any()) } doReturn OppgaveId("nyOppgaveId").right()
             }
         )
         val request = NyKlageRequest(
@@ -89,7 +100,10 @@ internal class OpprettKlageTest {
                 id = it.id,
                 opprettet = fixedTidspunkt,
                 sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
                 journalpostId = JournalpostId(value = "1"),
+                oppgaveId = OppgaveId("nyOppgaveId"),
                 saksbehandler = NavIdentBruker.Saksbehandler(
                     navIdent = "2",
                 ),
@@ -108,6 +122,18 @@ internal class OpprettKlageTest {
                 it shouldBe TestSessionFactory.transactionContext
             }
         )
+        verify(mocks.oppgaveService).opprettOppgave(
+            argThat {
+                it shouldBe OppgaveConfig.Klage.Saksbehandler(
+                    saksnummer = sak.saksnummer,
+                    aktørId = AktørId("aktørId"),
+                    journalpostId = JournalpostId(value = "1"),
+                    tilordnetRessurs = null,
+                    clock = fixedClock,
+                )
+            },
+        )
+        verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe sak.fnr })
         mocks.verifyNoMoreInteractions()
     }
 }

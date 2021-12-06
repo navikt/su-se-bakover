@@ -52,6 +52,7 @@ interface KlageService {
 sealed class KunneIkkeOppretteKlage {
     object FantIkkeSak : KunneIkkeOppretteKlage()
     object FinnesAlleredeEnÅpenKlage : KunneIkkeOppretteKlage()
+    object KunneIkkeOppretteOppgave : KunneIkkeOppretteKlage()
 }
 
 sealed class KunneIkkeLageBrevutkast {

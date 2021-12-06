@@ -46,6 +46,7 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSaksbehandlerEllerAttestant
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeVedtak
 import no.nav.su.se.bakover.web.routes.Feilresponser.feilVedGenereringAvDokument
+import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
@@ -95,6 +96,7 @@ internal fun Route.klageRoutes(
                                 "Det finnes allerede en åpen klage",
                                 "finnes_allerede_en_åpen_klage",
                             )
+                            KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
                         }
                     }
                     call.svar(resultat)
@@ -317,6 +319,7 @@ internal fun Route.klageRoutes(
                             when (it) {
                                 KunneIkkeSendeTilAttestering.FantIkkeKlage -> fantIkkeKlage
                                 is KunneIkkeSendeTilAttestering.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                                KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
                             },
                         )
                     }
@@ -365,6 +368,7 @@ internal fun Route.klageRoutes(
                                     when (error) {
                                         KunneIkkeUnderkjenne.FantIkkeKlage -> fantIkkeKlage
                                         is KunneIkkeUnderkjenne.UgyldigTilstand -> ugyldigTilstand(error.fra, error.til)
+                                        KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
                                     },
                                 )
                             }

@@ -6,6 +6,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.oppgaveId
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.dokument.Dokument
@@ -27,7 +28,10 @@ internal class DokumentPostgresRepoTest {
             val sak = testDataHelper.nySakMedNySøknad()
             val etVedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
             val enRevurdering = testDataHelper.tilIverksattRevurdering()
-            val enKlage = testDataHelper.iverksattKlage(testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first)
+            val enKlage = testDataHelper.iverksattKlage(
+                vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first,
+                oppgaveId = oppgaveId,
+            )
 
             val original = Dokument.MedMetadata.Vedtak(
                 id = UUID.randomUUID(),

@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
@@ -22,6 +23,7 @@ internal data class KlageServiceMocks(
     val microsoftGraphApiMock: MicrosoftGraphApiOppslag = mock(),
     val kabalClient: KabalClient = mock(),
     val sessionFactory: SessionFactory = TestSessionFactory(),
+    val oppgaveService: OppgaveService = mock(),
     val clock: Clock = fixedClock,
 ) {
     val service = KlageServiceImpl(
@@ -33,10 +35,11 @@ internal data class KlageServiceMocks(
         microsoftGraphApiClient = microsoftGraphApiMock,
         kabalClient = kabalClient,
         sessionFactory = sessionFactory,
+        oppgaveService = oppgaveService,
         clock = clock,
     )
 
-    fun all() = listOf(
+    private fun all() = listOf(
         sakRepoMock,
         klageRepoMock,
         vedtakRepoMock,
@@ -44,6 +47,7 @@ internal data class KlageServiceMocks(
         personServiceMock,
         microsoftGraphApiMock,
         kabalClient,
+        oppgaveService,
     ).toTypedArray()
 
     fun verifyNoMoreInteractions() {

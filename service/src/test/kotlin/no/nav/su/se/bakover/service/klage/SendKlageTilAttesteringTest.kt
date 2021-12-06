@@ -1,19 +1,24 @@
 package no.nav.su.se.bakover.service.klage
 
 import arrow.core.left
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.iverksattKlage
 import no.nav.su.se.bakover.test.klageTilAttestering
@@ -149,6 +154,10 @@ internal class SendKlageTilAttesteringTest {
             vedtak = vedtak,
             klage = underkjentKlage,
             attesteringer = underkjentKlage.attesteringer,
+            tilordnetRessurs = underkjentKlage.attesteringer.let {
+                assert(it.size == 1)
+                it.first().attestant
+            },
         )
     }
 
@@ -156,6 +165,7 @@ internal class SendKlageTilAttesteringTest {
         vedtak: Vedtak,
         klage: VurdertKlage.Bekreftet,
         attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
+        tilordnetRessurs: NavIdentBruker.Attestant? = null,
     ) {
         val session = TestSessionFactory()
 
@@ -169,6 +179,12 @@ internal class SendKlageTilAttesteringTest {
                 vedtakRepoMock = mock {
                     on { hentForVedtakId(any()) } doReturn vedtak
                 },
+                personServiceMock = mock {
+                    on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
+                },
+                oppgaveService = mock {
+                    on { opprettOppgave(any()) } doReturn OppgaveId("nyOppgaveId").right()
+                },
             )
 
             var expectedKlage: KlageTilAttestering?
@@ -180,7 +196,10 @@ internal class SendKlageTilAttesteringTest {
                     id = it.id,
                     opprettet = fixedTidspunkt,
                     sakId = klage.sakId,
+                    saksnummer = klage.saksnummer,
+                    fnr = klage.fnr,
                     journalpostId = klage.journalpostId,
+                    oppgaveId = OppgaveId("nyOppgaveId"),
                     saksbehandler = NavIdentBruker.Saksbehandler("bekreftetVilkårsvurderingene"),
                     vilkårsvurderinger = klage.vilkårsvurderinger,
                     vurderinger = klage.vurderinger,
@@ -198,6 +217,19 @@ internal class SendKlageTilAttesteringTest {
                 argThat { it shouldBe transactionContext },
             )
             verify(mocks.klageRepoMock).defaultTransactionContext()
+            verify(mocks.oppgaveService).opprettOppgave(
+                argThat {
+                    it shouldBe OppgaveConfig.Klage.Saksbehandler(
+                        saksnummer = klage.saksnummer,
+                        aktørId = AktørId("aktørId"),
+                        journalpostId = klage.journalpostId,
+                        tilordnetRessurs = tilordnetRessurs,
+                        clock = fixedClock,
+                    )
+                },
+            )
+            verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe klage.fnr })
+            verify(mocks.oppgaveService).lukkOppgave(klage.oppgaveId)
             mocks.verifyNoMoreInteractions()
         }
     }

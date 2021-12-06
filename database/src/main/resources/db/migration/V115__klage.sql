@@ -4,6 +4,7 @@ create table if not exists klage
     sakid uuid references sak(id),
     opprettet timestamptz not null,
     journalpostid text not null,
+    oppgaveId text not null,
     saksbehandler text not null,
     datoKlageMottatt date not null,
     type text not null,

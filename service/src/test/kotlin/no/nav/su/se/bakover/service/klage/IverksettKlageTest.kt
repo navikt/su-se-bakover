@@ -317,7 +317,10 @@ internal class IverksettKlageTest {
                 id = it.id,
                 opprettet = fixedTidspunkt,
                 sakId = klage.sakId,
+                saksnummer = klage.saksnummer,
+                fnr = klage.fnr,
                 journalpostId = klage.journalpostId,
+                oppgaveId = klage.oppgaveId,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
                 vilkårsvurderinger = klage.vilkårsvurderinger,
                 vurderinger = klage.vurderinger,
@@ -378,6 +381,7 @@ internal class IverksettKlageTest {
             argThat { it shouldBe TestSessionFactory.transactionContext }
         )
         verify(mocks.klageRepoMock).lagre(argThat { it shouldBe expectedKlage }, argThat { it shouldBe TestSessionFactory.transactionContext })
+        verify(mocks.oppgaveService).lukkOppgave(klage.oppgaveId)
         mocks.verifyNoMoreInteractions()
     }
 }

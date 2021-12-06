@@ -2,6 +2,7 @@
 
 package no.nav.su.se.bakover.test
 
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -16,6 +17,7 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.time.LocalDate
 import java.util.UUID
 
@@ -24,14 +26,18 @@ fun opprettetKlage(
     opprettet: Tidspunkt = fixedTidspunkt,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
+    oppgaveId: OppgaveId = OppgaveId("klageOppgaveId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
-    datoKlageMottatt: LocalDate = 1.desember(2021)
+    datoKlageMottatt: LocalDate = 1.desember(2021),
 ): OpprettetKlage {
     return OpprettetKlage.create(
         id = id,
         opprettet = opprettet,
         sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
         journalpostId = journalpostId,
+        oppgaveId = oppgaveId,
         saksbehandler = saksbehandler,
         datoKlageMottatt = datoKlageMottatt,
     )
@@ -47,6 +53,7 @@ fun påbegyntVilkårsvurdertKlage(
     opprettet: Tidspunkt = fixedTidspunkt,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
+    oppgaveId: OppgaveId = OppgaveId("klageOppgaveId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 1.desember(2021),
     vedtakId: UUID? = null,
@@ -60,6 +67,7 @@ fun påbegyntVilkårsvurdertKlage(
         opprettet = opprettet,
         sakId = sakId,
         journalpostId = journalpostId,
+        oppgaveId = oppgaveId,
         saksbehandler = saksbehandler,
         datoKlageMottatt = datoKlageMottatt,
     ).vilkårsvurder(
@@ -79,6 +87,7 @@ fun utfyltVilkårsvurdertKlage(
     opprettet: Tidspunkt = fixedTidspunkt,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
+    oppgaveId: OppgaveId = OppgaveId("klageOppgaveId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 1.desember(2021),
     vedtakId: UUID = UUID.randomUUID(),
@@ -92,6 +101,7 @@ fun utfyltVilkårsvurdertKlage(
         opprettet = opprettet,
         sakId = sakId,
         journalpostId = journalpostId,
+        oppgaveId = oppgaveId,
         saksbehandler = saksbehandler,
         datoKlageMottatt = datoKlageMottatt,
     ).vilkårsvurder(
@@ -111,6 +121,7 @@ fun bekreftetVilkårsvurdertKlage(
     opprettet: Tidspunkt = fixedTidspunkt,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
+    oppgaveId: OppgaveId = OppgaveId("klageOppgaveId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 1.desember(2021),
     vedtakId: UUID = UUID.randomUUID(),
@@ -124,6 +135,7 @@ fun bekreftetVilkårsvurdertKlage(
         opprettet = opprettet,
         sakId = sakId,
         journalpostId = journalpostId,
+        oppgaveId = oppgaveId,
         saksbehandler = saksbehandler,
         datoKlageMottatt = datoKlageMottatt,
         vedtakId = vedtakId,
@@ -141,6 +153,7 @@ fun påbegyntVurdertKlage(
     opprettet: Tidspunkt = fixedTidspunkt,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
+    oppgaveId: OppgaveId = OppgaveId("klageOppgaveId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 1.desember(2021),
     vedtakId: UUID = UUID.randomUUID(),
@@ -157,6 +170,7 @@ fun påbegyntVurdertKlage(
         opprettet = opprettet,
         sakId = sakId,
         journalpostId = journalpostId,
+        oppgaveId = oppgaveId,
         saksbehandler = saksbehandler,
         datoKlageMottatt = datoKlageMottatt,
         vedtakId = vedtakId,
@@ -178,6 +192,7 @@ fun utfyltVurdertKlage(
     opprettet: Tidspunkt = fixedTidspunkt,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
+    oppgaveId: OppgaveId = OppgaveId("klageOppgaveId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 1.desember(2021),
     vedtakId: UUID = UUID.randomUUID(),
@@ -195,6 +210,7 @@ fun utfyltVurdertKlage(
         opprettet = opprettet,
         sakId = sakId,
         journalpostId = journalpostId,
+        oppgaveId = oppgaveId,
         saksbehandler = saksbehandler,
         datoKlageMottatt = datoKlageMottatt,
         vedtakId = vedtakId,
@@ -216,6 +232,7 @@ fun bekreftetVurdertKlage(
     opprettet: Tidspunkt = fixedTidspunkt,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
+    oppgaveId: OppgaveId = OppgaveId("klageOppgaveId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 1.desember(2021),
     vedtakId: UUID = UUID.randomUUID(),
@@ -233,6 +250,7 @@ fun bekreftetVurdertKlage(
         opprettet = opprettet,
         sakId = sakId,
         journalpostId = journalpostId,
+        oppgaveId = oppgaveId,
         saksbehandler = saksbehandler,
         datoKlageMottatt = datoKlageMottatt,
         vedtakId = vedtakId,
@@ -252,6 +270,7 @@ fun klageTilAttestering(
     opprettet: Tidspunkt = fixedTidspunkt,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
+    oppgaveIdTilAttestering: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 1.desember(2021),
     vedtakId: UUID = UUID.randomUUID(),
@@ -269,6 +288,7 @@ fun klageTilAttestering(
         opprettet = opprettet,
         sakId = sakId,
         journalpostId = journalpostId,
+        oppgaveId = OppgaveId("klageOppgaveId"),
         saksbehandler = saksbehandler,
         datoKlageMottatt = datoKlageMottatt,
         vedtakId = vedtakId,
@@ -279,6 +299,7 @@ fun klageTilAttestering(
         fritekstTilBrev = fritekstTilBrev,
         vedtaksvurdering = vedtaksvurdering,
     ).sendTilAttestering(
+        opprettOppgave = { oppgaveIdTilAttestering.right() },
         saksbehandler = saksbehandler,
     ).orNull()!!
 }
@@ -288,6 +309,7 @@ fun underkjentKlage(
     opprettet: Tidspunkt = fixedTidspunkt,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
+    underkjentKlageOppgaveId: OppgaveId = OppgaveId("underkjentKlageOppgaveId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 1.desember(2021),
     vedtakId: UUID = UUID.randomUUID(),
@@ -308,6 +330,7 @@ fun underkjentKlage(
         opprettet = opprettet,
         sakId = sakId,
         journalpostId = journalpostId,
+        oppgaveIdTilAttestering = OppgaveId("klageTilAttesteringOppgaveId"),
         saksbehandler = saksbehandler,
         datoKlageMottatt = datoKlageMottatt,
         vedtakId = vedtakId,
@@ -318,13 +341,52 @@ fun underkjentKlage(
         fritekstTilBrev = fritekstTilBrev,
         vedtaksvurdering = vedtaksvurdering,
     ).underkjenn(
-        underkjentAttestering =
-        Attestering.Underkjent(
+        underkjentAttestering = Attestering.Underkjent(
             attestant = attestant,
             opprettet = opprettet,
             grunn = attesteringsgrunn,
             kommentar = attesteringskommentar,
         ),
+        opprettOppgave = { underkjentKlageOppgaveId.right() },
+    ).orNull()!!
+}
+
+fun underkjentKlageTilAttestering(
+    id: UUID = UUID.randomUUID(),
+    opprettet: Tidspunkt = fixedTidspunkt,
+    sakId: UUID = no.nav.su.se.bakover.test.sakId,
+    journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
+    oppgaveIdTilAttestering: OppgaveId = OppgaveId("underkjentKlageTilAttesteringOppgaveId"),
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
+    datoKlageMottatt: LocalDate = 1.desember(2021),
+    vedtakId: UUID = UUID.randomUUID(),
+    innenforFristen: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
+    klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
+    erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
+    begrunnelse: String = "begrunnelse",
+    fritekstTilBrev: String = "fritekstTilBrev",
+    vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
+        hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).orNull()!!,
+    ).orNull()!!,
+): KlageTilAttestering {
+    return underkjentKlage(
+        id = id,
+        opprettet = opprettet,
+        sakId = sakId,
+        journalpostId = journalpostId,
+        underkjentKlageOppgaveId = OppgaveId("underkjentKlageOppgaveId"),
+        saksbehandler = saksbehandler,
+        datoKlageMottatt = datoKlageMottatt,
+        vedtakId = vedtakId,
+        innenforFristen = innenforFristen,
+        klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
+        erUnderskrevet = erUnderskrevet,
+        begrunnelse = begrunnelse,
+        fritekstTilBrev = fritekstTilBrev,
+        vedtaksvurdering = vedtaksvurdering,
+    ).sendTilAttestering(
+        saksbehandler = saksbehandler,
+        opprettOppgave = { oppgaveIdTilAttestering.right() },
     ).orNull()!!
 }
 
@@ -333,6 +395,7 @@ fun iverksattKlage(
     opprettet: Tidspunkt = fixedTidspunkt,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
     journalpostId: JournalpostId = JournalpostId("klageJournalpostId"),
+    oppgaveIdTilAttestering: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 1.desember(2021),
     vedtakId: UUID = UUID.randomUUID(),
@@ -351,6 +414,7 @@ fun iverksattKlage(
         opprettet = opprettet,
         sakId = sakId,
         journalpostId = journalpostId,
+        oppgaveIdTilAttestering = oppgaveIdTilAttestering,
         saksbehandler = saksbehandler,
         datoKlageMottatt = datoKlageMottatt,
         vedtakId = vedtakId,

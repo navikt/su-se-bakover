@@ -32,7 +32,9 @@ import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
+import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
@@ -48,6 +50,7 @@ class KlageServiceImpl(
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     private val kabalClient: KabalClient,
     private val sessionFactory: SessionFactory,
+    private val oppgaveService: OppgaveService,
     val clock: Clock,
 ) : KlageService {
 
@@ -59,7 +62,27 @@ class KlageServiceImpl(
             // TODO jah: Justere denne sjekken når vi har konseptet lukket klage.
             return KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage.left()
         }
-        return request.toKlage(clock).also {
+        val aktørId = personService.hentAktørId(sak.fnr).getOrElse {
+            return KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
+        }
+        val oppgaveId = oppgaveService.opprettOppgave(
+            OppgaveConfig.Klage.Saksbehandler(
+                saksnummer = sak.saksnummer,
+                aktørId = aktørId,
+                journalpostId = request.journalpostId,
+                tilordnetRessurs = null,
+                clock = clock,
+            ),
+        ).getOrHandle {
+            return KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
+        }
+        // Dette er greit så lenge toKlage ikke kan feile. På det tidspunktet må vi gjøre om rekkefølgen.
+        return request.toKlage(
+            saksnummer = sak.saksnummer,
+            fnr = sak.fnr,
+            oppgaveId = oppgaveId,
+            clock = clock,
+        ).also {
             klageRepo.lagre(it)
         }.right()
     }
@@ -123,24 +146,54 @@ class KlageServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeSendeTilAttestering.FantIkkeKlage.left()
-
-        return klage.sendTilAttestering(saksbehandler).tap {
+        val oppgaveIdSomSkalLukkes = klage.oppgaveId
+        return klage.sendTilAttestering(saksbehandler) {
+            personService.hentAktørId(klage.fnr).flatMap { aktørId ->
+                oppgaveService.opprettOppgave(
+                    OppgaveConfig.Klage.Saksbehandler(
+                        saksnummer = klage.saksnummer,
+                        aktørId = aktørId,
+                        journalpostId = klage.journalpostId,
+                        tilordnetRessurs = (klage as? VurdertKlage)?.attesteringer?.map { it.attestant }?.lastOrNull(),
+                        clock = clock,
+                    ),
+                )
+            }.mapLeft {
+                KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave
+            }
+        }.tap {
             klageRepo.lagre(it)
+            oppgaveService.lukkOppgave(oppgaveIdSomSkalLukkes)
         }
     }
 
     override fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenne, VurdertKlage.Bekreftet> {
         val klage = klageRepo.hentKlage(request.klageId) ?: return KunneIkkeUnderkjenne.FantIkkeKlage.left()
-
+        val oppgaveIdSomSkalLukkes = klage.oppgaveId
         return klage.underkjenn(
-            Attestering.Underkjent(
+            underkjentAttestering = Attestering.Underkjent(
                 attestant = request.attestant,
                 opprettet = Tidspunkt.now(clock),
                 grunn = request.grunn,
                 kommentar = request.kommentar,
             ),
-        ).tap {
+        ) {
+            personService.hentAktørId(klage.fnr).flatMap {
+                oppgaveService.opprettOppgave(
+                    OppgaveConfig.Klage.Saksbehandler(
+                        saksnummer = klage.saksnummer,
+                        aktørId = it,
+                        journalpostId = klage.journalpostId,
+                        tilordnetRessurs = klage.saksbehandler,
+                        clock = clock,
+                    ),
+                )
+            }.mapLeft {
+                KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave
+            }
+        }.tap {
             klageRepo.lagre(it)
+            oppgaveService.lukkOppgave(oppgaveIdSomSkalLukkes)
         }
     }
 
@@ -182,7 +235,7 @@ class KlageServiceImpl(
             kabalClient.sendTilKlageinstans(iverksattKlage, sak)
                 .getOrHandle { throw RuntimeException("Kall mot kabal feilet") }
         }
-
+        oppgaveService.lukkOppgave(iverksattKlage.oppgaveId)
         return iverksattKlage.right()
     }
 

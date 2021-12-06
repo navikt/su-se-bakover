@@ -3,9 +3,12 @@ package no.nav.su.se.bakover.domain.klage
 import arrow.core.Either
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.time.LocalDate
 import java.util.UUID
 
@@ -13,7 +16,10 @@ data class OpprettetKlage private constructor(
     override val id: UUID,
     override val opprettet: Tidspunkt,
     override val sakId: UUID,
+    override val saksnummer: Saksnummer,
+    override val fnr: Fnr,
     override val journalpostId: JournalpostId,
+    override val oppgaveId: OppgaveId,
     override val datoKlageMottatt: LocalDate,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
 ) : Klage() {
@@ -23,14 +29,20 @@ data class OpprettetKlage private constructor(
             id: UUID,
             opprettet: Tidspunkt,
             sakId: UUID,
+            saksnummer: Saksnummer,
+            fnr: Fnr,
             journalpostId: JournalpostId,
+            oppgaveId: OppgaveId,
             datoKlageMottatt: LocalDate,
             saksbehandler: NavIdentBruker.Saksbehandler,
         ): OpprettetKlage = OpprettetKlage(
             id = id,
             opprettet = opprettet,
             sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
             journalpostId = journalpostId,
+            oppgaveId = oppgaveId,
             datoKlageMottatt = datoKlageMottatt,
             saksbehandler = saksbehandler,
         )
@@ -54,7 +66,10 @@ data class OpprettetKlage private constructor(
             id = id,
             opprettet = opprettet,
             sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
             journalpostId = journalpostId,
+            oppgaveId = oppgaveId,
             saksbehandler = saksbehandler,
             vilkårsvurderinger = vilkårsvurderinger,
             vurderinger = null,
@@ -71,7 +86,10 @@ data class OpprettetKlage private constructor(
             id = id,
             opprettet = opprettet,
             sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
             journalpostId = journalpostId,
+            oppgaveId = oppgaveId,
             saksbehandler = saksbehandler,
             vilkårsvurderinger = vilkårsvurderinger,
             vurderinger = null,

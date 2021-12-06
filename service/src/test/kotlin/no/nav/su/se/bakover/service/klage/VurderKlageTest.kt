@@ -291,7 +291,10 @@ internal class VurderKlageTest {
                 id = it.id,
                 opprettet = fixedTidspunkt,
                 sakId = klage.sakId,
+                saksnummer = klage.saksnummer,
+                fnr = klage.fnr,
                 journalpostId = klage.journalpostId,
+                oppgaveId = klage.oppgaveId,
                 saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
                 vilkårsvurderinger = vilkårsvurderingerTilKlage,
                 vurderinger = VurderingerTilKlage.create(
@@ -341,7 +344,10 @@ internal class VurderKlageTest {
                 id = it.id,
                 opprettet = fixedTidspunkt,
                 sakId = klage.sakId,
+                saksnummer = klage.saksnummer,
+                fnr = klage.fnr,
                 journalpostId = klage.journalpostId,
+                oppgaveId = klage.oppgaveId,
                 saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
                 vilkårsvurderinger = vilkårsvurderingerTilKlage,
                 vurderinger = VurderingerTilKlage.Utfylt(

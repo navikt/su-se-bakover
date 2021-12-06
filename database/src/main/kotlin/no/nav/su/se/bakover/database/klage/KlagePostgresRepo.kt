@@ -29,7 +29,9 @@ import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.uuidOrNull
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.IverksattKlage
@@ -41,6 +43,7 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.time.LocalDate
 import java.util.UUID
 
@@ -59,8 +62,8 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
 
     private fun lagreOpprettetKlage(klage: OpprettetKlage, session: Session) {
         """
-            insert into klage(id,  sakid,  opprettet,  journalpostid,  saksbehandler,  datoKlageMottatt,  type)
-                      values(:id, :sakid, :opprettet, :journalpostid, :saksbehandler, :datoKlageMottatt, :type)
+            insert into klage(id,  sakid,  opprettet,  journalpostid,  oppgaveid,  saksbehandler,  datoKlageMottatt,  type)
+                      values(:id, :sakid, :opprettet, :journalpostid, :oppgaveid, :saksbehandler, :datoKlageMottatt, :type)
         """.trimIndent()
             .insert(
                 params = mapOf(
@@ -68,6 +71,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     "sakid" to klage.sakId,
                     "opprettet" to klage.opprettet,
                     "journalpostid" to klage.journalpostId,
+                    "oppgaveid" to klage.oppgaveId,
                     "saksbehandler" to klage.saksbehandler,
                     "datoKlageMottatt" to klage.datoKlageMottatt,
                     "type" to klage.databasetype(),
@@ -79,6 +83,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
     private fun lagreVilkårsvurdertKlage(klage: VilkårsvurdertKlage, session: Session) {
         """
             update klage set
+                oppgaveid=:oppgaveid,
                 saksbehandler=:saksbehandler,
                 type=:type,
                 attestering = to_jsonb(:attestering::jsonb),
@@ -92,6 +97,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
             .oppdatering(
                 mapOf(
                     "id" to klage.id,
+                    "oppgaveid" to klage.oppgaveId,
                     "saksbehandler" to klage.saksbehandler,
                     "type" to klage.databasetype(),
                     "attestering" to klage.attesteringer.toDatabaseJson(),
@@ -108,6 +114,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
     private fun lagreVurdertKlage(klage: VurdertKlage, session: Session) {
         """
             update klage set
+                oppgaveid=:oppgaveid,
                 saksbehandler=:saksbehandler,
                 type=:type,
                 attestering=to_jsonb(:attestering::jsonb),
@@ -123,6 +130,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
             .oppdatering(
                 mapOf(
                     "id" to klage.id,
+                    "oppgaveid" to klage.oppgaveId,
                     "saksbehandler" to klage.saksbehandler,
                     "type" to klage.databasetype(),
                     "vedtakId" to klage.vilkårsvurderinger.vedtakId,
@@ -143,6 +151,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
             update 
                 klage 
             set
+                oppgaveid=:oppgaveid,
                 type=:type,
                 saksbehandler=:saksbehandler,
                 attestering=to_jsonb(:attestering::jsonb)
@@ -151,6 +160,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
             .oppdatering(
                 mapOf(
                     "id" to klage.id,
+                    "oppgaveid" to klage.oppgaveId,
                     "type" to klage.databasetype(),
                     "saksbehandler" to klage.saksbehandler,
                     "attestering" to klage.attesteringer.toDatabaseJson(),
@@ -164,6 +174,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
             update
                 klage
             set
+                oppgaveid=:oppgaveid,
                 type=:type,
                 attestering=to_jsonb(:attestering::jsonb)
             where id=:id
@@ -171,6 +182,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
             .oppdatering(
                 mapOf(
                     "id" to klage.id,
+                    "oppgaveid" to klage.oppgaveId,
                     "type" to klage.databasetype(),
                     "attestering" to klage.attesteringer.toDatabaseJson(),
                 ),
@@ -180,17 +192,18 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
 
     override fun hentKlage(klageId: UUID): Klage? {
         return sessionFactory.withSession { session ->
-            "select * from klage where id=:id".trimIndent().hent(
-                params = mapOf("id" to klageId),
-                session = session,
-            ) { rowToKlage(it) }
+            "select k.*, s.fnr, s.saksnummer  from klage k inner join sak s on s.id = k.sakId where k.id=:id".trimIndent()
+                .hent(
+                    params = mapOf("id" to klageId),
+                    session = session,
+                ) { rowToKlage(it) }
         }
     }
 
     override fun hentKlager(sakid: UUID, sessionContext: SessionContext): List<Klage> {
         return sessionContext.withSession { session ->
             """
-                    select * from klage where sakid=:sakid
+                    select k.*, s.fnr, s.saksnummer  from klage k inner join sak s on s.id = k.sakId where k.sakid=:sakid
             """.trimIndent().hentListe(
                 mapOf(
                     "sakid" to sakid,
@@ -225,7 +238,10 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
         val id: UUID = row.uuid("id")
         val opprettet: Tidspunkt = row.tidspunkt("opprettet")
         val sakId: UUID = row.uuid("sakid")
+        val saksnummer = Saksnummer(row.long("saksnummer"))
+        val fnr = Fnr(row.string("fnr"))
         val journalpostId = JournalpostId(row.string("journalpostid"))
+        val oppgaveId = OppgaveId(row.string("oppgaveId"))
         val datoKlageMottatt = row.localDate("datoKlageMottatt")
         val saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(row.string("saksbehandler"))
 
@@ -257,7 +273,10 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 datoKlageMottatt = datoKlageMottatt,
             )
@@ -266,7 +285,10 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     id = id,
                     opprettet = opprettet,
                     sakId = sakId,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
                     journalpostId = journalpostId,
+                    oppgaveId = oppgaveId,
                     saksbehandler = saksbehandler,
                     vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Påbegynt,
                     vurderinger = vurderinger,
@@ -278,7 +300,10 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger = vurderinger,
@@ -289,7 +314,10 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger = vurderinger,
@@ -300,7 +328,10 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger = if (vurderinger == null) VurderingerTilKlage.empty() else vurderinger as VurderingerTilKlage.Påbegynt,
@@ -311,7 +342,10 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger = vurderinger as VurderingerTilKlage.Utfylt,
@@ -322,7 +356,10 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger = vurderinger as VurderingerTilKlage.Utfylt,
@@ -333,7 +370,10 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger = vurderinger as VurderingerTilKlage.Utfylt,
@@ -344,7 +384,10 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
                 journalpostId = journalpostId,
+                oppgaveId = oppgaveId,
                 saksbehandler = saksbehandler,
                 vilkårsvurderinger = vilkårsvurderingerTilKlage as VilkårsvurderingerTilKlage.Utfylt,
                 vurderinger = vurderinger as VurderingerTilKlage.Utfylt,
