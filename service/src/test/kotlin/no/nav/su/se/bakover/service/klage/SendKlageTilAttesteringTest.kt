@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -38,7 +39,7 @@ internal class SendKlageTilAttesteringTest {
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn null
-            }
+            },
         )
 
         val klageId = UUID.randomUUID()
@@ -147,50 +148,57 @@ internal class SendKlageTilAttesteringTest {
         verifiserGyldigStatusovergang(
             vedtak = vedtak,
             klage = underkjentKlage,
-            attesteringer = underkjentKlage.attesteringer
+            attesteringer = underkjentKlage.attesteringer,
         )
     }
 
     private fun verifiserGyldigStatusovergang(
         vedtak: Vedtak,
         klage: VurdertKlage.Bekreftet,
-        attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty()
+        attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
     ) {
+        val session = TestSessionFactory()
 
-        val mocks = KlageServiceMocks(
-            klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
-            },
-            vedtakRepoMock = mock {
-                on { hentForVedtakId(any()) } doReturn vedtak
-            },
-        )
+        session.withTransactionContext { transactionContext ->
 
-        var expectedKlage: KlageTilAttestering?
-        mocks.service.sendTilAttestering(
-            klageId = klage.id,
-            saksbehandler = NavIdentBruker.Saksbehandler("bekreftetVilkårsvurderingene"),
-        ).orNull()!!.also {
-            expectedKlage = KlageTilAttestering.create(
-                id = it.id,
-                opprettet = fixedTidspunkt,
-                sakId = klage.sakId,
-                journalpostId = klage.journalpostId,
-                saksbehandler = NavIdentBruker.Saksbehandler("bekreftetVilkårsvurderingene"),
-                vilkårsvurderinger = klage.vilkårsvurderinger,
-                vurderinger = klage.vurderinger,
-                attesteringer = attesteringer,
-                datoKlageMottatt = 1.desember(2021),
+            val mocks = KlageServiceMocks(
+                klageRepoMock = mock {
+                    on { hentKlage(any()) } doReturn klage
+                    on { defaultTransactionContext() } doReturn transactionContext
+                },
+                vedtakRepoMock = mock {
+                    on { hentForVedtakId(any()) } doReturn vedtak
+                },
             )
-            it shouldBe expectedKlage
-        }
 
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.klageRepoMock).lagre(
-            argThat {
+            var expectedKlage: KlageTilAttestering?
+            mocks.service.sendTilAttestering(
+                klageId = klage.id,
+                saksbehandler = NavIdentBruker.Saksbehandler("bekreftetVilkårsvurderingene"),
+            ).orNull()!!.also {
+                expectedKlage = KlageTilAttestering.create(
+                    id = it.id,
+                    opprettet = fixedTidspunkt,
+                    sakId = klage.sakId,
+                    journalpostId = klage.journalpostId,
+                    saksbehandler = NavIdentBruker.Saksbehandler("bekreftetVilkårsvurderingene"),
+                    vilkårsvurderinger = klage.vilkårsvurderinger,
+                    vurderinger = klage.vurderinger,
+                    attesteringer = attesteringer,
+                    datoKlageMottatt = 1.desember(2021),
+                )
                 it shouldBe expectedKlage
-            },
-        )
-        mocks.verifyNoMoreInteractions()
+            }
+
+            verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+            verify(mocks.klageRepoMock).lagre(
+                argThat {
+                    it shouldBe expectedKlage
+                },
+                argThat { it shouldBe transactionContext },
+            )
+            verify(mocks.klageRepoMock).defaultTransactionContext()
+            mocks.verifyNoMoreInteractions()
+        }
     }
 }

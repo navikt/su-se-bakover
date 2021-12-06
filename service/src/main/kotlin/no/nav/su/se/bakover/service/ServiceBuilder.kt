@@ -151,6 +151,7 @@ object ServiceBuilder {
             personService = personService,
             microsoftGraphApiClient = clients.microsoftGraphApiClient,
             kabalClient = clients.kabalClient,
+            sessionFactory = databaseRepos.sessionFactory,
             clock = clock,
         )
         return Services(

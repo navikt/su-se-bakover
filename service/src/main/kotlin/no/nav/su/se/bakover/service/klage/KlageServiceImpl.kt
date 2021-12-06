@@ -9,6 +9,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.client.kabal.KabalClient
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.Fnr
@@ -46,6 +47,7 @@ class KlageServiceImpl(
     private val personService: PersonService,
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     private val kabalClient: KabalClient,
+    private val sessionFactory: SessionFactory,
     val clock: Clock,
 ) : KlageService {
 
@@ -173,10 +175,13 @@ class KlageServiceImpl(
             )
         }.getOrHandle { return KunneIkkeIverksetteKlage.DokumentGenereringFeilet.left() }
 
-        /* TODO ai: Legg det nedan i en transaction */
-        kabalClient.sendTilKlageinstans(iverksattKlage, sak).getOrHandle { throw RuntimeException("Kall mot kabal feilet") }
-        brevService.lagreDokument(dokument)
-        klageRepo.lagre(iverksattKlage)
+        sessionFactory.withTransactionContext {
+            brevService.lagreDokument(dokument, it)
+            klageRepo.lagre(iverksattKlage, it)
+
+            kabalClient.sendTilKlageinstans(iverksattKlage, sak)
+                .getOrHandle { throw RuntimeException("Kall mot kabal feilet") }
+        }
 
         return iverksattKlage.right()
     }
@@ -199,7 +204,14 @@ class KlageServiceImpl(
             .fold(
                 ifLeft = { KunneIkkeLageBrevutkast.FantIkkePerson.left() },
                 ifRight = { person ->
-                    val brevRequest = lagBrevRequestForOppretthold(person, saksbehandlerNavn, hjemler, fritekst, klage.datoKlageMottatt, vedtaksdato)
+                    val brevRequest = lagBrevRequestForOppretthold(
+                        person,
+                        saksbehandlerNavn,
+                        hjemler,
+                        fritekst,
+                        klage.datoKlageMottatt,
+                        vedtaksdato,
+                    )
                     brevService.lagBrev(brevRequest)
                         .mapLeft { KunneIkkeLageBrevutkast.GenereringAvBrevFeilet }
                 },
@@ -212,7 +224,8 @@ class KlageServiceImpl(
     ): Either<KunneIkkeLageBrevRequest, LagBrevRequest.Klage.Oppretthold> {
         val saksbehandlerNavn = microsoftGraphApiClient.hentNavnForNavIdent(klage.saksbehandler)
             .getOrElse { return KunneIkkeLageBrevRequest.FantIkkeSaksbehandler.left() }
-        val vedtakDato = klageRepo.hentKnyttetVedtaksdato(klage.id) ?: return KunneIkkeLageBrevRequest.FantIkkeKnyttetVedtak.left()
+        val vedtakDato =
+            klageRepo.hentKnyttetVedtaksdato(klage.id) ?: return KunneIkkeLageBrevRequest.FantIkkeKnyttetVedtak.left()
 
         return personService.hentPerson(fnr)
             .fold(

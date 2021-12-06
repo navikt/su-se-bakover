@@ -194,7 +194,7 @@ internal fun Route.klageRoutes(
                                         Hjemmel.valueOf(it)
                                     },
                                 ),
-                            ), // TODO ai: add validation
+                            ),
                         ).fold(
                             ifLeft = {
                                 val resultat = when (it) {

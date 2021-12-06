@@ -6,9 +6,11 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.database.PostgresSessionFactory
+import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.attestering.AttesteringJson
 import no.nav.su.se.bakover.database.attestering.toDatabaseJson
@@ -43,15 +45,14 @@ import java.time.LocalDate
 import java.util.UUID
 
 internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFactory) : KlageRepo {
-
-    override fun lagre(klage: Klage) {
-        sessionFactory.withSession { session ->
-            return@withSession when (klage) {
-                is OpprettetKlage -> lagreOpprettetKlage(klage, session)
-                is VilkårsvurdertKlage -> lagreVilkårsvurdertKlage(klage, session)
-                is VurdertKlage -> lagreVurdertKlage(klage, session)
-                is KlageTilAttestering -> lagreTilAttestering(klage, session)
-                is IverksattKlage -> lagreIverksattKlage(klage, session)
+    override fun lagre(klage: Klage, transactionContext: TransactionContext) {
+        transactionContext.withTransaction { transaction ->
+            when (klage) {
+                is OpprettetKlage -> lagreOpprettetKlage(klage, transaction)
+                is VilkårsvurdertKlage -> lagreVilkårsvurdertKlage(klage, transaction)
+                is VurdertKlage -> lagreVurdertKlage(klage, transaction)
+                is KlageTilAttestering -> lagreTilAttestering(klage, transaction)
+                is IverksattKlage -> lagreIverksattKlage(klage, transaction)
             }
         }
     }
@@ -213,6 +214,10 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
 
     override fun defaultSessionContext(): SessionContext {
         return sessionFactory.newSessionContext()
+    }
+
+    override fun defaultTransactionContext(): TransactionContext {
+        return sessionFactory.newTransactionContext()
     }
 
     private fun rowToKlage(row: Row): Klage {
