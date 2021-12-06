@@ -5,6 +5,7 @@ import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.testing.contentType
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -130,6 +131,7 @@ private fun nySøknad(
             setBody(requestJson)
         }.apply {
             response.status() shouldBe HttpStatusCode.Created
+            response.contentType() shouldBe io.ktor.http.ContentType.parse("application/json; charset=UTF-8")
         }.response.content!!
     }
 }
