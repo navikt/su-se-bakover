@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -160,6 +161,7 @@ internal class UnderkjentKlageTest {
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
         )
 
@@ -197,7 +199,8 @@ internal class UnderkjentKlageTest {
             it shouldBe expectedKlage
         }
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
-        verify(mocks.klageRepoMock).lagre(argThat { it shouldBe expectedKlage })
+        verify(mocks.klageRepoMock).defaultTransactionContext()
+        verify(mocks.klageRepoMock).lagre(argThat { it shouldBe expectedKlage }, argThat { it shouldBe TestSessionFactory.transactionContext })
         mocks.verifyNoMoreInteractions()
     }
 }

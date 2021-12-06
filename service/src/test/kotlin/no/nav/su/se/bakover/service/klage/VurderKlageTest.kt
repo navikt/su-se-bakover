@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.klage
 import arrow.core.left
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.klage.Hjemmel
@@ -12,6 +13,7 @@ import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.fixedTidspunkt
@@ -272,6 +274,7 @@ internal class VurderKlageTest {
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
         )
 
@@ -303,10 +306,14 @@ internal class VurderKlageTest {
         }
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.klageRepoMock).defaultTransactionContext()
         verify(mocks.klageRepoMock).lagre(
             argThat {
                 it shouldBe expectedKlage
             },
+            argThat {
+                it shouldBe TestSessionFactory.transactionContext
+            }
         )
         mocks.verifyNoMoreInteractions()
     }
@@ -319,6 +326,7 @@ internal class VurderKlageTest {
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
         )
         val request = KlageVurderingerRequest(
@@ -349,10 +357,14 @@ internal class VurderKlageTest {
         }
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.klageRepoMock).defaultTransactionContext()
         verify(mocks.klageRepoMock).lagre(
             argThat {
                 it shouldBe expectedKlage
             },
+            argThat {
+                it shouldBe TestSessionFactory.transactionContext
+            }
         )
         mocks.verifyNoMoreInteractions()
     }

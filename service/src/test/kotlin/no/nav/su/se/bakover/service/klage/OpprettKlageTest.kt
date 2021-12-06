@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.nySakMedjournalførtSøknadOgOppgave
 import no.nav.su.se.bakover.test.opprettetKlage
@@ -71,6 +72,9 @@ internal class OpprettKlageTest {
         val mocks = KlageServiceMocks(
             sakRepoMock = mock {
                 on { hentSak(any<UUID>()) } doReturn sak
+            },
+            klageRepoMock = mock {
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             }
         )
         val request = NyKlageRequest(
@@ -95,10 +99,14 @@ internal class OpprettKlageTest {
         }
 
         verify(mocks.sakRepoMock).hentSak(sak.id)
+        verify(mocks.klageRepoMock).defaultTransactionContext()
         verify(mocks.klageRepoMock).lagre(
             argThat {
                 it shouldBe expectedKlage
             },
+            argThat {
+                it shouldBe TestSessionFactory.transactionContext
+            }
         )
         mocks.verifyNoMoreInteractions()
     }

@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteKlage
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.fixedLocalDate
@@ -285,6 +286,7 @@ internal class IverksettKlageTest {
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
                 on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2021)
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
             sakRepoMock = mock {
                 on { hentSak(any<UUID>()) } doReturn sak
@@ -373,8 +375,9 @@ internal class IverksettKlageTest {
 
                 )
             },
+            argThat { it shouldBe TestSessionFactory.transactionContext }
         )
-        verify(mocks.klageRepoMock).lagre(argThat { it shouldBe expectedKlage })
+        verify(mocks.klageRepoMock).lagre(argThat { it shouldBe expectedKlage }, argThat { it shouldBe TestSessionFactory.transactionContext })
         mocks.verifyNoMoreInteractions()
     }
 }
