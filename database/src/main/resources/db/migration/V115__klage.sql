@@ -15,4 +15,8 @@ create table if not exists klage
     begrunnelse text null default null,
     fritekstTilBrev text null default null,
     vedtaksvurdering jsonb null default null
-)
+);
+
+ALTER TABLE dokument
+    ADD COLUMN IF NOT EXISTS
+        klageId uuid references klage(id);

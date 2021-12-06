@@ -41,8 +41,6 @@ import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
-import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotPostgresRepo
-import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotRepo
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
@@ -178,7 +176,7 @@ object DatabaseBuilder {
             sessionFactory = sessionFactory,
         )
         val hendelseRepo = PersonhendelsePostgresRepo(dataSource, clock)
-        val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource)
+        val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource, clock)
         val klageRepo = KlagePostgresRepo(sessionFactory)
 
         return DatabaseRepos(
@@ -205,7 +203,6 @@ object DatabaseBuilder {
                 dataSource = dataSource,
                 dbMetrics = dbMetrics,
             ),
-            vedtakssnapshot = VedtakssnapshotPostgresRepo(dataSource),
             søknadsbehandling = saksbehandlingRepo,
             revurderingRepo = revurderingRepo,
             vedtakRepo = vedtakRepo,
@@ -228,7 +225,6 @@ data class DatabaseRepos(
     val hendelseslogg: HendelsesloggRepo,
     val sak: SakRepo,
     val person: PersonRepo,
-    val vedtakssnapshot: VedtakssnapshotRepo,
     val søknadsbehandling: SøknadsbehandlingRepo,
     val revurderingRepo: RevurderingRepo,
     val vedtakRepo: VedtakRepo,

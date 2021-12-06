@@ -22,10 +22,12 @@ internal class NøkkeltallPostgresRepoTest {
                     iverksatteInnvilget = 0,
                     ikkePåbegynt = 0,
                     påbegynt = 0,
+                    lukket = 0,
                     digitalsøknader = 0,
                     papirsøknader = 0,
                 ),
-                antallUnikePersoner = 0
+                antallUnikePersoner = 0,
+                løpendeSaker = 0,
             )
         }
     }
@@ -45,10 +47,12 @@ internal class NøkkeltallPostgresRepoTest {
                     iverksatteInnvilget = 0,
                     ikkePåbegynt = 2,
                     påbegynt = 0,
+                    lukket = 0,
                     digitalsøknader = 2,
                     papirsøknader = 0,
                 ),
-                antallUnikePersoner = 1
+                antallUnikePersoner = 1,
+                løpendeSaker = 0,
             )
         }
     }
@@ -67,10 +71,12 @@ internal class NøkkeltallPostgresRepoTest {
                     iverksatteInnvilget = 1,
                     ikkePåbegynt = 0,
                     påbegynt = 0,
+                    lukket = 0,
                     digitalsøknader = 2,
                     papirsøknader = 0,
                 ),
-                antallUnikePersoner = 2
+                antallUnikePersoner = 2,
+                løpendeSaker = 1,
             )
         }
     }
@@ -92,10 +98,12 @@ internal class NøkkeltallPostgresRepoTest {
                     iverksatteInnvilget = 0,
                     ikkePåbegynt = 1,
                     påbegynt = 0,
+                    lukket = 3,
                     digitalsøknader = 4,
                     papirsøknader = 0,
                 ),
-                antallUnikePersoner = 1
+                antallUnikePersoner = 1,
+                løpendeSaker = 0,
             )
         }
     }
@@ -122,10 +130,12 @@ internal class NøkkeltallPostgresRepoTest {
                     iverksatteInnvilget = 0,
                     ikkePåbegynt = 1,
                     påbegynt = 0,
+                    lukket = 0,
                     digitalsøknader = 0,
                     papirsøknader = 1,
                 ),
-                antallUnikePersoner = 1
+                antallUnikePersoner = 1,
+                løpendeSaker = 0,
             )
         }
     }
@@ -147,10 +157,12 @@ internal class NøkkeltallPostgresRepoTest {
                     iverksatteInnvilget = 0,
                     ikkePåbegynt = 1,
                     påbegynt = 0,
+                    lukket = 1,
                     digitalsøknader = 2,
                     papirsøknader = 0,
                 ),
-                antallUnikePersoner = 1
+                antallUnikePersoner = 1,
+                løpendeSaker = 0,
             )
         }
     }

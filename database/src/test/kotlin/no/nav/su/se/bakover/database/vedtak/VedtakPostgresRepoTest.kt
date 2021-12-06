@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.vedtak
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
@@ -141,9 +142,9 @@ internal class VedtakPostgresRepoTest {
             val vedtakRepo = testDataHelper.vedtakRepo
             val (søknadsbehandling, utbetaling) = testDataHelper.nyIverksattInnvilget()
             val vedtakSomErAktivt = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetaling.id, fixedClock)
-                .copy(periode = Periode.create(1.februar(2021), 31.mars(2021)))
+                .copy(periode = Periode.create(1.januar(2021), 31.mars(2021)))
             val vedtakUtenforAktivPeriode = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetaling.id, fixedClock)
-                .copy(periode = Periode.create(1.januar(2021), 31.januar(2021)))
+                .copy(periode = Periode.create(1.januar(2020), 31.desember(2020)))
             vedtakRepo.lagre(vedtakSomErAktivt)
             vedtakRepo.lagre(vedtakUtenforAktivPeriode)
 

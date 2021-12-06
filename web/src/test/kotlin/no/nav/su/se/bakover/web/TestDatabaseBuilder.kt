@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
-import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotRepo
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
@@ -29,7 +28,6 @@ object TestDatabaseBuilder {
         hendelseslogg: HendelsesloggRepo = mock(),
         sak: SakRepo = mock(),
         person: PersonRepo = mock(),
-        vedtakssnapshot: VedtakssnapshotRepo = mock(),
         søknadsbehandling: SøknadsbehandlingRepo = mock(),
         revurderingRepo: RevurderingRepo = mock(),
         vedtakRepo: VedtakRepo = mock(),
@@ -49,7 +47,6 @@ object TestDatabaseBuilder {
             hendelseslogg = hendelseslogg,
             sak = sak,
             person = person,
-            vedtakssnapshot = vedtakssnapshot,
             søknadsbehandling = søknadsbehandling,
             revurderingRepo = revurderingRepo,
             vedtakRepo = vedtakRepo,

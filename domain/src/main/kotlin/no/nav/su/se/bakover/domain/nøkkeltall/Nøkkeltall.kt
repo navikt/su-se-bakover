@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.nøkkeltall
 data class Nøkkeltall(
     val søknader: Søknader,
     val antallUnikePersoner: Int,
+    val løpendeSaker: Int,
 ) {
     data class Søknader(
         val totaltAntall: Int,
@@ -10,6 +11,7 @@ data class Nøkkeltall(
         val iverksatteInnvilget: Int,
         val ikkePåbegynt: Int,
         val påbegynt: Int,
+        val lukket: Int,
         val digitalsøknader: Int,
         val papirsøknader: Int,
     )

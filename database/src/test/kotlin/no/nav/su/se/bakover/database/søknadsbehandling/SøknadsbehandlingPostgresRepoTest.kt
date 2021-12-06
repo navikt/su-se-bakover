@@ -6,10 +6,8 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.TestDataHelper.Companion.journalførtSøknadMedOppgave
 import no.nav.su.se.bakover.database.antall
@@ -53,7 +51,6 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 import java.util.UUID
 
 internal class SøknadsbehandlingPostgresRepoTest {
@@ -598,15 +595,15 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     attesteringer = listOf(
                         Attestering.Iverksatt(
                             attestant = NavIdentBruker.Attestant(saksbehandler.navIdent),
-                            opprettet = Tidspunkt.now(no.nav.su.se.bakover.test.fixedClock),
+                            opprettet = Tidspunkt.now(fixedClock),
                         ),
                     ),
                 ),
                 fritekstTilBrev = "hshshshs",
                 stønadsperiode = Stønadsperiode.create(
                     periode = Periode.create(
-                        fraOgMed = LocalDate.now(no.nav.su.se.bakover.test.fixedClock).startOfMonth(),
-                        tilOgMed = LocalDate.now(no.nav.su.se.bakover.test.fixedClock).endOfMonth(),
+                        fraOgMed = 1.januar(2021),
+                        tilOgMed = 31.desember(2021),
                     ),
                     begrunnelse = "",
                 ),
