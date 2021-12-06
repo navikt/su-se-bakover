@@ -19,7 +19,7 @@ class Avkortingsplan constructor(
     )
 
     private val feilutbetalinger: MutableList<Objekt> = feilutbetalinger.map { (periode, beløp) ->
-        Objekt(periode, beløp)
+        Objekt(periode, kotlin.math.abs(beløp))
     }.toMutableList()
 
     private val tilbakebetalinger: List<Objekt> = lagTilbakebetalingsplan(beregning)

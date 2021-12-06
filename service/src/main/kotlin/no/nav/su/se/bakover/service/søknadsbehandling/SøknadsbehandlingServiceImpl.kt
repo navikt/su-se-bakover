@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
@@ -168,16 +169,15 @@ internal class SøknadsbehandlingServiceImpl(
     }
 
     override fun beregn(request: SøknadsbehandlingService.BeregnRequest): Either<KunneIkkeBeregne, Søknadsbehandling.Beregnet> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
+        var søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeBeregne.FantIkkeBehandling.left()
 
-        val beregning = BeregningStrategyFactory(clock).beregn(
-            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
-                grunnlagsdata = søknadsbehandling.grunnlagsdata,
-                vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger,
+        søknadsbehandling = leggTilFradragsgrunnlag(
+            LeggTilFradragsgrunnlagRequest(
+                behandlingId = søknadsbehandling.id,
+                fradragsgrunnlag = søknadsbehandling.grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.BidragEtterEkteskapsloven },
             ),
-            beregningsPeriode = søknadsbehandling.periode, begrunnelse = request.begrunnelse,
-        )
+        ).getOrHandle { return KunneIkkeBeregne.FantIkkeBehandling.left() }
 
         val feilutbetalingsListe = feilutbetalingsvarselRepo.hent(søknadsbehandling.sakId).mapNotNull {
             when (it) {
@@ -189,16 +189,24 @@ internal class SøknadsbehandlingServiceImpl(
                 else -> null
             }
         }.flatMap {
-            it.simulering.hentUtbetalteBeløp(søknadsbehandling.periode)
+            it.simulering.hentUtbetalteBeløp()
         }
 
-        val søknadsbehandlingSomSkalBeregnes = when (feilutbetalingsListe.isEmpty()) {
+        val beregning = BeregningStrategyFactory(clock).beregn(
+            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
+                grunnlagsdata = søknadsbehandling.grunnlagsdata,
+                vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger,
+            ),
+            beregningsPeriode = søknadsbehandling.periode, begrunnelse = request.begrunnelse,
+        )
+
+        søknadsbehandling = when (feilutbetalingsListe.isEmpty()) {
             true -> søknadsbehandling
             false -> feilutbetalingsListe.let {
                 leggTilFradragsgrunnlag(
                     request = LeggTilFradragsgrunnlagRequest(
                         behandlingId = søknadsbehandling.id,
-                        fradragsgrunnlag = søknadsbehandling.grunnlagsdata.fradragsgrunnlag + Avkortingsplan(
+                        fradragsgrunnlag = søknadsbehandling.grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.BidragEtterEkteskapsloven } + Avkortingsplan(
                             feilutbetalinger = it,
                             beregning = beregning,
                         ).lagFradrag(),
@@ -208,14 +216,14 @@ internal class SøknadsbehandlingServiceImpl(
         }
 
         return statusovergang(
-            søknadsbehandling = søknadsbehandlingSomSkalBeregnes,
+            søknadsbehandling = søknadsbehandling,
             statusovergang = Statusovergang.TilBeregnet {
                 BeregningStrategyFactory(clock).beregn(
                     grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
-                        grunnlagsdata = søknadsbehandlingSomSkalBeregnes.grunnlagsdata,
-                        vilkårsvurderinger = søknadsbehandlingSomSkalBeregnes.vilkårsvurderinger,
+                        grunnlagsdata = søknadsbehandling.grunnlagsdata,
+                        vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger,
                     ),
-                    beregningsPeriode = søknadsbehandlingSomSkalBeregnes.periode, begrunnelse = request.begrunnelse,
+                    beregningsPeriode = søknadsbehandling.periode, begrunnelse = request.begrunnelse,
                 )
             },
         ).let {

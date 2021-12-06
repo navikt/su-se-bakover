@@ -24,6 +24,15 @@ data class Simulering(
         return TolketSimulering(this).hentUtbetalteBeløp(periode)
     }
 
+    fun hentUtbetalteBeløp(): List<Pair<Periode, Int>> {
+        return TolketSimulering(this).hentUtbetalteBeløp(
+            Periode.create(
+                periodeList.minOf { it.fraOgMed },
+                periodeList.maxOf { it.tilOgMed },
+            ),
+        )
+    }
+
     /**
      * Nettobeløpet påvirkes av skatt, så tas ikke med i equals-sjekken.
      * Bruttobeløpet, altså summen av månedsbeløpene, brukes i stedet .
