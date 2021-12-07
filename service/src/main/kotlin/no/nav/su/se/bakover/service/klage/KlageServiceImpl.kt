@@ -203,7 +203,7 @@ class KlageServiceImpl(
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteKlage, IverksattKlage> {
         val sak = sakRepo.hentSak(sakId) ?: return KunneIkkeIverksetteKlage.FantIkkeSak.left()
-        val klage = sak.klager.find { it.id == klageId } ?: return KunneIkkeIverksetteKlage.FantIkkeKlage.left()
+        val klage = sak.hentKlage(klageId) ?: return KunneIkkeIverksetteKlage.FantIkkeKlage.left()
 
         val iverksattKlage = klage.iverksett(
             Attestering.Iverksatt(
@@ -248,7 +248,7 @@ class KlageServiceImpl(
         hjemler: Hjemler.Utfylt,
     ): Either<KunneIkkeLageBrevutkast, ByteArray> {
         val sak = sakRepo.hentSak(sakId) ?: return KunneIkkeLageBrevutkast.FantIkkeSak.left()
-        val klage = sak.klager.find { it.id == klageId } ?: return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
+        val klage = sak.hentKlage(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
 
         val vedtaksdato =
             klageRepo.hentKnyttetVedtaksdato(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkeKnyttetVedtak.left()
