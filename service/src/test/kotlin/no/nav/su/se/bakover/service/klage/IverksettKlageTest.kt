@@ -4,6 +4,7 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.nonEmptyListOf
 import arrow.core.right
+import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.desember
@@ -30,6 +31,7 @@ import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
+import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.underkjentKlage
 import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.utfyltVurdertKlage
@@ -45,31 +47,29 @@ internal class IverksettKlageTest {
 
     @Test
     fun `fant ikke klage`() {
-
+        val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
         val mocks = KlageServiceMocks(
-            klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn null
+            sakRepoMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak
             },
         )
 
         val klageId = UUID.randomUUID()
         val attestant = NavIdentBruker.Attestant("s2")
         mocks.service.iverksett(
+            sakId = sakId,
             klageId = klageId,
             attestant = attestant,
         ) shouldBe KunneIkkeIverksetteKlage.FantIkkeKlage.left()
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
+        verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `fant ikke sak`() {
+        val sakId = UUID.randomUUID()
 
-        val klage = klageTilAttestering()
         val mocks = KlageServiceMocks(
-            klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
-            },
             sakRepoMock = mock {
                 on { hentSak(any<UUID>()) } doReturn null
             },
@@ -77,25 +77,19 @@ internal class IverksettKlageTest {
 
         val attestant = NavIdentBruker.Attestant("s2")
         mocks.service.iverksett(
-            klageId = klage.id,
+            sakId = sakId,
+            klageId = UUID.randomUUID(),
             attestant = attestant,
         ) shouldBe KunneIkkeIverksetteKlage.FantIkkeSak.left()
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe klage.sakId })
+        verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe sakId })
         mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `kunne ikke lage brevrequest`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val klage = klageTilAttestering(
-            sakId = sak.id,
-            vedtakId = vedtak.id,
-        )
+
+        val (sak, klage) = klageTilAttestering()
         val mocks = KlageServiceMocks(
-            klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
-            },
             sakRepoMock = mock {
                 on { hentSak(any<UUID>()) } doReturn sak
             },
@@ -104,13 +98,13 @@ internal class IverksettKlageTest {
             },
         )
 
-        val klageId = UUID.randomUUID()
         val attestant = NavIdentBruker.Attestant("s2")
         mocks.service.iverksett(
-            klageId = klageId,
+            sakId = sakId,
+            klageId = klage.id,
             attestant = attestant,
         ) shouldBe KunneIkkeIverksetteKlage.KunneIkkeLageBrevRequest.left()
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
+
         verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.microsoftGraphApiMock).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
         mocks.verifyNoMoreInteractions()
@@ -118,15 +112,11 @@ internal class IverksettKlageTest {
 
     @Test
     fun `Dokumentgenerering feilet`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val klage = klageTilAttestering(
-            sakId = sak.id,
-            vedtakId = vedtak.id,
-        )
+
+        val (sak, klage) = klageTilAttestering()
         val person = person(fnr = sak.fnr)
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
                 on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2021)
             },
             sakRepoMock = mock {
@@ -142,14 +132,13 @@ internal class IverksettKlageTest {
                 on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
             },
         )
-
-        val klageId = UUID.randomUUID()
         val attestant = NavIdentBruker.Attestant("s2")
         mocks.service.iverksett(
-            klageId = klageId,
+            sakId = sakId,
+            klageId = klage.id,
             attestant = attestant,
         ) shouldBe KunneIkkeIverksetteKlage.DokumentGenereringFeilet.left()
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
+
         verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
         verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.microsoftGraphApiMock).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
@@ -172,14 +161,10 @@ internal class IverksettKlageTest {
 
     @Test
     fun `Attestant og saksbehandler kan ikke være samme person`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val klage = klageTilAttestering(
-            sakId = sak.id,
-            vedtakId = vedtak.id,
-        )
+
+        val (sak, klage) = klageTilAttestering()
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
                 on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2021)
             },
             sakRepoMock = mock {
@@ -187,96 +172,105 @@ internal class IverksettKlageTest {
             },
         )
 
-        val klageId = UUID.randomUUID()
         val attestant = NavIdentBruker.Attestant(klage.saksbehandler.navIdent)
         mocks.service.iverksett(
-            klageId = klageId,
+            sakId = sakId,
+            klageId = klage.id,
             attestant = attestant,
         ) shouldBe KunneIkkeIverksetteKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
+
         verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra opprettet`() {
-        val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget()
-        verifiserUgyldigTilstandsovergang(
-            sak = sak,
-            klage = opprettetKlage(sakId = sak.id),
-        )
+        opprettetKlage().also {
+            verifiserUgyldigTilstandsovergang(
+                sak = it.first,
+                klage = it.second,
+            )
+        }
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra påbegynt vilkårsvurdering`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        verifiserUgyldigTilstandsovergang(
-            klage = påbegyntVilkårsvurdertKlage(sakId = sak.id, vedtakId = vedtak.id),
-            sak = sak,
-        )
+        påbegyntVilkårsvurdertKlage().also {
+            verifiserUgyldigTilstandsovergang(
+                sak = it.first,
+                klage = it.second,
+            )
+        }
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra utfylt vilkårsvurdering`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        verifiserUgyldigTilstandsovergang(
-            klage = utfyltVilkårsvurdertKlage(sakId = sak.id, vedtakId = vedtak.id),
-            sak = sak,
-        )
+        utfyltVilkårsvurdertKlage().also {
+            verifiserUgyldigTilstandsovergang(
+                sak = it.first,
+                klage = it.second,
+            )
+        }
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra bekreftet vilkårsvurdering`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        verifiserUgyldigTilstandsovergang(
-            klage = bekreftetVilkårsvurdertKlage(sakId = sak.id, vedtakId = vedtak.id),
-            sak = sak,
-        )
+        bekreftetVilkårsvurdertKlage().also {
+            verifiserUgyldigTilstandsovergang(
+                sak = it.first,
+                klage = it.second,
+            )
+        }
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra påbegynt vurdering`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        verifiserUgyldigTilstandsovergang(
-            klage = påbegyntVurdertKlage(sakId = sak.id, vedtakId = vedtak.id),
-            sak = sak,
-        )
+        påbegyntVurdertKlage().also {
+            verifiserUgyldigTilstandsovergang(
+                sak = it.first,
+                klage = it.second,
+            )
+        }
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra utfylt vurdering`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        verifiserUgyldigTilstandsovergang(
-            klage = utfyltVurdertKlage(sakId = sak.id, vedtakId = vedtak.id),
-            sak = sak,
-        )
+        utfyltVurdertKlage().also {
+            verifiserUgyldigTilstandsovergang(
+                sak = it.first,
+                klage = it.second,
+            )
+        }
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra bekreftet vurdering`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        verifiserUgyldigTilstandsovergang(
-            klage = bekreftetVurdertKlage(sakId = sak.id, vedtakId = vedtak.id),
-            sak = sak,
-        )
+        bekreftetVurdertKlage().also {
+            verifiserUgyldigTilstandsovergang(
+                sak = it.first,
+                klage = it.second,
+            )
+        }
     }
 
     @Test
     fun `Ugyldig tilstandsovergang underkjent vurdering`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        verifiserUgyldigTilstandsovergang(
-            klage = underkjentKlage(sakId = sak.id, vedtakId = vedtak.id),
-            sak = sak,
-        )
+        underkjentKlage().also {
+            verifiserUgyldigTilstandsovergang(
+                sak = it.first,
+                klage = it.second,
+            )
+        }
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra iverksatt`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        verifiserUgyldigTilstandsovergang(
-            klage = iverksattKlage(sakId = sak.id, vedtakId = vedtak.id),
-            sak = sak,
-        )
+        iverksattKlage().also {
+            verifiserUgyldigTilstandsovergang(
+                sak = it.first,
+                klage = it.second,
+            )
+        }
     }
 
     private fun verifiserUgyldigTilstandsovergang(
@@ -284,35 +278,27 @@ internal class IverksettKlageTest {
         sak: Sak,
     ) {
         val mocks = KlageServiceMocks(
-            klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
-            },
             sakRepoMock = mock {
                 on { hentSak(any<UUID>()) } doReturn sak
             },
         )
         mocks.service.iverksett(
+            sakId = sakId,
             klageId = klage.id,
             attestant = NavIdentBruker.Attestant("attestant"),
         ) shouldBe KunneIkkeIverksetteKlage.UgyldigTilstand(klage::class, IverksattKlage::class).left()
 
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe klage.sakId })
         mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `Skal kunne iverksette klage som er til attestering`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val klage = klageTilAttestering(
-            sakId = sak.id,
-            vedtakId = vedtak.id,
-        )
+        val (sak, klage) = klageTilAttestering()
         val person = person(fnr = sak.fnr)
         val pdfAsBytes = "brevbytes".toByteArray()
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
                 on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2021)
                 on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
             },
@@ -333,14 +319,14 @@ internal class IverksettKlageTest {
             },
         )
 
-        val klageId = UUID.randomUUID()
         val attestant = NavIdentBruker.Attestant("s2")
 
         var expectedKlage: IverksattKlage?
         mocks.service.iverksett(
-            klageId = klageId,
+            sakId = sakId,
+            klageId = klage.id,
             attestant = attestant,
-        ).getOrHandle { throw RuntimeException(it.toString()) }.also {
+        ).getOrHandle { fail(it.toString()) }.also {
             expectedKlage = IverksattKlage.create(
                 id = it.id,
                 opprettet = fixedTidspunkt,
@@ -364,7 +350,7 @@ internal class IverksettKlageTest {
             )
             it shouldBe expectedKlage
         }
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
+
         verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
         verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         verify(mocks.microsoftGraphApiMock).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })

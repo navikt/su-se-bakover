@@ -30,7 +30,6 @@ import no.nav.su.se.bakover.test.påbegyntVurdertKlage
 import no.nav.su.se.bakover.test.underkjentKlage
 import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.utfyltVurdertKlage
-import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
@@ -61,7 +60,7 @@ internal class SendKlageTilAttesteringTest {
 
     @Test
     fun `kunne ikke hente aktør id`() {
-        val klage = bekreftetVurdertKlage()
+        val klage = bekreftetVurdertKlage().second
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
@@ -83,7 +82,7 @@ internal class SendKlageTilAttesteringTest {
 
     @Test
     fun `kunne ikke opprette oppgave`() {
-        val klage = bekreftetVurdertKlage()
+        val klage = bekreftetVurdertKlage().second
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
@@ -120,56 +119,56 @@ internal class SendKlageTilAttesteringTest {
     @Test
     fun `Ugyldig tilstandsovergang fra opprettet`() {
         verifiserUgyldigTilstandsovergang(
-            klage = opprettetKlage(),
+            klage = opprettetKlage().second,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra påbegynt vilkårsvurdering`() {
         verifiserUgyldigTilstandsovergang(
-            klage = påbegyntVilkårsvurdertKlage(),
+            klage = påbegyntVilkårsvurdertKlage().second,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra utfylt vilkårsvurdering`() {
         verifiserUgyldigTilstandsovergang(
-            klage = utfyltVilkårsvurdertKlage(),
+            klage = utfyltVilkårsvurdertKlage().second,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra bekreftet vilkårsvurdering`() {
         verifiserUgyldigTilstandsovergang(
-            klage = bekreftetVilkårsvurdertKlage(),
+            klage = bekreftetVilkårsvurdertKlage().second,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra påbegynt vurdering`() {
         verifiserUgyldigTilstandsovergang(
-            klage = påbegyntVurdertKlage(),
+            klage = påbegyntVurdertKlage().second,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra utfylt vurdering`() {
         verifiserUgyldigTilstandsovergang(
-            klage = utfyltVurdertKlage(),
+            klage = utfyltVurdertKlage().second,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra til attestering`() {
         verifiserUgyldigTilstandsovergang(
-            klage = klageTilAttestering(),
+            klage = klageTilAttestering().second,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra iverksatt`() {
         verifiserUgyldigTilstandsovergang(
-            klage = iverksattKlage(),
+            klage = iverksattKlage().second,
         )
     }
 
@@ -192,33 +191,27 @@ internal class SendKlageTilAttesteringTest {
 
     @Test
     fun `Skal kunne bekrefte bekreftet vurdert klage`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val bekreftetVurdertKlage = bekreftetVurdertKlage(
-            sakId = sak.id,
-            vedtakId = vedtak.id,
-        )
-        verifiserGyldigStatusovergang(
-            vedtak = vedtak,
-            klage = bekreftetVurdertKlage,
-        )
+        bekreftetVurdertKlage().let {
+            verifiserGyldigStatusovergang(
+                vedtak = it.first.vedtakListe.first(),
+                klage = it.second,
+            )
+        }
     }
 
     @Test
     fun `Skal kunne bekrefte underkjent klage`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val underkjentKlage = underkjentKlage(
-            sakId = sak.id,
-            vedtakId = vedtak.id,
-        )
-        verifiserGyldigStatusovergang(
-            vedtak = vedtak,
-            klage = underkjentKlage,
-            attesteringer = underkjentKlage.attesteringer,
-            tilordnetRessurs = underkjentKlage.attesteringer.let {
-                assert(it.size == 1)
-                it.first().attestant
-            },
-        )
+        underkjentKlage().let {
+            verifiserGyldigStatusovergang(
+                vedtak = it.first.vedtakListe.first(),
+                klage = it.second,
+                attesteringer = it.second.attesteringer,
+                tilordnetRessurs = it.second.attesteringer.let {
+                    assert(it.size == 1)
+                    it.first().attestant
+                },
+            )
+        }
     }
 
     private fun verifiserGyldigStatusovergang(

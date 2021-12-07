@@ -5,13 +5,11 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.klage.Klage
-import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -32,7 +30,6 @@ import no.nav.su.se.bakover.test.påbegyntVurdertKlage
 import no.nav.su.se.bakover.test.underkjentKlage
 import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.utfyltVurdertKlage
-import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
@@ -66,7 +63,7 @@ internal class UnderkjennKlageTest {
 
     @Test
     fun `kunne ikke hente aktør id`() {
-        val klage = klageTilAttestering()
+        val klage = klageTilAttestering().second
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
@@ -92,7 +89,7 @@ internal class UnderkjennKlageTest {
 
     @Test
     fun `kunne ikke opprette oppgave`() {
-        val klage = klageTilAttestering()
+        val klage = klageTilAttestering().second
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
@@ -132,101 +129,85 @@ internal class UnderkjennKlageTest {
 
     @Test
     fun `Attestant og saksbehandler kan ikke være samme person`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val klage = klageTilAttestering(
-            sakId = sak.id,
-            vedtakId = vedtak.id,
-        )
+        val (_, klage) = klageTilAttestering()
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
-                on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2021)
-            },
-            sakRepoMock = mock {
-                on { hentSak(any<UUID>()) } doReturn sak
             },
         )
-
-        val klageId = UUID.randomUUID()
         val attestant = NavIdentBruker.Attestant(klage.saksbehandler.navIdent)
-        mocks.service.iverksett(
-            klageId = klageId,
-            attestant = attestant,
-        ) shouldBe KunneIkkeIverksetteKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
-        verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe sak.id })
+        mocks.service.underkjenn(
+            UnderkjennKlageRequest(
+                klageId = klage.id,
+                attestant = attestant,
+                grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                kommentar = "",
+            ),
+        ) shouldBe KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra opprettet`() {
-        val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget()
         verifiserUgyldigTilstandsovergang(
-            klage = opprettetKlage(sakId = sak.id),
+            klage = opprettetKlage().second,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra påbegynt vilkårsvurdering`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
         verifiserUgyldigTilstandsovergang(
-            klage = påbegyntVilkårsvurdertKlage(sakId = sak.id, vedtakId = vedtak.id),
+            klage = påbegyntVilkårsvurdertKlage().second,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra utfylt vilkårsvurdering`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
         verifiserUgyldigTilstandsovergang(
-            klage = utfyltVilkårsvurdertKlage(sakId = sak.id, vedtakId = vedtak.id),
+            klage = utfyltVilkårsvurdertKlage().second,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra bekreftet vilkårsvurdering`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
         verifiserUgyldigTilstandsovergang(
-            klage = bekreftetVilkårsvurdertKlage(sakId = sak.id, vedtakId = vedtak.id),
+            klage = bekreftetVilkårsvurdertKlage().second,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra påbegynt vurdering`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
         verifiserUgyldigTilstandsovergang(
-            klage = påbegyntVurdertKlage(sakId = sak.id, vedtakId = vedtak.id),
+            klage = påbegyntVurdertKlage().second,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra utfylt vurdering`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
         verifiserUgyldigTilstandsovergang(
-            klage = utfyltVurdertKlage(sakId = sak.id, vedtakId = vedtak.id),
+            klage = utfyltVurdertKlage().second,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra bekreftet vurdering`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
         verifiserUgyldigTilstandsovergang(
-            klage = bekreftetVurdertKlage(sakId = sak.id, vedtakId = vedtak.id),
+            klage = bekreftetVurdertKlage().second,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang underkjent vurdering`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
         verifiserUgyldigTilstandsovergang(
-            klage = underkjentKlage(sakId = sak.id, vedtakId = vedtak.id),
+            klage = underkjentKlage().second,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra iverksatt`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
         verifiserUgyldigTilstandsovergang(
-            klage = iverksattKlage(sakId = sak.id, vedtakId = vedtak.id),
+            klage = iverksattKlage().second,
         )
     }
 
@@ -256,11 +237,7 @@ internal class UnderkjennKlageTest {
 
     @Test
     fun `Skal kunne underkjenne klage som er til attestering`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val klage = klageTilAttestering(
-            sakId = sak.id,
-            vedtakId = vedtak.id,
-        )
+        val klage = klageTilAttestering().second
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
@@ -271,15 +248,14 @@ internal class UnderkjennKlageTest {
             },
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn OppgaveId("nyOppgaveId").right()
-            }
+            },
         )
 
-        val klageId = UUID.randomUUID()
         val attestant = NavIdentBruker.Attestant("s2")
 
         var expectedKlage: VurdertKlage.Bekreftet?
         val request = UnderkjennKlageRequest(
-            klageId = klageId,
+            klageId = klage.id,
             attestant = attestant,
             grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
             kommentar = "underkjennelseskommentar",
@@ -310,7 +286,7 @@ internal class UnderkjennKlageTest {
             )
             it shouldBe expectedKlage
         }
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
+        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).defaultTransactionContext()
         verify(mocks.klageRepoMock).lagre(argThat { it shouldBe expectedKlage }, argThat { it shouldBe TestSessionFactory.transactionContext })
         verify(mocks.oppgaveService).opprettOppgave(

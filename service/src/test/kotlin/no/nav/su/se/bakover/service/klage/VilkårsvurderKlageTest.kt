@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.test.påbegyntVurdertKlage
 import no.nav.su.se.bakover.test.underkjentKlage
 import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.utfyltVurdertKlage
-import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
@@ -85,14 +84,14 @@ internal class VilkårsvurderKlageTest {
     @Test
     fun `Ugyldig tilstandsovergang fra til attestering`() {
         verifiserUgyldigTilstandsovergang(
-            klage = klageTilAttestering(),
+            klage = klageTilAttestering().second,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra iverksatt`() {
         verifiserUgyldigTilstandsovergang(
-            klage = iverksattKlage(),
+            klage = iverksattKlage().second,
         )
     }
 
@@ -124,146 +123,128 @@ internal class VilkårsvurderKlageTest {
 
     @Test
     fun `Skal kunne vilkårsvurdere opprettet klage`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val opprettetKlage = opprettetKlage(
-            sakId = sak.id,
-        )
+        val (sak, klage) = opprettetKlage()
+        val vedtak = sak.vedtakListe.first()
         verifiserGyldigStatusovergangTilPåbegynt(
             vedtak = vedtak,
-            klage = opprettetKlage,
+            klage = klage,
         )
         verifiserGyldigStatusovergangTilUtfylt(
             vedtak = vedtak,
-            klage = opprettetKlage,
+            klage = klage,
         )
     }
 
     @Test
     fun `Skal kunne vilkårsvurdere påbegynt vilkårsvurdert klage`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val påbegyntVilkårsvurdertKlage = påbegyntVilkårsvurdertKlage(
-            sakId = sak.id,
-            vedtakId = vedtak.id,
-        )
+        val (sak, klage) = påbegyntVilkårsvurdertKlage()
+        val vedtak = sak.vedtakListe.first()
+
         verifiserGyldigStatusovergangTilPåbegynt(
             vedtak = vedtak,
-            klage = påbegyntVilkårsvurdertKlage,
+            klage = klage,
         )
         verifiserGyldigStatusovergangTilUtfylt(
             vedtak = vedtak,
-            klage = påbegyntVilkårsvurdertKlage,
+            klage = klage,
         )
     }
 
     @Test
     fun `Skal kunne vilkårsvurdere utfylt vilkårsvurdert klage`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val utfyltVilkårsvurdertKlage = utfyltVilkårsvurdertKlage(
-            sakId = sak.id,
-            vedtakId = vedtak.id,
-        )
+        val (sak, klage) = utfyltVilkårsvurdertKlage()
+        val vedtak = sak.vedtakListe.first()
         verifiserGyldigStatusovergangTilPåbegynt(
             vedtak = vedtak,
-            klage = utfyltVilkårsvurdertKlage,
+            klage = klage,
         )
         verifiserGyldigStatusovergangTilUtfylt(
             vedtak = vedtak,
-            klage = utfyltVilkårsvurdertKlage,
+            klage = klage,
         )
     }
 
     @Test
     fun `Skal kunne vilkårsvurdere bekreftet vilkårsvurdert klage`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val bekreftetVilkårsvurdertKlage = bekreftetVilkårsvurdertKlage(
-            sakId = sak.id,
-            vedtakId = vedtak.id,
-        )
+        val (sak, klage) = bekreftetVilkårsvurdertKlage()
+        val vedtak = sak.vedtakListe.first()
+
         verifiserGyldigStatusovergangTilPåbegynt(
             vedtak = vedtak,
-            klage = bekreftetVilkårsvurdertKlage,
+            klage = klage,
         )
         verifiserGyldigStatusovergangTilUtfylt(
             vedtak = vedtak,
-            klage = bekreftetVilkårsvurdertKlage,
+            klage = klage,
         )
     }
 
     @Test
     fun `Skal kunne vilkårsvurdere påbegynt vurdert klage`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val påbegyntVurdertKlage = påbegyntVurdertKlage(
-            sakId = sak.id,
-            vedtakId = vedtak.id,
-        )
+        val (sak, klage) = påbegyntVurdertKlage()
+        val vedtak = sak.vedtakListe.first()
         verifiserGyldigStatusovergangTilPåbegynt(
             vedtak = vedtak,
-            klage = påbegyntVurdertKlage,
-            vurderingerTilKlage = påbegyntVurdertKlage.vurderinger,
+            klage = klage,
+            vurderingerTilKlage = klage.vurderinger,
         )
         verifiserGyldigStatusovergangTilUtfylt(
             vedtak = vedtak,
-            klage = påbegyntVurdertKlage,
-            vurderingerTilKlage = påbegyntVurdertKlage.vurderinger,
+            klage = klage,
+            vurderingerTilKlage = klage.vurderinger,
         )
     }
 
     @Test
     fun `Skal kunne vilkårsvurdere utfylt vurdert klage`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val utfyltVurdertKlage = utfyltVurdertKlage(
-            sakId = sak.id,
-            vedtakId = vedtak.id,
-        )
+        val (sak, klage) = utfyltVurdertKlage()
+        val vedtak = sak.vedtakListe.first()
+
         verifiserGyldigStatusovergangTilPåbegynt(
             vedtak = vedtak,
-            klage = utfyltVurdertKlage,
-            vurderingerTilKlage = utfyltVurdertKlage.vurderinger,
+            klage = klage,
+            vurderingerTilKlage = klage.vurderinger,
         )
         verifiserGyldigStatusovergangTilUtfylt(
             vedtak = vedtak,
-            klage = utfyltVurdertKlage,
-            vurderingerTilKlage = utfyltVurdertKlage.vurderinger,
+            klage = klage,
+            vurderingerTilKlage = klage.vurderinger,
         )
     }
 
     @Test
     fun `Skal kunne vilkårsvurdere bekreftet vurdert klage`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val bekreftetVurdertKlage = bekreftetVurdertKlage(
-            sakId = sak.id,
-            vedtakId = vedtak.id,
-        )
+        val (sak, klage) = bekreftetVurdertKlage()
+        val vedtak = sak.vedtakListe.first()
+
         verifiserGyldigStatusovergangTilPåbegynt(
             vedtak = vedtak,
-            klage = bekreftetVurdertKlage,
-            vurderingerTilKlage = bekreftetVurdertKlage.vurderinger,
+            klage = klage,
+            vurderingerTilKlage = klage.vurderinger,
         )
         verifiserGyldigStatusovergangTilUtfylt(
             vedtak = vedtak,
-            klage = bekreftetVurdertKlage,
-            vurderingerTilKlage = bekreftetVurdertKlage.vurderinger,
+            klage = klage,
+            vurderingerTilKlage = klage.vurderinger,
         )
     }
 
     @Test
     fun `Skal kunne vilkårsvurdere underkjent klage`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val underkjentKlage = underkjentKlage(
-            sakId = sak.id,
-            vedtakId = vedtak.id,
-        )
+        val (sak, klage) = underkjentKlage()
+        val vedtak = sak.vedtakListe.first()
+
         verifiserGyldigStatusovergangTilPåbegynt(
             vedtak = vedtak,
-            klage = underkjentKlage,
-            vurderingerTilKlage = underkjentKlage.vurderinger,
-            attesteringer = underkjentKlage.attesteringer,
+            klage = klage,
+            vurderingerTilKlage = klage.vurderinger,
+            attesteringer = klage.attesteringer,
         )
         verifiserGyldigStatusovergangTilUtfylt(
             vedtak = vedtak,
-            klage = underkjentKlage,
-            vurderingerTilKlage = underkjentKlage.vurderinger,
-            attesteringer = underkjentKlage.attesteringer,
+            klage = klage,
+            vurderingerTilKlage = klage.vurderinger,
+            attesteringer = klage.attesteringer,
         )
     }
 

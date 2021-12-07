@@ -198,11 +198,12 @@ class KlageServiceImpl(
     }
 
     override fun iverksett(
+        sakId: UUID,
         klageId: UUID,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteKlage, IverksattKlage> {
-        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeIverksetteKlage.FantIkkeKlage.left()
-        val sak = sakRepo.hentSak(klage.sakId) ?: return KunneIkkeIverksetteKlage.FantIkkeSak.left()
+        val sak = sakRepo.hentSak(sakId) ?: return KunneIkkeIverksetteKlage.FantIkkeSak.left()
+        val klage = sak.klager.find { it.id == klageId } ?: return KunneIkkeIverksetteKlage.FantIkkeKlage.left()
 
         val iverksattKlage = klage.iverksett(
             Attestering.Iverksatt(
@@ -246,8 +247,9 @@ class KlageServiceImpl(
         fritekst: String,
         hjemler: Hjemler.Utfylt,
     ): Either<KunneIkkeLageBrevutkast, ByteArray> {
-        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
         val sak = sakRepo.hentSak(sakId) ?: return KunneIkkeLageBrevutkast.FantIkkeSak.left()
+        val klage = sak.klager.find { it.id == klageId } ?: return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
+
         val vedtaksdato =
             klageRepo.hentKnyttetVedtaksdato(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkeKnyttetVedtak.left()
         val saksbehandlerNavn = microsoftGraphApiClient.hentNavnForNavIdent(saksbehandler)

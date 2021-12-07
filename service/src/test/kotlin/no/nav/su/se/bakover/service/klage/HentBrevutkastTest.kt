@@ -30,37 +30,29 @@ internal class HentBrevutkastTest {
 
     @Test
     fun `fant ikke klage`() {
-
+        val sak = vedtakSøknadsbehandlingIverksattInnvilget().first
         val mocks = KlageServiceMocks(
-            klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn null
+            sakRepoMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak
             },
         )
-
-        val klageId = UUID.randomUUID()
         val saksbehandler = NavIdentBruker.Saksbehandler("s2")
 
         mocks.service.brevutkast(
-            sakId = UUID.randomUUID(),
-            klageId = klageId,
+            sakId = sak.id,
+            klageId = UUID.randomUUID(),
             saksbehandler = saksbehandler,
             fritekst = "Dette er friteksten til brevet.",
             hjemler = Hjemler.Utfylt.create(nonEmptyListOf(Hjemmel.SU_PARAGRAF_3)),
-
         ) shouldBe KunneIkkeLageBrevutkast.FantIkkeKlage.left()
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
+        verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `fant ikke sak`() {
-
-        val klage = påbegyntVurdertKlage()
-        val sakId = UUID.randomUUID()
+        val klage = påbegyntVurdertKlage().second
         val mocks = KlageServiceMocks(
-            klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
-            },
             sakRepoMock = mock {
                 on { hentSak(any<UUID>()) } doReturn null
             },
@@ -69,26 +61,24 @@ internal class HentBrevutkastTest {
         val saksbehandler = NavIdentBruker.Saksbehandler("s2")
 
         mocks.service.brevutkast(
-            sakId = sakId,
+            sakId = klage.sakId,
             klageId = klage.id,
             saksbehandler = saksbehandler,
             fritekst = "Dette er friteksten til brevet.",
             hjemler = Hjemler.Utfylt.create(nonEmptyListOf(Hjemmel.SU_PARAGRAF_3)),
         ) shouldBe KunneIkkeLageBrevutkast.FantIkkeSak.left()
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
-        verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe sakId })
+
+        verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe klage.sakId })
         mocks.verifyNoMoreInteractions()
     }
 
     @Test
     fun `fant ikke knyttet vedtak`() {
 
-        val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val klage = påbegyntVurdertKlage()
+        val (sak, klage) = påbegyntVurdertKlage()
 
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
                 on { hentKnyttetVedtaksdato(any()) } doReturn null
             },
             sakRepoMock = mock {
@@ -104,9 +94,8 @@ internal class HentBrevutkastTest {
             saksbehandler = saksbehandler,
             fritekst = "Dette er friteksten til brevet.",
             hjemler = Hjemler.Utfylt.create(nonEmptyListOf(Hjemmel.SU_PARAGRAF_3)),
-
         ) shouldBe KunneIkkeLageBrevutkast.FantIkkeKnyttetVedtak.left()
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+
         verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe klage.sakId })
         verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
         mocks.verifyNoMoreInteractions()
@@ -115,12 +104,11 @@ internal class HentBrevutkastTest {
     @Test
     fun `fant ikke saksbehandler`() {
 
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val klage = påbegyntVurdertKlage()
+        val (sak, klage) = påbegyntVurdertKlage()
+        val vedtak = sak.vedtakListe.first()
 
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
                 on { hentKnyttetVedtaksdato(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
             },
             sakRepoMock = mock {
@@ -139,9 +127,8 @@ internal class HentBrevutkastTest {
             saksbehandler = saksbehandler,
             fritekst = "Dette er friteksten til brevet.",
             hjemler = Hjemler.Utfylt.create(nonEmptyListOf(Hjemmel.SU_PARAGRAF_3)),
-
         ) shouldBe KunneIkkeLageBrevutkast.FantIkkeSaksbehandler.left()
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+
         verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe klage.sakId })
         verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
         verify(mocks.microsoftGraphApiMock).hentNavnForNavIdent(argThat { it shouldBe saksbehandler })
@@ -151,12 +138,11 @@ internal class HentBrevutkastTest {
     @Test
     fun `fant ikke person`() {
 
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val klage = påbegyntVurdertKlage()
+        val (sak, klage) = påbegyntVurdertKlage()
+        val vedtak = sak.vedtakListe.first()
 
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
                 on { hentKnyttetVedtaksdato(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
             },
             sakRepoMock = mock {
@@ -178,9 +164,8 @@ internal class HentBrevutkastTest {
             saksbehandler = saksbehandler,
             fritekst = "Dette er friteksten til brevet.",
             hjemler = Hjemler.Utfylt.create(nonEmptyListOf(Hjemmel.SU_PARAGRAF_3)),
-
         ) shouldBe KunneIkkeLageBrevutkast.FantIkkePerson.left()
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+
         verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe klage.sakId })
         verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
         verify(mocks.microsoftGraphApiMock).hentNavnForNavIdent(argThat { it shouldBe saksbehandler })
@@ -191,13 +176,12 @@ internal class HentBrevutkastTest {
     @Test
     fun `generering av brev feilet`() {
 
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val klage = påbegyntVurdertKlage()
+        val (sak, klage) = påbegyntVurdertKlage()
+        val vedtak = sak.vedtakListe.first()
         val person = person(fnr = sak.fnr)
 
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
                 on { hentKnyttetVedtaksdato(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
             },
             sakRepoMock = mock {
@@ -224,9 +208,8 @@ internal class HentBrevutkastTest {
             saksbehandler = saksbehandler,
             fritekst = fritekstTilBrev,
             hjemler = hjemler,
-
         ) shouldBe KunneIkkeLageBrevutkast.GenereringAvBrevFeilet.left()
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+
         verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe klage.sakId })
         verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
         verify(mocks.microsoftGraphApiMock).hentNavnForNavIdent(argThat { it shouldBe saksbehandler })
@@ -249,14 +232,13 @@ internal class HentBrevutkastTest {
 
     @Test
     fun `Skal kunne hente brevutkast til klage`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val klage = påbegyntVurdertKlage()
+        val (sak, klage) = påbegyntVurdertKlage()
+        val vedtak = sak.vedtakListe.first()
         val person = person(fnr = sak.fnr)
         val pdfAsBytes = "brevbytes".toByteArray()
 
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
-                on { hentKlage(any()) } doReturn klage
                 on { hentKnyttetVedtaksdato(any()) } doReturn vedtak.opprettet.toLocalDate(ZoneOffset.UTC)
             },
             sakRepoMock = mock {
@@ -283,9 +265,8 @@ internal class HentBrevutkastTest {
             saksbehandler = saksbehandler,
             fritekst = fritekstTilBrev,
             hjemler = hjemler,
-
         ) shouldBe pdfAsBytes.right()
-        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+
         verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe klage.sakId })
         verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
         verify(mocks.microsoftGraphApiMock).hentNavnForNavIdent(argThat { it shouldBe saksbehandler })

@@ -38,7 +38,7 @@ interface KlageService {
 
     fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenne, VurdertKlage.Bekreftet>
 
-    fun iverksett(klageId: UUID, attestant: NavIdentBruker.Attestant): Either<KunneIkkeIverksetteKlage, IverksattKlage>
+    fun iverksett(sakId: UUID, klageId: UUID, attestant: NavIdentBruker.Attestant): Either<KunneIkkeIverksetteKlage, IverksattKlage>
 
     fun brevutkast(
         sakId: UUID,

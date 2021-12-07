@@ -147,7 +147,7 @@ internal class UnderkjennKlageTest {
 
     @Test
     fun `kan underkjenne klage`() {
-        val underkjentKlage = underkjentKlage()
+        val underkjentKlage = underkjentKlage().second
         val klageServiceMock = mock<KlageService> {
             on { underkjenn(any()) } doReturn underkjentKlage.right()
         }

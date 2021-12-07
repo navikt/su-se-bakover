@@ -132,7 +132,7 @@ internal class IverksettKlageTest {
         body: String,
     ) {
         val klageServiceMock = mock<KlageService> {
-            on { iverksett(any(), any()) } doReturn feilkode.left()
+            on { iverksett(any(), any(), any()) } doReturn feilkode.left()
         }
         withTestApplication(
             {
@@ -154,9 +154,9 @@ internal class IverksettKlageTest {
 
     @Test
     fun `kan iverksette klage`() {
-        val iverksattKlage = iverksattKlage()
+        val iverksattKlage = iverksattKlage().second
         val klageServiceMock = mock<KlageService> {
-            on { iverksett(any(), any()) } doReturn iverksattKlage.right()
+            on { iverksett(any(), any(), any()) } doReturn iverksattKlage.right()
         }
         withTestApplication(
             {

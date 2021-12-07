@@ -136,7 +136,7 @@ internal class OpprettKlageTest {
 
     @Test
     fun `kan opprette klage`() {
-        val opprettetKlage = opprettetKlage()
+        val opprettetKlage = opprettetKlage().second
         val klageServiceMock = mock<KlageService> {
             on { opprett(any()) } doReturn opprettetKlage.right()
         }

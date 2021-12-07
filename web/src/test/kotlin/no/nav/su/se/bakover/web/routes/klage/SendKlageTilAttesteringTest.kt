@@ -117,7 +117,7 @@ internal class SendKlageTilAttesteringTest {
 
     @Test
     fun `kan sende klage til attestering`() {
-        val klageTilAttestering = klageTilAttestering()
+        val klageTilAttestering = klageTilAttestering().second
         val klageServiceMock = mock<KlageService> {
             on { sendTilAttestering(any(), any()) } doReturn klageTilAttestering.right()
         }

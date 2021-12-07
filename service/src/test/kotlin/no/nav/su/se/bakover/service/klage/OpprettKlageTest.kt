@@ -52,7 +52,7 @@ internal class OpprettKlageTest {
         val sakId = UUID.randomUUID()
         val sak = nySakMedjournalførtSøknadOgOppgave(
             sakId = sakId,
-            klager = listOf(opprettetKlage(sakId = sakId)),
+            klager = listOf(opprettetKlage(sakId = sakId).second),
         ).first
 
         val mocks = KlageServiceMocks(

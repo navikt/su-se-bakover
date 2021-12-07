@@ -809,11 +809,12 @@ open class AccessCheckProxy(
                 }
 
                 override fun iverksett(
+                    sakId: UUID,
                     klageId: UUID,
                     attestant: NavIdentBruker.Attestant,
                 ): Either<KunneIkkeIverksetteKlage, IverksattKlage> {
                     assertHarTilgangTilKlage(klageId)
-                    return services.klageService.iverksett(klageId, attestant)
+                    return services.klageService.iverksett(sakId, klageId, attestant)
                 }
 
                 override fun brevutkast(

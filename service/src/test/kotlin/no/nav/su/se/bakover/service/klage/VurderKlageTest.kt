@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.test.påbegyntVurdertKlage
 import no.nav.su.se.bakover.test.underkjentKlage
 import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.utfyltVurdertKlage
-import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
@@ -122,35 +121,35 @@ internal class VurderKlageTest {
     @Test
     fun `Ugyldig tilstandsovergang fra opprettet`() {
         verifiserUgyldigTilstandsovergang(
-            klage = opprettetKlage(),
+            klage = opprettetKlage().second,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra påbegynt vilkårsvurdert`() {
         verifiserUgyldigTilstandsovergang(
-            klage = påbegyntVilkårsvurdertKlage(),
+            klage = påbegyntVilkårsvurdertKlage().second,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra utfylt vilkårsvurdert`() {
         verifiserUgyldigTilstandsovergang(
-            klage = utfyltVilkårsvurdertKlage(),
+            klage = utfyltVilkårsvurdertKlage().second,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra til attestering`() {
         verifiserUgyldigTilstandsovergang(
-            klage = klageTilAttestering(),
+            klage = klageTilAttestering().second,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra iverksatt`() {
         verifiserUgyldigTilstandsovergang(
-            klage = iverksattKlage(),
+            klage = iverksattKlage().second,
         )
     }
 
@@ -180,11 +179,7 @@ internal class VurderKlageTest {
 
     @Test
     fun `Skal kunne vurdere bekreftet vilkårsvurdert klage`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val klage = bekreftetVilkårsvurdertKlage(
-            sakId = sak.id,
-            vedtakId = vedtak.id,
-        )
+        val klage = bekreftetVilkårsvurdertKlage().second
         verifiserGyldigStatusovergangTilPåbegynt(
             klage = klage,
             vilkårsvurderingerTilKlage = klage.vilkårsvurderinger,
@@ -197,11 +192,7 @@ internal class VurderKlageTest {
 
     @Test
     fun `Skal kunne vurdere påbegynt vurdert klage`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val klage = påbegyntVurdertKlage(
-            sakId = sak.id,
-            vedtakId = vedtak.id,
-        )
+        val klage = påbegyntVurdertKlage().second
         verifiserGyldigStatusovergangTilPåbegynt(
             klage = klage,
             vilkårsvurderingerTilKlage = klage.vilkårsvurderinger,
@@ -214,11 +205,7 @@ internal class VurderKlageTest {
 
     @Test
     fun `Skal kunne vurdere utfylt vurdert klage`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val klage = utfyltVurdertKlage(
-            sakId = sak.id,
-            vedtakId = vedtak.id,
-        )
+        val klage = utfyltVurdertKlage().second
         verifiserGyldigStatusovergangTilPåbegynt(
             klage = klage,
             vilkårsvurderingerTilKlage = klage.vilkårsvurderinger,
@@ -231,11 +218,7 @@ internal class VurderKlageTest {
 
     @Test
     fun `Skal kunne vurdere bekreftet vurdert klage`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val klage = bekreftetVurdertKlage(
-            sakId = sak.id,
-            vedtakId = vedtak.id,
-        )
+        val klage = bekreftetVurdertKlage().second
         verifiserGyldigStatusovergangTilPåbegynt(
             klage = klage,
             vilkårsvurderingerTilKlage = klage.vilkårsvurderinger,
@@ -248,11 +231,7 @@ internal class VurderKlageTest {
 
     @Test
     fun `Skal kunne vurdere underkjent klage`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
-        val klage = underkjentKlage(
-            sakId = sak.id,
-            vedtakId = vedtak.id,
-        )
+        val klage = underkjentKlage().second
         verifiserGyldigStatusovergangTilPåbegynt(
             klage = klage,
             attesteringer = klage.attesteringer,

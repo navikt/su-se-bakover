@@ -6,6 +6,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.Hjemler
@@ -29,8 +30,10 @@ fun opprettetKlage(
     oppgaveId: OppgaveId = OppgaveId("klageOppgaveId"),
     saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     datoKlageMottatt: LocalDate = 1.desember(2021),
-): OpprettetKlage {
-    return OpprettetKlage.create(
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+): Pair<Sak, OpprettetKlage> {
+    assert(sakMedVedtak.vedtakListe.isNotEmpty())
+    val klage = OpprettetKlage.create(
         id = id,
         opprettet = opprettet,
         sakId = sakId,
@@ -40,6 +43,10 @@ fun opprettetKlage(
         oppgaveId = oppgaveId,
         saksbehandler = saksbehandler,
         datoKlageMottatt = datoKlageMottatt,
+    )
+    return Pair(
+        sakMedVedtak.copy(klager = sakMedVedtak.klager + klage),
+        klage,
     )
 }
 
@@ -61,7 +68,8 @@ fun påbegyntVilkårsvurdertKlage(
     klagesDetPåKonkreteElementerIVedtaket: Boolean? = null,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord? = null,
     begrunnelse: String? = null,
-): VilkårsvurdertKlage.Påbegynt {
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+): Pair<Sak, VilkårsvurdertKlage.Påbegynt> {
     return opprettetKlage(
         id = id,
         opprettet = opprettet,
@@ -70,16 +78,23 @@ fun påbegyntVilkårsvurdertKlage(
         oppgaveId = oppgaveId,
         saksbehandler = saksbehandler,
         datoKlageMottatt = datoKlageMottatt,
-    ).vilkårsvurder(
-        saksbehandler = saksbehandler,
-        vilkårsvurderinger = VilkårsvurderingerTilKlage.create(
-            vedtakId = vedtakId,
-            innenforFristen = innenforFristen,
-            klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
-            erUnderskrevet = erUnderskrevet,
-            begrunnelse = begrunnelse,
-        ) as VilkårsvurderingerTilKlage.Påbegynt,
-    )
+        sakMedVedtak = sakMedVedtak,
+    ).let { (sak, klage) ->
+        val vilkårsvurdertKlage = klage.vilkårsvurder(
+            saksbehandler = saksbehandler,
+            vilkårsvurderinger = VilkårsvurderingerTilKlage.create(
+                vedtakId = vedtakId,
+                innenforFristen = innenforFristen,
+                klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
+                erUnderskrevet = erUnderskrevet,
+                begrunnelse = begrunnelse,
+            ) as VilkårsvurderingerTilKlage.Påbegynt,
+        )
+        Pair(
+            sak.copy(klager = sak.klager.filterNot { it.id == vilkårsvurdertKlage.id } + vilkårsvurdertKlage),
+            vilkårsvurdertKlage,
+        )
+    }
 }
 
 fun utfyltVilkårsvurdertKlage(
@@ -95,7 +110,8 @@ fun utfyltVilkårsvurdertKlage(
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     begrunnelse: String = "begrunnelse",
-): VilkårsvurdertKlage.Utfylt {
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+): Pair<Sak, VilkårsvurdertKlage.Utfylt> {
     return opprettetKlage(
         id = id,
         opprettet = opprettet,
@@ -104,16 +120,23 @@ fun utfyltVilkårsvurdertKlage(
         oppgaveId = oppgaveId,
         saksbehandler = saksbehandler,
         datoKlageMottatt = datoKlageMottatt,
-    ).vilkårsvurder(
-        saksbehandler = saksbehandler,
-        vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
-            vedtakId = vedtakId,
-            innenforFristen = innenforFristen,
-            klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
-            erUnderskrevet = erUnderskrevet,
-            begrunnelse = begrunnelse,
-        ),
-    )
+        sakMedVedtak = sakMedVedtak,
+    ).let {
+        val klage = it.second.vilkårsvurder(
+            saksbehandler = saksbehandler,
+            vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+                vedtakId = vedtakId,
+                innenforFristen = innenforFristen,
+                klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
+                erUnderskrevet = erUnderskrevet,
+                begrunnelse = begrunnelse,
+            ),
+        )
+        Pair(
+            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            klage,
+        )
+    }
 }
 
 fun bekreftetVilkårsvurdertKlage(
@@ -129,7 +152,8 @@ fun bekreftetVilkårsvurdertKlage(
     klagesDetPåKonkreteElementerIVedtaket: Boolean = true,
     erUnderskrevet: VilkårsvurderingerTilKlage.Svarord = VilkårsvurderingerTilKlage.Svarord.JA,
     begrunnelse: String = "begrunnelse",
-): VilkårsvurdertKlage.Bekreftet {
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+): Pair<Sak, VilkårsvurdertKlage.Bekreftet> {
     return utfyltVilkårsvurdertKlage(
         id = id,
         opprettet = opprettet,
@@ -143,9 +167,16 @@ fun bekreftetVilkårsvurdertKlage(
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
         begrunnelse = begrunnelse,
-    ).bekreftVilkårsvurderinger(
-        saksbehandler = saksbehandler,
-    ).orNull()!!
+        sakMedVedtak = sakMedVedtak,
+    ).let {
+        val klage = it.second.bekreftVilkårsvurderinger(
+            saksbehandler = saksbehandler,
+        ).orNull()!!
+        Pair(
+            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            klage,
+        )
+    }
 }
 
 fun påbegyntVurdertKlage(
@@ -163,7 +194,8 @@ fun påbegyntVurdertKlage(
     begrunnelse: String = "begrunnelse",
     fritekstTilBrev: String? = null,
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering? = null,
-): VurdertKlage.Påbegynt {
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+): Pair<Sak, VurdertKlage.Påbegynt> {
     assert(vedtaksvurdering == null || vedtaksvurdering is VurderingerTilKlage.Vedtaksvurdering.Påbegynt)
     return bekreftetVilkårsvurdertKlage(
         id = id,
@@ -178,13 +210,20 @@ fun påbegyntVurdertKlage(
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
         begrunnelse = begrunnelse,
-    ).vurder(
-        saksbehandler = saksbehandler,
-        vurderinger = VurderingerTilKlage.create(
-            fritekstTilBrev = fritekstTilBrev,
-            vedtaksvurdering = vedtaksvurdering,
-        ) as VurderingerTilKlage.Påbegynt,
-    )
+        sakMedVedtak = sakMedVedtak,
+    ).let {
+        val klage = it.second.vurder(
+            saksbehandler = saksbehandler,
+            vurderinger = VurderingerTilKlage.create(
+                fritekstTilBrev = fritekstTilBrev,
+                vedtaksvurdering = vedtaksvurdering,
+            ) as VurderingerTilKlage.Påbegynt,
+        )
+        Pair(
+            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            klage,
+        )
+    }
 }
 
 fun utfyltVurdertKlage(
@@ -204,7 +243,8 @@ fun utfyltVurdertKlage(
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).orNull()!!,
     ).orNull()!!,
-): VurdertKlage.Utfylt {
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+): Pair<Sak, VurdertKlage.Utfylt> {
     return bekreftetVilkårsvurdertKlage(
         id = id,
         opprettet = opprettet,
@@ -218,13 +258,20 @@ fun utfyltVurdertKlage(
         klagesDetPåKonkreteElementerIVedtaket = klagesDetPåKonkreteElementerIVedtaket,
         erUnderskrevet = erUnderskrevet,
         begrunnelse = begrunnelse,
-    ).vurder(
-        saksbehandler = saksbehandler,
-        vurderinger = VurderingerTilKlage.create(
-            fritekstTilBrev = fritekstTilBrev,
-            vedtaksvurdering = vedtaksvurdering,
-        ) as VurderingerTilKlage.Utfylt,
-    )
+        sakMedVedtak = sakMedVedtak,
+    ).let {
+        val klage = it.second.vurder(
+            saksbehandler = saksbehandler,
+            vurderinger = VurderingerTilKlage.create(
+                fritekstTilBrev = fritekstTilBrev,
+                vedtaksvurdering = vedtaksvurdering,
+            ) as VurderingerTilKlage.Utfylt,
+        )
+        Pair(
+            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            klage,
+        )
+    }
 }
 
 fun bekreftetVurdertKlage(
@@ -244,7 +291,8 @@ fun bekreftetVurdertKlage(
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).orNull()!!,
     ).orNull()!!,
-): VurdertKlage.Bekreftet {
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+): Pair<Sak, VurdertKlage.Bekreftet> {
     return utfyltVurdertKlage(
         id = id,
         opprettet = opprettet,
@@ -260,9 +308,16 @@ fun bekreftetVurdertKlage(
         begrunnelse = begrunnelse,
         fritekstTilBrev = fritekstTilBrev,
         vedtaksvurdering = vedtaksvurdering,
-    ).bekreftVurderinger(
-        saksbehandler = saksbehandler,
-    ).orNull()!!
+        sakMedVedtak = sakMedVedtak,
+    ).let {
+        val klage = it.second.bekreftVurderinger(
+            saksbehandler = saksbehandler,
+        ).orNull()!!
+        Pair(
+            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            klage,
+        )
+    }
 }
 
 fun klageTilAttestering(
@@ -282,7 +337,8 @@ fun klageTilAttestering(
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).orNull()!!,
     ).orNull()!!,
-): KlageTilAttestering {
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+): Pair<Sak, KlageTilAttestering> {
     return bekreftetVurdertKlage(
         id = id,
         opprettet = opprettet,
@@ -298,10 +354,17 @@ fun klageTilAttestering(
         begrunnelse = begrunnelse,
         fritekstTilBrev = fritekstTilBrev,
         vedtaksvurdering = vedtaksvurdering,
-    ).sendTilAttestering(
-        opprettOppgave = { oppgaveIdTilAttestering.right() },
-        saksbehandler = saksbehandler,
-    ).orNull()!!
+        sakMedVedtak = sakMedVedtak,
+    ).let {
+        val klage = it.second.sendTilAttestering(
+            opprettOppgave = { oppgaveIdTilAttestering.right() },
+            saksbehandler = saksbehandler,
+        ).orNull()!!
+        Pair(
+            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            klage,
+        )
+    }
 }
 
 fun underkjentKlage(
@@ -324,7 +387,8 @@ fun underkjentKlage(
     attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant("attestant"),
     attesteringsgrunn: Attestering.Underkjent.Grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
     attesteringskommentar: String = "attesteringskommentar",
-): VurdertKlage.Bekreftet {
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+): Pair<Sak, VurdertKlage.Bekreftet> {
     return klageTilAttestering(
         id = id,
         opprettet = opprettet,
@@ -340,15 +404,22 @@ fun underkjentKlage(
         begrunnelse = begrunnelse,
         fritekstTilBrev = fritekstTilBrev,
         vedtaksvurdering = vedtaksvurdering,
-    ).underkjenn(
-        underkjentAttestering = Attestering.Underkjent(
-            attestant = attestant,
-            opprettet = opprettet,
-            grunn = attesteringsgrunn,
-            kommentar = attesteringskommentar,
-        ),
-        opprettOppgave = { underkjentKlageOppgaveId.right() },
-    ).orNull()!!
+        sakMedVedtak = sakMedVedtak,
+    ).let {
+        val klage = it.second.underkjenn(
+            underkjentAttestering = Attestering.Underkjent(
+                attestant = attestant,
+                opprettet = opprettet,
+                grunn = attesteringsgrunn,
+                kommentar = attesteringskommentar,
+            ),
+            opprettOppgave = { underkjentKlageOppgaveId.right() },
+        ).orNull()!!
+        Pair(
+            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            klage,
+        )
+    }
 }
 
 fun underkjentKlageTilAttestering(
@@ -368,7 +439,8 @@ fun underkjentKlageTilAttestering(
     vedtaksvurdering: VurderingerTilKlage.Vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.createOppretthold(
         hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).orNull()!!,
     ).orNull()!!,
-): KlageTilAttestering {
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+): Pair<Sak, KlageTilAttestering> {
     return underkjentKlage(
         id = id,
         opprettet = opprettet,
@@ -384,10 +456,17 @@ fun underkjentKlageTilAttestering(
         begrunnelse = begrunnelse,
         fritekstTilBrev = fritekstTilBrev,
         vedtaksvurdering = vedtaksvurdering,
-    ).sendTilAttestering(
-        saksbehandler = saksbehandler,
-        opprettOppgave = { oppgaveIdTilAttestering.right() },
-    ).orNull()!!
+        sakMedVedtak = sakMedVedtak,
+    ).let {
+        val klage = it.second.sendTilAttestering(
+            saksbehandler = saksbehandler,
+            opprettOppgave = { oppgaveIdTilAttestering.right() },
+        ).orNull()!!
+        Pair(
+            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            klage,
+        )
+    }
 }
 
 fun iverksattKlage(
@@ -408,7 +487,8 @@ fun iverksattKlage(
         hjemler = Hjemler.tryCreate(listOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4)).orNull()!!,
     ).orNull()!!,
     attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant("attestant"),
-): IverksattKlage {
+    sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
+): Pair<Sak, IverksattKlage> {
     return klageTilAttestering(
         id = id,
         opprettet = opprettet,
@@ -424,11 +504,18 @@ fun iverksattKlage(
         begrunnelse = begrunnelse,
         fritekstTilBrev = fritekstTilBrev,
         vedtaksvurdering = vedtaksvurdering,
-    ).iverksett(
-        iverksattAttestering = Attestering.Iverksatt(
-            attestant = attestant,
-            opprettet = opprettet,
+        sakMedVedtak = sakMedVedtak,
+    ).let {
+        val klage = it.second.iverksett(
+            iverksattAttestering = Attestering.Iverksatt(
+                attestant = attestant,
+                opprettet = opprettet,
 
-        ),
-    ).orNull()!!
+            ),
+        ).orNull()!!
+        Pair(
+            it.first.copy(klager = it.first.klager.filterNot { it.id == klage.id } + klage),
+            klage,
+        )
+    }
 }

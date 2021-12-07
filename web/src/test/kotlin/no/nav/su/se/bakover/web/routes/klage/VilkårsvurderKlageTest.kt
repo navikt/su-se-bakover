@@ -131,7 +131,7 @@ internal class VilkårsvurderKlageTest {
 
     @Test
     fun `kan vilkårsvurdere klage`() {
-        val påbegyntVilkårsvurdertKlage = påbegyntVilkårsvurdertKlage()
+        val påbegyntVilkårsvurdertKlage = påbegyntVilkårsvurdertKlage().second
         val klageServiceMock = mock<KlageService> {
             on { vilkårsvurder(any()) } doReturn påbegyntVilkårsvurdertKlage.right()
         }

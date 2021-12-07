@@ -117,7 +117,7 @@ internal class BekreftVurderingerForKlageTest {
 
     @Test
     fun `kan bekrefte utfylt vurdert klage`() {
-        val bekreftetVurdertKlage = bekreftetVurdertKlage()
+        val bekreftetVurdertKlage = bekreftetVurdertKlage().second
         val klageServiceMock = mock<KlageService> {
             on { bekreftVurderinger(any(), any()) } doReturn bekreftetVurdertKlage.right()
         }
