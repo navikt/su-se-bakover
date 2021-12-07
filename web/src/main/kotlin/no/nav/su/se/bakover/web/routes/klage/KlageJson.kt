@@ -339,7 +339,6 @@ private enum class Typer(val verdi: String) {
     override fun toString() = verdi
 }
 
-/** Kopiert fra K9 */
 enum class ÅrsakJson {
     FEIL_LOVANVENDELSE,
     ULIK_SKJØNNSVURDERING,
@@ -358,7 +357,6 @@ enum class ÅrsakJson {
     }
 }
 
-/** Kopiert fra K9 */
 enum class UtfallJson {
     TIL_GUNST,
     TIL_UGUNST;

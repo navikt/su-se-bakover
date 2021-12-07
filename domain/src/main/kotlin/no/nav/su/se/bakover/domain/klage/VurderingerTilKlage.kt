@@ -150,7 +150,6 @@ sealed class VurderingerTilKlage {
             data class Oppretthold(val hjemler: Hjemler.Utfylt) : Utfylt()
         }
 
-        /** Kopiert fra K9 */
         enum class Årsak {
             FEIL_LOVANVENDELSE,
             ULIK_SKJØNNSVURDERING,
@@ -158,7 +157,6 @@ sealed class VurderingerTilKlage {
             NYTT_FAKTUM;
         }
 
-        /** Kopiert fra K9 */
         enum class Utfall {
             TIL_GUNST,
             TIL_UGUNST,
