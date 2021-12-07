@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingLukket
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
@@ -100,6 +101,9 @@ internal class LukkSøknadServiceImpl(
                                     saksnummer = sak.saksnummer,
                                 ),
                             )
+                            lukketSøknadbehandling?.let {
+                                observer.handle(SøknadsbehandlingLukket(lukketSøknadbehandling))
+                            }
                         }
                         sak.right()
                     }

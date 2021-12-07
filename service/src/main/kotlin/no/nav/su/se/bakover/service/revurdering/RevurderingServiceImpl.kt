@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
+import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -62,6 +63,7 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.Event.Statistikk.RevurderingStatistikk.RevurderingLukket
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
@@ -1300,7 +1302,7 @@ internal class RevurderingServiceImpl(
                 }
         }
 
-        if (avsluttetRevurdering is Revurdering && skalSendeBrev) {
+        val resultat = if (avsluttetRevurdering is Revurdering && skalSendeBrev) {
             brevService.lagDokument(avsluttetRevurdering).mapLeft {
                 return KunneIkkeAvslutteRevurdering.KunneIkkeLageDokument.left()
             }.map { dokument ->
@@ -1316,11 +1318,24 @@ internal class RevurderingServiceImpl(
                     revurderingRepo.lagre(avsluttetRevurdering)
                 }
             }
-            return avsluttetRevurdering.right()
+            avsluttetRevurdering.right()
         } else {
             revurderingRepo.lagre(avsluttetRevurdering)
-            return avsluttetRevurdering.right()
+            avsluttetRevurdering.right()
         }
+        val event: Event? = when (val result = resultat.getOrElse { null }) {
+            is AvsluttetRevurdering -> RevurderingLukket(result)
+            is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> Event.Statistikk.RevurderingStatistikk.Gjenoppta(result)
+            is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> Event.Statistikk.RevurderingStatistikk.Stans(result)
+            else -> null
+        }
+        event?.let {
+            observers.forEach { observer ->
+                observer.handle(it)
+            }
+        }
+
+        return resultat
     }
 
     override fun lagBrevutkastForAvslutting(
