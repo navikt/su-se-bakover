@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -172,54 +173,52 @@ internal class BeregnRoutesKtTest {
         }
     }
 
-    // @Test
-    // fun `client notified about illegal operations on current state of behandling`() {
-    //     withMigratedDb { dataSource ->
-    //         val repos = repos(dataSource)
-    //         val services = services(dataSource, repos)
-    //         val objects = setup(services, repos)
-    //         withTestApplication(
-    //             {
-    //                 testSusebakover(
-    //                     services = services,
-    //                     databaseRepos = repos,
-    //                 )
-    //             },
-    //         ) {
-    //             services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
-    //                 LeggTilBosituasjonEpsRequest(
-    //                     behandlingId = objects.søknadsbehandling.id,
-    //                     epsFnr = null,
-    //                 ),
-    //             )
-    //             objects.søknadsbehandling.status shouldBe BehandlingsStatus.OPPRETTET
-    //
-    //             defaultRequest(
-    //                 HttpMethod.Post,
-    //                 "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
-    //                 listOf(Brukerrolle.Saksbehandler),
-    //             ) {
-    //                 setBody(
-    //                     //language=JSON
-    //                     """
-    //                 {
-    //                     "stønadsperiode": {
-    //                         "fraOgMed":"${1.januar(2021)}",
-    //                         "tilOgMed":"${31.desember(2021)}"
-    //                     },
-    //                     "fradrag":[]
-    //                 }
-    //                     """.trimIndent(),
-    //                 )
-    //             }.apply {
-    //                 response.status() shouldBe HttpStatusCode.BadRequest
-    //                 response.content shouldContain "Ugyldig statusovergang"
-    //                 response.content shouldContain "TilBeregnet"
-    //                 response.content shouldContain "Vilkårsvurdert.Uavklart"
-    //             }
-    //         }
-    //     }
-    // }
+    @Test
+    fun `client notified about illegal operations on current state of behandling`() {
+        withMigratedDb { dataSource ->
+            val repos = repos(dataSource)
+            val services = services(dataSource, repos)
+            val objects = setup(services, repos)
+            withTestApplication(
+                {
+                    testSusebakover(
+                        services = services,
+                        databaseRepos = repos,
+                    )
+                },
+            ) {
+                services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
+                    LeggTilBosituasjonEpsRequest(
+                        behandlingId = objects.søknadsbehandling.id,
+                        epsFnr = null,
+                    ),
+                )
+                objects.søknadsbehandling.status shouldBe BehandlingsStatus.OPPRETTET
+
+                defaultRequest(
+                    HttpMethod.Post,
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
+                    listOf(Brukerrolle.Saksbehandler),
+                ) {
+                    setBody(
+                        //language=JSON
+                        """
+                    {
+                        "stønadsperiode": {
+                            "fraOgMed":"${1.januar(2021)}",
+                            "tilOgMed":"${31.desember(2021)}"
+                        },
+                        "fradrag":[]
+                    }
+                        """.trimIndent(),
+                    )
+                }.apply {
+                    response.status() shouldBe HttpStatusCode.BadRequest
+                    response.content shouldContain "Kan ikke gå fra tilstanden Uavklart til tilstanden Innvilget"
+                }
+            }
+        }
+    }
 
     data class UavklartVilkårsvurdertSøknadsbehandling(
         val sak: Sak,

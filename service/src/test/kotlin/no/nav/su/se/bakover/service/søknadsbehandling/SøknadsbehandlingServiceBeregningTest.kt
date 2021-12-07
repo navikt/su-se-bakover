@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.database.AvkortingsvarselRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -30,19 +31,24 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
+import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
+import no.nav.su.se.bakover.test.simulertUtbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doNothing
 import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.whenever
 import java.util.UUID
 
 class SøknadsbehandlingServiceBeregningTest {
@@ -50,7 +56,7 @@ class SøknadsbehandlingServiceBeregningTest {
     private val behandlingId = UUID.randomUUID()
     private val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))
     private val vilkårsvurdertBehandling = Søknadsbehandling.Vilkårsvurdert.Innvilget(
-        id = UUID.randomUUID(),
+        id = behandlingId,
         opprettet = fixedTidspunkt,
         sakId = sakId,
         saksnummer = Saksnummer(2021),
@@ -119,6 +125,17 @@ class SøknadsbehandlingServiceBeregningTest {
             on { hent(any()) } doReturn behandling
         }
 
+        val grunnlagServiceMock = mock<GrunnlagService> {
+            doNothing().whenever(mock).lagreFradragsgrunnlag(any(), any())
+        }
+
+        val avkortingsvarselRepoMock = mock<AvkortingsvarselRepo> {
+            on { hentUteståendeAvkortinger(any()) } doReturn emptyList()
+        }
+
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on { simulerAvkortingsvarsel(any(), any(), any()) } doReturn simulertUtbetaling().right()
+        }
         val request = SøknadsbehandlingService.BeregnRequest(
             behandlingId = behandlingId,
             begrunnelse = "her er en begrunnelse",
@@ -126,6 +143,9 @@ class SøknadsbehandlingServiceBeregningTest {
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+            grunnlagService = grunnlagServiceMock,
+            avkortingsvarselRepo = avkortingsvarselRepoMock,
+            utbetalingService = utbetalingServiceMock,
         ).beregn(
             request,
         )
@@ -191,10 +211,16 @@ class SøknadsbehandlingServiceBeregningTest {
 
         response shouldBe expected.right()
 
-        inOrder(søknadsbehandlingRepoMock) {
-            verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
+        inOrder(søknadsbehandlingRepoMock, grunnlagServiceMock, avkortingsvarselRepoMock, utbetalingServiceMock) {
+            verify(søknadsbehandlingRepoMock, times(2)).hent(argThat { it shouldBe behandlingId })
+
+            verify(grunnlagServiceMock).lagreFradragsgrunnlag(any(), any())
             verify(søknadsbehandlingRepoMock).defaultTransactionContext()
-            verify(søknadsbehandlingRepoMock).lagre(eq(expected), anyOrNull())
+            verify(søknadsbehandlingRepoMock).lagre(any(), anyOrNull())
+            verify(avkortingsvarselRepoMock).hentUteståendeAvkortinger(any())
+
+            verify(søknadsbehandlingRepoMock).defaultTransactionContext()
+            verify(søknadsbehandlingRepoMock).lagre(any(), anyOrNull())
         }
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }

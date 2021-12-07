@@ -128,6 +128,21 @@ internal object Feilresponser {
         "fant_ikke_gjeldende_utbetaling",
     )
 
+    val kunneIkkeLeggeTilAvkorting = InternalServerError.errorJson(
+        "Klarte ikke legge til avkorting",
+        "klarte_ikke_legge_til_avkorting",
+    )
+
+    val kunneIkkeFjereAvkorting = InternalServerError.errorJson(
+        "Klarte ikke fjerne gammel avkorting",
+        "klarte_ikke_fjerne_gammel_avkorting",
+    )
+
+    val kunneIkkeSimulere = InternalServerError.errorJson(
+        "Kunne ikke simulere",
+        "kunne_ikke_simulere",
+    )
+
     fun ugyldigTilstand(fra: KClass<*>, til: KClass<*>): Resultat {
         return BadRequest.errorJson(
             "Kan ikke gå fra tilstanden ${fra.simpleName} til tilstanden ${til.simpleName}",

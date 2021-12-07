@@ -176,14 +176,25 @@ internal class SøknadsbehandlingServiceImpl(
                 behandlingId = søknadsbehandling.id,
                 fradragsgrunnlag = søknadsbehandling.grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.BidragEtterEkteskapsloven },
             ),
-        ).getOrHandle { return KunneIkkeBeregne.FantIkkeBehandling.left() }
+        ).getOrHandle {
+            return when (it) {
+                is KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand -> {
+                    KunneIkkeBeregne.UgyldigTilstand(fra = it.fra, til = it.til).left()
+                }
+                else -> {
+                    KunneIkkeBeregne.KunneIkkeFjerneAvkortingFradrag.left()
+                }
+            }
+        }
 
         val avkortingsliste = avkortingsvarselRepo.hentUteståendeAvkortinger(søknadsbehandling.sakId).map {
             utbetalingService.simulerAvkortingsvarsel(
                 sakId = søknadsbehandling.sakId,
                 saksbehandler = NavIdentBruker.Saksbehandler("srvsupstonad"),
                 avkortingsvarsel = it,
-            ).getOrHandle { return KunneIkkeBeregne.FantIkkeBehandling.left() }
+            ).getOrHandle {
+                return KunneIkkeBeregne.KunneIkkeSimulereUtbetaling.left()
+            }
         }.flatMap {
             it.simulering.hentUtbetalteBeløp()
         }
@@ -207,7 +218,7 @@ internal class SøknadsbehandlingServiceImpl(
                             beregning = beregning,
                         ).lagFradrag(),
                     ),
-                ).getOrHandle { return KunneIkkeBeregne.FantIkkeBehandling.left() }
+                ).getOrHandle { return KunneIkkeBeregne.KunneIkkeLeggeTilAvkortingFradrag.left() }
             }
         }
 
