@@ -6,6 +6,7 @@ package no.nav.su.se.bakover.database.attestering
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -36,9 +37,10 @@ internal fun Attesteringshistorikk.toDatabaseJson(): String {
     }.serialize()
 }
 
-internal fun List<AttesteringJson>.toDomain(): Attesteringshistorikk {
+internal fun String.toAttesteringshistorikk(): Attesteringshistorikk {
+    val attesteringer = deserialize<List<AttesteringJson>>(this)
     return Attesteringshistorikk.create(
-        this.map {
+        attesteringer.map {
             when (it) {
                 is AttesteringJson.IverksattJson -> Attestering.Iverksatt(
                     attestant = NavIdentBruker.Attestant(it.attestant),

@@ -12,9 +12,8 @@ import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSessio
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.database.Session
-import no.nav.su.se.bakover.database.attestering.AttesteringJson
+import no.nav.su.se.bakover.database.attestering.toAttesteringshistorikk
 import no.nav.su.se.bakover.database.attestering.toDatabaseJson
-import no.nav.su.se.bakover.database.attestering.toDomain
 import no.nav.su.se.bakover.database.booleanOrNull
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
@@ -245,7 +244,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
         val datoKlageMottatt = row.localDate("datoKlageMottatt")
         val saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(row.string("saksbehandler"))
 
-        val attesteringer = deserialize<List<AttesteringJson>>(row.string("attestering")).toDomain()
+        val attesteringer = row.string("attestering").toAttesteringshistorikk()
 
         val vilkårsvurderingerTilKlage = VilkårsvurderingerTilKlage.create(
             vedtakId = row.uuidOrNull("vedtakId"),
