@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.oppdrag.Feilutbetalingsvarsel
+import no.nav.su.se.bakover.domain.oppdrag.Avkortingsvarsel
 import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test
 
 class RevurderingSimulerTest {
     @Test
-    fun `feilutbetalingsvarsel for avkorting dersom opphør skyldes utenlandsopphold og simulering inneholder feilutbetaling`() {
+    fun `avkortingsvarsel dersom opphør skyldes utenlandsopphold og simulering inneholder feilutbetaling`() {
         opprettetRevurderingAvslagSpesifiktVilkår(
             avslåttVilkår = utlandsoppholdAvslag(),
         ).let { (sak, revurdering) ->
@@ -35,13 +35,13 @@ class RevurderingSimulerTest {
                             )
                         }.getOrFail()
                         .let {
-                            it.feilutbetalingsvarsel.let {
-                                (it as Feilutbetalingsvarsel.KanAvkortes).let {
-                                    it shouldBe Feilutbetalingsvarsel.KanAvkortes(
+                            it.avkortingsvarsel.let {
+                                (it as Avkortingsvarsel.Utenlandsopphold).let {
+                                    it shouldBe Avkortingsvarsel.Utenlandsopphold.Opprettet(
                                         id = it.id,
                                         opprettet = it.opprettet,
                                         simulering = it.simulering,
-                                        feilutbetalingslinje = Feilutbetalingsvarsel.Feilutbetalingslinje(
+                                        feilutbetalingslinje = Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje(
                                             fraOgMed = revurdering.periode.fraOgMed,
                                             tilOgMed = revurdering.periode.tilOgMed,
                                             virkningstidspunkt = revurdering.periode.fraOgMed,
@@ -58,7 +58,7 @@ class RevurderingSimulerTest {
     }
 
     @Test
-    fun `feilutbetalingsvarsel må tilbakekreves dersom opphør ikke skyldes utenlandsopphold og simulering inneholder feilutbetaling`() {
+    fun `ingen avkortingsvarsel dersom opphør ikke skyldes utenlandsopphold og simulering inneholder feilutbetaling`() {
         opprettetRevurderingAvslagSpesifiktVilkår(
             avslåttVilkår = avslåttUførevilkårUtenGrunnlag(),
         ).let { (sak, revurdering) ->
@@ -74,14 +74,14 @@ class RevurderingSimulerTest {
                             )
                         }.getOrFail()
                         .let {
-                            it.feilutbetalingsvarsel shouldBe Feilutbetalingsvarsel.MåTilbakekreves
+                            it.avkortingsvarsel shouldBe Avkortingsvarsel.Ingen
                         }
                 }
         }
     }
 
     @Test
-    fun `ingen feilutbetalingsvarsel dersom opphør ikke fører til feilutbetaling`() {
+    fun `ingen avkortingsvarsel dersom opphør ikke fører til feilutbetaling`() {
         opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
             revurderingsperiode = Periode.create(1.september(2021), 31.desember(2021)),
         ).let { (sak, revurdering) ->
@@ -106,7 +106,7 @@ class RevurderingSimulerTest {
                                 )
                             }.getOrFail()
                             .let {
-                                it.feilutbetalingsvarsel shouldBe Feilutbetalingsvarsel.Ingen
+                                it.avkortingsvarsel shouldBe Avkortingsvarsel.Ingen
                             }
                     }
             }

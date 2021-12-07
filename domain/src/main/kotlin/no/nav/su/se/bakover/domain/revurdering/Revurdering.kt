@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
-import no.nav.su.se.bakover.domain.oppdrag.Feilutbetalingsvarsel
+import no.nav.su.se.bakover.domain.oppdrag.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -593,30 +593,27 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val attesteringer: Attesteringshistorikk,
     ) : BeregnetRevurdering() {
         fun toSimulert(simuler: (sakId: UUID, saksbehandler: NavIdentBruker, opphørsdato: LocalDate) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>): Either<SimuleringFeilet, SimulertRevurdering.Opphørt> {
-            val (simulertUtbetaling, feilutbetalingsvarsel) = simuler(sakId, saksbehandler, periode.fraOgMed)
+            val (simulertUtbetaling, avkortingsvarsel) = simuler(sakId, saksbehandler, periode.fraOgMed)
                 .getOrHandle { return it.left() }
                 .let { simulering ->
-                    when (val feilutbetalingsvarsel = lagFeilutbetalingsvarsel(simulering)) {
-                        is Feilutbetalingsvarsel.Ingen -> {
-                            simulering to feilutbetalingsvarsel
+                    when (val avkortingsvarsel = lagAvkortingsvarsel(simulering)) {
+                        is Avkortingsvarsel.Ingen -> {
+                            simulering to avkortingsvarsel
                         }
-                        is Feilutbetalingsvarsel.KanAvkortes -> {
+                        is Avkortingsvarsel.Utenlandsopphold -> {
                             val simuleringMedNyOpphørsdato = simuler(
                                 sakId,
                                 saksbehandler,
                                 OpphørsdatoForUtbetalinger(
                                     revurdering = this,
-                                    feilutbetalingsvarsel = feilutbetalingsvarsel,
+                                    avkortingsvarsel = avkortingsvarsel,
                                 ).get(),
                             ).getOrHandle { return it.left() }
                                 .also {
                                     require(!it.simulering.harFeilutbetalinger())
                                 }
 
-                            simuleringMedNyOpphørsdato to feilutbetalingsvarsel
-                        }
-                        is Feilutbetalingsvarsel.MåTilbakekreves -> {
-                            simulering to feilutbetalingsvarsel
+                            simuleringMedNyOpphørsdato to avkortingsvarsel
                         }
                     }
                 }
@@ -637,38 +634,29 @@ sealed class BeregnetRevurdering : Revurdering() {
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
                 attesteringer = attesteringer,
-                feilutbetalingsvarsel = feilutbetalingsvarsel,
+                avkortingsvarsel = avkortingsvarsel,
             ).right()
         }
 
-        private fun lagFeilutbetalingsvarsel(simulertUtbetaling: Utbetaling.SimulertUtbetaling): Feilutbetalingsvarsel {
+        private fun lagAvkortingsvarsel(simulertUtbetaling: Utbetaling.SimulertUtbetaling): Avkortingsvarsel {
             return when (simulertUtbetaling.simulering.harFeilutbetalinger()) {
                 true -> {
                     when (val vilkårsvurdering = vilkårsvurderinger.resultat) {
                         is Vilkårsvurderingsresultat.Avslag -> {
                             when (vilkårsvurdering.erÅrsak(Inngangsvilkår.Utenlandsopphold)) {
                                 true -> {
-                                    Feilutbetalingsvarsel.KanAvkortes(
+                                    Avkortingsvarsel.Utenlandsopphold.Opprettet(
                                         simulertUtbetaling.simulering,
                                         simulertUtbetaling.utbetalingslinjer.single() as Utbetalingslinje.Endring.Opphør,
                                     )
                                 }
-                                false -> {
-                                    Feilutbetalingsvarsel.MåTilbakekreves
-                                }
+                                else -> Avkortingsvarsel.Ingen
                             }
                         }
-                        is Vilkårsvurderingsresultat.Innvilget -> {
-                            Feilutbetalingsvarsel.MåTilbakekreves
-                        }
-                        is Vilkårsvurderingsresultat.Uavklart -> {
-                            throw IllegalStateException()
-                        }
+                        else -> Avkortingsvarsel.Ingen
                     }
                 }
-                false -> {
-                    Feilutbetalingsvarsel.Ingen
-                }
+                else -> Avkortingsvarsel.Ingen
             }
         }
 
@@ -779,7 +767,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
-        val feilutbetalingsvarsel: Feilutbetalingsvarsel,
+        val avkortingsvarsel: Avkortingsvarsel,
     ) : SimulertRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -822,7 +810,7 @@ sealed class SimulertRevurdering : Revurdering() {
                     vilkårsvurderinger = vilkårsvurderinger,
                     informasjonSomRevurderes = informasjonSomRevurderes,
                     attesteringer = attesteringer,
-                    feilutbetalingsvarsel = feilutbetalingsvarsel,
+                    avkortingsvarsel = avkortingsvarsel,
                 ).right()
             }
         }
@@ -932,7 +920,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
-        val feilutbetalingsvarsel: Feilutbetalingsvarsel,
+        val avkortingsvarsel: Avkortingsvarsel,
     ) : RevurderingTilAttestering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -984,7 +972,12 @@ sealed class RevurderingTilAttestering : Revurdering() {
                                 Tidspunkt.now(clock),
                             ),
                         ),
-                        feilutbetalingsvarsel = feilutbetalingsvarsel,
+                        avkortingsvarsel = when (avkortingsvarsel) {
+                            Avkortingsvarsel.Ingen -> avkortingsvarsel
+                            is Avkortingsvarsel.Utenlandsopphold.Avkortet -> throw IllegalStateException("Ugyldig tilstand")
+                            is Avkortingsvarsel.Utenlandsopphold.Opprettet -> avkortingsvarsel.skalAvkortes()
+                            is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> throw IllegalStateException("Ugyldig tilstand")
+                        },
                     )
                 }
         }
@@ -1095,7 +1088,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
-                feilutbetalingsvarsel = feilutbetalingsvarsel,
+                avkortingsvarsel = avkortingsvarsel,
             )
             is IngenEndring -> UnderkjentRevurdering.IngenEndring(
                 id = id,
@@ -1172,7 +1165,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
-        val feilutbetalingsvarsel: Feilutbetalingsvarsel,
+        val avkortingsvarsel: Avkortingsvarsel,
     ) : IverksattRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -1320,7 +1313,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val vilkårsvurderinger: Vilkårsvurderinger.Revurdering,
         override val informasjonSomRevurderes: InformasjonSomRevurderes,
         override val attesteringer: Attesteringshistorikk,
-        val feilutbetalingsvarsel: Feilutbetalingsvarsel,
+        val avkortingsvarsel: Avkortingsvarsel,
     ) : UnderkjentRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -1364,7 +1357,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
                     vilkårsvurderinger = vilkårsvurderinger,
                     informasjonSomRevurderes = informasjonSomRevurderes,
                     attesteringer = attesteringer,
-                    feilutbetalingsvarsel = feilutbetalingsvarsel,
+                    avkortingsvarsel = avkortingsvarsel,
                 ).right()
             }
         }

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.database.FeilutbetalingsvarselRepo
+import no.nav.su.se.bakover.database.AvkortingsvarselRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
@@ -46,7 +46,7 @@ internal fun createSøknadsbehandlingService(
     ferdigstillVedtakService: FerdigstillVedtakService = mock(),
     grunnlagService: GrunnlagService = mock(),
     sakService: SakService = mock(),
-    feilutbetalingsvarselRepo: FeilutbetalingsvarselRepo = mock(),
+    avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
 ) = SøknadsbehandlingServiceImpl(
     søknadService,
     søknadsbehandlingRepo,
@@ -60,7 +60,7 @@ internal fun createSøknadsbehandlingService(
     ferdigstillVedtakService,
     grunnlagService,
     sakService,
-    feilutbetalingsvarselRepo,
+    avkortingsvarselRepo,
 ).apply { addObserver(observer) }
 
 internal data class SøknadsbehandlingServiceAndMocks(
@@ -78,7 +78,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
     val vilkårsvurderingService: VilkårsvurderingService = mock(),
     val grunnlagService: GrunnlagService = mock(),
     val sakService: SakService = mock(),
-    val feilutbetalingsvarselRepo: FeilutbetalingsvarselRepo = mock(),
+    val avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
 ) {
     val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
         søknadService = søknadService,
@@ -93,7 +93,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
         ferdigstillVedtakService = ferdigstillVedtakService,
         grunnlagService = grunnlagService,
         sakService = sakService,
-        feilutbetalingsvarselRepo = feilutbetalingsvarselRepo,
+        avkortingsvarselRepo = avkortingsvarselRepo,
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {
@@ -111,7 +111,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
             vilkårsvurderingService,
             grunnlagService,
             sakService,
-            feilutbetalingsvarselRepo,
+            avkortingsvarselRepo,
         ).toTypedArray()
     }
 
@@ -130,7 +130,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
             vilkårsvurderingService,
             grunnlagService,
             sakService,
-            feilutbetalingsvarselRepo,
+            avkortingsvarselRepo,
         )
     }
 }

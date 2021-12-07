@@ -31,7 +31,7 @@ internal class ServiceBuilderTest {
                 dokumentRepo = mock(),
                 nøkkeltallRepo = mock(),
                 sessionFactory = mock(),
-                feilutbetalingsvarselRepo = mock(),
+                avkortingsvarselRepo = mock(),
             ),
             clients = Clients(
                 oauth = mock(),

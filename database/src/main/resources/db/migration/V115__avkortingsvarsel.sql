@@ -1,4 +1,4 @@
-create table if not exists feilutbetalingsvarsel
+create table if not exists avkortingsvarsel
 (
     id uuid primary key,
     opprettet timestamptz not null,
@@ -6,5 +6,5 @@ create table if not exists feilutbetalingsvarsel
     behandlingId uuid not null references revurdering(id),
     simulering jsonb,
     feilutbetalingslinje jsonb,
-    type text not null
+    status text not null
 );

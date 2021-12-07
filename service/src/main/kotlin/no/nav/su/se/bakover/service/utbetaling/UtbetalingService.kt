@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.oppdrag.Feilutbetalingsvarsel
+import no.nav.su.se.bakover.domain.oppdrag.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -38,10 +38,10 @@ interface UtbetalingService {
         opphørsdato: LocalDate,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 
-    fun simulerFeilutbetalingsvarsel(
+    fun simulerAvkortingsvarsel(
         sakId: UUID,
         saksbehandler: NavIdentBruker,
-        feilutbetalingsvarsel: Feilutbetalingsvarsel.KanAvkortes,
+        avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 
     fun utbetal(

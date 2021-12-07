@@ -8,7 +8,7 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.database.FeilutbetalingsvarselRepo
+import no.nav.su.se.bakover.database.AvkortingsvarselRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Avkortingsplan
-import no.nav.su.se.bakover.domain.oppdrag.Feilutbetalingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -81,7 +80,7 @@ internal class SøknadsbehandlingServiceImpl(
     private val ferdigstillVedtakService: FerdigstillVedtakService,
     private val grunnlagService: GrunnlagService,
     private val sakService: SakService,
-    private val feilutbetalingsvarselRepo: FeilutbetalingsvarselRepo,
+    private val avkortingsvarselRepo: AvkortingsvarselRepo,
 ) : SøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -179,15 +178,12 @@ internal class SøknadsbehandlingServiceImpl(
             ),
         ).getOrHandle { return KunneIkkeBeregne.FantIkkeBehandling.left() }
 
-        val feilutbetalingsListe = feilutbetalingsvarselRepo.hent(søknadsbehandling.sakId).mapNotNull {
-            when (it) {
-                is Feilutbetalingsvarsel.KanAvkortes -> utbetalingService.simulerFeilutbetalingsvarsel(
-                    sakId = søknadsbehandling.sakId,
-                    saksbehandler = NavIdentBruker.Saksbehandler("srvsupstonad"),
-                    feilutbetalingsvarsel = it,
-                ).getOrHandle { return KunneIkkeBeregne.FantIkkeBehandling.left() }
-                else -> null
-            }
+        val avkortingsliste = avkortingsvarselRepo.hentUteståendeAvkortinger(søknadsbehandling.sakId).map {
+            utbetalingService.simulerAvkortingsvarsel(
+                sakId = søknadsbehandling.sakId,
+                saksbehandler = NavIdentBruker.Saksbehandler("srvsupstonad"),
+                avkortingsvarsel = it,
+            ).getOrHandle { return KunneIkkeBeregne.FantIkkeBehandling.left() }
         }.flatMap {
             it.simulering.hentUtbetalteBeløp()
         }
@@ -200,9 +196,9 @@ internal class SøknadsbehandlingServiceImpl(
             beregningsPeriode = søknadsbehandling.periode, begrunnelse = request.begrunnelse,
         )
 
-        søknadsbehandling = when (feilutbetalingsListe.isEmpty()) {
+        søknadsbehandling = when (avkortingsliste.isEmpty()) {
             true -> søknadsbehandling
-            false -> feilutbetalingsListe.let {
+            false -> avkortingsliste.let {
                 leggTilFradragsgrunnlag(
                     request = LeggTilFradragsgrunnlagRequest(
                         behandlingId = søknadsbehandling.id,

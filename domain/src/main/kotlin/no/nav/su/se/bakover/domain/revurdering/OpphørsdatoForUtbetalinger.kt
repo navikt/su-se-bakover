@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering
 
 import no.nav.su.se.bakover.common.startOfMonth
-import no.nav.su.se.bakover.domain.oppdrag.Feilutbetalingsvarsel
+import no.nav.su.se.bakover.domain.oppdrag.Avkortingsvarsel
 import java.time.LocalDate
 
 @JvmInline
@@ -10,39 +10,36 @@ value class OpphørsdatoForUtbetalinger private constructor(
 ) {
     constructor(
         revurdering: BeregnetRevurdering.Opphørt,
-        feilutbetalingsvarsel: Feilutbetalingsvarsel,
-    ) : this(bestem(revurdering, feilutbetalingsvarsel))
+        avkortingsvarsel: Avkortingsvarsel,
+    ) : this(bestem(revurdering, avkortingsvarsel))
 
     constructor(
         revurdering: SimulertRevurdering.Opphørt,
-    ) : this(bestem(revurdering, revurdering.feilutbetalingsvarsel))
+    ) : this(bestem(revurdering, revurdering.avkortingsvarsel))
 
     constructor(
         revurdering: RevurderingTilAttestering.Opphørt,
-    ) : this(bestem(revurdering, revurdering.feilutbetalingsvarsel))
+    ) : this(bestem(revurdering, revurdering.avkortingsvarsel))
 
     fun get(): LocalDate = opphørsdato
 
     private companion object {
         fun bestem(
             revurdering: Revurdering,
-            feilutbetalingsvarsel: Feilutbetalingsvarsel,
+            avkortingsvarsel: Avkortingsvarsel,
         ): LocalDate {
-            return when (feilutbetalingsvarsel) {
-                is Feilutbetalingsvarsel.Ingen -> {
+            return when (avkortingsvarsel) {
+                is Avkortingsvarsel.Ingen -> {
                     revurdering.periode.fraOgMed
                 }
-                is Feilutbetalingsvarsel.KanAvkortes -> {
-                    val tidligsteIkkeUtbetalteMåned = feilutbetalingsvarsel.hentUtbetalteBeløp(revurdering.periode)
+                is Avkortingsvarsel.Utenlandsopphold -> {
+                    val tidligsteIkkeUtbetalteMåned = avkortingsvarsel.hentUtbetalteBeløp(revurdering.periode)
                         .maxOf { it.first.tilOgMed }
                         .plusMonths(1)
                         .startOfMonth()
 
                     check(revurdering.periode inneholder tidligsteIkkeUtbetalteMåned) { "Opphørsdato er utenfor revurderingsperioden" }
                     tidligsteIkkeUtbetalteMåned
-                }
-                is Feilutbetalingsvarsel.MåTilbakekreves -> {
-                    revurdering.periode.fraOgMed
                 }
             }
         }

@@ -4,6 +4,8 @@ import arrow.core.getOrHandle
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.beOfType
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
@@ -26,7 +28,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.oppdrag.Feilutbetalingsvarsel
+import no.nav.su.se.bakover.domain.oppdrag.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
@@ -58,6 +60,7 @@ import no.nav.su.se.bakover.test.utlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttRevurdering
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import java.time.LocalDate
 import java.util.UUID
 
 internal class RevurderingPostgresRepoTest {
@@ -192,7 +195,7 @@ internal class RevurderingPostgresRepoTest {
         vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
         attesteringer = Attesteringshistorikk.empty(),
-        feilutbetalingsvarsel = Feilutbetalingsvarsel.Ingen,
+        avkortingsvarsel = Avkortingsvarsel.Ingen,
     )
 
     @Test
@@ -569,7 +572,7 @@ internal class RevurderingPostgresRepoTest {
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
-                feilutbetalingsvarsel = Feilutbetalingsvarsel.Ingen,
+                avkortingsvarsel = Avkortingsvarsel.Ingen,
             )
 
             repo.lagre(underkjent)
@@ -605,7 +608,7 @@ internal class RevurderingPostgresRepoTest {
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
                 attesteringer = Attesteringshistorikk.empty(),
-                feilutbetalingsvarsel = Feilutbetalingsvarsel.Ingen,
+                avkortingsvarsel = Avkortingsvarsel.Ingen,
             )
 
             repo.lagre(underkjent)
@@ -655,7 +658,7 @@ internal class RevurderingPostgresRepoTest {
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
-                feilutbetalingsvarsel = Feilutbetalingsvarsel.Ingen,
+                avkortingsvarsel = Avkortingsvarsel.Ingen,
             )
 
             repo.lagre(underkjent)
@@ -1021,7 +1024,7 @@ internal class RevurderingPostgresRepoTest {
     }
 
     @Test
-    fun `lagrer og henter revurdering med feilutbetalingsvarsel for avkorting`() {
+    fun `lagrer og henter og oppdaterer revurdering med avkortingsvarsel`() {
         withMigratedDb { dataSource ->
             TestDataHelper(dataSource).also { testDataHelper ->
                 val (vedtak, utbetaling) = testDataHelper.vedtakMedInnvilgetSøknadsbehandling(
@@ -1059,14 +1062,14 @@ internal class RevurderingPostgresRepoTest {
 
                 testDataHelper.revurderingRepo.lagre(simulert)
 
-                (testDataHelper.revurderingRepo.hent(simulert.id) as SimulertRevurdering.Opphørt)
-                    .let { opphørtRevurdering ->
-                        opphørtRevurdering.feilutbetalingsvarsel.let { feilutbetalingsvarsel ->
-                            (feilutbetalingsvarsel as Feilutbetalingsvarsel.KanAvkortes) shouldBe Feilutbetalingsvarsel.KanAvkortes(
-                                id = feilutbetalingsvarsel.id,
-                                opprettet = feilutbetalingsvarsel.opprettet,
-                                simulering = feilutbetalingsvarsel.simulering,
-                                feilutbetalingslinje = Feilutbetalingsvarsel.Feilutbetalingslinje(
+                val hentetSimulert = (testDataHelper.revurderingRepo.hent(simulert.id) as SimulertRevurdering.Opphørt)
+                    .also {
+                        it.avkortingsvarsel.let { avkortingsvarsel ->
+                            (avkortingsvarsel as Avkortingsvarsel.Utenlandsopphold) shouldBe Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                                id = avkortingsvarsel.id,
+                                opprettet = avkortingsvarsel.opprettet,
+                                simulering = avkortingsvarsel.simulering,
+                                feilutbetalingslinje = Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje(
                                     fraOgMed = 1.januar(2021),
                                     tilOgMed = 31.desember(2021),
                                     forrigeUtbetalingslinjeId = null,
@@ -1077,12 +1080,49 @@ internal class RevurderingPostgresRepoTest {
                             )
                         }
                     }
+
+                val tilAttestering = hentetSimulert.tilAttestering(
+                    attesteringsoppgaveId = oppgaveId,
+                    saksbehandler = saksbehandler,
+                    forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+                    fritekstTilBrev = "jabadoo",
+                ).getOrFail()
+
+                testDataHelper.revurderingRepo.lagre(tilAttestering)
+
+                val iverksatt = tilAttestering.tilIverksatt(
+                    attestant = attestant,
+                    clock = fixedClock,
+                    utbetal = { _: UUID, _: NavIdentBruker.Attestant, _: LocalDate, _: Simulering -> UUID30.randomUUID().right() },
+                ).getOrFail()
+
+                testDataHelper.revurderingRepo.lagre(iverksatt)
+
+                (testDataHelper.revurderingRepo.hent(iverksatt.id) as IverksattRevurdering.Opphørt).also { opphørt ->
+                    opphørt.avkortingsvarsel.let {
+                        (it as Avkortingsvarsel.Utenlandsopphold) shouldBe Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
+                            objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                                id = it.id,
+                                opprettet = it.opprettet,
+                                simulering = it.simulering,
+                                feilutbetalingslinje = Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje(
+                                    fraOgMed = 1.januar(2021),
+                                    tilOgMed = 31.desember(2021),
+                                    forrigeUtbetalingslinjeId = null,
+                                    beløp = 25000,
+                                    virkningstidspunkt = 1.januar(2021),
+                                    uføregrad = Uføregrad.parse(50),
+                                ),
+                            ),
+                        )
+                    }
+                }
             }
         }
     }
 
     @Test
-    fun `sletter eventuelle feilutbetalingsvarsel dersom vi lagrer ny beregning`() {
+    fun `sletter avkortingsvarsel dersom vi lagrer ny beregning`() {
         withMigratedDb { dataSource ->
             TestDataHelper(dataSource).also { testDataHelper ->
                 val (vedtak, utbetaling) = testDataHelper.vedtakMedInnvilgetSøknadsbehandling(
@@ -1125,12 +1165,12 @@ internal class RevurderingPostgresRepoTest {
 
                 (testDataHelper.revurderingRepo.hent(simulert.id) as SimulertRevurdering.Opphørt)
                     .let { opphørtRevurdering ->
-                        opphørtRevurdering.feilutbetalingsvarsel.let { feilutbetalingsvarsel ->
-                            (feilutbetalingsvarsel as Feilutbetalingsvarsel.KanAvkortes) shouldBe Feilutbetalingsvarsel.KanAvkortes(
-                                id = feilutbetalingsvarsel.id,
-                                opprettet = feilutbetalingsvarsel.opprettet,
-                                simulering = feilutbetalingsvarsel.simulering,
-                                feilutbetalingslinje = Feilutbetalingsvarsel.Feilutbetalingslinje(
+                        opphørtRevurdering.avkortingsvarsel.let { avkortingsvarsel ->
+                            (avkortingsvarsel as Avkortingsvarsel.Utenlandsopphold) shouldBe Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                                id = avkortingsvarsel.id,
+                                opprettet = avkortingsvarsel.opprettet,
+                                simulering = avkortingsvarsel.simulering,
+                                feilutbetalingslinje = Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje(
                                     fraOgMed = 1.januar(2021),
                                     tilOgMed = 31.desember(2021),
                                     forrigeUtbetalingslinjeId = null,
@@ -1142,11 +1182,11 @@ internal class RevurderingPostgresRepoTest {
                         }
                     }
 
-                testDataHelper.feilutbetalingsvarselRepo.hentForBehandling(beregnet.id) shouldNotBe null
+                testDataHelper.avkortingsvarselRepo.hentForBehandling(beregnet.id) shouldBe beOfType<Avkortingsvarsel.Utenlandsopphold.Opprettet>()
 
                 testDataHelper.revurderingRepo.lagre(beregnet)
 
-                testDataHelper.feilutbetalingsvarselRepo.hentForBehandling(beregnet.id) shouldBe null
+                testDataHelper.avkortingsvarselRepo.hentForBehandling(beregnet.id) shouldBe Avkortingsvarsel.Ingen
             }
         }
     }

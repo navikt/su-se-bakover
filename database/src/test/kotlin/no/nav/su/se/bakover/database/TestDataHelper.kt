@@ -231,7 +231,7 @@ internal class TestDataHelper(
         utenlandsoppholdgrunnlagRepo = utenlandsoppholdgrunnlagPostgresRepo,
         dbMetrics = dbMetrics,
     )
-    internal val feilutbetalingsvarselRepo = FeilutbetalingsvarselPostgresRepo(
+    internal val avkortingsvarselRepo = AvkortingsvarselPostgresRepo(
         dataSource = dataSource,
     )
     internal val formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo()
@@ -259,7 +259,7 @@ internal class TestDataHelper(
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
-        feilutbetalingsvarselRepo = feilutbetalingsvarselRepo,
+        avkortingsvarselRepo = avkortingsvarselRepo,
     )
     internal val vedtakRepo = VedtakPostgresRepo(
         dataSource = dataSource,

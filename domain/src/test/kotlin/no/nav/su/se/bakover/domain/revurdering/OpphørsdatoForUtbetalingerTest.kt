@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
-import no.nav.su.se.bakover.domain.oppdrag.Feilutbetalingsvarsel
+import no.nav.su.se.bakover.domain.oppdrag.Avkortingsvarsel
 import no.nav.su.se.bakover.test.nåtidForSimuleringStub
 import no.nav.su.se.bakover.test.simulertRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
@@ -18,22 +18,16 @@ import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 
 internal class OpphørsdatoForUtbetalingerTest {
-    @Test
-    fun `opphørsdato er lik revurdering fra og med hvis feilutbetalinger må tilbakekreves`() {
-        val simulert = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second
-        OpphørsdatoForUtbetalinger(simulert).get() shouldBe 1.januar(2021)
-        simulert.feilutbetalingsvarsel shouldBe Feilutbetalingsvarsel.MåTilbakekreves
-    }
 
     @Test
-    fun `opphørsdato er lik revurdering fra og med hvis ingen feilutbetaling`() {
+    fun `opphørsdato er lik revurdering fra og med hvis ingen avkortingsvarsel`() {
         val revurderingsperiode =
             Periode.create(LocalDate.now(nåtidForSimuleringStub).startOfMonth(), 31.desember(2021))
         val simulert = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
             revurderingsperiode = revurderingsperiode,
         ).second
         OpphørsdatoForUtbetalinger(simulert).get() shouldBe revurderingsperiode.fraOgMed
-        simulert.feilutbetalingsvarsel shouldBe Feilutbetalingsvarsel.Ingen
+        simulert.avkortingsvarsel shouldBe Avkortingsvarsel.Ingen
     }
 
     @Test
@@ -43,7 +37,7 @@ internal class OpphørsdatoForUtbetalingerTest {
             vilkårSomFørerTilOpphør = utlandsoppholdAvslag(),
         ).second
         OpphørsdatoForUtbetalinger(simulert).get() shouldBe tidligsteFraOgMedSomIkkeErUtbetalt
-        simulert.feilutbetalingsvarsel shouldBe beOfType<Feilutbetalingsvarsel.KanAvkortes>()
+        simulert.avkortingsvarsel shouldBe beOfType<Avkortingsvarsel.Utenlandsopphold.Opprettet>()
     }
 
     @Test

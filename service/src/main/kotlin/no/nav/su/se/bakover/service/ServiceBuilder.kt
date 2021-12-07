@@ -139,7 +139,7 @@ object ServiceBuilder {
             ferdigstillVedtakService = ferdigstillVedtakService,
             grunnlagService = grunnlagService,
             sakService = sakService,
-            feilutbetalingsvarselRepo = databaseRepos.feilutbetalingsvarselRepo,
+            avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo,
         ).apply {
             addObserver(statistikkService)
         }

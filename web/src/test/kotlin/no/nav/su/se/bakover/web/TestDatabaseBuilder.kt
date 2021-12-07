@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web
 
+import no.nav.su.se.bakover.database.AvkortingsvarselRepo
 import no.nav.su.se.bakover.database.DatabaseRepos
-import no.nav.su.se.bakover.database.FeilutbetalingsvarselRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
@@ -38,7 +38,7 @@ object TestDatabaseBuilder {
         dokumentRepo: DokumentRepo = mock(),
         nøkkeltallRepo: NøkkeltallRepo = mock(),
         sessionFactory: TestSessionFactory = TestSessionFactory(),
-        feilutbetalingsvarselRepo: FeilutbetalingsvarselRepo = mock(),
+        avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
 
     ): DatabaseRepos {
         return DatabaseRepos(
@@ -58,7 +58,7 @@ object TestDatabaseBuilder {
             dokumentRepo = dokumentRepo,
             nøkkeltallRepo = nøkkeltallRepo,
             sessionFactory = sessionFactory,
-            feilutbetalingsvarselRepo = feilutbetalingsvarselRepo,
+            avkortingsvarselRepo = avkortingsvarselRepo,
         )
     }
 }

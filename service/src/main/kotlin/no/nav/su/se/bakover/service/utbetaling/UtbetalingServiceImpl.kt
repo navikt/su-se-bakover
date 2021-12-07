@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.oppdrag.Feilutbetalingsvarsel
+import no.nav.su.se.bakover.domain.oppdrag.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
@@ -159,10 +159,10 @@ internal class UtbetalingServiceImpl(
         )
     }
 
-    override fun simulerFeilutbetalingsvarsel(
+    override fun simulerAvkortingsvarsel(
         sakId: UUID,
         saksbehandler: NavIdentBruker,
-        feilutbetalingsvarsel: Feilutbetalingsvarsel.KanAvkortes,
+        avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
         val sak: Sak = sakService.hentSak(sakId).orNull()!!
         val opprettet = Tidspunkt.now(clock)
@@ -177,12 +177,12 @@ internal class UtbetalingServiceImpl(
                     Utbetalingslinje.Endring.Opphør(
                         id = UUID30.randomUUID(),
                         opprettet = Tidspunkt.now(clock),
-                        fraOgMed = feilutbetalingsvarsel.feilutbetalingslinje.fraOgMed,
-                        tilOgMed = feilutbetalingsvarsel.feilutbetalingslinje.tilOgMed,
-                        forrigeUtbetalingslinjeId = feilutbetalingsvarsel.feilutbetalingslinje.forrigeUtbetalingslinjeId,
-                        beløp = feilutbetalingsvarsel.feilutbetalingslinje.beløp,
-                        virkningstidspunkt = feilutbetalingsvarsel.feilutbetalingslinje.virkningstidspunkt,
-                        uføregrad = feilutbetalingsvarsel.feilutbetalingslinje.uføregrad,
+                        fraOgMed = avkortingsvarsel.feilutbetalingslinje.fraOgMed,
+                        tilOgMed = avkortingsvarsel.feilutbetalingslinje.tilOgMed,
+                        forrigeUtbetalingslinjeId = avkortingsvarsel.feilutbetalingslinje.forrigeUtbetalingslinjeId,
+                        beløp = avkortingsvarsel.feilutbetalingslinje.beløp,
+                        virkningstidspunkt = avkortingsvarsel.feilutbetalingslinje.virkningstidspunkt,
+                        uføregrad = avkortingsvarsel.feilutbetalingslinje.uføregrad,
                     ),
                 ),
                 type = Utbetaling.UtbetalingsType.OPPHØR,

@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.oppdrag.Feilutbetalingsvarsel
+import no.nav.su.se.bakover.domain.oppdrag.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -487,7 +487,7 @@ internal class RevurderingJsonTest {
                 ),
             ),
             attesteringer = Attesteringshistorikk.empty(),
-            feilutbetalingsvarsel = Feilutbetalingsvarsel.Ingen
+            avkortingsvarsel = Avkortingsvarsel.Ingen
         )
 
         val revurderingJson =
@@ -655,7 +655,7 @@ internal class RevurderingJsonTest {
                 ),
             ),
             attesteringer = Attesteringshistorikk.empty(),
-            feilutbetalingsvarsel = Feilutbetalingsvarsel.Ingen
+            avkortingsvarsel = Avkortingsvarsel.Ingen
         )
 
         val revurderingJson =
@@ -928,7 +928,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
-            feilutbetalingsvarsel = Feilutbetalingsvarsel.Ingen
+            avkortingsvarsel = Avkortingsvarsel.Ingen
         )
 
         val expected =
@@ -1214,7 +1214,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
-            feilutbetalingsvarsel = Feilutbetalingsvarsel.Ingen
+            avkortingsvarsel = Avkortingsvarsel.Ingen
         )
 
         val revurderingJson =

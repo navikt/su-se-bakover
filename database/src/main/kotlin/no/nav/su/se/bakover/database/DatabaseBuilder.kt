@@ -155,7 +155,7 @@ object DatabaseBuilder {
             utenlandsoppholdVilkårsvurderingRepo = utlandsoppholdVilkårsvurderingRepo,
         )
 
-        val feilutbetalingsvarselRepo = FeilutbetalingsvarselPostgresRepo(
+        val avkortingsvarselRepo = AvkortingsvarselPostgresRepo(
             dataSource = dataSource
         )
 
@@ -169,7 +169,7 @@ object DatabaseBuilder {
             søknadsbehandlingRepo = saksbehandlingRepo,
             dbMetrics = dbMetrics,
             sessionFactory = sessionFactory,
-            feilutbetalingsvarselRepo = feilutbetalingsvarselRepo
+            avkortingsvarselRepo = avkortingsvarselRepo
         )
         val vedtakRepo = VedtakPostgresRepo(
             dataSource = dataSource,
@@ -214,7 +214,7 @@ object DatabaseBuilder {
             dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory),
             nøkkeltallRepo = nøkkeltallRepo,
             sessionFactory = sessionFactory,
-            feilutbetalingsvarselRepo = feilutbetalingsvarselRepo,
+            avkortingsvarselRepo = avkortingsvarselRepo,
         )
     }
 }
@@ -236,5 +236,5 @@ data class DatabaseRepos(
     val dokumentRepo: DokumentRepo,
     val nøkkeltallRepo: NøkkeltallRepo,
     val sessionFactory: SessionFactory,
-    val feilutbetalingsvarselRepo: FeilutbetalingsvarselRepo,
+    val avkortingsvarselRepo: AvkortingsvarselRepo,
 )
