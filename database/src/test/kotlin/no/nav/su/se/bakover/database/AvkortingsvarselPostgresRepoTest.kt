@@ -17,15 +17,19 @@ internal class AvkortingsvarselPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
 
-            testDataHelper.avkortingsvarselRepo.lagre(
-                sakId = UUID.randomUUID(),
-                behandlingId = UUID.randomUUID(),
-                avkortingsvarsel = Avkortingsvarsel.Ingen,
-            )
+            testDataHelper.sessionFactory.withTransaction { tx ->
+                testDataHelper.avkortingsvarselRepo.lagre(
+                    sakId = UUID.randomUUID(),
+                    behandlingId = UUID.randomUUID(),
+                    avkortingsvarsel = Avkortingsvarsel.Ingen,
+                    tx = tx,
+                )
 
-            testDataHelper.avkortingsvarselRepo.hentForBehandling(
-                UUID.randomUUID(),
-            ) shouldBe Avkortingsvarsel.Ingen
+                testDataHelper.avkortingsvarselRepo.hentForBehandling(
+                    behandlingId = UUID.randomUUID(),
+                    session = tx,
+                ) shouldBe Avkortingsvarsel.Ingen
+            }
         }
     }
 
@@ -37,53 +41,62 @@ internal class AvkortingsvarselPostgresRepoTest {
             val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
             val revurdering = testDataHelper.nyRevurdering(innvilget = vedtak, vedtak.periode)
 
-            val avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
-                simulering = simuleringFeilutbetaling(),
-                feilutbetalingslinje = Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje(
-                    fraOgMed = 1.mai(2021),
-                    tilOgMed = 31.desember(2021),
-                    forrigeUtbetalingslinjeId = null,
-                    beløp = 12345,
-                    virkningstidspunkt = 1.juni(2021),
-                    uføregrad = Uføregrad.parse(50),
-                ),
-            )
+            testDataHelper.sessionFactory.withTransaction { tx ->
 
-            testDataHelper.avkortingsvarselRepo.lagre(
-                sakId = sak.id,
-                behandlingId = revurdering.id,
-                avkortingsvarsel = avkortingsvarsel,
-            )
+                val avkortingsvarsel = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    simulering = simuleringFeilutbetaling(),
+                    feilutbetalingslinje = Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje(
+                        fraOgMed = 1.mai(2021),
+                        tilOgMed = 31.desember(2021),
+                        forrigeUtbetalingslinjeId = null,
+                        beløp = 12345,
+                        virkningstidspunkt = 1.juni(2021),
+                        uføregrad = Uføregrad.parse(50),
+                    ),
+                )
 
-            testDataHelper.avkortingsvarselRepo.hentForBehandling(
-                revurdering.id,
-            ) shouldBe avkortingsvarsel
+                testDataHelper.avkortingsvarselRepo.lagre(
+                    sakId = sak.id,
+                    behandlingId = revurdering.id,
+                    avkortingsvarsel = avkortingsvarsel,
+                    tx = tx,
+                )
 
-            val skalAvkortes = avkortingsvarsel.skalAvkortes()
+                testDataHelper.avkortingsvarselRepo.hentForBehandling(
+                    behandlingId = revurdering.id,
+                    session = tx,
+                ) shouldBe avkortingsvarsel
 
-            testDataHelper.avkortingsvarselRepo.lagre(
-                sakId = sak.id,
-                behandlingId = revurdering.id,
-                avkortingsvarsel = skalAvkortes,
-            )
+                val skalAvkortes = avkortingsvarsel.skalAvkortes()
 
-            testDataHelper.avkortingsvarselRepo.hentForBehandling(
-                revurdering.id,
-            ) shouldBe skalAvkortes
+                testDataHelper.avkortingsvarselRepo.lagre(
+                    sakId = sak.id,
+                    behandlingId = revurdering.id,
+                    avkortingsvarsel = skalAvkortes,
+                    tx = tx,
+                )
 
-            val avkortet = skalAvkortes.avkortet()
+                testDataHelper.avkortingsvarselRepo.hentForBehandling(
+                    behandlingId = revurdering.id,
+                    session = tx,
+                ) shouldBe skalAvkortes
 
-            testDataHelper.avkortingsvarselRepo.lagre(
-                sakId = sak.id,
-                behandlingId = revurdering.id,
-                avkortingsvarsel = avkortet,
-            )
+                val avkortet = skalAvkortes.avkortet()
 
-            testDataHelper.avkortingsvarselRepo.hentForBehandling(
-                revurdering.id,
-            ) shouldBe avkortet
+                testDataHelper.avkortingsvarselRepo.lagre(
+                    sakId = sak.id,
+                    behandlingId = revurdering.id,
+                    avkortingsvarsel = avkortet,
+                    tx = tx,
+                )
+
+                testDataHelper.avkortingsvarselRepo.hentForBehandling(
+                    behandlingId = revurdering.id,
+                    session = tx,
+                ) shouldBe avkortet
+            }
         }
     }
 
@@ -111,12 +124,6 @@ internal class AvkortingsvarselPostgresRepoTest {
                 ),
             )
 
-            testDataHelper.avkortingsvarselRepo.lagre(
-                sakId = sak.id,
-                behandlingId = revurdering1.id,
-                avkortingsvarsel = opprettet,
-            )
-
             val skalAvkortes = Avkortingsvarsel.Utenlandsopphold.Opprettet(
                 id = UUID.randomUUID(),
                 opprettet = fixedTidspunkt,
@@ -130,12 +137,6 @@ internal class AvkortingsvarselPostgresRepoTest {
                     uføregrad = Uføregrad.parse(50),
                 ),
             ).skalAvkortes()
-
-            testDataHelper.avkortingsvarselRepo.lagre(
-                sakId = sak.id,
-                behandlingId = revurdering2.id,
-                avkortingsvarsel = skalAvkortes,
-            )
 
             val avkortet = Avkortingsvarsel.Utenlandsopphold.Opprettet(
                 id = UUID.randomUUID(),
@@ -151,11 +152,28 @@ internal class AvkortingsvarselPostgresRepoTest {
                 ),
             ).skalAvkortes().avkortet()
 
-            testDataHelper.avkortingsvarselRepo.lagre(
-                sakId = sak.id,
-                behandlingId = revurdering3.id,
-                avkortingsvarsel = avkortet,
-            )
+            testDataHelper.sessionFactory.withTransaction { tx ->
+                testDataHelper.avkortingsvarselRepo.lagre(
+                    sakId = sak.id,
+                    behandlingId = revurdering1.id,
+                    avkortingsvarsel = opprettet,
+                    tx = tx,
+                )
+
+                testDataHelper.avkortingsvarselRepo.lagre(
+                    sakId = sak.id,
+                    behandlingId = revurdering2.id,
+                    avkortingsvarsel = skalAvkortes,
+                    tx = tx,
+                )
+
+                testDataHelper.avkortingsvarselRepo.lagre(
+                    sakId = sak.id,
+                    behandlingId = revurdering3.id,
+                    avkortingsvarsel = avkortet,
+                    tx = tx,
+                )
+            }
 
             testDataHelper.avkortingsvarselRepo.hentUteståendeAvkortinger(sak.id) shouldBe listOf(skalAvkortes)
         }

@@ -156,7 +156,7 @@ object DatabaseBuilder {
         )
 
         val avkortingsvarselRepo = AvkortingsvarselPostgresRepo(
-            dataSource = dataSource
+            sessionFactory = sessionFactory
         )
 
         val revurderingRepo = RevurderingPostgresRepo(

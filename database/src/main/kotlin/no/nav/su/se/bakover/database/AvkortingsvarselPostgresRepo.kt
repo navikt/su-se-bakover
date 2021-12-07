@@ -4,25 +4,20 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.domain.oppdrag.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.util.UUID
-import javax.sql.DataSource
 
 interface AvkortingsvarselRepo {
-    fun hentUteståendeAvkortinger(sakId: UUID): List<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>
+    fun hentUteståendeAvkortinger(sakId: UUID, sessionContext: SessionContext = defaultSessionContext()): List<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>
+    fun defaultSessionContext(): SessionContext
 }
 
 internal class AvkortingsvarselPostgresRepo(
-    private val dataSource: DataSource,
+    private val sessionFactory: PostgresSessionFactory,
 ) : AvkortingsvarselRepo {
-
-    fun lagre(sakId: UUID, behandlingId: UUID, avkortingsvarsel: Avkortingsvarsel) {
-        dataSource.withTransaction { tx ->
-            slettForBehandling(behandlingId, tx)
-            lagre(sakId, behandlingId, avkortingsvarsel, tx)
-        }
-    }
 
     enum class Status {
         OPPRETTET,
@@ -30,7 +25,8 @@ internal class AvkortingsvarselPostgresRepo(
         AVKORTET
     }
 
-    private fun lagre(sakId: UUID, behandlingId: UUID, avkortingsvarsel: Avkortingsvarsel, tx: TransactionalSession) {
+    fun lagre(sakId: UUID, behandlingId: UUID, avkortingsvarsel: Avkortingsvarsel, tx: TransactionalSession) {
+        slettForBehandling(behandlingId, tx)
         when (avkortingsvarsel) {
             Avkortingsvarsel.Ingen -> {}
             is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
@@ -113,8 +109,8 @@ internal class AvkortingsvarselPostgresRepo(
             )
     }
 
-    override fun hentUteståendeAvkortinger(sakId: UUID): List<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes> {
-        return dataSource.withSession { session ->
+    override fun hentUteståendeAvkortinger(sakId: UUID, sessionContext: SessionContext): List<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes> {
+        return sessionContext.withSession { session ->
             """select * from avkortingsvarsel where sakid = :sakid and status = :status""".hentListe(
                 mapOf(
                     "sakid" to sakId,
@@ -136,16 +132,14 @@ internal class AvkortingsvarselPostgresRepo(
         )
     }
 
-    fun hentForBehandling(behandlingId: UUID): Avkortingsvarsel {
-        return dataSource.withSession { session ->
-            """select * from avkortingsvarsel where behandlingId = :behandlingId""".hent(
-                mapOf(
-                    "behandlingId" to behandlingId,
-                ),
-                session,
-            ) {
-                it.toAvkortingsvarsel()
-            }
+    fun hentForBehandling(behandlingId: UUID, session: Session): Avkortingsvarsel {
+        return """select * from avkortingsvarsel where behandlingId = :behandlingId""".hent(
+            mapOf(
+                "behandlingId" to behandlingId,
+            ),
+            session,
+        ) {
+            it.toAvkortingsvarsel()
         } ?: Avkortingsvarsel.Ingen
     }
 
@@ -161,5 +155,9 @@ internal class AvkortingsvarselPostgresRepo(
             Status.SKAL_AVKORTES -> opprettet.skalAvkortes()
             Status.AVKORTET -> opprettet.skalAvkortes().avkortet()
         }
+    }
+
+    override fun defaultSessionContext(): SessionContext {
+        return sessionFactory.newSessionContext()
     }
 }

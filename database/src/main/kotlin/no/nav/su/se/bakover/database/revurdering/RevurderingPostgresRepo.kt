@@ -242,7 +242,7 @@ internal class RevurderingPostgresRepo(
             utenlandsopphold = utlandsoppholdVilkårsvurderingRepo.hent(id, session),
         )
 
-        val avkortingsvarsel = avkortingsvarselRepo.hentForBehandling(id)
+        val avkortingsvarsel = avkortingsvarselRepo.hentForBehandling(id, session)
 
         val revurdering = lagRevurdering(
             status = status,
@@ -463,6 +463,7 @@ internal class RevurderingPostgresRepo(
                             sakId = revurdering.sakId,
                             behandlingId = revurdering.id,
                             avkortingsvarsel = revurdering.avkortingsvarsel,
+                            tx = tx,
                         )
                     }
                 }
@@ -514,7 +515,7 @@ internal class RevurderingPostgresRepo(
                 session,
             )
 
-    private fun lagre(revurdering: IverksattRevurdering, session: TransactionalSession) {
+    private fun lagre(revurdering: IverksattRevurdering, tx: TransactionalSession) {
         """
                     update
                         revurdering
@@ -550,7 +551,7 @@ internal class RevurderingPostgresRepo(
                         is IverksattRevurdering.Opphørt -> RevurderingsType.IVERKSATT_OPPHØRT
                     },
                 ),
-                session,
+                tx,
             )
 
         when (revurdering) {
@@ -561,6 +562,7 @@ internal class RevurderingPostgresRepo(
                     sakId = revurdering.sakId,
                     behandlingId = revurdering.id,
                     avkortingsvarsel = revurdering.avkortingsvarsel,
+                    tx = tx,
                 )
             }
         }

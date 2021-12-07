@@ -232,7 +232,7 @@ internal class TestDataHelper(
         dbMetrics = dbMetrics,
     )
     internal val avkortingsvarselRepo = AvkortingsvarselPostgresRepo(
-        dataSource = dataSource,
+        sessionFactory = sessionFactory,
     )
     internal val formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo()
     internal val formueVilkårsvurderingPostgresRepo = FormueVilkårsvurderingPostgresRepo(
