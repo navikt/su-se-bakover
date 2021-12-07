@@ -5,15 +5,19 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlage
@@ -57,6 +61,100 @@ internal class UnderkjennKlageTest {
         )
         mocks.service.underkjenn(request) shouldBe KunneIkkeUnderkjenne.FantIkkeKlage.left()
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `kunne ikke hente aktør id`() {
+        val klage = klageTilAttestering()
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentKlage(any()) } doReturn klage
+            },
+            personServiceMock = mock {
+                on { hentAktørId(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
+            },
+        )
+
+        val attestant = NavIdentBruker.Attestant("s2")
+        mocks.service.underkjenn(
+            UnderkjennKlageRequest(
+                klageId = klage.id,
+                attestant = attestant,
+                grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                kommentar = "",
+            ),
+        ) shouldBe KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave.left()
+        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe klage.fnr })
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `kunne ikke opprette oppgave`() {
+        val klage = klageTilAttestering()
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentKlage(any()) } doReturn klage
+            },
+            personServiceMock = mock {
+                on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
+            },
+            oppgaveService = mock {
+                on { opprettOppgave(any()) } doReturn OppgaveFeil.KunneIkkeOppretteOppgave.left()
+            },
+        )
+
+        val attestant = NavIdentBruker.Attestant("s2")
+        mocks.service.underkjenn(
+            UnderkjennKlageRequest(
+                klageId = klage.id,
+                attestant = attestant,
+                grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                kommentar = "",
+            ),
+        ) shouldBe KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave.left()
+        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.oppgaveService).opprettOppgave(
+            argThat {
+                it shouldBe OppgaveConfig.Klage.Saksbehandler(
+                    saksnummer = klage.saksnummer,
+                    aktørId = AktørId("aktørId"),
+                    journalpostId = klage.journalpostId,
+                    tilordnetRessurs = klage.saksbehandler,
+                    clock = fixedClock,
+                )
+            },
+        )
+        verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe klage.fnr })
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `Attestant og saksbehandler kan ikke være samme person`() {
+        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
+        val klage = klageTilAttestering(
+            sakId = sak.id,
+            vedtakId = vedtak.id,
+        )
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentKlage(any()) } doReturn klage
+                on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2021)
+            },
+            sakRepoMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak
+            },
+        )
+
+        val klageId = UUID.randomUUID()
+        val attestant = NavIdentBruker.Attestant(klage.saksbehandler.navIdent)
+        mocks.service.iverksett(
+            klageId = klageId,
+            attestant = attestant,
+        ) shouldBe KunneIkkeIverksetteKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
+        verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe sak.id })
         mocks.verifyNoMoreInteractions()
     }
 

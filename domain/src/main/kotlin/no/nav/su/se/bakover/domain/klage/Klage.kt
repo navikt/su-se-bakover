@@ -93,7 +93,7 @@ sealed class Klage {
     /** @return [IverksattKlage] */
     open fun iverksett(
         iverksattAttestering: Attestering.Iverksatt,
-    ): Either<KunneIkkeIverksetteKlage.UgyldigTilstand, IverksattKlage> {
+    ): Either<KunneIkkeIverksetteKlage, IverksattKlage> {
         return KunneIkkeIverksetteKlage.UgyldigTilstand(this::class, IverksattKlage::class).left()
     }
 

@@ -8,7 +8,6 @@ import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
-import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
@@ -51,12 +50,12 @@ import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeGenerereBrev
+import no.nav.su.se.bakover.web.routes.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.depositumErHøyereEnnInnskudd
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.Feilresponser.harIkkeEktefelle
-import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeAvgjøreOmFørstegangEllerNyPeriode
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson
@@ -82,10 +81,6 @@ internal fun Route.søknadsbehandlingRoutes(
     val feilVedHentingAvSaksbehandlerEllerAttestant = InternalServerError.errorJson(
         "Klarte ikke hente informasjon om saksbehandler og/eller attestant",
         "feil_ved_henting_av_saksbehandler_eller_attestant",
-    )
-    val attestantSammeSomSaksbehandler = Forbidden.errorJson(
-        "Attestant og saksbehandler kan ikke være samme person",
-        "attestant_samme_som_saksbehandler",
     )
 
     authorize(Brukerrolle.Saksbehandler) {
@@ -378,7 +373,6 @@ internal fun Route.søknadsbehandlingRoutes(
                                     KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave -> Feilresponser.kunneIkkeOppretteOppgave
                                     KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId -> Feilresponser.fantIkkeAktørId
                                     KunneIkkeSendeTilAttestering.FantIkkeBehandling -> fantIkkeBehandling
-                                    KunneIkkeSendeTilAttestering.KunneIkkeAvgjøreOmFørstegangEllerNyPeriode -> kunneIkkeAvgjøreOmFørstegangEllerNyPeriode
                                 }
                                 call.svar(resultat)
                             },
@@ -397,7 +391,7 @@ internal fun Route.søknadsbehandlingRoutes(
     authorize(Brukerrolle.Attestant) {
         fun kunneIkkeIverksetteMelding(value: KunneIkkeIverksette): Resultat {
             return when (value) {
-                is KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantSammeSomSaksbehandler
+                is KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
                 is KunneIkkeIverksette.KunneIkkeUtbetale -> value.utbetalingFeilet.tilResultat()
                 is KunneIkkeIverksette.KunneIkkeGenerereVedtaksbrev -> kunneIkkeGenerereBrev
                 is KunneIkkeIverksette.FantIkkeBehandling -> fantIkkeBehandling
@@ -464,10 +458,9 @@ internal fun Route.søknadsbehandlingRoutes(
                                 ifLeft = {
                                     val resultat = when (it) {
                                         KunneIkkeUnderkjenne.FantIkkeBehandling -> fantIkkeBehandling
-                                        KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantSammeSomSaksbehandler
+                                        KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
                                         KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave -> Feilresponser.kunneIkkeOppretteOppgave
                                         KunneIkkeUnderkjenne.FantIkkeAktørId -> Feilresponser.fantIkkeAktørId
-                                        KunneIkkeUnderkjenne.KunneIkkeAvgjøreOmFørstegangEllerNyPeriode -> kunneIkkeAvgjøreOmFørstegangEllerNyPeriode
                                     }
                                     call.svar(resultat)
                                 },

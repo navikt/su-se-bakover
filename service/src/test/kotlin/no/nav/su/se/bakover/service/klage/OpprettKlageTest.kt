@@ -9,7 +9,9 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
@@ -67,6 +69,82 @@ internal class OpprettKlageTest {
         mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage.left()
 
         verify(mocks.sakRepoMock).hentSak(sakId)
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `kunne ikke hente aktør id`() {
+        val sakId = UUID.randomUUID()
+        val sak = nySakMedjournalførtSøknadOgOppgave(
+            sakId = sakId,
+        ).first
+
+        val mocks = KlageServiceMocks(
+            sakRepoMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak
+            },
+            klageRepoMock = mock {
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+            },
+            personServiceMock = mock {
+                on { hentAktørId(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
+            },
+        )
+        val request = NyKlageRequest(
+            sakId = sakId,
+            journalpostId = JournalpostId("j2"),
+            saksbehandler = NavIdentBruker.Saksbehandler("s2"),
+            datoKlageMottatt = 1.desember(2021),
+        )
+        mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
+
+        verify(mocks.sakRepoMock).hentSak(sakId)
+        verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe sak.fnr })
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `kunne ikke opprette oppgave`() {
+        val sakId = UUID.randomUUID()
+        val sak = nySakMedjournalførtSøknadOgOppgave(
+            sakId = sakId,
+        ).first
+
+        val mocks = KlageServiceMocks(
+            sakRepoMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak
+            },
+            klageRepoMock = mock {
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+            },
+            personServiceMock = mock {
+                on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
+            },
+            oppgaveService = mock {
+                on { opprettOppgave(any()) } doReturn OppgaveFeil.KunneIkkeOppretteOppgave.left()
+            }
+        )
+        val request = NyKlageRequest(
+            sakId = sakId,
+            journalpostId = JournalpostId("j2"),
+            saksbehandler = NavIdentBruker.Saksbehandler("s2"),
+            datoKlageMottatt = 1.desember(2021),
+        )
+        mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave.left()
+
+        verify(mocks.sakRepoMock).hentSak(sakId)
+        verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe sak.fnr })
+        verify(mocks.oppgaveService).opprettOppgave(
+            argThat {
+                it shouldBe OppgaveConfig.Klage.Saksbehandler(
+                    saksnummer = sak.saksnummer,
+                    aktørId = AktørId("aktørId"),
+                    journalpostId = JournalpostId(value = "j2"),
+                    tilordnetRessurs = null,
+                    clock = fixedClock,
+                )
+            },
+        )
         mocks.verifyNoMoreInteractions()
     }
 

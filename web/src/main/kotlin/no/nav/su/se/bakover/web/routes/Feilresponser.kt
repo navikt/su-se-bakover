@@ -138,6 +138,11 @@ internal object Feilresponser {
         "fant_ikke_gjeldende_utbetaling",
     )
 
+    val attestantOgSaksbehandlerKanIkkeVæreSammePerson = Forbidden.errorJson(
+        "Attestant og saksbehandler kan ikke være samme person",
+        "attestant_og_saksbehandler_kan_ikke_være_samme_person",
+    )
+
     fun ugyldigTilstand(fra: KClass<*>, til: KClass<*>): Resultat {
         return BadRequest.errorJson(
             "Kan ikke gå fra tilstanden ${fra.simpleName} til tilstanden ${til.simpleName}",

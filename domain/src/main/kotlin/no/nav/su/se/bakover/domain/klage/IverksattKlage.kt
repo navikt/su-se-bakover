@@ -41,9 +41,6 @@ data class IverksattKlage private constructor(
             attesteringer: Attesteringshistorikk,
             datoKlageMottatt: LocalDate,
         ): IverksattKlage {
-            if (!attesteringer.sisteAttesteringErIverksatt()) {
-                throw IllegalArgumentException("Kan ikke iverksette klage siden siste attestering ikke var iverksatt. Denne feilen kan forventes i testene, men ikke via implementasjonen.")
-            }
             return IverksattKlage(
                 id = id,
                 opprettet = opprettet,
@@ -67,5 +64,6 @@ sealed class KunneIkkeIverksetteKlage {
     object FantIkkeSak : KunneIkkeIverksetteKlage()
     object KunneIkkeLageBrevRequest : KunneIkkeIverksetteKlage()
     object DokumentGenereringFeilet : KunneIkkeIverksetteKlage()
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteKlage()
     data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeIverksetteKlage()
 }

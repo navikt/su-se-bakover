@@ -12,7 +12,9 @@ import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -54,6 +56,64 @@ internal class SendKlageTilAttesteringTest {
             saksbehandler = saksbehandler,
         ) shouldBe KunneIkkeSendeTilAttestering.FantIkkeKlage.left()
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `kunne ikke hente aktør id`() {
+        val klage = bekreftetVurdertKlage()
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentKlage(any()) } doReturn klage
+            },
+            personServiceMock = mock {
+                on { hentAktørId(any()) } doReturn KunneIkkeHentePerson.Ukjent.left()
+            },
+        )
+
+        val saksbehandler = NavIdentBruker.Saksbehandler("s2")
+        mocks.service.sendTilAttestering(
+            klageId = klage.id,
+            saksbehandler = saksbehandler,
+        ) shouldBe KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave.left()
+        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe klage.fnr })
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `kunne ikke opprette oppgave`() {
+        val klage = bekreftetVurdertKlage()
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentKlage(any()) } doReturn klage
+            },
+            personServiceMock = mock {
+                on { hentAktørId(any()) } doReturn AktørId("aktørId").right()
+            },
+            oppgaveService = mock {
+                on { opprettOppgave(any()) } doReturn OppgaveFeil.KunneIkkeOppretteOppgave.left()
+            },
+        )
+
+        val saksbehandler = NavIdentBruker.Saksbehandler("s2")
+        mocks.service.sendTilAttestering(
+            klageId = klage.id,
+            saksbehandler = saksbehandler,
+        ) shouldBe KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave.left()
+        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.oppgaveService).opprettOppgave(
+            argThat {
+                it shouldBe OppgaveConfig.Klage.Saksbehandler(
+                    saksnummer = klage.saksnummer,
+                    aktørId = AktørId("aktørId"),
+                    journalpostId = klage.journalpostId,
+                    tilordnetRessurs = null,
+                    clock = fixedClock,
+                )
+            },
+        )
+        verify(mocks.personServiceMock).hentAktørId(argThat { it shouldBe klage.fnr })
         mocks.verifyNoMoreInteractions()
     }
 

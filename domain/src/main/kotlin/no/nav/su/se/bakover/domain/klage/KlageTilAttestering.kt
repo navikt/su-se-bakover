@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.klage
 
 import arrow.core.Either
+import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
@@ -33,6 +34,9 @@ data class KlageTilAttestering private constructor(
         underkjentAttestering: Attestering.Underkjent,
         opprettOppgave: () -> Either<KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave, OppgaveId>,
     ): Either<KunneIkkeUnderkjenne, VurdertKlage.Bekreftet> {
+        if (underkjentAttestering.attestant.navIdent == saksbehandler.navIdent) {
+            return KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        }
         return opprettOppgave().map { oppgaveId ->
             VurdertKlage.Bekreftet.create(
                 id = id,
@@ -53,7 +57,10 @@ data class KlageTilAttestering private constructor(
 
     override fun iverksett(
         iverksattAttestering: Attestering.Iverksatt
-    ): Either<KunneIkkeIverksetteKlage.UgyldigTilstand, IverksattKlage> {
+    ): Either<KunneIkkeIverksetteKlage, IverksattKlage> {
+        if (iverksattAttestering.attestant.navIdent == saksbehandler.navIdent) {
+            return KunneIkkeIverksetteKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        }
         return IverksattKlage.create(
             id = id,
             opprettet = opprettet,
@@ -112,5 +119,6 @@ sealed class KunneIkkeSendeTilAttestering {
 sealed class KunneIkkeUnderkjenne {
     object FantIkkeKlage : KunneIkkeUnderkjenne()
     object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenne()
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeUnderkjenne()
     data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeUnderkjenne()
 }

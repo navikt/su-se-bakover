@@ -40,6 +40,7 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeGenerereBrev
+import no.nav.su.se.bakover.web.routes.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeKlage
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSak
@@ -369,6 +370,7 @@ internal fun Route.klageRoutes(
                                         KunneIkkeUnderkjenne.FantIkkeKlage -> fantIkkeKlage
                                         is KunneIkkeUnderkjenne.UgyldigTilstand -> ugyldigTilstand(error.fra, error.til)
                                         KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
+                                        KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
                                     },
                                 )
                             }
@@ -399,6 +401,7 @@ internal fun Route.klageRoutes(
                                 KunneIkkeIverksetteKlage.FantIkkeKlage -> fantIkkeKlage
                                 KunneIkkeIverksetteKlage.DokumentGenereringFeilet -> feilVedGenereringAvDokument
                                 KunneIkkeIverksetteKlage.KunneIkkeLageBrevRequest -> kunneIkkeGenerereBrev
+                                KunneIkkeIverksetteKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
                                 is KunneIkkeIverksetteKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
                             },
                         )

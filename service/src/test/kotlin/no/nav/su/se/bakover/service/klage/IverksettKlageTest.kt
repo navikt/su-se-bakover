@@ -171,6 +171,34 @@ internal class IverksettKlageTest {
     }
 
     @Test
+    fun `Attestant og saksbehandler kan ikke være samme person`() {
+        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget()
+        val klage = klageTilAttestering(
+            sakId = sak.id,
+            vedtakId = vedtak.id,
+        )
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentKlage(any()) } doReturn klage
+                on { hentKnyttetVedtaksdato(any()) } doReturn 1.januar(2021)
+            },
+            sakRepoMock = mock {
+                on { hentSak(any<UUID>()) } doReturn sak
+            },
+        )
+
+        val klageId = UUID.randomUUID()
+        val attestant = NavIdentBruker.Attestant(klage.saksbehandler.navIdent)
+        mocks.service.iverksett(
+            klageId = klageId,
+            attestant = attestant,
+        ) shouldBe KunneIkkeIverksetteKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
+        verify(mocks.sakRepoMock).hentSak(argThat<UUID> { it shouldBe sak.id })
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
     fun `Ugyldig tilstandsovergang fra opprettet`() {
         val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget()
         verifiserUgyldigTilstandsovergang(
