@@ -66,7 +66,7 @@ internal data class KlageJson(
                         type = Type.OPPRETTHOLD.toString(),
                         omgjør = null,
                         oppretthold = OpprettholdJson(
-                            hjemler = hjemler.hjemler.map { it.toString() },
+                            hjemler = hjemler.map { it.toString() },
                         ),
                     )
                     is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> VedtaksvurderingJson(
@@ -81,7 +81,7 @@ internal data class KlageJson(
                         type = Type.OPPRETTHOLD.toString(),
                         omgjør = null,
                         oppretthold = OpprettholdJson(
-                            hjemler = hjemler.hjemler.map { it.toString() },
+                            hjemler = hjemler.map { it.toString() },
                         ),
                     )
                 }

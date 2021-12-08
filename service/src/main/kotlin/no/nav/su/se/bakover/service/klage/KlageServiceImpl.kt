@@ -317,7 +317,7 @@ class KlageServiceImpl(
             dagensDato = LocalDate.now(clock),
             saksbehandlerNavn = saksbehandlerNavn,
             fritekst = fritekst,
-            hjemler = hjemler.hjemler.map {
+            hjemler = hjemler.map {
                 it.paragrafnummer
             },
             klageDato = klageDato,

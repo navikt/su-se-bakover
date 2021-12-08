@@ -12,7 +12,7 @@ internal object KabalRequestMapper {
             avsenderSaksbehandlerIdent = klage.saksbehandler.navIdent,
             dvhReferanse = klage.id.toString(),
             fagsak = KabalRequest.Fagsak(sak.saksnummer.toString()),
-            hjemler = (klage.vurderinger.vedtaksvurdering as VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold).hjemler.hjemler.map {
+            hjemler = (klage.vurderinger.vedtaksvurdering as VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold).hjemler.map {
                 KabalRequest.Hjemler(
                     kapittel = it.kapittel,
                     lov = KabalRequest.Hjemler.Lov.SUPPLERENDE_STONAD,

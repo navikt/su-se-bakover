@@ -8,7 +8,7 @@ import arrow.core.right
 
 sealed class Hjemler : List<Hjemmel> {
 
-    abstract val hjemler: List<Hjemmel>
+    protected abstract val hjemler: List<Hjemmel>
 
     companion object {
         fun empty(): IkkeUtfylt {
