@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.client.kabal
 
-import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.IverksattKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
+import java.time.ZoneOffset
 
 internal object KabalRequestMapper {
     fun map(klage: IverksattKlage, sak: Sak, journalpostIdForVedtak: JournalpostId): KabalRequest {
@@ -20,7 +20,7 @@ internal object KabalRequestMapper {
                 )
             },
             innsendtTilNav = klage.datoKlageMottatt,
-            mottattFoersteinstans = klage.opprettet.toLocalDate(zoneIdOslo),
+            mottattFoersteinstans = klage.opprettet.toLocalDate(ZoneOffset.UTC),
             kildeReferanse = klage.id.toString(),
             klager = KabalRequest.Klager(
                 id = KabalRequest.PartId(
