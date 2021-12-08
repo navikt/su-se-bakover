@@ -36,8 +36,7 @@ internal class KabalRequestTest {
           "id": {
             "type": "PERSON",
             "verdi": "$fnr"
-          },
-          "skalKlagerMottaKopi": false
+          }
         },
         "tilknyttedeJournalposter": [
           {
@@ -54,7 +53,7 @@ internal class KabalRequestTest {
         "sakenGjelder": null,
         "oversendtKaDato": null,
         "type": "KLAGE",
-        "ytelse": "" 
+        "ytelse": "SUP_UFF" 
     }
         """.trimIndent()
 

@@ -26,7 +26,6 @@ internal object KabalRequestMapper {
                 id = KabalRequest.PartId(
                     verdi = sak.fnr.toString(),
                 ),
-                skalKlagerMottaKopi = false,
             ),
             /* TODO ai: Se på å sende med journalpostId:n for OVERSENDELSESBREV:et, via en jobb */
             tilknyttedeJournalposter = listOf(
@@ -39,7 +38,6 @@ internal object KabalRequestMapper {
                     type = KabalRequest.TilknyttedeJournalposter.Type.OPPRINNELIG_VEDTAK
                 )
             ),
-            ytelse = "SUP_UFF",
         )
     }
 }

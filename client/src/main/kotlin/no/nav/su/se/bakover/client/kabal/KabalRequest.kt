@@ -8,6 +8,22 @@ import java.time.LocalDateTime
  * Docs:
  *  https://confluence.adeo.no/pages/viewpage.action?pageId=441059973
  *  https://confluence.adeo.no/display/FIP/Kabaldata
+ *
+ *
+ * @param avsenderSaksbehandlerIdent Ident til saksbehandler
+ * @param dvhReferanse Intern referanse som Kabal bruker når de leverer statistikk
+ * @param fagsak Informasjon om saken/klagen i systemet som kaller på Kabal.
+ * @param hjemler Liste med hjemler. Disse vises i Kabal.
+ * @param innsendtTilNav Dato for når klagen ble innsendt.
+ * @param mottattFoersteinstans Dato for når klagen registrerades på første instans
+ * @param kilde Kode for kildesystemet. Brukes til filtrering på Kafka når vedtaket sendes fra Kabal.
+ * @param kildeReferanse Intern referanse på klagen
+ * @param klager Id til Klager.
+ * @param tilknyttedeJournalposter Relevante journalposter til klagen. Disse vises i Kabal.
+ * @param oversendtKaDato Kan settes dersom denne saken har blitt sendt til Gosys og derfor har fristen begynt å løpe.
+ * @param innsynUrl Url tilbake til kildesystem for innsyn i sak
+ * @param type Gyldige verdier er "KLAGE" i både prod og dev
+ * @param ytelse Ytelsekode
  * */
 internal data class KabalRequest(
     val avsenderEnhet: String = "4815",
@@ -27,9 +43,9 @@ internal data class KabalRequest(
     val oversendtKaDato: LocalDateTime? = null,
     val innsynUrl: String? = null,
     val type: String = "KLAGE",
-    val ytelse: String, // todo ai: få ny ytelsekode
+    val ytelse: String = "SUP_UFF"
 ) {
-    data class Klager(val id: PartId, val skalKlagerMottaKopi: Boolean)
+    data class Klager(val id: PartId)
     data class SakenGjelder(val id: PartId, val skalMottaKopi: Boolean)
 
     data class TilknyttedeJournalposter(val journalpostId: JournalpostId, val type: Type) {

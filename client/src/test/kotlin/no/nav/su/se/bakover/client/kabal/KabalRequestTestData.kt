@@ -1,10 +1,12 @@
 package no.nav.su.se.bakover.client.kabal
 
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.generer
 import java.time.LocalDate
+import java.time.ZoneOffset
 
 internal object KabalRequestTestData {
     val fnr = Fnr.generer()
@@ -21,10 +23,10 @@ internal object KabalRequestTestData {
             ),
         ),
         innsendtTilNav = LocalDate.now(fixedClock),
-        mottattFoersteinstans = LocalDate.now(fixedClock),
+        mottattFoersteinstans = Tidspunkt.now(fixedClock).toLocalDate(ZoneOffset.UTC),
         kilde = "su-se-bakover",
         kildeReferanse = "klageId",
-        klager = KabalRequest.Klager(id = KabalRequest.PartId(verdi = fnr.toString()), skalKlagerMottaKopi = false),
+        klager = KabalRequest.Klager(id = KabalRequest.PartId(verdi = fnr.toString())),
         tilknyttedeJournalposter = listOf(
             KabalRequest.TilknyttedeJournalposter(
                 journalpostId = JournalpostId(value = "journalpostId1"),
@@ -40,6 +42,6 @@ internal object KabalRequestTestData {
         sakenGjelder = null,
         oversendtKaDato = null,
         type = "KLAGE",
-        ytelse = "", // todo ai: aventer til Kabal får støtte for flere ytelser
+        ytelse = "SUP_UFF",
     )
 }
