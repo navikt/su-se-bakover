@@ -130,7 +130,7 @@ class SøknadsbehandlingServiceBeregningTest {
         }
 
         val avkortingsvarselRepoMock = mock<AvkortingsvarselRepo> {
-            on { hentUteståendeAvkortinger(any()) } doReturn emptyList()
+            on { hentUteståendeAvkortinger(any(), any()) } doReturn emptyList()
         }
 
         val utbetalingServiceMock = mock<UtbetalingService> {
@@ -217,7 +217,8 @@ class SøknadsbehandlingServiceBeregningTest {
             verify(grunnlagServiceMock).lagreFradragsgrunnlag(any(), any())
             verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(any(), anyOrNull())
-            verify(avkortingsvarselRepoMock).hentUteståendeAvkortinger(any())
+            verify(avkortingsvarselRepoMock).defaultSessionContext()
+            verify(avkortingsvarselRepoMock).hentUteståendeAvkortinger(any(), anyOrNull())
 
             verify(søknadsbehandlingRepoMock).defaultTransactionContext()
             verify(søknadsbehandlingRepoMock).lagre(any(), anyOrNull())
