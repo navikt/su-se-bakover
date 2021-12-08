@@ -68,7 +68,7 @@ sealed class Event {
             data class RevurderingUnderkjent(override val revurdering: UnderkjentRevurdering) :
                 RevurderingStatistikk()
 
-            data class RevurderingLukket(override val revurdering: AvsluttetRevurdering) :
+            data class RevurderingAvsluttet(override val revurdering: AvsluttetRevurdering) :
                 RevurderingStatistikk()
 
             data class Stans(val stans: StansAvYtelseRevurdering) : Statistikk()

@@ -63,7 +63,7 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
-import no.nav.su.se.bakover.service.statistikk.Event.Statistikk.RevurderingStatistikk.RevurderingLukket
+import no.nav.su.se.bakover.service.statistikk.Event.Statistikk.RevurderingStatistikk.RevurderingAvsluttet
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
@@ -1324,7 +1324,7 @@ internal class RevurderingServiceImpl(
             avsluttetRevurdering.right()
         }
         val event: Event? = when (val result = resultat.getOrElse { null }) {
-            is AvsluttetRevurdering -> RevurderingLukket(result)
+            is AvsluttetRevurdering -> RevurderingAvsluttet(result)
             is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> Event.Statistikk.RevurderingStatistikk.Gjenoppta(result)
             is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> Event.Statistikk.RevurderingStatistikk.Stans(result)
             else -> null
