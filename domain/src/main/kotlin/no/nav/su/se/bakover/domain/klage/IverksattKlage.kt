@@ -61,10 +61,9 @@ data class IverksattKlage private constructor(
 
 sealed class KunneIkkeIverksetteKlage {
     object FantIkkeKlage : KunneIkkeIverksetteKlage()
-    object FantIkkeSak : KunneIkkeIverksetteKlage()
-    object FantIkkeVedtak : KunneIkkeIverksetteKlage()
-    object KunneIkkeLageBrevRequest : KunneIkkeIverksetteKlage()
-    object DokumentGenereringFeilet : KunneIkkeIverksetteKlage()
-    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteKlage()
     data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeIverksetteKlage()
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteKlage()
+    data class KunneIkkeLageBrev(val feil: KunneIkkeLageBrevForKlage) : KunneIkkeIverksetteKlage()
+    object FantIkkeJournalpostIdKnyttetTilVedtaket : KunneIkkeIverksetteKlage()
+    object KunneIkkeOversendeTilKlageinstans : KunneIkkeIverksetteKlage()
 }

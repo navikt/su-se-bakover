@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.klage.IverksattKlage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
@@ -75,7 +76,6 @@ import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
 import no.nav.su.se.bakover.service.klage.KunneIkkeLageBrevutkast
-import no.nav.su.se.bakover.service.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
 import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
@@ -809,23 +809,21 @@ open class AccessCheckProxy(
                 }
 
                 override fun iverksett(
-                    sakId: UUID,
                     klageId: UUID,
                     attestant: NavIdentBruker.Attestant,
                 ): Either<KunneIkkeIverksetteKlage, IverksattKlage> {
                     assertHarTilgangTilKlage(klageId)
-                    return services.klageService.iverksett(sakId, klageId, attestant)
+                    return services.klageService.iverksett(klageId, attestant)
                 }
 
                 override fun brevutkast(
-                    sakId: UUID,
                     klageId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     fritekst: String,
                     hjemler: Hjemler.Utfylt,
                 ): Either<KunneIkkeLageBrevutkast, ByteArray> {
-                    assertHarTilgangTilSak(sakId)
-                    return services.klageService.brevutkast(sakId, klageId, saksbehandler, fritekst, hjemler)
+                    assertHarTilgangTilKlage(klageId)
+                    return services.klageService.brevutkast(klageId, saksbehandler, fritekst, hjemler)
                 }
             },
         )

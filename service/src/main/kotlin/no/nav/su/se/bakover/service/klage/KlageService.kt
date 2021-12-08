@@ -7,6 +7,8 @@ import no.nav.su.se.bakover.domain.klage.IverksattKlage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
@@ -38,10 +40,9 @@ interface KlageService {
 
     fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenne, VurdertKlage.Bekreftet>
 
-    fun iverksett(sakId: UUID, klageId: UUID, attestant: NavIdentBruker.Attestant): Either<KunneIkkeIverksetteKlage, IverksattKlage>
+    fun iverksett(klageId: UUID, attestant: NavIdentBruker.Attestant): Either<KunneIkkeIverksetteKlage, IverksattKlage>
 
     fun brevutkast(
-        sakId: UUID,
         klageId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
         fritekst: String,
@@ -49,23 +50,7 @@ interface KlageService {
     ): Either<KunneIkkeLageBrevutkast, ByteArray>
 }
 
-sealed class KunneIkkeOppretteKlage {
-    object FantIkkeSak : KunneIkkeOppretteKlage()
-    object FinnesAlleredeEnÅpenKlage : KunneIkkeOppretteKlage()
-    object KunneIkkeOppretteOppgave : KunneIkkeOppretteKlage()
-}
-
 sealed class KunneIkkeLageBrevutkast {
-    object FantIkkeSak : KunneIkkeLageBrevutkast()
-    object FantIkkePerson : KunneIkkeLageBrevutkast()
-    object FantIkkeSaksbehandler : KunneIkkeLageBrevutkast()
     object FantIkkeKlage : KunneIkkeLageBrevutkast()
-    object FantIkkeKnyttetVedtak : KunneIkkeLageBrevutkast()
-    object GenereringAvBrevFeilet : KunneIkkeLageBrevutkast()
-}
-
-sealed class KunneIkkeLageBrevRequest {
-    object FantIkkePerson : KunneIkkeLageBrevRequest()
-    object FantIkkeSaksbehandler : KunneIkkeLageBrevRequest()
-    object FantIkkeKnyttetVedtak : KunneIkkeLageBrevRequest()
+    data class GenereringAvBrevFeilet(val feil: KunneIkkeLageBrevForKlage) : KunneIkkeLageBrevutkast()
 }

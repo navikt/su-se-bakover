@@ -97,3 +97,9 @@ data class OpprettetKlage private constructor(
         )
     }
 }
+
+sealed class KunneIkkeOppretteKlage {
+    object FantIkkeSak : KunneIkkeOppretteKlage()
+    object FinnesAlleredeEnÅpenKlage : KunneIkkeOppretteKlage()
+    object KunneIkkeOppretteOppgave : KunneIkkeOppretteKlage()
+}

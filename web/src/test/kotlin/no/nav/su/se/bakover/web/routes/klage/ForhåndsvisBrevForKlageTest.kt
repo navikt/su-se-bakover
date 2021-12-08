@@ -10,6 +10,7 @@ import io.ktor.server.testing.contentType
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -97,19 +98,19 @@ internal class ForhåndsvisBrevForKlageTest {
     }
 
     @Test
-    fun `fant ikke sak`() {
+    fun `fant ikke klage`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeLageBrevutkast.FantIkkeSak,
+            feilkode = KunneIkkeLageBrevutkast.FantIkkeKlage,
             status = HttpStatusCode.NotFound,
-            body = "{\"message\":\"Fant ikke sak\",\"code\":\"fant_ikke_sak\"}",
+            body = "{\"message\":\"Fant ikke klage\",\"code\":\"fant_ikke_klage\"}",
         )
     }
 
     @Test
     fun `fant ikke person`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeLageBrevutkast.FantIkkePerson,
-            status = HttpStatusCode.NotFound,
+            feilkode = KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(KunneIkkeLageBrevForKlage.FantIkkePerson),
+            status = HttpStatusCode.InternalServerError,
             body = "{\"message\":\"Fant ikke person\",\"code\":\"fant_ikke_person\"}",
         )
     }
@@ -117,18 +118,27 @@ internal class ForhåndsvisBrevForKlageTest {
     @Test
     fun `fant ikke saksbehandler og eller attestant`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeLageBrevutkast.FantIkkeSaksbehandler,
-            status = HttpStatusCode.NotFound,
+            feilkode = KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(KunneIkkeLageBrevForKlage.FantIkkeSaksbehandler),
+            status = HttpStatusCode.InternalServerError,
             body = "{\"message\":\"Fant ikke saksbehandler eller attestant\",\"code\":\"fant_ikke_saksbehandler_eller_attestant\"}",
         )
     }
 
     @Test
-    fun `generering av brev feilet`() {
+    fun `kunne ikke generere PDF`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeLageBrevutkast.GenereringAvBrevFeilet,
+            feilkode = KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF),
             status = HttpStatusCode.InternalServerError,
             body = "{\"message\":\"Kunne ikke generere brev\",\"code\":\"kunne_ikke_generere_brev\"}",
+        )
+    }
+
+    @Test
+    fun `fant ikke vedtak knyttet til klagen`() {
+        verifiserFeilkode(
+            feilkode = KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(KunneIkkeLageBrevForKlage.FantIkkeVedtakKnyttetTilKlagen),
+            status = HttpStatusCode.InternalServerError,
+            body = "{\"message\":\"Fant ikke vedtak\",\"code\":\"fant_ikke_vedtak\"}",
         )
     }
 
@@ -138,7 +148,7 @@ internal class ForhåndsvisBrevForKlageTest {
         body: String,
     ) {
         val klageServiceMock = mock<KlageService> {
-            on { brevutkast(any(), any(), any(), any(), any()) } doReturn feilkode.left()
+            on { brevutkast(any(), any(), any(), any()) } doReturn feilkode.left()
         }
         withTestApplication(
             {
@@ -162,7 +172,7 @@ internal class ForhåndsvisBrevForKlageTest {
     fun `kan forhåndsvise brev`() {
         val pdfAsBytes = "<myPreciousByteArray.org".toByteArray()
         val klageServiceMock = mock<KlageService> {
-            on { brevutkast(any(), any(), any(), any(), any()) } doReturn pdfAsBytes.right()
+            on { brevutkast(any(), any(), any(), any()) } doReturn pdfAsBytes.right()
         }
         withTestApplication(
             {

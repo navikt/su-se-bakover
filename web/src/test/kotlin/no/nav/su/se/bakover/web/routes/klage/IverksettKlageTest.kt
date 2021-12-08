@@ -12,6 +12,7 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.klage.IverksattKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.test.iverksattKlage
@@ -91,38 +92,74 @@ internal class IverksettKlageTest {
     }
 
     @Test
-    fun `fant ikke sak`() {
+    fun `ugyldig tilstand`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeIverksetteKlage.FantIkkeSak,
-            status = HttpStatusCode.NotFound,
-            body = "{\"message\":\"Fant ikke sak\",\"code\":\"fant_ikke_sak\"}",
+            feilkode = KunneIkkeIverksetteKlage.UgyldigTilstand(OpprettetKlage::class, IverksattKlage::class),
+            status = HttpStatusCode.BadRequest,
+            body = "{\"message\":\"Kan ikke gå fra tilstanden OpprettetKlage til tilstanden IverksattKlage\",\"code\":\"ugyldig_tilstand\"}",
         )
     }
 
     @Test
-    fun `kunne ikke lage brev request`() {
+    fun `attestant og saksbehandler kan ikke være samme person`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeIverksetteKlage.KunneIkkeLageBrevRequest,
+            feilkode = KunneIkkeIverksetteKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson,
+            status = HttpStatusCode.Forbidden,
+            body = "{\"message\":\"Attestant og saksbehandler kan ikke være samme person\",\"code\":\"attestant_og_saksbehandler_kan_ikke_være_samme_person\"}",
+        )
+    }
+
+    @Test
+    fun `fant ikke person`() {
+        verifiserFeilkode(
+            feilkode = KunneIkkeIverksetteKlage.KunneIkkeLageBrev(KunneIkkeLageBrevForKlage.FantIkkePerson),
+            status = HttpStatusCode.InternalServerError,
+            body = "{\"message\":\"Fant ikke person\",\"code\":\"fant_ikke_person\"}",
+        )
+    }
+
+    @Test
+    fun `fant ikke saksbehandler`() {
+        verifiserFeilkode(
+            feilkode = KunneIkkeIverksetteKlage.KunneIkkeLageBrev(KunneIkkeLageBrevForKlage.FantIkkeSaksbehandler),
+            status = HttpStatusCode.InternalServerError,
+            body = "{\"message\":\"Fant ikke saksbehandler eller attestant\",\"code\":\"fant_ikke_saksbehandler_eller_attestant\"}",
+        )
+    }
+
+    @Test
+    fun `kunne ikke generere PDF`() {
+        verifiserFeilkode(
+            feilkode = KunneIkkeIverksetteKlage.KunneIkkeLageBrev(KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF),
             status = HttpStatusCode.InternalServerError,
             body = "{\"message\":\"Kunne ikke generere brev\",\"code\":\"kunne_ikke_generere_brev\"}",
         )
     }
 
     @Test
-    fun `dokumentgenerering feilet`() {
+    fun `fant ikke vedtak knyttet til klagen`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeIverksetteKlage.DokumentGenereringFeilet,
+            feilkode = KunneIkkeIverksetteKlage.KunneIkkeLageBrev(KunneIkkeLageBrevForKlage.FantIkkeVedtakKnyttetTilKlagen),
             status = HttpStatusCode.InternalServerError,
-            body = "{\"message\":\"Feil ved generering av dokument\",\"code\":\"feil_ved_generering_av_dokument\"}",
+            body = "{\"message\":\"Fant ikke vedtak\",\"code\":\"fant_ikke_vedtak\"}",
         )
     }
 
     @Test
-    fun `ugyldig tilstand`() {
+    fun `Fant ikke journalpost-id knyttet til vedtaket`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeIverksetteKlage.UgyldigTilstand(OpprettetKlage::class, IverksattKlage::class),
-            status = HttpStatusCode.BadRequest,
-            body = "{\"message\":\"Kan ikke gå fra tilstanden OpprettetKlage til tilstanden IverksattKlage\",\"code\":\"ugyldig_tilstand\"}",
+            feilkode = KunneIkkeIverksetteKlage.FantIkkeJournalpostIdKnyttetTilVedtaket,
+            status = HttpStatusCode.InternalServerError,
+            body = "{\"message\":\"Fant ikke journalpost-id knyttet til vedtaket. Utviklingsteamet ønsker og bli informert dersom dette oppstår.\",\"code\":\"fant_ikke_journalpostid_knyttet_til_vedtaket\"}",
+        )
+    }
+
+    @Test
+    fun `Kunne ikke oversende til klageinstans`() {
+        verifiserFeilkode(
+            feilkode = KunneIkkeIverksetteKlage.KunneIkkeOversendeTilKlageinstans,
+            status = HttpStatusCode.InternalServerError,
+            body = "{\"message\":\"Kunne ikke oversende til klageinstans\",\"code\":\"kunne_ikke_oversende_til_klageinstans\"}",
         )
     }
 
@@ -132,7 +169,7 @@ internal class IverksettKlageTest {
         body: String,
     ) {
         val klageServiceMock = mock<KlageService> {
-            on { iverksett(any(), any(), any()) } doReturn feilkode.left()
+            on { iverksett(any(), any()) } doReturn feilkode.left()
         }
         withTestApplication(
             {
@@ -156,7 +193,7 @@ internal class IverksettKlageTest {
     fun `kan iverksette klage`() {
         val iverksattKlage = iverksattKlage().second
         val klageServiceMock = mock<KlageService> {
-            on { iverksett(any(), any(), any()) } doReturn iverksattKlage.right()
+            on { iverksett(any(), any()) } doReturn iverksattKlage.right()
         }
         withTestApplication(
             {

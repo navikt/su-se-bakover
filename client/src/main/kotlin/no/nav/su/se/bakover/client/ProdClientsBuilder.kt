@@ -57,7 +57,7 @@ data class ProdClientsBuilder(
                 pdlClientConfig = pdlClientConfig,
             ),
         )
-        val kabalClient = KabalRestClient(applicationConfig.clientsConfig.kabalConfig, oAuth)
+        val klageClient = KabalRestClient(applicationConfig.clientsConfig.kabalConfig, oAuth)
 
         return Clients(
             oauth = oAuth,
@@ -105,7 +105,7 @@ data class ProdClientsBuilder(
             digitalKontaktinformasjon = dkif,
             leaderPodLookup = LeaderPodLookupClient(applicationConfig.leaderPodLookupPath),
             kafkaPublisher = KafkaPublisherClient(applicationConfig.kafkaConfig.producerCfg),
-            klageClient = kabalClient
+            klageClient = klageClient
         )
     }
 }

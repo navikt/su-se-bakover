@@ -6,13 +6,11 @@ import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.client.kabal.KlageClient
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -20,10 +18,14 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.IverksattKlage
+import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
@@ -37,6 +39,7 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -53,6 +56,8 @@ class KlageServiceImpl(
     private val oppgaveService: OppgaveService,
     val clock: Clock,
 ) : KlageService {
+
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage> {
 
@@ -198,12 +203,10 @@ class KlageServiceImpl(
     }
 
     override fun iverksett(
-        sakId: UUID,
         klageId: UUID,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteKlage, IverksattKlage> {
-        val sak = sakRepo.hentSak(sakId) ?: return KunneIkkeIverksetteKlage.FantIkkeSak.left()
-        val klage = sak.hentKlage(klageId) ?: return KunneIkkeIverksetteKlage.FantIkkeKlage.left()
+        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeIverksetteKlage.FantIkkeKlage.left()
 
         val iverksattKlage = klage.iverksett(
             Attestering.Iverksatt(
@@ -212,14 +215,24 @@ class KlageServiceImpl(
             ),
         ).getOrHandle { return it.left() }
 
-        val dokument = lagBrevRequest(iverksattKlage, sak.fnr).fold(
-            ifLeft = { return KunneIkkeIverksetteKlage.KunneIkkeLageBrevRequest.left() },
-            ifRight = {
-                it.tilDokument { brevRequest ->
-                    brevService.lagBrev(brevRequest).mapLeft { LagBrevRequest.KunneIkkeGenererePdf }
+        val hjemler: Hjemler.Utfylt =
+            (iverksattKlage.vurderinger.vedtaksvurdering as? VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold)?.hjemler
+                ?: throw IllegalStateException("Vedtaksvurderingene skal ikke kunne være noe annet enn Utfylt.Oppretthold på dette tidspunkte i MVPen til klage ${iverksattKlage.id}")
+
+        val dokument = lagBrevRequest(
+            klage = iverksattKlage,
+            saksbehandler = iverksattKlage.saksbehandler,
+            fritekstTilBrev = iverksattKlage.vurderinger.fritekstTilBrev,
+            hjemler = hjemler,
+        ).flatMap {
+            it.tilDokument { brevRequest ->
+                brevService.lagBrev(brevRequest).mapLeft {
+                    LagBrevRequest.KunneIkkeGenererePdf
                 }
-            },
-        ).map {
+            }.mapLeft {
+                KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF
+            }
+        }.map {
             it.leggTilMetadata(
                 Dokument.Metadata(
                     klageId = klage.id,
@@ -227,81 +240,89 @@ class KlageServiceImpl(
                     bestillBrev = true,
                 ),
             )
-        }.getOrHandle { return KunneIkkeIverksetteKlage.DokumentGenereringFeilet.left() }
+        }.getOrHandle {
+            return KunneIkkeIverksetteKlage.KunneIkkeLageBrev(it).left()
+        }
 
         val journalpostIdForVedtak = vedtakRepo.hentJournalpostId(iverksattKlage.vilkårsvurderinger.vedtakId)
-            ?: return KunneIkkeIverksetteKlage.FantIkkeVedtak.left()
+            ?: return KunneIkkeIverksetteKlage.FantIkkeJournalpostIdKnyttetTilVedtaket.left().tapLeft {
+                log.error("Kunne ikke iverksette klage ${iverksattKlage.id} fordi vi ikke fant journalpostId til vedtak ${iverksattKlage.vilkårsvurderinger.vedtakId} (kan tyde på at klagen er knyttet til et vedtak vi ikke har laget brev for eller at databasen er i en ugyldig tilstand.)")
+            }
 
-        sessionFactory.withTransactionContext {
-            brevService.lagreDokument(dokument, it)
-            klageRepo.lagre(iverksattKlage, it)
+        class KunneIkkeOversendeTilKlageinstansEx : RuntimeException()
+        try {
+            sessionFactory.withTransactionContext {
+                brevService.lagreDokument(dokument, it)
+                klageRepo.lagre(iverksattKlage, it)
 
-            klageClient.sendTilKlageinstans(iverksattKlage, sak, journalpostIdForVedtak)
-                .getOrHandle { throw RuntimeException("Kall mot kabal feilet") }
+                klageClient.sendTilKlageinstans(
+                    klage = iverksattKlage,
+                    saksnummer = klage.saksnummer,
+                    fnr = klage.fnr,
+                    journalpostIdForVedtak = journalpostIdForVedtak,
+                ).getOrHandle { throw KunneIkkeOversendeTilKlageinstansEx() }
+            }
+        } catch (_: KunneIkkeOversendeTilKlageinstansEx) {
+            return KunneIkkeIverksetteKlage.KunneIkkeOversendeTilKlageinstans.left()
         }
         oppgaveService.lukkOppgave(iverksattKlage.oppgaveId)
         return iverksattKlage.right()
     }
 
     override fun brevutkast(
-        sakId: UUID,
         klageId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
         fritekst: String,
         hjemler: Hjemler.Utfylt,
     ): Either<KunneIkkeLageBrevutkast, ByteArray> {
-        val sak = sakRepo.hentSak(sakId) ?: return KunneIkkeLageBrevutkast.FantIkkeSak.left()
-        val klage = sak.hentKlage(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
 
-        val vedtaksdato =
-            klageRepo.hentKnyttetVedtaksdato(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkeKnyttetVedtak.left()
-        val saksbehandlerNavn = microsoftGraphApiClient.hentNavnForNavIdent(saksbehandler)
-            .getOrElse { return KunneIkkeLageBrevutkast.FantIkkeSaksbehandler.left() }
+        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
 
-        return personService.hentPerson(sak.fnr)
-            .fold(
-                ifLeft = { KunneIkkeLageBrevutkast.FantIkkePerson.left() },
-                ifRight = { person ->
-                    val brevRequest = lagBrevRequestForOppretthold(
-                        person,
-                        saksbehandlerNavn,
-                        hjemler,
-                        fritekst,
-                        klage.datoKlageMottatt,
-                        vedtaksdato,
+        return lagBrevRequest(
+            klage = klage,
+            saksbehandler = saksbehandler,
+            fritekstTilBrev = fritekst,
+            hjemler = hjemler,
+        ).mapLeft {
+            KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(it)
+        }.flatMap {
+            brevService.lagBrev(it).mapLeft { kunneIkkeLageBrev ->
+                when (kunneIkkeLageBrev) {
+                    no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev.FantIkkePerson -> KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(
+                        KunneIkkeLageBrevForKlage.FantIkkePerson,
                     )
-                    brevService.lagBrev(brevRequest)
-                        .mapLeft { KunneIkkeLageBrevutkast.GenereringAvBrevFeilet }
-                },
-            )
+                    no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev.KunneIkkeGenererePDF -> KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(
+                        KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF,
+                    )
+                }
+            }
+        }
     }
 
     private fun lagBrevRequest(
-        klage: IverksattKlage,
-        fnr: Fnr,
-    ): Either<KunneIkkeLageBrevRequest, LagBrevRequest.Klage.Oppretthold> {
-        val saksbehandlerNavn = microsoftGraphApiClient.hentNavnForNavIdent(klage.saksbehandler)
-            .getOrElse { return KunneIkkeLageBrevRequest.FantIkkeSaksbehandler.left() }
+        klage: Klage,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        fritekstTilBrev: String,
+        hjemler: Hjemler.Utfylt,
+    ): Either<KunneIkkeLageBrevForKlage, LagBrevRequest.Klage.Oppretthold> {
+        val saksbehandlerNavn = microsoftGraphApiClient.hentNavnForNavIdent(saksbehandler)
+            .getOrElse { return KunneIkkeLageBrevForKlage.FantIkkeSaksbehandler.left() }
         val vedtakDato =
-            klageRepo.hentKnyttetVedtaksdato(klage.id) ?: return KunneIkkeLageBrevRequest.FantIkkeKnyttetVedtak.left()
+            klageRepo.hentKnyttetVedtaksdato(klage.id)
+                ?: return KunneIkkeLageBrevForKlage.FantIkkeVedtakKnyttetTilKlagen.left()
 
-        return personService.hentPerson(fnr)
-            .fold(
-                ifLeft = { KunneIkkeLageBrevRequest.FantIkkePerson.left() },
-                ifRight = { person ->
-                    when (val vurdering = klage.vurderinger.vedtaksvurdering) {
-                        is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Omgjør -> throw RuntimeException("Har ikke støtte for Omgjør")
-                        is VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold -> lagBrevRequestForOppretthold(
-                            person = person,
-                            saksbehandlerNavn = saksbehandlerNavn,
-                            hjemler = vurdering.hjemler,
-                            fritekst = klage.vurderinger.fritekstTilBrev,
-                            klageDato = klage.datoKlageMottatt,
-                            vedtakDato = vedtakDato,
-                        ).right()
-                    }
-                },
+        return personService.hentPerson(klage.fnr).map { person ->
+            lagBrevRequestForOppretthold(
+                person = person,
+                saksbehandlerNavn = saksbehandlerNavn,
+                hjemler = hjemler,
+                fritekst = fritekstTilBrev,
+                klageDato = klage.datoKlageMottatt,
+                vedtakDato = vedtakDato,
             )
+        }.mapLeft {
+            KunneIkkeLageBrevForKlage.FantIkkePerson
+        }
     }
 
     private fun lagBrevRequestForOppretthold(

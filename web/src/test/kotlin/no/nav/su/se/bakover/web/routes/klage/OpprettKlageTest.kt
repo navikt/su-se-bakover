@@ -10,8 +10,8 @@ import io.ktor.server.testing.contentType
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.service.klage.KlageService
-import no.nav.su.se.bakover.service.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
@@ -104,6 +104,16 @@ internal class OpprettKlageTest {
             feilkode = KunneIkkeOppretteKlage.FinnesAlleredeEnÅpenKlage,
             status = HttpStatusCode.BadRequest,
             body = "{\"message\":\"Det finnes allerede en åpen klage\",\"code\":\"finnes_allerede_en_åpen_klage\"}",
+        )
+    }
+
+    @Test
+    fun `kunne ikke opprette oppgave`() {
+        verifiserFeilkode(
+            path = uri,
+            feilkode = KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave,
+            status = HttpStatusCode.InternalServerError,
+            body = "{\"message\":\"Kunne ikke opprette oppgave\",\"code\":\"kunne_ikke_opprette_oppgave\"}",
         )
     }
 
