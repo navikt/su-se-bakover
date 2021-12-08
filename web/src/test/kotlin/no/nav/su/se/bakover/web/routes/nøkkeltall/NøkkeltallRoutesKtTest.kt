@@ -40,6 +40,7 @@ internal class NøkkeltallRoutesKtTest {
                     iverksatteInnvilget = 0,
                     ikkePåbegynt = 0,
                     påbegynt = 1,
+                    lukket = 0,
                     digitalsøknader = 0,
                     papirsøknader = 0,
                 ),
@@ -58,15 +59,16 @@ internal class NøkkeltallRoutesKtTest {
             val expected = """
                 {
                     "søknader": {
-                        "totaltAntall" : 2,
-                        "iverksatteAvslag" : 1,
-                        "iverksatteInnvilget" : 0,
-                        "ikkePåbegynt" : 0,
-                        "påbegynt" : 1,
-                        "digitalsøknader" : 0,
-                        "papirsøknader" : 0
+                        "totaltAntall": 2,
+                        "iverksatteAvslag": 1,
+                        "iverksatteInnvilget": 0,
+                        "ikkePåbegynt": 0,
+                        "påbegynt": 1,
+                        "lukket": 0,
+                        "digitalsøknader": 0,
+                        "papirsøknader": 0
                     },
-                    "antallUnikePersoner" : 1,
+                    "antallUnikePersoner": 1,
                     "løpendeSaker": 0
                 }
             """.trimIndent()

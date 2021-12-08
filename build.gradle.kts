@@ -15,8 +15,8 @@ subprojects {
         maven("https://oss.sonatype.org/content/repositories/releases/")
         maven("https://packages.confluent.io/maven/")
     }
-    val junitJupiterVersion = "5.8.1"
-    val kotestVersion = "5.0.0"
+    val junitJupiterVersion = "5.8.2"
+    val kotestVersion = "5.0.1"
     val jacksonVersion = "2.13.0"
     val kotlinVersion: String by this
     dependencies {
@@ -48,7 +48,7 @@ subprojects {
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
         testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
         testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
-        testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.1.1")
+        testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.2.0")
         testImplementation("io.kotest:kotest-extensions:$kotestVersion")
         testImplementation("org.skyscreamer:jsonassert:1.5.0")
         testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")

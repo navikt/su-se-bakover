@@ -91,5 +91,9 @@ object NySøknadJson {
         fun hentSakId(nySøknadResponeJson: String): String {
             return JSONObject(nySøknadResponeJson).getJSONObject("søknad").get("sakId").toString()
         }
+
+        fun hentSøknadId(nySøknadResponeJson: String): String {
+            return JSONObject(nySøknadResponeJson).getJSONObject("søknad").get("id").toString()
+        }
     }
 }
