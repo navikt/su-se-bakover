@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.IverksattKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteKlage
@@ -295,6 +296,7 @@ internal class IverksettKlageTest {
     @Test
     fun `Skal kunne iverksette klage som er til attestering`() {
         val (sak, klage) = klageTilAttestering()
+        val journalpostIdForVedtak = JournalpostId(UUID.randomUUID().toString())
         val person = person(fnr = sak.fnr)
         val pdfAsBytes = "brevbytes".toByteArray()
         val mocks = KlageServiceMocks(
@@ -304,6 +306,9 @@ internal class IverksettKlageTest {
             },
             sakRepoMock = mock {
                 on { hentSak(any<UUID>()) } doReturn sak
+            },
+            vedtakRepoMock = mock {
+                on { hentJournalpostId(any()) } doReturn journalpostIdForVedtak
             },
             microsoftGraphApiMock = mock {
                 on { hentNavnForNavIdent(any()) } doReturn "Some name".right()
@@ -315,7 +320,7 @@ internal class IverksettKlageTest {
                 on { lagBrev(any()) } doReturn pdfAsBytes.right()
             },
             kabalClient = mock {
-                on { sendTilKlageinstans(any(), any()) } doReturn Unit.right()
+                on { sendTilKlageinstans(any(), any(), any()) } doReturn Unit.right()
             },
         )
 
@@ -368,7 +373,12 @@ internal class IverksettKlageTest {
                 )
             },
         )
-        verify(mocks.kabalClient).sendTilKlageinstans(argThat { it shouldBe expectedKlage }, argThat { it shouldBe sak })
+        verify(mocks.vedtakRepoMock).hentJournalpostId(argThat { it shouldBe vedtak.id })
+        verify(mocks.kabalClient).sendTilKlageinstans(
+            argThat { it shouldBe expectedKlage },
+            argThat { it shouldBe sak },
+            argThat { it shouldBe journalpostIdForVedtak },
+        )
         verify(mocks.brevServiceMock).lagreDokument(
             argThat {
                 it shouldBe Dokument.MedMetadata.Informasjon(
@@ -392,9 +402,12 @@ internal class IverksettKlageTest {
 
                 )
             },
-            argThat { it shouldBe TestSessionFactory.transactionContext }
+            argThat { it shouldBe TestSessionFactory.transactionContext },
         )
-        verify(mocks.klageRepoMock).lagre(argThat { it shouldBe expectedKlage }, argThat { it shouldBe TestSessionFactory.transactionContext })
+        verify(mocks.klageRepoMock).lagre(
+            argThat { it shouldBe expectedKlage },
+            argThat { it shouldBe TestSessionFactory.transactionContext },
+        )
         verify(mocks.oppgaveService).lukkOppgave(klage.oppgaveId)
         mocks.verifyNoMoreInteractions()
     }

@@ -2,15 +2,23 @@ package no.nav.su.se.bakover.client.kabal
 
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.IverksattKlage
+import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 
 internal object KabalRequestMapper {
-    fun map(klage: IverksattKlage, sak: Sak): KabalRequest {
+    fun map(klage: IverksattKlage, sak: Sak, journalpostIdForVedtak: JournalpostId): KabalRequest {
         return KabalRequest(
             avsenderSaksbehandlerIdent = klage.saksbehandler.navIdent,
             dvhReferanse = klage.id.toString(),
             fagsak = KabalRequest.Fagsak(sak.saksnummer.toString()),
-            hjemler = listOf(),
+            hjemler = (klage.vurderinger.vedtaksvurdering as VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold).hjemler.hjemler.map {
+                KabalRequest.Hjemler(
+                    kapittel = it.kapittel,
+                    lov = KabalRequest.Hjemler.Lov.SUPPLERENDE_STONAD,
+                    paragraf = it.paragrafnummer,
+                )
+            },
             innsendtTilNav = klage.datoKlageMottatt,
             mottattFoersteinstans = klage.opprettet.toLocalDate(zoneIdOslo),
             kildeReferanse = klage.id.toString(),
@@ -20,13 +28,18 @@ internal object KabalRequestMapper {
                 ),
                 skalKlagerMottaKopi = false,
             ),
+            /* TODO ai: Se på å sende med journalpostId:n for OVERSENDELSESBREV:et, via en jobb */
             tilknyttedeJournalposter = listOf(
                 KabalRequest.TilknyttedeJournalposter(
                     journalpostId = klage.journalpostId,
                     type = KabalRequest.TilknyttedeJournalposter.Type.BRUKERS_KLAGE,
                 ),
+                KabalRequest.TilknyttedeJournalposter(
+                    journalpostId = journalpostIdForVedtak,
+                    type = KabalRequest.TilknyttedeJournalposter.Type.OPPRINNELIG_VEDTAK
+                )
             ),
-            ytelse = "", // TODO ai: Fyll in riktig verdi
+            ytelse = "SUP_UFF",
         )
     }
 }

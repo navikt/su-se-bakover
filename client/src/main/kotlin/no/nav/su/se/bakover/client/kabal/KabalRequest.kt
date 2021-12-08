@@ -50,7 +50,8 @@ internal data class KabalRequest(
     ) {
         enum class Lov(private val verdi: String) {
             FOLKETRYGDLOVEN("FOLKETRYGDLOVEN"),
-            FORVALTNINGSLOVEN("FORVALTNINGSLOVEN");
+            FORVALTNINGSLOVEN("FORVALTNINGSLOVEN"),
+            SUPPLERENDE_STONAD("LOV_OM_SUPPLERENDE_STØNAD");
 
             override fun toString(): String = this.verdi
         }

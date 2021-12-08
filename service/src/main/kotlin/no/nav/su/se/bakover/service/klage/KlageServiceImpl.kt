@@ -229,11 +229,14 @@ class KlageServiceImpl(
             )
         }.getOrHandle { return KunneIkkeIverksetteKlage.DokumentGenereringFeilet.left() }
 
+        val journalpostIdForVedtak = vedtakRepo.hentJournalpostId(iverksattKlage.vilkårsvurderinger.vedtakId)
+            ?: return KunneIkkeIverksetteKlage.FantIkkeVedtak.left()
+
         sessionFactory.withTransactionContext {
             brevService.lagreDokument(dokument, it)
             klageRepo.lagre(iverksattKlage, it)
 
-            kabalClient.sendTilKlageinstans(iverksattKlage, sak)
+            kabalClient.sendTilKlageinstans(iverksattKlage, sak, journalpostIdForVedtak)
                 .getOrHandle { throw RuntimeException("Kall mot kabal feilet") }
         }
         oppgaveService.lukkOppgave(iverksattKlage.oppgaveId)

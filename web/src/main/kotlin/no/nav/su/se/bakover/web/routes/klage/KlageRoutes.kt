@@ -400,6 +400,7 @@ internal fun Route.klageRoutes(
                             when (it) {
                                 KunneIkkeIverksetteKlage.FantIkkeSak -> fantIkkeSak
                                 KunneIkkeIverksetteKlage.FantIkkeKlage -> fantIkkeKlage
+                                KunneIkkeIverksetteKlage.FantIkkeVedtak -> fantIkkeVedtak
                                 KunneIkkeIverksetteKlage.DokumentGenereringFeilet -> feilVedGenereringAvDokument
                                 KunneIkkeIverksetteKlage.KunneIkkeLageBrevRequest -> kunneIkkeGenerereBrev
                                 KunneIkkeIverksetteKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson

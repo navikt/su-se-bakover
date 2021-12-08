@@ -62,6 +62,7 @@ data class IverksattKlage private constructor(
 sealed class KunneIkkeIverksetteKlage {
     object FantIkkeKlage : KunneIkkeIverksetteKlage()
     object FantIkkeSak : KunneIkkeIverksetteKlage()
+    object FantIkkeVedtak : KunneIkkeIverksetteKlage()
     object KunneIkkeLageBrevRequest : KunneIkkeIverksetteKlage()
     object DokumentGenereringFeilet : KunneIkkeIverksetteKlage()
     object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteKlage()

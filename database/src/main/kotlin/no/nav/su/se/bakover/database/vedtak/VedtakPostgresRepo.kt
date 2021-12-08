@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
@@ -53,6 +54,7 @@ interface VedtakRepo {
     fun lagre(vedtak: Vedtak, sessionContext: TransactionContext)
     fun hentForUtbetaling(utbetalingId: UUID30): Vedtak?
     fun hentAlle(): List<Vedtak>
+    fun hentJournalpostId(vedtakId: UUID): JournalpostId?
 }
 
 internal class VedtakPostgresRepo(
@@ -124,6 +126,16 @@ internal class VedtakPostgresRepo(
     override fun hentAlle(): List<Vedtak> {
         return dataSource.withSession { session ->
             """select * from vedtak""".hentListe(emptyMap(), session) { it.toVedtak(session) }
+        }
+    }
+
+    override fun hentJournalpostId(vedtakId: UUID): JournalpostId? {
+        return dataSource.withSession { session ->
+            """
+                select journalpostid from dokument inner join dokument_distribusjon dd on dokument.id = dd.dokumentid where vedtakid = :vedtakId
+            """.trimIndent().hent(mapOf("vedtakId" to vedtakId), session) {
+                JournalpostId(it.string("journalpostid"))
+            }
         }
     }
 
