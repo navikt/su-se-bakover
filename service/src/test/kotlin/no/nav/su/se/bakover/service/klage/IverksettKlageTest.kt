@@ -373,7 +373,7 @@ internal class IverksettKlageTest {
                 )
             },
         )
-        verify(mocks.vedtakRepoMock).hentJournalpostId(argThat { it shouldBe vedtak.id })
+        verify(mocks.vedtakRepoMock).hentJournalpostId(argThat { it shouldBe klage.vilkårsvurderinger.vedtakId })
         verify(mocks.kabalClient).sendTilKlageinstans(
             argThat { it shouldBe expectedKlage },
             argThat { it shouldBe sak },
