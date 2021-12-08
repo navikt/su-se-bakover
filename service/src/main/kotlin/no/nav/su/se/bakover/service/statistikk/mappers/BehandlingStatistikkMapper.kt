@@ -218,8 +218,7 @@ class BehandlingStatistikkMapper(
                 is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> {
                     copy(
                         avsluttet = true,
-                        resultat = RevurderingResultatOgBegrunnelseMapper.map(gjenopptak).resultat,
-                        resultatBegrunnelse = RevurderingResultatOgBegrunnelseMapper.map(gjenopptak).begrunnelse,
+                        resultat = RevurderingResultatOgBegrunnelseMapper.lukket(),
                     )
                 }
             }
@@ -256,8 +255,7 @@ class BehandlingStatistikkMapper(
                 is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> {
                     copy(
                         avsluttet = true,
-                        resultat = RevurderingResultatOgBegrunnelseMapper.map(stans).resultat,
-                        resultatBegrunnelse = RevurderingResultatOgBegrunnelseMapper.map(stans).begrunnelse,
+                        resultat = RevurderingResultatOgBegrunnelseMapper.lukket(),
                     )
                 }
             }
@@ -414,22 +412,17 @@ class BehandlingStatistikkMapper(
                 listUtOpphørsgrunner(revurdering.utledOpphørsgrunner()),
             )
             is IverksattRevurdering.IngenEndring -> ResultatOgBegrunnelse(ingenEndring, ingenEndringBegrunnelse)
-            is AvsluttetRevurdering -> ResultatOgBegrunnelse(lukket, revurdering.begrunnelse)
+            is AvsluttetRevurdering -> ResultatOgBegrunnelse(lukket, null)
             else -> throw ManglendeStatistikkMappingException(this, revurdering::class.java)
         }
 
         fun map(stansAvYtelse: StansAvYtelseRevurdering.IverksattStansAvYtelse) =
             ResultatOgBegrunnelse(stans, stansAvYtelse.revurderingsårsak.årsak.hentGyldigStansBegrunnelse())
 
-        fun map(stansAvYtelse: StansAvYtelseRevurdering.AvsluttetStansAvYtelse) =
-            ResultatOgBegrunnelse(lukket, stansAvYtelse.begrunnelse)
-
         fun map(gjenopptakAvYtelse: GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse) = ResultatOgBegrunnelse(
             gjenopptak, gjenopptakAvYtelse.revurderingsårsak.årsak.hentGyldigGjenopptakBegrunnelse(),
         )
-
-        fun map(gjenopptakAvYtelse: GjenopptaYtelseRevurdering.AvsluttetGjenoppta) =
-            ResultatOgBegrunnelse(lukket, gjenopptakAvYtelse.begrunnelse,)
+        fun lukket() = lukket
 
         private fun listUtOpphørsgrunner(opphørsgrunner: List<Opphørsgrunn>): String = opphørsgrunner.joinToString(",")
         private fun Revurderingsårsak.Årsak.hentGyldigStansBegrunnelse() = when (this) {
