@@ -150,7 +150,7 @@ object ServiceBuilder {
             brevService = brevService,
             personService = personService,
             microsoftGraphApiClient = clients.microsoftGraphApiClient,
-            kabalClient = clients.kabalClient,
+            klageClient = clients.klageClient,
             sessionFactory = databaseRepos.sessionFactory,
             oppgaveService = oppgaveService,
             clock = clock,

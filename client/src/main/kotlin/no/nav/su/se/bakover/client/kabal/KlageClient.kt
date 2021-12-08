@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.IverksattKlage
 
-interface KabalClient {
+interface KlageClient {
     fun sendTilKlageinstans(klage: IverksattKlage, sak: Sak, journalpostIdForVedtak: JournalpostId): Either<KabalFeil, Unit>
 }
 

@@ -20,7 +20,7 @@ const val oversendelsePath = "/api/oversendelse/v1/klage"
 class KabalRestClient(
     private val kabalConfig: ApplicationConfig.ClientsConfig.KabalConfig,
     private val exchange: OAuth,
-) : KabalClient {
+) : KlageClient {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     private fun onBehalfOfToken(): Either<KabalFeil.KunneIkkeLageToken, String> {

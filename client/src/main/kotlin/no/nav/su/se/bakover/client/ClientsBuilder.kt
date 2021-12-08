@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.dkif.DigitalKontaktinformasjon
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordeling
-import no.nav.su.se.bakover.client.kabal.KabalClient
+import no.nav.su.se.bakover.client.kabal.KlageClient
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
@@ -38,5 +38,5 @@ data class Clients(
     val digitalKontaktinformasjon: DigitalKontaktinformasjon,
     val leaderPodLookup: LeaderPodLookup,
     val kafkaPublisher: KafkaPublisher,
-    val kabalClient: KabalClient,
+    val klageClient: KlageClient,
 )

@@ -319,7 +319,7 @@ internal class IverksettKlageTest {
             brevServiceMock = mock {
                 on { lagBrev(any()) } doReturn pdfAsBytes.right()
             },
-            kabalClient = mock {
+            klageClient = mock {
                 on { sendTilKlageinstans(any(), any(), any()) } doReturn Unit.right()
             },
         )
@@ -374,7 +374,7 @@ internal class IverksettKlageTest {
             },
         )
         verify(mocks.vedtakRepoMock).hentJournalpostId(argThat { it shouldBe klage.vilkårsvurderinger.vedtakId })
-        verify(mocks.kabalClient).sendTilKlageinstans(
+        verify(mocks.klageClient).sendTilKlageinstans(
             argThat { it shouldBe expectedKlage },
             argThat { it shouldBe sak },
             argThat { it shouldBe journalpostIdForVedtak },

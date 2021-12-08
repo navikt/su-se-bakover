@@ -6,7 +6,7 @@ import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.client.kabal.KabalClient
+import no.nav.su.se.bakover.client.kabal.KlageClient
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
@@ -48,7 +48,7 @@ class KlageServiceImpl(
     private val brevService: BrevService,
     private val personService: PersonService,
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
-    private val kabalClient: KabalClient,
+    private val klageClient: KlageClient,
     private val sessionFactory: SessionFactory,
     private val oppgaveService: OppgaveService,
     val clock: Clock,
@@ -236,7 +236,7 @@ class KlageServiceImpl(
             brevService.lagreDokument(dokument, it)
             klageRepo.lagre(iverksattKlage, it)
 
-            kabalClient.sendTilKlageinstans(iverksattKlage, sak, journalpostIdForVedtak)
+            klageClient.sendTilKlageinstans(iverksattKlage, sak, journalpostIdForVedtak)
                 .getOrHandle { throw RuntimeException("Kall mot kabal feilet") }
         }
         oppgaveService.lukkOppgave(iverksattKlage.oppgaveId)

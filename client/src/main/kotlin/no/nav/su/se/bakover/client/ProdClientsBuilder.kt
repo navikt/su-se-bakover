@@ -105,7 +105,7 @@ data class ProdClientsBuilder(
             digitalKontaktinformasjon = dkif,
             leaderPodLookup = LeaderPodLookupClient(applicationConfig.leaderPodLookupPath),
             kafkaPublisher = KafkaPublisherClient(applicationConfig.kafkaConfig.producerCfg),
-            kabalClient = kabalClient
+            klageClient = kabalClient
         )
     }
 }

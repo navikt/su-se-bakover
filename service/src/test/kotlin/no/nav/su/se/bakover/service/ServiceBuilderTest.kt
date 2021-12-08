@@ -49,7 +49,7 @@ internal class ServiceBuilderTest {
                 digitalKontaktinformasjon = mock(),
                 leaderPodLookup = mock(),
                 kafkaPublisher = mock(),
-                kabalClient = mock()
+                klageClient = mock()
             ),
             behandlingMetrics = mock(),
             søknadMetrics = mock(),
