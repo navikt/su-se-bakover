@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.getOrCreateCorrelationId
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -45,27 +46,27 @@ class KabalRestClient(
         journalpostIdForVedtak: JournalpostId,
     ): Either<KunneIkkeOversendeTilKlageinstans, Unit> {
         val token = onBehalfOfToken().getOrHandle { return it.left() }
+        val body = objectMapper.writeValueAsString(
+            KabalRequestMapper.map(
+                klage = klage,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                journalpostIdForVedtak = journalpostIdForVedtak,
+            ),
+        )
 
         val (_, res, result) = "${kabalConfig.url}$oversendelsePath".httpPost()
             .header("Authorization", "Bearer $token")
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .header("X-Correlation-ID", getOrCreateCorrelationId())
-            .body(
-                objectMapper.writeValueAsString(
-                    KabalRequestMapper.map(
-                        klage = klage,
-                        saksnummer = saksnummer,
-                        fnr = fnr,
-                        journalpostIdForVedtak = journalpostIdForVedtak,
-                    ),
-                ),
-            )
+            .body(body)
             .responseString()
 
         return result.fold(
             { _ ->
-                log.info("Sender klage til Kabal")
+                log.info("Klage sendt til Kabal/KA, med klageId=${klage.id}")
+                sikkerLogg.info("Klage sendt med klageId=${klage.id}, body=$body")
                 Unit.right()
             },
             {
