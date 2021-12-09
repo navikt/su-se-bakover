@@ -7,26 +7,29 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import java.time.Clock
 import java.util.UUID
+import kotlin.math.abs
 
-class Avkortingsplan constructor(
+internal class Avkortingsplan constructor(
     feilutbetalinger: List<Pair<Periode, Int>>,
     beregning: Beregning,
+    private val clock: Clock,
 ) {
-    private data class Objekt(
+    private data class PeriodeOgBeløp(
         val periode: Periode,
         val beløp: Int,
     )
 
-    private val feilutbetalinger: MutableList<Objekt> = feilutbetalinger.map { (periode, beløp) ->
-        Objekt(periode, kotlin.math.abs(beløp))
+    private val feilutbetalinger: MutableList<PeriodeOgBeløp> = feilutbetalinger.map { (periode, beløp) ->
+        PeriodeOgBeløp(periode, abs(beløp))
     }.toMutableList()
 
-    private val tilbakebetalinger: List<Objekt> = lagTilbakebetalingsplan(beregning)
+    private val tilbakebetalinger: List<PeriodeOgBeløp> = lagTilbakebetalingsplan(beregning)
 
     private fun lagTilbakebetalingsplan(
         beregning: Beregning,
-    ): List<Objekt> {
+    ): List<PeriodeOgBeløp> {
         return beregning.getMånedsberegninger()
             .map { it.periode to it.getSumYtelse() }
             .let { lagTilbakebetalingsplan(tilbakebetalingsperiodeOgBeløpsgrense = it) }
@@ -34,8 +37,8 @@ class Avkortingsplan constructor(
 
     private fun lagTilbakebetalingsplan(
         tilbakebetalingsperiodeOgBeløpsgrense: List<Pair<Periode, Int>>,
-    ): List<Objekt> {
-        val tilbakebetalinger: MutableList<Objekt> = mutableListOf()
+    ): List<PeriodeOgBeløp> {
+        val tilbakebetalinger: MutableList<PeriodeOgBeløp> = mutableListOf()
 
         fun saldo() = feilutbetalinger.sumOf { it.beløp } - tilbakebetalinger.sumOf { it.beløp }
 
@@ -50,16 +53,17 @@ class Avkortingsplan constructor(
         tilbakebetalingsperiodeOgBeløpsgrense.filter { it.second > 0 }
             .let { filtrert ->
                 var idx = 0
-                do {
+                while (saldo() > 0 && idx <= filtrert.lastIndex) {
                     filtrert[idx].let { (periode, beløpsgrense) ->
                         tilbakebetalinger.add(
-                            Objekt(
+                            PeriodeOgBeløp(
                                 periode = periode,
                                 beløp = kalkulerMaksbeløp(beløpsgrense),
                             ),
                         )
                     }
-                } while (saldo() > 0 && ++idx <= filtrert.lastIndex)
+                    idx++
+                }
             }
         return tilbakebetalinger
     }
@@ -68,9 +72,9 @@ class Avkortingsplan constructor(
         return tilbakebetalinger.map {
             Grunnlag.Fradragsgrunnlag.create(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = Tidspunkt.now(clock),
                 fradrag = FradragFactory.ny(
-                    type = Fradragstype.BidragEtterEkteskapsloven,
+                    type = Fradragstype.AvkortingUtenlandsopphold,
                     månedsbeløp = it.beløp.toDouble(),
                     periode = it.periode,
                     utenlandskInntekt = null,
