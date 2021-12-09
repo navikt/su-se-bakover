@@ -1,9 +1,11 @@
 package no.nav.su.se.bakover.client.kabal
 
+import arrow.core.left
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
+import com.github.tomakehurst.wiremock.http.Fault
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
@@ -12,6 +14,7 @@ import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeTilKlageinstans
 import no.nav.su.se.bakover.test.iverksattKlage
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -25,42 +28,8 @@ import org.slf4j.MDC
 
 internal class KabalHttpClientTest : WiremockBase {
 
-    @Test
-    fun `opprett sakbehandling oppgave ny periode`() {
-        wireMockServer.stubFor(
-            stubMapping.willReturn(
-                aResponse()
-                    .withBody("")
-                    .withStatus(201),
-            ),
-        )
-        val oathMock = mock<OAuth> {
-            on { onBehalfOfToken(any(), any()) } doReturn "token"
-        }
-        val tokenoppslagMock = mock<TokenOppslag> {
-            on { token() } doReturn "token"
-        }
-        val client = KabalHttpClient(
-            kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(
-                clientId = "kabalClientId",
-                url = wireMockServer.baseUrl(),
-            ),
-            exchange = oathMock,
-        )
-        val klage = iverksattKlage().second
-        client.sendTilKlageinstans(
-            klage = klage,
-            journalpostIdForVedtak = JournalpostId(value = "journalpostIdForVedtak"),
-        ) shouldBe Unit.right()
-
-        verify(oathMock).onBehalfOfToken(
-            originalToken = argThat { it shouldBe "Bearer token" },
-            otherAppId = argThat { it shouldBe "kabalClientId" },
-        )
-        verifyNoMoreInteractions(oathMock, tokenoppslagMock)
-        val actualRequest = wireMockServer.allServeEvents.first().request.bodyAsString
-        //language=JSON
-        val expectedRequest = """
+    private val klage = iverksattKlage().second
+    private val expectedRequest = """
         {
           "avsenderEnhet":"4815",
           "avsenderSaksbehandlerIdent":"saksbehandler",
@@ -109,7 +78,114 @@ internal class KabalHttpClientTest : WiremockBase {
           "type":"KLAGE",
           "ytelse":"SUP_UFF"
         }
-        """.trimIndent()
+    """.trimIndent()
+
+    @Test
+    fun `500 case`() {
+        wireMockServer.stubFor(
+            stubMapping.willReturn(
+                aResponse()
+                    .withBody("")
+                    .withStatus(500),
+            ),
+        )
+        val oathMock = mock<OAuth> {
+            on { onBehalfOfToken(any(), any()) } doReturn "token"
+        }
+        val tokenoppslagMock = mock<TokenOppslag> {
+            on { token() } doReturn "token"
+        }
+        val client = KabalHttpClient(
+            kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(
+                clientId = "kabalClientId",
+                url = wireMockServer.baseUrl(),
+            ),
+            exchange = oathMock,
+        )
+        client.sendTilKlageinstans(
+            klage = klage,
+            journalpostIdForVedtak = JournalpostId(value = "journalpostIdForVedtak"),
+        ) shouldBe KunneIkkeOversendeTilKlageinstans.left()
+
+        verify(oathMock).onBehalfOfToken(
+            originalToken = argThat { it shouldBe "Bearer token" },
+            otherAppId = argThat { it shouldBe "kabalClientId" },
+        )
+        verifyNoMoreInteractions(oathMock, tokenoppslagMock)
+        val actualRequest = wireMockServer.allServeEvents.first().request.bodyAsString
+
+        JSONAssert.assertEquals(expectedRequest, actualRequest, true)
+    }
+
+    @Test
+    fun `Connection error case`() {
+        wireMockServer.stubFor(
+            stubMapping.willReturn(
+                aResponse()
+                    .withFault(Fault.CONNECTION_RESET_BY_PEER),
+            ),
+        )
+        val oathMock = mock<OAuth> {
+            on { onBehalfOfToken(any(), any()) } doReturn "token"
+        }
+        val tokenoppslagMock = mock<TokenOppslag> {
+            on { token() } doReturn "token"
+        }
+        val client = KabalHttpClient(
+            kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(
+                clientId = "kabalClientId",
+                url = wireMockServer.baseUrl(),
+            ),
+            exchange = oathMock,
+        )
+        client.sendTilKlageinstans(
+            klage = klage,
+            journalpostIdForVedtak = JournalpostId(value = "journalpostIdForVedtak"),
+        ) shouldBe KunneIkkeOversendeTilKlageinstans.left()
+
+        verify(oathMock).onBehalfOfToken(
+            originalToken = argThat { it shouldBe "Bearer token" },
+            otherAppId = argThat { it shouldBe "kabalClientId" },
+        )
+        verifyNoMoreInteractions(oathMock, tokenoppslagMock)
+        val actualRequest = wireMockServer.allServeEvents.first().request.bodyAsString
+
+        JSONAssert.assertEquals(expectedRequest, actualRequest, true)
+    }
+
+    @Test
+    fun `success case`() {
+        wireMockServer.stubFor(
+            stubMapping.willReturn(
+                aResponse()
+                    .withBody("")
+                    .withStatus(201),
+            ),
+        )
+        val oathMock = mock<OAuth> {
+            on { onBehalfOfToken(any(), any()) } doReturn "token"
+        }
+        val tokenoppslagMock = mock<TokenOppslag> {
+            on { token() } doReturn "token"
+        }
+        val client = KabalHttpClient(
+            kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(
+                clientId = "kabalClientId",
+                url = wireMockServer.baseUrl(),
+            ),
+            exchange = oathMock,
+        )
+        client.sendTilKlageinstans(
+            klage = klage,
+            journalpostIdForVedtak = JournalpostId(value = "journalpostIdForVedtak"),
+        ) shouldBe Unit.right()
+
+        verify(oathMock).onBehalfOfToken(
+            originalToken = argThat { it shouldBe "Bearer token" },
+            otherAppId = argThat { it shouldBe "kabalClientId" },
+        )
+        verifyNoMoreInteractions(oathMock, tokenoppslagMock)
+        val actualRequest = wireMockServer.allServeEvents.first().request.bodyAsString
         JSONAssert.assertEquals(expectedRequest, actualRequest, true)
     }
 
