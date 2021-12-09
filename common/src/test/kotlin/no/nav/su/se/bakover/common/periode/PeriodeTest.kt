@@ -163,6 +163,7 @@ internal class PeriodeTest {
             1.april(2021),
             30.november(2021),
         ) shouldBe true
+        januar(2021) tilstøter januar(2021) shouldBe true
     }
 
     @Test
