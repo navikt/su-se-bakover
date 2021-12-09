@@ -50,7 +50,7 @@ internal class KabalHttpClientTest : WiremockBase {
         val klage = iverksattKlage().second
         client.sendTilKlageinstans(
             klage = klage,
-            journalpostIdForVedtak = JournalpostId(value = ""),
+            journalpostIdForVedtak = JournalpostId(value = "journalpostIdForVedtak"),
         ) shouldBe Unit.right()
 
         verify(oathMock).onBehalfOfToken(
@@ -97,7 +97,7 @@ internal class KabalHttpClientTest : WiremockBase {
               "type":"BRUKERS_KLAGE"
             },
             {
-              "journalpostId":"",
+              "journalpostId":"journalpostIdForVedtak",
               "type":"OPPRINNELIG_VEDTAK"
             }
           ],
@@ -110,7 +110,6 @@ internal class KabalHttpClientTest : WiremockBase {
           "ytelse":"SUP_UFF"
         }
         """.trimIndent()
-        println(actualRequest)
         JSONAssert.assertEquals(expectedRequest, actualRequest, true)
     }
 
