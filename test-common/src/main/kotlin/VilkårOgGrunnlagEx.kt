@@ -255,7 +255,7 @@ fun List<Grunnlag.Bosituasjon>.shouldBeEqualToExceptId(expected: List<Grunnlag.B
 }
 
 fun Grunnlag.Fradragsgrunnlag.shouldBeEqualToExceptId(expected: Grunnlag.Fradragsgrunnlag) {
-    this.shouldBeEqualToIgnoringFields(expected.id, Grunnlag.Fradragsgrunnlag::id)
+    this.shouldBeEqualToIgnoringFields(expected, Grunnlag.Fradragsgrunnlag::id)
     this.id shouldNotBe expected.id
 }
 
