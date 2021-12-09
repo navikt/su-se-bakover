@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -320,7 +321,8 @@ interface LagBrevRequest {
             val saksbehandlerNavn: String,
             val fritekst: String,
             val klageDato: LocalDate,
-            val vedtakDato: LocalDate
+            val vedtakDato: LocalDate,
+            val saksnummer: Saksnummer,
         ) : Klage() {
             override val brevInnhold: BrevInnhold = BrevInnhold.Klage(
                 personalia = lagPersonalia(),
@@ -328,6 +330,7 @@ interface LagBrevRequest {
                 fritekst = fritekst,
                 klageDato = klageDato,
                 vedtakDato = vedtakDato,
+                saksnummer = saksnummer.nummer,
             )
 
             override fun tilDokument(genererPdf: (lagBrevRequest: LagBrevRequest) -> Either<KunneIkkeGenererePdf, ByteArray>): Either<KunneIkkeGenererePdf, Dokument.UtenMetadata.Informasjon> {

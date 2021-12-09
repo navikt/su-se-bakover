@@ -173,7 +173,8 @@ abstract class BrevInnhold {
         val saksbehandlerNavn: String,
         val fritekst: String,
         val klageDato: LocalDate,
-        val vedtakDato: LocalDate
+        val vedtakDato: LocalDate,
+        val saksnummer: Long,
     ) : BrevInnhold() {
         override val brevTemplate = BrevTemplate.Klage.Oppretthold
     }

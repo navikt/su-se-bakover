@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -174,6 +175,7 @@ internal class HentBrevutkastTest {
                     fritekst = fritekstTilBrev,
                     klageDato = 1.desember(2021),
                     vedtakDato = 1.januar(2021),
+                    saksnummer = Saksnummer(12345676),
                 )
             },
         )
@@ -224,6 +226,7 @@ internal class HentBrevutkastTest {
                     fritekst = fritekstTilBrev,
                     klageDato = 1.desember(2021),
                     vedtakDato = 1.januar(2021),
+                    saksnummer = Saksnummer(12345676)
                 )
             },
         )

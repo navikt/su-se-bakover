@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
@@ -306,6 +307,7 @@ class KlageServiceImpl(
                 fritekst = fritekstTilBrev,
                 klageDato = klage.datoKlageMottatt,
                 vedtakDato = vedtakDato,
+                saksnummer = klage.saksnummer,
             )
         }.mapLeft {
             KunneIkkeLageBrevForKlage.FantIkkePerson
@@ -318,6 +320,7 @@ class KlageServiceImpl(
         fritekst: String,
         klageDato: LocalDate,
         vedtakDato: LocalDate,
+        saksnummer: Saksnummer
     ): LagBrevRequest.Klage.Oppretthold {
         return LagBrevRequest.Klage.Oppretthold(
             person = person,
@@ -326,6 +329,7 @@ class KlageServiceImpl(
             fritekst = fritekst,
             klageDato = klageDato,
             vedtakDato = vedtakDato,
+            saksnummer = saksnummer,
         )
     }
 }
