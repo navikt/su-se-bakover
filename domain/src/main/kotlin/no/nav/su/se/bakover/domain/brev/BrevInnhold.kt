@@ -172,7 +172,6 @@ abstract class BrevInnhold {
         val personalia: Personalia,
         val saksbehandlerNavn: String,
         val fritekst: String,
-        val hjemler: List<Int>,
         val klageDato: LocalDate,
         val vedtakDato: LocalDate
     ) : BrevInnhold() {

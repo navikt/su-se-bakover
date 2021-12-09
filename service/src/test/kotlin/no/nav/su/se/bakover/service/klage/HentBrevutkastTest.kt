@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.service.klage
 
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
@@ -9,8 +8,6 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
-import no.nav.su.se.bakover.domain.klage.Hjemler
-import no.nav.su.se.bakover.domain.klage.Hjemmel
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.argThat
@@ -41,7 +38,6 @@ internal class HentBrevutkastTest {
             klageId = klageId,
             saksbehandler = saksbehandler,
             fritekst = "Dette er friteksten til brevet.",
-            hjemler = Hjemler.Utfylt.create(nonEmptyListOf(Hjemmel.SU_PARAGRAF_3)),
         ) shouldBe KunneIkkeLageBrevutkast.FantIkkeKlage.left()
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
         mocks.verifyNoMoreInteractions()
@@ -67,7 +63,6 @@ internal class HentBrevutkastTest {
             klageId = klage.id,
             saksbehandler = saksbehandler,
             fritekst = "Dette er friteksten til brevet.",
-            hjemler = Hjemler.Utfylt.create(nonEmptyListOf(Hjemmel.SU_PARAGRAF_3)),
         ) shouldBe KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(KunneIkkeLageBrevForKlage.FantIkkeVedtakKnyttetTilKlagen)
             .left()
 
@@ -95,7 +90,6 @@ internal class HentBrevutkastTest {
             klageId = klage.id,
             saksbehandler = saksbehandler,
             fritekst = "Dette er friteksten til brevet.",
-            hjemler = Hjemler.Utfylt.create(nonEmptyListOf(Hjemmel.SU_PARAGRAF_3)),
         ) shouldBe KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(KunneIkkeLageBrevForKlage.FantIkkeSaksbehandler)
             .left()
 
@@ -127,7 +121,6 @@ internal class HentBrevutkastTest {
             klageId = klage.id,
             saksbehandler = saksbehandler,
             fritekst = "Dette er friteksten til brevet.",
-            hjemler = Hjemler.Utfylt.create(nonEmptyListOf(Hjemmel.SU_PARAGRAF_3)),
         ) shouldBe KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(KunneIkkeLageBrevForKlage.FantIkkePerson).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
@@ -162,12 +155,10 @@ internal class HentBrevutkastTest {
         val saksbehandler = NavIdentBruker.Saksbehandler("s2")
 
         val fritekstTilBrev = "Dette er friteksten til brevet."
-        val hjemler = Hjemler.Utfylt.create(nonEmptyListOf(Hjemmel.SU_PARAGRAF_3))
         mocks.service.brevutkast(
             klageId = klage.id,
             saksbehandler = saksbehandler,
             fritekst = fritekstTilBrev,
-            hjemler = hjemler,
         ) shouldBe KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
@@ -181,7 +172,6 @@ internal class HentBrevutkastTest {
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Ola Nordmann",
                     fritekst = fritekstTilBrev,
-                    hjemler = nonEmptyListOf(3),
                     klageDato = 1.desember(2021),
                     vedtakDato = 1.januar(2021),
                 )
@@ -215,12 +205,10 @@ internal class HentBrevutkastTest {
         val saksbehandler = NavIdentBruker.Saksbehandler("s2")
 
         val fritekstTilBrev = "Dette er friteksten til brevet."
-        val hjemler = Hjemler.Utfylt.create(nonEmptyListOf(Hjemmel.SU_PARAGRAF_3))
         mocks.service.brevutkast(
             klageId = klage.id,
             saksbehandler = saksbehandler,
             fritekst = fritekstTilBrev,
-            hjemler = hjemler,
         ) shouldBe pdfAsBytes.right()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
@@ -234,7 +222,6 @@ internal class HentBrevutkastTest {
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Ola Nordmann",
                     fritekst = fritekstTilBrev,
-                    hjemler = nonEmptyListOf(3),
                     klageDato = 1.desember(2021),
                     vedtakDato = 1.januar(2021),
                 )

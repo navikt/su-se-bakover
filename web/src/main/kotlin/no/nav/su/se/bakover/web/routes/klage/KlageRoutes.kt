@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.klage
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
@@ -20,8 +19,6 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.klage.Hjemler
-import no.nav.su.se.bakover.domain.klage.Hjemmel
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
@@ -178,29 +175,13 @@ internal fun Route.klageRoutes(
 
     authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
         post("$klagePath/{klageId}/brevutkast") {
-            data class Body(val fritekst: String, val hjemler: List<String>)
+            data class Body(val fritekst: String)
             call.withKlageId { klageId ->
                 call.withBody<Body> { body ->
-                    if (body.hjemler.isEmpty()) {
-                        return@withBody call.svar(
-                            BadRequest.errorJson(
-                                "må angi hjemler",
-                                "må_angi_hjemler",
-                            ),
-                        )
-                    }
-
                     klageService.brevutkast(
                         klageId = klageId,
                         saksbehandler = call.suUserContext.saksbehandler,
                         fritekst = body.fritekst,
-                        hjemler = Hjemler.Utfylt.create(
-                            NonEmptyList.fromListUnsafe(
-                                body.hjemler.map {
-                                    Hjemmel.valueOf(it)
-                                },
-                            ),
-                        ),
                     ).fold(
                         ifLeft = {
                             val resultat = when (it) {

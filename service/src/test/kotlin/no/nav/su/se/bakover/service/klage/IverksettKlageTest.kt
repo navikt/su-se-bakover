@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.getOrHandle
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
@@ -142,7 +141,6 @@ internal class IverksettKlageTest {
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Some name",
                     fritekst = klage.vurderinger.fritekstTilBrev,
-                    hjemler = nonEmptyListOf(3, 4),
                     klageDato = 1.desember(2021),
                     vedtakDato = 1.januar(2021),
                 )
@@ -190,7 +188,6 @@ internal class IverksettKlageTest {
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Some name",
                     fritekst = klage.vurderinger.fritekstTilBrev,
-                    hjemler = nonEmptyListOf(3, 4),
                     klageDato = 1.desember(2021),
                     vedtakDato = 1.januar(2021),
                 )
@@ -244,7 +241,6 @@ internal class IverksettKlageTest {
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Some name",
                     fritekst = klage.vurderinger.fritekstTilBrev,
-                    hjemler = nonEmptyListOf(3, 4),
                     klageDato = 1.desember(2021),
                     vedtakDato = 1.januar(2021),
                 )
@@ -285,7 +281,7 @@ internal class IverksettKlageTest {
                         opprettet = it.opprettet,
                         tittel = "Oversendelsesbrev til klager",
                         generertDokument = pdfAsBytes,
-                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${sak.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\"},\"saksbehandlerNavn\":\"Some name\",\"fritekst\":\"fritekstTilBrev\",\"hjemler\":[3,4],\"klageDato\":\"2021-12-01\",\"vedtakDato\":\"2021-01-01\"}",
+                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${sak.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\"},\"saksbehandlerNavn\":\"Some name\",\"fritekst\":\"fritekstTilBrev\",\"klageDato\":\"2021-12-01\",\"vedtakDato\":\"2021-01-01\"}",
                     ),
                     metadata = Dokument.Metadata(
                         sakId = sak.id,
@@ -470,7 +466,6 @@ internal class IverksettKlageTest {
                     dagensDato = fixedLocalDate,
                     saksbehandlerNavn = "Some name",
                     fritekst = klage.vurderinger.fritekstTilBrev,
-                    hjemler = nonEmptyListOf(3, 4),
                     klageDato = 1.desember(2021),
                     vedtakDato = 1.januar(2021),
                 )
@@ -489,7 +484,7 @@ internal class IverksettKlageTest {
                         opprettet = it.opprettet,
                         tittel = "Oversendelsesbrev til klager",
                         generertDokument = pdfAsBytes,
-                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${sak.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\"},\"saksbehandlerNavn\":\"Some name\",\"fritekst\":\"fritekstTilBrev\",\"hjemler\":[3,4],\"klageDato\":\"2021-12-01\",\"vedtakDato\":\"2021-01-01\"}",
+                        generertDokumentJson = "{\"personalia\":{\"dato\":\"01.01.2021\",\"fødselsnummer\":\"${sak.fnr}\",\"fornavn\":\"Tore\",\"etternavn\":\"Strømøy\"},\"saksbehandlerNavn\":\"Some name\",\"fritekst\":\"fritekstTilBrev\",\"klageDato\":\"2021-12-01\",\"vedtakDato\":\"2021-01-01\"}",
                     ),
                     metadata = Dokument.Metadata(
                         sakId = sak.id,

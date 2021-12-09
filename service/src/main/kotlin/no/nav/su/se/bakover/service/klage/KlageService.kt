@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.Either
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.IverksattKlage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
@@ -46,7 +45,6 @@ interface KlageService {
         klageId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
         fritekst: String,
-        hjemler: Hjemler.Utfylt,
     ): Either<KunneIkkeLageBrevutkast, ByteArray>
 }
 

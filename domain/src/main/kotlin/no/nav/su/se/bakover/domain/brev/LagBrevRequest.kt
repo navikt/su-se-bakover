@@ -319,7 +319,6 @@ interface LagBrevRequest {
             override val dagensDato: LocalDate,
             val saksbehandlerNavn: String,
             val fritekst: String,
-            val hjemler: List<Int>,
             val klageDato: LocalDate,
             val vedtakDato: LocalDate
         ) : Klage() {
@@ -327,7 +326,6 @@ interface LagBrevRequest {
                 personalia = lagPersonalia(),
                 saksbehandlerNavn = saksbehandlerNavn,
                 fritekst = fritekst,
-                hjemler = hjemler,
                 klageDato = klageDato,
                 vedtakDato = vedtakDato,
             )

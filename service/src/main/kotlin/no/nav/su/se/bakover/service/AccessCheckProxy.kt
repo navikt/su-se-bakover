@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.IverksattKlage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
@@ -820,10 +819,9 @@ open class AccessCheckProxy(
                     klageId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     fritekst: String,
-                    hjemler: Hjemler.Utfylt,
                 ): Either<KunneIkkeLageBrevutkast, ByteArray> {
                     assertHarTilgangTilKlage(klageId)
-                    return services.klageService.brevutkast(klageId, saksbehandler, fritekst, hjemler)
+                    return services.klageService.brevutkast(klageId, saksbehandler, fritekst)
                 }
             },
         )

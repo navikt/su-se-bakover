@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.IverksattKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageClient
@@ -32,7 +31,6 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
-import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -215,15 +213,10 @@ class KlageServiceImpl(
             ),
         ).getOrHandle { return it.left() }
 
-        val hjemler: Hjemler.Utfylt =
-            (iverksattKlage.vurderinger.vedtaksvurdering as? VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold)?.hjemler
-                ?: throw IllegalStateException("Vedtaksvurderingene skal ikke kunne være noe annet enn Utfylt.Oppretthold på dette tidspunkte i MVPen til klage ${iverksattKlage.id}")
-
         val dokument = lagBrevRequest(
             klage = iverksattKlage,
             saksbehandler = iverksattKlage.saksbehandler,
             fritekstTilBrev = iverksattKlage.vurderinger.fritekstTilBrev,
-            hjemler = hjemler,
         ).flatMap {
             it.tilDokument { brevRequest ->
                 brevService.lagBrev(brevRequest).mapLeft {
@@ -271,7 +264,6 @@ class KlageServiceImpl(
         klageId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
         fritekst: String,
-        hjemler: Hjemler.Utfylt,
     ): Either<KunneIkkeLageBrevutkast, ByteArray> {
 
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeLageBrevutkast.FantIkkeKlage.left()
@@ -280,7 +272,6 @@ class KlageServiceImpl(
             klage = klage,
             saksbehandler = saksbehandler,
             fritekstTilBrev = fritekst,
-            hjemler = hjemler,
         ).mapLeft {
             KunneIkkeLageBrevutkast.GenereringAvBrevFeilet(it)
         }.flatMap {
@@ -301,7 +292,6 @@ class KlageServiceImpl(
         klage: Klage,
         saksbehandler: NavIdentBruker.Saksbehandler,
         fritekstTilBrev: String,
-        hjemler: Hjemler.Utfylt,
     ): Either<KunneIkkeLageBrevForKlage, LagBrevRequest.Klage.Oppretthold> {
         val saksbehandlerNavn = microsoftGraphApiClient.hentNavnForNavIdent(saksbehandler)
             .getOrElse { return KunneIkkeLageBrevForKlage.FantIkkeSaksbehandler.left() }
@@ -313,7 +303,6 @@ class KlageServiceImpl(
             lagBrevRequestForOppretthold(
                 person = person,
                 saksbehandlerNavn = saksbehandlerNavn,
-                hjemler = hjemler,
                 fritekst = fritekstTilBrev,
                 klageDato = klage.datoKlageMottatt,
                 vedtakDato = vedtakDato,
@@ -326,7 +315,6 @@ class KlageServiceImpl(
     private fun lagBrevRequestForOppretthold(
         person: Person,
         saksbehandlerNavn: String,
-        hjemler: Hjemler.Utfylt,
         fritekst: String,
         klageDato: LocalDate,
         vedtakDato: LocalDate,
@@ -336,9 +324,6 @@ class KlageServiceImpl(
             dagensDato = LocalDate.now(clock),
             saksbehandlerNavn = saksbehandlerNavn,
             fritekst = fritekst,
-            hjemler = hjemler.map {
-                it.paragrafnummer
-            },
             klageDato = klageDato,
             vedtakDato = vedtakDato,
         )

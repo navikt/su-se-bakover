@@ -27,8 +27,7 @@ internal class ForhåndsvisBrevForKlageTest {
     //language=JSON
     private val validBody = """
         {
-            "fritekst": "1",
-            "hjemler": ["SU_PARAGRAF_3","SU_PARAGRAF_4"]
+            "fritekst": "1"
         }
     """.trimIndent()
 
@@ -74,26 +73,6 @@ internal class ForhåndsvisBrevForKlageTest {
                     response.content shouldBe "{\"message\":\"Bruker mangler en av de tillatte rollene: Saksbehandler,Attestant.\"}"
                 }
             }
-        }
-    }
-
-    @Test
-    fun `må angi hjemler`() {
-        withTestApplication(
-            {
-                testSusebakover()
-            },
-        ) {
-            defaultRequest(
-                HttpMethod.Post,
-                uri,
-                listOf(Brukerrolle.Attestant),
-            ) {
-                setBody("""{"fritekst":"1","hjemler":[]}""")
-            }
-        }.apply {
-            response.status() shouldBe HttpStatusCode.BadRequest
-            response.content shouldBe "{\"message\":\"må angi hjemler\",\"code\":\"må_angi_hjemler\"}"
         }
     }
 
@@ -148,7 +127,7 @@ internal class ForhåndsvisBrevForKlageTest {
         body: String,
     ) {
         val klageServiceMock = mock<KlageService> {
-            on { brevutkast(any(), any(), any(), any()) } doReturn feilkode.left()
+            on { brevutkast(any(), any(), any()) } doReturn feilkode.left()
         }
         withTestApplication(
             {
@@ -172,7 +151,7 @@ internal class ForhåndsvisBrevForKlageTest {
     fun `kan forhåndsvise brev`() {
         val pdfAsBytes = "<myPreciousByteArray.org".toByteArray()
         val klageServiceMock = mock<KlageService> {
-            on { brevutkast(any(), any(), any(), any()) } doReturn pdfAsBytes.right()
+            on { brevutkast(any(), any(), any()) } doReturn pdfAsBytes.right()
         }
         withTestApplication(
             {
