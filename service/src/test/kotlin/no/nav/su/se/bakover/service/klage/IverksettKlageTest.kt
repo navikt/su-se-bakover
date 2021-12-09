@@ -224,7 +224,7 @@ internal class IverksettKlageTest {
                 on { hentJournalpostId(any()) } doReturn journalpostIdKnyttetTilVedtakDetKlagePå
             },
             klageClient = mock {
-                on { sendTilKlageinstans(any(), any(), any(), any()) } doReturn KunneIkkeOversendeTilKlageinstans.left()
+                on { sendTilKlageinstans(any(), any()) } doReturn KunneIkkeOversendeTilKlageinstans.left()
             },
         )
         val attestant = NavIdentBruker.Attestant("s2")
@@ -274,8 +274,6 @@ internal class IverksettKlageTest {
         )
         verify(mocks.klageClient).sendTilKlageinstans(
             klage = argThat { it shouldBe expectedKlage },
-            saksnummer = argThat { it shouldBe sak.saksnummer },
-            fnr = argThat { it shouldBe sak.fnr },
             journalpostIdForVedtak = argThat { it shouldBe journalpostIdKnyttetTilVedtakDetKlagePå },
         )
         verify(mocks.klageRepoMock).lagre(eq(expectedKlage), anyOrNull())
@@ -427,7 +425,7 @@ internal class IverksettKlageTest {
                 on { lagBrev(any()) } doReturn pdfAsBytes.right()
             },
             klageClient = mock {
-                on { sendTilKlageinstans(any(), any(), any(), any()) } doReturn Unit.right()
+                on { sendTilKlageinstans(any(), any()) } doReturn Unit.right()
             },
         )
         val attestant = NavIdentBruker.Attestant("s2")
@@ -481,8 +479,6 @@ internal class IverksettKlageTest {
         verify(mocks.vedtakRepoMock).hentJournalpostId(argThat { it shouldBe klage.vilkårsvurderinger.vedtakId })
         verify(mocks.klageClient).sendTilKlageinstans(
             klage = argThat { it shouldBe expectedKlage },
-            saksnummer = argThat { it shouldBe sak.saksnummer },
-            fnr = argThat { it shouldBe sak.fnr },
             journalpostIdForVedtak = argThat { it shouldBe journalpostIdForVedtak },
         )
         verify(mocks.brevServiceMock).lagreDokument(

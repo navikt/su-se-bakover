@@ -257,8 +257,6 @@ class KlageServiceImpl(
 
                 klageClient.sendTilKlageinstans(
                     klage = iverksattKlage,
-                    saksnummer = klage.saksnummer,
-                    fnr = klage.fnr,
                     journalpostIdForVedtak = journalpostIdForVedtak,
                 ).getOrHandle { throw KunneIkkeOversendeTilKlageinstansEx() }
             }
