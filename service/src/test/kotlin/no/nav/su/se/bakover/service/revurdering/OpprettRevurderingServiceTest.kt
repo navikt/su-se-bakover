@@ -90,7 +90,10 @@ internal class OpprettRevurderingServiceTest {
 
     private fun createInnvilgetBehandling() = søknadsbehandlingIverksattInnvilget(
         stønadsperiode = stønadsperiodeNesteMånedOgTreMånederFram,
-        vilkårsvurderinger = vilkårsvurderingerInnvilget(uføre = vilkårsvurderingUføre)
+        vilkårsvurderinger = vilkårsvurderingerInnvilget(
+            periode = periodeNesteMånedOgTreMånederFram,
+            uføre = vilkårsvurderingUføre,
+        )
     ).second
 
     private fun createSøknadsbehandlingVedtak() =

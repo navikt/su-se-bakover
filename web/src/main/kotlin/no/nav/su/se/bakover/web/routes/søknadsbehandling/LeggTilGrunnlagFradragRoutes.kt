@@ -85,18 +85,7 @@ internal fun Route.leggTilGrunnlagFradrag(
                             body.toCommand(behandlingId, clock).flatMap { command ->
                                 behandlingService.leggTilFradragsgrunnlag(command)
                                     .mapLeft {
-                                        when (it) {
-                                            KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling -> fantIkkeBehandling
-                                            KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden -> utenforBehandlingsperioden
-                                            is KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand -> Behandlingsfeilresponser.ugyldigTilstand(
-                                                fra = it.fra,
-                                            )
-                                            KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler -> HttpStatusCode.BadRequest.errorJson(
-                                                "periode mangler",
-                                                "periode_mangler",
-                                            )
-                                            is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
-                                        }
+                                        it.tilResultat()
                                     }
                                     .map {
                                         call.sikkerlogg("Lagret fradrag for behandling $behandlingId på $sakId")
@@ -110,6 +99,26 @@ internal fun Route.leggTilGrunnlagFradrag(
                     }
                 }
             }
+        }
+    }
+}
+
+internal fun KunneIkkeLeggeTilFradragsgrunnlag.tilResultat(): Resultat {
+    return when (this) {
+        KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling -> {
+            fantIkkeBehandling
+        }
+        KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden -> {
+            utenforBehandlingsperioden
+        }
+        is KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand -> {
+            Behandlingsfeilresponser.ugyldigTilstand(fra = this.fra)
+        }
+        KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler -> {
+            HttpStatusCode.BadRequest.errorJson("periode mangler", "periode_mangler")
+        }
+        is KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> {
+            Feilresponser.kunneIkkeLeggeTilFradragsgrunnlag
         }
     }
 }

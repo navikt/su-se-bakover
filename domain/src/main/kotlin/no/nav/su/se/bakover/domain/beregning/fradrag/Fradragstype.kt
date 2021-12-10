@@ -16,7 +16,7 @@ enum class Fradragstype {
     BidragEtterEkteskapsloven,
     Kapitalinntekt,
     ForventetInntekt,
-    Utenlandsopphold,
+    AvkortingUtenlandsopphold,
 
     /**
      *  Resulting type of the operation that calculates EPS fradrag to be included in brukers beregning.

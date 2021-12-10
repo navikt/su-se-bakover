@@ -24,23 +24,25 @@ class RevurderingSimulerTest {
             avslåttVilkår = utlandsoppholdAvslag(),
         ).let { (sak, revurdering) ->
             revurdering.beregn(sak.utbetalinger, fixedClock)
-                .getOrFail().let {
-                    (it as BeregnetRevurdering.Opphørt)
+                .getOrFail().let { beregnet ->
+                    (beregnet as BeregnetRevurdering.Opphørt)
                         .toSimulert { sakId, _, opphørsdato ->
                             simulertUtbetalingOpphør(
                                 sakId = sakId,
-                                periode = it.periode,
+                                periode = beregnet.periode,
                                 opphørsdato = opphørsdato,
                                 eksisterendeUtbetalinger = sak.utbetalinger,
                             )
                         }.getOrFail()
-                        .let {
-                            it.avkortingsvarsel.let {
-                                (it as Avkortingsvarsel.Utenlandsopphold).let {
-                                    it shouldBe Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                                        id = it.id,
-                                        opprettet = it.opprettet,
-                                        simulering = it.simulering,
+                        .let { simulert ->
+                            simulert.avkortingsvarsel.let {
+                                (it as Avkortingsvarsel.Utenlandsopphold).let { avkortingsvarsel ->
+                                    avkortingsvarsel shouldBe Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                                        id = avkortingsvarsel.id,
+                                        sakId = revurdering.sakId,
+                                        revurderingId = revurdering.id,
+                                        opprettet = avkortingsvarsel.opprettet,
+                                        simulering = avkortingsvarsel.simulering,
                                         feilutbetalingslinje = Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje(
                                             fraOgMed = revurdering.periode.fraOgMed,
                                             tilOgMed = revurdering.periode.tilOgMed,

@@ -20,10 +20,6 @@ data class Simulering(
         return TolketSimulering(this).simulertePerioder.any { it.harFeilutbetalinger() }
     }
 
-    fun hentUtbetalteBeløp(periode: Periode): List<Pair<Periode, Int>> {
-        return TolketSimulering(this).hentUtbetalteBeløp(periode)
-    }
-
     fun hentUtbetalteBeløp(): List<Pair<Periode, Int>> {
         return TolketSimulering(this).hentUtbetalteBeløp(
             Periode.create(

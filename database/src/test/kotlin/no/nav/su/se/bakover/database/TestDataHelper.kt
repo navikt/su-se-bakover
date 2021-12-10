@@ -84,6 +84,7 @@ import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt0
+import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt
 import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt0
 import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
@@ -348,8 +349,7 @@ internal class TestDataHelper(
         nySak.søknad.journalfør(journalpostId).also { journalførtSøknad ->
             søknadRepo.oppdaterjournalpostId(journalførtSøknad)
         }
-        return sakRepo.hentSak(nySak.id)
-            ?: throw java.lang.IllegalStateException("Fant ikke sak rett etter vi opprettet den.")
+        return sakRepo.hentSak(nySak.id) ?: throw IllegalStateException("Fant ikke sak rett etter vi opprettet den.")
     }
 
     fun journalførtSøknadForEksisterendeSak(
@@ -710,17 +710,34 @@ internal class TestDataHelper(
             behandlingsinformasjon,
             vilkårsvurderinger,
             grunnlagsdata,
-        ).tilBeregnet(
-            innvilgetBeregning(),
-        ).also {
+        ).beregn(
+            avkortingsvarsel = emptyList(),
+            begrunnelse = null,
+            clock = fixedClock,
+        ).getOrFail().also {
             søknadsbehandlingRepo.lagre(it)
         } as Søknadsbehandling.Beregnet.Innvilget
     }
 
     internal fun nyAvslåttBeregning(): Søknadsbehandling.Beregnet.Avslag {
-        return nyInnvilgetVilkårsvurdering().tilBeregnet(
-            avslåttBeregning,
-        ).also {
+        return nyInnvilgetVilkårsvurdering(
+            vilkårsvurderinger = innvilgetVilkårsvurderingerSøknadsbehandling(
+                periode = stønadsperiode.periode,
+                uføre = innvilgetUførevilkårForventetInntekt0(
+                    id = UUID.randomUUID(),
+                    periode = stønadsperiode.periode,
+                    uføregrunnlag = uføregrunnlagForventetInntekt(
+                        id = UUID.randomUUID(),
+                        periode = stønadsperiode.periode,
+                        forventetInntekt = 1_000_000,
+                    )
+                ),
+            )
+        ).beregn(
+            avkortingsvarsel = emptyList(),
+            begrunnelse = null,
+            clock = fixedClock,
+        ).getOrFail().also {
             søknadsbehandlingRepo.lagre(it)
         } as Søknadsbehandling.Beregnet.Avslag
     }

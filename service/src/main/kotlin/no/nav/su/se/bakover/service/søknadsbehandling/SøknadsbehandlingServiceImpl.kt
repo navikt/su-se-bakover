@@ -17,14 +17,11 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppdrag.Avkortingsplan
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -66,6 +63,7 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
+import kotlin.math.abs
 
 internal class SøknadsbehandlingServiceImpl(
     private val søknadService: SøknadService,
@@ -168,72 +166,27 @@ internal class SøknadsbehandlingServiceImpl(
     }
 
     override fun beregn(request: SøknadsbehandlingService.BeregnRequest): Either<KunneIkkeBeregne, Søknadsbehandling.Beregnet> {
-        var søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
+        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeBeregne.FantIkkeBehandling.left()
 
-        søknadsbehandling = leggTilFradragsgrunnlag(
-            LeggTilFradragsgrunnlagRequest(
-                behandlingId = søknadsbehandling.id,
-                fradragsgrunnlag = søknadsbehandling.grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.BidragEtterEkteskapsloven },
-            ),
+        return søknadsbehandling.beregn(
+            avkortingsvarsel = avkortingsvarselRepo.hentUteståendeAvkortinger(søknadsbehandling.sakId),
+            begrunnelse = request.begrunnelse,
+            clock = clock,
         ).getOrHandle {
             return when (it) {
-                is KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand -> {
-                    KunneIkkeBeregne.UgyldigTilstand(fra = it.fra, til = it.til).left()
+                is Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstand -> {
+                    KunneIkkeBeregne.UgyldigTilstand(it.fra, it.til)
                 }
-                else -> {
-                    KunneIkkeBeregne.KunneIkkeFjerneAvkortingFradrag.left()
+                is Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag -> {
+                    KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it.feil.toService())
                 }
-            }
-        }
-
-        val avkortingsliste = avkortingsvarselRepo.hentUteståendeAvkortinger(søknadsbehandling.sakId).map {
-            utbetalingService.simulerAvkortingsvarsel(
-                sakId = søknadsbehandling.sakId,
-                saksbehandler = NavIdentBruker.Saksbehandler("srvsupstonad"),
-                avkortingsvarsel = it,
-            ).getOrHandle {
-                return KunneIkkeBeregne.KunneIkkeSimulereUtbetaling.left()
-            }
-        }.flatMap {
-            it.simulering.hentUtbetalteBeløp()
-        }
-
-        val beregning = BeregningStrategyFactory(clock).beregn(
-            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
-                grunnlagsdata = søknadsbehandling.grunnlagsdata,
-                vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger,
-            ),
-            beregningsPeriode = søknadsbehandling.periode, begrunnelse = request.begrunnelse,
-        )
-
-        søknadsbehandling = when (avkortingsliste.isEmpty()) {
-            true -> søknadsbehandling
-            false -> avkortingsliste.let {
-                leggTilFradragsgrunnlag(
-                    request = LeggTilFradragsgrunnlagRequest(
-                        behandlingId = søknadsbehandling.id,
-                        fradragsgrunnlag = søknadsbehandling.grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.BidragEtterEkteskapsloven } + Avkortingsplan(
-                            feilutbetalinger = it,
-                            beregning = beregning,
-                        ).lagFradrag(),
-                    ),
-                ).getOrHandle { return KunneIkkeBeregne.KunneIkkeLeggeTilAvkortingFradrag.left() }
-            }
-        }
-
-        return statusovergang(
-            søknadsbehandling = søknadsbehandling,
-            statusovergang = Statusovergang.TilBeregnet {
-                BeregningStrategyFactory(clock).beregn(
-                    grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
-                        grunnlagsdata = søknadsbehandling.grunnlagsdata,
-                        vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger,
-                    ),
-                    beregningsPeriode = søknadsbehandling.periode, begrunnelse = request.begrunnelse,
-                )
-            },
-        ).let {
+            }.left()
+        }.let {
+            grunnlagService.lagreFradragsgrunnlag(
+                behandlingId = it.id,
+                fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
+            )
             søknadsbehandlingRepo.lagre(it)
             it.right()
         }
@@ -384,13 +337,29 @@ internal class SøknadsbehandlingServiceImpl(
             søknadsbehandling = søknadsbehandling,
             statusovergang = Statusovergang.TilIverksatt(
                 attestering = request.attestering,
-            ) {
+            ) { tilAttestering ->
+
+                // TODO finn en bedre måte å håndtrere dette på
+                avkortingsvarselRepo.hentUteståendeAvkortinger(tilAttestering.sakId).let {
+                    val beløpSkalAvkortes = it.sumOf { it.hentUtbetalteBeløp().sumOf { it.second } }
+                    val fradragAvkorting = tilAttestering.beregning.getFradrag()
+                        .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
+                        .sumOf { it.månedsbeløp }
+                        .toInt()
+
+                    check(abs(beløpSkalAvkortes) == abs(fradragAvkorting)) { "Beløp for avkorting og fradrag stemmer ikke overens!" }
+
+                    it.forEach { avkortingsvarsel ->
+                        avkortingsvarselRepo.lagre(avkortingsvarsel.avkortet(tilAttestering.id))
+                    }
+                }
+
                 utbetalingService.utbetal(
-                    sakId = it.sakId,
+                    sakId = tilAttestering.sakId,
                     attestant = request.attestering.attestant,
-                    beregning = it.beregning,
-                    simulering = it.simulering,
-                    uføregrunnlag = it.vilkårsvurderinger.uføre.grunnlag,
+                    beregning = tilAttestering.beregning,
+                    simulering = tilAttestering.simulering,
+                    uføregrunnlag = tilAttestering.vilkårsvurderinger.uføre.grunnlag,
                 ).mapLeft { kunneIkkeUtbetale ->
                     log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $kunneIkkeUtbetale")
                     KunneIkkeIverksette.KunneIkkeUtbetale(kunneIkkeUtbetale)
@@ -676,23 +645,33 @@ internal class SøknadsbehandlingServiceImpl(
          * Vi ønsker gradvis å gå over til sistenevnte måte å gjøre det på.
          */
         val oppdatertBehandling = behandling.leggTilFradragsgrunnlag(request.fradragsgrunnlag).getOrHandle {
-            return when (it) {
-                GrunnlagetMåVæreInneforBehandlingsperioden -> KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden.left()
-                IkkeLovÅLeggeTilFradragIDenneStatusen -> KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
-                    fra = behandling::class,
-                    til = Søknadsbehandling.Vilkårsvurdert.Innvilget::class,
-                ).left()
-                PeriodeMangler -> KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler.left()
-                is Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(
-                    it.feil,
-                ).left()
-            }
+            return it.toService().left()
         }
 
         grunnlagService.lagreFradragsgrunnlag(behandling.id, request.fradragsgrunnlag)
         søknadsbehandlingRepo.lagre(oppdatertBehandling)
 
         return oppdatertBehandling.right()
+    }
+
+    private fun Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.toService(): KunneIkkeLeggeTilFradragsgrunnlag {
+        return when (this) {
+            GrunnlagetMåVæreInneforBehandlingsperioden -> {
+                KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInnenforBehandlingsperioden
+            }
+            is IkkeLovÅLeggeTilFradragIDenneStatusen -> {
+                KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
+                    fra = this.status,
+                    til = Søknadsbehandling.Vilkårsvurdert.Innvilget::class,
+                )
+            }
+            is Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag -> {
+                KunneIkkeLeggeTilFradragsgrunnlag.KunneIkkeEndreFradragsgrunnlag(this.feil)
+            }
+            PeriodeMangler -> {
+                KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler
+            }
+        }
     }
 
     override fun lukk(lukketSøknadbehandling: LukketSøknadsbehandling, tx: TransactionContext) {

@@ -214,7 +214,7 @@ internal class BeregnRoutesKtTest {
                     )
                 }.apply {
                     response.status() shouldBe HttpStatusCode.BadRequest
-                    response.content shouldContain "Kan ikke gå fra tilstanden Uavklart til tilstanden Innvilget"
+                    response.content shouldContain """{"message":"Kan ikke gå fra tilstanden Uavklart til tilstanden Beregnet","code":"ugyldig_tilstand"}"""
                 }
             }
         }

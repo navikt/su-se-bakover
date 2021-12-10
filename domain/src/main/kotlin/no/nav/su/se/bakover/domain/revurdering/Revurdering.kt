@@ -646,8 +646,10 @@ sealed class BeregnetRevurdering : Revurdering() {
                             when (vilkårsvurdering.erÅrsak(Inngangsvilkår.Utenlandsopphold)) {
                                 true -> {
                                     Avkortingsvarsel.Utenlandsopphold.Opprettet(
-                                        simulertUtbetaling.simulering,
-                                        simulertUtbetaling.utbetalingslinjer.single() as Utbetalingslinje.Endring.Opphør,
+                                        sakId = this.sakId,
+                                        revurderingId = this.id,
+                                        simulering = simulertUtbetaling.simulering,
+                                        utbetalingslinje = simulertUtbetaling.utbetalingslinjer.single() as Utbetalingslinje.Endring.Opphør,
                                     )
                                 }
                                 else -> Avkortingsvarsel.Ingen

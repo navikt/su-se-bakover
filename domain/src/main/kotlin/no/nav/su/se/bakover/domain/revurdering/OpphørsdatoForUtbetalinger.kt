@@ -33,7 +33,7 @@ value class OpphørsdatoForUtbetalinger private constructor(
                     revurdering.periode.fraOgMed
                 }
                 is Avkortingsvarsel.Utenlandsopphold -> {
-                    val tidligsteIkkeUtbetalteMåned = avkortingsvarsel.hentUtbetalteBeløp(revurdering.periode)
+                    val tidligsteIkkeUtbetalteMåned = avkortingsvarsel.hentUtbetalteBeløp()
                         .maxOf { it.first.tilOgMed }
                         .plusMonths(1)
                         .startOfMonth()

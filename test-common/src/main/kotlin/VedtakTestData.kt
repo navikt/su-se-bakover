@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -26,6 +25,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import java.util.UUID
 
 /**
  * Ikke journalført eller distribuert brev.
@@ -37,7 +37,6 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    beregning: Beregning = beregning(periode = stønadsperiode.periode),
     utbetalingId: UUID30 = UUID30.randomUUID(),
     clock: Clock = fixedClock,
 ): Pair<Sak, Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling> {
@@ -47,7 +46,6 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
-        beregning = beregning,
     ).let { (sak, søknadsbehandling) ->
         val utbetaling = oversendtUtbetalingMedKvittering(
             id = utbetalingId,
@@ -81,8 +79,17 @@ fun vedtakSøknadsbehandlingIverksattAvslagMedBeregning(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
-    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    beregning: Beregning = beregningAvslagForHøyInntekt(),
+    vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(
+        periode = stønadsperiode.periode,
+        uføre = innvilgetUførevilkårForventetInntekt0(
+            id = UUID.randomUUID(),
+            periode = stønadsperiode.periode,
+            uføregrunnlag = uføregrunnlagForventetInntekt(
+                periode = stønadsperiode.periode,
+                forventetInntekt = 1_000_000,
+            )
+        ),
+    ),
     clock: Clock = fixedClock,
 ): Pair<Sak, Vedtak.Avslag.AvslagBeregning> {
     return søknadsbehandlingIverksattAvslagMedBeregning(
@@ -91,7 +98,6 @@ fun vedtakSøknadsbehandlingIverksattAvslagMedBeregning(
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
-        beregning = beregning,
     ).let { (sak, søknadsbehandling) ->
         val vedtak = Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(
             avslag = søknadsbehandling,

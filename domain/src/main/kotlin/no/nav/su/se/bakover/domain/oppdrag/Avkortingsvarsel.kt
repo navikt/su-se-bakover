@@ -12,25 +12,33 @@ sealed interface Avkortingsvarsel {
 
     sealed interface Utenlandsopphold : Avkortingsvarsel {
         val id: UUID
+        val sakId: UUID
+        val revurderingId: UUID
         val opprettet: Tidspunkt
         val simulering: Simulering
         val feilutbetalingslinje: Feilutbetalingslinje
 
-        fun hentUtbetalteBeløp(periode: Periode): List<Pair<Periode, Int>> {
-            return simulering.hentUtbetalteBeløp(periode)
+        fun hentUtbetalteBeløp(): List<Pair<Periode, Int>> {
+            return simulering.hentUtbetalteBeløp()
         }
 
         data class Opprettet(
             override val id: UUID,
+            override val sakId: UUID,
+            override val revurderingId: UUID,
             override val opprettet: Tidspunkt,
             override val simulering: Simulering,
             override val feilutbetalingslinje: Feilutbetalingslinje,
         ) : Utenlandsopphold {
             constructor(
+                sakId: UUID,
+                revurderingId: UUID,
                 simulering: Simulering,
                 utbetalingslinje: Utbetalingslinje.Endring.Opphør,
             ) : this(
                 id = UUID.randomUUID(),
+                sakId = sakId,
+                revurderingId = revurderingId,
                 opprettet = Tidspunkt.now(),
                 simulering = simulering,
                 feilutbetalingslinje = Feilutbetalingslinje(
@@ -51,13 +59,14 @@ sealed interface Avkortingsvarsel {
         data class SkalAvkortes(
             private val objekt: Opprettet,
         ) : Utenlandsopphold by objekt {
-            fun avkortet(): Avkortet {
-                return Avkortet(this)
+            fun avkortet(søknadsbehandlingId: UUID): Avkortet {
+                return Avkortet(this, søknadsbehandlingId)
             }
         }
 
         data class Avkortet(
             private val objekt: SkalAvkortes,
+            val søknadsbehandlingId: UUID,
         ) : Utenlandsopphold by objekt
 
         data class Feilutbetalingslinje(

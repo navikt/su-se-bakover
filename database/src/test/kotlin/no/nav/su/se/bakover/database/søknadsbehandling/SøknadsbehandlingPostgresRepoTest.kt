@@ -29,11 +29,8 @@ import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
-import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
@@ -41,14 +38,11 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
-import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -164,7 +158,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
         withMigratedDb { dataSource ->
             val testDataHelper = TestDataHelper(dataSource)
             val repo = testDataHelper.søknadsbehandlingRepo
-            val uavklartVilkårsvurdering = testDataHelper.nySøknadsbehandling().also {
+            val innvilgetVilkårsvurdering = testDataHelper.nyInnvilgetVilkårsvurdering().also {
                 val behandlingId = it.id
                 repo.hent(behandlingId) shouldBe it
                 dataSource.withSession { session ->
@@ -175,29 +169,18 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 }
             }
 
-            val innvilgetVilkårsvurdering = uavklartVilkårsvurdering.copy(
-                grunnlagsdata = Grunnlagsdata.create(
-                    bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = uavklartVilkårsvurdering.periode)),
-                ),
-                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
-                    uføre = innvilgetUførevilkår(periode = uavklartVilkårsvurdering.periode),
-                ),
-            ).tilVilkårsvurdert(
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                clock = fixedClock,
-            ).also {
-                testDataHelper.lagreVilkårOgGrunnlag(it.id, it.vilkårsvurderinger, it.grunnlagsdata)
-                repo.lagre(it)
-            }
-
             val beregnet = innvilgetVilkårsvurdering
-                .tilBeregnet(beregning = innvilgetBeregning())
+                .beregn(
+                    avkortingsvarsel = emptyList(),
+                    begrunnelse = null,
+                    clock = fixedClock,
+                ).getOrFail()
                 .also {
                     repo.lagre(it)
                     repo.hent(it.id) shouldBe it.persistertVariant()
                     dataSource.withSession { session ->
                         "select * from behandling where id = :id".hent(
-                            mapOf("id" to uavklartVilkårsvurdering.id),
+                            mapOf("id" to innvilgetVilkårsvurdering.id),
                             session,
                         ) { row ->
                             row.stringOrNull("beregning") shouldNotBe null
@@ -206,11 +189,11 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     }
                 }
             val simulert = beregnet.tilSimulert(simulering(beregnet.fnr))
-                .also {
-                    repo.lagre(it)
-                    repo.hent(it.id) shouldBe it.persistertVariant()
+                .also { simulert ->
+                    repo.lagre(simulert)
+                    repo.hent(simulert.id) shouldBe simulert.persistertVariant()
                     dataSource.withSession {
-                        "select * from behandling where id = :id".hent(mapOf("id" to uavklartVilkårsvurdering.id), it) {
+                        "select * from behandling where id = :id".hent(mapOf("id" to innvilgetVilkårsvurdering.id), it) {
                             it.stringOrNull("beregning") shouldNotBe null
                             it.stringOrNull("simulering") shouldNotBe null
                         }
@@ -218,11 +201,11 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 }
             // Tilbake til vilkårsvurdert
             simulert.tilVilkårsvurdert(behandlingsinformasjonMedAlleVilkårOppfylt, clock = fixedClock)
-                .also {
-                    repo.lagre(it)
-                    repo.hent(it.id) shouldBe it.persistertVariant()
+                .also { vilkårsvurdert ->
+                    repo.lagre(vilkårsvurdert)
+                    repo.hent(vilkårsvurdert.id) shouldBe vilkårsvurdert.persistertVariant()
                     dataSource.withSession {
-                        "select * from behandling where id = :id".hent(mapOf("id" to uavklartVilkårsvurdering.id), it) {
+                        "select * from behandling where id = :id".hent(mapOf("id" to innvilgetVilkårsvurdering.id), it) {
                             it.stringOrNull("beregning") shouldBe null
                             it.stringOrNull("simulering") shouldBe null
                         }

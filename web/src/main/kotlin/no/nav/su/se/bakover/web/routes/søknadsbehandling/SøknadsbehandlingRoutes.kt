@@ -57,8 +57,6 @@ import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.Feilresponser.harIkkeEktefelle
 import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeAvgjøreOmFørstegangEllerNyPeriode
-import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeFjereAvkorting
-import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeLeggeTilAvkorting
 import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeSimulere
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
@@ -275,14 +273,18 @@ internal fun Route.søknadsbehandlingRoutes(
                             søknadsbehandlingService.beregn(serviceCommand)
                                 .mapLeft { kunneIkkeBeregne ->
                                     val resultat = when (kunneIkkeBeregne) {
-                                        KunneIkkeBeregne.FantIkkeBehandling -> fantIkkeBehandling
-                                        KunneIkkeBeregne.KunneIkkeFjerneAvkortingFradrag -> kunneIkkeFjereAvkorting
-                                        KunneIkkeBeregne.KunneIkkeLeggeTilAvkortingFradrag -> kunneIkkeLeggeTilAvkorting
-                                        KunneIkkeBeregne.KunneIkkeSimulereUtbetaling -> kunneIkkeSimulere
-                                        is KunneIkkeBeregne.UgyldigTilstand -> ugyldigTilstand(
-                                            fra = kunneIkkeBeregne.fra,
-                                            til = kunneIkkeBeregne.til,
-                                        )
+                                        KunneIkkeBeregne.FantIkkeBehandling -> {
+                                            fantIkkeBehandling
+                                        }
+                                        KunneIkkeBeregne.KunneIkkeSimulereUtbetaling -> {
+                                            kunneIkkeSimulere
+                                        }
+                                        is KunneIkkeBeregne.UgyldigTilstand -> {
+                                            ugyldigTilstand(fra = kunneIkkeBeregne.fra, til = kunneIkkeBeregne.til)
+                                        }
+                                        is KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag -> {
+                                            kunneIkkeBeregne.feil.tilResultat()
+                                        }
                                     }
                                     call.svar(resultat)
                                 }.map { behandling ->

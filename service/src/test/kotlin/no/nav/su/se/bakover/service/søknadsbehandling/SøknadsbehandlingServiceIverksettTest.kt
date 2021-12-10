@@ -6,14 +6,18 @@ import arrow.core.right
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.november
+import no.nav.su.se.bakover.common.periode.oktober
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
-import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -27,6 +31,7 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.oppdrag.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -46,14 +51,19 @@ import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.statistikk.Event
-import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
+import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.person
+import no.nav.su.se.bakover.test.simuleringFeilutbetaling
+import no.nav.su.se.bakover.test.simuleringNy
 import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagMedBeregning
+import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -64,6 +74,7 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.time.ZoneOffset
 import java.util.UUID
@@ -141,46 +152,187 @@ internal class SøknadsbehandlingServiceIverksettTest {
     }
 
     @Test
+    fun `kaster exception dersom utestående avkortinger ikke kunne avkortes fullstendig`() {
+        val uteståendeAvkorting = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            sakId = sakId,
+            revurderingId = UUID.randomUUID(),
+            simulering = simuleringFeilutbetaling(
+                oktober(2020), november(2020), desember(2020),
+            ),
+            feilutbetalingslinje = Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje(
+                fraOgMed = 1.oktober(2021),
+                tilOgMed = 31.desember(2021),
+                forrigeUtbetalingslinjeId = null,
+                beløp = 15000,
+                virkningstidspunkt = 1.oktober(2021),
+                uføregrad = Uføregrad.parse(100),
+            ),
+        ).skalAvkortes()
+
+        val tilAttestering = søknadsbehandlingVilkårsvurdertInnvilget().let { (_, vilkårsvurdert) ->
+            vilkårsvurdert.leggTilFradragsgrunnlag(
+                fradragsgrunnlag = listOf(
+                    fradragsgrunnlagArbeidsinntekt(
+                        arbeidsinntekt = 20000.0,
+                    ),
+                ),
+            ).getOrFail().beregn(
+                avkortingsvarsel = listOf(uteståendeAvkorting),
+                begrunnelse = null,
+                clock = fixedClock,
+            ).getOrFail().let {
+                it.tilSimulert(simuleringNy(it.beregning))
+            }.tilAttestering(
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "njet",
+            )
+        }
+
+        SøknadsbehandlingServiceAndMocks(
+            søknadsbehandlingRepo = mock {
+                on { hent(any()) } doReturn tilAttestering
+            },
+            avkortingsvarselRepo = mock {
+                on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
+                on { hentUteståendeAvkortinger(any(), any()) } doReturn listOf(uteståendeAvkorting)
+            },
+        ).let {
+            assertThrows<IllegalStateException> {
+                it.søknadsbehandlingService.iverksett(
+                    SøknadsbehandlingService.IverksettRequest(
+                        tilAttestering.id,
+                        Attestering.Iverksatt(attestant, fixedTidspunkt),
+                    ),
+                )
+            }.also {
+                it.message shouldContain "Beløp for avkorting og fradrag stemmer ikke overens!"
+            }
+
+            verify(it.søknadsbehandlingRepo).hent(tilAttestering.id)
+            verify(it.avkortingsvarselRepo).defaultSessionContext()
+            verify(it.avkortingsvarselRepo).hentUteståendeAvkortinger(eq(tilAttestering.sakId), anyOrNull())
+            it.verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `markerer avkortinger som ferdigstilt hvis fullstendig`() {
+        val uteståendeAvkorting = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            sakId = sakId,
+            revurderingId = UUID.randomUUID(),
+            simulering = simuleringFeilutbetaling(
+                desember(2020),
+            ),
+            feilutbetalingslinje = Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje(
+                fraOgMed = 1.oktober(2021),
+                tilOgMed = 31.desember(2021),
+                forrigeUtbetalingslinjeId = null,
+                beløp = 15000,
+                virkningstidspunkt = 1.desember(2021),
+                uføregrad = Uføregrad.parse(100),
+            ),
+        ).skalAvkortes()
+
+        val tilAttestering = søknadsbehandlingVilkårsvurdertInnvilget().let { (_, vilkårsvurdert) ->
+            vilkårsvurdert.leggTilFradragsgrunnlag(
+                fradragsgrunnlag = listOf(
+                    fradragsgrunnlagArbeidsinntekt(
+                        arbeidsinntekt = 17500.0,
+                    ),
+                ),
+            ).getOrFail().beregn(
+                avkortingsvarsel = listOf(uteståendeAvkorting),
+                begrunnelse = null,
+                clock = fixedClock,
+            ).getOrFail().let {
+                it.tilSimulert(simuleringNy(it.beregning))
+            }.tilAttestering(
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "njet",
+            )
+        }
+
+        SøknadsbehandlingServiceAndMocks(
+            søknadsbehandlingRepo = mock {
+                on { hent(any()) } doReturn tilAttestering
+            },
+            avkortingsvarselRepo = mock {
+                on { defaultSessionContext() } doReturn TestSessionFactory.sessionContext
+                on { hentUteståendeAvkortinger(any(), any()) } doReturn listOf(uteståendeAvkorting)
+            },
+            utbetalingService = mock {
+                on { utbetal(any(), any(), any(), any(), any()) } doReturn utbetaling.right()
+            },
+        ).let {
+            val response = it.søknadsbehandlingService.iverksett(
+                SøknadsbehandlingService.IverksettRequest(
+                    tilAttestering.id,
+                    Attestering.Iverksatt(attestant, fixedTidspunkt),
+                ),
+            ).getOrFail()
+
+            response shouldBe tilAttestering.tilIverksatt(
+                Attestering.Iverksatt(attestant, fixedTidspunkt),
+            )
+
+            verify(it.søknadsbehandlingRepo).hent(tilAttestering.id)
+            verify(it.avkortingsvarselRepo).defaultSessionContext()
+            verify(it.avkortingsvarselRepo).hentUteståendeAvkortinger(eq(tilAttestering.sakId), anyOrNull())
+            verify(it.avkortingsvarselRepo).defaultTransactionContext()
+            verify(it.avkortingsvarselRepo).lagre(eq(uteståendeAvkorting.avkortet(tilAttestering.id)), anyOrNull())
+            verify(it.utbetalingService).utbetal(any(), any(), any(), any(), any())
+            verify(it.søknadsbehandlingRepo).defaultTransactionContext()
+            verify(it.søknadsbehandlingRepo).lagre(eq(response), anyOrNull())
+            verify(it.vedtakRepo).lagre(any())
+            verify(it.behandlingMetrics).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
+            verify(it.observer, times(2)).handle(any())
+            it.verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
     fun `svarer med feil dersom vi ikke kunne simulere`() {
         val behandling = innvilgetTilAttestering()
 
-        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn behandling
-        }
-
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on { utbetal(any(), any(), any(), any(), any()) } doReturn UtbetalingFeilet.KunneIkkeSimulere(
-                SimuleringFeilet.TEKNISK_FEIL,
-            ).left()
-        }
-
-        val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            utbetalingService = utbetalingServiceMock,
-        )
-
-        val response = serviceAndMocks.søknadsbehandlingService.iverksett(
-            SøknadsbehandlingService.IverksettRequest(
-                behandling.id,
-                Attestering.Iverksatt(attestant, fixedTidspunkt),
-            ),
-        )
-
-        response shouldBe KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL))
-            .left()
-
-        inOrder(
-            *serviceAndMocks.allMocks(),
-        ) {
-            verify(søknadsbehandlingRepoMock).hent(behandling.id)
-            verify(utbetalingServiceMock).utbetal(
-                sakId = argThat { it shouldBe sakId },
-                attestant = argThat { it shouldBe attestant },
-                beregning = argThat { it shouldBe beregning },
-                simulering = argThat { it shouldBe simulering },
-                uføregrunnlag = argThat { it shouldBe emptyList() },
+        SøknadsbehandlingServiceAndMocks(
+            søknadsbehandlingRepo = mock {
+                on { hent(any()) } doReturn behandling
+            },
+            utbetalingService = mock {
+                on { utbetal(any(), any(), any(), any(), any()) } doReturn UtbetalingFeilet.KunneIkkeSimulere(
+                    SimuleringFeilet.TEKNISK_FEIL,
+                ).left()
+            },
+        ).let {
+            val response = it.søknadsbehandlingService.iverksett(
+                SøknadsbehandlingService.IverksettRequest(
+                    behandling.id,
+                    Attestering.Iverksatt(attestant, fixedTidspunkt),
+                ),
             )
-            serviceAndMocks.verifyNoMoreInteractions()
+
+            response shouldBe KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL))
+                .left()
+
+            inOrder(
+                *it.allMocks(),
+            ) {
+                verify(it.søknadsbehandlingRepo).hent(behandling.id)
+                verify(it.avkortingsvarselRepo).defaultSessionContext()
+                verify(it.avkortingsvarselRepo).hentUteståendeAvkortinger(eq(sakId), anyOrNull())
+                verify(it.utbetalingService).utbetal(
+                    sakId = argThat { it shouldBe sakId },
+                    attestant = argThat { it shouldBe attestant },
+                    beregning = argThat { it shouldBe beregning },
+                    simulering = argThat { it shouldBe simulering },
+                    uføregrunnlag = argThat { it shouldBe emptyList() },
+                )
+                it.verifyNoMoreInteractions()
+            }
         }
     }
 
@@ -188,49 +340,47 @@ internal class SøknadsbehandlingServiceIverksettTest {
     fun `svarer med feil dersom kontrollsimulering var for ulik`() {
         val behandling = innvilgetTilAttestering()
 
-        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn behandling
-        }
-
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on {
-                utbetal(
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                )
-            } doReturn UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
-        }
-
-        val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            utbetalingService = utbetalingServiceMock,
-        )
-
-        val response = serviceAndMocks.søknadsbehandlingService.iverksett(
-            SøknadsbehandlingService.IverksettRequest(
-                behandlingId = behandling.id,
-                attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
-            ),
-        )
-
-        response shouldBe KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte)
-            .left()
-
-        inOrder(
-            *serviceAndMocks.allMocks(),
-        ) {
-            verify(søknadsbehandlingRepoMock).hent(behandling.id)
-            verify(utbetalingServiceMock).utbetal(
-                sakId = argThat { it shouldBe sakId },
-                attestant = argThat { it shouldBe attestant },
-                beregning = argThat { it shouldBe beregning },
-                simulering = argThat { it shouldBe simulering },
-                uføregrunnlag = argThat { it shouldBe emptyList() },
+        SøknadsbehandlingServiceAndMocks(
+            søknadsbehandlingRepo = mock {
+                on { hent(any()) } doReturn behandling
+            },
+            utbetalingService = mock {
+                on {
+                    utbetal(
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                    )
+                } doReturn UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+            },
+        ).let {
+            val response = it.søknadsbehandlingService.iverksett(
+                SøknadsbehandlingService.IverksettRequest(
+                    behandlingId = behandling.id,
+                    attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                ),
             )
-            serviceAndMocks.verifyNoMoreInteractions()
+
+            response shouldBe KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte)
+                .left()
+
+            inOrder(
+                *it.allMocks(),
+            ) {
+                verify(it.søknadsbehandlingRepo).hent(behandling.id)
+                verify(it.avkortingsvarselRepo).defaultSessionContext()
+                verify(it.avkortingsvarselRepo).hentUteståendeAvkortinger(eq(sakId), anyOrNull())
+                verify(it.utbetalingService).utbetal(
+                    sakId = argThat { it shouldBe sakId },
+                    attestant = argThat { it shouldBe attestant },
+                    beregning = argThat { it shouldBe beregning },
+                    simulering = argThat { it shouldBe simulering },
+                    uføregrunnlag = argThat { it shouldBe emptyList() },
+                )
+                it.verifyNoMoreInteractions()
+            }
         }
     }
 
@@ -238,40 +388,38 @@ internal class SøknadsbehandlingServiceIverksettTest {
     fun `svarer med feil dersom vi ikke kunne utbetale`() {
         val behandling = innvilgetTilAttestering()
 
-        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn behandling
-        }
-
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on { utbetal(any(), any(), any(), any(), any()) } doReturn UtbetalingFeilet.Protokollfeil.left()
-        }
-
-        val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            utbetalingService = utbetalingServiceMock,
-        )
-
-        val response = serviceAndMocks.søknadsbehandlingService.iverksett(
-            SøknadsbehandlingService.IverksettRequest(
-                behandlingId = behandling.id,
-                attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
-            ),
-        )
-
-        response shouldBe KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
-
-        inOrder(
-            *serviceAndMocks.allMocks(),
-        ) {
-            verify(søknadsbehandlingRepoMock).hent(behandling.id)
-            verify(utbetalingServiceMock).utbetal(
-                sakId = argThat { it shouldBe sakId },
-                attestant = argThat { it shouldBe attestant },
-                beregning = argThat { it shouldBe beregning },
-                simulering = argThat { it shouldBe simulering },
-                uføregrunnlag = argThat { it shouldBe emptyList() },
+        SøknadsbehandlingServiceAndMocks(
+            søknadsbehandlingRepo = mock<SøknadsbehandlingRepo> {
+                on { hent(any()) } doReturn behandling
+            },
+            utbetalingService = mock<UtbetalingService> {
+                on { utbetal(any(), any(), any(), any(), any()) } doReturn UtbetalingFeilet.Protokollfeil.left()
+            },
+        ).let {
+            val response = it.søknadsbehandlingService.iverksett(
+                SøknadsbehandlingService.IverksettRequest(
+                    behandlingId = behandling.id,
+                    attestering = Attestering.Iverksatt(attestant, fixedTidspunkt),
+                ),
             )
-            serviceAndMocks.verifyNoMoreInteractions()
+
+            response shouldBe KunneIkkeIverksette.KunneIkkeUtbetale(UtbetalingFeilet.Protokollfeil).left()
+
+            inOrder(
+                *it.allMocks(),
+            ) {
+                verify(it.søknadsbehandlingRepo).hent(behandling.id)
+                verify(it.avkortingsvarselRepo).defaultSessionContext()
+                verify(it.avkortingsvarselRepo).hentUteståendeAvkortinger(eq(sakId), anyOrNull())
+                verify(it.utbetalingService).utbetal(
+                    sakId = argThat { it shouldBe sakId },
+                    attestant = argThat { it shouldBe attestant },
+                    beregning = argThat { it shouldBe beregning },
+                    simulering = argThat { it shouldBe simulering },
+                    uføregrunnlag = argThat { it shouldBe emptyList() },
+                )
+                it.verifyNoMoreInteractions()
+            }
         }
     }
 
@@ -279,77 +427,70 @@ internal class SøknadsbehandlingServiceIverksettTest {
     fun `attesterer og iverksetter innvilgning hvis alt er ok`() {
         val behandling = innvilgetTilAttestering()
 
-        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn behandling
-        }
-
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on { utbetal(any(), any(), any(), any(), any()) } doReturn utbetaling.right()
-        }
-        val behandlingMetricsMock = mock<BehandlingMetrics>()
-        val vedtakRepoMock = mock<VedtakRepo>()
-        val statistikkObserver = mock<EventObserver>()
-
         val attesteringstidspunkt = fixedTidspunkt
 
-        val serviceAndMocks = SøknadsbehandlingServiceAndMocks(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            utbetalingService = utbetalingServiceMock,
-            behandlingMetrics = behandlingMetricsMock,
-            vedtakRepo = vedtakRepoMock,
-            observer = statistikkObserver,
-        )
-        val response = serviceAndMocks.søknadsbehandlingService.iverksett(
-            SøknadsbehandlingService.IverksettRequest(
-                behandlingId = behandling.id,
-                attestering = Attestering.Iverksatt(attestant, attesteringstidspunkt),
-            ),
-        )
-
-        val expected = Søknadsbehandling.Iverksatt.Innvilget(
-            id = behandling.id,
-            opprettet = behandling.opprettet,
-            sakId = behandling.sakId,
-            saksnummer = behandling.saksnummer,
-            søknad = behandling.søknad,
-            oppgaveId = behandling.oppgaveId,
-            behandlingsinformasjon = behandling.behandlingsinformasjon,
-            fnr = behandling.fnr,
-            beregning = behandling.beregning,
-            simulering = behandling.simulering,
-            saksbehandler = behandling.saksbehandler,
-            attesteringer = Attesteringshistorikk.empty()
-                .leggTilNyAttestering(Attestering.Iverksatt(attestant, attesteringstidspunkt)),
-            fritekstTilBrev = "",
-            stønadsperiode = behandling.stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
-        )
-
-        response shouldBe expected.right()
-
-        inOrder(
-            *serviceAndMocks.allMocks(),
-        ) {
-            verify(søknadsbehandlingRepoMock).hent(behandling.id)
-            verify(utbetalingServiceMock).utbetal(
-                sakId = argThat { it shouldBe sakId },
-                attestant = argThat { it shouldBe attestant },
-                beregning = argThat { it shouldBe beregning },
-                simulering = argThat { it shouldBe simulering },
-                uføregrunnlag = argThat { it shouldBe emptyList() },
+        SøknadsbehandlingServiceAndMocks(
+            søknadsbehandlingRepo = mock<SøknadsbehandlingRepo> {
+                on { hent(any()) } doReturn behandling
+            },
+            utbetalingService = mock {
+                on { utbetal(any(), any(), any(), any(), any()) } doReturn utbetaling.right()
+            },
+        ).let {
+            val response = it.søknadsbehandlingService.iverksett(
+                SøknadsbehandlingService.IverksettRequest(
+                    behandlingId = behandling.id,
+                    attestering = Attestering.Iverksatt(attestant, attesteringstidspunkt),
+                ),
             )
-            verify(søknadsbehandlingRepoMock).defaultTransactionContext()
-            verify(søknadsbehandlingRepoMock).lagre(eq(expected), anyOrNull())
-            verify(vedtakRepoMock).lagre(
-                argThat {
-                    it.behandling shouldBe expected
-                    it should beOfType<Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling>()
-                },
+
+            val expected = Søknadsbehandling.Iverksatt.Innvilget(
+                id = behandling.id,
+                opprettet = behandling.opprettet,
+                sakId = behandling.sakId,
+                saksnummer = behandling.saksnummer,
+                søknad = behandling.søknad,
+                oppgaveId = behandling.oppgaveId,
+                behandlingsinformasjon = behandling.behandlingsinformasjon,
+                fnr = behandling.fnr,
+                beregning = behandling.beregning,
+                simulering = behandling.simulering,
+                saksbehandler = behandling.saksbehandler,
+                attesteringer = Attesteringshistorikk.empty()
+                    .leggTilNyAttestering(Attestering.Iverksatt(attestant, attesteringstidspunkt)),
+                fritekstTilBrev = "",
+                stønadsperiode = behandling.stønadsperiode,
+                grunnlagsdata = Grunnlagsdata.IkkeVurdert,
+                vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
             )
-            verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
-            verify(statistikkObserver, times(2)).handle(any())
-            serviceAndMocks.verifyNoMoreInteractions()
+
+            response shouldBe expected.right()
+
+            inOrder(
+                *it.allMocks(),
+            ) {
+                verify(it.søknadsbehandlingRepo).hent(behandling.id)
+                verify(it.avkortingsvarselRepo).defaultSessionContext()
+                verify(it.avkortingsvarselRepo).hentUteståendeAvkortinger(eq(sakId), anyOrNull())
+                verify(it.utbetalingService).utbetal(
+                    sakId = argThat { it shouldBe sakId },
+                    attestant = argThat { it shouldBe attestant },
+                    beregning = argThat { it shouldBe beregning },
+                    simulering = argThat { it shouldBe simulering },
+                    uføregrunnlag = argThat { it shouldBe emptyList() },
+                )
+                verify(it.søknadsbehandlingRepo).defaultTransactionContext()
+                verify(it.søknadsbehandlingRepo).lagre(eq(expected), anyOrNull())
+                verify(it.vedtakRepo).lagre(
+                    argThat {
+                        it.behandling shouldBe expected
+                        it should beOfType<Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling>()
+                    },
+                )
+                verify(it.behandlingMetrics).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
+                verify(it.observer, times(2)).handle(any())
+                it.verifyNoMoreInteractions()
+            }
         }
     }
 
@@ -424,7 +565,10 @@ internal class SøknadsbehandlingServiceIverksettTest {
             it.søknadsbehandlingService.iverksett(
                 SøknadsbehandlingService.IverksettRequest(
                     behandlingId = avslagTilAttestering.id,
-                    attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(avslagTilAttestering.saksbehandler.navIdent), fixedTidspunkt),
+                    attestering = Attestering.Iverksatt(
+                        NavIdentBruker.Attestant(avslagTilAttestering.saksbehandler.navIdent),
+                        fixedTidspunkt,
+                    ),
                 ),
             ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
 

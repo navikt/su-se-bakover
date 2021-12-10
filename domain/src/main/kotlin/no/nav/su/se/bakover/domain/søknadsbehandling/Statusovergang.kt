@@ -62,35 +62,6 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
         }
     }
 
-    class TilBeregnet(
-        private val beregn: () -> Beregning,
-    ) : Statusovergang<Nothing, Søknadsbehandling.Beregnet>() {
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {
-            result = søknadsbehandling.tilBeregnet(beregn()).right()
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
-            result = søknadsbehandling.tilBeregnet(beregn()).right()
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
-            result = søknadsbehandling.tilBeregnet(beregn()).right()
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
-            result = søknadsbehandling.tilBeregnet(beregn()).right()
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
-            result = søknadsbehandling.tilBeregnet(beregn()).right()
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
-            result = søknadsbehandling.tilBeregnet(beregn()).right()
-        }
-    }
-
     class TilSimulert(
         private val simulering: (beregning: Beregning) -> Either<SimuleringFeilet, Simulering>,
     ) : Statusovergang<SimuleringFeilet, Søknadsbehandling.Simulert>() {

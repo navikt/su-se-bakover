@@ -187,7 +187,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     @Test
     fun `ikke avslag dersom beløp er under minstegrensen på grunn av avkorting`() {
         val januar = lagFradrag(5000.0, januar(2021))
-        val juni = lagFradrag(21900.0, juni(2021), Fradragstype.Utenlandsopphold)
+        val juni = lagFradrag(21900.0, juni(2021), Fradragstype.AvkortingUtenlandsopphold)
         val desember = lagFradrag(5000.0, desember(2021))
 
         val beregning = lagBeregningMedFradrag(januar, juni, desember, fradragStrategy = FradragStrategy.EpsUnder67År)
@@ -200,7 +200,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     @Test
     fun `ikke avslag dersom beløp er under minstegrensen på grunn av avkorting pluss sosialstønad`() {
         val januar = lagFradrag(5000.0, januar(2021))
-        val juniAvkorting = lagFradrag(10900.0, juni(2021), Fradragstype.Utenlandsopphold)
+        val juniAvkorting = lagFradrag(10900.0, juni(2021), Fradragstype.AvkortingUtenlandsopphold)
         val juniSosialstønad = lagFradrag(11000.0, juni(2021), Fradragstype.Sosialstønad)
         val desember = lagFradrag(5000.0, desember(2021))
 

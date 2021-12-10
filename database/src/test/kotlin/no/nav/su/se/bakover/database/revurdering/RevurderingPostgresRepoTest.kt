@@ -1067,6 +1067,8 @@ internal class RevurderingPostgresRepoTest {
                         it.avkortingsvarsel.let { avkortingsvarsel ->
                             (avkortingsvarsel as Avkortingsvarsel.Utenlandsopphold) shouldBe Avkortingsvarsel.Utenlandsopphold.Opprettet(
                                 id = avkortingsvarsel.id,
+                                sakId = it.sakId,
+                                revurderingId = it.id,
                                 opprettet = avkortingsvarsel.opprettet,
                                 simulering = avkortingsvarsel.simulering,
                                 feilutbetalingslinje = Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje(
@@ -1103,6 +1105,8 @@ internal class RevurderingPostgresRepoTest {
                         (it as Avkortingsvarsel.Utenlandsopphold) shouldBe Avkortingsvarsel.Utenlandsopphold.SkalAvkortes(
                             objekt = Avkortingsvarsel.Utenlandsopphold.Opprettet(
                                 id = it.id,
+                                sakId = iverksatt.sakId,
+                                revurderingId = iverksatt.id,
                                 opprettet = it.opprettet,
                                 simulering = it.simulering,
                                 feilutbetalingslinje = Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje(
@@ -1168,6 +1172,8 @@ internal class RevurderingPostgresRepoTest {
                         opphørtRevurdering.avkortingsvarsel.let { avkortingsvarsel ->
                             (avkortingsvarsel as Avkortingsvarsel.Utenlandsopphold) shouldBe Avkortingsvarsel.Utenlandsopphold.Opprettet(
                                 id = avkortingsvarsel.id,
+                                sakId = opphørtRevurdering.sakId,
+                                revurderingId = opphørtRevurdering.id,
                                 opprettet = avkortingsvarsel.opprettet,
                                 simulering = avkortingsvarsel.simulering,
                                 feilutbetalingslinje = Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje(

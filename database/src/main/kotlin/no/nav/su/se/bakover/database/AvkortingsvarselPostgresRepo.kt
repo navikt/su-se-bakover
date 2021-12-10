@@ -5,14 +5,26 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.persistence.SessionContext
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
+import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.domain.oppdrag.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.util.UUID
 
 interface AvkortingsvarselRepo {
-    fun hentUteståendeAvkortinger(sakId: UUID, sessionContext: SessionContext = defaultSessionContext()): List<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>
+    fun hentUteståendeAvkortinger(
+        sakId: UUID,
+        sessionContext: SessionContext = defaultSessionContext(),
+    ): List<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>
+
+    fun lagre(
+        avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.Avkortet,
+        transactionContext: TransactionContext = defaultTransactionContext()
+    )
+
     fun defaultSessionContext(): SessionContext
+    fun defaultTransactionContext(): TransactionContext
 }
 
 internal class AvkortingsvarselPostgresRepo(
@@ -25,45 +37,46 @@ internal class AvkortingsvarselPostgresRepo(
         AVKORTET
     }
 
-    fun lagre(sakId: UUID, behandlingId: UUID, avkortingsvarsel: Avkortingsvarsel, tx: TransactionalSession) {
-        slettForBehandling(behandlingId, tx)
+    private fun lagre(avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.SkalAvkortes, tx: TransactionalSession) {
+        oppdater(
+            id = avkortingsvarsel.id,
+            status = Status.SKAL_AVKORTES,
+            søknadsbehandlingId = null,
+            tx = tx,
+        )
+    }
+
+    private fun lagre(avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.Avkortet, tx: TransactionalSession) {
+        oppdater(
+            id = avkortingsvarsel.id,
+            status = Status.AVKORTET,
+            søknadsbehandlingId = avkortingsvarsel.søknadsbehandlingId,
+            tx = tx,
+        )
+    }
+
+    fun lagre(revurderingId: UUID, avkortingsvarsel: Avkortingsvarsel, tx: TransactionalSession) {
         when (avkortingsvarsel) {
-            Avkortingsvarsel.Ingen -> {}
+            is Avkortingsvarsel.Ingen -> {
+                slettForRevurdering(revurderingId, tx)
+            }
             is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
-                insert(
-                    id = avkortingsvarsel.id,
-                    opprettet = avkortingsvarsel.opprettet,
-                    sakId = sakId,
-                    behandlingId = behandlingId,
-                    simulering = avkortingsvarsel.simulering,
-                    feilutbetalingslinje = avkortingsvarsel.feilutbetalingslinje,
-                    status = Status.AVKORTET,
-                    tx = tx,
-                )
+                lagre(avkortingsvarsel, tx)
             }
             is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
+                slettForRevurdering(revurderingId, tx)
                 insert(
                     id = avkortingsvarsel.id,
                     opprettet = avkortingsvarsel.opprettet,
-                    sakId = sakId,
-                    behandlingId = behandlingId,
+                    sakId = avkortingsvarsel.sakId,
+                    revurderingId = avkortingsvarsel.revurderingId,
                     simulering = avkortingsvarsel.simulering,
                     feilutbetalingslinje = avkortingsvarsel.feilutbetalingslinje,
-                    status = Status.OPPRETTET,
                     tx = tx,
                 )
             }
             is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
-                insert(
-                    id = avkortingsvarsel.id,
-                    opprettet = avkortingsvarsel.opprettet,
-                    sakId = sakId,
-                    behandlingId = behandlingId,
-                    simulering = avkortingsvarsel.simulering,
-                    feilutbetalingslinje = avkortingsvarsel.feilutbetalingslinje,
-                    status = Status.SKAL_AVKORTES,
-                    tx = tx,
-                )
+                lagre(avkortingsvarsel, tx)
             }
         }
     }
@@ -72,17 +85,16 @@ internal class AvkortingsvarselPostgresRepo(
         id: UUID,
         opprettet: Tidspunkt,
         sakId: UUID,
-        behandlingId: UUID,
+        revurderingId: UUID,
         simulering: Simulering?,
         feilutbetalingslinje: Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje?,
-        status: Status,
         tx: TransactionalSession,
     ) {
         """insert into avkortingsvarsel (
             id, 
             opprettet, 
             sakId, 
-            behandlingId,
+            revurderingId,
             simulering, 
             feilutbetalingslinje,
             status
@@ -90,7 +102,7 @@ internal class AvkortingsvarselPostgresRepo(
                 :id, 
                 :opprettet, 
                 :sakId, 
-                :behandlingId,
+                :revurderingId,
                 to_jsonb(:simulering::json), 
                 to_jsonb(:feilutbetalingslinje::json),
                 :status
@@ -100,21 +112,46 @@ internal class AvkortingsvarselPostgresRepo(
                     "id" to id,
                     "opprettet" to opprettet,
                     "sakId" to sakId,
-                    "behandlingId" to behandlingId,
+                    "revurderingId" to revurderingId,
                     "simulering" to simulering?.let { objectMapper.writeValueAsString(it) },
                     "feilutbetalingslinje" to feilutbetalingslinje?.let { objectMapper.writeValueAsString(it) },
-                    "status" to status.toString(),
+                    "status" to Status.OPPRETTET.toString(),
                 ),
                 tx,
             )
     }
 
-    override fun hentUteståendeAvkortinger(sakId: UUID, sessionContext: SessionContext): List<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes> {
+    private fun oppdater(
+        id: UUID,
+        status: Status,
+        søknadsbehandlingId: UUID?,
+        tx: TransactionalSession,
+    ) {
+        """
+            update avkortingsvarsel set
+                status = :status,
+                søknadsbehandlingId = :soknadsbehandlingId
+            where id = :id
+        """.trimIndent()
+            .oppdatering(
+                mapOf(
+                    "id" to id,
+                    "status" to status.toString(),
+                    "soknadsbehandlingId" to søknadsbehandlingId,
+                ),
+                tx,
+            )
+    }
+
+    override fun hentUteståendeAvkortinger(
+        sakId: UUID,
+        sessionContext: SessionContext,
+    ): List<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes> {
         return sessionContext.withSession { session ->
             """select * from avkortingsvarsel where sakid = :sakid and status = :status""".hentListe(
                 mapOf(
                     "sakid" to sakId,
-                    "status" to "SKAL_AVKORTES",
+                    "status" to "${Status.SKAL_AVKORTES}",
                 ),
                 session,
             ) {
@@ -123,19 +160,28 @@ internal class AvkortingsvarselPostgresRepo(
         }
     }
 
-    fun slettForBehandling(behandlingId: UUID, tx: TransactionalSession) {
-        """delete from avkortingsvarsel where behandlingId = :behandlingId""".oppdatering(
+    override fun lagre(
+        avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.Avkortet,
+        transactionContext: TransactionContext,
+    ) {
+        transactionContext.withTransaction { tx ->
+            lagre(avkortingsvarsel, tx)
+        }
+    }
+
+    fun slettForRevurdering(revurderingId: UUID, tx: TransactionalSession) {
+        """delete from avkortingsvarsel where revurderingId = :revurderingId""".oppdatering(
             mapOf(
-                "behandlingId" to behandlingId,
+                "revurderingId" to revurderingId,
             ),
             tx,
         )
     }
 
-    fun hentForBehandling(behandlingId: UUID, session: Session): Avkortingsvarsel {
-        return """select * from avkortingsvarsel where behandlingId = :behandlingId""".hent(
+    fun hentForBehandling(revurderingId: UUID, session: Session): Avkortingsvarsel {
+        return """select * from avkortingsvarsel where revurderingId = :revurderingId""".hent(
             mapOf(
-                "behandlingId" to behandlingId,
+                "revurderingId" to revurderingId,
             ),
             session,
         ) {
@@ -146,6 +192,8 @@ internal class AvkortingsvarselPostgresRepo(
     private fun Row.toAvkortingsvarsel(): Avkortingsvarsel.Utenlandsopphold {
         val opprettet = Avkortingsvarsel.Utenlandsopphold.Opprettet(
             id = uuid("id"),
+            sakId = uuid("sakId"),
+            revurderingId = uuid("revurderingId"),
             opprettet = tidspunkt("opprettet"),
             simulering = string("simulering").let { objectMapper.readValue(it) },
             feilutbetalingslinje = string("feilutbetalingslinje").let { objectMapper.readValue(it) },
@@ -153,11 +201,15 @@ internal class AvkortingsvarselPostgresRepo(
         return when (Status.valueOf(string("status"))) {
             Status.OPPRETTET -> opprettet
             Status.SKAL_AVKORTES -> opprettet.skalAvkortes()
-            Status.AVKORTET -> opprettet.skalAvkortes().avkortet()
+            Status.AVKORTET -> opprettet.skalAvkortes().avkortet(uuid("søknadsbehandlingId"))
         }
     }
 
     override fun defaultSessionContext(): SessionContext {
         return sessionFactory.newSessionContext()
+    }
+
+    override fun defaultTransactionContext(): TransactionContext {
+        return sessionFactory.newTransactionContext()
     }
 }

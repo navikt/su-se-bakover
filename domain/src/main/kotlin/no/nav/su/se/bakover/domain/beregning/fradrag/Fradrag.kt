@@ -35,4 +35,4 @@ fun List<Fradrag>.harFradragSomTilhørerEps(): Boolean {
     return this.any { it.tilhørerEps() }
 }
 
-fun List<Fradrag>.utenSosialstønadOgAvkorting(): List<Fradrag> = filterNot { it.fradragstype === Fradragstype.Sosialstønad }.filterNot { it.fradragstype === Fradragstype.Utenlandsopphold }
+fun List<Fradrag>.utenSosialstønadOgAvkorting(): List<Fradrag> = filterNot { it.fradragstype === Fradragstype.Sosialstønad }.filterNot { it.fradragstype === Fradragstype.AvkortingUtenlandsopphold }

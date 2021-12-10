@@ -20,11 +20,16 @@ import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.toAvslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategyFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.fjernInntekterForEPSDersomFradragIkkeErKonsistentMedOppdatertBosituasjon
+import no.nav.su.se.bakover.domain.oppdrag.Avkortingsplan
+import no.nav.su.se.bakover.domain.oppdrag.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -69,7 +74,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     sealed class KunneIkkeLeggeTilFradragsgrunnlag {
-        object IkkeLovÅLeggeTilFradragIDenneStatusen : KunneIkkeLeggeTilFradragsgrunnlag()
+        data class IkkeLovÅLeggeTilFradragIDenneStatusen(val status: KClass<out Søknadsbehandling>) : KunneIkkeLeggeTilFradragsgrunnlag()
         object GrunnlagetMåVæreInneforBehandlingsperioden : KunneIkkeLeggeTilFradragsgrunnlag()
         object PeriodeMangler : KunneIkkeLeggeTilFradragsgrunnlag()
         data class KunneIkkeEndreFradragsgrunnlag(val feil: KunneIkkeLageGrunnlagsdata) :
@@ -102,7 +107,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
     }
 
     open fun leggTilFradragsgrunnlag(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradragsgrunnlag, Vilkårsvurdert.Innvilget> =
-        KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen.left()
+        KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen(this::class).left()
 
     fun oppdaterBosituasjon(
         bosituasjon: Grunnlag.Bosituasjon,
@@ -155,6 +160,19 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             fra = this::class,
             til = Vilkårsvurdert::class,
         ).left()
+    }
+
+    open fun beregn(
+        avkortingsvarsel: List<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>,
+        begrunnelse: String?,
+        clock: Clock,
+    ): Either<KunneIkkeBeregne, Beregnet> {
+        return KunneIkkeBeregne.UgyldigTilstand(this::class).left()
+    }
+
+    sealed class KunneIkkeBeregne {
+        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Beregnet> = Beregnet::class) : KunneIkkeBeregne()
+        data class UgyldigTilstandForEndringAvFradrag(val feil: KunneIkkeLeggeTilFradragsgrunnlag) : KunneIkkeBeregne()
     }
 
     protected open fun valider(utenlandsopphold: UtenlandsoppholdVilkår.Vurdert): Either<KunneIkkeLeggeTilUtenlandsopphold, Unit> {
@@ -221,24 +239,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 vilkårsvurderinger,
                 attesteringer,
                 clock,
-            )
-
-        fun tilBeregnet(beregning: Beregning): Beregnet =
-            Beregnet.opprett(
-                id,
-                opprettet,
-                sakId,
-                saksnummer,
-                søknad,
-                oppgaveId,
-                behandlingsinformasjon,
-                fnr,
-                beregning,
-                fritekstTilBrev,
-                stønadsperiode!!,
-                grunnlagsdata,
-                vilkårsvurderinger,
-                attesteringer,
             )
 
         companion object {
@@ -396,6 +396,19 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
                 return valider(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
+            }
+
+            override fun beregn(
+                avkortingsvarsel: List<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>,
+                begrunnelse: String?,
+                clock: Clock,
+            ): Either<KunneIkkeBeregne, Beregnet> {
+                return Beregnet.opprett(
+                    søknadsbehandling = this,
+                    avkortingsvarsel = avkortingsvarsel,
+                    begrunnelse = begrunnelse,
+                    clock = clock,
+                )
             }
         }
 
@@ -562,23 +575,18 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 clock,
             )
 
-        fun tilBeregnet(beregning: Beregning): Beregnet =
-            opprett(
-                id,
-                opprettet,
-                sakId,
-                saksnummer,
-                søknad,
-                oppgaveId,
-                behandlingsinformasjon,
-                fnr,
-                beregning,
-                fritekstTilBrev,
-                stønadsperiode,
-                grunnlagsdata,
-                vilkårsvurderinger,
-                attesteringer,
+        override fun beregn(
+            avkortingsvarsel: List<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>,
+            begrunnelse: String?,
+            clock: Clock,
+        ): Either<KunneIkkeBeregne, Beregnet> {
+            return opprett(
+                søknadsbehandling = this,
+                avkortingsvarsel = avkortingsvarsel,
+                begrunnelse = begrunnelse,
+                clock = clock,
             )
+        }
 
         fun tilSimulert(simulering: Simulering): Simulert =
             Simulert(
@@ -601,55 +609,80 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
         companion object {
             fun opprett(
-                id: UUID,
-                opprettet: Tidspunkt,
-                sakId: UUID,
-                saksnummer: Saksnummer,
-                søknad: Søknad.Journalført.MedOppgave,
-                oppgaveId: OppgaveId,
-                behandlingsinformasjon: Behandlingsinformasjon,
-                fnr: Fnr,
-                beregning: Beregning,
-                fritekstTilBrev: String,
-                stønadsperiode: Stønadsperiode,
-                grunnlagsdata: Grunnlagsdata,
-                vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling,
-                attesteringer: Attesteringshistorikk,
-            ): Beregnet =
-                when (VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
+                søknadsbehandling: Søknadsbehandling,
+                avkortingsvarsel: List<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>,
+                begrunnelse: String?,
+                clock: Clock,
+            ): Either<KunneIkkeBeregne, Beregnet> {
+                val utenAvkorting = søknadsbehandling.leggTilFradragsgrunnlag(
+                    søknadsbehandling.grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
+                ).getOrHandle { return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left() }
+
+                val beregningUtenAvkorting = BeregningStrategyFactory(clock).beregn(
+                    grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
+                        grunnlagsdata = utenAvkorting.grunnlagsdata,
+                        vilkårsvurderinger = utenAvkorting.vilkårsvurderinger,
+                    ),
+                    beregningsPeriode = utenAvkorting.periode,
+                    begrunnelse = begrunnelse,
+                )
+
+                val avkortingsplan = Avkortingsplan(
+                    feilutbetalinger = avkortingsvarsel.flatMap { it.simulering.hentUtbetalteBeløp() },
+                    beregning = beregningUtenAvkorting,
+                    clock = clock,
+                )
+
+                val medAvkorting = utenAvkorting.leggTilFradragsgrunnlag(
+                    utenAvkorting.grunnlagsdata.fradragsgrunnlag + avkortingsplan.lagFradrag(),
+                ).getOrHandle { return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left() }
+
+                val beregningMedAvkorting = BeregningStrategyFactory(clock).beregn(
+                    grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
+                        grunnlagsdata = medAvkorting.grunnlagsdata,
+                        vilkårsvurderinger = medAvkorting.vilkårsvurderinger,
+                    ),
+                    beregningsPeriode = medAvkorting.periode,
+                    begrunnelse = begrunnelse,
+                )
+
+                return when (VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregningMedAvkorting)) {
                     is AvslagGrunnetBeregning.Ja -> Avslag(
-                        id,
-                        opprettet,
-                        sakId,
-                        saksnummer,
-                        søknad,
-                        oppgaveId,
-                        behandlingsinformasjon,
-                        fnr,
-                        beregning,
-                        fritekstTilBrev,
-                        stønadsperiode,
-                        grunnlagsdata,
-                        vilkårsvurderinger,
-                        attesteringer,
+                        id = medAvkorting.id,
+                        opprettet = medAvkorting.opprettet,
+                        sakId = medAvkorting.sakId,
+                        saksnummer = medAvkorting.saksnummer,
+                        søknad = medAvkorting.søknad,
+                        oppgaveId = medAvkorting.oppgaveId,
+                        behandlingsinformasjon = medAvkorting.behandlingsinformasjon,
+                        fnr = medAvkorting.fnr,
+                        beregning = beregningMedAvkorting,
+                        fritekstTilBrev = medAvkorting.fritekstTilBrev,
+                        stønadsperiode = medAvkorting.stønadsperiode,
+                        grunnlagsdata = medAvkorting.grunnlagsdata,
+                        vilkårsvurderinger = medAvkorting.vilkårsvurderinger,
+                        attesteringer = medAvkorting.attesteringer,
                     )
-                    AvslagGrunnetBeregning.Nei -> Innvilget(
-                        id,
-                        opprettet,
-                        sakId,
-                        saksnummer,
-                        søknad,
-                        oppgaveId,
-                        behandlingsinformasjon,
-                        fnr,
-                        beregning,
-                        fritekstTilBrev,
-                        stønadsperiode,
-                        grunnlagsdata,
-                        vilkårsvurderinger,
-                        attesteringer,
-                    )
-                }
+                    AvslagGrunnetBeregning.Nei -> {
+                        Innvilget(
+                            id = medAvkorting.id,
+                            opprettet = medAvkorting.opprettet,
+                            sakId = medAvkorting.sakId,
+                            saksnummer = medAvkorting.saksnummer,
+                            søknad = medAvkorting.søknad,
+                            oppgaveId = medAvkorting.oppgaveId,
+                            behandlingsinformasjon = medAvkorting.behandlingsinformasjon,
+                            fnr = medAvkorting.fnr,
+                            beregning = beregningMedAvkorting,
+                            fritekstTilBrev = medAvkorting.fritekstTilBrev,
+                            stønadsperiode = medAvkorting.stønadsperiode,
+                            grunnlagsdata = medAvkorting.grunnlagsdata,
+                            vilkårsvurderinger = medAvkorting.vilkårsvurderinger,
+                            attesteringer = medAvkorting.attesteringer,
+                        )
+                    }
+                }.right()
+            }
         }
 
         data class Innvilget(
@@ -915,23 +948,18 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 clock,
             )
 
-        fun tilBeregnet(beregning: Beregning): Beregnet =
-            Beregnet.opprett(
-                id,
-                opprettet,
-                sakId,
-                saksnummer,
-                søknad,
-                oppgaveId,
-                behandlingsinformasjon,
-                fnr,
-                beregning,
-                fritekstTilBrev,
-                stønadsperiode,
-                grunnlagsdata,
-                vilkårsvurderinger,
-                attesteringer,
+        override fun beregn(
+            avkortingsvarsel: List<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>,
+            begrunnelse: String?,
+            clock: Clock,
+        ): Either<KunneIkkeBeregne, Beregnet> {
+            return Beregnet.opprett(
+                søknadsbehandling = this,
+                avkortingsvarsel = avkortingsvarsel,
+                begrunnelse = begrunnelse,
+                clock = clock,
             )
+        }
 
         fun tilSimulert(simulering: Simulering): Simulert =
             Simulert(
@@ -1341,23 +1369,18 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 visitor.visit(this)
             }
 
-            fun tilBeregnet(beregning: Beregning): Beregnet =
-                Beregnet.opprett(
-                    id,
-                    opprettet,
-                    sakId,
-                    saksnummer,
-                    søknad,
-                    oppgaveId,
-                    behandlingsinformasjon,
-                    fnr,
-                    beregning,
-                    fritekstTilBrev,
-                    stønadsperiode,
-                    grunnlagsdata,
-                    vilkårsvurderinger,
-                    attesteringer,
+            override fun beregn(
+                avkortingsvarsel: List<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>,
+                begrunnelse: String?,
+                clock: Clock,
+            ): Either<KunneIkkeBeregne, Beregnet> {
+                return Beregnet.opprett(
+                    søknadsbehandling = this,
+                    avkortingsvarsel = avkortingsvarsel,
+                    begrunnelse = begrunnelse,
+                    clock = clock,
                 )
+            }
 
             fun tilSimulert(simulering: Simulering): Simulert =
                 Simulert(
@@ -1488,23 +1511,18 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     visitor.visit(this)
                 }
 
-                fun tilBeregnet(beregning: Beregning): Beregnet =
-                    Beregnet.opprett(
-                        id,
-                        opprettet,
-                        sakId,
-                        saksnummer,
-                        søknad,
-                        oppgaveId,
-                        behandlingsinformasjon,
-                        fnr,
-                        beregning,
-                        fritekstTilBrev,
-                        stønadsperiode,
-                        grunnlagsdata,
-                        vilkårsvurderinger,
-                        attesteringer,
+                override fun beregn(
+                    avkortingsvarsel: List<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes>,
+                    begrunnelse: String?,
+                    clock: Clock,
+                ): Either<KunneIkkeBeregne, Beregnet> {
+                    return Beregnet.opprett(
+                        søknadsbehandling = this,
+                        avkortingsvarsel = avkortingsvarsel,
+                        begrunnelse = begrunnelse,
+                        clock = clock,
                     )
+                }
 
                 fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Avslag.MedBeregning =
                     TilAttestering.Avslag.MedBeregning(

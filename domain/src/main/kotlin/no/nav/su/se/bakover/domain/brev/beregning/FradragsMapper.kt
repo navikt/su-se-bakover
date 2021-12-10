@@ -82,7 +82,7 @@ fun Fradragstype.toReadableTypeName(utenlandsk: Boolean) =
             "Utregnet fradrag for ektefelle/samboers inntekter"
         Fradragstype.UnderMinstenivå ->
             "Beløp under minstegrense for utbetaling"
-        Fradragstype.Utenlandsopphold ->
+        Fradragstype.AvkortingUtenlandsopphold ->
             "Avkorting av tidligere utenlandsopphold"
     }.let { fradragsnavn ->
         if (utenlandsk) {

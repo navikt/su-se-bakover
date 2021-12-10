@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
@@ -17,25 +16,24 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withAvslåttFlyktning
-import no.nav.su.se.bakover.domain.behandling.withVilkårIkkeVurdert
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.attesteringUnderkjent
-import no.nav.su.se.bakover.test.beregning
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
+import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt12000
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
-import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt
-import no.nav.su.se.bakover.test.uføregrunnlagForventetInntekt12000
 import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -44,20 +42,6 @@ import org.junit.jupiter.api.assertThrows
 internal class StatusovergangTest {
 
     private val stønadsperiode = stønadsperiode2021
-
-    private val innvilgetBeregning = beregning(
-        periode = stønadsperiode.periode,
-        uføregrunnlag = nonEmptyListOf(
-            uføregrunnlagForventetInntekt12000(periode = stønadsperiode.periode),
-        ),
-    )
-
-    private val avslagBeregning = beregning(
-        periode = stønadsperiode.periode,
-        uføregrunnlag = nonEmptyListOf(
-            uføregrunnlagForventetInntekt(periode = stønadsperiode.periode, forventetInntekt = 1000000),
-        ),
-    )
 
     private val sakOgUavklart = søknadsbehandlingVilkårsvurdertUavklart(
         stønadsperiode = stønadsperiode,
@@ -75,33 +59,61 @@ internal class StatusovergangTest {
     private val fritekstTilBrev: String = "Fritekst til brev"
 
     private val vilkårsvurdertInnvilget: Søknadsbehandling.Vilkårsvurdert.Innvilget =
-        søknadsbehandlingVilkårsvurdertInnvilget().second
+        søknadsbehandlingVilkårsvurdertInnvilget(
+            vilkårsvurderinger = vilkårsvurderingerInnvilget(
+                uføre = innvilgetUførevilkårForventetInntekt12000(),
+            ),
+        ).second
+
     private val vilkårsvurdertAvslag: Søknadsbehandling.Vilkårsvurdert.Avslag =
         søknadsbehandlingVilkårsvurdertAvslag().second
 
     private val beregnetInnvilget: Søknadsbehandling.Beregnet.Innvilget =
-        vilkårsvurdertInnvilget.tilBeregnet(innvilgetBeregning) as Søknadsbehandling.Beregnet.Innvilget
+        vilkårsvurdertInnvilget.beregn(
+            avkortingsvarsel = emptyList(),
+            begrunnelse = null,
+            clock = fixedClock,
+        ).getOrFail() as Søknadsbehandling.Beregnet.Innvilget
+
     private val beregnetAvslag: Søknadsbehandling.Beregnet.Avslag =
-        vilkårsvurdertInnvilget.tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
+        vilkårsvurdertInnvilget.leggTilUførevilkår(
+            uførhet = innvilgetUførevilkår(forventetInntekt = 11000000),
+            clock = fixedClock,
+        ).getOrFail().beregn(
+            avkortingsvarsel = emptyList(),
+            begrunnelse = null,
+            clock = fixedClock,
+        ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
+
     private val simulert: Søknadsbehandling.Simulert =
         beregnetInnvilget.tilSimulert(simulering)
+
     private val tilAttesteringInnvilget: Søknadsbehandling.TilAttestering.Innvilget =
         simulert.tilAttestering(saksbehandler, fritekstTilBrev)
+
     private val tilAttesteringAvslagVilkår: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning =
         vilkårsvurdertAvslag.tilAttestering(saksbehandler, fritekstTilBrev)
+
     private val tilAttesteringAvslagBeregning: Søknadsbehandling.TilAttestering.Avslag.MedBeregning =
         beregnetAvslag.tilAttestering(saksbehandler, fritekstTilBrev)
+
     private val underkjentInnvilget: Søknadsbehandling.Underkjent.Innvilget =
         tilAttesteringInnvilget.tilUnderkjent(attesteringUnderkjent)
+
     private val underkjentAvslagVilkår: Søknadsbehandling.Underkjent.Avslag.UtenBeregning =
         tilAttesteringAvslagVilkår.tilUnderkjent(attesteringUnderkjent)
+
     private val underkjentAvslagBeregning: Søknadsbehandling.Underkjent.Avslag.MedBeregning =
         tilAttesteringAvslagBeregning.tilUnderkjent(attesteringUnderkjent)
+
     private val iverksattInnvilget = tilAttesteringInnvilget.tilIverksatt(attestering)
+
     private val iverksattAvslagVilkår =
         tilAttesteringAvslagVilkår.tilIverksatt(attestering)
+
     private val iverksattAvslagBeregning =
         tilAttesteringAvslagBeregning.tilIverksatt(attestering)
+
     private val lukketSøknadsbehandling =
         underkjentInnvilget.lukkSøknadsbehandling().orNull()!!
 
@@ -140,7 +152,7 @@ internal class StatusovergangTest {
             statusovergang(
                 opprettet,
                 Statusovergang.TilVilkårsvurdert(
-                    withVilkårIkkeVurdert(),
+                    Behandlingsinformasjon(),
                     fixedClock,
                 ),
             ) shouldBe opprettet
@@ -175,12 +187,12 @@ internal class StatusovergangTest {
                     grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
                         uføre = innvilgetUførevilkår(),
-                        utenlandsopphold = utlandsoppholdInnvilget()
+                        utenlandsopphold = utlandsoppholdInnvilget(),
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(
                     Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    fixedClock
+                    fixedClock,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
@@ -202,7 +214,7 @@ internal class StatusovergangTest {
                 beregnetInnvilget,
                 Statusovergang.TilVilkårsvurdert(
                     Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    fixedClock
+                    fixedClock,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
@@ -224,7 +236,7 @@ internal class StatusovergangTest {
                 beregnetAvslag,
                 Statusovergang.TilVilkårsvurdert(
                     Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    fixedClock
+                    fixedClock,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
@@ -246,7 +258,7 @@ internal class StatusovergangTest {
                 simulert,
                 Statusovergang.TilVilkårsvurdert(
                     Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    fixedClock
+                    fixedClock,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
@@ -268,7 +280,7 @@ internal class StatusovergangTest {
                 underkjentInnvilget,
                 Statusovergang.TilVilkårsvurdert(
                     Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    fixedClock
+                    fixedClock,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
@@ -291,12 +303,12 @@ internal class StatusovergangTest {
                     grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
                         uføre = innvilgetUførevilkår(),
-                        utenlandsopphold = utlandsoppholdInnvilget()
+                        utenlandsopphold = utlandsoppholdInnvilget(),
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(
                     Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    fixedClock
+                    fixedClock,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
@@ -319,12 +331,12 @@ internal class StatusovergangTest {
                     grunnlagsdata = Grunnlagsdata.create(bosituasjon = listOf(bosituasjongrunnlagEnslig())),
                     vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling(
                         uføre = innvilgetUførevilkår(),
-                        utenlandsopphold = utlandsoppholdInnvilget()
+                        utenlandsopphold = utlandsoppholdInnvilget(),
                     ),
                 ),
                 Statusovergang.TilVilkårsvurdert(
                     Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                    fixedClock
+                    fixedClock,
                 ),
             ) shouldBe beOfType<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
         }
@@ -361,7 +373,7 @@ internal class StatusovergangTest {
                         it,
                         Statusovergang.TilVilkårsvurdert(
                             Behandlingsinformasjon().withAlleVilkårOppfylt(),
-                            fixedClock
+                            fixedClock,
                         ),
                     )
                 }
@@ -381,102 +393,60 @@ internal class StatusovergangTest {
     @Nested
     inner class Beregnet {
         @Test
-        fun `vilkårsvurdert innvilget til beregnet innvilget`() {
-            statusovergang(
-                vilkårsvurdertInnvilget,
-                Statusovergang.TilBeregnet { innvilgetBeregning },
-            ) shouldBe beregnetInnvilget
+        fun `kan beregne for vilkårsvurdert innvilget`() {
+            vilkårsvurdertInnvilget.beregn(
+                avkortingsvarsel = listOf(),
+                begrunnelse = null,
+                clock = fixedClock,
+            ).getOrFail() shouldBe beregnetInnvilget
         }
 
         @Test
-        fun `vilkårsvurdert innvilget til beregnet avslag`() {
-            statusovergang(
-                vilkårsvurdertInnvilget,
-                Statusovergang.TilBeregnet { avslagBeregning },
-            ) shouldBe beregnetAvslag
+        fun `kan beregne på nytt for beregnet innvilget`() {
+            beregnetInnvilget.beregn(
+                avkortingsvarsel = listOf(),
+                begrunnelse = null,
+                clock = fixedClock,
+            ).getOrFail() shouldBe beregnetInnvilget
         }
 
         @Test
-        fun `beregnet innvilget til beregnet innvilget`() {
-            statusovergang(
-                beregnetInnvilget,
-                Statusovergang.TilBeregnet { innvilgetBeregning },
-            ) shouldBe beregnetInnvilget
+        fun `kan beregne på nytt for beregnet avslag`() {
+            beregnetAvslag.beregn(
+                avkortingsvarsel = listOf(),
+                begrunnelse = null,
+                clock = fixedClock,
+            ).getOrFail() shouldBe beregnetAvslag
         }
 
         @Test
-        fun `beregnet innvilget til beregnet avslag`() {
-            statusovergang(
-                beregnetInnvilget,
-                Statusovergang.TilBeregnet { avslagBeregning },
-            ) shouldBe beregnetAvslag
+        fun `kan beregne på nytt for simulert`() {
+            simulert.beregn(
+                avkortingsvarsel = listOf(),
+                begrunnelse = null,
+                clock = fixedClock,
+            ).getOrFail() shouldBe beregnetInnvilget
         }
 
         @Test
-        fun `beregnet avslag til beregnet innvilget`() {
-            statusovergang(
-                beregnetAvslag,
-                Statusovergang.TilBeregnet { innvilgetBeregning },
-            ) shouldBe beregnetInnvilget
-        }
-
-        @Test
-        fun `beregnet avslag til beregnet avslag`() {
-            statusovergang(
-                beregnetAvslag,
-                Statusovergang.TilBeregnet { avslagBeregning },
-            ) shouldBe beregnetAvslag
-        }
-
-        @Test
-        fun `simulert til beregnet innvilget`() {
-            statusovergang(
-                simulert,
-                Statusovergang.TilBeregnet { innvilgetBeregning },
-            ) shouldBe beregnetInnvilget
-        }
-
-        @Test
-        fun `simulert til beregnet avslag`() {
-            statusovergang(
-                simulert,
-                Statusovergang.TilBeregnet { avslagBeregning },
-            ) shouldBe beregnetAvslag
-        }
-
-        @Test
-        fun `underkjent avslag med beregning til beregnet innvilget`() {
-            statusovergang(
-                underkjentAvslagBeregning,
-                Statusovergang.TilBeregnet { innvilgetBeregning },
-            ) shouldBe beregnetInnvilget.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
+        fun `kan beregne på nytt underkjent avslag med beregning`() {
+            underkjentAvslagBeregning.beregn(
+                avkortingsvarsel = listOf(),
+                begrunnelse = null,
+                clock = fixedClock,
+            ).getOrFail() shouldBe beregnetAvslag
+                .medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
                 .copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
         }
 
         @Test
-        fun `underkjent avslag med beregning til beregnet avslag`() {
-            statusovergang(
-                underkjentAvslagBeregning,
-                Statusovergang.TilBeregnet { avslagBeregning },
-            ) shouldBe beregnetAvslag.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
-                .copy(attesteringer = Attesteringshistorikk(listOf(underkjentAvslagBeregning.attesteringer.hentSisteAttestering())))
-        }
-
-        @Test
-        fun `underkjent innvilget til beregnet innvilget`() {
-            statusovergang(
-                underkjentInnvilget,
-                Statusovergang.TilBeregnet { innvilgetBeregning },
-            ) shouldBe beregnetInnvilget.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
-                .copy(attesteringer = Attesteringshistorikk(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())))
-        }
-
-        @Test
-        fun `underkjent innvilget til beregnet avslag`() {
-            statusovergang(
-                underkjentInnvilget,
-                Statusovergang.TilBeregnet { avslagBeregning },
-            ) shouldBe beregnetAvslag.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
+        fun `kan beregne på nytt underkjent innvilgelse med beregning`() {
+            underkjentInnvilget.beregn(
+                avkortingsvarsel = listOf(),
+                begrunnelse = null,
+                clock = fixedClock,
+            ).getOrFail() shouldBe beregnetInnvilget
+                .medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
                 .copy(attesteringer = Attesteringshistorikk(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())))
         }
 
@@ -494,18 +464,11 @@ internal class StatusovergangTest {
                 iverksattInnvilget,
                 lukketSøknadsbehandling,
             ).forEach {
-                assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
-                    statusovergang(
-                        it,
-                        Statusovergang.TilBeregnet { innvilgetBeregning },
-                    )
-                }
-                assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
-                    statusovergang(
-                        it,
-                        Statusovergang.TilBeregnet { avslagBeregning },
-                    )
-                }
+                it.beregn(
+                    avkortingsvarsel = emptyList(),
+                    begrunnelse = null,
+                    clock = fixedClock,
+                ) shouldBe Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstand(it::class).left()
             }
         }
     }
