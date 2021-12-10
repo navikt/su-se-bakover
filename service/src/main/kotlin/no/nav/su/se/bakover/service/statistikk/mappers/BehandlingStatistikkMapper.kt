@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -17,6 +18,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
+import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.statistikk.Statistikk
 import no.nav.su.se.bakover.service.statistikk.stønadsklassifisering
@@ -68,6 +70,14 @@ class BehandlingStatistikkMapper(
                         saksbehandler = søknadsbehandling.saksbehandler.navIdent,
                         beslutter = søknadsbehandling.attesteringer.hentSisteAttestering().attestant.navIdent,
                         behandlingYtelseDetaljer = behandlingYtelseDetaljer(søknadsbehandling),
+                    )
+                }
+                is LukketSøknadsbehandling -> {
+                    copy(
+                        resultat = ResultatOgBegrunnelseMapper.map(søknadsbehandling).resultat,
+                        avsluttet = true,
+                        behandlingStatus = "LUKKET",
+                        behandlingStatusBeskrivelse = "Søknadsbehandling lukket"
                     )
                 }
                 else -> throw ManglendeStatistikkMappingException(this, søknadsbehandling::class.java)
@@ -165,6 +175,14 @@ class BehandlingStatistikkMapper(
                         beslutter = revurdering.attestering.attestant.navIdent,
                     )
                 }
+                is AvsluttetRevurdering -> {
+                    val resultatOgBegrunnelse = RevurderingResultatOgBegrunnelseMapper.map(revurdering)
+                    copy(
+                        avsluttet = true,
+                        resultat = resultatOgBegrunnelse.resultat,
+                        resultatBegrunnelse = resultatOgBegrunnelse.begrunnelse,
+                    )
+                }
                 else -> throw ManglendeStatistikkMappingException(this, revurdering::class.java)
             }
         }
@@ -197,7 +215,12 @@ class BehandlingStatistikkMapper(
                     )
                 }
                 is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> this
-                is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> TODO()
+                is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> {
+                    copy(
+                        avsluttet = true,
+                        resultat = RevurderingResultatOgBegrunnelseMapper.lukket(),
+                    )
+                }
             }
         }
     }
@@ -229,7 +252,12 @@ class BehandlingStatistikkMapper(
                     )
                 }
                 is StansAvYtelseRevurdering.SimulertStansAvYtelse -> this
-                is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> TODO()
+                is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> {
+                    copy(
+                        avsluttet = true,
+                        resultat = RevurderingResultatOgBegrunnelseMapper.lukket(),
+                    )
+                }
             }
         }
     }
@@ -295,19 +323,20 @@ class BehandlingStatistikkMapper(
                 is UnderkjentRevurdering.Innvilget -> "UNDERKJENT_INNVILGET"
                 is UnderkjentRevurdering.Opphørt -> "UNDERKJENT_OPPHØRT"
                 is UnderkjentRevurdering.IngenEndring -> "UNDERKJENT_INGEN_ENDRING"
+                is AvsluttetRevurdering -> "AVSLUTTET"
                 else -> throw ManglendeStatistikkMappingException(this, revurdering::class.java)
             }
 
         fun map(gjenopptak: GjenopptaYtelseRevurdering) = when (gjenopptak) {
             is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse -> "IVERKSATT_GJENOPPTAK"
             is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> "SIMULERT_GJENOPPTAK"
-            is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> TODO()
+            is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> "AVSLUTTET_GJENOPPTAK"
         }
 
         fun map(stans: StansAvYtelseRevurdering) = when (stans) {
             is StansAvYtelseRevurdering.IverksattStansAvYtelse -> "IVERKSATT_STANS"
             is StansAvYtelseRevurdering.SimulertStansAvYtelse -> "SIMULERT_STANS"
-            is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> TODO()
+            is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> "AVSLUTTET_STANS"
         }
     }
 
@@ -324,6 +353,7 @@ class BehandlingStatistikkMapper(
                 is UnderkjentRevurdering.Innvilget -> "Innvilget revurdering underkjent"
                 is UnderkjentRevurdering.Opphørt -> "Opphørt revurdering underkjent"
                 is UnderkjentRevurdering.IngenEndring -> "Revurdering uten endring i ytelse underkjent"
+                is AvsluttetRevurdering -> "Revurdering avsluttet"
                 else -> throw ManglendeStatistikkMappingException(this, revurdering::class.java)
             }
 
@@ -331,13 +361,13 @@ class BehandlingStatistikkMapper(
             when (gjenopptak) {
                 is GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse -> "Ytelsen er gjenopptatt"
                 is GjenopptaYtelseRevurdering.SimulertGjenopptakAvYtelse -> "Opprettet og simulert gjenopptak av ytelse"
-                is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> TODO()
+                is GjenopptaYtelseRevurdering.AvsluttetGjenoppta -> "Gjenopptak av ytelsen er avsluttet"
             }
 
         fun map(stans: StansAvYtelseRevurdering) = when (stans) {
             is StansAvYtelseRevurdering.IverksattStansAvYtelse -> "Ytelsen er stanset"
             is StansAvYtelseRevurdering.SimulertStansAvYtelse -> "Opprettet og simulert stans av ytelsen"
-            is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> TODO()
+            is StansAvYtelseRevurdering.AvsluttetStansAvYtelse -> "Stans av ytelsen er avsluttet"
         }
     }
 
@@ -349,6 +379,7 @@ class BehandlingStatistikkMapper(
     internal object ResultatOgBegrunnelseMapper {
         private const val innvilget = "Innvilget"
         private const val avslått = "Avslått"
+        private const val lukket = "Lukket"
 
         fun map(søknadsbehandling: Søknadsbehandling): ResultatOgBegrunnelse = when (søknadsbehandling) {
             is Søknadsbehandling.Iverksatt.Innvilget -> {
@@ -357,6 +388,9 @@ class BehandlingStatistikkMapper(
             is Søknadsbehandling.Iverksatt.Avslag -> {
                 ResultatOgBegrunnelse(avslått, søknadsbehandling.avslagsgrunner.joinToString(","))
             }
+            is LukketSøknadsbehandling -> {
+                ResultatOgBegrunnelse(lukket, null)
+            }
             else -> throw ManglendeStatistikkMappingException(this, søknadsbehandling::class.java)
         }
     }
@@ -364,6 +398,7 @@ class BehandlingStatistikkMapper(
     internal object RevurderingResultatOgBegrunnelseMapper {
         private const val innvilget = "Innvilget"
         private const val opphørt = "Opphørt"
+        private const val lukket = "Lukket"
         private const val ingenEndring = "Uendret"
         private const val ingenEndringBegrunnelse = "Mindre enn 10% endring i inntekt"
 
@@ -377,6 +412,7 @@ class BehandlingStatistikkMapper(
                 listUtOpphørsgrunner(revurdering.utledOpphørsgrunner()),
             )
             is IverksattRevurdering.IngenEndring -> ResultatOgBegrunnelse(ingenEndring, ingenEndringBegrunnelse)
+            is AvsluttetRevurdering -> ResultatOgBegrunnelse(lukket, null)
             else -> throw ManglendeStatistikkMappingException(this, revurdering::class.java)
         }
 
@@ -386,6 +422,7 @@ class BehandlingStatistikkMapper(
         fun map(gjenopptakAvYtelse: GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse) = ResultatOgBegrunnelse(
             gjenopptak, gjenopptakAvYtelse.revurderingsårsak.årsak.hentGyldigGjenopptakBegrunnelse(),
         )
+        fun lukket() = lukket
 
         private fun listUtOpphørsgrunner(opphørsgrunner: List<Opphørsgrunn>): String = opphørsgrunner.joinToString(",")
         private fun Revurderingsårsak.Årsak.hentGyldigStansBegrunnelse() = when (this) {
