@@ -23,8 +23,8 @@ import kotlin.reflect.KClass
  * - [VurdertKlage.Påbegynt] -> [VilkårsvurdertKlage] og [VurdertKlage.Påbegynt] og [VurdertKlage.Utfylt]
  * - [VurdertKlage.Utfylt] -> [VilkårsvurdertKlage] og [VurdertKlage]
  * - [VurdertKlage.Bekreftet] -> [VilkårsvurdertKlage] og [VurdertKlage] og [KlageTilAttestering]
- * - [KlageTilAttestering] -> [IverksattKlage] og [VurdertKlage.Bekreftet]
- * - [IverksattKlage] -> ingen
+ * - [KlageTilAttestering] -> [OversendtKlage] og [VurdertKlage.Bekreftet]
+ * - [OversendtKlage] -> ingen
  */
 sealed class Klage {
     abstract val id: UUID
@@ -38,7 +38,7 @@ sealed class Klage {
     abstract val saksbehandler: NavIdentBruker.Saksbehandler
 
     fun erÅpen(): Boolean {
-        return this !is IverksattKlage
+        return this !is OversendtKlage
     }
 
     /**
@@ -90,11 +90,11 @@ sealed class Klage {
         return KunneIkkeUnderkjenne.UgyldigTilstand(this::class, VurdertKlage.Bekreftet::class).left()
     }
 
-    /** @return [IverksattKlage] */
-    open fun iverksett(
+    /** @return [OversendtKlage] */
+    open fun oversend(
         iverksattAttestering: Attestering.Iverksatt,
-    ): Either<KunneIkkeIverksetteKlage, IverksattKlage> {
-        return KunneIkkeIverksetteKlage.UgyldigTilstand(this::class, IverksattKlage::class).left()
+    ): Either<KunneIkkeIverksetteKlage, OversendtKlage> {
+        return KunneIkkeIverksetteKlage.UgyldigTilstand(this::class, OversendtKlage::class).left()
     }
 
     companion object {

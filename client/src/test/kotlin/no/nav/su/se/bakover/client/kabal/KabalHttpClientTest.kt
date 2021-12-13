@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeTilKlageinstans
-import no.nav.su.se.bakover.test.iverksattKlage
+import no.nav.su.se.bakover.test.oversendtKlage
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -28,7 +28,7 @@ import org.slf4j.MDC
 
 internal class KabalHttpClientTest : WiremockBase {
 
-    private val klage = iverksattKlage().second
+    private val klage = oversendtKlage().second
     private val expectedRequest = """
         {
           "avsenderEnhet":"4815",

@@ -1,13 +1,13 @@
 package no.nav.su.se.bakover.client.kabal
 
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.klage.IverksattKlage
+import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import java.time.ZoneOffset
 
 internal object KabalRequestMapper {
     fun map(
-        klage: IverksattKlage,
+        klage: OversendtKlage,
         journalpostIdForVedtak: JournalpostId,
     ): KabalRequest {
         return KabalRequest(

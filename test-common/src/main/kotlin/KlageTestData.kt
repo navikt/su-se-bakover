@@ -11,9 +11,9 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.Hjemmel
-import no.nav.su.se.bakover.domain.klage.IverksattKlage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
+import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
@@ -469,7 +469,7 @@ fun underkjentKlageTilAttestering(
     }
 }
 
-fun iverksattKlage(
+fun oversendtKlage(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     sakId: UUID = no.nav.su.se.bakover.test.sakId,
@@ -488,7 +488,7 @@ fun iverksattKlage(
     ).orNull()!!,
     attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant("attestant"),
     sakMedVedtak: Sak = vedtakSøknadsbehandlingIverksattInnvilget().first,
-): Pair<Sak, IverksattKlage> {
+): Pair<Sak, OversendtKlage> {
     return klageTilAttestering(
         id = id,
         opprettet = opprettet,
@@ -506,7 +506,7 @@ fun iverksattKlage(
         vedtaksvurdering = vedtaksvurdering,
         sakMedVedtak = sakMedVedtak,
     ).let {
-        val klage = it.second.iverksett(
+        val klage = it.second.oversend(
             iverksattAttestering = Attestering.Iverksatt(
                 attestant = attestant,
                 opprettet = opprettet,

@@ -10,9 +10,9 @@ import io.ktor.server.testing.contentType
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.klage.IverksattKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
+import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -115,9 +115,9 @@ internal class VilkårsvurderKlageTest {
     @Test
     fun `ugyldig tilstand`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeVilkårsvurdereKlage.UgyldigTilstand(OpprettetKlage::class, IverksattKlage::class),
+            feilkode = KunneIkkeVilkårsvurdereKlage.UgyldigTilstand(OpprettetKlage::class, OversendtKlage::class),
             status = HttpStatusCode.BadRequest,
-            body = "{\"message\":\"Kan ikke gå fra tilstanden OpprettetKlage til tilstanden IverksattKlage\",\"code\":\"ugyldig_tilstand\"}",
+            body = "{\"message\":\"Kan ikke gå fra tilstanden OpprettetKlage til tilstanden OversendtKlage\",\"code\":\"ugyldig_tilstand\"}",
         )
     }
 

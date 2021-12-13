@@ -52,10 +52,10 @@ import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.Hjemler
 import no.nav.su.se.bakover.domain.klage.Hjemmel
-import no.nav.su.se.bakover.domain.klage.IverksattKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
+import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
@@ -981,13 +981,13 @@ internal class TestDataHelper(
         }
     }
 
-    fun iverksattKlage(
+    fun oversendtKlage(
         vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
         oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
-    ): IverksattKlage {
-        return klageTilAttestering(vedtak = vedtak, oppgaveId = oppgaveId).iverksett(
+    ): OversendtKlage {
+        return klageTilAttestering(vedtak = vedtak, oppgaveId = oppgaveId).oversend(
             iverksattAttestering = Attestering.Iverksatt(
-                attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerIverksattKlage"),
+                attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerOversendtKlage"),
                 opprettet = fixedTidspunkt,
             ),
         ).orNull()!!.also {

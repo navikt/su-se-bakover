@@ -12,9 +12,9 @@ import no.nav.su.se.bakover.common.getOrCreateCorrelationId
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.klage.IverksattKlage
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeTilKlageinstans
+import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import java.io.IOException
@@ -50,7 +50,7 @@ class KabalHttpClient(
     }
 
     override fun sendTilKlageinstans(
-        klage: IverksattKlage,
+        klage: OversendtKlage,
         journalpostIdForVedtak: JournalpostId,
     ): Either<KunneIkkeOversendeTilKlageinstans, Unit> {
         val token = onBehalfOfToken().getOrHandle { return it.left() }

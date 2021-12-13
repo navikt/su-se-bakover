@@ -10,12 +10,12 @@ import io.ktor.server.testing.contentType
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.klage.IverksattKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
+import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.service.klage.KlageService
-import no.nav.su.se.bakover.test.iverksattKlage
+import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -94,9 +94,9 @@ internal class IverksettKlageTest {
     @Test
     fun `ugyldig tilstand`() {
         verifiserFeilkode(
-            feilkode = KunneIkkeIverksetteKlage.UgyldigTilstand(OpprettetKlage::class, IverksattKlage::class),
+            feilkode = KunneIkkeIverksetteKlage.UgyldigTilstand(OpprettetKlage::class, OversendtKlage::class),
             status = HttpStatusCode.BadRequest,
-            body = "{\"message\":\"Kan ikke gå fra tilstanden OpprettetKlage til tilstanden IverksattKlage\",\"code\":\"ugyldig_tilstand\"}",
+            body = "{\"message\":\"Kan ikke gå fra tilstanden OpprettetKlage til tilstanden OversendtKlage\",\"code\":\"ugyldig_tilstand\"}",
         )
     }
 
@@ -169,7 +169,7 @@ internal class IverksettKlageTest {
         body: String,
     ) {
         val klageServiceMock = mock<KlageService> {
-            on { iverksett(any(), any()) } doReturn feilkode.left()
+            on { oversend(any(), any()) } doReturn feilkode.left()
         }
         withTestApplication(
             {
@@ -191,9 +191,9 @@ internal class IverksettKlageTest {
 
     @Test
     fun `kan iverksette klage`() {
-        val iverksattKlage = iverksattKlage().second
+        val oversendtKlage = oversendtKlage().second
         val klageServiceMock = mock<KlageService> {
-            on { iverksett(any(), any()) } doReturn iverksattKlage.right()
+            on { oversend(any(), any()) } doReturn oversendtKlage.right()
         }
         withTestApplication(
             {
@@ -210,14 +210,14 @@ internal class IverksettKlageTest {
                     //language=JSON
                     """
                 {
-                  "id":"${iverksattKlage.id}",
-                  "sakid":"${iverksattKlage.sakId}",
+                  "id":"${oversendtKlage.id}",
+                  "sakid":"${oversendtKlage.sakId}",
                   "opprettet":"2021-01-01T01:02:03.456789Z",
                   "journalpostId":"klageJournalpostId",
                   "saksbehandler":"saksbehandler",
                   "datoKlageMottatt":"2021-12-01",
                   "status":"IVERKSATT",
-                  "vedtakId":"${iverksattKlage.vilkårsvurderinger.vedtakId}",
+                  "vedtakId":"${oversendtKlage.vilkårsvurderinger.vedtakId}",
                   "innenforFristen":"JA",
                   "klagesDetPåKonkreteElementerIVedtaket":true,
                   "erUnderskrevet":"JA",

@@ -15,11 +15,11 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.klage.IverksattKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeTilKlageinstans
+import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.test.TestSessionFactory
@@ -27,9 +27,9 @@ import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.iverksattKlage
 import no.nav.su.se.bakover.test.klageTilAttestering
 import no.nav.su.se.bakover.test.opprettetKlage
+import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
@@ -56,7 +56,7 @@ internal class IverksettKlageTest {
         )
         val klageId = UUID.randomUUID()
         val attestant = NavIdentBruker.Attestant("s2")
-        mocks.service.iverksett(
+        mocks.service.oversend(
             klageId = klageId,
             attestant = attestant,
         ) shouldBe KunneIkkeIverksetteKlage.FantIkkeKlage.left()
@@ -74,7 +74,7 @@ internal class IverksettKlageTest {
             },
         )
         val attestant = NavIdentBruker.Attestant(klage.saksbehandler.navIdent)
-        mocks.service.iverksett(
+        mocks.service.oversend(
             klageId = klage.id,
             attestant = attestant,
         ) shouldBe KunneIkkeIverksetteKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
@@ -96,7 +96,7 @@ internal class IverksettKlageTest {
         )
 
         val attestant = NavIdentBruker.Attestant("s2")
-        mocks.service.iverksett(
+        mocks.service.oversend(
             klageId = klage.id,
             attestant = attestant,
         ) shouldBe KunneIkkeIverksetteKlage.KunneIkkeLageBrev(KunneIkkeLageBrevForKlage.FantIkkeSaksbehandler).left()
@@ -126,7 +126,7 @@ internal class IverksettKlageTest {
             },
         )
         val attestant = NavIdentBruker.Attestant("s2")
-        mocks.service.iverksett(
+        mocks.service.oversend(
             klageId = klage.id,
             attestant = attestant,
         ) shouldBe KunneIkkeIverksetteKlage.KunneIkkeLageBrev(KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF).left()
@@ -174,7 +174,7 @@ internal class IverksettKlageTest {
             },
         )
         val attestant = NavIdentBruker.Attestant("s2")
-        mocks.service.iverksett(
+        mocks.service.oversend(
             klageId = klage.id,
             attestant = attestant,
         ) shouldBe KunneIkkeIverksetteKlage.FantIkkeJournalpostIdKnyttetTilVedtaket.left()
@@ -228,7 +228,7 @@ internal class IverksettKlageTest {
             },
         )
         val attestant = NavIdentBruker.Attestant("s2")
-        mocks.service.iverksett(
+        mocks.service.oversend(
             klageId = klage.id,
             attestant = attestant,
         ) shouldBe KunneIkkeIverksetteKlage.KunneIkkeOversendeTilKlageinstans.left()
@@ -251,7 +251,7 @@ internal class IverksettKlageTest {
             },
         )
         verify(mocks.vedtakRepoMock).hentJournalpostId(argThat { it shouldBe klage.vilkårsvurderinger.vedtakId })
-        val expectedKlage = IverksattKlage.create(
+        val expectedKlage = OversendtKlage.create(
             id = klage.id,
             opprettet = klage.opprettet,
             sakId = klage.sakId,
@@ -378,7 +378,7 @@ internal class IverksettKlageTest {
 
     @Test
     fun `Ugyldig tilstandsovergang fra iverksatt`() {
-        iverksattKlage().also {
+        oversendtKlage().also {
             verifiserUgyldigTilstandsovergang(
                 klage = it.second,
             )
@@ -391,10 +391,10 @@ internal class IverksettKlageTest {
                 on { hentKlage(any()) } doReturn klage
             },
         )
-        mocks.service.iverksett(
+        mocks.service.oversend(
             klageId = klage.id,
             attestant = NavIdentBruker.Attestant("attestant"),
-        ) shouldBe KunneIkkeIverksetteKlage.UgyldigTilstand(klage::class, IverksattKlage::class).left()
+        ) shouldBe KunneIkkeIverksetteKlage.UgyldigTilstand(klage::class, OversendtKlage::class).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         mocks.verifyNoMoreInteractions()
@@ -430,12 +430,12 @@ internal class IverksettKlageTest {
         )
         val attestant = NavIdentBruker.Attestant("s2")
 
-        var expectedKlage: IverksattKlage?
-        mocks.service.iverksett(
+        var expectedKlage: OversendtKlage?
+        mocks.service.oversend(
             klageId = klage.id,
             attestant = attestant,
         ).getOrHandle { fail(it.toString()) }.also {
-            expectedKlage = IverksattKlage.create(
+            expectedKlage = OversendtKlage.create(
                 id = it.id,
                 opprettet = fixedTidspunkt,
                 sakId = klage.sakId,

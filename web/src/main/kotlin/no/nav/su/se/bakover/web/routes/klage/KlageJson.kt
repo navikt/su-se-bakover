@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.web.routes.klage
 
-import no.nav.su.se.bakover.domain.klage.IverksattKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
+import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
@@ -228,7 +228,7 @@ internal fun Klage.toJson(): KlageJson {
             vedtaksvurdering = this.vurderinger.vedtaksvurdering.toJson(),
             attesteringer = this.attesteringer.toJson()
         )
-        is IverksattKlage -> KlageJson(
+        is OversendtKlage -> KlageJson(
             id = this.id.toString(),
             sakid = this.sakId.toString(),
             opprettet = this.opprettet.toString(),
@@ -331,7 +331,7 @@ private enum class Typer(val verdi: String) {
 
                 is KlageTilAttestering -> TIL_ATTESTERING
 
-                is IverksattKlage -> IVERKSATT
+                is OversendtKlage -> IVERKSATT
             }.toString()
         }
     }

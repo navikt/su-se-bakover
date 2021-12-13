@@ -11,7 +11,7 @@ import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
 
-data class IverksattKlage private constructor(
+data class OversendtKlage private constructor(
     override val id: UUID,
     override val opprettet: Tidspunkt,
     override val sakId: UUID,
@@ -40,8 +40,8 @@ data class IverksattKlage private constructor(
             vurderinger: VurderingerTilKlage.Utfylt,
             attesteringer: Attesteringshistorikk,
             datoKlageMottatt: LocalDate,
-        ): IverksattKlage {
-            return IverksattKlage(
+        ): OversendtKlage {
+            return OversendtKlage(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,

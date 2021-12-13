@@ -33,11 +33,11 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.Hjemler
-import no.nav.su.se.bakover.domain.klage.IverksattKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
+import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
@@ -54,7 +54,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 is VilkårsvurdertKlage -> lagreVilkårsvurdertKlage(klage, transaction)
                 is VurdertKlage -> lagreVurdertKlage(klage, transaction)
                 is KlageTilAttestering -> lagreTilAttestering(klage, transaction)
-                is IverksattKlage -> lagreIverksattKlage(klage, transaction)
+                is OversendtKlage -> lagreOversendtKlage(klage, transaction)
             }
         }
     }
@@ -168,7 +168,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
             )
     }
 
-    private fun lagreIverksattKlage(klage: IverksattKlage, session: Session) {
+    private fun lagreOversendtKlage(klage: OversendtKlage, session: Session) {
         """
             update
                 klage
@@ -379,7 +379,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
             )
-            Tilstand.IVERKSATT -> IverksattKlage.create(
+            Tilstand.OVERSENDT -> OversendtKlage.create(
                 id = id,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -421,7 +421,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
         VURDERT_UTFYLT("vurdert_utfylt"),
         VURDERT_BEKREFTET("vurdert_bekreftet"),
         TIL_ATTESTERING("til_attestering"),
-        IVERKSATT("iverksatt");
+        OVERSENDT("oversendt");
 
         companion object {
             fun Klage.databasetype(): String {
@@ -434,7 +434,7 @@ internal class KlagePostgresRepo(private val sessionFactory: PostgresSessionFact
                     is VurdertKlage.Utfylt -> VURDERT_UTFYLT
                     is VurdertKlage.Bekreftet -> VURDERT_BEKREFTET
                     is KlageTilAttestering -> TIL_ATTESTERING
-                    is IverksattKlage -> IVERKSATT
+                    is OversendtKlage -> OVERSENDT
                 }.toString()
             }
 

@@ -154,7 +154,7 @@ internal class KlagePostgresRepoTest {
 
             val urelatertKlage = testDataHelper.nyKlage()
 
-            val klage = testDataHelper.iverksattKlage()
+            val klage = testDataHelper.oversendtKlage()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext) shouldBe listOf(klage)

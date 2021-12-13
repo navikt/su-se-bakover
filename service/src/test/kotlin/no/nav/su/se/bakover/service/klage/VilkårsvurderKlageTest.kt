@@ -16,9 +16,9 @@ import no.nav.su.se.bakover.test.TestSessionFactory
 import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.iverksattKlage
 import no.nav.su.se.bakover.test.klageTilAttestering
 import no.nav.su.se.bakover.test.opprettetKlage
+import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
 import no.nav.su.se.bakover.test.underkjentKlage
@@ -91,7 +91,7 @@ internal class VilkårsvurderKlageTest {
     @Test
     fun `Ugyldig tilstandsovergang fra iverksatt`() {
         verifiserUgyldigTilstandsovergang(
-            klage = iverksattKlage().second,
+            klage = oversendtKlage().second,
         )
     }
 

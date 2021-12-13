@@ -355,7 +355,7 @@ internal fun Route.klageRoutes(
     authorize(Brukerrolle.Attestant) {
         post("$klagePath/{klageId}/iverksett") {
             call.withKlageId { klageId ->
-                klageService.iverksett(
+                klageService.oversend(
                     klageId = klageId,
                     attestant = NavIdentBruker.Attestant(
                         call.suUserContext.navIdent,

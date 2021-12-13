@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
-import no.nav.su.se.bakover.domain.klage.IverksattKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.klage.KlageRepo
@@ -31,6 +30,7 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
+import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -201,13 +201,13 @@ class KlageServiceImpl(
         }
     }
 
-    override fun iverksett(
+    override fun oversend(
         klageId: UUID,
         attestant: NavIdentBruker.Attestant,
-    ): Either<KunneIkkeIverksetteKlage, IverksattKlage> {
+    ): Either<KunneIkkeIverksetteKlage, OversendtKlage> {
         val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeIverksetteKlage.FantIkkeKlage.left()
 
-        val iverksattKlage = klage.iverksett(
+        val oversendtKlage = klage.oversend(
             Attestering.Iverksatt(
                 attestant = attestant,
                 opprettet = Tidspunkt.now(clock),
@@ -215,9 +215,9 @@ class KlageServiceImpl(
         ).getOrHandle { return it.left() }
 
         val dokument = lagBrevRequest(
-            klage = iverksattKlage,
-            saksbehandler = iverksattKlage.saksbehandler,
-            fritekstTilBrev = iverksattKlage.vurderinger.fritekstTilBrev,
+            klage = oversendtKlage,
+            saksbehandler = oversendtKlage.saksbehandler,
+            fritekstTilBrev = oversendtKlage.vurderinger.fritekstTilBrev,
         ).flatMap {
             it.tilDokument { brevRequest ->
                 brevService.lagBrev(brevRequest).mapLeft {
@@ -238,27 +238,27 @@ class KlageServiceImpl(
             return KunneIkkeIverksetteKlage.KunneIkkeLageBrev(it).left()
         }
 
-        val journalpostIdForVedtak = vedtakRepo.hentJournalpostId(iverksattKlage.vilkårsvurderinger.vedtakId)
+        val journalpostIdForVedtak = vedtakRepo.hentJournalpostId(oversendtKlage.vilkårsvurderinger.vedtakId)
             ?: return KunneIkkeIverksetteKlage.FantIkkeJournalpostIdKnyttetTilVedtaket.left().tapLeft {
-                log.error("Kunne ikke iverksette klage ${iverksattKlage.id} fordi vi ikke fant journalpostId til vedtak ${iverksattKlage.vilkårsvurderinger.vedtakId} (kan tyde på at klagen er knyttet til et vedtak vi ikke har laget brev for eller at databasen er i en ugyldig tilstand.)")
+                log.error("Kunne ikke iverksette klage ${oversendtKlage.id} fordi vi ikke fant journalpostId til vedtak ${oversendtKlage.vilkårsvurderinger.vedtakId} (kan tyde på at klagen er knyttet til et vedtak vi ikke har laget brev for eller at databasen er i en ugyldig tilstand.)")
             }
 
         class KunneIkkeOversendeTilKlageinstansEx : RuntimeException()
         try {
             sessionFactory.withTransactionContext {
                 brevService.lagreDokument(dokument, it)
-                klageRepo.lagre(iverksattKlage, it)
+                klageRepo.lagre(oversendtKlage, it)
 
                 klageClient.sendTilKlageinstans(
-                    klage = iverksattKlage,
+                    klage = oversendtKlage,
                     journalpostIdForVedtak = journalpostIdForVedtak,
                 ).getOrHandle { throw KunneIkkeOversendeTilKlageinstansEx() }
             }
         } catch (_: KunneIkkeOversendeTilKlageinstansEx) {
             return KunneIkkeIverksetteKlage.KunneIkkeOversendeTilKlageinstans.left()
         }
-        oppgaveService.lukkOppgave(iverksattKlage.oppgaveId)
-        return iverksattKlage.right()
+        oppgaveService.lukkOppgave(oversendtKlage.oppgaveId)
+        return oversendtKlage.right()
     }
 
     override fun brevutkast(
