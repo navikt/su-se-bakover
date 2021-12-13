@@ -7,4 +7,4 @@ do
   echo "Waiting for postgres to start. Sleeping one second ..."
   sleep 1
 done
-./gradlew nySøknad
+"${BASEDIR}/../gradlew" -p "${BASEDIR}/.."  nySøknad
