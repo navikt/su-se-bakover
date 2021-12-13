@@ -2,9 +2,9 @@ package no.nav.su.se.bakover.service.statistikk
 
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.database.sak.SakRepo
-import no.nav.su.se.bakover.database.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.mappers.BehandlingStatistikkMapper
 import no.nav.su.se.bakover.service.statistikk.mappers.SakStatistikkMapper

@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
+import no.nav.su.se.bakover.domain.hendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
 import java.time.Clock
@@ -23,7 +24,8 @@ import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 
-class PersonhendelsePostgresRepo(private val datasource: DataSource, private val clock: Clock) : PersonhendelseRepo {
+internal class PersonhendelsePostgresRepo(private val datasource: DataSource, private val clock: Clock) :
+    PersonhendelseRepo {
     override fun lagre(personhendelse: Personhendelse.TilknyttetSak.IkkeSendtTilOppgave) {
         val tidspunkt = Tidspunkt.now(clock)
         datasource.withSession { session ->

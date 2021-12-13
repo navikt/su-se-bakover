@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.oppdrag
+package no.nav.su.se.bakover.domain.avkorting
 
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe

@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import java.util.UUID
 import javax.sql.DataSource
 

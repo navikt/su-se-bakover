@@ -1,9 +1,10 @@
-package no.nav.su.se.bakover.domain.oppdrag
+package no.nav.su.se.bakover.domain.avkorting
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.time.LocalDate
 import java.util.UUID

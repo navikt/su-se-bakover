@@ -7,41 +7,42 @@ import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.RotatingCred
 import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.StaticCredentials
 import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
-import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.database.dokument.DokumentPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingRepo
 import no.nav.su.se.bakover.database.grunnlag.FormuegrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
-import no.nav.su.se.bakover.database.hendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
-import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
-import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
-import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
-import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
-import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
-import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
-import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
-import no.nav.su.se.bakover.database.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagRepo
+import no.nav.su.se.bakover.domain.hendelse.PersonhendelseRepo
+import no.nav.su.se.bakover.domain.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
+import no.nav.su.se.bakover.domain.person.PersonRepo
+import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
+import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.søknad.SøknadRepo
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkårsvurderingRepo
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkårsvurderingRepo
 import org.jetbrains.annotations.TestOnly
 import java.time.Clock
 import javax.sql.DataSource
@@ -220,21 +221,21 @@ object DatabaseBuilder {
 }
 
 data class DatabaseRepos(
-    val avstemming: AvstemmingRepo,
-    val utbetaling: UtbetalingRepo,
-    val søknad: SøknadRepo,
-    val hendelseslogg: HendelsesloggRepo,
-    val sak: SakRepo,
-    val person: PersonRepo,
-    val søknadsbehandling: SøknadsbehandlingRepo,
-    val revurderingRepo: RevurderingRepo,
-    val vedtakRepo: VedtakRepo,
-    val grunnlagRepo: GrunnlagRepo,
-    val uføreVilkårsvurderingRepo: UføreVilkårsvurderingRepo,
-    val formueVilkårsvurderingRepo: FormueVilkårsvurderingRepo,
-    val personhendelseRepo: PersonhendelseRepo,
-    val dokumentRepo: DokumentRepo,
-    val nøkkeltallRepo: NøkkeltallRepo,
-    val sessionFactory: SessionFactory,
-    val avkortingsvarselRepo: AvkortingsvarselRepo,
-)
+    override val avstemming: AvstemmingRepo,
+    override val utbetaling: UtbetalingRepo,
+    override val søknad: SøknadRepo,
+    override val hendelseslogg: HendelsesloggRepo,
+    override val sak: SakRepo,
+    override val person: PersonRepo,
+    override val søknadsbehandling: SøknadsbehandlingRepo,
+    override val revurderingRepo: RevurderingRepo,
+    override val vedtakRepo: VedtakRepo,
+    override val grunnlagRepo: GrunnlagRepo,
+    override val uføreVilkårsvurderingRepo: UføreVilkårsvurderingRepo,
+    override val formueVilkårsvurderingRepo: FormueVilkårsvurderingRepo,
+    override val personhendelseRepo: PersonhendelseRepo,
+    override val dokumentRepo: DokumentRepo,
+    override val nøkkeltallRepo: NøkkeltallRepo,
+    override val sessionFactory: SessionFactory,
+    override val avkortingsvarselRepo: AvkortingsvarselRepo,
+) : no.nav.su.se.bakover.domain.database.DatabaseRepos

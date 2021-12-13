@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.person.PersonRepo
 import java.util.UUID
 import javax.sql.DataSource
 

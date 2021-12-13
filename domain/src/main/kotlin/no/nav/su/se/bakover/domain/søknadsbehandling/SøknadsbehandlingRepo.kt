@@ -1,11 +1,9 @@
-package no.nav.su.se.bakover.database.søknadsbehandling
+package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
-import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import java.util.UUID
 
 interface SøknadsbehandlingRepo {

@@ -1,22 +1,22 @@
 package no.nav.su.se.bakover.web
 
-import no.nav.su.se.bakover.database.AvkortingsvarselRepo
 import no.nav.su.se.bakover.database.DatabaseRepos
-import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
-import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingRepo
-import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
-import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingRepo
-import no.nav.su.se.bakover.database.hendelse.PersonhendelseRepo
-import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
-import no.nav.su.se.bakover.database.person.PersonRepo
-import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
-import no.nav.su.se.bakover.database.sak.SakRepo
-import no.nav.su.se.bakover.database.søknad.SøknadRepo
-import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
-import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
-import no.nav.su.se.bakover.database.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagRepo
+import no.nav.su.se.bakover.domain.hendelse.PersonhendelseRepo
+import no.nav.su.se.bakover.domain.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
+import no.nav.su.se.bakover.domain.person.PersonRepo
+import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
+import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.søknad.SøknadRepo
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkårsvurderingRepo
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkårsvurderingRepo
 import no.nav.su.se.bakover.test.TestSessionFactory
 import org.mockito.kotlin.mock
 

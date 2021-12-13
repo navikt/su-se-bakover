@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
@@ -43,15 +44,6 @@ internal enum class VedtakType {
     OPPHØR, // Revurdering ført til opphør                  -> EndringIYtelse
     STANS_AV_YTELSE,
     GJENOPPTAK_AV_YTELSE,
-}
-
-interface VedtakRepo {
-    fun hentForSakId(sakId: UUID): List<Vedtak>
-    fun hentAktive(dato: LocalDate): List<Vedtak.EndringIYtelse>
-    fun lagre(vedtak: Vedtak)
-    fun lagre(vedtak: Vedtak, sessionContext: TransactionContext)
-    fun hentForUtbetaling(utbetalingId: UUID30): Vedtak?
-    fun hentAlle(): List<Vedtak>
 }
 
 internal class VedtakPostgresRepo(

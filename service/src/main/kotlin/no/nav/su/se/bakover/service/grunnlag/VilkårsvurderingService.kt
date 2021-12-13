@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.grunnlag
 
-import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingRepo
-import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingRepo
+import no.nav.su.se.bakover.domain.vilkår.FormueVilkårsvurderingRepo
+import no.nav.su.se.bakover.domain.vilkår.UføreVilkårsvurderingRepo
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 

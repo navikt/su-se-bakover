@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.database.AvkortingsvarselRepo
-import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
-import no.nav.su.se.bakover.database.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.fnr
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService

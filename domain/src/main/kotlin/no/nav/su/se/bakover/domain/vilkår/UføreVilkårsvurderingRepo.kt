@@ -1,6 +1,5 @@
-package no.nav.su.se.bakover.database.grunnlag
+package no.nav.su.se.bakover.domain.vilkår
 
-import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import java.util.UUID
 
 interface UføreVilkårsvurderingRepo {

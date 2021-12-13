@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.service.personhendelser
 
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.database.hendelse.PersonhendelseRepo
-import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
+import no.nav.su.se.bakover.domain.hendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import org.slf4j.LoggerFactory

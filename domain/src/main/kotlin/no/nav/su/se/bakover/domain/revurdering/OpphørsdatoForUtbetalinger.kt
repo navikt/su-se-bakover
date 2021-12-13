@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering
 
 import no.nav.su.se.bakover.common.startOfMonth
-import no.nav.su.se.bakover.domain.oppdrag.Avkortingsvarsel
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import java.time.LocalDate
 
 @JvmInline

@@ -4,10 +4,9 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.oppdrag.Avkortingsvarsel
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import org.junit.jupiter.api.Test
 import java.util.UUID
