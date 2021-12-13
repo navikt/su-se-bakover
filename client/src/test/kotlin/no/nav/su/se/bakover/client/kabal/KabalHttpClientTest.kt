@@ -89,9 +89,7 @@ internal class KabalHttpClientTest : WiremockBase {
                     .withStatus(500),
             ),
         )
-        val oathMock = mock<OAuth> {
-            on { onBehalfOfToken(any(), any()) } doReturn "token"
-        }
+        val oathMock = mock<OAuth> {}
         val tokenoppslagMock = mock<TokenOppslag> {
             on { token() } doReturn "token"
         }
@@ -107,8 +105,7 @@ internal class KabalHttpClientTest : WiremockBase {
             journalpostIdForVedtak = JournalpostId(value = "journalpostIdForVedtak"),
         ) shouldBe KunneIkkeOversendeTilKlageinstans.left()
 
-        verify(oathMock).onBehalfOfToken(
-            originalToken = argThat { it shouldBe "Bearer token" },
+        verify(oathMock).getSystemToken(
             otherAppId = argThat { it shouldBe "kabalClientId" },
         )
         verifyNoMoreInteractions(oathMock, tokenoppslagMock)
@@ -125,9 +122,7 @@ internal class KabalHttpClientTest : WiremockBase {
                     .withFault(Fault.CONNECTION_RESET_BY_PEER),
             ),
         )
-        val oathMock = mock<OAuth> {
-            on { onBehalfOfToken(any(), any()) } doReturn "token"
-        }
+        val oathMock = mock<OAuth> {}
         val tokenoppslagMock = mock<TokenOppslag> {
             on { token() } doReturn "token"
         }
@@ -143,8 +138,7 @@ internal class KabalHttpClientTest : WiremockBase {
             journalpostIdForVedtak = JournalpostId(value = "journalpostIdForVedtak"),
         ) shouldBe KunneIkkeOversendeTilKlageinstans.left()
 
-        verify(oathMock).onBehalfOfToken(
-            originalToken = argThat { it shouldBe "Bearer token" },
+        verify(oathMock).getSystemToken(
             otherAppId = argThat { it shouldBe "kabalClientId" },
         )
         verifyNoMoreInteractions(oathMock, tokenoppslagMock)
@@ -163,11 +157,9 @@ internal class KabalHttpClientTest : WiremockBase {
             ),
         )
         val oathMock = mock<OAuth> {
-            on { onBehalfOfToken(any(), any()) } doReturn "token"
+            on { getSystemToken(any()) } doReturn "token"
         }
-        val tokenoppslagMock = mock<TokenOppslag> {
-            on { token() } doReturn "token"
-        }
+
         val client = KabalHttpClient(
             kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(
                 clientId = "kabalClientId",
@@ -180,11 +172,10 @@ internal class KabalHttpClientTest : WiremockBase {
             journalpostIdForVedtak = JournalpostId(value = "journalpostIdForVedtak"),
         ) shouldBe Unit.right()
 
-        verify(oathMock).onBehalfOfToken(
-            originalToken = argThat { it shouldBe "Bearer token" },
+        verify(oathMock).getSystemToken(
             otherAppId = argThat { it shouldBe "kabalClientId" },
         )
-        verifyNoMoreInteractions(oathMock, tokenoppslagMock)
+        verifyNoMoreInteractions(oathMock)
         val actualRequest = wireMockServer.allServeEvents.first().request.bodyAsString
         JSONAssert.assertEquals(expectedRequest, actualRequest, true)
     }

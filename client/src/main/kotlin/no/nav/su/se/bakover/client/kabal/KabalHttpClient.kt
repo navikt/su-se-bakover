@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeTilKlageinstans
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 import java.io.IOException
 import java.net.URI
 import java.net.http.HttpClient
@@ -37,12 +36,15 @@ class KabalHttpClient(
         .followRedirects(HttpClient.Redirect.NEVER)
         .build()
 
-    private fun onBehalfOfToken(): Either<KunneIkkeOversendeTilKlageinstans, String> {
+    /*
+    * TODO ai: 13.12.2021 Burde varit OnBehalfOf-token men Kabal har ikke støtte for det per nå.
+    */
+    private fun hentToken(): Either<KunneIkkeOversendeTilKlageinstans, String> {
         return Either.catch {
-            exchange.onBehalfOfToken(MDC.get("Authorization"), kabalConfig.clientId)
+            exchange.getSystemToken(kabalConfig.clientId)
         }.mapLeft { throwable ->
             log.error(
-                "Kunne ikke lage onBehalfOfToken for oppgave med klient id ${kabalConfig.clientId}",
+                "Kunne ikke lage token for Kabal med klientId: ${kabalConfig.clientId}",
                 throwable,
             )
             KunneIkkeOversendeTilKlageinstans
@@ -53,7 +55,7 @@ class KabalHttpClient(
         klage: OversendtKlage,
         journalpostIdForVedtak: JournalpostId,
     ): Either<KunneIkkeOversendeTilKlageinstans, Unit> {
-        val token = onBehalfOfToken().getOrHandle { return it.left() }
+        val token = hentToken().getOrHandle { return it.left() }
         val requestBody = objectMapper.writeValueAsString(
             KabalRequestMapper.map(
                 klage = klage,
