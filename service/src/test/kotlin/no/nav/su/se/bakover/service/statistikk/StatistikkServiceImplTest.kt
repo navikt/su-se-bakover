@@ -200,7 +200,7 @@ internal class StatistikkServiceImplTest {
             on { id } doReturn UUID.randomUUID()
             on { sakId } doReturn UUID.randomUUID()
             on { saksnummer } doReturn Saksnummer(5959)
-            on { status } doReturn BehandlingsStatus.IVERKSATT_AVSLAG
+            on { status } doReturn BehandlingsStatus.TIL_ATTESTERING_AVSLAG
             on { saksbehandler } doReturn NavIdentBruker.Saksbehandler("Z1595")
             on { avslagsgrunner } doReturn listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER)
             on { periode } doReturn stønadsperiode
@@ -216,7 +216,7 @@ internal class StatistikkServiceImplTest {
             sakId = behandling.sakId,
             saksnummer = behandling.saksnummer.nummer,
             behandlingStatus = behandling.status.toString(),
-            behandlingStatusBeskrivelse = "Avslått søknadsbehandling iverksatt",
+            behandlingStatusBeskrivelse = "Avslått søknadsbehanding sendt til attestering",
             versjon = clock.millis(),
             saksbehandler = "Z1595",
             behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
