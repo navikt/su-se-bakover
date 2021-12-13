@@ -28,7 +28,7 @@
     "MQ_SEND_QUEUE_AVSTEMMING": "queue:///QA.Q1_234.OB29_AVSTEMMING_XML?targetClient=1",
     "FRIKORT_SERVICE_USERNAME": "srvfrikortborger",
     "PDL_CLIENT_ID": "api://dev-fss.pdl.pdl-api",
-    "KABAL_URL": "http://kabal-api.dev.intern.nav.no",
+    "KABAL_URL": "https://kabal-api.dev.nav.no",
     "KABAL_CLIENT_ID": "api://dev-gcp.klage.kabal-api",
     "KAFKA_ONPREM_BROKERS": "b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443",
     "KAFKA_ONPREM_SCHEMA_REGISTRY": "https://kafka-schema-registry.nais.preprod.local"
