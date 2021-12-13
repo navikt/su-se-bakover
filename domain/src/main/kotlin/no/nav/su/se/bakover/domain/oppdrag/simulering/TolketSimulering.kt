@@ -171,8 +171,8 @@ sealed class TolketDetalj {
             klassekode == KlasseKode.SUUFORE &&
             typeSats == "MND" &&
             antallSats == 1 &&
-            sats > 0 &&
-            belop > 0
+            sats >= 0 &&
+            belop >= 0
     }
 
     data class Etterbetaling(

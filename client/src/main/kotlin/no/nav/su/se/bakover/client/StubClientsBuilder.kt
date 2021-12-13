@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.client.stubs.person.MicrosoftGraphApiClientStub
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.domain.database.DatabaseRepos
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
@@ -34,18 +35,29 @@ import no.nav.su.se.bakover.domain.person.PersonOppslag
 import org.slf4j.LoggerFactory
 import java.time.Clock
 
-class StubClientsBuilder(val clock: Clock) : ClientsBuilder {
+class StubClientsBuilder(
+    val clock: Clock,
+    val databaseRepos: DatabaseRepos,
+) : ClientsBuilder {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun build(applicationConfig: ApplicationConfig): Clients {
         return Clients(
-            oauth = AzureClient(applicationConfig.azure.clientId, applicationConfig.azure.clientSecret, applicationConfig.azure.wellKnownUrl),
+            oauth = AzureClient(
+                applicationConfig.azure.clientId,
+                applicationConfig.azure.clientSecret,
+                applicationConfig.azure.wellKnownUrl,
+            ),
             personOppslag = PersonOppslagStub.also { log.warn("********** Using stub for ${PersonOppslag::class.java} **********") },
             tokenOppslag = if (applicationConfig.frikort.useStubForSts) {
                 TokenOppslagStub.also { log.warn("********** Using stub for ${TokenOppslag::class.java} **********") }
             } else {
-                StsClient(applicationConfig.clientsConfig.stsUrl, applicationConfig.serviceUser.username, applicationConfig.serviceUser.password)
+                StsClient(
+                    applicationConfig.clientsConfig.stsUrl,
+                    applicationConfig.serviceUser.username,
+                    applicationConfig.serviceUser.password,
+                )
             },
             pdfGenerator = if (applicationConfig.pdfgenLocal) {
                 PdfClient("http://localhost:8081")
@@ -55,7 +67,10 @@ class StubClientsBuilder(val clock: Clock) : ClientsBuilder {
             dokArkiv = DokArkivStub.also { log.warn("********** Using stub for ${DokArkiv::class.java} **********") },
             oppgaveClient = OppgaveClientStub.also { log.warn("********** Using stub for ${OppgaveClient::class.java} **********") },
             kodeverk = KodeverkHttpClient(applicationConfig.clientsConfig.kodeverkUrl, "srvsupstonad"),
-            simuleringClient = SimuleringStub(clock).also { log.warn("********** Using stub for ${SimuleringClient::class.java} **********") },
+            simuleringClient = SimuleringStub(
+                clock = clock,
+                utbetalingRepo = databaseRepos.utbetaling,
+            ).also { log.warn("********** Using stub for ${SimuleringClient::class.java} **********") },
             utbetalingPublisher = UtbetalingStub.also { log.warn("********** Using stub for ${UtbetalingPublisher::class.java} **********") },
             dokDistFordeling = DokDistFordelingStub.also { log.warn("********** Using stub for ${DokDistFordelingClient::class.java} **********") },
             avstemmingPublisher = AvstemmingStub.also { log.warn("********** Using stub for ${AvstemmingPublisher::class.java} **********") },

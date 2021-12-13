@@ -68,7 +68,6 @@ import no.nav.su.se.bakover.test.lagFradragsgrunnlag
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.web.TestClientsBuilder
-import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.dbMetricsStub
@@ -99,7 +98,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         clock = fixedClock,
     )
 
-    private fun services(databaseRepos: DatabaseRepos, clients: Clients = TestClientsBuilder.build(applicationConfig)) =
+    private fun services(databaseRepos: DatabaseRepos, clients: Clients = TestClientsBuilder(fixedClock, databaseRepos).build(applicationConfig)) =
         ServiceBuilder.build(
             databaseRepos = databaseRepos,
             clients = clients,
@@ -201,7 +200,7 @@ internal class SøknadsbehandlingRoutesKtTest {
     fun `Opprette en oppgave til attestering feiler mot oppgave`() {
         withMigratedDb { dataSource ->
             val repos = repos(dataSource)
-            val clients = testClients.copy(
+            val clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig).copy(
                 oppgaveClient = object : OppgaveClient {
                     override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
                         return Either.Left(KunneIkkeOppretteOppgave)
@@ -758,7 +757,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                         testSusebakover(
                             services = services,
                             databaseRepos = repos,
-                            clients = testClients.copy(
+                            clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig).copy(
                                 utbetalingPublisher = object : UtbetalingPublisher {
                                     override fun publish(
                                         utbetaling: Utbetaling.SimulertUtbetaling,
@@ -980,7 +979,7 @@ internal class SøknadsbehandlingRoutesKtTest {
         withTestApplication(
             {
                 testSusebakover(
-                    clients = testClients,
+                    clients = TestClientsBuilder(fixedClock, repos).build(applicationConfig),
                     services = services,
                     databaseRepos = repos,
                 )

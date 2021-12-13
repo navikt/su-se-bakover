@@ -115,8 +115,8 @@ internal fun embeddedPostgres(clock: Clock = fixedClock) = DatabaseBuilder.build
 
 internal fun Application.testSusebakover(
     clock: Clock = fixedClock,
-    clients: Clients = TestClientsBuilder.build(applicationConfig),
     databaseRepos: DatabaseRepos = mockedDb(),
+    clients: Clients = TestClientsBuilder(clock, databaseRepos).build(applicationConfig),
     unleash: Unleash = FakeUnleash().apply { enableAll() },
     services: Services = ServiceBuilder.build(
         // build actual clients

@@ -73,7 +73,7 @@ internal class BeregnRoutesKtTest {
     private fun services(dataSource: DataSource, databaseRepos: DatabaseRepos = repos(dataSource)) =
         ServiceBuilder.build(
             databaseRepos = databaseRepos,
-            clients = TestClientsBuilder.build(applicationConfig),
+            clients = TestClientsBuilder(fixedClock, databaseRepos).build(applicationConfig),
             behandlingMetrics = mock(),
             søknadMetrics = mock(),
             clock = fixedClock,
