@@ -24,6 +24,7 @@ import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import java.time.LocalDate
 import java.util.UUID
 
 internal class OpprettKlageTest {
@@ -146,6 +147,22 @@ internal class OpprettKlageTest {
                 )
             },
         )
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `mottattdato etter nå-tid gir feil`() {
+        val sakId = UUID.randomUUID()
+        val mocks = KlageServiceMocks()
+
+        val request = NyKlageRequest(
+            sakId = sakId,
+            journalpostId = JournalpostId("j2"),
+            saksbehandler = NavIdentBruker.Saksbehandler("s2"),
+            datoKlageMottatt = LocalDate.now(fixedClock).plusDays(1),
+            clock = fixedClock
+        )
+        mocks.service.opprett(request) shouldBe KunneIkkeOppretteKlage.UgyldigMottattDato.left()
         mocks.verifyNoMoreInteractions()
     }
 

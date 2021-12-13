@@ -102,4 +102,5 @@ sealed class KunneIkkeOppretteKlage {
     object FantIkkeSak : KunneIkkeOppretteKlage()
     object FinnesAlleredeEnÅpenKlage : KunneIkkeOppretteKlage()
     object KunneIkkeOppretteOppgave : KunneIkkeOppretteKlage()
+    object UgyldigMottattDato : KunneIkkeOppretteKlage()
 }

@@ -96,6 +96,10 @@ internal fun Route.klageRoutes(
                                 "finnes_allerede_en_åpen_klage",
                             )
                             KunneIkkeOppretteKlage.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
+                            KunneIkkeOppretteKlage.UgyldigMottattDato -> BadRequest.errorJson(
+                                "Mottatt dato kan ikke være frem i tid",
+                                "ugyldig_mottatt_dato",
+                            )
                         }
                     }
                     call.svar(resultat)

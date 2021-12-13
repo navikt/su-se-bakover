@@ -59,7 +59,7 @@ class KlageServiceImpl(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     override fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage> {
-
+        request.validate().getOrHandle { return it.left() }
         val sak = sakRepo.hentSak(request.sakId) ?: return KunneIkkeOppretteKlage.FantIkkeSak.left()
 
         sak.hentÅpneKlager().ifNotEmpty {
