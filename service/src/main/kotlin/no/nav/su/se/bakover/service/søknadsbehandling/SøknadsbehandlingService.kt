@@ -88,7 +88,6 @@ interface SøknadsbehandlingService {
         object FantIkkeBehandling : KunneIkkeSendeTilAttestering()
         object KunneIkkeFinneAktørId : KunneIkkeSendeTilAttestering()
         object KunneIkkeOppretteOppgave : KunneIkkeSendeTilAttestering()
-        object KunneIkkeAvgjøreOmFørstegangEllerNyPeriode : KunneIkkeSendeTilAttestering()
     }
 
     data class UnderkjennRequest(
@@ -101,7 +100,6 @@ interface SøknadsbehandlingService {
         object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeUnderkjenne()
         object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenne()
         object FantIkkeAktørId : KunneIkkeUnderkjenne()
-        object KunneIkkeAvgjøreOmFørstegangEllerNyPeriode : KunneIkkeUnderkjenne()
     }
 
     data class IverksettRequest(

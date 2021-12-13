@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRep
 import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
-import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 
 internal class GjenopptakAvYtelsePostgresRepo(
@@ -68,7 +68,7 @@ internal class GjenopptakAvYtelsePostgresRepo(
                             "vedtakSomRevurderesId" to revurdering.tilRevurdering.id,
                             "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                             "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                            "attestering" to Attesteringshistorikk.empty().hentAttesteringer().serialize(),
+                            "attestering" to emptyList<Attestering>().serialize(),
                             "skalFoereTilBrevutsending" to false,
                         ),
                         tx,
@@ -108,7 +108,7 @@ internal class GjenopptakAvYtelsePostgresRepo(
                 """.trimIndent()
                     .oppdatering(
                         mapOf(
-                            "attestering" to revurdering.attesteringer.hentAttesteringer().serialize(),
+                            "attestering" to revurdering.attesteringer.serialize(),
                             "revurderingsType" to RevurderingsType.IVERKSATT_GJENOPPTAK,
                             "id" to revurdering.id,
                         ),

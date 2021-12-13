@@ -591,7 +591,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 behandlingsinformasjon = opprettet.behandlingsinformasjon,
                 fnr = opprettet.fnr,
                 saksbehandler = saksbehandler,
-                attesteringer = Attesteringshistorikk(
+                attesteringer = Attesteringshistorikk.create(
                     attesteringer = listOf(
                         Attestering.Iverksatt(
                             attestant = NavIdentBruker.Attestant(saksbehandler.navIdent),

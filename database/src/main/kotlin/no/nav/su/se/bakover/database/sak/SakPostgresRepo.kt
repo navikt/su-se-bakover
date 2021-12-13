@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
 import no.nav.su.se.bakover.domain.sak.SakRestans
 import java.util.UUID
@@ -30,6 +31,7 @@ internal class SakPostgresRepo(
     private val revurderingRepo: RevurderingPostgresRepo,
     private val vedtakPostgresRepo: VedtakPostgresRepo,
     private val dbMetrics: DbMetrics,
+    private val klageRepo: KlageRepo,
 ) : SakRepo {
 
     private val sakRestansRepo = SakRestansRepo(
@@ -146,6 +148,7 @@ internal class SakPostgresRepo(
                 utbetalinger = UtbetalingInternalRepo.hentUtbetalinger(sakId, session),
                 revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session),
                 vedtakListe = vedtakPostgresRepo.hentForSakId(sakId, session),
+                klager = klageRepo.hentKlager(sakId, sessionContext)
             )
         }
     }

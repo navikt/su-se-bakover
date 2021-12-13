@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
@@ -16,11 +15,11 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
-import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeGenerereBrev
+import no.nav.su.se.bakover.web.routes.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
@@ -57,10 +56,7 @@ internal fun Route.iverksettRevurderingRoute(
 private fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
     is FantIkkeRevurdering -> fantIkkeRevurdering
     is UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
-    is AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.errorJson(
-        "Attestant og saksbehandler kan ikke være samme person",
-        "attestant_og_saksbehandler_kan_ikke_være_samme_person",
-    )
+    is AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
     is KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> this.utbetalingFeilet.tilResultat()
     KunneIkkeIverksetteRevurdering.FantIkkePerson -> fantIkkePerson
     KunneIkkeIverksetteRevurdering.KunneIkkeFinneGjeldendeUtbetaling -> Revurderingsfeilresponser.Brev.fantIkkeGjeldendeUtbetaling

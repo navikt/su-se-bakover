@@ -116,4 +116,42 @@ sealed class OppgaveConfig {
         override val aktivDato: LocalDate = LocalDate.now(clock)
         override val fristFerdigstillelse: LocalDate = aktivDato.plusDays(30)
     }
+
+    sealed class Klage : OppgaveConfig() {
+        abstract val saksnummer: Saksnummer
+        override val saksreferanse by lazy { saksnummer.toString() }
+        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKTNING
+        override val behandlingstype = Behandlingstype.KLAGE
+        override val aktivDato: LocalDate by lazy { LocalDate.now(clock) }
+        override val fristFerdigstillelse: LocalDate by lazy { aktivDato.plusDays(30) }
+
+        /**
+         * Dette er saksbehandlingsoppgaven som opprettes:
+         * 1) Når en klage opprettes
+         * 2) Når en klage til attestering sendes tilbake til saksbehandler
+         */
+        data class Saksbehandler(
+            override val saksnummer: Saksnummer,
+            override val aktørId: AktørId,
+            override val journalpostId: JournalpostId,
+            override val tilordnetRessurs: NavIdentBruker?,
+            override val clock: Clock,
+        ) : Klage() {
+            override val oppgavetype = Oppgavetype.BEHANDLE_SAK
+        }
+
+        /**
+         * Dette er attesteringsoppgaven som opprettes:
+         * 1) Når en klage sendes til attestering (dette kan skje flere ganger, se underkjenning)
+         */
+        data class Attestering(
+            override val saksnummer: Saksnummer,
+            override val aktørId: AktørId,
+            override val journalpostId: JournalpostId,
+            override val tilordnetRessurs: NavIdentBruker?,
+            override val clock: Clock,
+        ) : Klage() {
+            override val oppgavetype = Oppgavetype.ATTESTERING
+        }
+    }
 }

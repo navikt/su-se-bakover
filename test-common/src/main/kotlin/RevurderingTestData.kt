@@ -467,7 +467,7 @@ fun iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         )
     },
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-    attestering: Attestering.Iverksatt = attesteringIverksatt,
+    attestering: Attestering.Iverksatt = attesteringIverksatt(clock),
 ): Pair<Sak, IverksattRevurdering.Opphørt> {
     return tilAttesteringRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         saksnummer = saksnummer,
@@ -509,7 +509,7 @@ fun tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         clock,
     ),
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
-    saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler("Saksbehandler"),
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     fritekstTilBrev: String = "",
     forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
@@ -588,7 +588,7 @@ fun underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
         clock,
     ),
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
-    saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler("Saksbehandler"),
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     fritekstTilBrev: String = "",
     forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
     attestering: Attestering.Underkjent = Attestering.Underkjent(
@@ -641,7 +641,7 @@ fun iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         clock,
     ),
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
-    saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler("Saksbehandler"),
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     fritekstTilBrev: String = "",
     forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
     attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant("Attestant"),
@@ -683,7 +683,7 @@ fun iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
     revurderingsperiode: Periode = periode2021,
     informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
     attesteringsoppgaveId: OppgaveId = OppgaveId("oppgaveid"),
-    saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler("Saksbehandler"),
+    saksbehandler: NavIdentBruker.Saksbehandler = no.nav.su.se.bakover.test.saksbehandler,
     fritekstTilBrev: String = "",
     attestant: NavIdentBruker.Attestant = no.nav.su.se.bakover.test.attestant,
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
@@ -783,7 +783,7 @@ fun iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         stønadsperiode = Stønadsperiode.create(periode, "whatever"),
     ),
-    attestering: Attestering = attesteringIverksatt,
+    attestering: Attestering = attesteringIverksatt(clock),
 ): Pair<Sak, StansAvYtelseRevurdering.IverksattStansAvYtelse> {
     return simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periode,
@@ -872,7 +872,7 @@ fun iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse(
         periode = periode,
         clock = clock,
     ),
-    attestering: Attestering = attesteringIverksatt,
+    attestering: Attestering = attesteringIverksatt(clock),
 ): Pair<Sak, GjenopptaYtelseRevurdering.IverksattGjenopptakAvYtelse> {
     return simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse(
         periodeForStans = periode,

@@ -10,7 +10,7 @@ internal data class AttesteringJson(
     val opprettet: Tidspunkt
 ) {
     companion object {
-        internal fun Attesteringshistorikk.toJson() = this.hentAttesteringer().map { it.toJson() }
+        internal fun Attesteringshistorikk.toJson() = this.map { it.toJson() }
 
         internal fun Attestering.toJson() =
             when (this) {

@@ -25,6 +25,7 @@ object JournalpostFactory {
         BrevTemplate.Forhåndsvarsel,
         BrevTemplate.Revurdering.AvsluttRevurdering,
         BrevTemplate.InnkallingTilKontrollsamtale,
+        BrevTemplate.Klage.Oppretthold,
         -> Journalpost.Info.from(person, saksnummer, brevInnhold, pdf)
     }
 

@@ -91,7 +91,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 behandlingsinformasjon = uavklart.behandlingsinformasjon,
                 fnr = uavklart.fnr,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
-                attesteringer = Attesteringshistorikk(
+                attesteringer = Attesteringshistorikk.create(
                     attesteringer = listOf(
                         Attestering.Iverksatt(
                             attestant = NavIdentBruker.Attestant("saksemannen"),
@@ -204,7 +204,7 @@ internal class AvslåSøknadManglendeDokumentasjonServiceImplTest {
                 behandlingsinformasjon = vilkårsvurdertInnvilget.behandlingsinformasjon,
                 fnr = vilkårsvurdertInnvilget.fnr,
                 saksbehandler = NavIdentBruker.Saksbehandler("saksemannen"),
-                attesteringer = Attesteringshistorikk(
+                attesteringer = Attesteringshistorikk.create(
                     attesteringer = listOf(
                         Attestering.Iverksatt(
                             attestant = NavIdentBruker.Attestant("saksemannen"),

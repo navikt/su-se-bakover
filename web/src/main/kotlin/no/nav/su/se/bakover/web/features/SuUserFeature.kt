@@ -16,6 +16,7 @@ import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelinePhase
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.web.getGroupsFromJWT
 import no.nav.su.se.bakover.web.getNAVidentFromJwt
 import no.nav.su.se.bakover.web.getNavnFromJwt
@@ -62,6 +63,8 @@ internal object FantBrukerMenManglerNAVIdent : SuUserFeaturefeil("Bruker mangler
 
 class SuUserContext(val call: ApplicationCall, applicationConfig: ApplicationConfig) {
     val navIdent: String = getNAVidentFromJwt(applicationConfig, call.authentication.principal)
+    val saksbehandler: NavIdentBruker.Saksbehandler = NavIdentBruker.Saksbehandler(navIdent)
+    val attestant: NavIdentBruker.Attestant = NavIdentBruker.Attestant(navIdent)
     val navn: String = getNavnFromJwt(applicationConfig, call.authentication.principal)
     val grupper = getGroupsFromJWT(applicationConfig, call.authentication.principal)
 

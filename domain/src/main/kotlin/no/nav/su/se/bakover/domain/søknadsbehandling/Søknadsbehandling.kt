@@ -34,12 +34,9 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderingsresultat
 import no.nav.su.se.bakover.domain.vilkår.inneholderAlle
 import no.nav.su.se.bakover.domain.visitor.Visitable
-import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
 import kotlin.reflect.KClass
-
-private val log = LoggerFactory.getLogger("Søknadsbehandling.kt")
 
 sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering, Visitable<SøknadsbehandlingVisitor> {
     abstract val søknad: Søknad.Journalført.MedOppgave

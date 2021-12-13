@@ -134,7 +134,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 søknad = søknad.toJson(),
                 behandlingsinformasjon = behandlingsinformasjonJson,
                 status = status.toString(),
-                attesteringer = attesteringer.hentAttesteringer().map {
+                attesteringer = attesteringer.map {
                     when (it) {
                         is Attestering.Iverksatt -> AttesteringJson(
                             attestant = it.attestant.navIdent,

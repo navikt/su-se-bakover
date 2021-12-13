@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.LinkedList
 import java.util.UUID
@@ -42,7 +43,7 @@ fun nySakMedNySøknad(
     clock = fixedClock,
 ).nySakMedNySøknad(
     fnr = fnr,
-    søknadinnhold(fnr),
+    søknadInnhold = søknadinnhold(fnr),
 ).let {
     assert(it.id == sakId)
     assert(it.søknad.id == søknadId)
@@ -86,7 +87,11 @@ fun nySakMedjournalførtSøknadOgOppgave(
     journalpostId: JournalpostId = journalpostIdSøknad,
     oppgaveId: OppgaveId = oppgaveIdSøknad,
     fnr: Fnr = no.nav.su.se.bakover.test.fnr,
+    klager: List<Klage> = emptyList(),
 ): Pair<Sak, Søknad.Journalført.MedOppgave.IkkeLukket> {
+    klager.forEach {
+        assert(it.sakId == sakId) { "Klagenes sakId må være identisk med sakens id." }
+    }
     return nySakMedJournalførtSøknadUtenOppgave(
         saksnummer = saksnummer,
         sakId = sakId,
@@ -98,6 +103,7 @@ fun nySakMedjournalførtSøknadOgOppgave(
         Pair(
             sak.copy(
                 søknader = listOf(journalførtSøknadMedOppgave),
+                klager = klager,
             ),
             journalførtSøknadMedOppgave,
         )

@@ -1,0 +1,408 @@
+package no.nav.su.se.bakover.service.klage
+
+import arrow.core.left
+import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
+import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
+import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
+import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
+import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.bekreftetVurdertKlage
+import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.klageTilAttestering
+import no.nav.su.se.bakover.test.opprettetKlage
+import no.nav.su.se.bakover.test.oversendtKlage
+import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.påbegyntVurdertKlage
+import no.nav.su.se.bakover.test.underkjentKlage
+import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.utfyltVurdertKlage
+import org.junit.jupiter.api.Test
+import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import java.util.UUID
+
+internal class VilkårsvurderKlageTest {
+
+    @Test
+    fun `fant ikke klage`() {
+
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentKlage(any()) } doReturn null
+            },
+        )
+        val klageId = UUID.randomUUID()
+        val request = VurderKlagevilkårRequest(
+            saksbehandler = NavIdentBruker.Saksbehandler("s2"),
+            klageId = klageId,
+            vedtakId = null,
+            innenforFristen = null,
+            klagesDetPåKonkreteElementerIVedtaket = null,
+            erUnderskrevet = null,
+            begrunnelse = null,
+        )
+        mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.FantIkkeKlage.left()
+
+        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `fant ikke vedtak`() {
+
+        val mocks = KlageServiceMocks(
+            vedtakRepoMock = mock {
+                on { hentForVedtakId(any()) } doReturn null
+            },
+        )
+        val vedtakId = UUID.randomUUID()
+        val request = VurderKlagevilkårRequest(
+            saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
+            klageId = UUID.randomUUID(),
+            vedtakId = vedtakId,
+            innenforFristen = null,
+            klagesDetPåKonkreteElementerIVedtaket = null,
+            erUnderskrevet = null,
+            begrunnelse = null,
+        )
+        mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak.left()
+
+        verify(mocks.vedtakRepoMock).hentForVedtakId(vedtakId)
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `Ugyldig tilstandsovergang fra til attestering`() {
+        verifiserUgyldigTilstandsovergang(
+            klage = klageTilAttestering().second,
+        )
+    }
+
+    @Test
+    fun `Ugyldig tilstandsovergang fra iverksatt`() {
+        verifiserUgyldigTilstandsovergang(
+            klage = oversendtKlage().second,
+        )
+    }
+
+    private fun verifiserUgyldigTilstandsovergang(
+        klage: Klage,
+    ) {
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentKlage(any()) } doReturn klage
+            },
+        )
+        val request = VurderKlagevilkårRequest(
+            saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
+            klageId = klage.id,
+            vedtakId = null,
+            innenforFristen = null,
+            klagesDetPåKonkreteElementerIVedtaket = null,
+            erUnderskrevet = null,
+            begrunnelse = null,
+        )
+        mocks.service.vilkårsvurder(request) shouldBe KunneIkkeVilkårsvurdereKlage.UgyldigTilstand(
+            klage::class,
+            VilkårsvurdertKlage::class,
+        ).left()
+
+        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `Skal kunne vilkårsvurdere opprettet klage`() {
+        val (sak, klage) = opprettetKlage()
+        val vedtak = sak.vedtakListe.first()
+        verifiserGyldigStatusovergangTilPåbegynt(
+            vedtak = vedtak,
+            klage = klage,
+        )
+        verifiserGyldigStatusovergangTilUtfylt(
+            vedtak = vedtak,
+            klage = klage,
+        )
+    }
+
+    @Test
+    fun `Skal kunne vilkårsvurdere påbegynt vilkårsvurdert klage`() {
+        val (sak, klage) = påbegyntVilkårsvurdertKlage()
+        val vedtak = sak.vedtakListe.first()
+
+        verifiserGyldigStatusovergangTilPåbegynt(
+            vedtak = vedtak,
+            klage = klage,
+        )
+        verifiserGyldigStatusovergangTilUtfylt(
+            vedtak = vedtak,
+            klage = klage,
+        )
+    }
+
+    @Test
+    fun `Skal kunne vilkårsvurdere utfylt vilkårsvurdert klage`() {
+        val (sak, klage) = utfyltVilkårsvurdertKlage()
+        val vedtak = sak.vedtakListe.first()
+        verifiserGyldigStatusovergangTilPåbegynt(
+            vedtak = vedtak,
+            klage = klage,
+        )
+        verifiserGyldigStatusovergangTilUtfylt(
+            vedtak = vedtak,
+            klage = klage,
+        )
+    }
+
+    @Test
+    fun `Skal kunne vilkårsvurdere bekreftet vilkårsvurdert klage`() {
+        val (sak, klage) = bekreftetVilkårsvurdertKlage()
+        val vedtak = sak.vedtakListe.first()
+
+        verifiserGyldigStatusovergangTilPåbegynt(
+            vedtak = vedtak,
+            klage = klage,
+        )
+        verifiserGyldigStatusovergangTilUtfylt(
+            vedtak = vedtak,
+            klage = klage,
+        )
+    }
+
+    @Test
+    fun `Skal kunne vilkårsvurdere påbegynt vurdert klage`() {
+        val (sak, klage) = påbegyntVurdertKlage()
+        val vedtak = sak.vedtakListe.first()
+        verifiserGyldigStatusovergangTilPåbegynt(
+            vedtak = vedtak,
+            klage = klage,
+            vurderingerTilKlage = klage.vurderinger,
+        )
+        verifiserGyldigStatusovergangTilUtfylt(
+            vedtak = vedtak,
+            klage = klage,
+            vurderingerTilKlage = klage.vurderinger,
+        )
+    }
+
+    @Test
+    fun `Skal kunne vilkårsvurdere utfylt vurdert klage`() {
+        val (sak, klage) = utfyltVurdertKlage()
+        val vedtak = sak.vedtakListe.first()
+
+        verifiserGyldigStatusovergangTilPåbegynt(
+            vedtak = vedtak,
+            klage = klage,
+            vurderingerTilKlage = klage.vurderinger,
+        )
+        verifiserGyldigStatusovergangTilUtfylt(
+            vedtak = vedtak,
+            klage = klage,
+            vurderingerTilKlage = klage.vurderinger,
+        )
+    }
+
+    @Test
+    fun `Skal kunne vilkårsvurdere bekreftet vurdert klage`() {
+        val (sak, klage) = bekreftetVurdertKlage()
+        val vedtak = sak.vedtakListe.first()
+
+        verifiserGyldigStatusovergangTilPåbegynt(
+            vedtak = vedtak,
+            klage = klage,
+            vurderingerTilKlage = klage.vurderinger,
+        )
+        verifiserGyldigStatusovergangTilUtfylt(
+            vedtak = vedtak,
+            klage = klage,
+            vurderingerTilKlage = klage.vurderinger,
+        )
+    }
+
+    @Test
+    fun `Skal kunne vilkårsvurdere underkjent klage`() {
+        val (sak, klage) = underkjentKlage()
+        val vedtak = sak.vedtakListe.first()
+
+        verifiserGyldigStatusovergangTilPåbegynt(
+            vedtak = vedtak,
+            klage = klage,
+            vurderingerTilKlage = klage.vurderinger,
+            attesteringer = klage.attesteringer,
+        )
+        verifiserGyldigStatusovergangTilUtfylt(
+            vedtak = vedtak,
+            klage = klage,
+            vurderingerTilKlage = klage.vurderinger,
+            attesteringer = klage.attesteringer,
+        )
+    }
+
+    @Test
+    fun `får feil dersom man svarer nei`() {
+        val r1 = VurderKlagevilkårRequest(
+            saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
+            klageId = UUID.randomUUID(),
+            vedtakId = null,
+            innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI,
+            klagesDetPåKonkreteElementerIVedtaket = null,
+            erUnderskrevet = null,
+            begrunnelse = null,
+        )
+
+        val r2 = VurderKlagevilkårRequest(
+            saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
+            klageId = UUID.randomUUID(),
+            vedtakId = null,
+            innenforFristen = null,
+            klagesDetPåKonkreteElementerIVedtaket = null,
+            erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.NEI,
+            begrunnelse = null,
+        )
+
+        val r3 = VurderKlagevilkårRequest(
+            saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
+            klageId = UUID.randomUUID(),
+            vedtakId = null,
+            innenforFristen = null,
+            klagesDetPåKonkreteElementerIVedtaket = false,
+            erUnderskrevet = null,
+            begrunnelse = null,
+        )
+
+        r1.toDomain() shouldBe KunneIkkeVilkårsvurdereKlage.NeiSvarErIkkeStøttet.left()
+        r2.toDomain() shouldBe KunneIkkeVilkårsvurdereKlage.NeiSvarErIkkeStøttet.left()
+        r3.toDomain() shouldBe KunneIkkeVilkårsvurdereKlage.NeiSvarErIkkeStøttet.left()
+    }
+
+    private fun verifiserGyldigStatusovergangTilPåbegynt(
+        vedtak: Vedtak,
+        klage: Klage,
+        vurderingerTilKlage: VurderingerTilKlage? = null,
+        attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
+    ) {
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentKlage(any()) } doReturn klage
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+            },
+            vedtakRepoMock = mock {
+                on { hentForVedtakId(any()) } doReturn vedtak
+            },
+        )
+
+        val request = VurderKlagevilkårRequest(
+            saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
+            klageId = klage.id,
+            vedtakId = null,
+            innenforFristen = null,
+            klagesDetPåKonkreteElementerIVedtaket = null,
+            erUnderskrevet = null,
+            begrunnelse = null,
+        )
+
+        var expectedKlage: VilkårsvurdertKlage.Påbegynt?
+        mocks.service.vilkårsvurder(request).orNull()!!.also {
+            expectedKlage = VilkårsvurdertKlage.Påbegynt.create(
+                id = it.id,
+                opprettet = fixedTidspunkt,
+                sakId = klage.sakId,
+                saksnummer = klage.saksnummer,
+                fnr = klage.fnr,
+                journalpostId = klage.journalpostId,
+                oppgaveId = klage.oppgaveId,
+                saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
+                vilkårsvurderinger = VilkårsvurderingerTilKlage.empty(),
+                vurderinger = vurderingerTilKlage,
+                attesteringer = attesteringer,
+                datoKlageMottatt = 1.desember(2021),
+            )
+            it shouldBe expectedKlage
+        }
+
+        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.klageRepoMock).defaultTransactionContext()
+        verify(mocks.klageRepoMock).lagre(
+            argThat {
+                it shouldBe expectedKlage
+            },
+            argThat {
+                it shouldBe TestSessionFactory.transactionContext
+            }
+        )
+        mocks.verifyNoMoreInteractions()
+    }
+
+    private fun verifiserGyldigStatusovergangTilUtfylt(
+        vedtak: Vedtak,
+        klage: Klage,
+        vurderingerTilKlage: VurderingerTilKlage? = null,
+        attesteringer: Attesteringshistorikk = Attesteringshistorikk.empty(),
+    ) {
+        val mocks = KlageServiceMocks(
+            klageRepoMock = mock {
+                on { hentKlage(any()) } doReturn klage
+                on { defaultTransactionContext() } doReturn TestSessionFactory.transactionContext
+            },
+            vedtakRepoMock = mock {
+                on { hentForVedtakId(any()) } doReturn vedtak
+            },
+        )
+        val request = VurderKlagevilkårRequest(
+            saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
+            klageId = klage.id,
+            vedtakId = vedtak.id,
+            innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
+            klagesDetPåKonkreteElementerIVedtaket = true,
+            erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
+            begrunnelse = "SomeBegrunnelse",
+        )
+        var expectedKlage: VilkårsvurdertKlage.Utfylt?
+        mocks.service.vilkårsvurder(request).orNull()!!.also {
+            expectedKlage = VilkårsvurdertKlage.Utfylt.create(
+                id = it.id,
+                opprettet = fixedTidspunkt,
+                sakId = klage.sakId,
+                saksnummer = klage.saksnummer,
+                fnr = klage.fnr,
+                journalpostId = klage.journalpostId,
+                oppgaveId = klage.oppgaveId,
+                saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
+                vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+                    vedtakId = it.vilkårsvurderinger.vedtakId!!,
+                    innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
+                    klagesDetPåKonkreteElementerIVedtaket = true,
+                    erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
+                    begrunnelse = "SomeBegrunnelse",
+                ),
+                vurderinger = vurderingerTilKlage,
+                attesteringer = attesteringer,
+                datoKlageMottatt = 1.desember(2021),
+            )
+            it shouldBe expectedKlage
+        }
+
+        verify(mocks.vedtakRepoMock).hentForVedtakId(vedtak.id)
+        verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
+        verify(mocks.klageRepoMock).defaultTransactionContext()
+        verify(mocks.klageRepoMock).lagre(
+            argThat {
+                it shouldBe expectedKlage
+            },
+            argThat {
+                it shouldBe TestSessionFactory.transactionContext
+            }
+        )
+        mocks.verifyNoMoreInteractions()
+    }
+}

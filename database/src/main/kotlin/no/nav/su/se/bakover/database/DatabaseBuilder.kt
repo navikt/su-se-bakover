@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.hendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
+import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonRepo
@@ -41,6 +42,7 @@ import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
+import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
 import org.jetbrains.annotations.TestOnly
 import java.time.Clock
@@ -175,6 +177,7 @@ object DatabaseBuilder {
         )
         val hendelseRepo = PersonhendelsePostgresRepo(dataSource, clock)
         val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource, clock)
+        val klageRepo = KlagePostgresRepo(sessionFactory)
 
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(dataSource),
@@ -194,6 +197,7 @@ object DatabaseBuilder {
                 revurderingRepo = revurderingRepo,
                 vedtakPostgresRepo = vedtakRepo,
                 dbMetrics = dbMetrics,
+                klageRepo = klageRepo
             ),
             person = PersonPostgresRepo(
                 dataSource = dataSource,
@@ -209,6 +213,7 @@ object DatabaseBuilder {
             dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory),
             nøkkeltallRepo = nøkkeltallRepo,
             sessionFactory = sessionFactory,
+            klageRepo = klageRepo
         )
     }
 }
@@ -230,4 +235,5 @@ data class DatabaseRepos(
     val dokumentRepo: DokumentRepo,
     val nøkkeltallRepo: NøkkeltallRepo,
     val sessionFactory: SessionFactory,
+    val klageRepo: KlageRepo
 )

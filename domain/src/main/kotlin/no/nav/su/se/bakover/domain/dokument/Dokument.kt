@@ -88,6 +88,7 @@ sealed class Dokument {
         val søknadId: UUID? = null,
         val vedtakId: UUID? = null,
         val revurderingId: UUID? = null,
+        val klageId: UUID? = null,
         /**
          * Hvis satt til true, vil det automatisk opprettes en [Dokumentdistribusjon] for dette [Dokument] ved lagring.
          */

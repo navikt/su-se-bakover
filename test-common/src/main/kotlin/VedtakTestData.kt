@@ -164,7 +164,7 @@ fun vedtakIverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         stønadsperiode = Stønadsperiode.create(periode, "whatever"),
         clock = clock,
     ),
-    attestering: Attestering = attesteringIverksatt,
+    attestering: Attestering = attesteringIverksatt(clock = clock),
 ): Pair<Sak, Vedtak.EndringIYtelse.StansAvYtelse> {
     return iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak(
         periode = periode,
@@ -206,7 +206,7 @@ fun vedtakIverksattGjenopptakAvYtelseFraIverksattStans(
         periode = periode,
         clock = clock,
     ),
-    attestering: Attestering = attesteringIverksatt,
+    attestering: Attestering = attesteringIverksatt(clock = clock),
 ): Pair<Sak, Vedtak.EndringIYtelse.GjenopptakAvYtelse> {
     return iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse(
         periode = periode,
@@ -259,7 +259,7 @@ fun vedtakRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         )
     },
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-    attestering: Attestering.Iverksatt = attesteringIverksatt,
+    attestering: Attestering.Iverksatt = attesteringIverksatt(clock = clock),
 ): Pair<Sak, Vedtak.EndringIYtelse.OpphørtRevurdering> {
     return iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         saksnummer = saksnummer,
