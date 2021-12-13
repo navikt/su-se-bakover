@@ -61,40 +61,22 @@ subprojects {
         testImplementation("io.zonky.test:embedded-postgres:1.3.1")
 
         constraints {
-            implementation("org.apache.commons:commons-compress") {
-                because("org.apache.avro:avro:1.10.2 -> https://snyk.io/vuln/SNYK-JAVA-ORGAPACHECOMMONS-1316641")
-                version {
-                    require("1.21")
-                }
-            }
-            implementation("org.postgresql:postgresql") {
-                because("no.nav:vault-jdbc@1.3.7 -> https://app.snyk.io/vuln/SNYK-JAVA-ORGPOSTGRESQL-571481")
-                version {
-                    require("42.2.23")
-                }
-            }
             implementation("commons-collections:commons-collections") {
                 because("org.apache.cxf:cxf-rt-ws-security@3.4.4 -> https://app.snyk.io/vuln/SNYK-JAVA-COMMONSCOLLECTIONS-30078 and https://snyk.io/vuln/SNYK-JAVA-COMMONSCOLLECTIONS-472711")
                 version {
                     require("3.2.2")
                 }
             }
-            implementation("org.eclipse.jetty:jetty-server") {
-                because("no.nav:kafka-embedded-env@2.8.0 -> https://snyk.io/vuln/SNYK-JAVA-ORGECLIPSEJETTY-1313686")
+            implementation("io.netty:netty-codec-http2") {
+                because("io.netty:netty-codec@4.1.63.Final and io.ktor:ktor-server-netty@1.6.4 -> https://snyk.io/vuln/SNYK-JAVA-IONETTY-2314893")
                 version {
-                    require("9.4.43.v20210629")
+                    require("4.1.71.Final")
                 }
             }
-            implementation("org.apache.santuario:xmlsec") {
-                because("org.apache.cxf:cxf-rt-frontend-jaxws:3.4.4 and org.apache.cxf:cxf-rt-ws-security:3.4.4 -> https://app.snyk.io/vuln/SNYK-JAVA-ORGAPACHESANTUARIO-1655558")
+            implementation("com.google.code.gson:gson") {
+                because("no.finn.unleash:unleash-client-java@4.4.1 -> https://security.snyk.io/vuln/SNYK-JAVA-COMGOOGLECODEGSON-1730327")
                 version {
-                    require("2.2.3")
-                }
-            }
-            implementation("io.netty:netty-codec") {
-                because("io.ktor:ktor-server-netty@1.6.3 -> https://app.snyk.io/vuln/SNYK-JAVA-IONETTY-1584063 and https://app.snyk.io/vuln/SNYK-JAVA-IONETTY-1584064")
-                version {
-                    require("4.1.68.Final")
+                    require("2.8.9")
                 }
             }
         }
