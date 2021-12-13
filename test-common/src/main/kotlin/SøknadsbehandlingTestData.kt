@@ -13,6 +13,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import java.time.Clock
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 val behandlingsinformasjonAlleVilkårUavklart = Behandlingsinformasjon
@@ -322,7 +324,8 @@ fun søknadsbehandlingUnderkjentInnvilget(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    attestering: Attestering = attesteringUnderkjent,
+    clock: Clock = fixedClock,
+    attestering: Attestering = attesteringUnderkjent(clock = clock),
 ): Pair<Sak, Søknadsbehandling.Underkjent.Innvilget> {
     return søknadsbehandlingTilAttesteringInnvilget(
         saksnummer = saksnummer,
@@ -349,7 +352,8 @@ fun søknadsbehandlingUnderkjentAvslagUtenBeregning(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
-    attestering: Attestering = attesteringUnderkjent,
+    clock: Clock = fixedClock,
+    attestering: Attestering = attesteringUnderkjent(clock = clock),
 ): Pair<Sak, Søknadsbehandling.Underkjent.Avslag.UtenBeregning> {
     return søknadsbehandlingTilAttesteringAvslagUtenBeregning(
         saksnummer = saksnummer,
@@ -386,7 +390,8 @@ fun søknadsbehandlingUnderkjentAvslagMedBeregning(
             )
         ),
     ),
-    attestering: Attestering = attesteringUnderkjent,
+    clock: Clock = fixedClock,
+    attestering: Attestering = attesteringUnderkjent(clock = clock),
 ): Pair<Sak, Søknadsbehandling.Underkjent.Avslag.MedBeregning> {
     return søknadsbehandlingTilAttesteringAvslagMedBeregning(
         saksnummer = saksnummer,
@@ -413,6 +418,7 @@ fun søknadsbehandlingIverksattInnvilget(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    clock: Clock = fixedClock,
 ): Pair<Sak, Søknadsbehandling.Iverksatt.Innvilget> {
     return søknadsbehandlingTilAttesteringInnvilget(
         saksnummer = saksnummer,
@@ -422,7 +428,7 @@ fun søknadsbehandlingIverksattInnvilget(
         vilkårsvurderinger = vilkårsvurderinger,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.tilIverksatt(
-            attestering = attesteringIverksatt,
+            attestering = attesteringIverksatt(clock),
         )
         Pair(
             sak.copy(
@@ -449,6 +455,7 @@ fun søknadsbehandlingIverksattAvslagMedBeregning(
             )
         ),
     ),
+    clock: Clock = fixedClock,
 ): Pair<Sak, Søknadsbehandling.Iverksatt.Avslag.MedBeregning> {
     return søknadsbehandlingTilAttesteringAvslagMedBeregning(
         saksnummer = saksnummer,
@@ -458,7 +465,7 @@ fun søknadsbehandlingIverksattAvslagMedBeregning(
         vilkårsvurderinger = vilkårsvurderinger,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.tilIverksatt(
-            attestering = attesteringIverksatt,
+            attestering = attesteringIverksatt(clock),
         )
         Pair(
             sak.copy(
@@ -475,6 +482,7 @@ fun søknadsbehandlingIverksattAvslagUtenBeregning(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårAvslått,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerAvslåttAlle(stønadsperiode.periode),
+    clock: Clock = fixedClock,
 ): Pair<Sak, Søknadsbehandling.Iverksatt.Avslag.UtenBeregning> {
     return søknadsbehandlingTilAttesteringAvslagUtenBeregning(
         saksnummer = saksnummer,
@@ -484,7 +492,7 @@ fun søknadsbehandlingIverksattAvslagUtenBeregning(
         vilkårsvurderinger = vilkårsvurderinger,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.tilIverksatt(
-            attestering = attesteringIverksatt,
+            attestering = attesteringIverksatt(clock = clock.plus(1, ChronoUnit.SECONDS)),
         )
         Pair(
             sak.copy(

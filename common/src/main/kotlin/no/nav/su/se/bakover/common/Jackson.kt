@@ -35,7 +35,6 @@ inline fun <reified T> List<T>.serialize(): String {
 }
 inline fun <reified T> String.deserializeList(): List<T> {
     val listType = objectMapper.typeFactory.constructCollectionLikeType(List::class.java, T::class.java)
-    // return objectMapper.readerFor(listType).readValue(this)
     return objectMapper.readerFor(listType).readValue(this)
 }
 

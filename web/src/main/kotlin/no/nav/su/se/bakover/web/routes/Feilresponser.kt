@@ -21,6 +21,11 @@ internal object Feilresponser {
         "fant_ikke_sak",
     )
 
+    val fantIkkeVedtak = NotFound.errorJson(
+        "Fant ikke vedtak",
+        "fant_ikke_vedtak",
+    )
+
     val ikkeTilgangTilPerson = Forbidden.errorJson(
         "Ikke tilgang til å se person", "ikke_tilgang_til_person",
     )
@@ -31,12 +36,17 @@ internal object Feilresponser {
     )
 
     val feilVedOppslagPåPerson = InternalServerError.errorJson(
-        "Feil ved oppslag på person", "feil_ved_oppslag_person"
+        "Feil ved oppslag på person", "feil_ved_oppslag_person",
     )
 
     val fantIkkeSøknad = NotFound.errorJson(
         "Fant ikke søknad",
         "fant_ikke_søknad",
+    )
+
+    val fantIkkeKlage = NotFound.errorJson(
+        "Fant ikke klage",
+        "fant_ikke_klage",
     )
 
     val harAlleredeÅpenBehandling = BadRequest.errorJson(
@@ -128,14 +138,9 @@ internal object Feilresponser {
         "fant_ikke_gjeldende_utbetaling",
     )
 
-    val kunneIkkeLeggeTilAvkorting = InternalServerError.errorJson(
-        "Klarte ikke legge til avkorting",
-        "klarte_ikke_legge_til_avkorting",
-    )
-
-    val kunneIkkeFjereAvkorting = InternalServerError.errorJson(
-        "Klarte ikke fjerne gammel avkorting",
-        "klarte_ikke_fjerne_gammel_avkorting",
+    val attestantOgSaksbehandlerKanIkkeVæreSammePerson = Forbidden.errorJson(
+        "Attestant og saksbehandler kan ikke være samme person",
+        "attestant_og_saksbehandler_kan_ikke_være_samme_person",
     )
 
     val kunneIkkeSimulere = InternalServerError.errorJson(

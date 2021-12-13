@@ -34,8 +34,8 @@ internal class DokumentPostgresRepo(
     override fun lagre(dokument: Dokument.MedMetadata, transactionContext: TransactionContext) {
         transactionContext.withTransaction { tx ->
             """
-                insert into dokument(id, opprettet, sakId, generertDokument, generertDokumentJson, type, tittel, søknadId, vedtakId, revurderingId, bestillbrev) 
-                values (:id, :opprettet, :sakId, :generertDokument, to_json(:generertDokumentJson::json), :type, :tittel, :soknadId, :vedtakId, :revurderingId, :bestillbrev)
+                insert into dokument(id, opprettet, sakId, generertDokument, generertDokumentJson, type, tittel, søknadId, vedtakId, revurderingId, klageId, bestillbrev) 
+                values (:id, :opprettet, :sakId, :generertDokument, to_json(:generertDokumentJson::json), :type, :tittel, :soknadId, :vedtakId, :revurderingId, :klageId, :bestillbrev)
             """.trimIndent()
                 .insert(
                     mapOf(
@@ -52,6 +52,7 @@ internal class DokumentPostgresRepo(
                         "soknadId" to dokument.metadata.søknadId,
                         "vedtakId" to dokument.metadata.vedtakId,
                         "revurderingId" to dokument.metadata.revurderingId,
+                        "klageId" to dokument.metadata.klageId,
                         "bestillbrev" to dokument.metadata.bestillBrev,
                     ),
                     tx,
@@ -114,6 +115,17 @@ internal class DokumentPostgresRepo(
         return dataSource.withSession { session ->
             """
                 select * from dokument where revurderingId = :id
+            """.trimIndent()
+                .hentListe(mapOf("id" to id), session) {
+                    it.toDokument()
+                }
+        }
+    }
+
+    override fun hentForKlage(id: UUID): List<Dokument.MedMetadata> {
+        return dataSource.withSession { session ->
+            """
+                select * from dokument where klageId = :id
             """.trimIndent()
                 .hentListe(mapOf("id" to id), session) {
                     it.toDokument()
@@ -214,6 +226,7 @@ internal class DokumentPostgresRepo(
         val søknadId = uuidOrNull("søknadId")
         val vedtakId = uuidOrNull("vedtakId")
         val revurderingId = uuidOrNull("revurderingId")
+        val klageId = uuidOrNull("klageId")
         val tittel = string("tittel")
         val bestillbrev = boolean("bestillbrev")
         val brevbestillingId = if (hentStatus) stringOrNull("brevbestillingid") else null
@@ -231,6 +244,7 @@ internal class DokumentPostgresRepo(
                     søknadId = søknadId,
                     vedtakId = vedtakId,
                     revurderingId = revurderingId,
+                    klageId = klageId,
                     bestillBrev = bestillbrev,
                     brevbestillingId = brevbestillingId,
                     journalpostId = journalpostId,
@@ -247,6 +261,7 @@ internal class DokumentPostgresRepo(
                     søknadId = søknadId,
                     vedtakId = vedtakId,
                     revurderingId = revurderingId,
+                    klageId = klageId,
                     bestillBrev = bestillbrev,
                     brevbestillingId = brevbestillingId,
                     journalpostId = journalpostId,

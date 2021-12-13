@@ -23,6 +23,18 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
+import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
+import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
+import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
+import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
+import no.nav.su.se.bakover.domain.klage.OpprettetKlage
+import no.nav.su.se.bakover.domain.klage.OversendtKlage
+import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
+import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -61,6 +73,12 @@ import no.nav.su.se.bakover.service.brev.HentDokumenterForIdType
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
+import no.nav.su.se.bakover.service.klage.KlageService
+import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
+import no.nav.su.se.bakover.service.klage.KunneIkkeLageBrevutkast
+import no.nav.su.se.bakover.service.klage.NyKlageRequest
+import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
+import no.nav.su.se.bakover.service.klage.VurderKlagevilkårRequest
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeKalleInnTilKontrollsamtale
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallService
@@ -752,7 +770,69 @@ open class AccessCheckProxy(
                     assertHarTilgangTilSak(sakId)
                     return services.kontrollsamtale.kallInn(sakId, saksbehandler)
                 }
-            }
+            },
+            klageService = object : KlageService {
+                override fun opprett(request: NyKlageRequest): Either<KunneIkkeOppretteKlage, OpprettetKlage> {
+                    assertHarTilgangTilSak(request.sakId)
+                    return services.klageService.opprett(request)
+                }
+
+                override fun vilkårsvurder(request: VurderKlagevilkårRequest): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
+                    assertHarTilgangTilKlage(request.klageId)
+                    return services.klageService.vilkårsvurder(request)
+                }
+
+                override fun bekreftVilkårsvurderinger(
+                    klageId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                ): Either<KunneIkkeBekrefteKlagesteg, VilkårsvurdertKlage.Bekreftet> {
+                    assertHarTilgangTilKlage(klageId)
+                    return services.klageService.bekreftVilkårsvurderinger(klageId, saksbehandler)
+                }
+
+                override fun vurder(request: KlageVurderingerRequest): Either<KunneIkkeVurdereKlage, VurdertKlage> {
+                    assertHarTilgangTilKlage(request.klageId)
+                    return services.klageService.vurder(request)
+                }
+
+                override fun bekreftVurderinger(
+                    klageId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                ): Either<KunneIkkeBekrefteKlagesteg, VurdertKlage.Bekreftet> {
+                    assertHarTilgangTilKlage(klageId)
+                    return services.klageService.bekreftVurderinger(klageId, saksbehandler)
+                }
+
+                override fun sendTilAttestering(
+                    klageId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                ): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
+                    assertHarTilgangTilKlage(klageId)
+                    return services.klageService.sendTilAttestering(klageId, saksbehandler)
+                }
+
+                override fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenne, VurdertKlage.Bekreftet> {
+                    assertHarTilgangTilKlage(request.klageId)
+                    return services.klageService.underkjenn(request)
+                }
+
+                override fun oversend(
+                    klageId: UUID,
+                    attestant: NavIdentBruker.Attestant,
+                ): Either<KunneIkkeOversendeKlage, OversendtKlage> {
+                    assertHarTilgangTilKlage(klageId)
+                    return services.klageService.oversend(klageId, attestant)
+                }
+
+                override fun brevutkast(
+                    klageId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    fritekst: String,
+                ): Either<KunneIkkeLageBrevutkast, ByteArray> {
+                    assertHarTilgangTilKlage(klageId)
+                    return services.klageService.brevutkast(klageId, saksbehandler, fritekst)
+                }
+            },
         )
     }
 
@@ -798,6 +878,11 @@ open class AccessCheckProxy(
 
     private fun assertHarTilgangTilVedtak(vedtakId: UUID) {
         personRepo.hentFnrForVedtak(vedtakId)
+            .forEach { assertHarTilgangTilPerson(it) }
+    }
+
+    private fun assertHarTilgangTilKlage(klageId: UUID) {
+        personRepo.hentFnrForKlage(klageId)
             .forEach { assertHarTilgangTilPerson(it) }
     }
 }

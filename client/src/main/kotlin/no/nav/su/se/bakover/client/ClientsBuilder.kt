@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
@@ -37,4 +38,5 @@ data class Clients(
     val digitalKontaktinformasjon: DigitalKontaktinformasjon,
     val leaderPodLookup: LeaderPodLookup,
     val kafkaPublisher: KafkaPublisher,
+    val klageClient: KlageClient,
 )

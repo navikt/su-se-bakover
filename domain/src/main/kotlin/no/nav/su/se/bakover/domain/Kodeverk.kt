@@ -18,8 +18,12 @@ enum class Tema(val value: String) {
  * https://github.com/navikt/kodeverksmapper/blob/master/web/src/main/resources/underkategori.csv
  */
 enum class Behandlingstype(val value: String) {
+    /** UFOR_FLYKT_SOK_SUP;ab0431;ae0034;SUP */
     SØKNAD("ae0034"),
-    REVURDERING("ae0028");
+    /** UFOR_FLYKT_REVUR_SUP;ab0431;ae0028;SUP */
+    REVURDERING("ae0028"),
+    /** UFOR_FLYKT_KLAGE_SUP;ab0431;ae0058;SUP */
+    KLAGE("ae0058");
 
     override fun toString() = this.value
 }

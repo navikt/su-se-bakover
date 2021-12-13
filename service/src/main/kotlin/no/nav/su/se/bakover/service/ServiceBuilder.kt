@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagServiceImpl
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingServiceImpl
+import no.nav.su.se.bakover.service.klage.KlageServiceImpl
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleServiceImpl
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
@@ -143,6 +144,18 @@ object ServiceBuilder {
         ).apply {
             addObserver(statistikkService)
         }
+        val klageService = KlageServiceImpl(
+            sakRepo = databaseRepos.sak,
+            klageRepo = databaseRepos.klageRepo,
+            vedtakRepo = databaseRepos.vedtakRepo,
+            brevService = brevService,
+            personService = personService,
+            microsoftGraphApiClient = clients.microsoftGraphApiClient,
+            klageClient = clients.klageClient,
+            sessionFactory = databaseRepos.sessionFactory,
+            oppgaveService = oppgaveService,
+            clock = clock,
+        )
         return Services(
             avstemming = AvstemmingServiceImpl(
                 repo = databaseRepos.avstemming,
@@ -192,7 +205,8 @@ object ServiceBuilder {
                 oppgaveService = oppgaveService,
                 sessionFactory = databaseRepos.sessionFactory,
                 clock = clock,
-            )
+            ),
+            klageService = klageService,
         )
     }
 }

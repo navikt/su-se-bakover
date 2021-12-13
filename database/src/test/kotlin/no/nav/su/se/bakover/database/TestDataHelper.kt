@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingP
 import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
+import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
@@ -48,6 +49,16 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.Hjemler
+import no.nav.su.se.bakover.domain.klage.Hjemmel
+import no.nav.su.se.bakover.domain.klage.Klage
+import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
+import no.nav.su.se.bakover.domain.klage.OpprettetKlage
+import no.nav.su.se.bakover.domain.klage.OversendtKlage
+import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
+import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
+import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
+import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -269,13 +280,6 @@ internal class TestDataHelper(
         dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
     )
-    internal val sakRepo = SakPostgresRepo(
-        sessionFactory = sessionFactory,
-        søknadsbehandlingRepo = søknadsbehandlingRepo,
-        revurderingRepo = revurderingRepo,
-        vedtakPostgresRepo = vedtakRepo,
-        dbMetrics = dbMetrics,
-    )
     internal val personRepo = PersonPostgresRepo(
         dataSource = dataSource,
         dbMetrics = dbMetrics,
@@ -283,6 +287,16 @@ internal class TestDataHelper(
     internal val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource = dataSource, fixedClock)
     internal val dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory)
     internal val hendelsePostgresRepo = PersonhendelsePostgresRepo(dataSource, fixedClock)
+    internal val klagePostgresRepo = KlagePostgresRepo(sessionFactory)
+
+    internal val sakRepo = SakPostgresRepo(
+        sessionFactory = sessionFactory,
+        søknadsbehandlingRepo = søknadsbehandlingRepo,
+        revurderingRepo = revurderingRepo,
+        vedtakPostgresRepo = vedtakRepo,
+        dbMetrics = dbMetrics,
+        klageRepo = klagePostgresRepo
+    )
 
     fun nySakMedNySøknad(
         fnr: Fnr = Fnr.generer(),
@@ -884,6 +898,121 @@ internal class TestDataHelper(
             iverksattAttestering,
         ).also {
             søknadsbehandlingRepo.lagre(it)
+        }
+    }
+
+    fun nyKlage(
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+    ): OpprettetKlage {
+        return Klage.ny(
+            sakId = vedtak.behandling.sakId,
+            saksnummer = vedtak.behandling.saksnummer,
+            fnr = vedtak.behandling.fnr,
+            journalpostId = JournalpostId(value = "journalpostIdKlage"),
+            oppgaveId = oppgaveId,
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerNyKlage"),
+            clock = fixedClock,
+            datoKlageMottatt = fixedLocalDate,
+        ).also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun utfyltVilkårsvurdertKlage(
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+    ): VilkårsvurdertKlage.Utfylt {
+        return nyKlage(vedtak = vedtak).vilkårsvurder(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVilkårsvurdertKlage"),
+            vilkårsvurderinger = VilkårsvurderingerTilKlage.Utfylt(
+                vedtakId = vedtak.id,
+                innenforFristen = VilkårsvurderingerTilKlage.Svarord.JA,
+                klagesDetPåKonkreteElementerIVedtaket = true,
+                erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
+                begrunnelse = "enBegrunnelse",
+            ),
+        ).also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun bekreftetVilkårsvurdertKlage(
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+    ): VilkårsvurdertKlage.Bekreftet {
+        return utfyltVilkårsvurdertKlage(vedtak = vedtak).bekreftVilkårsvurderinger(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerBekreftetVilkårsvurdertKlage"),
+        ).orNull()!!.also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun utfyltVurdertKlage(
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+    ): VurdertKlage.Utfylt {
+        return bekreftetVilkårsvurdertKlage(vedtak = vedtak).vurder(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerUtfyltVUrdertKlage"),
+            vurderinger = VurderingerTilKlage.Utfylt(
+                fritekstTilBrev = "Friteksten til brevet er som følge: ",
+                vedtaksvurdering = VurderingerTilKlage.Vedtaksvurdering.Utfylt.Oppretthold(
+                    hjemler = Hjemler.Utfylt.create(
+                        nonEmptyListOf(Hjemmel.SU_PARAGRAF_3, Hjemmel.SU_PARAGRAF_4),
+                    ),
+                ),
+            ),
+        ).also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun bekreftetVurdertKlage(
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+    ): VurdertKlage.Bekreftet {
+        return utfyltVurdertKlage(vedtak = vedtak).bekreftVurderinger(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerBekreftetVurdertKlage"),
+        ).orNull()!!.also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun klageTilAttestering(
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
+    ): KlageTilAttestering {
+        return bekreftetVurdertKlage(vedtak = vedtak).sendTilAttestering(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerKlageTilAttestering"),
+            opprettOppgave = { oppgaveId.right() },
+        ).orNull()!!.also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun underkjentKlage(
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        oppgaveId: OppgaveId = OppgaveId("underkjentKlageOppgaveId"),
+    ): VurdertKlage.Bekreftet {
+        return klageTilAttestering(vedtak = vedtak, oppgaveId = oppgaveId).underkjenn(
+            underkjentAttestering = Attestering.Underkjent(
+                attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerUnderkjentKlage"),
+                opprettet = fixedTidspunkt,
+                grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                kommentar = "underkjennelseskommentar",
+            ),
+            opprettOppgave = { oppgaveId.right() },
+        ).orNull()!!.also {
+            klagePostgresRepo.lagre(it)
+        }
+    }
+
+    fun oversendtKlage(
+        vedtak: Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling = vedtakMedInnvilgetSøknadsbehandling().first,
+        oppgaveId: OppgaveId = OppgaveId("klageTilAttesteringOppgaveId"),
+    ): OversendtKlage {
+        return klageTilAttestering(vedtak = vedtak, oppgaveId = oppgaveId).oversend(
+            iverksattAttestering = Attestering.Iverksatt(
+                attestant = NavIdentBruker.Attestant(navIdent = "saksbehandlerOversendtKlage"),
+                opprettet = fixedTidspunkt,
+            ),
+        ).orNull()!!.also {
+            klagePostgresRepo.lagre(it)
         }
     }
 

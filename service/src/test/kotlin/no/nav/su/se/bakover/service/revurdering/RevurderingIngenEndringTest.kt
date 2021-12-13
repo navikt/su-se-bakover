@@ -318,7 +318,7 @@ class RevurderingIngenEndringTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attesteringUnderkjent),
+            attesteringer = Attesteringshistorikk.empty().leggTilNyAttestering(attesteringUnderkjent(clock = fixedClock)),
             skalFøreTilBrevutsending = false,
             grunnlagsdata = Grunnlagsdata.IkkeVurdert,
             vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
@@ -346,7 +346,7 @@ class RevurderingIngenEndringTest {
             oppgaveService = oppgaveServiceMock,
         ).underkjenn(
             revurderingId,
-            attesteringUnderkjent,
+            attesteringUnderkjent(clock = fixedClock),
         ).orNull()!! as UnderkjentRevurdering.IngenEndring
 
         actual shouldBe underkjentRevurdering

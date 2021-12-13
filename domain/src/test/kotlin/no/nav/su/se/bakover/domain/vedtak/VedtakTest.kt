@@ -417,7 +417,7 @@ internal class VedtakTest {
                 beregning = mock(),
                 simulering = mock(),
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-                attesteringer = Attesteringshistorikk(
+                attesteringer = Attesteringshistorikk.create(
                     listOf(
                         Attestering.Iverksatt(
                             attestant = NavIdentBruker.Attestant("Attes T. Ant"),

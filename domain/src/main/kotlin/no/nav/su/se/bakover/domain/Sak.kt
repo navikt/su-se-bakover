@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.reduser
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
@@ -62,6 +63,7 @@ data class Sak(
     val utbetalinger: List<Utbetaling>,
     val revurderinger: List<AbstraktRevurdering> = emptyList(),
     val vedtakListe: List<Vedtak> = emptyList(),
+    val klager: List<Klage> = emptyList()
 ) {
     fun utbetalingstidslinje(
         periode: Periode = Periode.create(
@@ -147,6 +149,10 @@ data class Sak(
                     .reduser()
             }.reduser()
     }
+
+    fun hentÅpneKlager(): List<Klage> = klager.filter { it.erÅpen() }
+
+    fun hentKlage(klageId: UUID): Klage? = klager.find { it.id == klageId }
 }
 
 data class NySak(
@@ -166,6 +172,7 @@ data class NySak(
             utbetalinger = emptyList(),
             revurderinger = emptyList(),
             vedtakListe = emptyList(),
+            klager = emptyList()
         )
     }
 }
@@ -174,7 +181,10 @@ class SakFactory(
     private val uuidFactory: UUIDFactory = UUIDFactory(),
     private val clock: Clock,
 ) {
-    fun nySakMedNySøknad(fnr: Fnr, søknadInnhold: SøknadInnhold): NySak {
+    fun nySakMedNySøknad(
+        fnr: Fnr,
+        søknadInnhold: SøknadInnhold,
+    ): NySak {
         val opprettet = Tidspunkt.now(clock)
         val sakId = uuidFactory.newUUID()
         return NySak(

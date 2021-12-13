@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdVilkårsvurderingP
 import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
+import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
@@ -32,6 +33,7 @@ import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagRepo
 import no.nav.su.se.bakover.domain.hendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.hendelseslogg.HendelsesloggRepo
+import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
@@ -181,6 +183,7 @@ object DatabaseBuilder {
         )
         val hendelseRepo = PersonhendelsePostgresRepo(dataSource, clock)
         val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource, clock)
+        val klageRepo = KlagePostgresRepo(sessionFactory)
 
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(dataSource),
@@ -200,6 +203,7 @@ object DatabaseBuilder {
                 revurderingRepo = revurderingRepo,
                 vedtakPostgresRepo = vedtakRepo,
                 dbMetrics = dbMetrics,
+                klageRepo = klageRepo
             ),
             person = PersonPostgresRepo(
                 dataSource = dataSource,
@@ -215,6 +219,7 @@ object DatabaseBuilder {
             dokumentRepo = DokumentPostgresRepo(dataSource, sessionFactory),
             nøkkeltallRepo = nøkkeltallRepo,
             sessionFactory = sessionFactory,
+            klageRepo = klageRepo,
             avkortingsvarselRepo = avkortingsvarselRepo,
         )
     }
@@ -237,5 +242,6 @@ data class DatabaseRepos(
     override val dokumentRepo: DokumentRepo,
     override val nøkkeltallRepo: NøkkeltallRepo,
     override val sessionFactory: SessionFactory,
+    override val klageRepo: KlageRepo,
     override val avkortingsvarselRepo: AvkortingsvarselRepo,
 ) : no.nav.su.se.bakover.domain.database.DatabaseRepos

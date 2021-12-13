@@ -38,29 +38,6 @@ class SimuleringStub(
                 .sumOf { it.belop }
         }
 
-    private fun simulerIngenUtbetaling(utbetaling: Utbetaling): Simulering {
-        val simuleringsPeriode = when (val sisteUtbetalingslinje = utbetaling.sisteUtbetalingslinje()) {
-            is Utbetalingslinje.Endring -> SimulertPeriode(
-                fraOgMed = sisteUtbetalingslinje.virkningstidspunkt,
-                tilOgMed = utbetaling.senesteDato(),
-                utbetaling = emptyList(),
-            )
-            else -> SimulertPeriode(
-                fraOgMed = utbetaling.tidligsteDato(),
-                tilOgMed = utbetaling.senesteDato(),
-                utbetaling = emptyList(),
-            )
-        }
-
-        return Simulering(
-            gjelderId = utbetaling.fnr,
-            gjelderNavn = "MYGG LUR",
-            datoBeregnet = idag(clock),
-            nettoBeløp = 0,
-            periodeList = listOf(simuleringsPeriode),
-        )
-    }
-
     private fun simulerUtbetalinger(utbetaling: Utbetaling): Simulering {
         return utbetaling.utbetalingslinjer.map {
             when (it) {

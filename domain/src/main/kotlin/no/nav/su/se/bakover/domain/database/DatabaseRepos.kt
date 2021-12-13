@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagRepo
 import no.nav.su.se.bakover.domain.hendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.hendelseslogg.HendelsesloggRepo
+import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
@@ -35,5 +36,6 @@ interface DatabaseRepos {
     val dokumentRepo: DokumentRepo
     val nøkkeltallRepo: NøkkeltallRepo
     val sessionFactory: SessionFactory
+    val klageRepo: KlageRepo
     val avkortingsvarselRepo: AvkortingsvarselRepo
 }

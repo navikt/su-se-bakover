@@ -38,6 +38,7 @@ internal class SakJsonTest {
         opprettet = fixedTidspunkt,
         fnr = Fnr("12345678910"),
         utbetalinger = emptyList(),
+        klager = emptyList()
     )
 
     //language=JSON
@@ -52,7 +53,8 @@ internal class SakJsonTest {
                 "utbetalinger": [],
                 "utbetalingerKanStansesEllerGjenopptas": "INGEN",
                 "revurderinger": [],
-                "vedtak": []
+                "vedtak": [],
+                "klager": []
             }
         """.trimIndent()
 

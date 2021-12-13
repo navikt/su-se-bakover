@@ -132,7 +132,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     mapOf(
                         "behandlingsinformasjon" to objectMapper.writeValueAsString(it.behandlingsinformasjon),
                         "saksbehandler" to it.saksbehandler,
-                        "attestering" to it.attesteringer.hentAttesteringer().serialize(),
+                        "attestering" to it.attesteringer.serialize(),
                         "fritekstTilBrev" to it.fritekstTilBrev,
                         "stonadsperiode" to objectMapper.writeValueAsString(it.stønadsperiode),
                         "status" to it.status.toString(),
@@ -152,8 +152,8 @@ internal class SøknadsbehandlingPostgresRepo(
             "select b.attestering from behandling b where b.id=:id"
                 .hent(mapOf("id" to id), session) { row ->
                     row.stringOrNull("attestering")?.let {
-                        val attesteringer = Attesteringshistorikk(objectMapper.readValue(it))
-                        attesteringer.hentAttesteringer().lastOrNull()
+                        val attesteringer = Attesteringshistorikk.create(objectMapper.readValue(it))
+                        attesteringer.lastOrNull()
                     }
                 }
         }
@@ -215,7 +215,7 @@ internal class SøknadsbehandlingPostgresRepo(
         val oppgaveId = OppgaveId(string("oppgaveId"))
         val beregning = deserialiserBeregning(stringOrNull("beregning"))
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
-        val attesteringer = Attesteringshistorikk(objectMapper.readValue(string("attestering")))
+        val attesteringer = Attesteringshistorikk.create(objectMapper.readValue(string("attestering")))
         val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }
         val saksnummer = Saksnummer(long("saksnummer"))
         val fritekstTilBrev = stringOrNull("fritekstTilBrev") ?: ""
@@ -585,7 +585,7 @@ internal class SøknadsbehandlingPostgresRepo(
         """.trimIndent()
             .oppdatering(
                 params = defaultParams(søknadsbehandling).plus(
-                    "attestering" to søknadsbehandling.attesteringer.hentAttesteringer().serialize(),
+                    "attestering" to søknadsbehandling.attesteringer.serialize(),
                 ),
                 session = tx,
             )
@@ -601,7 +601,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     .oppdatering(
                         params = defaultParams(søknadsbehandling).plus(
                             listOf(
-                                "attestering" to søknadsbehandling.attesteringer.hentAttesteringer().serialize(),
+                                "attestering" to søknadsbehandling.attesteringer.serialize(),
                             ),
                         ),
                         session = tx,
@@ -614,7 +614,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     .oppdatering(
                         params = defaultParams(søknadsbehandling).plus(
                             listOf(
-                                "attestering" to søknadsbehandling.attesteringer.hentAttesteringer().serialize(),
+                                "attestering" to søknadsbehandling.attesteringer.serialize(),
                             ),
                         ),
                         session = tx,

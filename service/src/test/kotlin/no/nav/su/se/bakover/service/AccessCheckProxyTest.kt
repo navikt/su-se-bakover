@@ -42,6 +42,7 @@ internal class AccessCheckProxyTest {
         nøkkeltallService = mock(),
         avslåSøknadManglendeDokumentasjonService = mock(),
         kontrollsamtale = mock(),
+        klageService = mock(),
     )
 
     @Nested
@@ -236,6 +237,10 @@ internal class AccessCheckProxyTest {
                 }
 
                 override fun hentFnrForVedtak(vedtakId: UUID): List<Fnr> {
+                    return listOf(Fnr.generer())
+                }
+
+                override fun hentFnrForKlage(klageId: UUID): List<Fnr> {
                     return listOf(Fnr.generer())
                 }
             },
