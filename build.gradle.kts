@@ -144,3 +144,10 @@ tasks.check {
     // Må ligge på root nivå
     dependsOn("installKotlinterPrePushHook")
 }
+
+configurations {
+    all {
+        // Vi bruker logback og mener vi kan trygt sette en exclude på log4j: https://security.snyk.io/vuln/SNYK-JAVA-ORGAPACHELOGGINGLOG4J-2314720
+        exclude(group = "org.apache.logging.log4j", module = "log4j-core")
+    }
+}
