@@ -93,8 +93,8 @@ sealed class Klage {
     /** @return [OversendtKlage] */
     open fun oversend(
         iverksattAttestering: Attestering.Iverksatt,
-    ): Either<KunneIkkeIverksetteKlage, OversendtKlage> {
-        return KunneIkkeIverksetteKlage.UgyldigTilstand(this::class, OversendtKlage::class).left()
+    ): Either<KunneIkkeOversendeKlage, OversendtKlage> {
+        return KunneIkkeOversendeKlage.UgyldigTilstand(this::class, OversendtKlage::class).left()
     }
 
     companion object {

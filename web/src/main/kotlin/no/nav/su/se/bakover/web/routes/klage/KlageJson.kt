@@ -305,7 +305,7 @@ private enum class Typer(val verdi: String) {
     /**
      * Man kommer i denne tilstanden dersom man var i VURDERT_BEKREFTET og valgte å sende til attestering.
      * Kan gå tilbake til VURDERT_BEKREFTET (underkjent)
-     * Kan gå fram til IVERKSATT
+     * Kan gå fram til OVERSENDT
      */
     TIL_ATTESTERING("TIL_ATTESTERING"),
 
@@ -314,7 +314,7 @@ private enum class Typer(val verdi: String) {
      * Dette er en endelig tilstand.
      * Man kommer ikke tilbake fra denne tilstanden.
      */
-    IVERKSATT("IVERKSATT");
+    OVERSENDT("OVERSENDT");
 
     companion object {
         fun Klage.frontendStatus(): String {
@@ -331,7 +331,7 @@ private enum class Typer(val verdi: String) {
 
                 is KlageTilAttestering -> TIL_ATTESTERING
 
-                is OversendtKlage -> IVERKSATT
+                is OversendtKlage -> OVERSENDT
             }.toString()
         }
     }

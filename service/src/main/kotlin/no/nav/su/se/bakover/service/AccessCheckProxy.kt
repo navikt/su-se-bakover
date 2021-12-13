@@ -25,8 +25,8 @@ import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
-import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
@@ -810,7 +810,7 @@ open class AccessCheckProxy(
                 override fun oversend(
                     klageId: UUID,
                     attestant: NavIdentBruker.Attestant,
-                ): Either<KunneIkkeIverksetteKlage, OversendtKlage> {
+                ): Either<KunneIkkeOversendeKlage, OversendtKlage> {
                     assertHarTilgangTilKlage(klageId)
                     return services.klageService.oversend(klageId, attestant)
                 }

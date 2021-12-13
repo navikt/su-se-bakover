@@ -20,9 +20,9 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
-import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
@@ -353,7 +353,7 @@ internal fun Route.klageRoutes(
     }
 
     authorize(Brukerrolle.Attestant) {
-        post("$klagePath/{klageId}/iverksett") {
+        post("$klagePath/{klageId}/oversend") {
             call.withKlageId { klageId ->
                 klageService.oversend(
                     klageId = klageId,
@@ -365,15 +365,15 @@ internal fun Route.klageRoutes(
                 }.mapLeft {
                     call.svar(
                         when (it) {
-                            KunneIkkeIverksetteKlage.FantIkkeKlage -> fantIkkeKlage
-                            is KunneIkkeIverksetteKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
-                            KunneIkkeIverksetteKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
-                            is KunneIkkeIverksetteKlage.KunneIkkeLageBrev -> it.feil.toErrorJson()
-                            KunneIkkeIverksetteKlage.FantIkkeJournalpostIdKnyttetTilVedtaket -> InternalServerError.errorJson(
+                            KunneIkkeOversendeKlage.FantIkkeKlage -> fantIkkeKlage
+                            is KunneIkkeOversendeKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                            KunneIkkeOversendeKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
+                            is KunneIkkeOversendeKlage.KunneIkkeLageBrev -> it.feil.toErrorJson()
+                            KunneIkkeOversendeKlage.FantIkkeJournalpostIdKnyttetTilVedtaket -> InternalServerError.errorJson(
                                 "Fant ikke journalpost-id knyttet til vedtaket. Utviklingsteamet ønsker og bli informert dersom dette oppstår.",
                                 "fant_ikke_journalpostid_knyttet_til_vedtaket",
                             )
-                            KunneIkkeIverksetteKlage.KunneIkkeOversendeTilKlageinstans -> InternalServerError.errorJson(
+                            KunneIkkeOversendeKlage.KunneIkkeOversendeTilKlageinstans -> InternalServerError.errorJson(
                                 "Kunne ikke oversende til klageinstans",
                                 "kunne_ikke_oversende_til_klageinstans",
                             )

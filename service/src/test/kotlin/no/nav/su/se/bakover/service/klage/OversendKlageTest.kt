@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.Klage
-import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeTilKlageinstans
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.service.argThat
@@ -45,7 +45,7 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import java.util.UUID
 
-internal class IverksettKlageTest {
+internal class OversendKlageTest {
 
     @Test
     fun `fant ikke klage`() {
@@ -59,7 +59,7 @@ internal class IverksettKlageTest {
         mocks.service.oversend(
             klageId = klageId,
             attestant = attestant,
-        ) shouldBe KunneIkkeIverksetteKlage.FantIkkeKlage.left()
+        ) shouldBe KunneIkkeOversendeKlage.FantIkkeKlage.left()
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klageId })
         mocks.verifyNoMoreInteractions()
     }
@@ -77,7 +77,7 @@ internal class IverksettKlageTest {
         mocks.service.oversend(
             klageId = klage.id,
             attestant = attestant,
-        ) shouldBe KunneIkkeIverksetteKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        ) shouldBe KunneIkkeOversendeKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         mocks.verifyNoMoreInteractions()
@@ -99,7 +99,7 @@ internal class IverksettKlageTest {
         mocks.service.oversend(
             klageId = klage.id,
             attestant = attestant,
-        ) shouldBe KunneIkkeIverksetteKlage.KunneIkkeLageBrev(KunneIkkeLageBrevForKlage.FantIkkeSaksbehandler).left()
+        ) shouldBe KunneIkkeOversendeKlage.KunneIkkeLageBrev(KunneIkkeLageBrevForKlage.FantIkkeSaksbehandler).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(mocks.microsoftGraphApiMock).hentNavnForNavIdent(argThat { it shouldBe klage.saksbehandler })
@@ -129,7 +129,7 @@ internal class IverksettKlageTest {
         mocks.service.oversend(
             klageId = klage.id,
             attestant = attestant,
-        ) shouldBe KunneIkkeIverksetteKlage.KunneIkkeLageBrev(KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF).left()
+        ) shouldBe KunneIkkeOversendeKlage.KunneIkkeLageBrev(KunneIkkeLageBrevForKlage.KunneIkkeGenererePDF).left()
 
         verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
@@ -177,7 +177,7 @@ internal class IverksettKlageTest {
         mocks.service.oversend(
             klageId = klage.id,
             attestant = attestant,
-        ) shouldBe KunneIkkeIverksetteKlage.FantIkkeJournalpostIdKnyttetTilVedtaket.left()
+        ) shouldBe KunneIkkeOversendeKlage.FantIkkeJournalpostIdKnyttetTilVedtaket.left()
 
         verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
@@ -231,7 +231,7 @@ internal class IverksettKlageTest {
         mocks.service.oversend(
             klageId = klage.id,
             attestant = attestant,
-        ) shouldBe KunneIkkeIverksetteKlage.KunneIkkeOversendeTilKlageinstans.left()
+        ) shouldBe KunneIkkeOversendeKlage.KunneIkkeOversendeTilKlageinstans.left()
 
         verify(mocks.klageRepoMock).hentKnyttetVedtaksdato(argThat { it shouldBe klage.id })
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
@@ -394,7 +394,7 @@ internal class IverksettKlageTest {
         mocks.service.oversend(
             klageId = klage.id,
             attestant = NavIdentBruker.Attestant("attestant"),
-        ) shouldBe KunneIkkeIverksetteKlage.UgyldigTilstand(klage::class, OversendtKlage::class).left()
+        ) shouldBe KunneIkkeOversendeKlage.UgyldigTilstand(klage::class, OversendtKlage::class).left()
 
         verify(mocks.klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         mocks.verifyNoMoreInteractions()

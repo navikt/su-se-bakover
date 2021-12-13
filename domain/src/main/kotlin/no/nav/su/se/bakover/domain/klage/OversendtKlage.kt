@@ -59,11 +59,11 @@ data class OversendtKlage private constructor(
     }
 }
 
-sealed class KunneIkkeIverksetteKlage {
-    object FantIkkeKlage : KunneIkkeIverksetteKlage()
-    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeIverksetteKlage()
-    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteKlage()
-    data class KunneIkkeLageBrev(val feil: KunneIkkeLageBrevForKlage) : KunneIkkeIverksetteKlage()
-    object FantIkkeJournalpostIdKnyttetTilVedtaket : KunneIkkeIverksetteKlage()
-    object KunneIkkeOversendeTilKlageinstans : KunneIkkeIverksetteKlage()
+sealed class KunneIkkeOversendeKlage {
+    object FantIkkeKlage : KunneIkkeOversendeKlage()
+    data class UgyldigTilstand(val fra: KClass<out Klage>, val til: KClass<out Klage>) : KunneIkkeOversendeKlage()
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeOversendeKlage()
+    data class KunneIkkeLageBrev(val feil: KunneIkkeLageBrevForKlage) : KunneIkkeOversendeKlage()
+    object FantIkkeJournalpostIdKnyttetTilVedtaket : KunneIkkeOversendeKlage()
+    object KunneIkkeOversendeTilKlageinstans : KunneIkkeOversendeKlage()
 }

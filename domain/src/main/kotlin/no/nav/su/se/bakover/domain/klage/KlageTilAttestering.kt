@@ -57,9 +57,9 @@ data class KlageTilAttestering private constructor(
 
     override fun oversend(
         iverksattAttestering: Attestering.Iverksatt
-    ): Either<KunneIkkeIverksetteKlage, OversendtKlage> {
+    ): Either<KunneIkkeOversendeKlage, OversendtKlage> {
         if (iverksattAttestering.attestant.navIdent == saksbehandler.navIdent) {
-            return KunneIkkeIverksetteKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+            return KunneIkkeOversendeKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
         }
         return OversendtKlage.create(
             id = id,

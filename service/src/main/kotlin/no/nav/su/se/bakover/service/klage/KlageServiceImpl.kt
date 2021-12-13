@@ -22,9 +22,9 @@ import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
-import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeUnderkjenne
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
@@ -204,8 +204,8 @@ class KlageServiceImpl(
     override fun oversend(
         klageId: UUID,
         attestant: NavIdentBruker.Attestant,
-    ): Either<KunneIkkeIverksetteKlage, OversendtKlage> {
-        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeIverksetteKlage.FantIkkeKlage.left()
+    ): Either<KunneIkkeOversendeKlage, OversendtKlage> {
+        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeOversendeKlage.FantIkkeKlage.left()
 
         val oversendtKlage = klage.oversend(
             Attestering.Iverksatt(
@@ -235,11 +235,11 @@ class KlageServiceImpl(
                 ),
             )
         }.getOrHandle {
-            return KunneIkkeIverksetteKlage.KunneIkkeLageBrev(it).left()
+            return KunneIkkeOversendeKlage.KunneIkkeLageBrev(it).left()
         }
 
         val journalpostIdForVedtak = vedtakRepo.hentJournalpostId(oversendtKlage.vilkårsvurderinger.vedtakId)
-            ?: return KunneIkkeIverksetteKlage.FantIkkeJournalpostIdKnyttetTilVedtaket.left().tapLeft {
+            ?: return KunneIkkeOversendeKlage.FantIkkeJournalpostIdKnyttetTilVedtaket.left().tapLeft {
                 log.error("Kunne ikke iverksette klage ${oversendtKlage.id} fordi vi ikke fant journalpostId til vedtak ${oversendtKlage.vilkårsvurderinger.vedtakId} (kan tyde på at klagen er knyttet til et vedtak vi ikke har laget brev for eller at databasen er i en ugyldig tilstand.)")
             }
 
@@ -255,7 +255,7 @@ class KlageServiceImpl(
                 ).getOrHandle { throw KunneIkkeOversendeTilKlageinstansEx() }
             }
         } catch (_: KunneIkkeOversendeTilKlageinstansEx) {
-            return KunneIkkeIverksetteKlage.KunneIkkeOversendeTilKlageinstans.left()
+            return KunneIkkeOversendeKlage.KunneIkkeOversendeTilKlageinstans.left()
         }
         oppgaveService.lukkOppgave(oversendtKlage.oppgaveId)
         return oversendtKlage.right()
