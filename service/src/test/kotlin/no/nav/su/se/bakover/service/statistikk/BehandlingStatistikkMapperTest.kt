@@ -14,17 +14,9 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
-import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
-import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -37,7 +29,10 @@ import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse
+import no.nav.su.se.bakover.test.iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
+import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
@@ -55,16 +50,10 @@ import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.util.UUID
 
 internal class BehandlingStatistikkMapperTest {
-
-    private val revurderingsårsak = Revurderingsårsak(
-        Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-        Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-    )
 
     @Test
     fun `mapper ny søknad`() {
@@ -271,27 +260,7 @@ internal class BehandlingStatistikkMapperTest {
 
     @Test
     fun `mapper opprettet revurdering`() {
-        val behandlingMock = mock<Behandling> {
-            on { sakId } doReturn UUID.randomUUID()
-            on { saksnummer } doReturn Saksnummer(2021)
-        }
-        val opprettetRevurdering = OpprettetRevurdering(
-            id = UUID.randomUUID(),
-            periode = Periode.create(1.januar(2021), 31.januar(2021)),
-            opprettet = fixedTidspunkt,
-            tilRevurdering = mock {
-                on { behandling } doReturn behandlingMock
-                on { id } doReturn UUID.randomUUID()
-            },
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "7"),
-            oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-        )
+        val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
 
         BehandlingStatistikkMapper(fixedClock).map(opprettetRevurdering) shouldBe Statistikk.Behandling(
             funksjonellTid = opprettetRevurdering.opprettet,
@@ -323,7 +292,7 @@ internal class BehandlingStatistikkMapperTest {
             resultatBegrunnelseBeskrivelse = null,
             resultatBeskrivelse = null,
             beslutter = null,
-            saksbehandler = "7",
+            saksbehandler = opprettetRevurdering.saksbehandler.navIdent,
             behandlingOpprettetAv = null,
             behandlingOpprettetType = null,
             behandlingOpprettetTypeBeskrivelse = null,
@@ -335,40 +304,8 @@ internal class BehandlingStatistikkMapperTest {
 
     @Test
     fun `mapper iverksatt revurdering`() {
-        val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
+        val iverksattRevurdering = iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
 
-        val behandlingMock = mock<Behandling> {
-            on { sakId } doReturn UUID.randomUUID()
-            on { saksnummer } doReturn Saksnummer(2021)
-        }
-        val iverksattRevurdering = IverksattRevurdering.Innvilget(
-            id = UUID.randomUUID(),
-            periode = periode,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = mock {
-                on { behandling } doReturn behandlingMock
-                on { id } doReturn UUID.randomUUID()
-            },
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "99"),
-            oppgaveId = OppgaveId(value = "7"),
-            beregning = mock {
-                on { this.periode } doReturn periode
-            },
-            simulering = mock(),
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            attesteringer = Attesteringshistorikk.empty()
-                .leggTilNyAttestering(
-                    Attestering.Iverksatt(
-                        NavIdentBruker.Attestant(navIdent = "2"),
-                        fixedTidspunkt,
-                    ),
-                ),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-        )
         BehandlingStatistikkMapper(fixedClock).map(iverksattRevurdering) shouldBe Statistikk.Behandling(
             funksjonellTid = iverksattRevurdering.opprettet,
             tekniskTid = fixedTidspunkt,
@@ -383,7 +320,7 @@ internal class BehandlingStatistikkMapperTest {
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
             behandlingStatus = "IVERKSATT_INNVILGET",
             behandlingStatusBeskrivelse = "Innvilget revurdering iverksatt",
-            behandlingYtelseDetaljer = emptyList(),
+            behandlingYtelseDetaljer = listOf(Statistikk.BehandlingYtelseDetaljer(Statistikk.Stønadsklassifisering.BOR_ALENE)),
             utenlandstilsnitt = "NASJONAL",
             utenlandstilsnittBeskrivelse = null,
             ansvarligEnhetKode = "4815",
@@ -399,8 +336,8 @@ internal class BehandlingStatistikkMapperTest {
             resultatBegrunnelse = null,
             resultatBegrunnelseBeskrivelse = null,
             resultatBeskrivelse = null,
-            beslutter = "2",
-            saksbehandler = "99",
+            beslutter = iverksattRevurdering.attestering.attestant.navIdent,
+            saksbehandler = iverksattRevurdering.saksbehandler.navIdent,
             behandlingOpprettetAv = null,
             behandlingOpprettetType = null,
             behandlingOpprettetTypeBeskrivelse = null,
@@ -412,40 +349,8 @@ internal class BehandlingStatistikkMapperTest {
 
     @Test
     fun `mapper uendret iverksettinger`() {
-        val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
+        val iverksattRevurdering = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak().second
 
-        val behandlingMock = mock<Behandling> {
-            on { sakId } doReturn UUID.randomUUID()
-            on { saksnummer } doReturn Saksnummer(2021)
-        }
-        val iverksattRevurdering = IverksattRevurdering.IngenEndring(
-            id = UUID.randomUUID(),
-            periode = periode,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = mock {
-                on { behandling } doReturn behandlingMock
-                on { id } doReturn UUID.randomUUID()
-            },
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "99"),
-            oppgaveId = OppgaveId(value = "7"),
-            beregning = mock {
-                on { this.periode } doReturn periode
-            },
-            attesteringer = Attesteringshistorikk.empty()
-                .leggTilNyAttestering(
-                    Attestering.Iverksatt(
-                        NavIdentBruker.Attestant(navIdent = "2"),
-                        fixedTidspunkt,
-                    ),
-                ),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null,
-            skalFøreTilBrevutsending = true,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-        )
         BehandlingStatistikkMapper(fixedClock).map(iverksattRevurdering) shouldBe Statistikk.Behandling(
             funksjonellTid = iverksattRevurdering.opprettet,
             tekniskTid = fixedTidspunkt,
@@ -460,7 +365,7 @@ internal class BehandlingStatistikkMapperTest {
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
             behandlingStatus = "IVERKSATT_INGEN_ENDRING",
             behandlingStatusBeskrivelse = "Revurdering uten endring i ytelse iverksatt",
-            behandlingYtelseDetaljer = emptyList(),
+            behandlingYtelseDetaljer = listOf(Statistikk.BehandlingYtelseDetaljer(Statistikk.Stønadsklassifisering.BOR_ALENE)),
             utenlandstilsnitt = "NASJONAL",
             utenlandstilsnittBeskrivelse = null,
             ansvarligEnhetKode = "4815",
@@ -476,8 +381,8 @@ internal class BehandlingStatistikkMapperTest {
             resultatBegrunnelse = "Mindre enn 10% endring i inntekt",
             resultatBegrunnelseBeskrivelse = null,
             resultatBeskrivelse = null,
-            beslutter = "2",
-            saksbehandler = "99",
+            beslutter = iverksattRevurdering.attestering.attestant.navIdent,
+            saksbehandler = iverksattRevurdering.saksbehandler.navIdent,
             behandlingOpprettetAv = null,
             behandlingOpprettetType = null,
             behandlingOpprettetTypeBeskrivelse = null,
