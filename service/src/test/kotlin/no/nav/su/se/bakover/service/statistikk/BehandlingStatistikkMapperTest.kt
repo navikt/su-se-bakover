@@ -39,6 +39,19 @@ import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
 import no.nav.su.se.bakover.test.iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.periode2021
+import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetAvslag
+import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
+import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
+import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.søknadsbehandlingLukket
+import no.nav.su.se.bakover.test.søknadsbehandlingSimulert
+import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagMedBeregning
+import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
+import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentAvslagUtenBeregning
+import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
+import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertAvslag
+import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
+import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -610,77 +623,83 @@ internal class BehandlingStatistikkMapperTest {
         @Test
         fun `mapper status og begrunnelse`() {
             BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                BehandlingsStatus.OPPRETTET,
+                søknadsbehandlingVilkårsvurdertUavklart().second,
             ) shouldBe BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.BehandlingStatusOgBehandlingStatusBeskrivelse(
-                BehandlingsStatus.OPPRETTET, "Ny søknadsbehandling opprettet",
+                "OPPRETTET", "Ny søknadsbehandling opprettet",
             )
 
             BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
+                søknadsbehandlingTilAttesteringInnvilget().second,
             ) shouldBe BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.BehandlingStatusOgBehandlingStatusBeskrivelse(
-                BehandlingsStatus.TIL_ATTESTERING_INNVILGET, "Innvilget søkndsbehandling sendt til attestering",
+                "TIL_ATTESTERING_INNVILGET", "Innvilget søkndsbehandling sendt til attestering",
             )
 
             BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                BehandlingsStatus.TIL_ATTESTERING_AVSLAG,
+                søknadsbehandlingTilAttesteringAvslagMedBeregning().second,
             ) shouldBe BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.BehandlingStatusOgBehandlingStatusBeskrivelse(
-                BehandlingsStatus.TIL_ATTESTERING_AVSLAG, "Avslått søknadsbehanding sendt til attestering",
+                "TIL_ATTESTERING_AVSLAG", "Avslått søknadsbehanding sendt til attestering",
             )
 
             BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                BehandlingsStatus.UNDERKJENT_INNVILGET,
+                søknadsbehandlingUnderkjentInnvilget().second,
             ) shouldBe BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.BehandlingStatusOgBehandlingStatusBeskrivelse(
-                BehandlingsStatus.UNDERKJENT_INNVILGET,
+                "UNDERKJENT_INNVILGET",
                 "Innvilget søknadsbehandling sendt tilbake fra attestant til saksbehandler",
             )
 
             BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                BehandlingsStatus.UNDERKJENT_AVSLAG,
+                søknadsbehandlingUnderkjentAvslagUtenBeregning().second,
             ) shouldBe BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.BehandlingStatusOgBehandlingStatusBeskrivelse(
-                BehandlingsStatus.UNDERKJENT_AVSLAG,
+                "UNDERKJENT_AVSLAG",
                 "Avslått søknadsbehandling sendt tilbake fra attestant til saksbehandler",
             )
 
             BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                BehandlingsStatus.IVERKSATT_INNVILGET,
+                søknadsbehandlingIverksattInnvilget().second,
             ) shouldBe BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.BehandlingStatusOgBehandlingStatusBeskrivelse(
-                BehandlingsStatus.IVERKSATT_INNVILGET, "Innvilget søknadsbehandling iverksatt",
+                "IVERKSATT_INNVILGET", "Innvilget søknadsbehandling iverksatt",
             )
 
             BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                BehandlingsStatus.IVERKSATT_AVSLAG,
+                søknadsbehandlingIverksattAvslagMedBeregning().second,
             ) shouldBe BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.BehandlingStatusOgBehandlingStatusBeskrivelse(
-                BehandlingsStatus.IVERKSATT_AVSLAG, "Avslått søknadsbehandling iverksatt",
+                "IVERKSATT_AVSLAG", "Avslått søknadsbehandling iverksatt",
+            )
+
+            BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
+                søknadsbehandlingLukket().second,
+            ) shouldBe BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.BehandlingStatusOgBehandlingStatusBeskrivelse(
+                "LUKKET", "Søknadsbehandling er lukket",
             )
 
             assertThrows<ManglendeStatistikkMappingException> {
                 BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                    BehandlingsStatus.VILKÅRSVURDERT_AVSLAG,
+                    søknadsbehandlingVilkårsvurdertAvslag().second,
                 )
             }
             assertThrows<ManglendeStatistikkMappingException> {
                 BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                    BehandlingsStatus.VILKÅRSVURDERT_INNVILGET,
+                    søknadsbehandlingVilkårsvurdertInnvilget().second,
                 )
             }
             assertThrows<ManglendeStatistikkMappingException> {
                 BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                    BehandlingsStatus.BEREGNET_AVSLAG,
+                    søknadsbehandlingBeregnetAvslag().second,
                 )
             }
             assertThrows<ManglendeStatistikkMappingException> {
                 BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                    BehandlingsStatus.BEREGNET_INNVILGET,
+                    søknadsbehandlingBeregnetInnvilget().second,
                 )
             }
             assertThrows<ManglendeStatistikkMappingException> {
                 BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                    BehandlingsStatus.SIMULERT,
+                    søknadsbehandlingSimulert().second,
                 )
             }
             assertThrows<ManglendeStatistikkMappingException> {
                 BehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                    BehandlingsStatus.VILKÅRSVURDERT_INNVILGET,
+                    søknadsbehandlingVilkårsvurdertInnvilget().second,
                 )
             }
         }

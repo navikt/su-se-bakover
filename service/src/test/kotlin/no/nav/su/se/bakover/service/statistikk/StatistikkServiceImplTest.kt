@@ -22,9 +22,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -36,7 +34,6 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -47,6 +44,10 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.grunnlagsdataEnsligUtenFradrag
+import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
+import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
+import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagUtenBeregning
+import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -66,11 +67,6 @@ internal class StatistikkServiceImplTest {
     )
 
     private val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
-    private val søknadMock: Søknad.Journalført.MedOppgave.IkkeLukket =
-        mock {
-            on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build()
-            on { opprettet } doReturn Tidspunkt.now(clock)
-        }
 
     val stønadsperiode = Periode.create(1.januar(2021), 31.desember(2021))
 
@@ -148,15 +144,7 @@ internal class StatistikkServiceImplTest {
     fun `publiserer BehandlingOpprettet-event på kafka`() {
         val kafkaPublisherMock: KafkaPublisher = mock()
 
-        val søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart = mock {
-            on { opprettet } doReturn fixedTidspunkt
-            on { søknad } doReturn søknadMock
-            on { id } doReturn UUID.randomUUID()
-            on { sakId } doReturn UUID.randomUUID()
-            on { saksnummer } doReturn Saksnummer(5959)
-            on { status } doReturn BehandlingsStatus.OPPRETTET
-            on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
-        }
+        val søknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().second
 
         val expected = Statistikk.Behandling(
             funksjonellTid = Tidspunkt.now(clock),
@@ -165,6 +153,7 @@ internal class StatistikkServiceImplTest {
             mottattDato = søknadsbehandling.søknad.opprettet.toLocalDate(zoneIdOslo),
             behandlingId = søknadsbehandling.id,
             sakId = søknadsbehandling.sakId,
+            søknadId = søknadsbehandling.søknad.id,
             saksnummer = søknadsbehandling.saksnummer.nummer,
             behandlingStatus = søknadsbehandling.status.toString(),
             versjon = clock.millis(),
@@ -194,18 +183,7 @@ internal class StatistikkServiceImplTest {
     fun `publiserer BehandlingTilAttestering-event på kafka`() {
         val kafkaPublisherMock: KafkaPublisher = mock()
 
-        val behandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning = mock {
-            on { opprettet } doReturn fixedTidspunkt
-            on { søknad } doReturn søknadMock
-            on { id } doReturn UUID.randomUUID()
-            on { sakId } doReturn UUID.randomUUID()
-            on { saksnummer } doReturn Saksnummer(5959)
-            on { status } doReturn BehandlingsStatus.IVERKSATT_AVSLAG
-            on { saksbehandler } doReturn NavIdentBruker.Saksbehandler("Z1595")
-            on { avslagsgrunner } doReturn listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER)
-            on { periode } doReturn stønadsperiode
-            on { grunnlagsdata } doReturn grunnlagsdataEnsligUtenFradrag(stønadsperiode)
-        }
+        val behandling = søknadsbehandlingTilAttesteringAvslagUtenBeregning().second
 
         val expected = Statistikk.Behandling(
             funksjonellTid = Tidspunkt.now(clock),
@@ -216,9 +194,10 @@ internal class StatistikkServiceImplTest {
             sakId = behandling.sakId,
             saksnummer = behandling.saksnummer.nummer,
             behandlingStatus = behandling.status.toString(),
-            behandlingStatusBeskrivelse = "Avslått søknadsbehandling iverksatt",
+            behandlingStatusBeskrivelse = "Avslått søknadsbehanding sendt til attestering",
+            søknadId = behandling.søknad.id,
             versjon = clock.millis(),
-            saksbehandler = "Z1595",
+            saksbehandler = behandling.saksbehandler.navIdent,
             behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
             behandlingYtelseDetaljer = listOf(Statistikk.BehandlingYtelseDetaljer(Statistikk.Stønadsklassifisering.BOR_ALENE)),
@@ -238,24 +217,8 @@ internal class StatistikkServiceImplTest {
     @Test
     fun `publiserer BehandlingIverksatt-event på kafka ved innvilgelse`() {
         val kafkaPublisherMock: KafkaPublisher = mock()
-        val beregningMock: Beregning = mock {
-            on { periode } doReturn Periode.create(1.januar(2021), 31.januar(2021))
-        }
 
-        val behandling: Søknadsbehandling.Iverksatt.Innvilget = mock {
-            on { opprettet } doReturn fixedTidspunkt
-            on { søknad } doReturn søknadMock
-            on { id } doReturn UUID.randomUUID()
-            on { sakId } doReturn UUID.randomUUID()
-            on { saksnummer } doReturn Saksnummer(5959)
-            on { status } doReturn BehandlingsStatus.IVERKSATT_INNVILGET
-            on { beregning } doReturn beregningMock
-            on { saksbehandler } doReturn NavIdentBruker.Saksbehandler("55")
-            on { attesteringer } doReturn Attesteringshistorikk.empty()
-                .leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("56"), fixedTidspunkt))
-            on { periode } doReturn stønadsperiode
-            on { grunnlagsdata } doReturn grunnlagsdataEnsligUtenFradrag(stønadsperiode)
-        }
+        val behandling = søknadsbehandlingIverksattInnvilget().second
 
         val expected = Statistikk.Behandling(
             funksjonellTid = Tidspunkt.now(clock),
@@ -264,13 +227,14 @@ internal class StatistikkServiceImplTest {
             mottattDato = behandling.søknad.opprettet.toLocalDate(zoneIdOslo),
             behandlingId = behandling.id,
             sakId = behandling.sakId,
+            søknadId = behandling.søknad.id,
             saksnummer = behandling.saksnummer.nummer,
             behandlingStatus = behandling.status.toString(),
             behandlingStatusBeskrivelse = "Innvilget søknadsbehandling iverksatt",
             versjon = clock.millis(),
             resultat = "Innvilget",
-            saksbehandler = "55",
-            beslutter = "56",
+            saksbehandler = behandling.saksbehandler.navIdent,
+            beslutter = behandling.attesteringer.hentSisteAttestering().attestant.navIdent,
             behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
             behandlingYtelseDetaljer = listOf(Statistikk.BehandlingYtelseDetaljer(Statistikk.Stønadsklassifisering.BOR_ALENE)),
@@ -291,20 +255,7 @@ internal class StatistikkServiceImplTest {
     fun `publiserer BehandlingIverksatt-event på kafka ved avslag`() {
         val kafkaPublisherMock: KafkaPublisher = mock()
 
-        val behandling: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning = mock {
-            on { opprettet } doReturn fixedTidspunkt
-            on { søknad } doReturn søknadMock
-            on { id } doReturn UUID.randomUUID()
-            on { sakId } doReturn UUID.randomUUID()
-            on { saksnummer } doReturn Saksnummer(5959)
-            on { status } doReturn BehandlingsStatus.IVERKSATT_AVSLAG
-            on { saksbehandler } doReturn NavIdentBruker.Saksbehandler("55")
-            on { attesteringer } doReturn Attesteringshistorikk.empty()
-                .leggTilNyAttestering(Attestering.Iverksatt(NavIdentBruker.Attestant("56"), fixedTidspunkt))
-            on { avslagsgrunner } doReturn listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER)
-            on { periode } doReturn stønadsperiode
-            on { grunnlagsdata } doReturn grunnlagsdataEnsligUtenFradrag(stønadsperiode)
-        }
+        val behandling = søknadsbehandlingIverksattAvslagUtenBeregning().second
 
         val expected = Statistikk.Behandling(
             funksjonellTid = Tidspunkt.now(clock),
@@ -313,14 +264,15 @@ internal class StatistikkServiceImplTest {
             mottattDato = behandling.søknad.opprettet.toLocalDate(zoneIdOslo),
             behandlingId = behandling.id,
             sakId = behandling.sakId,
+            søknadId = behandling.søknad.id,
             saksnummer = behandling.saksnummer.nummer,
             behandlingStatus = behandling.status.toString(),
             behandlingStatusBeskrivelse = "Avslått søknadsbehandling iverksatt",
             versjon = clock.millis(),
             resultat = "Avslått",
-            saksbehandler = "55",
-            beslutter = "56",
-            resultatBegrunnelse = "UFØRHET,UTENLANDSOPPHOLD_OVER_90_DAGER",
+            saksbehandler = behandling.saksbehandler.navIdent,
+            beslutter = behandling.attesteringer.hentSisteAttestering().attestant.navIdent,
+            resultatBegrunnelse = "UFØRHET,FORMUE,FLYKTNING,OPPHOLDSTILLATELSE,BOR_OG_OPPHOLDER_SEG_I_NORGE,INNLAGT_PÅ_INSTITUSJON,UTENLANDSOPPHOLD_OVER_90_DAGER,PERSONLIG_OPPMØTE",
             behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
             behandlingYtelseDetaljer = listOf(Statistikk.BehandlingYtelseDetaljer(Statistikk.Stønadsklassifisering.BOR_ALENE)),
