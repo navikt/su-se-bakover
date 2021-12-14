@@ -30,7 +30,7 @@ internal class KabalRequestTest {
         "innsendtTilNav": "2021-01-01",
         "mottattFoersteinstans": "2021-01-01",
         "innsynUrl": null,
-        "kilde": "su-se-bakover",
+        "kilde": "SUPSTONAD",
         "kildeReferanse": "klageId",
         "klager": {
           "id": {
