@@ -84,7 +84,7 @@ internal class RevurderingJsonTest {
                     vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
                 ),
                 formue = Vilkår.Formue.IkkeVurdert,
-                utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert
+                utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
@@ -453,7 +453,8 @@ internal class RevurderingJsonTest {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
                 },
-                "attesteringer": []
+                "attesteringer": [],
+                "simuleringForAvkortingsvarsel": null
             }
             """.trimIndent()
 
@@ -488,7 +489,7 @@ internal class RevurderingJsonTest {
                 ),
             ),
             attesteringer = Attesteringshistorikk.empty(),
-            avkortingsvarsel = Avkortingsvarsel.Ingen
+            avkortingsvarsel = Avkortingsvarsel.Ingen,
         )
 
         val revurderingJson =
@@ -537,7 +538,8 @@ internal class RevurderingJsonTest {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
                 },
-                "attesteringer": []
+                "attesteringer": [],
+                "simuleringForAvkortingsvarsel": null
             }
             """.trimIndent()
 
@@ -621,7 +623,8 @@ internal class RevurderingJsonTest {
                   "Uførhet": "Vurdert",
                   "Inntekt": "Vurdert"
                 },
-                "attesteringer": []
+                "attesteringer": [],
+                "simuleringForAvkortingsvarsel": null
             }
             """.trimIndent()
 
@@ -656,7 +659,7 @@ internal class RevurderingJsonTest {
                 ),
             ),
             attesteringer = Attesteringshistorikk.empty(),
-            avkortingsvarsel = Avkortingsvarsel.Ingen
+            avkortingsvarsel = Avkortingsvarsel.Ingen,
         )
 
         val revurderingJson =
@@ -706,7 +709,8 @@ internal class RevurderingJsonTest {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
                 },
-                "attesteringer": []
+                "attesteringer": [],
+                "simuleringForAvkortingsvarsel": null
             }
             """.trimIndent()
 
@@ -787,7 +791,8 @@ internal class RevurderingJsonTest {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
                 },
-                "attesteringer": []
+                "attesteringer": [],
+                "simuleringForAvkortingsvarsel": null
             }
             """.trimIndent()
 
@@ -886,7 +891,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "simuleringForAvkortingsvarsel": null
             }
             """.trimIndent()
 
@@ -986,7 +992,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "simuleringForAvkortingsvarsel": null
             }
             """.trimIndent()
 
@@ -1082,7 +1089,8 @@ internal class RevurderingJsonTest {
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
-                }
+                },
+                "simuleringForAvkortingsvarsel": null
             }
             """.trimIndent()
 
@@ -1173,7 +1181,8 @@ internal class RevurderingJsonTest {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
                 },
-                "attesteringer": [{"attestant":"attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}]
+                "attesteringer": [{"attestant":"attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}],
+                "simuleringForAvkortingsvarsel": null
             }
             """.trimIndent()
 
@@ -1215,7 +1224,7 @@ internal class RevurderingJsonTest {
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
-            avkortingsvarsel = Avkortingsvarsel.Ingen
+            avkortingsvarsel = Avkortingsvarsel.Ingen,
         )
 
         val revurderingJson =
@@ -1265,7 +1274,8 @@ internal class RevurderingJsonTest {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
                 },
-                "attesteringer": [{"attestant": "attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}]
+                "attesteringer": [{"attestant": "attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}],
+                "simuleringForAvkortingsvarsel": null
             }
             """.trimIndent()
 
@@ -1353,7 +1363,8 @@ internal class RevurderingJsonTest {
                   "Uførhet": "IkkeVurdert",
                   "Inntekt": "IkkeVurdert"
                 },
-                "attesteringer": [{"attestant": "attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}]
+                "attesteringer": [{"attestant": "attestant", "opprettet": "$attesteringOpprettet", "underkjennelse": null}],
+                "simuleringForAvkortingsvarsel": null
 
             }
             """.trimIndent()
