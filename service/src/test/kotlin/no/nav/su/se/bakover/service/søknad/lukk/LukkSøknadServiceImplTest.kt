@@ -51,9 +51,7 @@ import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import no.nav.su.se.bakover.test.trukketSøknad
 import org.junit.jupiter.api.Test
-import org.mockito.internal.verification.Times
 import org.mockito.kotlin.any
-import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
@@ -304,28 +302,13 @@ internal class LukkSøknadServiceImplTest {
                 verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe søknad.oppgaveId })
                 verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe søknad.sakId })
 
-                val events = argumentCaptor<Event>()
-                verify(serviceAndMocks.lukkSøknadServiceObserver, Times(2)).handle(
-                    events.capture()
-                ).also {
-                    events.firstValue shouldBe Event.Statistikk.SøknadStatistikk.SøknadLukket(
-                        Søknad.Journalført.MedOppgave.Lukket(
-                            id = søknad.id,
-                            opprettet = søknad.opprettet,
-                            sakId = søknad.sakId,
-                            søknadInnhold = søknad.søknadInnhold,
-                            journalpostId = søknad.journalpostId,
-                            oppgaveId = søknad.oppgaveId,
-                            lukketAv = saksbehandler,
-                            lukketType = AVVIST,
-                            lukketTidspunkt = fixedTidspunkt,
-                        ),
-                        sak.saksnummer,
-                    )
-                    events.secondValue shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingLukket(
-                        søknadsbehandling = søknadsbehandling.lukkSøknadsbehandling().getOrFail()
-                    )
-                }
+                verify(serviceAndMocks.lukkSøknadServiceObserver).handle(
+                    argThat {
+                        it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingLukket(
+                            søknadsbehandling = søknadsbehandling.lukkSøknadsbehandling().getOrFail()
+                        )
+                    }
+                )
                 serviceAndMocks.verifyNoMoreInteractions()
             }
         }
