@@ -94,16 +94,15 @@ internal class LukkSøknadServiceImpl(
                                 log.warn("Kunne ikke lukke oppgave ${søknad.oppgaveId} for søknad ${søknad.id}")
                             }
                         val sak = hentSak(lukket.sakId)
+
+                        val event = if (lukketSøknadbehandling == null) {
+                            Event.Statistikk.SøknadStatistikk.SøknadLukket(søknad = lukket, saksnummer = sak.saksnummer)
+                        } else {
+                            SøknadsbehandlingLukket(lukketSøknadbehandling)
+                        }
+
                         observers.forEach { observer ->
-                            observer.handle(
-                                Event.Statistikk.SøknadStatistikk.SøknadLukket(
-                                    søknad = lukket,
-                                    saksnummer = sak.saksnummer,
-                                ),
-                            )
-                            lukketSøknadbehandling?.let {
-                                observer.handle(SøknadsbehandlingLukket(lukketSøknadbehandling))
-                            }
+                            observer.handle(event)
                         }
                         sak.right()
                     }
