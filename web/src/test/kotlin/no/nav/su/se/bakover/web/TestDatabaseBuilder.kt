@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.klage.KlageRepo
+import no.nav.su.se.bakover.domain.klage.KlagevedtakRepo
 import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
 import no.nav.su.se.bakover.test.TestSessionFactory
 import org.mockito.kotlin.mock
@@ -38,7 +39,8 @@ object TestDatabaseBuilder {
         dokumentRepo: DokumentRepo = mock(),
         nøkkeltallRepo: NøkkeltallRepo = mock(),
         sessionFactory: TestSessionFactory = TestSessionFactory(),
-        klageRepo: KlageRepo = mock()
+        klageRepo: KlageRepo = mock(),
+        klageVedtakRepo: KlagevedtakRepo = mock(),
     ): DatabaseRepos {
         return DatabaseRepos(
             avstemming = avstemming,
@@ -57,7 +59,8 @@ object TestDatabaseBuilder {
             dokumentRepo = dokumentRepo,
             nøkkeltallRepo = nøkkeltallRepo,
             sessionFactory = sessionFactory,
-            klageRepo = klageRepo
+            klageRepo = klageRepo,
+            klageVedtakRepo = klageVedtakRepo,
         )
     }
 }

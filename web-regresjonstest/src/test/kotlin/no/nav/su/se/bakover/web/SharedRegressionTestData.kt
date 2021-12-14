@@ -111,10 +111,9 @@ object SharedRegressionTestData {
             stsUrl = "stsUrl",
             skjermingUrl = "skjermingUrl",
             dkifUrl = "dkifUrl",
-            kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(url = "kabalUrl", clientId = "KabalClientId")
+            kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig(url = "kabalUrl", clientId = "KabalClientId"),
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
-            common = emptyMap(),
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),
             consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(emptyMap()),
         ),
@@ -122,6 +121,9 @@ object SharedRegressionTestData {
         jobConfig = ApplicationConfig.JobConfig(
             personhendelse = ApplicationConfig.JobConfig.Personhendelse(null),
             konsistensavstemming = ApplicationConfig.JobConfig.Konsistensavstemming.Local(),
+        ),
+        kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(
+            kafkaConfig = emptyMap(),
         ),
     )
 

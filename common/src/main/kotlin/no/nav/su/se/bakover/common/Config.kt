@@ -12,6 +12,7 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
+import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.LoggerFactory
 import java.time.Duration
@@ -61,6 +62,7 @@ data class ApplicationConfig(
     val kafkaConfig: KafkaConfig,
     val unleash: UnleashConfig,
     val jobConfig: JobConfig,
+    val kabalKafkaConfig: KabalKafkaConfig,
 ) {
     enum class RuntimeEnvironment {
         Test,
@@ -389,22 +391,20 @@ data class ApplicationConfig(
     }
 
     data class KafkaConfig(
-        private val common: Map<String, String>,
         val producerCfg: ProducerCfg,
         val consumerCfg: ConsumerCfg,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = KafkaConfig(
-                common = Common().configure(),
                 producerCfg = ProducerCfg(
-                    kafkaConfig = Common().configure() + mapOf(
+                    kafkaConfig = CommonAivenKafkaConfig().configure() + mapOf(
                         ProducerConfig.ACKS_CONFIG to "all",
                         ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
                         ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
                     ),
                 ),
                 consumerCfg = ConsumerCfg(
-                    Onprem().configure() + mapOf(
+                    CommonOnpremKafkaConfig().configure() + mapOf(
                         KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to true,
                         KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG to getEnvironmentVariableOrDefault(
                             "KAFKA_ONPREM_SCHEMA_REGISTRY",
@@ -426,7 +426,6 @@ data class ApplicationConfig(
             )
 
             fun createLocalConfig() = KafkaConfig(
-                common = emptyMap(),
                 producerCfg = ProducerCfg(emptyMap()),
                 consumerCfg = ConsumerCfg(emptyMap()),
             )
@@ -450,7 +449,7 @@ data class ApplicationConfig(
             }
         }
 
-        private data class Common(
+        internal data class CommonAivenKafkaConfig(
             val brokers: String = getEnvironmentVariableOrDefault("KAFKA_BROKERS", "brokers"),
             val sslConfig: Map<String, String> = SslConfig().configure(),
         ) {
@@ -476,7 +475,7 @@ data class ApplicationConfig(
             )
         }
 
-        private data class Onprem(
+        private data class CommonOnpremKafkaConfig(
             val brokers: String = getEnvironmentVariableOrDefault("KAFKA_ONPREM_BROKERS", "kafka_onprem_brokers"),
             val saslConfigs: Map<String, String> = SaslConfig().configure(),
         ) {
@@ -532,6 +531,7 @@ data class ApplicationConfig(
                     null -> throw IllegalStateException("Kunne ikke identifsiere nais-cluster")
                 },
             ),
+            kabalKafkaConfig = KabalKafkaConfig.createFromEnvironmentVariables(),
         )
 
         fun createLocalConfig() = ApplicationConfig(
@@ -551,6 +551,7 @@ data class ApplicationConfig(
                 personhendelse = JobConfig.Personhendelse(naisCluster()),
                 konsistensavstemming = JobConfig.Konsistensavstemming.Local(),
             ),
+            kabalKafkaConfig = KabalKafkaConfig.createLocalConfig(),
         ).also {
             log.warn("**********  Using local config (the environment variable 'NAIS_CLUSTER_NAME' is missing.)")
         }
@@ -607,6 +608,29 @@ data class ApplicationConfig(
 
             data class Dev(override val kjøreplan: Set<LocalDate> = emptySet()) : Konsistensavstemming()
             data class Local(override val kjøreplan: Set<LocalDate> = emptySet()) : Konsistensavstemming()
+        }
+    }
+
+    data class KabalKafkaConfig(
+        val kafkaConfig: Map<String, Any>,
+    ) {
+        companion object {
+            fun createFromEnvironmentVariables() = KabalKafkaConfig(
+                kafkaConfig = KafkaConfig.CommonAivenKafkaConfig().configure() + mapOf(
+                    ConsumerConfig.GROUP_ID_CONFIG to "su-se-bakover",
+                    ConsumerConfig.CLIENT_ID_CONFIG to getEnvironmentVariableOrThrow("HOSTNAME"),
+                    ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to "false",
+                    ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
+                    ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
+                    ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
+                    ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 100,
+
+                ),
+            )
+
+            fun createLocalConfig() = KabalKafkaConfig(
+                kafkaConfig = emptyMap(),
+            )
         }
     }
 }
