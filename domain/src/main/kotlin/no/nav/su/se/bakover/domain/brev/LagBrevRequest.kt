@@ -328,8 +328,8 @@ interface LagBrevRequest {
                 personalia = lagPersonalia(),
                 saksbehandlerNavn = saksbehandlerNavn,
                 fritekst = fritekst,
-                klageDato = klageDato,
-                vedtakDato = vedtakDato,
+                klageDato = klageDato.ddMMyyyy(),
+                vedtakDato = vedtakDato.ddMMyyyy(),
                 saksnummer = saksnummer.nummer,
             )
 
