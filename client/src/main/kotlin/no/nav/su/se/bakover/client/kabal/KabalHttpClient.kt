@@ -32,6 +32,7 @@ class KabalHttpClient(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     private val client: HttpClient = HttpClient.newBuilder()
+        .version(HttpClient.Version.HTTP_1_1)
         .connectTimeout(Duration.ofSeconds(20))
         .followRedirects(HttpClient.Redirect.NEVER)
         .build()
@@ -85,8 +86,13 @@ class KabalHttpClient(
         }.mapLeft { throwable ->
             if (throwable is IOException) {
                 log.error("Feil ved oversendelse til Kabal/KA: Nettverksfeil. Er Kabal oppe?", throwable)
+                sikkerLogg.error(
+                    "Feil ved oversendelse til Kabal/KA: Nettverksfeil. Er Kabal oppe? requestBody=$requestBody",
+                    throwable,
+                )
             } else {
                 log.error("Feil ved oversendelse til Kabal/KA: Ukjent feil", throwable)
+                sikkerLogg.error("Feil ved oversendelse til Kabal/KA: Ukjent feil. requestBody=$requestBody", throwable)
             }
             KunneIkkeOversendeTilKlageinstans
         }.flatten()
