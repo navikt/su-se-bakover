@@ -1,10 +1,8 @@
 package no.nav.su.se.bakover.service.statistikk
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
-import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.zoneIdOslo
@@ -18,10 +16,8 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
@@ -745,37 +741,5 @@ internal class BehandlingStatistikkMapperTest {
             NavIdentBruker.Attestant("att"),
             fixedTidspunkt,
         ),
-    )
-
-    private val tilattesteringInnvilget = Søknadsbehandling.TilAttestering.Innvilget(
-        id = UUID.randomUUID(),
-        opprettet = fixedTidspunkt,
-        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-        søknad = Søknad.Journalført.MedOppgave.IkkeLukket(
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.EPOCH,
-            sakId = UUID.randomUUID(),
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            oppgaveId = OppgaveId("999"),
-            journalpostId = JournalpostId("j"),
-        ),
-        beregning = TestBeregning,
-        simulering = Simulering(
-            gjelderId = Fnr.generer(),
-            gjelderNavn = "NAVN",
-            datoBeregnet = idag(fixedClock),
-            nettoBeløp = 191500,
-            periodeList = listOf(),
-        ),
-        saksbehandler = NavIdentBruker.Saksbehandler("s"),
-        sakId = UUID.randomUUID(),
-        saksnummer = Saksnummer(2021),
-        fnr = Fnr.generer(),
-        oppgaveId = OppgaveId("o"),
-        fritekstTilBrev = "",
-        stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-        vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
-        attesteringer = Attesteringshistorikk.empty(),
     )
 }
