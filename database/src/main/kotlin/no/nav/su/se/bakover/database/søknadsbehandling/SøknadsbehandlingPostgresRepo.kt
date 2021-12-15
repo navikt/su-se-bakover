@@ -205,11 +205,11 @@ internal class SøknadsbehandlingPostgresRepo(
             }
     }
 
-    private fun hentUteståendeAvkorting(sakId: UUID, session: Session) : Avkortingsvarsel {
-        return avkortingsvarselRepo.hentUteståendeAvkortinger(
+    private fun hentUteståendeAvkorting(sakId: UUID, session: Session): Avkortingsvarsel {
+        return avkortingsvarselRepo.hentUteståendeAvkorting(
             sakId = sakId,
             session = session,
-        ).singleOrNull() ?: Avkortingsvarsel.Ingen
+        )
     }
 
     private fun hentFullførtAvkorting(søknadsbehandlingId: UUID, session: Session): Avkortingsvarsel {
@@ -646,11 +646,8 @@ internal class SøknadsbehandlingPostgresRepo(
                     is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
                         avkortingsvarselRepo.lagre(avkort, tx)
                     }
-                    is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
-                        throw IllegalStateException("")
-                    }
-                    is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
-                        throw IllegalStateException("")
+                    else -> {
+                        throw IllegalStateException("Avkorting for søknadsbehandling:${søknadsbehandling.id} er i ugyldig tilstand: ${avkort::class} for å kunne iverksettes")
                     }
                 }
             }

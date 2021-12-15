@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -38,6 +39,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
+import org.mockito.kotlin.mock
 
 internal class StatusovergangTest {
 
@@ -798,6 +800,33 @@ internal class StatusovergangTest {
                     attestering = attestering,
                 ) { UUID30.randomUUID().right() },
             ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        }
+
+        @Test
+        fun `kaster exception dersom avkorting er i ugyldig status`() {
+            assertThrows<IllegalStateException> {
+                forsøkStatusovergang(
+                    tilAttesteringInnvilget.copy(
+                        saksbehandler = saksbehandler,
+                        avkorting = mock<Avkortingsvarsel.Utenlandsopphold.Opprettet>(),
+                    ),
+                    Statusovergang.TilIverksatt(
+                        attestering = attestering,
+                    ) { UUID30.randomUUID().right() },
+                )
+            }
+
+            assertThrows<IllegalStateException> {
+                forsøkStatusovergang(
+                    tilAttesteringInnvilget.copy(
+                        saksbehandler = saksbehandler,
+                        avkorting = mock<Avkortingsvarsel.Utenlandsopphold.Avkortet>(),
+                    ),
+                    Statusovergang.TilIverksatt(
+                        attestering = attestering,
+                    ) { UUID30.randomUUID().right() },
+                )
+            }
         }
 
         @Test

@@ -174,20 +174,20 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
                 /**
                  * Skulle ideelt gjort dette inne i [Søknadsbehandling.TilAttestering.Innvilget.tilIverksatt], men må få
                  * sjekket dette før vi oversender til oppdrag.
+                 * //TODO erstatt statusovergang med funksjon
                  */
                 when (søknadsbehandling.avkorting) {
-                    Avkortingsvarsel.Ingen -> {}
-                    is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
-                        throw IllegalStateException("")
-                    }
-                    is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
-                        throw IllegalStateException("")
+                    Avkortingsvarsel.Ingen -> {
+                        // noop
                     }
                     is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
                         if (!søknadsbehandling.avkorting.fullstendigAvkortetAv(søknadsbehandling.beregning)) {
                             result = KunneIkkeIverksette.AvkortingErUfullstendig.left()
                             return
                         }
+                    }
+                    else -> {
+                        throw IllegalStateException("Avkorting for søknadsbehandling:${søknadsbehandling.id} er i ugyldig tilstand:${søknadsbehandling.avkorting} for å kunne iverksettes")
                     }
                 }
 

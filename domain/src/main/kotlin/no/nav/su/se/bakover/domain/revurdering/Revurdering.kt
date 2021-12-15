@@ -7,7 +7,9 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
@@ -609,9 +611,13 @@ sealed class BeregnetRevurdering : Revurdering() {
                                     avkortingsvarsel = avkortingsvarsel,
                                 ).get(),
                             ).getOrHandle { return it.left() }
-                                .also {
-                                    require(!it.simulering.harFeilutbetalinger())
-                                }
+
+                            if (simuleringMedNyOpphørsdato.simulering.harFeilutbetalinger()) {
+                                sikkerLogg.error(
+                                    "Simulering: ${objectMapper.writeValueAsString(simuleringMedNyOpphørsdato.simulering)}",
+                                )
+                                throw IllegalStateException("Simulering med justert opphørsdato for utbetalinger pga avkorting utenlandsopphold inneholder feilutbetaling, se sikkerlogg for detaljer")
+                            }
 
                             simuleringMedNyOpphørsdato to avkortingsvarsel
                         }
@@ -951,6 +957,18 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 return KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
             }
 
+            val gyldigAvkortingsvarsel = when (avkortingsvarsel) {
+                Avkortingsvarsel.Ingen -> {
+                    avkortingsvarsel
+                }
+                is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
+                    avkortingsvarsel.skalAvkortes()
+                }
+                else -> {
+                    throw IllegalStateException("Avkortingsvarsel for revurdering:$id er i ugyldig tilstand: ${avkortingsvarsel::class} for å kunne iverksettes")
+                }
+            }
+
             return utbetal(sakId, attestant, OpphørsdatoForUtbetalinger(revurdering = this).get(), simulering)
                 .map {
                     IverksattRevurdering.Opphørt(
@@ -974,12 +992,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                                 Tidspunkt.now(clock),
                             ),
                         ),
-                        avkortingsvarsel = when (avkortingsvarsel) {
-                            Avkortingsvarsel.Ingen -> avkortingsvarsel
-                            is Avkortingsvarsel.Utenlandsopphold.Avkortet -> throw IllegalStateException("Ugyldig tilstand")
-                            is Avkortingsvarsel.Utenlandsopphold.Opprettet -> avkortingsvarsel.skalAvkortes()
-                            is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> throw IllegalStateException("Ugyldig tilstand")
-                        },
+                        avkortingsvarsel = gyldigAvkortingsvarsel,
                     )
                 }
         }

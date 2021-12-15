@@ -147,9 +147,7 @@ object DatabaseBuilder {
             dbMetrics = dbMetrics,
         )
 
-        val avkortingsvarselRepo = AvkortingsvarselPostgresRepo(
-            sessionFactory = sessionFactory
-        )
+        val avkortingsvarselRepo = AvkortingsvarselPostgresRepo()
 
         val saksbehandlingRepo = SøknadsbehandlingPostgresRepo(
             dataSource = dataSource,

@@ -160,10 +160,10 @@ internal class AvkortingsvarselPostgresRepoTest {
                     avkortingsvarsel = avkortet.skalAvkortes().avkortet(nySøknadsbehandling.id),
                     tx = tx,
                 )
-                testDataHelper.avkortingsvarselRepo.hentUteståendeAvkortinger(
+                testDataHelper.avkortingsvarselRepo.hentUteståendeAvkorting(
                     sakId = sak.id,
                     session = tx,
-                ) shouldBe listOf(skalAvkortes.skalAvkortes())
+                ) shouldBe skalAvkortes.skalAvkortes()
             }
         }
     }

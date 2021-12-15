@@ -640,12 +640,6 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             begrunnelse = begrunnelse,
                         )
                     }
-                    is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
-                        throw IllegalStateException("")
-                    }
-                    is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
-                        throw IllegalStateException("")
-                    }
                     is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
                         val utenAvkorting = søknadsbehandling.leggTilFradragsgrunnlag(
                             søknadsbehandling.grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
@@ -684,6 +678,9 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                         }
 
                         beregningMedAvkorting
+                    }
+                    else -> {
+                        throw IllegalStateException("Avkorting for søknadsbehandling:${søknadsbehandling.id} er i ugyldig tilstand:${avkort::class} for å kunne beregnes")
                     }
                 }
 

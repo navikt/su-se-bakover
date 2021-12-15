@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandl
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.utlandsoppholdAvslag
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 class RevurderingSimulerTest {
     @Test
@@ -56,6 +57,28 @@ class RevurderingSimulerTest {
                             }
                         }
                 }
+        }
+    }
+
+    @Test
+    fun `kaster exception dersom simulering med justert opphørsdato for utbetaling inneholder feilutbetalinger`() {
+        assertThrows<IllegalStateException> {
+            opprettetRevurderingAvslagSpesifiktVilkår(
+                avslåttVilkår = utlandsoppholdAvslag(),
+            ).let { (sak, revurdering) ->
+                revurdering.beregn(sak.utbetalinger, fixedClock)
+                    .getOrFail().let { beregnet ->
+                        (beregnet as BeregnetRevurdering.Opphørt)
+                            .toSimulert { sakId, _, _ ->
+                                simulertUtbetalingOpphør(
+                                    sakId = sakId,
+                                    periode = beregnet.periode,
+                                    opphørsdato = beregnet.periode.fraOgMed,
+                                    eksisterendeUtbetalinger = sak.utbetalinger,
+                                )
+                            }.getOrFail()
+                    }
+            }
         }
     }
 

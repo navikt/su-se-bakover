@@ -8,6 +8,8 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.database.AvkortingsvarselPostgresRepo
+import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.TestDataHelper.Companion.journalførtSøknadMedOppgave
 import no.nav.su.se.bakover.database.antall
@@ -44,8 +46,16 @@ import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagMedBeregning
+import no.nav.su.se.bakover.test.søknadsbehandlingIverksattAvslagUtenBeregning
+import no.nav.su.se.bakover.test.søknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import java.util.UUID
 
 internal class SøknadsbehandlingPostgresRepoTest {
@@ -193,7 +203,10 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     repo.lagre(simulert)
                     repo.hent(simulert.id) shouldBe simulert.persistertVariant()
                     dataSource.withSession {
-                        "select * from behandling where id = :id".hent(mapOf("id" to innvilgetVilkårsvurdering.id), it) {
+                        "select * from behandling where id = :id".hent(
+                            mapOf("id" to innvilgetVilkårsvurdering.id),
+                            it,
+                        ) {
                             it.stringOrNull("beregning") shouldNotBe null
                             it.stringOrNull("simulering") shouldNotBe null
                         }
@@ -205,7 +218,10 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     repo.lagre(vilkårsvurdert)
                     repo.hent(vilkårsvurdert.id) shouldBe vilkårsvurdert.persistertVariant()
                     dataSource.withSession {
-                        "select * from behandling where id = :id".hent(mapOf("id" to innvilgetVilkårsvurdering.id), it) {
+                        "select * from behandling where id = :id".hent(
+                            mapOf("id" to innvilgetVilkårsvurdering.id),
+                            it,
+                        ) {
                             it.stringOrNull("beregning") shouldBe null
                             it.stringOrNull("simulering") shouldBe null
                         }
@@ -603,6 +619,54 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 vilkårsvurderinger = opprettet.vilkårsvurderinger,
                 avkorting = Avkortingsvarsel.Ingen,
             )
+        }
+    }
+
+    @Test
+    fun `oppdaterer avkorting ved lagring av iverksatt søknadsbehandling`() {
+        withMigratedDb { dataSource ->
+
+            val avkortet = mock<Avkortingsvarsel.Utenlandsopphold.Avkortet>()
+            val iverksattInnvilgetUtenAvkorting = søknadsbehandlingIverksattInnvilget().second
+            val iverksattAvslagMedBeregning = søknadsbehandlingIverksattAvslagMedBeregning().second
+            val iverksattAvslagUtenBeregning = søknadsbehandlingIverksattAvslagUtenBeregning().second
+            val iverksattInnvilgetAvkortet = søknadsbehandlingIverksattInnvilget().second.copy(
+                avkorting = avkortet,
+            )
+
+            val avkortingsvarselRepoMock = mock<AvkortingsvarselPostgresRepo>()
+
+            val sessionFactory = PostgresSessionFactory(dataSource)
+            val repo = SøknadsbehandlingPostgresRepo(
+                dataSource = mock(),
+                fradragsgrunnlagPostgresRepo = mock(),
+                bosituasjongrunnlagRepo = mock(),
+                uføreVilkårsvurderingRepo = mock(),
+                dbMetrics = mock(),
+                sessionFactory = PostgresSessionFactory(dataSource),
+                utenlandsoppholdVilkårsvurderingRepo = mock(),
+                avkortingsvarselRepo = avkortingsvarselRepoMock,
+            )
+
+            repo.lagre(
+                søknadsbehandling = iverksattInnvilgetUtenAvkorting,
+                sessionContext = sessionFactory.newTransactionContext(),
+            )
+            repo.lagre(
+                søknadsbehandling = iverksattAvslagMedBeregning,
+                sessionContext = sessionFactory.newTransactionContext(),
+            )
+            repo.lagre(
+                søknadsbehandling = iverksattAvslagUtenBeregning,
+                sessionContext = sessionFactory.newTransactionContext(),
+            )
+            repo.lagre(
+                søknadsbehandling = iverksattInnvilgetAvkortet,
+                sessionContext = sessionFactory.newTransactionContext(),
+            )
+
+            verify(avkortingsvarselRepoMock).lagre(eq(avkortet), any())
+            verifyNoMoreInteractions(avkortingsvarselRepoMock)
         }
     }
 }

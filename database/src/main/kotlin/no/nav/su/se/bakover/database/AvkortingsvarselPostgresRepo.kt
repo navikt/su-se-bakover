@@ -4,17 +4,11 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.persistence.SessionContext
-import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
-import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.util.UUID
 
-internal class AvkortingsvarselPostgresRepo(
-    private val sessionFactory: PostgresSessionFactory,
-) {
+internal class AvkortingsvarselPostgresRepo {
 
     enum class Status {
         OPPRETTET,
@@ -128,19 +122,10 @@ internal class AvkortingsvarselPostgresRepo(
             )
     }
 
-    fun hentUteståendeAvkortinger(
-        sakId: UUID,
-        sessionContext: SessionContext,
-    ): List<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes> {
-        return sessionContext.withSession { session ->
-            hentUteståendeAvkortinger(sakId, session)
-        }
-    }
-
-    fun hentUteståendeAvkortinger(
+    fun hentUteståendeAvkorting(
         sakId: UUID,
         session: Session,
-    ): List<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes> {
+    ): Avkortingsvarsel {
         return """select * from avkortingsvarsel where sakid = :sakid and status = :status""".hentListe(
             mapOf(
                 "sakid" to sakId,
@@ -149,19 +134,10 @@ internal class AvkortingsvarselPostgresRepo(
             session,
         ) {
             it.toAvkortingsvarsel() as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
-        }
+        }.singleOrNull() ?: Avkortingsvarsel.Ingen // skal maksimalt kunne ha 1 utestående til enhver tid
     }
 
-    fun lagre(
-        avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.Avkortet,
-        transactionContext: TransactionContext,
-    ) {
-        transactionContext.withTransaction { tx ->
-            lagre(avkortingsvarsel, tx)
-        }
-    }
-
-    fun slettForRevurdering(revurderingId: UUID, tx: TransactionalSession) {
+    private fun slettForRevurdering(revurderingId: UUID, tx: TransactionalSession) {
         """delete from avkortingsvarsel where revurderingId = :revurderingId""".oppdatering(
             mapOf(
                 "revurderingId" to revurderingId,
@@ -195,14 +171,6 @@ internal class AvkortingsvarselPostgresRepo(
             Status.SKAL_AVKORTES -> opprettet.skalAvkortes()
             Status.AVKORTET -> opprettet.skalAvkortes().avkortet(uuid("søknadsbehandlingId"))
         }
-    }
-
-    fun defaultSessionContext(): SessionContext {
-        return sessionFactory.newSessionContext()
-    }
-
-    fun defaultTransactionContext(): TransactionContext {
-        return sessionFactory.newTransactionContext()
     }
 
     fun hentFullførtAvkorting(søknadsbehandlingId: UUID, session: Session): Avkortingsvarsel {

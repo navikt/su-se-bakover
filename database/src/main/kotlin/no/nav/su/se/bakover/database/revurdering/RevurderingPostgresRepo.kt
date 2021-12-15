@@ -406,8 +406,9 @@ internal class RevurderingPostgresRepo(
                 /**
                  * Håndter tilfeller hvor vi har vært [SimulertRevurdering] og gått tilbake til [BeregnetRevurdering]
                  */
-                avkortingsvarselRepo.slettForRevurdering(
+                avkortingsvarselRepo.lagre(
                     revurderingId = revurdering.id,
+                    avkortingsvarsel = Avkortingsvarsel.Ingen,
                     tx = tx,
                 )
             }
@@ -447,8 +448,9 @@ internal class RevurderingPostgresRepo(
             ).let {
                 when (revurdering) {
                     is SimulertRevurdering.Innvilget -> {
-                        avkortingsvarselRepo.slettForRevurdering(
+                        avkortingsvarselRepo.lagre(
                             revurderingId = revurdering.id,
+                            avkortingsvarsel = Avkortingsvarsel.Ingen,
                             tx = tx,
                         )
                     }
@@ -548,8 +550,20 @@ internal class RevurderingPostgresRepo(
             )
 
         when (revurdering) {
-            is IverksattRevurdering.IngenEndring -> {}
-            is IverksattRevurdering.Innvilget -> {}
+            is IverksattRevurdering.IngenEndring -> {
+                avkortingsvarselRepo.lagre(
+                    revurderingId = revurdering.id,
+                    avkortingsvarsel = Avkortingsvarsel.Ingen,
+                    tx = tx,
+                )
+            }
+            is IverksattRevurdering.Innvilget -> {
+                avkortingsvarselRepo.lagre(
+                    revurderingId = revurdering.id,
+                    avkortingsvarsel = Avkortingsvarsel.Ingen,
+                    tx = tx,
+                )
+            }
             is IverksattRevurdering.Opphørt -> {
                 avkortingsvarselRepo.lagre(
                     revurderingId = revurdering.id,

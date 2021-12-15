@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.database.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.beregning.PersistertFradrag
 import no.nav.su.se.bakover.database.persistertVariant
@@ -52,13 +53,23 @@ import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.periode2021
+import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.simulertUtbetalingOpphør
 import no.nav.su.se.bakover.test.utlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttRevurdering
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.LocalDate
 import java.util.UUID
@@ -1095,7 +1106,9 @@ internal class RevurderingPostgresRepoTest {
                 val iverksatt = tilAttestering.tilIverksatt(
                     attestant = attestant,
                     clock = fixedClock,
-                    utbetal = { _: UUID, _: NavIdentBruker.Attestant, _: LocalDate, _: Simulering -> UUID30.randomUUID().right() },
+                    utbetal = { _: UUID, _: NavIdentBruker.Attestant, _: LocalDate, _: Simulering ->
+                        UUID30.randomUUID().right()
+                    },
                 ).getOrFail()
 
                 testDataHelper.revurderingRepo.lagre(iverksatt)
@@ -1189,13 +1202,60 @@ internal class RevurderingPostgresRepoTest {
                     }
 
                 testDataHelper.sessionFactory.withSession { session ->
-                    testDataHelper.avkortingsvarselRepo.hentForRevurdering(beregnet.id, session) shouldBe beOfType<Avkortingsvarsel.Utenlandsopphold.Opprettet>()
+                    testDataHelper.avkortingsvarselRepo.hentForRevurdering(
+                        beregnet.id,
+                        session,
+                    ) shouldBe beOfType<Avkortingsvarsel.Utenlandsopphold.Opprettet>()
 
                     testDataHelper.revurderingRepo.lagre(beregnet)
 
-                    testDataHelper.avkortingsvarselRepo.hentForRevurdering(beregnet.id, session) shouldBe Avkortingsvarsel.Ingen
+                    testDataHelper.avkortingsvarselRepo.hentForRevurdering(
+                        beregnet.id,
+                        session,
+                    ) shouldBe Avkortingsvarsel.Ingen
                 }
             }
         }
+    }
+
+    @Test
+    fun `oppdater avkortingsvarsel ved lagring av iverksatt revurdering`() {
+        val avkortingsvarselRepoMock = mock<AvkortingsvarselPostgresRepo>()
+        val iverksattIngenEndring = iverksattRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak().second
+        val iverksattInnvilget = iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
+        val iverksattOpphør = iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak().second
+
+        val repo = RevurderingPostgresRepo(
+            dataSource = mock(),
+            fradragsgrunnlagPostgresRepo = mock(),
+            bosituasjonsgrunnlagPostgresRepo = mock(),
+            uføreVilkårsvurderingRepo = mock(),
+            utlandsoppholdVilkårsvurderingRepo = mock(),
+            formueVilkårsvurderingRepo = mock(),
+            søknadsbehandlingRepo = mock(),
+            dbMetrics = mock(),
+            sessionFactory = mock(),
+            avkortingsvarselRepo = avkortingsvarselRepoMock,
+        )
+
+        repo.lagre(
+            revurdering = iverksattIngenEndring,
+            session = mock(),
+        )
+        repo.lagre(
+            revurdering = iverksattInnvilget,
+            session = mock(),
+        )
+        repo.lagre(
+            revurdering = iverksattOpphør,
+            session = mock(),
+        )
+
+        verify(avkortingsvarselRepoMock, times(3)).lagre(
+            revurderingId = eq(revurderingId),
+            avkortingsvarsel = eq(Avkortingsvarsel.Ingen),
+            tx = any(),
+        )
+        verifyNoMoreInteractions(avkortingsvarselRepoMock)
     }
 }
