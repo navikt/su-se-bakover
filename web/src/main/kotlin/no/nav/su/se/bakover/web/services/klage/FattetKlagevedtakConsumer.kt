@@ -73,22 +73,24 @@ internal class FattetKlagevedtakConsumer(
                         -> {
                             log.error("Fattet klagevedtak: $it. Key: ${message.key()}, partition: ${message.partition()}, offset: ${message.offset()}")
                             sikkerLogg.error("Fattet klagevedtak: $it. Key: ${message.key()}, Value: ${message.value()}, partition: ${message.partition()}, offset: ${message.offset()} ")
+                            consumer.commitSync(offsets)
                             // Kafka tar ikke hensyn til offsetten vi comitter før det skjer en Rebalance.
                             // Vi kan tvinge en rebalance, dersom vi ikke ønsker neste event (som kan føre til at vi comitter lengre frem enn vi faktisk er)
                             // Hvis dette skjer vil Kafka prøve å sende meldingen på nytt mens den blokkerer nyere meldinger.
                             // Dersom dette oppstår kan vi vurdere om vi heller bare skal forkaste meldingen eller lagre den (da flytter vi kompleksiten inn i domenet.)
                             consumer.enforceRebalance()
-                            consumer.commitSync(offsets)
                             return@breakable
                         }
                         is KunneIkkeMappeKlagevedtak.IkkeAktuellOpplysningstype -> {
                             log.debug("Fattet klagevedtak: Forkastet hendelse med uaktuell kilde: ${it.kilde}, key: ${message.key()}, partition: ${message.partition()}, offset: ${message.offset()}\"")
                             sikkerLogg.debug("Fattet klagevedtak: Forkastet hendelse med uaktuell kilde: ${it.kilde}, key: ${message.key()}, value: ${message.value()} partition: ${message.partition()}, offset: ${message.offset()}\"")
-                            return@forEach
+                            offsets[TopicPartition(message.topic(), message.partition())] =
+                                OffsetAndMetadata(message.offset() + 1)
                         }
                     }
                 }
             }
+            consumer.commitSync(offsets)
         }
         log.debug("Fattet klagevedtak: Prosessert ferdig meldingene.")
     }
