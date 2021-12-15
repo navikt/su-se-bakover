@@ -204,4 +204,15 @@ internal class AvkortingsvarselPostgresRepo(
     fun defaultTransactionContext(): TransactionContext {
         return sessionFactory.newTransactionContext()
     }
+
+    fun hentFullførtAvkorting(søknadsbehandlingId: UUID, session: Session): Avkortingsvarsel {
+        return """select * from avkortingsvarsel where søknadsbehandlingId = :id""".hent(
+            mapOf(
+                "id" to søknadsbehandlingId,
+            ),
+            session,
+        ) {
+            it.toAvkortingsvarsel()
+        } ?: Avkortingsvarsel.Ingen
+    }
 }

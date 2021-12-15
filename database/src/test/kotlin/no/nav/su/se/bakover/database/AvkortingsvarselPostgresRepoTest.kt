@@ -95,6 +95,11 @@ internal class AvkortingsvarselPostgresRepoTest {
                     revurderingId = revurdering.id,
                     session = tx,
                 ) shouldBe avkortet
+
+                testDataHelper.avkortingsvarselRepo.hentFullførtAvkorting(
+                    søknadsbehandlingId = nySøknadsbehandling.id,
+                    session = tx,
+                ) shouldBe avkortet
             }
         }
     }
@@ -155,7 +160,10 @@ internal class AvkortingsvarselPostgresRepoTest {
                     avkortingsvarsel = avkortet.skalAvkortes().avkortet(nySøknadsbehandling.id),
                     tx = tx,
                 )
-                testDataHelper.avkortingsvarselRepo.hentUteståendeAvkortinger(sak.id, tx) shouldBe listOf(skalAvkortes.skalAvkortes())
+                testDataHelper.avkortingsvarselRepo.hentUteståendeAvkortinger(
+                    sakId = sak.id,
+                    session = tx,
+                ) shouldBe listOf(skalAvkortes.skalAvkortes())
             }
         }
     }
