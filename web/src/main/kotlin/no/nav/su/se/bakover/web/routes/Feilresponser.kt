@@ -148,6 +148,11 @@ internal object Feilresponser {
         "kunne_ikke_simulere",
     )
 
+    val avkortingErUfullstendig = InternalServerError.errorJson(
+        "Avkorting av utestående beløp er ufullstendig.",
+        "avkorting_er_ufullstendig"
+    )
+
     fun ugyldigTilstand(fra: KClass<*>, til: KClass<*>): Resultat {
         return BadRequest.errorJson(
             "Kan ikke gå fra tilstanden ${fra.simpleName} til tilstanden ${til.simpleName}",

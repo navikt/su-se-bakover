@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -186,6 +187,7 @@ internal class GjeldendeVedtaksdataTest {
                 formue = innvilgetFormueVilkår(periode),
                 utenlandsopphold = utlandsoppholdInnvilget(periode = periode),
             ),
+            avkorting = Avkortingsvarsel.Ingen,
         ),
         utbetalingId = UUID30.randomUUID(),
         clock = fixedClock,

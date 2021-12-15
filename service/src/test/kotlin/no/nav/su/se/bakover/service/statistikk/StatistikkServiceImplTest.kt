@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -372,6 +373,7 @@ internal class StatistikkServiceImplTest {
             stønadsperiode = Stønadsperiode.create(stønadsperiode),
             grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode),
             vilkårsvurderinger = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
+            avkorting = Avkortingsvarsel.Ingen,
         )
 
         val expected = Statistikk.Behandling(

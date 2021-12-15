@@ -102,7 +102,6 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `responderer med feil dersom vi ikke får til å hente navn for saksbehandler eller attestant`() {
         vilkårsvurdertInnvilget.beregn(
-            avkortingsvarsel = emptyList(),
             begrunnelse = null,
             clock = fixedClock,
         ).getOrFail()
@@ -190,7 +189,6 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for beregnet innvilget`() {
         vilkårsvurdertInnvilget.beregn(
-            avkortingsvarsel = emptyList(),
             begrunnelse = null,
             clock = fixedClock,
         ).getOrFail()
@@ -232,7 +230,6 @@ internal class LagBrevRequestVisitorTest {
                 ),
             ),
         ).getOrFail().beregn(
-            avkortingsvarsel = emptyList(),
             begrunnelse = null,
             clock = fixedClock,
         ).getOrFail().let { søknadsbehandling ->
@@ -263,7 +260,6 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for simulert`() {
         vilkårsvurdertInnvilget.beregn(
-            avkortingsvarsel = emptyList(),
             begrunnelse = null,
             clock = fixedClock,
         ).getOrFail()
@@ -346,7 +342,6 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
             ).getOrFail().beregn(
-                avkortingsvarsel = emptyList(),
                 begrunnelse = null,
                 clock = fixedClock,
             ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
@@ -380,7 +375,6 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for innvilget til attestering`() {
         vilkårsvurdertInnvilget.beregn(
-            avkortingsvarsel = emptyList(),
             begrunnelse = null,
             clock = fixedClock,
         ).getOrFail()
@@ -466,7 +460,6 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
             ).getOrFail().beregn(
-                avkortingsvarsel = emptyList(),
                 begrunnelse = null,
                 clock = fixedClock,
             ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
@@ -509,7 +502,6 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for underkjent innvilgelse`() {
         vilkårsvurdertInnvilget.beregn(
-            avkortingsvarsel = emptyList(),
             begrunnelse = null,
             clock = fixedClock,
         ).getOrFail()
@@ -599,7 +591,6 @@ internal class LagBrevRequestVisitorTest {
                 ),
             ).getOrFail()
                 .beregn(
-                    avkortingsvarsel = emptyList(),
                     begrunnelse = null,
                     clock = fixedClock,
                 ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
@@ -636,7 +627,6 @@ internal class LagBrevRequestVisitorTest {
     @Test
     fun `lager request for iverksatt innvilget`() {
         vilkårsvurdertInnvilget.beregn(
-            avkortingsvarsel = emptyList(),
             begrunnelse = null,
             clock = fixedClock,
         ).getOrFail()
@@ -670,7 +660,6 @@ internal class LagBrevRequestVisitorTest {
         val utbetalingId = UUID30.randomUUID()
         val søknadsbehandling = vilkårsvurdertInnvilget
             .beregn(
-                avkortingsvarsel = emptyList(),
                 begrunnelse = null,
                 clock = fixedClock,
             ).getOrFail()
@@ -725,7 +714,6 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
             ).getOrFail().beregn(
-                avkortingsvarsel = emptyList(),
                 begrunnelse = null,
                 clock = fixedClock,
             ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
@@ -817,7 +805,6 @@ internal class LagBrevRequestVisitorTest {
         val utbetalingId = UUID30.randomUUID()
         val søknadsbehandling =
             vilkårsvurdertInnvilget.beregn(
-                avkortingsvarsel = emptyList(),
                 begrunnelse = null,
                 clock = fixedClock,
             ).getOrFail()
@@ -899,7 +886,6 @@ internal class LagBrevRequestVisitorTest {
         val søknadsbehandling =
             vilkårsvurdertInnvilget
                 .beregn(
-                    avkortingsvarsel = emptyList(),
                     begrunnelse = null,
                     clock = fixedClock,
                 ).getOrFail()
@@ -1146,7 +1132,6 @@ internal class LagBrevRequestVisitorTest {
         val utbetalingId = UUID30.randomUUID()
         val søknadsbehandling =
             vilkårsvurdertInnvilget.beregn(
-                avkortingsvarsel = emptyList(),
                 begrunnelse = null,
                 clock = fixedClock,
             ).getOrFail()

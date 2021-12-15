@@ -1189,11 +1189,11 @@ internal class RevurderingPostgresRepoTest {
                     }
 
                 testDataHelper.sessionFactory.withSession { session ->
-                    testDataHelper.avkortingsvarselRepo.hentForBehandling(beregnet.id, session) shouldBe beOfType<Avkortingsvarsel.Utenlandsopphold.Opprettet>()
+                    testDataHelper.avkortingsvarselRepo.hentForRevurdering(beregnet.id, session) shouldBe beOfType<Avkortingsvarsel.Utenlandsopphold.Opprettet>()
 
                     testDataHelper.revurderingRepo.lagre(beregnet)
 
-                    testDataHelper.avkortingsvarselRepo.hentForBehandling(beregnet.id, session) shouldBe Avkortingsvarsel.Ingen
+                    testDataHelper.avkortingsvarselRepo.hentForRevurdering(beregnet.id, session) shouldBe Avkortingsvarsel.Ingen
                 }
             }
         }

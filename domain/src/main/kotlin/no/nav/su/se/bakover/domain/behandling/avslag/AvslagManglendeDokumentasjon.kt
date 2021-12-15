@@ -68,6 +68,7 @@ data class AvslagManglendeDokumentasjon private constructor(
                             ),
                             grunnlagsdata = søknadsbehandling.grunnlagsdata,
                             vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger,
+                            avkorting = søknadsbehandling.avkorting,
                         ),
                     ).right()
                 }

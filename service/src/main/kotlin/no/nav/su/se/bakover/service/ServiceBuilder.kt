@@ -140,7 +140,6 @@ object ServiceBuilder {
             ferdigstillVedtakService = ferdigstillVedtakService,
             grunnlagService = grunnlagService,
             sakService = sakService,
-            avkortingsvarselRepo = databaseRepos.avkortingsvarselRepo,
         ).apply {
             addObserver(statistikkService)
         }

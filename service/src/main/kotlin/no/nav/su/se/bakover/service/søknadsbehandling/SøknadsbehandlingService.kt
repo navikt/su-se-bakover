@@ -72,6 +72,7 @@ interface SøknadsbehandlingService {
             val til: KClass<out Søknadsbehandling>,
         ) : KunneIkkeBeregne()
         data class UgyldigTilstandForEndringAvFradrag(val feil: KunneIkkeLeggeTilFradragsgrunnlag) : KunneIkkeBeregne()
+        object AvkortingErUfullstendig : KunneIkkeBeregne()
     }
 
     data class SimulerRequest(

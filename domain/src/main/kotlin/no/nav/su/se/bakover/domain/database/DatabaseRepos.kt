@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.database
 
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.dokument.DokumentRepo
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagRepo
 import no.nav.su.se.bakover.domain.hendelse.PersonhendelseRepo
@@ -37,5 +36,4 @@ interface DatabaseRepos {
     val nøkkeltallRepo: NøkkeltallRepo
     val sessionFactory: SessionFactory
     val klageRepo: KlageRepo
-    val avkortingsvarselRepo: AvkortingsvarselRepo
 }

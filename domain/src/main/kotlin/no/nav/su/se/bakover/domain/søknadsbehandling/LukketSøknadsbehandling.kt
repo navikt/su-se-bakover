@@ -24,7 +24,7 @@ data class LukketSøknadsbehandling private constructor(
     override val fnr = lukketSøknadsbehandling.fnr
     // Så vi kan initialiseres uten at periode er satt (typisk ved ny søknadsbehandling)
     override val periode by lazy { lukketSøknadsbehandling.periode }
-
+    override val avkorting = lukketSøknadsbehandling.avkorting
     companion object {
 
         fun tryCreate(

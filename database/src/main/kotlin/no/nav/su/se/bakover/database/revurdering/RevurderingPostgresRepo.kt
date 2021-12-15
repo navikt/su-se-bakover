@@ -236,7 +236,7 @@ internal class RevurderingPostgresRepo(
             utenlandsopphold = utlandsoppholdVilkårsvurderingRepo.hent(id, session),
         )
 
-        val avkortingsvarsel = avkortingsvarselRepo.hentForBehandling(id, session)
+        val avkortingsvarsel = avkortingsvarselRepo.hentForRevurdering(id, session)
 
         val revurdering = lagRevurdering(
             status = status,

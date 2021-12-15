@@ -70,7 +70,6 @@ internal class StatusovergangTest {
 
     private val beregnetInnvilget: Søknadsbehandling.Beregnet.Innvilget =
         vilkårsvurdertInnvilget.beregn(
-            avkortingsvarsel = emptyList(),
             begrunnelse = null,
             clock = fixedClock,
         ).getOrFail() as Søknadsbehandling.Beregnet.Innvilget
@@ -80,7 +79,6 @@ internal class StatusovergangTest {
             uførhet = innvilgetUførevilkår(forventetInntekt = 11000000),
             clock = fixedClock,
         ).getOrFail().beregn(
-            avkortingsvarsel = emptyList(),
             begrunnelse = null,
             clock = fixedClock,
         ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
@@ -392,7 +390,6 @@ internal class StatusovergangTest {
         @Test
         fun `kan beregne for vilkårsvurdert innvilget`() {
             vilkårsvurdertInnvilget.beregn(
-                avkortingsvarsel = listOf(),
                 begrunnelse = null,
                 clock = fixedClock,
             ).getOrFail() shouldBe beregnetInnvilget
@@ -401,7 +398,6 @@ internal class StatusovergangTest {
         @Test
         fun `kan beregne på nytt for beregnet innvilget`() {
             beregnetInnvilget.beregn(
-                avkortingsvarsel = listOf(),
                 begrunnelse = null,
                 clock = fixedClock,
             ).getOrFail() shouldBe beregnetInnvilget
@@ -410,7 +406,6 @@ internal class StatusovergangTest {
         @Test
         fun `kan beregne på nytt for beregnet avslag`() {
             beregnetAvslag.beregn(
-                avkortingsvarsel = listOf(),
                 begrunnelse = null,
                 clock = fixedClock,
             ).getOrFail() shouldBe beregnetAvslag
@@ -419,7 +414,6 @@ internal class StatusovergangTest {
         @Test
         fun `kan beregne på nytt for simulert`() {
             simulert.beregn(
-                avkortingsvarsel = listOf(),
                 begrunnelse = null,
                 clock = fixedClock,
             ).getOrFail() shouldBe beregnetInnvilget
@@ -428,7 +422,6 @@ internal class StatusovergangTest {
         @Test
         fun `kan beregne på nytt underkjent avslag med beregning`() {
             underkjentAvslagBeregning.beregn(
-                avkortingsvarsel = listOf(),
                 begrunnelse = null,
                 clock = fixedClock,
             ).getOrFail() shouldBe beregnetAvslag
@@ -439,7 +432,6 @@ internal class StatusovergangTest {
         @Test
         fun `kan beregne på nytt underkjent innvilgelse med beregning`() {
             underkjentInnvilget.beregn(
-                avkortingsvarsel = listOf(),
                 begrunnelse = null,
                 clock = fixedClock,
             ).getOrFail() shouldBe beregnetInnvilget
@@ -462,7 +454,6 @@ internal class StatusovergangTest {
                 lukketSøknadsbehandling,
             ).forEach {
                 it.beregn(
-                    avkortingsvarsel = emptyList(),
                     begrunnelse = null,
                     clock = fixedClock,
                 ) shouldBe Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstand(it::class).left()

@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.database.AvkortingsvarselPostgresRepo
 import no.nav.su.se.bakover.database.DbMetrics
 import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.database.PostgresSessionFactory
@@ -29,6 +30,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -55,6 +57,7 @@ internal class SøknadsbehandlingPostgresRepo(
     private val dbMetrics: DbMetrics,
     private val sessionFactory: PostgresSessionFactory,
     private val utenlandsoppholdVilkårsvurderingRepo: UtenlandsoppholdVilkårsvurderingPostgresRepo,
+    private val avkortingsvarselRepo: AvkortingsvarselPostgresRepo,
 ) : SøknadsbehandlingRepo {
     override fun lagre(søknadsbehandling: Søknadsbehandling, sessionContext: TransactionContext) {
         sessionContext.withTransaction { tx ->
@@ -241,6 +244,11 @@ internal class SøknadsbehandlingPostgresRepo(
             } ?: vv
         }
 
+        val avkorting = avkortingsvarselRepo.hentUteståendeAvkortinger(
+            sakId = sakId,
+            session = session,
+        ).singleOrNull() ?: Avkortingsvarsel.Ingen
+
         val søknadsbehandling = when (status) {
             BehandlingsStatus.OPPRETTET -> Søknadsbehandling.Vilkårsvurdert.Uavklart(
                 id = behandlingId,
@@ -256,6 +264,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
+                avkorting = avkorting,
             )
             BehandlingsStatus.VILKÅRSVURDERT_INNVILGET -> Søknadsbehandling.Vilkårsvurdert.Innvilget(
                 id = behandlingId,
@@ -271,6 +280,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
+                avkorting = avkorting,
             )
             BehandlingsStatus.VILKÅRSVURDERT_AVSLAG -> Søknadsbehandling.Vilkårsvurdert.Avslag(
                 id = behandlingId,
@@ -286,6 +296,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
+                avkorting = avkorting,
             )
             BehandlingsStatus.BEREGNET_INNVILGET -> Søknadsbehandling.Beregnet.Innvilget(
                 id = behandlingId,
@@ -302,6 +313,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
+                avkorting = avkorting,
             )
             BehandlingsStatus.BEREGNET_AVSLAG -> Søknadsbehandling.Beregnet.Avslag(
                 id = behandlingId,
@@ -318,6 +330,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
+                avkorting = avkorting,
             )
             BehandlingsStatus.SIMULERT -> Søknadsbehandling.Simulert(
                 id = behandlingId,
@@ -335,6 +348,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
+                avkorting = avkorting,
             )
             BehandlingsStatus.TIL_ATTESTERING_INNVILGET -> Søknadsbehandling.TilAttestering.Innvilget(
                 id = behandlingId,
@@ -353,6 +367,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 attesteringer = attesteringer,
+                avkorting = avkorting,
             )
             BehandlingsStatus.TIL_ATTESTERING_AVSLAG -> when (beregning) {
                 null -> Søknadsbehandling.TilAttestering.Avslag.UtenBeregning(
@@ -370,6 +385,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
+                    avkorting = avkorting,
                 )
                 else -> Søknadsbehandling.TilAttestering.Avslag.MedBeregning(
                     id = behandlingId,
@@ -387,6 +403,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
                     attesteringer = attesteringer,
+                    avkorting = avkorting,
                 )
             }
             BehandlingsStatus.UNDERKJENT_INNVILGET -> Søknadsbehandling.Underkjent.Innvilget(
@@ -406,6 +423,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 stønadsperiode = stønadsperiode!!,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
+                avkorting = avkorting,
             )
             BehandlingsStatus.UNDERKJENT_AVSLAG -> when (beregning) {
                 null -> Søknadsbehandling.Underkjent.Avslag.UtenBeregning(
@@ -423,6 +441,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     stønadsperiode = stønadsperiode!!,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
+                    avkorting = avkorting,
                 )
                 else -> Søknadsbehandling.Underkjent.Avslag.MedBeregning(
                     id = behandlingId,
@@ -440,6 +459,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     stønadsperiode = stønadsperiode!!,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
+                    avkorting = avkorting,
                 )
             }
             BehandlingsStatus.IVERKSATT_INNVILGET -> {
@@ -460,6 +480,7 @@ internal class SøknadsbehandlingPostgresRepo(
                     stønadsperiode = stønadsperiode!!,
                     grunnlagsdata = grunnlagsdata,
                     vilkårsvurderinger = vilkårsvurderinger,
+                    avkorting = avkorting,
                 )
             }
             BehandlingsStatus.IVERKSATT_AVSLAG -> {
@@ -479,6 +500,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         stønadsperiode = stønadsperiode!!,
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = vilkårsvurderinger,
+                        avkorting = avkorting,
                     )
                     else -> Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
                         id = behandlingId,
@@ -496,6 +518,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         stønadsperiode = stønadsperiode!!,
                         grunnlagsdata = grunnlagsdata,
                         vilkårsvurderinger = vilkårsvurderinger,
+                        avkorting = avkorting,
                     )
                 }
             }
@@ -606,6 +629,21 @@ internal class SøknadsbehandlingPostgresRepo(
                         ),
                         session = tx,
                     )
+
+                when (val avkort = søknadsbehandling.avkorting) {
+                    Avkortingsvarsel.Ingen -> {
+                        // noop
+                    }
+                    is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
+                        avkortingsvarselRepo.lagre(avkort, tx)
+                    }
+                    is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
+                        throw IllegalStateException("")
+                    }
+                    is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
+                        throw IllegalStateException("")
+                    }
+                }
             }
             is Søknadsbehandling.Iverksatt.Avslag -> {
                 """

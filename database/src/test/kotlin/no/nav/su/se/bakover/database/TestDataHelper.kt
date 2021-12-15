@@ -260,6 +260,7 @@ internal class TestDataHelper(
         dbMetrics = dbMetrics,
         sessionFactory = sessionFactory,
         utenlandsoppholdVilkårsvurderingRepo = utenlandsoppholdVilkårsvurderingRepo,
+        avkortingsvarselRepo = avkortingsvarselRepo,
     )
     internal val revurderingRepo = RevurderingPostgresRepo(
         dataSource = dataSource,
@@ -725,7 +726,6 @@ internal class TestDataHelper(
             vilkårsvurderinger,
             grunnlagsdata,
         ).beregn(
-            avkortingsvarsel = emptyList(),
             begrunnelse = null,
             clock = fixedClock,
         ).getOrFail().also {
@@ -748,7 +748,6 @@ internal class TestDataHelper(
                 ),
             )
         ).beregn(
-            avkortingsvarsel = emptyList(),
             begrunnelse = null,
             clock = fixedClock,
         ).getOrFail().also {

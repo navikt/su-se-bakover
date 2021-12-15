@@ -9,13 +9,12 @@ import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.database.PostgresSessionContext.Companion.withSession
 import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
-import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.util.UUID
 
 internal class AvkortingsvarselPostgresRepo(
     private val sessionFactory: PostgresSessionFactory,
-) : AvkortingsvarselRepo {
+) {
 
     enum class Status {
         OPPRETTET,
@@ -32,7 +31,7 @@ internal class AvkortingsvarselPostgresRepo(
         )
     }
 
-    private fun lagre(avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.Avkortet, tx: TransactionalSession) {
+    internal fun lagre(avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.Avkortet, tx: TransactionalSession) {
         oppdater(
             id = avkortingsvarsel.id,
             status = Status.AVKORTET,
@@ -129,24 +128,31 @@ internal class AvkortingsvarselPostgresRepo(
             )
     }
 
-    override fun hentUteståendeAvkortinger(
+    fun hentUteståendeAvkortinger(
         sakId: UUID,
         sessionContext: SessionContext,
     ): List<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes> {
         return sessionContext.withSession { session ->
-            """select * from avkortingsvarsel where sakid = :sakid and status = :status""".hentListe(
-                mapOf(
-                    "sakid" to sakId,
-                    "status" to "${Status.SKAL_AVKORTES}",
-                ),
-                session,
-            ) {
-                it.toAvkortingsvarsel() as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
-            }
+            hentUteståendeAvkortinger(sakId, session)
         }
     }
 
-    override fun lagre(
+    fun hentUteståendeAvkortinger(
+        sakId: UUID,
+        session: Session,
+    ): List<Avkortingsvarsel.Utenlandsopphold.SkalAvkortes> {
+        return """select * from avkortingsvarsel where sakid = :sakid and status = :status""".hentListe(
+            mapOf(
+                "sakid" to sakId,
+                "status" to "${Status.SKAL_AVKORTES}",
+            ),
+            session,
+        ) {
+            it.toAvkortingsvarsel() as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
+        }
+    }
+
+    fun lagre(
         avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold.Avkortet,
         transactionContext: TransactionContext,
     ) {
@@ -164,7 +170,7 @@ internal class AvkortingsvarselPostgresRepo(
         )
     }
 
-    fun hentForBehandling(revurderingId: UUID, session: Session): Avkortingsvarsel {
+    fun hentForRevurdering(revurderingId: UUID, session: Session): Avkortingsvarsel {
         return """select * from avkortingsvarsel where revurderingId = :revurderingId""".hent(
             mapOf(
                 "revurderingId" to revurderingId,
@@ -191,11 +197,11 @@ internal class AvkortingsvarselPostgresRepo(
         }
     }
 
-    override fun defaultSessionContext(): SessionContext {
+    fun defaultSessionContext(): SessionContext {
         return sessionFactory.newSessionContext()
     }
 
-    override fun defaultTransactionContext(): TransactionContext {
+    fun defaultTransactionContext(): TransactionContext {
         return sessionFactory.newTransactionContext()
     }
 }

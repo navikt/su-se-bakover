@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
@@ -171,7 +172,6 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
             val beregnet = innvilgetVilkårsvurdering
                 .beregn(
-                    avkortingsvarsel = emptyList(),
                     begrunnelse = null,
                     clock = fixedClock,
                 ).getOrFail()
@@ -242,6 +242,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                         grunnlagsdata = tilAttestering.grunnlagsdata,
                         vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
                         attesteringer = Attesteringshistorikk.empty(),
+                        avkorting = Avkortingsvarsel.Ingen,
                     ).persistertVariant()
                 }
             }
@@ -273,6 +274,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                         grunnlagsdata = tilAttestering.grunnlagsdata,
                         vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
                         attesteringer = Attesteringshistorikk.empty(),
+                        avkorting = Avkortingsvarsel.Ingen,
                     )
                 }
             }
@@ -304,6 +306,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     grunnlagsdata = tilAttestering.grunnlagsdata,
                     vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
                     attesteringer = Attesteringshistorikk.empty(),
+                    avkorting = Avkortingsvarsel.Ingen,
                 ).persistertVariant()
             }
         }
@@ -337,6 +340,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                         stønadsperiode = stønadsperiode,
                         grunnlagsdata = tilAttestering.grunnlagsdata,
                         vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
+                        avkorting = Avkortingsvarsel.Ingen,
                     ).persistertVariant()
                 }
             }
@@ -368,6 +372,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                         stønadsperiode = stønadsperiode,
                         grunnlagsdata = tilAttestering.grunnlagsdata,
                         vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
+                        avkorting = Avkortingsvarsel.Ingen,
                     )
                 }
             }
@@ -399,6 +404,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     stønadsperiode = stønadsperiode,
                     grunnlagsdata = tilAttestering.grunnlagsdata,
                     vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
+                    avkorting = Avkortingsvarsel.Ingen,
                 ).persistertVariant()
             }
         }
@@ -439,6 +445,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 stønadsperiode = stønadsperiode,
                 grunnlagsdata = iverksatt.grunnlagsdata,
                 vilkårsvurderinger = iverksatt.vilkårsvurderinger,
+                avkorting = Avkortingsvarsel.Ingen,
             )
             repo.hent(iverksatt.id).also {
                 it shouldBe expected
@@ -468,6 +475,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 stønadsperiode = stønadsperiode,
                 grunnlagsdata = iverksatt.grunnlagsdata,
                 vilkårsvurderinger = iverksatt.vilkårsvurderinger,
+                avkorting = Avkortingsvarsel.Ingen,
             )
         }
     }
@@ -521,6 +529,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     vilkårsvurderinger = iverksatt.vilkårsvurderinger.copy(
                         uføre = vurderingUførhet,
                     ),
+                    avkorting = Avkortingsvarsel.Ingen,
                 )
             }
         }
@@ -592,6 +601,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 ),
                 grunnlagsdata = opprettet.grunnlagsdata,
                 vilkårsvurderinger = opprettet.vilkårsvurderinger,
+                avkorting = Avkortingsvarsel.Ingen,
             )
         }
     }

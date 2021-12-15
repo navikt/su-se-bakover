@@ -698,7 +698,6 @@ internal class BehandlingStatistikkMapperTest {
 
     private val vilkårsvurdertInnvilgetSøknadsbehandling = søknadsbehandlingVilkårsvurdertInnvilget().second
     private val beregnetSøknadsbehandling = vilkårsvurdertInnvilgetSøknadsbehandling.beregn(
-        avkortingsvarsel = emptyList(),
         begrunnelse = null,
         clock = fixedClock,
     ).getOrFail()

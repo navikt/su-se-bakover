@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.test
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -38,6 +39,7 @@ fun søknadsbehandlingVilkårsvurdertUavklart(
     grunnlagsdata: Grunnlagsdata = Grunnlagsdata.IkkeVurdert,
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårUavklart,
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
+    avkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
     return nySakMedjournalførtSøknadOgOppgave(
         sakId = sakId,
@@ -59,6 +61,7 @@ fun søknadsbehandlingVilkårsvurdertUavklart(
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
             attesteringer = Attesteringshistorikk.empty(),
+            avkorting = avkorting,
         )
         Pair(
             sak.copy(
@@ -75,10 +78,12 @@ fun søknadsbehandlingVilkårsvurdertInnvilget(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    avkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Innvilget> {
     return søknadsbehandlingVilkårsvurdertUavklart(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
+        avkorting = avkorting,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling
             .copy(
@@ -140,7 +145,6 @@ fun søknadsbehandlingBeregnetInnvilget(
         vilkårsvurderinger = vilkårsvurderinger,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.beregn(
-            avkortingsvarsel = emptyList(),
             begrunnelse = null,
             clock = fixedClock,
         ).getOrFail() as Søknadsbehandling.Beregnet.Innvilget
@@ -172,7 +176,7 @@ fun søknadsbehandlingBeregnetAvslag(
             uføregrunnlag = uføregrunnlagForventetInntekt(
                 periode = stønadsperiode.periode,
                 forventetInntekt = 1_000_000,
-            )
+            ),
         ),
     ),
 ): Pair<Sak, Søknadsbehandling.Beregnet.Avslag> {
@@ -184,7 +188,6 @@ fun søknadsbehandlingBeregnetAvslag(
         vilkårsvurderinger = vilkårsvurderinger,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.beregn(
-            avkortingsvarsel = emptyList(),
             begrunnelse = null,
             clock = fixedClock,
         ).getOrFail() as Søknadsbehandling.Beregnet.Avslag
@@ -267,7 +270,7 @@ fun søknadsbehandlingTilAttesteringAvslagMedBeregning(
             uføregrunnlag = uføregrunnlagForventetInntekt(
                 periode = stønadsperiode.periode,
                 forventetInntekt = 1_000_000,
-            )
+            ),
         ),
     ),
 ): Pair<Sak, Søknadsbehandling.TilAttestering.Avslag.MedBeregning> {
@@ -387,7 +390,7 @@ fun søknadsbehandlingUnderkjentAvslagMedBeregning(
             uføregrunnlag = uføregrunnlagForventetInntekt(
                 periode = stønadsperiode.periode,
                 forventetInntekt = 1_000_000,
-            )
+            ),
         ),
     ),
     clock: Clock = fixedClock,
@@ -452,7 +455,7 @@ fun søknadsbehandlingIverksattAvslagMedBeregning(
             uføregrunnlag = uføregrunnlagForventetInntekt(
                 periode = stønadsperiode.periode,
                 forventetInntekt = 1_000_000,
-            )
+            ),
         ),
     ),
     clock: Clock = fixedClock,

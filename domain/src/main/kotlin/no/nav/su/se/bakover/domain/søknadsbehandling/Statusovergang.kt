@@ -7,6 +7,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -169,6 +170,27 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) {
             result = if (saksbehandlerOgAttestantErForskjellig(søknadsbehandling, attestering)) {
+
+                /**
+                 * Skulle ideelt gjort dette inne i [Søknadsbehandling.TilAttestering.Innvilget.tilIverksatt], men må få
+                 * sjekket dette før vi oversender til oppdrag.
+                 */
+                when (søknadsbehandling.avkorting) {
+                    Avkortingsvarsel.Ingen -> {}
+                    is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
+                        throw IllegalStateException("")
+                    }
+                    is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
+                        throw IllegalStateException("")
+                    }
+                    is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
+                        if (!søknadsbehandling.avkorting.fullstendigAvkortetAv(søknadsbehandling.beregning)) {
+                            result = KunneIkkeIverksette.AvkortingErUfullstendig.left()
+                            return
+                        }
+                    }
+                }
+
                 innvilget(søknadsbehandling)
                     .mapLeft { it }
                     .map { søknadsbehandling.tilIverksatt(attestering) }
@@ -222,6 +244,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
                 ).getOrHandle { return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left() },
                 vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger.oppdaterStønadsperiode(oppdatertStønadsperiode),
                 attesteringer = søknadsbehandling.attesteringer,
+                avkorting = søknadsbehandling.avkorting,
             ).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon, clock = clock).right()
         }
 

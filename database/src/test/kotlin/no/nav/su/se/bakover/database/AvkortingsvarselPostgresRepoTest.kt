@@ -24,7 +24,7 @@ internal class AvkortingsvarselPostgresRepoTest {
                     tx = tx,
                 )
 
-                testDataHelper.avkortingsvarselRepo.hentForBehandling(
+                testDataHelper.avkortingsvarselRepo.hentForRevurdering(
                     revurderingId = UUID.randomUUID(),
                     session = tx,
                 ) shouldBe Avkortingsvarsel.Ingen
@@ -65,7 +65,7 @@ internal class AvkortingsvarselPostgresRepoTest {
                     tx = tx,
                 )
 
-                testDataHelper.avkortingsvarselRepo.hentForBehandling(
+                testDataHelper.avkortingsvarselRepo.hentForRevurdering(
                     revurderingId = revurdering.id,
                     session = tx,
                 ) shouldBe avkortingsvarsel
@@ -78,7 +78,7 @@ internal class AvkortingsvarselPostgresRepoTest {
                     tx = tx,
                 )
 
-                testDataHelper.avkortingsvarselRepo.hentForBehandling(
+                testDataHelper.avkortingsvarselRepo.hentForRevurdering(
                     revurderingId = revurdering.id,
                     session = tx,
                 ) shouldBe skalAvkortes
@@ -91,7 +91,7 @@ internal class AvkortingsvarselPostgresRepoTest {
                     tx = tx,
                 )
 
-                testDataHelper.avkortingsvarselRepo.hentForBehandling(
+                testDataHelper.avkortingsvarselRepo.hentForRevurdering(
                     revurderingId = revurdering.id,
                     session = tx,
                 ) shouldBe avkortet
@@ -155,9 +155,8 @@ internal class AvkortingsvarselPostgresRepoTest {
                     avkortingsvarsel = avkortet.skalAvkortes().avkortet(nySøknadsbehandling.id),
                     tx = tx,
                 )
+                testDataHelper.avkortingsvarselRepo.hentUteståendeAvkortinger(sak.id, tx) shouldBe listOf(skalAvkortes.skalAvkortes())
             }
-
-            testDataHelper.avkortingsvarselRepo.hentUteståendeAvkortinger(sak.id) shouldBe listOf(skalAvkortes.skalAvkortes())
         }
     }
 }

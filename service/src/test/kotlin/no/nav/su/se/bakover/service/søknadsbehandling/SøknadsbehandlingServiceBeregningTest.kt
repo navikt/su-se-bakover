@@ -45,9 +45,6 @@ class SøknadsbehandlingServiceBeregningTest {
             søknadsbehandlingRepo = mock {
                 on { hent(any()) } doReturn vilkårsvurdert
             },
-            avkortingsvarselRepo = mock {
-                on { hentUteståendeAvkortinger(any(), any()) } doReturn emptyList()
-            },
         ).let {
             val beregnet = it.søknadsbehandlingService.beregn(
                 SøknadsbehandlingService.BeregnRequest(
@@ -78,8 +75,6 @@ class SøknadsbehandlingServiceBeregningTest {
             }
 
             verify(it.søknadsbehandlingRepo).hent(vilkårsvurdert.id)
-            verify(it.avkortingsvarselRepo).defaultSessionContext()
-            verify(it.avkortingsvarselRepo).hentUteståendeAvkortinger(eq(vilkårsvurdert.sakId), anyOrNull())
             verify(it.grunnlagService).lagreFradragsgrunnlag(
                 vilkårsvurdert.id,
                 vilkårsvurdert.grunnlagsdata.fradragsgrunnlag,

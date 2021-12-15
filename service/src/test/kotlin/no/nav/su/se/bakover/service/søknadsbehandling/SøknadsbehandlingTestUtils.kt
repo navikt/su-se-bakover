@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
@@ -46,7 +45,6 @@ internal fun createSøknadsbehandlingService(
     ferdigstillVedtakService: FerdigstillVedtakService = mock(),
     grunnlagService: GrunnlagService = mock(),
     sakService: SakService = mock(),
-    avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
 ) = SøknadsbehandlingServiceImpl(
     søknadService,
     søknadsbehandlingRepo,
@@ -60,7 +58,6 @@ internal fun createSøknadsbehandlingService(
     ferdigstillVedtakService,
     grunnlagService,
     sakService,
-    avkortingsvarselRepo,
 ).apply { addObserver(observer) }
 
 internal data class SøknadsbehandlingServiceAndMocks(
@@ -78,7 +75,6 @@ internal data class SøknadsbehandlingServiceAndMocks(
     val vilkårsvurderingService: VilkårsvurderingService = mock(),
     val grunnlagService: GrunnlagService = mock(),
     val sakService: SakService = mock(),
-    val avkortingsvarselRepo: AvkortingsvarselRepo = mock(),
 ) {
     val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
         søknadService = søknadService,
@@ -93,7 +89,6 @@ internal data class SøknadsbehandlingServiceAndMocks(
         ferdigstillVedtakService = ferdigstillVedtakService,
         grunnlagService = grunnlagService,
         sakService = sakService,
-        avkortingsvarselRepo = avkortingsvarselRepo,
     ).apply { addObserver(observer) }
 
     fun allMocks(): Array<Any> {
@@ -111,7 +106,6 @@ internal data class SøknadsbehandlingServiceAndMocks(
             vilkårsvurderingService,
             grunnlagService,
             sakService,
-            avkortingsvarselRepo,
         ).toTypedArray()
     }
 
@@ -130,7 +124,6 @@ internal data class SøknadsbehandlingServiceAndMocks(
             vilkårsvurderingService,
             grunnlagService,
             sakService,
-            avkortingsvarselRepo,
         )
     }
 }

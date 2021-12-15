@@ -10,12 +10,10 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.avkorting.AvkortingsvarselRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
@@ -63,7 +61,6 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilUtenlandsoppholdRequest
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
-import kotlin.math.abs
 
 internal class SøknadsbehandlingServiceImpl(
     private val søknadService: SøknadService,
@@ -78,7 +75,6 @@ internal class SøknadsbehandlingServiceImpl(
     private val ferdigstillVedtakService: FerdigstillVedtakService,
     private val grunnlagService: GrunnlagService,
     private val sakService: SakService,
-    private val avkortingsvarselRepo: AvkortingsvarselRepo,
 ) : SøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -170,7 +166,6 @@ internal class SøknadsbehandlingServiceImpl(
             ?: return KunneIkkeBeregne.FantIkkeBehandling.left()
 
         return søknadsbehandling.beregn(
-            avkortingsvarsel = avkortingsvarselRepo.hentUteståendeAvkortinger(søknadsbehandling.sakId),
             begrunnelse = request.begrunnelse,
             clock = clock,
         ).getOrHandle {
@@ -181,8 +176,12 @@ internal class SøknadsbehandlingServiceImpl(
                 is Søknadsbehandling.KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag -> {
                     KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it.feil.toService())
                 }
+                Søknadsbehandling.KunneIkkeBeregne.AvkortingErUfullstendig -> {
+                    KunneIkkeBeregne.AvkortingErUfullstendig
+                }
             }.left()
         }.let {
+            // må lagre fradrag på nytt, siden eventuelle avkortinger legges til ved beregning
             grunnlagService.lagreFradragsgrunnlag(
                 behandlingId = it.id,
                 fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
@@ -338,22 +337,6 @@ internal class SøknadsbehandlingServiceImpl(
             statusovergang = Statusovergang.TilIverksatt(
                 attestering = request.attestering,
             ) { tilAttestering ->
-
-                // TODO finn en bedre måte å håndtrere dette på
-                avkortingsvarselRepo.hentUteståendeAvkortinger(tilAttestering.sakId).let {
-                    val beløpSkalAvkortes = it.sumOf { it.hentUtbetalteBeløp().sumOf { it.second } }
-                    val fradragAvkorting = tilAttestering.beregning.getFradrag()
-                        .filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
-                        .sumOf { it.månedsbeløp }
-                        .toInt()
-
-                    check(abs(beløpSkalAvkortes) == abs(fradragAvkorting)) { "Beløp for avkorting og fradrag stemmer ikke overens!" }
-
-                    it.forEach { avkortingsvarsel ->
-                        avkortingsvarselRepo.lagre(avkortingsvarsel.avkortet(tilAttestering.id))
-                    }
-                }
-
                 utbetalingService.utbetal(
                     sakId = tilAttestering.sakId,
                     attestant = request.attestering.attestant,

@@ -51,6 +51,7 @@ import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.Feilresponser.Brev.kunneIkkeGenerereBrev
 import no.nav.su.se.bakover.web.routes.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
+import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErUfullstendig
 import no.nav.su.se.bakover.web.routes.Feilresponser.depositumErHøyereEnnInnskudd
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkePerson
@@ -280,6 +281,9 @@ internal fun Route.søknadsbehandlingRoutes(
                                         is KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag -> {
                                             kunneIkkeBeregne.feil.tilResultat()
                                         }
+                                        KunneIkkeBeregne.AvkortingErUfullstendig -> {
+                                            avkortingErUfullstendig
+                                        }
                                     }
                                     call.svar(resultat)
                                 }.map { behandling ->
@@ -410,6 +414,7 @@ internal fun Route.søknadsbehandlingRoutes(
                 is KunneIkkeIverksette.FantIkkeBehandling -> fantIkkeBehandling
                 is KunneIkkeIverksette.FantIkkePerson -> fantIkkePerson
                 is KunneIkkeIverksette.FikkIkkeHentetSaksbehandlerEllerAttestant -> feilVedHentingAvSaksbehandlerEllerAttestant
+                KunneIkkeIverksette.AvkortingErUfullstendig -> avkortingErUfullstendig
             }
         }
 
