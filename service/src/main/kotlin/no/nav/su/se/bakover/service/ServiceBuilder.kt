@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagServiceImpl
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingServiceImpl
 import no.nav.su.se.bakover.service.klage.KlageServiceImpl
+import no.nav.su.se.bakover.service.klage.KlagevedtakServiceImpl
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleServiceImpl
 import no.nav.su.se.bakover.service.nøkkeltall.NøkkeltallServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
@@ -155,6 +156,9 @@ object ServiceBuilder {
             oppgaveService = oppgaveService,
             clock = clock,
         )
+        val klagevedtakService = KlagevedtakServiceImpl(
+            klagevedtakRepo = databaseRepos.klageVedtakRepo,
+        )
         return Services(
             avstemming = AvstemmingServiceImpl(
                 repo = databaseRepos.avstemming,
@@ -206,6 +210,7 @@ object ServiceBuilder {
                 clock = clock,
             ),
             klageService = klageService,
+            klagevedtakService = klagevedtakService,
         )
     }
 }

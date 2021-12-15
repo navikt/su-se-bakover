@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeVilkårsvurdereKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeVurdereKlage
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
+import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.nøkkeltall.Nøkkeltall
@@ -74,6 +75,7 @@ import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.klage.KlageService
 import no.nav.su.se.bakover.service.klage.KlageVurderingerRequest
+import no.nav.su.se.bakover.service.klage.KlagevedtakService
 import no.nav.su.se.bakover.service.klage.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.klage.NyKlageRequest
 import no.nav.su.se.bakover.service.klage.UnderkjennKlageRequest
@@ -823,6 +825,9 @@ open class AccessCheckProxy(
                     assertHarTilgangTilKlage(klageId)
                     return services.klageService.brevutkast(klageId, saksbehandler, fritekst)
                 }
+            },
+            klagevedtakService = object : KlagevedtakService {
+                override fun lagre(klageVedtak: UprosessertFattetKlagevedtak) = kastKanKunKallesFraAnnenService()
             },
         )
     }

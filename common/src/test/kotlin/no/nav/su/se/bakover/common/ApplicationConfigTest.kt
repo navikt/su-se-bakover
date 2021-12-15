@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.common
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.shouldBe
+import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
@@ -78,18 +79,6 @@ internal class ApplicationConfigTest {
             )
         ),
         kafkaConfig = ApplicationConfig.KafkaConfig(
-            common = mapOf(
-                "bootstrap.servers" to "brokers",
-                "security.protocol" to "SSL",
-                "ssl.endpoint.identification.algorithm" to "",
-                "ssl.truststore.type" to "jks",
-                "ssl.keystore.type" to "PKCS12",
-                "ssl.truststore.location" to "truststorePath",
-                "ssl.truststore.password" to "credstorePwd",
-                "ssl.keystore.location" to "keystorePath",
-                "ssl.keystore.password" to "credstorePwd",
-                "ssl.key.password" to "credstorePwd",
-            ),
             producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(
                 mapOf(
                     "bootstrap.servers" to "brokers",
@@ -124,7 +113,7 @@ internal class ApplicationConfigTest {
                     "basic.auth.credentials.source" to "USER_INFO",
                     "basic.auth.user.info" to "usr:pwd",
                     "group.id" to "su-se-bakover",
-                    "client.id" to "su-se-bakover-hostname",
+                    "client.id" to "hostname",
                     "enable.auto.commit" to "false",
                     "max.poll.records" to 100,
                 ),
@@ -134,6 +123,27 @@ internal class ApplicationConfigTest {
         jobConfig = ApplicationConfig.JobConfig(
             personhendelse = ApplicationConfig.JobConfig.Personhendelse(ApplicationConfig.NaisCluster.Prod),
             konsistensavstemming = ApplicationConfig.JobConfig.Konsistensavstemming.Prod(),
+        ),
+        kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(
+            kafkaConfig = mapOf(
+                "bootstrap.servers" to "brokers",
+                "security.protocol" to "SSL",
+                "ssl.endpoint.identification.algorithm" to "",
+                "ssl.truststore.type" to "jks",
+                "ssl.keystore.type" to "PKCS12",
+                "ssl.truststore.location" to "truststorePath",
+                "ssl.truststore.password" to "credstorePwd",
+                "ssl.keystore.location" to "keystorePath",
+                "ssl.keystore.password" to "credstorePwd",
+                "ssl.key.password" to "credstorePwd",
+                "group.id" to "su-se-bakover",
+                "client.id" to "hostname",
+                "enable.auto.commit" to "false",
+                "auto.offset.reset" to "earliest",
+                "key.deserializer" to StringDeserializer::class.java,
+                "value.deserializer" to StringDeserializer::class.java,
+                "max.poll.records" to 100,
+            ),
         ),
     )
 
@@ -174,6 +184,7 @@ internal class ApplicationConfigTest {
                 "PDL_CLIENT_ID" to "pdlClientId",
                 "KABAL_URL" to "kabalUrl",
                 "KABAL_CLIENT_ID" to "kabalClientId",
+                "HOSTNAME" to "hostname",
             ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -242,7 +253,6 @@ internal class ApplicationConfigTest {
                     kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig("mocked", "mocked")
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
-                    common = emptyMap(),
                     producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),
                     consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(emptyMap()),
                 ),
@@ -251,6 +261,7 @@ internal class ApplicationConfigTest {
                     personhendelse = ApplicationConfig.JobConfig.Personhendelse(null),
                     konsistensavstemming = ApplicationConfig.JobConfig.Konsistensavstemming.Local(),
                 ),
+                kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(emptyMap()),
             )
         }
     }
