@@ -36,7 +36,7 @@ internal class FattetKlagevedtakConsumer(
             period = periode,
             initialDelay = initialDelay,
         ) {
-            if (toggleService.isEnabled("klage-kafka")) {
+            if (toggleService.isEnabled("supstonad.ufore.klage-kafka")) {
                 Either.catch {
                     do {
                         val messages = consumer.poll(pollTimeoutDuration)
