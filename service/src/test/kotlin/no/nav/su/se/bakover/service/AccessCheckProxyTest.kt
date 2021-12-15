@@ -43,6 +43,7 @@ internal class AccessCheckProxyTest {
         avslåSøknadManglendeDokumentasjonService = mock(),
         kontrollsamtale = mock(),
         klageService = mock(),
+        klagevedtakService = mock(),
     )
 
     @Nested

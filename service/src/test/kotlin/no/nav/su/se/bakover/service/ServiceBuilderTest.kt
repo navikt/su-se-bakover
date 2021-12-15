@@ -32,6 +32,7 @@ internal class ServiceBuilderTest {
                 nøkkeltallRepo = mock(),
                 sessionFactory = mock(),
                 klageRepo = mock(),
+                klageVedtakRepo = mock(),
             ),
             clients = Clients(
                 oauth = mock(),

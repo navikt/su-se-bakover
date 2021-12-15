@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.database.grunnlag.UtenlandsoppholdgrunnlagPostgresRe
 import no.nav.su.se.bakover.database.hendelse.PersonhendelsePostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.klage.KlagePostgresRepo
+import no.nav.su.se.bakover.database.klage.KlagevedtakPostgresRepo
 import no.nav.su.se.bakover.database.nøkkeltall.NøkkeltallPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
@@ -33,6 +34,7 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagRepo
 import no.nav.su.se.bakover.domain.hendelse.PersonhendelseRepo
 import no.nav.su.se.bakover.domain.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.domain.klage.KlageRepo
+import no.nav.su.se.bakover.domain.klage.KlagevedtakRepo
 import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
@@ -182,6 +184,7 @@ object DatabaseBuilder {
         val hendelseRepo = PersonhendelsePostgresRepo(dataSource, clock)
         val nøkkeltallRepo = NøkkeltallPostgresRepo(dataSource, clock)
         val klageRepo = KlagePostgresRepo(sessionFactory)
+        val klageVedtakRepo = KlagevedtakPostgresRepo(sessionFactory)
 
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(dataSource),
@@ -218,6 +221,7 @@ object DatabaseBuilder {
             nøkkeltallRepo = nøkkeltallRepo,
             sessionFactory = sessionFactory,
             klageRepo = klageRepo,
+            klageVedtakRepo = klageVedtakRepo,
         )
     }
 }
@@ -240,4 +244,5 @@ data class DatabaseRepos(
     override val nøkkeltallRepo: NøkkeltallRepo,
     override val sessionFactory: SessionFactory,
     override val klageRepo: KlageRepo,
+    val klageVedtakRepo: KlagevedtakRepo,
 ) : no.nav.su.se.bakover.domain.database.DatabaseRepos

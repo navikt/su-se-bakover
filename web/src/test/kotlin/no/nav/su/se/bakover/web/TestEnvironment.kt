@@ -85,17 +85,19 @@ val applicationConfig = ApplicationConfig(
         stsUrl = "stsUrl",
         skjermingUrl = "skjermingUrl",
         dkifUrl = "dkifUrl",
-        kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig("kabalUrl", "kabalClientId")
+        kabalConfig = ApplicationConfig.ClientsConfig.KabalConfig("kabalUrl", "kabalClientId"),
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(
-        common = emptyMap(),
         producerCfg = ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()),
         consumerCfg = ApplicationConfig.KafkaConfig.ConsumerCfg(emptyMap()),
     ),
     unleash = ApplicationConfig.UnleashConfig("https://localhost", "su-se-bakover"),
     jobConfig = ApplicationConfig.JobConfig(
         personhendelse = ApplicationConfig.JobConfig.Personhendelse(null),
-        konsistensavstemming = ApplicationConfig.JobConfig.Konsistensavstemming.Local()
+        konsistensavstemming = ApplicationConfig.JobConfig.Konsistensavstemming.Local(),
+    ),
+    kabalKafkaConfig = ApplicationConfig.KabalKafkaConfig(
+        kafkaConfig = emptyMap(),
     ),
 )
 
