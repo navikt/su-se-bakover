@@ -40,19 +40,14 @@ internal class KabalHttpClientTest : WiremockBase {
           },
           "hjemler":[
             {
-              "kapittel":2,
-              "lov":"SUPPLERENDE_STONAD",
-              "paragraf":3
-            },
-            {
-              "kapittel":2,
-              "lov":"SUPPLERENDE_STONAD",
-              "paragraf":4
+              "kapittel":9,
+              "lov":"FOLKETRYGDLOVEN",
+              "paragraf":1
             }
           ],
           "innsendtTilNav":"2021-12-01",
           "mottattFoersteinstans":"2021-01-01",
-          "kilde":"su-se-bakover",
+          "kilde":"SUPSTONAD",
           "kildeReferanse":"${klage.id}",
           "klager":{
             "id":{
@@ -76,7 +71,7 @@ internal class KabalHttpClientTest : WiremockBase {
           "oversendtKaDato":null,
           "innsynUrl":null,
           "type":"KLAGE",
-          "ytelse":"SUP_UFF"
+          "ytelse":"OMS_OMP"
         }
     """.trimIndent()
 

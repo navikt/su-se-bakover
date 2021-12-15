@@ -24,7 +24,7 @@ internal object KabalRequestTestData {
         ),
         innsendtTilNav = LocalDate.now(fixedClock),
         mottattFoersteinstans = Tidspunkt.now(fixedClock).toLocalDate(ZoneOffset.UTC),
-        kilde = "su-se-bakover",
+        kilde = "SUPSTONAD",
         kildeReferanse = "klageId",
         klager = KabalRequest.Klager(id = KabalRequest.PartId(verdi = fnr.toString())),
         tilknyttedeJournalposter = listOf(

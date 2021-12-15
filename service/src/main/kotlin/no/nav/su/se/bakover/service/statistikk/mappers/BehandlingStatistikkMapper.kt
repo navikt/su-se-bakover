@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.LukketSøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.statistikk.Statistikk
@@ -40,8 +39,8 @@ class BehandlingStatistikkMapper(
             sakId = søknadsbehandling.sakId,
             søknadId = søknadsbehandling.søknad.id,
             saksnummer = søknadsbehandling.saksnummer.nummer,
-            behandlingStatus = BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(søknadsbehandling.status).status.toString(),
-            behandlingStatusBeskrivelse = BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(søknadsbehandling.status).beskrivelse,
+            behandlingStatus = BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(søknadsbehandling).status,
+            behandlingStatusBeskrivelse = BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(søknadsbehandling).beskrivelse,
             versjon = clock.millis(),
             avsluttet = false,
         ).apply {
@@ -272,41 +271,48 @@ class BehandlingStatistikkMapper(
 
     internal object BehandlingStatusOgBehandlingStatusBeskrivelseMapper {
         data class BehandlingStatusOgBehandlingStatusBeskrivelse(
-            val status: BehandlingsStatus,
+            val status: String,
             val beskrivelse: String,
         )
 
-        fun map(status: BehandlingsStatus): BehandlingStatusOgBehandlingStatusBeskrivelse =
-            when (status) {
-                BehandlingsStatus.OPPRETTET -> BehandlingStatusOgBehandlingStatusBeskrivelse(
-                    status,
+        fun map(søknadsbehandling: Søknadsbehandling): BehandlingStatusOgBehandlingStatusBeskrivelse =
+            when (søknadsbehandling) {
+                is Søknadsbehandling.Vilkårsvurdert.Uavklart -> BehandlingStatusOgBehandlingStatusBeskrivelse(
+                    "OPPRETTET",
                     "Ny søknadsbehandling opprettet",
                 )
-                BehandlingsStatus.TIL_ATTESTERING_INNVILGET -> BehandlingStatusOgBehandlingStatusBeskrivelse(
-                    status,
+                is Søknadsbehandling.TilAttestering.Innvilget -> BehandlingStatusOgBehandlingStatusBeskrivelse(
+                    "TIL_ATTESTERING_INNVILGET",
                     "Innvilget søkndsbehandling sendt til attestering",
                 )
-                BehandlingsStatus.TIL_ATTESTERING_AVSLAG -> BehandlingStatusOgBehandlingStatusBeskrivelse(
-                    status,
+                is Søknadsbehandling.TilAttestering.Avslag -> BehandlingStatusOgBehandlingStatusBeskrivelse(
+                    "TIL_ATTESTERING_AVSLAG",
                     "Avslått søknadsbehanding sendt til attestering",
                 )
-                BehandlingsStatus.UNDERKJENT_INNVILGET -> BehandlingStatusOgBehandlingStatusBeskrivelse(
-                    status,
+                is Søknadsbehandling.Underkjent.Innvilget -> BehandlingStatusOgBehandlingStatusBeskrivelse(
+                    "UNDERKJENT_INNVILGET",
                     "Innvilget søknadsbehandling sendt tilbake fra attestant til saksbehandler",
                 )
-                BehandlingsStatus.UNDERKJENT_AVSLAG -> BehandlingStatusOgBehandlingStatusBeskrivelse(
-                    status,
+                is Søknadsbehandling.Underkjent.Avslag -> BehandlingStatusOgBehandlingStatusBeskrivelse(
+                    "UNDERKJENT_AVSLAG",
                     "Avslått søknadsbehandling sendt tilbake fra attestant til saksbehandler",
                 )
-                BehandlingsStatus.IVERKSATT_INNVILGET -> BehandlingStatusOgBehandlingStatusBeskrivelse(
-                    status,
+                is Søknadsbehandling.Iverksatt.Innvilget -> BehandlingStatusOgBehandlingStatusBeskrivelse(
+                    "IVERKSATT_INNVILGET",
                     "Innvilget søknadsbehandling iverksatt",
                 )
-                BehandlingsStatus.IVERKSATT_AVSLAG -> BehandlingStatusOgBehandlingStatusBeskrivelse(
-                    status,
+                is Søknadsbehandling.Iverksatt.Avslag -> BehandlingStatusOgBehandlingStatusBeskrivelse(
+                    "IVERKSATT_AVSLAG",
                     "Avslått søknadsbehandling iverksatt",
                 )
-                else -> throw ManglendeStatistikkMappingException(this, status::class.java)
+                is LukketSøknadsbehandling -> BehandlingStatusOgBehandlingStatusBeskrivelse(
+                    "LUKKET",
+                    "Søknadsbehandling er lukket",
+                )
+                is Søknadsbehandling.Beregnet,
+                is Søknadsbehandling.Vilkårsvurdert.Innvilget,
+                is Søknadsbehandling.Vilkårsvurdert.Avslag,
+                is Søknadsbehandling.Simulert -> throw ManglendeStatistikkMappingException(this, søknadsbehandling::class.java)
             }
     }
 

@@ -33,7 +33,7 @@ internal data class KabalRequest(
     val hjemler: List<Hjemler>?,
     val innsendtTilNav: LocalDate,
     val mottattFoersteinstans: LocalDate,
-    val kilde: String = "su-se-bakover",
+    val kilde: String = "SUPSTONAD",
     val kildeReferanse: String,
     val klager: Klager,
     val tilknyttedeJournalposter: List<TilknyttedeJournalposter>,
@@ -43,7 +43,10 @@ internal data class KabalRequest(
     val oversendtKaDato: LocalDateTime? = null,
     val innsynUrl: String? = null,
     val type: String = "KLAGE",
+    /*
     val ytelse: String = "SUP_UFF"
+    */
+    val ytelse: String = "OMS_OMP"
 ) {
     data class Klager(val id: PartId)
     data class SakenGjelder(val id: PartId, val skalMottaKopi: Boolean)
