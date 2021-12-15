@@ -6,6 +6,7 @@ import no.nav.common.JAAS_REQUIRED
 import no.nav.common.KafkaEnvironment
 import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak
 import no.nav.su.se.bakover.service.klage.KlagevedtakService
+import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.apache.kafka.clients.CommonClientConfigs
@@ -52,6 +53,9 @@ internal class FattetKlagevedtakConsumerTest {
             topicName = TOPIC1,
             pollTimeoutDuration = Duration.ofMillis(1000),
             clock = fixedClock,
+            toggleService = object : ToggleService {
+                override fun isEnabled(toggleName: String) = true
+            },
         )
         val producer = kafkaProducer(kafkaServer)
         (0..5L).map {
@@ -100,6 +104,9 @@ internal class FattetKlagevedtakConsumerTest {
             topicName = TOPIC2,
             pollTimeoutDuration = Duration.ofMillis(1000),
             clock = fixedClock,
+            toggleService = object : ToggleService {
+                override fun isEnabled(toggleName: String) = true
+            },
         )
         val producer = kafkaProducer(kafkaServer)
 
