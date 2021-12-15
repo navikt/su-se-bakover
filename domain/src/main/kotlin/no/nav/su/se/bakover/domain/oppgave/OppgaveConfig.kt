@@ -31,8 +31,8 @@ sealed class OppgaveConfig {
         override val journalpostId: JournalpostId,
         val søknadId: UUID,
         override val aktørId: AktørId,
-        override val tilordnetRessurs: NavIdentBruker? = null,
-        override val clock: Clock = Clock.systemUTC(),
+        override val tilordnetRessurs: NavIdentBruker?,
+        override val clock: Clock,
     ) : OppgaveConfig() {
         override val saksreferanse = søknadId.toString()
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKTNING
@@ -45,8 +45,8 @@ sealed class OppgaveConfig {
     data class AttesterSøknadsbehandling(
         val søknadId: UUID,
         override val aktørId: AktørId,
-        override val tilordnetRessurs: NavIdentBruker? = null,
-        override val clock: Clock = Clock.systemUTC(),
+        override val tilordnetRessurs: NavIdentBruker?,
+        override val clock: Clock,
     ) : OppgaveConfig() {
         override val saksreferanse = søknadId.toString()
         override val journalpostId: JournalpostId? = null
@@ -60,8 +60,8 @@ sealed class OppgaveConfig {
     data class Revurderingsbehandling(
         val saksnummer: Saksnummer,
         override val aktørId: AktørId,
-        override val tilordnetRessurs: NavIdentBruker? = null,
-        override val clock: Clock = Clock.systemUTC(),
+        override val tilordnetRessurs: NavIdentBruker?,
+        override val clock: Clock,
     ) : OppgaveConfig() {
         override val saksreferanse = saksnummer.toString()
         override val journalpostId: JournalpostId? = null
@@ -75,8 +75,8 @@ sealed class OppgaveConfig {
     data class AttesterRevurdering(
         val saksnummer: Saksnummer,
         override val aktørId: AktørId,
-        override val tilordnetRessurs: NavIdentBruker? = null,
-        override val clock: Clock = Clock.systemUTC(),
+        override val tilordnetRessurs: NavIdentBruker?,
+        override val clock: Clock,
     ) : OppgaveConfig() {
         override val saksreferanse = saksnummer.toString()
         override val journalpostId: JournalpostId? = null
@@ -91,7 +91,7 @@ sealed class OppgaveConfig {
         val saksnummer: Saksnummer,
         val personhendelsestype: no.nav.su.se.bakover.domain.hendelse.Personhendelse.Hendelse,
         override val aktørId: AktørId,
-        override val clock: Clock = Clock.systemUTC(),
+        override val clock: Clock,
     ) : OppgaveConfig() {
         override val saksreferanse = saksnummer.toString()
         override val journalpostId: JournalpostId? = null
@@ -106,7 +106,7 @@ sealed class OppgaveConfig {
     data class Kontrollsamtale(
         val saksnummer: Saksnummer,
         override val aktørId: AktørId,
-        override val clock: Clock = Clock.systemUTC(),
+        override val clock: Clock,
     ) : OppgaveConfig() {
         override val saksreferanse = saksnummer.toString()
         override val journalpostId: JournalpostId? = null

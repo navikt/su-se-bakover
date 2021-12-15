@@ -27,7 +27,7 @@ internal class DokumentPostgresRepoTest {
 
             val sak = testDataHelper.nySakMedNySøknad()
             val etVedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
-            val enRevurdering = testDataHelper.tilIverksattRevurdering()
+            val enRevurdering = testDataHelper.iverksattRevurderingInnvilget()
             val enKlage = testDataHelper.oversendtKlage(
                 vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first,
                 oppgaveId = oppgaveId,

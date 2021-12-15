@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandl
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.revurderingId
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -77,6 +78,7 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
             actual.feilmeldinger shouldBe emptyList()
 
             verify(it.revurderingRepo).hent(revurderingId)
+            verify(it.revurderingRepo).defaultTransactionContext()
             verify(it.revurderingRepo).lagre(
                 argThat { lagret ->
                     lagret shouldBe expected
@@ -84,6 +86,7 @@ internal class RevurderingLeggTilUtenlandsoppholdTest {
                         lagret.vilkårsvurderinger.vilkår,
                     )
                 },
+                anyOrNull()
             )
             it.verifyNoMoreInteractions()
         }

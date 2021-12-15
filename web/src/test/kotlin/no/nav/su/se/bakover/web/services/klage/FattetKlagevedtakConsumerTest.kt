@@ -133,7 +133,7 @@ internal class FattetKlagevedtakConsumerTest {
             producer.send(genererFattetKlagevedtaksmelding(TOPIC2, 2)),
         ).forEach { it.get() }
         // Venter først akkurat til vi har fått et kall til klagevedtakService (som forventet)
-        verify(klagevedtakService, timeout(20000).times(1)).lagre(any())
+        verify(klagevedtakService, timeout(20000)).lagre(any())
         Thread.sleep(2000) // Venter deretter en liten stund til for å verifisere at det ikke kommer fler kall.
         verifyNoMoreInteractions(klagevedtakService)
         currentOffset(TOPIC2) shouldBe 1 // last offset (0) + 1

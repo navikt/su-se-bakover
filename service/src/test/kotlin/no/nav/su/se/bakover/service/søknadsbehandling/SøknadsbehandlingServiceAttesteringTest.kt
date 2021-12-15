@@ -147,6 +147,7 @@ class SøknadsbehandlingServiceAttesteringTest {
                     søknadId = søknadId,
                     aktørId = aktørId,
                     tilordnetRessurs = null,
+                    clock = fixedClock,
                 ),
             )
             verify(søknadsbehandlingRepoMock).defaultTransactionContext()
@@ -238,11 +239,14 @@ class SøknadsbehandlingServiceAttesteringTest {
         verify(personServiceMock).hentAktørId(simulertBehandling.fnr)
         verify(søknadsbehandlingRepoMock).hentEventuellTidligereAttestering(simulertBehandling.id)
         verify(oppgaveServiceMock).opprettOppgave(
-            OppgaveConfig.AttesterSøknadsbehandling(
-                søknadId = simulertBehandling.søknad.id,
-                aktørId = aktørId,
-                tilordnetRessurs = null,
-            ),
+            argThat {
+                it shouldBe OppgaveConfig.AttesterSøknadsbehandling(
+                    søknadId = simulertBehandling.søknad.id,
+                    aktørId = aktørId,
+                    tilordnetRessurs = null,
+                    clock = fixedClock,
+                )
+            },
         )
 
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver)
@@ -305,6 +309,7 @@ class SøknadsbehandlingServiceAttesteringTest {
                     søknadId = søknadId,
                     aktørId = aktørId,
                     tilordnetRessurs = null,
+                    clock = fixedClock,
                 ),
             )
             verify(søknadsbehandlingRepoMock).defaultTransactionContext()

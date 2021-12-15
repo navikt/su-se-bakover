@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
@@ -26,6 +27,7 @@ import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.createFromGrunnlag
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fnr
 import no.nav.su.se.bakover.test.formueGrunnlagUtenEps0Innvilget
 import no.nav.su.se.bakover.test.formueGrunnlagUtenEpsAvslått
@@ -35,11 +37,13 @@ import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandl
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.saksbehandler
 import no.nav.su.se.bakover.test.saksnummer
+import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilgetRevurdering
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
@@ -48,11 +52,13 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import java.time.temporal.ChronoUnit
 
-class RevurderingSendTilAttesteringTest {
+internal class RevurderingSendTilAttesteringTest {
 
     @Test
     fun `sender til attestering`() {
-        val simulertRevurdering = RevurderingTestUtils.simulertRevurderingInnvilget
+        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
+        ).second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn simulertRevurdering
@@ -80,23 +86,24 @@ class RevurderingSendTilAttesteringTest {
                 fritekstTilBrev = "Fritekst",
                 skalFøreTilBrevutsending = true,
             ),
-        ).getOrHandle { throw RuntimeException("Skal ikke kunne skje") }
+        ).getOrHandle { throw RuntimeException(it.toString()) }
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-            verify(revurderingRepoMock).hentEventuellTidligereAttestering(argThat { it shouldBe revurderingId })
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe OppgaveConfig.AttesterRevurdering(
                         saksnummer = saksnummer,
                         aktørId = aktørId,
                         tilordnetRessurs = null,
+                        clock = fixedClock,
                     )
                 },
             )
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe simulertRevurdering.oppgaveId })
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
+            verify(revurderingRepoMock).defaultTransactionContext()
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual }, anyOrNull())
             verify(eventObserver).handle(
                 argThat {
                     it shouldBe Event.Statistikk.RevurderingStatistikk.RevurderingTilAttestering(
@@ -140,7 +147,9 @@ class RevurderingSendTilAttesteringTest {
     @Test
     fun `sender ikke til attestering hvis henting av aktørId feiler`() {
         val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn RevurderingTestUtils.simulertRevurderingInnvilget
+            on { hent(revurderingId) } doReturn simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+                forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
+            ).second
         }
         val personServiceMock = mock<PersonService> {
             on { hentAktørId(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
@@ -169,7 +178,9 @@ class RevurderingSendTilAttesteringTest {
     @Test
     fun `sender ikke til attestering hvis oppretting av oppgave feiler`() {
         val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn RevurderingTestUtils.simulertRevurderingInnvilget
+            on { hent(revurderingId) } doReturn simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+                forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
+            ).second
         }
         val personServiceMock = mock<PersonService> {
             on { hentAktørId(any()) } doReturn aktørId.right()
@@ -196,10 +207,8 @@ class RevurderingSendTilAttesteringTest {
         inOrder(revurderingRepoMock, personServiceMock) {
             verify(revurderingRepoMock).hent(revurderingId)
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-            verify(revurderingRepoMock).hentEventuellTidligereAttestering(revurderingId)
-
-            verifyNoMoreInteractions(revurderingRepoMock, personServiceMock)
         }
+        verifyNoMoreInteractions(revurderingRepoMock, personServiceMock)
     }
 
     @Test
@@ -226,7 +235,7 @@ class RevurderingSendTilAttesteringTest {
 
         actual shouldBe KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left()
 
-        verify(revurderingRepoMock, never()).lagre(any())
+        verify(revurderingRepoMock, never()).lagre(any(), anyOrNull())
     }
 
     @Test
@@ -287,7 +296,7 @@ class RevurderingSendTilAttesteringTest {
             ),
         ).left()
 
-        verify(revurderingRepoMock, never()).lagre(any())
+        verify(revurderingRepoMock, never()).lagre(any(), anyOrNull())
     }
 
     @Test
@@ -326,7 +335,7 @@ class RevurderingSendTilAttesteringTest {
             ),
         ).left()
 
-        verify(revurderingRepoMock, never()).lagre(any())
+        verify(revurderingRepoMock, never()).lagre(any(), anyOrNull())
     }
 
     @Test
@@ -353,6 +362,6 @@ class RevurderingSendTilAttesteringTest {
 
         actual shouldBe KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left()
 
-        verify(revurderingRepoMock, never()).lagre(any())
+        verify(revurderingRepoMock, never()).lagre(any(), anyOrNull())
     }
 }

@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
@@ -28,6 +27,8 @@ import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel.BeslutningEtterForhåndsvarsling
+import no.nav.su.se.bakover.web.routes.revurdering.forhåndsvarsel.ForhåndsvarselJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Nested
@@ -74,7 +75,7 @@ internal class ForhåndsvarslingRouteTest {
         fun `lagrer valget`() {
             val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak()
                 .second.copy(
-                    forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+                    forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles,
                     fritekstTilBrev = ""
                 )
 
@@ -152,36 +153,9 @@ internal class ForhåndsvarslingRouteTest {
 
         @Test
         fun `fortsetter med andre opplysninger`() {
-            val simulertRevurdering = SimulertRevurdering.Innvilget(
-                id = UUID.randomUUID(),
-                periode = RevurderingRoutesTestData.periode,
-                opprettet = fixedTidspunkt,
-                tilRevurdering = RevurderingRoutesTestData.vedtak,
-                saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandler"),
-                beregning = TestBeregning,
-                simulering = Simulering(
-                    gjelderId = Fnr(fnr = "12345678901"),
-                    gjelderNavn = "navn",
-                    datoBeregnet = fixedLocalDate,
-                    nettoBeløp = 0,
-                    periodeList = listOf(),
-                ),
-                oppgaveId = OppgaveId("OppgaveId"),
-                fritekstTilBrev = "Friteksten",
-                revurderingsårsak = Revurderingsårsak(
-                    Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                    Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-                ),
-                forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
-                    valg = BeslutningEtterForhåndsvarsling.FortsettMedAndreOpplysninger,
-                    begrunnelse = "begrunnelse",
-
-                ),
-                grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
-                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-                attesteringer = Attesteringshistorikk.empty(),
-            )
+            val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+                forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.EndreGrunnlaget("begrunnelse"),
+            ).second
 
             val revurderingServiceMock = mock<RevurderingService> {
                 on { fortsettEtterForhåndsvarsling(any()) } doReturn simulertRevurdering.right()
@@ -197,6 +171,7 @@ internal class ForhåndsvarslingRouteTest {
                     "${RevurderingRoutesTestData.requestPath}/${simulertRevurdering.id}/fortsettEtterForhåndsvarsel",
                     listOf(Brukerrolle.Saksbehandler),
                 ) {
+                    // fritekstTilBrev skal bli ignorert i dette tilfellet
                     setBody(
                         //language=json
                         """
@@ -212,7 +187,7 @@ internal class ForhåndsvarslingRouteTest {
                     val actualResponse = objectMapper.readValue<SimulertRevurderingJson>(response.content!!)
                     actualResponse.id shouldBe simulertRevurdering.id.toString()
                     actualResponse.status shouldBe RevurderingsStatus.SIMULERT_INNVILGET
-                    actualResponse.fritekstTilBrev shouldBe "Friteksten"
+                    actualResponse.fritekstTilBrev shouldBe ""
                     actualResponse.forhåndsvarsel shouldBe ForhåndsvarselJson.SkalVarslesBesluttet(
                         begrunnelse = "begrunnelse",
                         beslutningEtterForhåndsvarsling = BeslutningEtterForhåndsvarsling.FortsettMedAndreOpplysninger,
@@ -243,10 +218,7 @@ internal class ForhåndsvarslingRouteTest {
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
                 ),
-                forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
-                    valg = BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
-                    begrunnelse = "begrunnelse",
-                ),
+                forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.FortsettMedSammeGrunnlag("begrunnelse"),
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
@@ -313,10 +285,7 @@ internal class ForhåndsvarslingRouteTest {
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
                 ),
-                forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
-                    valg = BeslutningEtterForhåndsvarsling.AvsluttUtenEndringer,
-                    begrunnelse = "begrunnelse",
-                ),
+                forhåndsvarsel = Forhåndsvarsel.Ferdigbehandlet.Forhåndsvarslet.Avsluttet("begrunnelse"),
                 grunnlagsdata = Grunnlagsdata.IkkeVurdert,
                 vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),

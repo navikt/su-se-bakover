@@ -44,7 +44,7 @@ sealed class StansAvYtelseRevurdering : AbstraktRevurdering() {
         val revurderingsårsak: Revurderingsårsak = underliggendeStansAvYtelse.revurderingsårsak
 
         // vi sender ikke noe brev ved stans/gjenoppta
-        fun skalSendeBrev(): Boolean {
+        fun skalSendeAvslutningsbrev(): Boolean {
             return false
         }
 

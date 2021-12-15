@@ -71,6 +71,7 @@ import no.nav.su.se.bakover.test.utlandsoppholdInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
@@ -176,10 +177,12 @@ internal class OpprettRevurderingServiceTest {
                             saksnummer = saksnummer,
                             aktørId = aktørId,
                             tilordnetRessurs = null,
+                            clock = fixedClock,
                         )
                     },
                 )
-                verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
+                verify(revurderingRepoMock).defaultTransactionContext()
+                verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() }, anyOrNull())
                 verify(vilkårsvurderingServiceMock).lagre(actual.id, actual.vilkårsvurderinger)
                 verify(grunnlagServiceMock).lagreFradragsgrunnlag(actual.id, actual.grunnlagsdata.fradragsgrunnlag)
                 verify(grunnlagServiceMock).lagreBosituasjongrunnlag(actual.id, actual.grunnlagsdata.bosituasjon)
@@ -247,7 +250,7 @@ internal class OpprettRevurderingServiceTest {
                 Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
                 Revurderingsårsak.Begrunnelse.create("g-regulering"),
             )
-            opprettetRevurdering.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
+            opprettetRevurdering.forhåndsvarsel shouldBe Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
             opprettetRevurdering.vilkårsvurderinger.uføre.grunnlag.let {
                 it shouldHaveSize 1
                 it[0].ekvivalentMed(uføregrunnlag.copy(periode = periode))
@@ -277,10 +280,12 @@ internal class OpprettRevurderingServiceTest {
                         saksnummer = saksnummer,
                         aktørId = aktørId,
                         tilordnetRessurs = null,
+                        clock = fixedClock,
                     )
                 },
             )
-            verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
+            verify(revurderingRepoMock).defaultTransactionContext()
+            verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() }, anyOrNull())
             verify(vilkårsvurderingServiceMock).lagre(any(), any())
             verify(grunnlagServiceMock).lagreFradragsgrunnlag(any(), any())
             verify(grunnlagServiceMock).lagreBosituasjongrunnlag(actual.id, actual.grunnlagsdata.bosituasjon)
@@ -347,7 +352,7 @@ internal class OpprettRevurderingServiceTest {
                 Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
                 Revurderingsårsak.Begrunnelse.create("g-regulering"),
             )
-            opprettetRevurdering.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
+            opprettetRevurdering.forhåndsvarsel shouldBe Forhåndsvarsel.Ferdigbehandlet.SkalIkkeForhåndsvarsles
             opprettetRevurdering.vilkårsvurderinger.uføre.grunnlag.let {
                 it shouldHaveSize 1
                 it[0].ekvivalentMed(uføregrunnlag.copy(periode = periode))
@@ -378,10 +383,12 @@ internal class OpprettRevurderingServiceTest {
                         saksnummer = saksnummer,
                         aktørId = aktørId,
                         tilordnetRessurs = null,
+                        clock = fixedClock,
                     )
                 },
             )
-            verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
+            verify(revurderingRepoMock).defaultTransactionContext()
+            verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() }, anyOrNull())
             verify(vilkårsvurderingServiceMock).lagre(any(), any())
             verify(grunnlagServiceMock).lagreFradragsgrunnlag(any(), any())
             verify(grunnlagServiceMock).lagreBosituasjongrunnlag(actual.id, actual.grunnlagsdata.bosituasjon)
@@ -609,13 +616,15 @@ internal class OpprettRevurderingServiceTest {
 
         verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(sakId, periodeNesteMånedOgTreMånederFram.fraOgMed)
         verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-        verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual })
+        verify(revurderingRepoMock).defaultTransactionContext()
+        verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual }, anyOrNull())
         verify(oppgaveServiceMock).opprettOppgave(
             argThat {
                 it shouldBe OppgaveConfig.Revurderingsbehandling(
                     saksnummer = saksnummer,
                     aktørId = aktørId,
                     tilordnetRessurs = null,
+                    clock = fixedClock,
                 )
             },
         )
@@ -742,6 +751,7 @@ internal class OpprettRevurderingServiceTest {
                     saksnummer = saksnummer,
                     aktørId = aktørId,
                     tilordnetRessurs = null,
+                    clock = fixedClock,
                 )
             },
         )

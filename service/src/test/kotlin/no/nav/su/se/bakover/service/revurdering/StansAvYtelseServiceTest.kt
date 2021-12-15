@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.capture
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -53,7 +54,7 @@ import org.mockito.kotlin.verify
 import java.time.LocalDate
 import java.util.UUID
 
-class StansAvYtelseServiceTest {
+internal class StansAvYtelseServiceTest {
 
     @Test
     fun `svarer med feil dersom vi ikke får tak i gjeldende grunnlagdata`() {
@@ -227,7 +228,8 @@ class StansAvYtelseServiceTest {
                 saksbehandler = saksbehandler,
                 stansDato = 1.mai(2021),
             )
-            verify(it.revurderingRepo).lagre(response)
+            verify(it.revurderingRepo).defaultTransactionContext()
+            verify(it.revurderingRepo).lagre(argThat { it shouldBe response }, anyOrNull())
             verify(observerMock).handle(argThat { event -> event shouldBe Event.Statistikk.RevurderingStatistikk.Stans(response) })
             it.verifyNoMoreInteractions()
         }
@@ -330,7 +332,8 @@ class StansAvYtelseServiceTest {
                 simulering = simulertStans.simulering,
                 stansDato = simulertStans.periode.fraOgMed,
             )
-            verify(it.revurderingRepo).lagre(response)
+            verify(revurderingRepoMock).defaultTransactionContext()
+            verify(it.revurderingRepo).lagre(argThat { it shouldBe response }, anyOrNull())
             val expectedVedtak = Vedtak.from(
                 revurdering = response,
                 utbetalingId = utbetaling.id,
@@ -483,7 +486,8 @@ class StansAvYtelseServiceTest {
                 stansDato = periodeMars2021.fraOgMed,
             )
             verify(it.revurderingRepo).hent(eksisterende.id)
-            verify(it.revurderingRepo).lagre(response)
+            verify(it.revurderingRepo).defaultTransactionContext()
+            verify(it.revurderingRepo).lagre(argThat { it shouldBe response }, anyOrNull())
             it.verifyNoMoreInteractions()
         }
     }

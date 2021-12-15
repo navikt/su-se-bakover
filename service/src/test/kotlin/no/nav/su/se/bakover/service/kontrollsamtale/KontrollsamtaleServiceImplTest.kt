@@ -172,8 +172,9 @@ internal class KontrollsamtaleServiceImplTest {
         verify(services.oppgaveService).opprettOppgave(
             argThat {
                 it shouldBe OppgaveConfig.Kontrollsamtale(
-                    sak.saksnummer,
-                    person.ident.aktørId,
+                    saksnummer = sak.saksnummer,
+                    aktørId = person.ident.aktørId,
+                    clock = fixedClock,
                 )
             },
         )
