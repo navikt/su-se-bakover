@@ -162,6 +162,24 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         ).left()
     }
 
+    open fun oppdaterStønadsperiode(
+        oppdatertStønadsperiode: Stønadsperiode,
+        clock: Clock,
+    ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
+        return KunneIkkeOppdatereStønadsperiode.UgyldigTilstand(this::class).left()
+    }
+
+    sealed class KunneIkkeOppdatereStønadsperiode {
+        data class UgyldigTilstand(
+            val fra: KClass<out Søknadsbehandling>,
+            val til: KClass<out Vilkårsvurdert> = Vilkårsvurdert::class,
+        ) : KunneIkkeOppdatereStønadsperiode()
+
+        data class KunneIkkeOppdatereGrunnlagsdata(
+            val feil: KunneIkkeLageGrunnlagsdata,
+        ) : KunneIkkeOppdatereStønadsperiode()
+    }
+
     open fun beregn(
         begrunnelse: String?,
         clock: Clock,
@@ -419,6 +437,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     clock = clock,
                 )
             }
+
+            override fun oppdaterStønadsperiode(
+                oppdatertStønadsperiode: Stønadsperiode,
+                clock: Clock,
+            ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
+                return copy(
+                    stønadsperiode = oppdatertStønadsperiode,
+                    grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
+                        oppdatertPeriode = oppdatertStønadsperiode.periode,
+                    ).getOrHandle {
+                        return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
+                    },
+                ).vilkårsvurder(
+                    vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                        stønadsperiode = oppdatertStønadsperiode,
+                    ),
+                    clock = clock,
+                ).right()
+            }
         }
 
         data class Avslag(
@@ -500,6 +537,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 return valider(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
             }
+
+            override fun oppdaterStønadsperiode(
+                oppdatertStønadsperiode: Stønadsperiode,
+                clock: Clock,
+            ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
+                return copy(
+                    stønadsperiode = oppdatertStønadsperiode,
+                    grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
+                        oppdatertPeriode = oppdatertStønadsperiode.periode,
+                    ).getOrHandle {
+                        return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
+                    },
+                ).vilkårsvurder(
+                    vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                        stønadsperiode = oppdatertStønadsperiode,
+                    ),
+                    clock = clock,
+                ).right()
+            }
         }
 
         data class Uavklart(
@@ -552,6 +608,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
                 return valider(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
+            }
+
+            override fun oppdaterStønadsperiode(
+                oppdatertStønadsperiode: Stønadsperiode,
+                clock: Clock,
+            ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
+                return copy(
+                    stønadsperiode = oppdatertStønadsperiode,
+                    grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
+                        oppdatertPeriode = oppdatertStønadsperiode.periode,
+                    ).getOrHandle {
+                        return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
+                    },
+                ).vilkårsvurder(
+                    vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                        stønadsperiode = oppdatertStønadsperiode,
+                    ),
+                    clock = clock,
+                ).right()
             }
 
             data class StønadsperiodeIkkeDefinertException(
@@ -803,6 +878,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 return valider(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
             }
+
+            override fun oppdaterStønadsperiode(
+                oppdatertStønadsperiode: Stønadsperiode,
+                clock: Clock,
+            ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
+                return copy(
+                    stønadsperiode = oppdatertStønadsperiode,
+                    grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
+                        oppdatertPeriode = oppdatertStønadsperiode.periode,
+                    ).getOrHandle {
+                        return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
+                    },
+                ).vilkårsvurder(
+                    vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                        stønadsperiode = oppdatertStønadsperiode,
+                    ),
+                    clock = clock,
+                ).right()
+            }
         }
 
         data class Avslag(
@@ -918,6 +1012,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
             ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
                 return valider(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
+            }
+
+            override fun oppdaterStønadsperiode(
+                oppdatertStønadsperiode: Stønadsperiode,
+                clock: Clock,
+            ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
+                return copy(
+                    stønadsperiode = oppdatertStønadsperiode,
+                    grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
+                        oppdatertPeriode = oppdatertStønadsperiode.periode,
+                    ).getOrHandle {
+                        return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
+                    },
+                ).vilkårsvurder(
+                    vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                        stønadsperiode = oppdatertStønadsperiode,
+                    ),
+                    clock = clock,
+                ).right()
             }
         }
     }
@@ -1076,6 +1189,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
             return valider(uførhet)
                 .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
+        }
+
+        override fun oppdaterStønadsperiode(
+            oppdatertStønadsperiode: Stønadsperiode,
+            clock: Clock,
+        ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
+            return copy(
+                stønadsperiode = oppdatertStønadsperiode,
+                grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
+                    oppdatertPeriode = oppdatertStønadsperiode.periode,
+                ).getOrHandle {
+                    return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
+                },
+            ).vilkårsvurder(
+                vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                    stønadsperiode = oppdatertStønadsperiode,
+                ),
+                clock = clock,
+            ).right()
         }
     }
 
@@ -1520,6 +1652,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 return valider(uførhet)
                     .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
             }
+
+            override fun oppdaterStønadsperiode(
+                oppdatertStønadsperiode: Stønadsperiode,
+                clock: Clock,
+            ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
+                return copy(
+                    stønadsperiode = oppdatertStønadsperiode,
+                    grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
+                        oppdatertPeriode = oppdatertStønadsperiode.periode,
+                    ).getOrHandle {
+                        return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
+                    },
+                ).vilkårsvurder(
+                    vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                        stønadsperiode = oppdatertStønadsperiode,
+                    ),
+                    clock = clock,
+                ).right()
+            }
         }
 
         sealed class Avslag : Underkjent(), ErAvslag {
@@ -1650,6 +1801,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     return valider(uførhet)
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
                 }
+
+                override fun oppdaterStønadsperiode(
+                    oppdatertStønadsperiode: Stønadsperiode,
+                    clock: Clock,
+                ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
+                    return copy(
+                        stønadsperiode = oppdatertStønadsperiode,
+                        grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
+                            oppdatertPeriode = oppdatertStønadsperiode.periode,
+                        ).getOrHandle {
+                            return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
+                        },
+                    ).vilkårsvurder(
+                        vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                            stønadsperiode = oppdatertStønadsperiode,
+                        ),
+                        clock = clock,
+                    ).right()
+                }
             }
 
             data class UtenBeregning(
@@ -1731,6 +1901,25 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 ): Either<KunneIkkeLeggeTilUførevilkår, Vilkårsvurdert> {
                     return valider(uførhet)
                         .map { vilkårsvurder(vilkårsvurderinger.leggTil(uførhet), clock) }
+                }
+
+                override fun oppdaterStønadsperiode(
+                    oppdatertStønadsperiode: Stønadsperiode,
+                    clock: Clock,
+                ): Either<KunneIkkeOppdatereStønadsperiode, Vilkårsvurdert> {
+                    return copy(
+                        stønadsperiode = oppdatertStønadsperiode,
+                        grunnlagsdata = grunnlagsdata.oppdaterGrunnlagsperioder(
+                            oppdatertPeriode = oppdatertStønadsperiode.periode,
+                        ).getOrHandle {
+                            return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left()
+                        },
+                    ).vilkårsvurder(
+                        vilkårsvurderinger = vilkårsvurderinger.oppdaterStønadsperiode(
+                            stønadsperiode = oppdatertStønadsperiode,
+                        ),
+                        clock = clock,
+                    ).right()
                 }
             }
         }

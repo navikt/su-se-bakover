@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.test
 
 import arrow.core.nonEmptyListOf
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
@@ -40,6 +41,7 @@ fun søknadsbehandlingVilkårsvurdertUavklart(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårUavklart,
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = Vilkårsvurderinger.Søknadsbehandling.IkkeVurdert,
     avkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
+    clock: Clock = fixedClock,
 ): Pair<Sak, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
     return nySakMedjournalførtSøknadOgOppgave(
         sakId = sakId,
@@ -49,7 +51,7 @@ fun søknadsbehandlingVilkårsvurdertUavklart(
     ).let { (sak, journalførtSøknadMedOppgave) ->
         val søknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
             id = UUID.randomUUID(),
-            opprettet = fixedTidspunkt,
+            opprettet = Tidspunkt.now(clock),
             sakId = sak.id,
             saksnummer = sak.saksnummer,
             søknad = journalførtSøknadMedOppgave,

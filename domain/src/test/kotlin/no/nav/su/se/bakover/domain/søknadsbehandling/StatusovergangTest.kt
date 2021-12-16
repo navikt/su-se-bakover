@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.søknadsbehandling
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
@@ -11,6 +12,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -37,7 +39,6 @@ import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.mock
 
@@ -615,7 +616,13 @@ internal class StatusovergangTest {
             statusovergang(
                 underkjentInnvilget,
                 Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
-            ) shouldBe tilAttesteringInnvilget.copy(attesteringer = Attesteringshistorikk.create(listOf(underkjentInnvilget.attesteringer.hentSisteAttestering())))
+            ) shouldBe tilAttesteringInnvilget.copy(
+                attesteringer = Attesteringshistorikk.create(
+                    listOf(
+                        underkjentInnvilget.attesteringer.hentSisteAttestering(),
+                    ),
+                ),
+            )
         }
 
         @Test
@@ -871,12 +878,7 @@ internal class StatusovergangTest {
                 underkjentAvslagBeregning,
                 underkjentInnvilget,
             ).forEach {
-                assertDoesNotThrow {
-                    forsøkStatusovergang(
-                        søknadsbehandling = it,
-                        statusovergang = Statusovergang.OppdaterStønadsperiode(stønadsperiode, sak, fixedClock),
-                    )
-                }
+                it.oppdaterStønadsperiode(stønadsperiode, fixedClock).isRight() shouldBe true
             }
         }
 
@@ -891,98 +893,77 @@ internal class StatusovergangTest {
                 iverksattInnvilget,
                 lukketSøknadsbehandling,
             ).forEach {
-                assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
-                    forsøkStatusovergang(
-                        søknadsbehandling = it,
-                        statusovergang = Statusovergang.OppdaterStønadsperiode(
-                            oppdatertStønadsperiode = stønadsperiode,
-                            sak = sak,
-                            clock = fixedClock,
-                        ),
-                    )
-                }
+                it.oppdaterStønadsperiode(stønadsperiode, fixedClock).isLeft() shouldBe true
             }
         }
 
         @Test
         fun `oppdaterer perioden riktig`() {
-            val (sak, vilkårsvurdert) = søknadsbehandlingVilkårsvurdertInnvilget()
+            val (_, vilkårsvurdert) = søknadsbehandlingVilkårsvurdertInnvilget()
 
             val nyPeriode = Periode.create(1.februar(2022), 31.mars(2022))
-            val actual = forsøkStatusovergang(
-                søknadsbehandling = vilkårsvurdert,
-                statusovergang = Statusovergang.OppdaterStønadsperiode(
-                    oppdatertStønadsperiode = Stønadsperiode.create(nyPeriode, ""),
-                    sak = sak,
-                    clock = fixedClock,
-                ),
-            )
-            actual.orNull()!!.periode shouldBe nyPeriode
-            actual.orNull()!!.vilkårsvurderinger.uføre.grunnlag.first().periode shouldBe nyPeriode
-            actual.orNull()!!.vilkårsvurderinger.formue.grunnlag.first().periode shouldBe nyPeriode
-            actual.orNull()!!.grunnlagsdata.bosituasjon.first().periode shouldBe nyPeriode
+            val actual = vilkårsvurdert.oppdaterStønadsperiode(
+                oppdatertStønadsperiode = Stønadsperiode.create(nyPeriode, ""),
+                clock = fixedClock,
+            ).getOrFail()
+
+            vilkårsvurdert.periode shouldNotBe nyPeriode
+            actual.periode shouldBe nyPeriode
+            actual.vilkårsvurderinger.uføre.grunnlag.first().periode shouldBe nyPeriode
+            actual.vilkårsvurderinger.formue.grunnlag.first().periode shouldBe nyPeriode
+            actual.grunnlagsdata.bosituasjon.first().periode shouldBe nyPeriode
         }
+    }
 
-        @Test
-        fun `stønadsperioder skal ikke kunne overlappe`() {
-            val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
-                stønadsperiode = Stønadsperiode.create(
-                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
-                    begrunnelse = "kek",
-                ),
-            )
-            val opprettetSøknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().second
+    @Test
+    fun `stønadsperioder skal ikke kunne overlappe`() {
+        val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(
+                periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                begrunnelse = "kek",
+            ),
+        )
 
+        val opprettetSøknadsbehandling = søknadsbehandlingVilkårsvurdertUavklart().second
+
+        sak.copy(
+            søknadsbehandlinger = sak.søknadsbehandlinger + opprettetSøknadsbehandling,
+        ).let {
             val nyPeriode = Periode.create(1.desember(2021), 31.mars(2022))
 
-            val actual = forsøkStatusovergang(
-                søknadsbehandling = opprettetSøknadsbehandling,
-                statusovergang = Statusovergang.OppdaterStønadsperiode(
-                    oppdatertStønadsperiode = Stønadsperiode.create(nyPeriode, ""),
-                    sak = sak,
-                    clock = fixedClock,
-                ),
-            )
-            actual shouldBe Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode.left()
+            it.oppdaterStønadsperiode(
+                søknadsbehandlingId = opprettetSøknadsbehandling.id,
+                stønadsperiode = Stønadsperiode.create(nyPeriode, ""),
+                clock = fixedClock,
+            ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode.left()
         }
+    }
 
-        @Test
-        fun `stønadsperioder skal ikke kunne legges forut for eksisterende stønadsperioder`() {
-            val (sak, stønadsperiode1) = vedtakSøknadsbehandlingIverksattInnvilget()
+    @Test
+    fun `stønadsperioder skal ikke kunne legges forut for eksisterende stønadsperioder`() {
+        val (sak, _) = vedtakSøknadsbehandlingIverksattInnvilget()
+        val (_, andreStønadsperiode) = vedtakSøknadsbehandlingIverksattInnvilget(
+            stønadsperiode = Stønadsperiode.create(
+                periode = Periode.create(1.januar(2023), 31.desember(2023)),
+                begrunnelse = "ny periode da vett",
+            ),
+        )
+        val mellomToAndrePerioder = søknadsbehandlingVilkårsvurdertUavklart().second
 
-            val (_, stønadsperiode2) = vedtakSøknadsbehandlingIverksattInnvilget(
-                stønadsperiode = Stønadsperiode.create(
-                    periode = Periode.create(1.januar(2023), 31.desember(2023)),
-                    begrunnelse = "ny periode da vett",
-                ),
-            )
-
-            val mellomToAndrePerioder = søknadsbehandlingVilkårsvurdertUavklart().second
-
+        sak.copy(
+            søknadsbehandlinger = sak.søknadsbehandlinger + andreStønadsperiode.behandling + mellomToAndrePerioder,
+            vedtakListe = sak.vedtakListe + andreStønadsperiode,
+        ).let {
             val nyPeriode = Stønadsperiode.create(
                 periode = Periode.create(1.januar(2022), 31.desember(2022)),
                 begrunnelse = "ny periode da vett",
             )
 
-            val sakMedBehandlingOgVedtak = sak.copy(
-                søknadsbehandlinger = listOf(
-                    stønadsperiode1.behandling,
-                    stønadsperiode2.behandling,
-                    mellomToAndrePerioder,
-                ),
-                vedtakListe = listOf(stønadsperiode1, stønadsperiode2),
-            )
-
-            forsøkStatusovergang(
-                søknadsbehandling = mellomToAndrePerioder,
-                statusovergang = Statusovergang.OppdaterStønadsperiode(
-                    oppdatertStønadsperiode = nyPeriode,
-                    sak = sakMedBehandlingOgVedtak,
-                    clock = fixedClock,
-                ),
-            ).let {
-                it shouldBe Statusovergang.OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer.left()
-            }
+            it.oppdaterStønadsperiode(
+                søknadsbehandlingId = mellomToAndrePerioder.id,
+                stønadsperiode = nyPeriode,
+                clock = fixedClock,
+            ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer.left()
         }
     }
 }

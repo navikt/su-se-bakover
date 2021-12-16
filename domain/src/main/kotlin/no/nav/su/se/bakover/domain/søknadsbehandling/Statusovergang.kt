@@ -1,17 +1,14 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.Either
-import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.time.Clock
@@ -203,86 +200,6 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
             søknadsbehandling: Søknadsbehandling.TilAttestering,
             attestering: Attestering,
         ): Boolean = søknadsbehandling.saksbehandler.navIdent != attestering.attestant.navIdent
-    }
-
-    class OppdaterStønadsperiode(
-        private val oppdatertStønadsperiode: Stønadsperiode,
-        private val sak: Sak,
-        private val clock: Clock,
-    ) : Statusovergang<OppdaterStønadsperiode.KunneIkkeOppdatereStønadsperiode, Søknadsbehandling.Vilkårsvurdert>() {
-
-        sealed class KunneIkkeOppdatereStønadsperiode {
-            data class KunneIkkeOppdatereGrunnlagsdata(val feil: KunneIkkeLageGrunnlagsdata) :
-                KunneIkkeOppdatereStønadsperiode()
-
-            object StønadsperiodeOverlapperMedLøpendeStønadsperiode : KunneIkkeOppdatereStønadsperiode()
-            object StønadsperiodeForSenerePeriodeEksisterer : KunneIkkeOppdatereStønadsperiode()
-        }
-
-        private fun oppdater(søknadsbehandling: Søknadsbehandling): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling.Vilkårsvurdert> {
-            sak.hentPerioderMedLøpendeYtelse().let { stønadsperioder ->
-                if (stønadsperioder.any { it overlapper oppdatertStønadsperiode.periode }) {
-                    return KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode.left()
-                }
-                if (stønadsperioder.any { it.starterSamtidigEllerSenere(oppdatertStønadsperiode.periode) }) {
-                    return KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer.left()
-                }
-            }
-            return Søknadsbehandling.Vilkårsvurdert.Uavklart(
-                id = søknadsbehandling.id,
-                opprettet = søknadsbehandling.opprettet,
-                sakId = søknadsbehandling.sakId,
-                saksnummer = søknadsbehandling.saksnummer,
-                søknad = søknadsbehandling.søknad,
-                oppgaveId = søknadsbehandling.oppgaveId,
-                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
-                fnr = søknadsbehandling.fnr,
-                fritekstTilBrev = søknadsbehandling.fritekstTilBrev,
-                stønadsperiode = oppdatertStønadsperiode,
-                grunnlagsdata = søknadsbehandling.grunnlagsdata.oppdaterGrunnlagsperioder(
-                    oppdatertPeriode = oppdatertStønadsperiode.periode,
-                ).getOrHandle { return KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it).left() },
-                vilkårsvurderinger = søknadsbehandling.vilkårsvurderinger.oppdaterStønadsperiode(oppdatertStønadsperiode),
-                attesteringer = søknadsbehandling.attesteringer,
-                avkorting = søknadsbehandling.avkorting,
-            ).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon, clock = clock).right()
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {
-            result = oppdater(søknadsbehandling)
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {
-            result = oppdater(søknadsbehandling)
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
-            result = oppdater(søknadsbehandling)
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
-            result = oppdater(søknadsbehandling)
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
-            result = oppdater(søknadsbehandling)
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
-            result = oppdater(søknadsbehandling)
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
-            result = oppdater(søknadsbehandling)
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
-            result = oppdater(søknadsbehandling)
-        }
-
-        override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.UtenBeregning) {
-            result = oppdater(søknadsbehandling)
-        }
     }
 }
 

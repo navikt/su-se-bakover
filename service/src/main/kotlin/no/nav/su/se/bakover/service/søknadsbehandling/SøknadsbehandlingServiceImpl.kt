@@ -468,19 +468,17 @@ internal class SøknadsbehandlingServiceImpl(
     }
 
     override fun oppdaterStønadsperiode(request: SøknadsbehandlingService.OppdaterStønadsperiodeRequest): Either<SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode, Søknadsbehandling> {
+        // TODO : få frontend til å sende inn sakid så vi slipper dette kallet
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
 
         val sak = sakService.hentSak(søknadsbehandling.sakId)
             .getOrHandle { return SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeSak.left() }
 
-        return forsøkStatusovergang(
-            søknadsbehandling = søknadsbehandling,
-            statusovergang = Statusovergang.OppdaterStønadsperiode(
-                oppdatertStønadsperiode = request.stønadsperiode,
-                sak = sak,
-                clock = clock,
-            ),
+        return sak.oppdaterStønadsperiode(
+            søknadsbehandlingId = request.behandlingId,
+            stønadsperiode = request.stønadsperiode,
+            clock = clock,
         ).mapLeft {
             SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode(it)
         }.map {

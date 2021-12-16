@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUt
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
@@ -154,6 +155,47 @@ data class Sak(
     fun hentÅpneKlager(): List<Klage> = klager.filter { it.erÅpen() }
 
     fun hentKlage(klageId: UUID): Klage? = klager.find { it.id == klageId }
+
+    fun oppdaterStønadsperiode(
+        søknadsbehandlingId: UUID,
+        stønadsperiode: Stønadsperiode,
+        clock: Clock,
+    ): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling.Vilkårsvurdert> {
+        val søknadsbehandling = søknadsbehandlinger.singleOrNull {
+            it.id == søknadsbehandlingId
+        } ?: return KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
+
+        hentPerioderMedLøpendeYtelse().let { stønadsperioder ->
+            if (stønadsperioder.any { it overlapper stønadsperiode.periode }) {
+                return KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode.left()
+            }
+            if (stønadsperioder.any { it.starterSamtidigEllerSenere(stønadsperiode.periode) }) {
+                return KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer.left()
+            }
+        }
+
+        return søknadsbehandling.oppdaterStønadsperiode(
+            oppdatertStønadsperiode = stønadsperiode,
+            clock = clock,
+        ).mapLeft {
+            when (it) {
+                is Søknadsbehandling.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
+                    KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
+                }
+                is Søknadsbehandling.KunneIkkeOppdatereStønadsperiode.UgyldigTilstand -> {
+                    KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata(it)
+                }
+            }
+        }
+    }
+
+    sealed class KunneIkkeOppdatereStønadsperiode {
+        object FantIkkeBehandling : KunneIkkeOppdatereStønadsperiode()
+        object StønadsperiodeOverlapperMedLøpendeStønadsperiode : KunneIkkeOppdatereStønadsperiode()
+        object StønadsperiodeForSenerePeriodeEksisterer : KunneIkkeOppdatereStønadsperiode()
+        data class KunneIkkeOppdatereGrunnlagsdata(val feil: Søknadsbehandling.KunneIkkeOppdatereStønadsperiode) :
+            KunneIkkeOppdatereStønadsperiode()
+    }
 }
 
 data class NySak(

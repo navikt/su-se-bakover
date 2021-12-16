@@ -7,7 +7,6 @@ import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.service.argThat
@@ -16,11 +15,9 @@ import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.stønadsperiode2021
-import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringAvslagUtenBeregning
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doReturn
@@ -78,28 +75,6 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
             verify(it.søknadsbehandlingRepo).hent(behandling.id)
             verify(it.sakService).hentSak(sak.id)
             it.verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
-    fun `kaster exception ved hvs søknadsbehandling er i ugyldig tilstand for oppdatering av stønadsperiode`() {
-        val (sak, tilAttestering) = søknadsbehandlingTilAttesteringAvslagUtenBeregning()
-
-        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn tilAttestering
-        }
-
-        val sakServiceMock = mock<SakService>() {
-            on { hentSak(any<UUID>()) } doReturn sak.right()
-        }
-
-        assertThrows<StatusovergangVisitor.UgyldigStatusovergangException> {
-            SøknadsbehandlingServiceAndMocks(
-                søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-                sakService = sakServiceMock,
-            ).søknadsbehandlingService.oppdaterStønadsperiode(
-                SøknadsbehandlingService.OppdaterStønadsperiodeRequest(behandlingId, stønadsperiode2021),
-            )
         }
     }
 
