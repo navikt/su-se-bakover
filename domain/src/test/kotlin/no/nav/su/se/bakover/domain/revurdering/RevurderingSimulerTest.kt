@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
@@ -44,14 +43,6 @@ class RevurderingSimulerTest {
                                         revurderingId = revurdering.id,
                                         opprettet = avkortingsvarsel.opprettet,
                                         simulering = avkortingsvarsel.simulering,
-                                        feilutbetalingslinje = Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje(
-                                            fraOgMed = revurdering.periode.fraOgMed,
-                                            tilOgMed = revurdering.periode.tilOgMed,
-                                            virkningstidspunkt = revurdering.periode.fraOgMed,
-                                            forrigeUtbetalingslinjeId = null,
-                                            beløp = 15000,
-                                            uføregrad = Uføregrad.parse(50),
-                                        ),
                                     )
                                 }
                             }

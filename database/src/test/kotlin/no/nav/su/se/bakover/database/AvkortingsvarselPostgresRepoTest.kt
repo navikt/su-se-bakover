@@ -1,11 +1,7 @@
 package no.nav.su.se.bakover.database
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.juni
-import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import org.junit.jupiter.api.Test
@@ -49,14 +45,6 @@ internal class AvkortingsvarselPostgresRepoTest {
                     revurderingId = revurdering.id,
                     opprettet = fixedTidspunkt,
                     simulering = simuleringFeilutbetaling(),
-                    feilutbetalingslinje = Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje(
-                        fraOgMed = 1.mai(2021),
-                        tilOgMed = 31.desember(2021),
-                        forrigeUtbetalingslinjeId = null,
-                        beløp = 12345,
-                        virkningstidspunkt = 1.juni(2021),
-                        uføregrad = Uføregrad.parse(50),
-                    ),
                 )
 
                 testDataHelper.avkortingsvarselRepo.lagre(
@@ -121,14 +109,6 @@ internal class AvkortingsvarselPostgresRepoTest {
                 revurderingId = revurdering1.id,
                 opprettet = fixedTidspunkt,
                 simulering = simuleringFeilutbetaling(),
-                feilutbetalingslinje = Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje(
-                    fraOgMed = 1.mai(2021),
-                    tilOgMed = 31.desember(2021),
-                    forrigeUtbetalingslinjeId = null,
-                    beløp = 12345,
-                    virkningstidspunkt = 1.juni(2021),
-                    uføregrad = Uføregrad.parse(50),
-                ),
             )
 
             val skalAvkortes = opprettet.copy(id = UUID.randomUUID(), revurderingId = revurdering2.id)

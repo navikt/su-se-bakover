@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagManglendeDokumentasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -218,14 +217,6 @@ open class AccessCheckProxy(
                     assertHarTilgangTilSak(sakId)
 
                     return services.utbetaling.simulerOpphør(sakId, saksbehandler, opphørsdato)
-                }
-
-                override fun simulerAvkortingsvarsel(
-                    sakId: UUID,
-                    saksbehandler: NavIdentBruker,
-                    avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold,
-                ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-                    kastKanKunKallesFraAnnenService()
                 }
 
                 override fun utbetal(

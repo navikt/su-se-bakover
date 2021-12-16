@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.periode.Periode
@@ -29,7 +28,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
@@ -1082,14 +1080,6 @@ internal class RevurderingPostgresRepoTest {
                                 revurderingId = it.id,
                                 opprettet = avkortingsvarsel.opprettet,
                                 simulering = avkortingsvarsel.simulering,
-                                feilutbetalingslinje = Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje(
-                                    fraOgMed = 1.januar(2021),
-                                    tilOgMed = 31.desember(2021),
-                                    forrigeUtbetalingslinjeId = null,
-                                    beløp = 25000,
-                                    virkningstidspunkt = 1.januar(2021),
-                                    uføregrad = Uføregrad.parse(50),
-                                ),
                             )
                         }
                     }
@@ -1122,14 +1112,6 @@ internal class RevurderingPostgresRepoTest {
                                 revurderingId = iverksatt.id,
                                 opprettet = it.opprettet,
                                 simulering = it.simulering,
-                                feilutbetalingslinje = Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje(
-                                    fraOgMed = 1.januar(2021),
-                                    tilOgMed = 31.desember(2021),
-                                    forrigeUtbetalingslinjeId = null,
-                                    beløp = 25000,
-                                    virkningstidspunkt = 1.januar(2021),
-                                    uføregrad = Uføregrad.parse(50),
-                                ),
                             ),
                         )
                     }
@@ -1189,14 +1171,6 @@ internal class RevurderingPostgresRepoTest {
                                 revurderingId = opphørtRevurdering.id,
                                 opprettet = avkortingsvarsel.opprettet,
                                 simulering = avkortingsvarsel.simulering,
-                                feilutbetalingslinje = Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje(
-                                    fraOgMed = 1.januar(2021),
-                                    tilOgMed = 31.desember(2021),
-                                    forrigeUtbetalingslinjeId = null,
-                                    beløp = 25000,
-                                    virkningstidspunkt = 1.januar(2021),
-                                    uføregrad = Uføregrad.parse(50),
-                                ),
                             )
                         }
                     }

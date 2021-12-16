@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.utbetaling
 import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -36,12 +35,6 @@ interface UtbetalingService {
         sakId: UUID,
         saksbehandler: NavIdentBruker,
         opphørsdato: LocalDate,
-    ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
-
-    fun simulerAvkortingsvarsel(
-        sakId: UUID,
-        saksbehandler: NavIdentBruker,
-        avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 
     fun utbetal(

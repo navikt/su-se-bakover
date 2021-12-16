@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -655,7 +654,6 @@ sealed class BeregnetRevurdering : Revurdering() {
                                         sakId = this.sakId,
                                         revurderingId = this.id,
                                         simulering = simulertUtbetaling.simulering,
-                                        utbetalingslinje = simulertUtbetaling.utbetalingslinjer.single() as Utbetalingslinje.Endring.Opphør,
                                     )
                                 }
                                 else -> Avkortingsvarsel.Ingen

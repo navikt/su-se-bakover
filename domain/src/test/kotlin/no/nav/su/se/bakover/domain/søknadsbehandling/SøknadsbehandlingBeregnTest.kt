@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
@@ -92,14 +91,6 @@ internal class SøknadsbehandlingBeregnTest {
                         sakId = søknadsbehandling.sakId,
                         saksnummer = søknadsbehandling.saksnummer,
                         clock = fixedClock,
-                    ),
-                    feilutbetalingslinje = Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje(
-                        fraOgMed = søknadsbehandling.periode.fraOgMed,
-                        tilOgMed = søknadsbehandling.periode.tilOgMed,
-                        virkningstidspunkt = søknadsbehandling.periode.fraOgMed,
-                        forrigeUtbetalingslinjeId = null,
-                        beløp = 15000,
-                        uføregrad = Uføregrad.parse(50),
                     ),
                 ).skalAvkortes(),
             ).beregn(

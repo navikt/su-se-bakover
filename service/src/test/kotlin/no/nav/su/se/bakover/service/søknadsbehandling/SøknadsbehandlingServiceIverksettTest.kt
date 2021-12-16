@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.november
@@ -180,14 +179,6 @@ internal class SøknadsbehandlingServiceIverksettTest {
                         simulering = simuleringFeilutbetaling(
                             oktober(2020), november(2020), desember(2020),
                         ),
-                        feilutbetalingslinje = Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje(
-                            fraOgMed = 1.oktober(2021),
-                            tilOgMed = 31.desember(2021),
-                            forrigeUtbetalingslinjeId = null,
-                            beløp = 15000,
-                            virkningstidspunkt = 1.oktober(2021),
-                            uføregrad = Uføregrad.parse(100),
-                        ),
                     ).skalAvkortes(),
                 )
             },
@@ -213,14 +204,6 @@ internal class SøknadsbehandlingServiceIverksettTest {
             revurderingId = UUID.randomUUID(),
             simulering = simuleringFeilutbetaling(
                 desember(2020),
-            ),
-            feilutbetalingslinje = Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje(
-                fraOgMed = 1.oktober(2021),
-                tilOgMed = 31.desember(2021),
-                forrigeUtbetalingslinjeId = null,
-                beløp = 15000,
-                virkningstidspunkt = 1.desember(2021),
-                uføregrad = Uføregrad.parse(100),
             ),
         ).skalAvkortes()
 

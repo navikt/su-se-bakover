@@ -5,23 +5,19 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import arrow.core.rightIfNotNull
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -156,39 +152,6 @@ internal class UtbetalingServiceImpl(
                 opphørsDato = opphørsdato,
                 clock = clock,
             ).generate(),
-        )
-    }
-
-    override fun simulerAvkortingsvarsel(
-        sakId: UUID,
-        saksbehandler: NavIdentBruker,
-        avkortingsvarsel: Avkortingsvarsel.Utenlandsopphold,
-    ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
-        val sak: Sak = sakService.hentSak(sakId).orNull()!!
-        val opprettet = Tidspunkt.now(clock)
-        return simulerUtbetaling(
-            Utbetaling.UtbetalingForSimulering(
-                id = UUID30.randomUUID(),
-                opprettet = opprettet,
-                sakId = sak.id,
-                saksnummer = sak.saksnummer,
-                fnr = sak.fnr,
-                utbetalingslinjer = nonEmptyListOf(
-                    Utbetalingslinje.Endring.Opphør(
-                        id = UUID30.randomUUID(),
-                        opprettet = Tidspunkt.now(clock),
-                        fraOgMed = avkortingsvarsel.feilutbetalingslinje.fraOgMed,
-                        tilOgMed = avkortingsvarsel.feilutbetalingslinje.tilOgMed,
-                        forrigeUtbetalingslinjeId = avkortingsvarsel.feilutbetalingslinje.forrigeUtbetalingslinjeId,
-                        beløp = avkortingsvarsel.feilutbetalingslinje.beløp,
-                        virkningstidspunkt = avkortingsvarsel.feilutbetalingslinje.virkningstidspunkt,
-                        uføregrad = avkortingsvarsel.feilutbetalingslinje.uføregrad,
-                    ),
-                ),
-                type = Utbetaling.UtbetalingsType.OPPHØR,
-                behandler = saksbehandler,
-                avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
-            ),
         )
     }
 

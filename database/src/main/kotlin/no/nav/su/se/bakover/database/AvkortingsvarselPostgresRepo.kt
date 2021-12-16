@@ -50,7 +50,6 @@ internal class AvkortingsvarselPostgresRepo {
                     sakId = avkortingsvarsel.sakId,
                     revurderingId = avkortingsvarsel.revurderingId,
                     simulering = avkortingsvarsel.simulering,
-                    feilutbetalingslinje = avkortingsvarsel.feilutbetalingslinje,
                     tx = tx,
                 )
             }
@@ -66,7 +65,6 @@ internal class AvkortingsvarselPostgresRepo {
         sakId: UUID,
         revurderingId: UUID,
         simulering: Simulering?,
-        feilutbetalingslinje: Avkortingsvarsel.Utenlandsopphold.Feilutbetalingslinje?,
         tx: TransactionalSession,
     ) {
         """insert into avkortingsvarsel (
@@ -74,8 +72,7 @@ internal class AvkortingsvarselPostgresRepo {
             opprettet, 
             sakId, 
             revurderingId,
-            simulering, 
-            feilutbetalingslinje,
+            simulering,
             status
             ) values (
                 :id, 
@@ -83,7 +80,6 @@ internal class AvkortingsvarselPostgresRepo {
                 :sakId, 
                 :revurderingId,
                 to_jsonb(:simulering::json), 
-                to_jsonb(:feilutbetalingslinje::json),
                 :status
              )""".trimMargin()
             .insert(
@@ -93,7 +89,6 @@ internal class AvkortingsvarselPostgresRepo {
                     "sakId" to sakId,
                     "revurderingId" to revurderingId,
                     "simulering" to simulering?.let { objectMapper.writeValueAsString(it) },
-                    "feilutbetalingslinje" to feilutbetalingslinje?.let { objectMapper.writeValueAsString(it) },
                     "status" to Status.OPPRETTET.toString(),
                 ),
                 tx,
@@ -164,7 +159,6 @@ internal class AvkortingsvarselPostgresRepo {
             revurderingId = uuid("revurderingId"),
             opprettet = tidspunkt("opprettet"),
             simulering = string("simulering").let { objectMapper.readValue(it) },
-            feilutbetalingslinje = string("feilutbetalingslinje").let { objectMapper.readValue(it) },
         )
         return when (Status.valueOf(string("status"))) {
             Status.OPPRETTET -> opprettet
