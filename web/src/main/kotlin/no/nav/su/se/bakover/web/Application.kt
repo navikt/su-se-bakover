@@ -296,6 +296,7 @@ fun Application.susebakover(
             klagevedtakService = services.klagevedtakService,
             maxBatchSize = applicationConfig.kabalKafkaConfig.kafkaConfig[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] as? Int,
             clock = clock,
+            toggleService = services.toggles,
         )
 
         DistribuerDokumentJob(

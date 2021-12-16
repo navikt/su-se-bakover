@@ -6,6 +6,7 @@ import no.nav.common.JAAS_REQUIRED
 import no.nav.common.KafkaEnvironment
 import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak
 import no.nav.su.se.bakover.service.klage.KlagevedtakService
+import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.apache.kafka.clients.CommonClientConfigs
@@ -14,6 +15,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
@@ -41,7 +43,7 @@ internal class FattetKlagevedtakConsumerTest {
     private val key = UUID.randomUUID().toString()
 
     @Test
-    fun `Mottar alle fatta klagevedtak`() {
+    fun `Lagrer aktuelle og forkaster uaktuelle`() {
         val kafkaConsumer = kafkaConsumer(kafkaServer, "$TOPIC1-consumer-group")
         val klagevedtakService = mock<KlagevedtakService>()
         FattetKlagevedtakConsumer(
@@ -52,17 +54,34 @@ internal class FattetKlagevedtakConsumerTest {
             topicName = TOPIC1,
             pollTimeoutDuration = Duration.ofMillis(1000),
             clock = fixedClock,
+            toggleService = object : ToggleService {
+                override fun isEnabled(toggleName: String) = true
+            },
         )
         val producer = kafkaProducer(kafkaServer)
-        (0..5L).map {
-            producer.send(genererFattetKlagevedtaksmelding(TOPIC1, it))
-        }.forEach {
+        listOf(
+            producer.send(genererFattetKlagevedtaksmelding(TOPIC1, 0, "SUPSTONAD")),
+            producer.send(genererFattetKlagevedtaksmelding(TOPIC1, 1, "ANNENSTONAD")),
+            producer.send(genererFattetKlagevedtaksmelding(TOPIC1, 2, "SUPSTONAD")),
+        ).forEach {
             // Venter til alle meldingene er sendt før vi prøver consume
             it.get()
         }
         val hendelser = argumentCaptor<UprosessertFattetKlagevedtak>()
-        verify(klagevedtakService, timeout(20000).times(6)).lagre(hendelser.capture())
-        hendelser.allValues.size shouldBe 6
+        // Kunne alternativt brukt awaitility for å vente til currentOffset ble 3
+        verify(klagevedtakService, timeout(20000).times(2)).lagre(any())
+        currentOffset(TOPIC1) shouldBe 3 // last offset (2) + 1
+        listOf(
+            producer.send(genererFattetKlagevedtaksmelding(TOPIC1, 3, "ANNENSTONAD")),
+            producer.send(genererFattetKlagevedtaksmelding(TOPIC1, 4, "SUPSTONAD")),
+            producer.send(genererFattetKlagevedtaksmelding(TOPIC1, 5, "ANNENSTONAD")),
+        ).forEach {
+            // Venter til alle meldingene er sendt før vi prøver consume
+            it.get()
+        }
+
+        verify(klagevedtakService, timeout(20000).times(3)).lagre(hendelser.capture())
+        hendelser.allValues.size shouldBe 3
         hendelser.allValues.forEachIndexed { index, klagevedtak ->
             UprosessertFattetKlagevedtak(
                 id = klagevedtak.id,
@@ -86,6 +105,7 @@ internal class FattetKlagevedtakConsumerTest {
             )
         }
         verifyNoMoreInteractions(klagevedtakService)
+        currentOffset(TOPIC1) shouldBe 6 // last offset (5) + 1
     }
 
     @Test
@@ -100,6 +120,9 @@ internal class FattetKlagevedtakConsumerTest {
             topicName = TOPIC2,
             pollTimeoutDuration = Duration.ofMillis(1000),
             clock = fixedClock,
+            toggleService = object : ToggleService {
+                override fun isEnabled(toggleName: String) = true
+            },
         )
         val producer = kafkaProducer(kafkaServer)
 
@@ -113,17 +136,24 @@ internal class FattetKlagevedtakConsumerTest {
         verify(klagevedtakService, timeout(20000).times(1)).lagre(any())
         Thread.sleep(2000) // Venter deretter en liten stund til for å verifisere at det ikke kommer fler kall.
         verifyNoMoreInteractions(klagevedtakService)
+        currentOffset(TOPIC2) shouldBe 1 // last offset (0) + 1
+    }
+
+    private fun currentOffset(topic: String): Long {
+        return kafkaServer.adminClient!!.listConsumerGroupOffsets("funKafkaConsumeGrpID")
+            .partitionsToOffsetAndMetadata().get()[TopicPartition(topic, PARTITION)]!!.offset()
     }
 
     private fun genererFattetKlagevedtaksmelding(
         topic: String,
         offset: Long,
+        kilde: String = "SUPSTONAD"
     ): ProducerRecord<String, String> {
         val fattetKlagevedtaksmelding = """
             {
               "eventId": "$offset",
               "kildeReferanse":"$offset",
-              "kilde":"SUPSTONAD",
+              "kilde":"$kilde",
               "utfall":"TRUKKET",
               "vedtaksbrevReferanse":null,
               "kabalReferanse":"$offset"
