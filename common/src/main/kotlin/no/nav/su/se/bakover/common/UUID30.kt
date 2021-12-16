@@ -5,7 +5,7 @@ import java.util.UUID
 
 data class UUID30 constructor(
     @JsonValue
-    val value: String
+    val value: String,
 ) {
     init {
         require(value.trim().length == 30)
