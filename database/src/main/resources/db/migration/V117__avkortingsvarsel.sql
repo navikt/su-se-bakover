@@ -5,7 +5,6 @@ create table if not exists avkortingsvarsel
     sakId uuid not null references sak(id),
     revurderingId uuid not null references revurdering(id),
     simulering jsonb,
-    feilutbetalingslinje jsonb,
     status text not null,
     søknadsbehandlingId uuid references behandling(id)
 );
