@@ -1,12 +1,11 @@
 package no.nav.su.se.bakover.common
 
-import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
 import java.util.UUID
 
-data class UUID30 @JsonCreator(mode = JsonCreator.Mode.DELEGATING) constructor(
+data class UUID30 constructor(
     @JsonValue
-    val value: String
+    val value: String,
 ) {
     init {
         require(value.trim().length == 30)
