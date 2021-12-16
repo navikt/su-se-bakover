@@ -13,8 +13,7 @@ import no.nav.su.se.bakover.test.tilAttesteringRevurderingOpphørtUføreFraInnvi
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.never
-import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import java.time.LocalDate
 import java.util.UUID
 
@@ -30,9 +29,9 @@ internal class RevurderingTilAttesteringTest {
                 clock = fixedClock,
                 utbetal = utbetalingsfunksjon,
             ) shouldBe RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
-
-            verify(utbetalingsfunksjon, never())
         }
+
+        verifyNoInteractions(utbetalingsfunksjon)
     }
 
     @Test
@@ -64,6 +63,6 @@ internal class RevurderingTilAttesteringTest {
             }
         }
 
-        verify(utbetalingsfunksjon, never())
+        verifyNoInteractions(utbetalingsfunksjon)
     }
 }
