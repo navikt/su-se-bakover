@@ -63,7 +63,7 @@ data class Sak(
     val utbetalinger: List<Utbetaling>,
     val revurderinger: List<AbstraktRevurdering> = emptyList(),
     val vedtakListe: List<Vedtak> = emptyList(),
-    val klager: List<Klage> = emptyList()
+    val klager: List<Klage> = emptyList(),
 ) {
     fun utbetalingstidslinje(
         periode: Periode = Periode.create(
@@ -106,7 +106,8 @@ data class Sak(
             periode = månedsperiode,
             vedtakListe = NonEmptyList.fromListUnsafe(
                 vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()
-                    .filterNot { it is Vedtak.EndringIYtelse.GjenopptakAvYtelse || it is Vedtak.EndringIYtelse.StansAvYtelse || it is Vedtak.IngenEndringIYtelse }.ifEmpty {
+                    .filterNot { it is Vedtak.EndringIYtelse.GjenopptakAvYtelse || it is Vedtak.EndringIYtelse.StansAvYtelse || it is Vedtak.IngenEndringIYtelse }
+                    .ifEmpty {
                         return null
                     },
             ),
@@ -172,7 +173,7 @@ data class NySak(
             utbetalinger = emptyList(),
             revurderinger = emptyList(),
             vedtakListe = emptyList(),
-            klager = emptyList()
+            klager = emptyList(),
         )
     }
 }

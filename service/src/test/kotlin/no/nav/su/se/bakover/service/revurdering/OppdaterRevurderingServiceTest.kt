@@ -8,13 +8,18 @@ import arrow.core.right
 import io.kotest.assertions.fail
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
+import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -52,19 +57,25 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.periodeNest
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.stønadsperiodeNesteMånedOgTreMånederFram
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt12000
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
+import no.nav.su.se.bakover.test.opprettetRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.revurderingId
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.stønadsperiode2021
+import no.nav.su.se.bakover.test.utlandsoppholdAvslag
+import no.nav.su.se.bakover.test.vedtakRevurdering
 import no.nav.su.se.bakover.test.vedtakRevurderingIverksattInnvilget
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
@@ -106,7 +117,7 @@ internal class OppdaterRevurderingServiceTest {
         vilkårsvurderinger = Vilkårsvurderinger.Revurdering(
             uføre = vilkårsvurderingUføre,
             formue = Vilkår.Formue.IkkeVurdert,
-            utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert
+            utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
         ),
         informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert)),
     )
@@ -455,7 +466,7 @@ internal class OppdaterRevurderingServiceTest {
             on { hent(any()) } doReturn opprettetRevurdering.copy(
                 // simuler at det er gjort endringer før oppdatering
                 grunnlagsdata = Grunnlagsdata.create(),
-                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert
+                vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
             )
         }
 
@@ -635,7 +646,7 @@ internal class OppdaterRevurderingServiceTest {
             on { vilkårsvurderinger } doReturn Vilkårsvurderinger.Revurdering(
                 uføre = vilkårsvurderingUføre,
                 formue = Vilkår.Formue.IkkeVurdert,
-                utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert
+                utenlandsopphold = UtenlandsoppholdVilkår.IkkeVurdert,
             )
         }
 
@@ -752,5 +763,111 @@ internal class OppdaterRevurderingServiceTest {
             vedtattSøknadsbehandling.second.periode.fraOgMed,
         )
         mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    @Suppress("UNCHECKED_CAST")
+    fun `får ikke lov til å oppdatere revurdering dersom periode overlapper opphørsvedtak for utenlandsopphold med avkorting`() {
+        val tikkendeKlokke = TikkendeKlokke()
+
+        val sakOgSøknadsvedtak = vedtakSøknadsbehandlingIverksattInnvilget(
+            saksnummer = saksnummer,
+            stønadsperiode = stønadsperiode2021,
+            clock = tikkendeKlokke,
+        )
+
+        val revurderingsperiode = Periode.create(1.februar(2021), 31.desember(2021))
+        val sakOgSøknadsvedtakOgRevurderingsvedtak = vedtakRevurdering(
+            revurderingsperiode = revurderingsperiode,
+            sakOgVedtakSomKanRevurderes = sakOgSøknadsvedtak,
+            vilkårOverrides = listOf(
+                utlandsoppholdAvslag(
+                    periode = revurderingsperiode,
+                ),
+            ),
+            clock = tikkendeKlokke,
+        )
+        val (sak3, opprettetRevurdering) = opprettetRevurdering(
+            sakOgVedtakSomKanRevurderes = sakOgSøknadsvedtakOgRevurderingsvedtak as Pair<Sak, VedtakSomKanRevurderes>,
+        )
+
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn opprettetRevurdering
+            },
+            vedtakService = mock {
+                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn GjeldendeVedtaksdata(
+                    periode = revurderingsperiode,
+                    vedtakListe = NonEmptyList.fromListUnsafe(sak3.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()),
+                    clock = fixedClock,
+                ).right()
+            },
+        ).let {
+            it.revurderingService.oppdaterRevurdering(
+                oppdaterRevurderingRequest = OppdaterRevurderingRequest(
+                    revurderingId = opprettetRevurdering.id,
+                    fraOgMed = 1.mai(2021),
+                    årsak = Revurderingsårsak.Årsak.ANDRE_KILDER.toString(),
+                    begrunnelse = "lol",
+                    saksbehandler = saksbehandler,
+                    informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
+                ),
+            ) shouldBe KunneIkkeOppdatereRevurdering.RevurderingsperiodeInneholderAvkortingPgaUtenlandsopphold.left()
+
+            verify(it.revurderingRepo).hent(any())
+            verify(it.vedtakService).kopierGjeldendeVedtaksdata(any(), any())
+            it.verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    @Suppress("UNCHECKED_CAST")
+    fun `får lov til å oppdatere revurdering dersom periode overlapper opphørsvedtak for utenlandsopphold som ikke førte til avkorting`() {
+        val tikkendeKlokke = TikkendeKlokke()
+
+        val sakOgSøknadsvedtak = vedtakSøknadsbehandlingIverksattInnvilget(
+            saksnummer = saksnummer,
+            stønadsperiode = stønadsperiode2021,
+            clock = tikkendeKlokke,
+        )
+
+        val revurderingsperiode = Periode.create(1.oktober(2021), 31.desember(2021))
+        val sakOgSøknadsvedtakOgRevurderingsvedtak = vedtakRevurdering(
+            revurderingsperiode = revurderingsperiode,
+            sakOgVedtakSomKanRevurderes = sakOgSøknadsvedtak,
+            vilkårOverrides = listOf(
+                utlandsoppholdAvslag(
+                    periode = revurderingsperiode,
+                ),
+            ),
+            clock = tikkendeKlokke,
+        )
+        val (sak3, opprettetRevurdering) = opprettetRevurdering(
+            sakOgVedtakSomKanRevurderes = sakOgSøknadsvedtakOgRevurderingsvedtak as Pair<Sak, VedtakSomKanRevurderes>,
+        )
+
+        RevurderingServiceMocks(
+            revurderingRepo = mock {
+                on { hent(any()) } doReturn opprettetRevurdering
+            },
+            vedtakService = mock {
+                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn GjeldendeVedtaksdata(
+                    periode = revurderingsperiode,
+                    vedtakListe = NonEmptyList.fromListUnsafe(sak3.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()),
+                    clock = fixedClock,
+                ).right()
+            },
+        ).let {
+            it.revurderingService.oppdaterRevurdering(
+                oppdaterRevurderingRequest = OppdaterRevurderingRequest(
+                    revurderingId = opprettetRevurdering.id,
+                    fraOgMed = 1.oktober(2021),
+                    årsak = Revurderingsårsak.Årsak.ANDRE_KILDER.toString(),
+                    begrunnelse = "lol",
+                    saksbehandler = saksbehandler,
+                    informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
+                ),
+            ).getOrFail() shouldBe beOfType<OpprettetRevurdering>()
+        }
     }
 }

@@ -69,6 +69,11 @@ internal object Revurderingsfeilresponser {
             "Formue må revurderes siden det finnes EPS formue og flere bosituasjonsperioder",
             "eps_formue_med_flere_perioder_må_revurderes",
         )
+
+        val revurderingsperiodeInneholderAvkortingPgaUtenlandsopphold = InternalServerError.errorJson(
+            "Revurderingsperioden inneholder akortinger pga utenlandsopphold, dette støttes ikke",
+            "revurderingsperiode_inneholder_avkorting_utenlandsopphold"
+        )
     }
 
     object Brev {

@@ -81,7 +81,7 @@ fun simuleringNy(
         ),
     ).generate().let {
         SimuleringStub(
-            clock = clock,
+            clock = nåtidForSimuleringStub, // Overstyr klokke slik at vi kan simulere feilutbetalinger tilbake i tid,
             utbetalingRepo = UtbetalingRepoMock(eksisterendeUtbetalinger)
         ).simulerUtbetaling(it)
     }.orNull()!!

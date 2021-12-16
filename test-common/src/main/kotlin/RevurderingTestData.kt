@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.OpphørsdatoForUtbetalinger
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
@@ -37,6 +38,7 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakFelles
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -116,6 +118,322 @@ fun opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
         ),
         opprettetRevurdering,
     )
+}
+
+fun opprettetRevurdering(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    revurderingsperiode: Periode = periode2021,
+    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+    ),
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
+    clock: Clock = fixedClock,
+    vilkårOverrides: List<Vilkår> = emptyList(),
+    grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
+): Pair<Sak, OpprettetRevurdering> {
+    val grunnlagsdataOgVilkårsvurderinger = sakOgVedtakSomKanRevurderes.first.hentGjeldendeVilkårOgGrunnlag(
+        periode = revurderingsperiode,
+        clock = clock,
+    ).let {
+        GrunnlagsdataOgVilkårsvurderinger(
+            grunnlagsdata = grunnlagsdataOverrides.fold(it.grunnlagsdata) { acc, grunnlag ->
+                when (grunnlag) {
+                    is Grunnlag.Bosituasjon -> {
+                        acc.copy(bosituasjon = listOf(grunnlag))
+                    }
+                    is Grunnlag.Fradragsgrunnlag -> {
+                        acc.copy(fradragsgrunnlag = listOf(grunnlag))
+                    }
+                    else -> {
+                        // andre grunnlag legges til via sine respektive vilkår
+                        acc
+                    }
+                }
+            },
+            vilkårsvurderinger = vilkårOverrides.fold(it.vilkårsvurderinger) { acc, vilkår -> acc.leggTil(vilkår) },
+        )
+    }
+
+    return opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+        revurderingsperiode = revurderingsperiode,
+        informasjonSomRevurderes = informasjonSomRevurderes,
+        sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
+        clock = clock,
+        grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
+        revurderingsårsak = revurderingsårsak,
+    )
+}
+
+fun beregnetRevurdering(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    revurderingsperiode: Periode = periode2021,
+    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+    ),
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
+    clock: Clock = fixedClock,
+    vilkårOverrides: List<Vilkår> = emptyList(),
+    grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
+): Pair<Sak, BeregnetRevurdering> {
+    return opprettetRevurdering(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+        revurderingsperiode = revurderingsperiode,
+        informasjonSomRevurderes = informasjonSomRevurderes,
+        sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
+        clock = clock,
+        revurderingsårsak = revurderingsårsak,
+        vilkårOverrides = vilkårOverrides,
+        grunnlagsdataOverrides = grunnlagsdataOverrides,
+    ).let { (sak, opprettet) ->
+        val beregnet = opprettet.beregn(
+            eksisterendeUtbetalinger = sak.utbetalinger,
+            clock = clock,
+        ).getOrFail()
+
+        sak.copy(
+            revurderinger = sak.revurderinger.filterNot { it.id == beregnet.id } + beregnet,
+        ) to beregnet
+    }
+}
+
+fun simulertRevurdering(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    revurderingsperiode: Periode = periode2021,
+    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+    ),
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
+    clock: Clock = fixedClock,
+    vilkårOverrides: List<Vilkår> = emptyList(),
+    grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
+    forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+): Pair<Sak, SimulertRevurdering> {
+    return beregnetRevurdering(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+        revurderingsperiode = revurderingsperiode,
+        informasjonSomRevurderes = informasjonSomRevurderes,
+        sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
+        clock = clock,
+        revurderingsårsak = revurderingsårsak,
+        vilkårOverrides = vilkårOverrides,
+        grunnlagsdataOverrides = grunnlagsdataOverrides,
+    ).let { (sak, beregnet) ->
+        val simulert = when (beregnet) {
+            is BeregnetRevurdering.IngenEndring -> {
+                throw IllegalStateException("Kan ikke simulere for:${beregnet::class}, overstyr vilkår/grunnlag for et annet resultat.")
+            }
+            is BeregnetRevurdering.Innvilget -> {
+                beregnet.toSimulert(
+                    simuleringNy(
+                        beregning = beregnet.beregning,
+                        eksisterendeUtbetalinger = sak.utbetalinger,
+                        fnr = beregnet.fnr,
+                        sakId = beregnet.sakId,
+                        saksnummer = beregnet.saksnummer,
+                        clock = clock,
+                    ),
+                )
+            }
+            is BeregnetRevurdering.Opphørt -> {
+                beregnet.toSimulert { _, _, opphørsdato ->
+                    opphørUtbetalingSimulert(
+                        sakOgBehandling = sak to beregnet,
+                        opphørsdato = opphørsdato,
+                        clock = clock,
+                    ).right()
+                }.getOrFail()
+            }
+        }
+
+        simulert.forhåndsvarsel = forhåndsvarsel
+
+        sak.copy(
+            revurderinger = sak.revurderinger.filterNot { it.id == simulert.id } + simulert,
+        ) to simulert
+    }
+}
+
+fun revurderingTilAttestering(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    revurderingsperiode: Periode = periode2021,
+    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+    ),
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
+    clock: Clock = fixedClock,
+    vilkårOverrides: List<Vilkår> = emptyList(),
+    grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
+    forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+): Pair<Sak, RevurderingTilAttestering> {
+    return simulertRevurdering(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+        revurderingsperiode = revurderingsperiode,
+        informasjonSomRevurderes = informasjonSomRevurderes,
+        sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
+        clock = clock,
+        revurderingsårsak = revurderingsårsak,
+        vilkårOverrides = vilkårOverrides,
+        grunnlagsdataOverrides = grunnlagsdataOverrides,
+        forhåndsvarsel = forhåndsvarsel,
+    ).let { (sak, simulert) ->
+        val tilAttestering = when (simulert) {
+            is SimulertRevurdering.Innvilget -> {
+                simulert.tilAttestering(
+                    attesteringsoppgaveId = simulert.oppgaveId,
+                    saksbehandler = simulert.saksbehandler,
+                    fritekstTilBrev = simulert.fritekstTilBrev,
+                    forhåndsvarsel = simulert.forhåndsvarsel ?: Forhåndsvarsel.IngenForhåndsvarsel,
+                )
+            }
+            is SimulertRevurdering.Opphørt -> {
+                simulert.tilAttestering(
+                    attesteringsoppgaveId = simulert.oppgaveId,
+                    saksbehandler = simulert.saksbehandler,
+                    fritekstTilBrev = simulert.fritekstTilBrev,
+                    forhåndsvarsel = simulert.forhåndsvarsel ?: Forhåndsvarsel.IngenForhåndsvarsel,
+                ).getOrFail()
+            }
+        }
+        sak.copy(
+            revurderinger = sak.revurderinger.filterNot { it.id == tilAttestering.id } + tilAttestering,
+        ) to tilAttestering
+    }
+}
+
+fun iverksattRevurdering(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    revurderingsperiode: Periode = periode2021,
+    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+    ),
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
+    clock: Clock = fixedClock,
+    vilkårOverrides: List<Vilkår> = emptyList(),
+    grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
+    forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+    attestering: Attestering = attesteringIverksatt(clock),
+): Triple<Sak, IverksattRevurdering, Utbetaling?> {
+    return revurderingTilAttestering(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+        revurderingsperiode = revurderingsperiode,
+        informasjonSomRevurderes = informasjonSomRevurderes,
+        sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
+        clock = clock,
+        revurderingsårsak = revurderingsårsak,
+        vilkårOverrides = vilkårOverrides,
+        grunnlagsdataOverrides = grunnlagsdataOverrides,
+        forhåndsvarsel = forhåndsvarsel,
+    ).let { (sak, tilAttestering) ->
+        val (iverksatt, utbetaling) = when (tilAttestering) {
+            is RevurderingTilAttestering.IngenEndring -> {
+                tilAttestering.tilIverksatt(
+                    attestant = attestering.attestant,
+                    clock = clock,
+                ).getOrFail() to null
+            }
+            is RevurderingTilAttestering.Innvilget -> {
+                val utbetaling = nyUtbetalingOversendUtenKvittering(
+                    sakOgBehandling = sak to tilAttestering,
+                    beregning = tilAttestering.beregning,
+                    clock = clock,
+                )
+
+                tilAttestering.tilIverksatt(
+                    attestant = attestering.attestant,
+                    clock = clock,
+                    utbetal = { utbetaling.id.right() },
+                ).getOrFail() to utbetaling
+            }
+            is RevurderingTilAttestering.Opphørt -> {
+                val utbetaling = opphørUtbetalingOversendUtenKvittering(
+                    sakOgBehandling = sak to tilAttestering,
+                    opphørsdato = OpphørsdatoForUtbetalinger(tilAttestering).get(),
+                    clock = clock,
+                )
+                tilAttestering.tilIverksatt(
+                    attestant = attestering.attestant,
+                    clock = clock,
+                    utbetal = { _, _, _, _ -> utbetaling.id.right() },
+                ).getOrFail() to utbetaling
+            }
+        }
+        Triple(
+            first = sak.copy(
+                revurderinger = sak.revurderinger.filterNot { it.id == iverksatt.id } + iverksatt,
+                utbetalinger = if (utbetaling != null) sak.utbetalinger + utbetaling else sak.utbetalinger,
+            ),
+            second = iverksatt,
+            third = utbetaling,
+        )
+    }
+}
+
+fun vedtakRevurdering(
+    saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
+    stønadsperiode: Stønadsperiode = stønadsperiode2021,
+    revurderingsperiode: Periode = periode2021,
+    informasjonSomRevurderes: InformasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+    ),
+    revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
+    clock: Clock = fixedClock,
+    vilkårOverrides: List<Vilkår> = emptyList(),
+    grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
+    forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+    attestering: Attestering = attesteringIverksatt(clock),
+): Pair<Sak, Vedtak> {
+    return iverksattRevurdering(
+        saksnummer = saksnummer,
+        stønadsperiode = stønadsperiode,
+        revurderingsperiode = revurderingsperiode,
+        informasjonSomRevurderes = informasjonSomRevurderes,
+        sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
+        clock = clock,
+        revurderingsårsak = revurderingsårsak,
+        vilkårOverrides = vilkårOverrides,
+        grunnlagsdataOverrides = grunnlagsdataOverrides,
+        forhåndsvarsel = forhåndsvarsel,
+        attestering = attestering,
+    ).let { (sak, iverksatt, utbetaling) ->
+        val vedtak = when (iverksatt) {
+            is IverksattRevurdering.IngenEndring -> {
+                Vedtak.from(iverksatt, clock)
+            }
+            is IverksattRevurdering.Innvilget -> {
+                Vedtak.from(iverksatt, utbetaling!!.id, clock)
+            }
+            is IverksattRevurdering.Opphørt -> {
+                Vedtak.from(iverksatt, utbetaling!!.id, clock)
+            }
+        }
+
+        sak.copy(
+            vedtakListe = sak.vedtakListe + vedtak,
+        ) to vedtak
+    }
 }
 
 fun opprettetRevurderingAvslagSpesifiktVilkår(
@@ -620,7 +938,9 @@ fun iverksattRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
     ).let { (sak, revurdering) ->
         val iverksatt = revurdering.tilIverksatt(
             attestant = attestering.attestant,
-            utbetal = { _: UUID, _: NavIdentBruker.Attestant, _: LocalDate, _: Simulering -> UUID30.randomUUID().right() }
+            utbetal = { _: UUID, _: NavIdentBruker.Attestant, _: LocalDate, _: Simulering ->
+                UUID30.randomUUID().right()
+            },
         ).getOrFail("Feil i oppsett av testdata")
 
         Pair(
