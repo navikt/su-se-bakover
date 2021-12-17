@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
@@ -45,6 +46,7 @@ internal fun createSøknadsbehandlingService(
     ferdigstillVedtakService: FerdigstillVedtakService = mock(),
     grunnlagService: GrunnlagService = mock(),
     sakService: SakService = mock(),
+    kontrollsamtaleService: KontrollsamtaleService = mock(),
 ) = SøknadsbehandlingServiceImpl(
     søknadService = søknadService,
     søknadsbehandlingRepo = søknadsbehandlingRepo,
@@ -58,6 +60,7 @@ internal fun createSøknadsbehandlingService(
     ferdigstillVedtakService = ferdigstillVedtakService,
     grunnlagService = grunnlagService,
     sakService = sakService,
+    kontrollsamtaleService,
 ).apply { addObserver(observer) }
 
 internal data class SøknadsbehandlingServiceAndMocks(
@@ -74,7 +77,8 @@ internal data class SøknadsbehandlingServiceAndMocks(
     val ferdigstillVedtakService: FerdigstillVedtakService = mock(),
     val vilkårsvurderingService: VilkårsvurderingService = mock(),
     val grunnlagService: GrunnlagService = mock(),
-    val sakService: SakService = mock()
+    val sakService: SakService = mock(),
+    val kontrollsamtaleService: KontrollsamtaleService = mock(),
 ) {
     val søknadsbehandlingService = SøknadsbehandlingServiceImpl(
         søknadService = søknadService,
@@ -89,25 +93,25 @@ internal data class SøknadsbehandlingServiceAndMocks(
         ferdigstillVedtakService = ferdigstillVedtakService,
         grunnlagService = grunnlagService,
         sakService = sakService,
+        kontrollsamtaleService = kontrollsamtaleService,
     ).apply { addObserver(observer) }
 
-    fun allMocks(): Array<Any> {
-        return listOf(
-            søknadsbehandlingRepo,
-            utbetalingService,
-            oppgaveService,
-            søknadService,
-            personService,
-            behandlingMetrics,
-            observer,
-            brevService,
-            vedtakRepo,
-            ferdigstillVedtakService,
-            vilkårsvurderingService,
-            grunnlagService,
-            sakService,
-        ).toTypedArray()
-    }
+    fun allMocks(): Array<Any> = listOf(
+        søknadsbehandlingRepo,
+        utbetalingService,
+        oppgaveService,
+        søknadService,
+        personService,
+        behandlingMetrics,
+        observer,
+        brevService,
+        vedtakRepo,
+        ferdigstillVedtakService,
+        vilkårsvurderingService,
+        grunnlagService,
+        sakService,
+        kontrollsamtaleService,
+    ).toTypedArray()
 
     fun verifyNoMoreInteractions() {
         org.mockito.kotlin.verifyNoMoreInteractions(
@@ -124,6 +128,7 @@ internal data class SøknadsbehandlingServiceAndMocks(
             vilkårsvurderingService,
             grunnlagService,
             sakService,
+            kontrollsamtaleService,
         )
     }
 }

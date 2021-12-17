@@ -126,6 +126,9 @@ data class Sak(
         }
     }
 
+    fun hentGjeldendeStønadsperiode(clock: Clock): Periode? =
+        hentPerioderMedLøpendeYtelse().filter { it.inneholder(LocalDate.now(clock)) }.maxByOrNull { it.tilOgMed }
+
     fun harÅpenRevurderingForStansAvYtelse(): Boolean {
         return revurderinger.filterIsInstance<StansAvYtelseRevurdering.SimulertStansAvYtelse>().isNotEmpty()
     }

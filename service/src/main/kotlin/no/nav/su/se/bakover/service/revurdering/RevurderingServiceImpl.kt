@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
 import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
 import no.nav.su.se.bakover.domain.grunnlag.harFlerEnnEnBosituasjonsperiode
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
+import no.nav.su.se.bakover.domain.kontrollsamtale.Kontrollsamtalestatus
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
@@ -64,6 +65,7 @@ import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
@@ -91,6 +93,7 @@ internal class RevurderingServiceImpl(
     private val vilkårsvurderingService: VilkårsvurderingService,
     private val grunnlagService: GrunnlagService,
     private val vedtakService: VedtakService,
+    private val kontrollsamtaleService: KontrollsamtaleService,
     private val sessionFactory: SessionFactory,
     sakService: SakService,
 ) : RevurderingService {
@@ -1188,8 +1191,10 @@ internal class RevurderingServiceImpl(
                                 it.id
                             }
                         }.map {
-                            vedtak = Vedtak.from(it, utbetaling!!.id, clock)
-                            vedtakRepo.lagre(vedtak as Vedtak.EndringIYtelse)
+                            val opphørtVedtak = Vedtak.from(it, utbetaling!!.id, clock)
+                            vedtakRepo.lagre(opphørtVedtak)
+                            kontrollsamtaleService.oppdaterNestePlanlagteKontrollsamtaleStatus(opphørtVedtak.behandling.sakId, Kontrollsamtalestatus.ANNULLERT)
+                            vedtak = opphørtVedtak
                             it
                         }
                     }

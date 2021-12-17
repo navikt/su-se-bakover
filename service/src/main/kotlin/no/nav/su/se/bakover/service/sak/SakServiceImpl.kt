@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.slf4j.LoggerFactory
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 internal class SakServiceImpl(
@@ -55,7 +54,6 @@ internal class SakServiceImpl(
     override fun hentBegrensetSakinfo(fnr: Fnr): Either<FantIkkeSak, BegrensetSakinfo> {
         return hentSak(fnr)
             .map { sak ->
-                val now = LocalDate.now(clock)
                 BegrensetSakinfo(
                     harÅpenSøknad = sak.søknader
                         .any { søknad ->
@@ -66,10 +64,7 @@ internal class SakServiceImpl(
                                     (behandling == null || !behandling.erIverksatt)
                                 )
                         },
-                    iverksattInnvilgetStønadsperiode = sak
-                        .hentPerioderMedLøpendeYtelse()
-                        .filter { it.inneholder(now) }
-                        .maxByOrNull { it.tilOgMed },
+                    iverksattInnvilgetStønadsperiode = sak.hentGjeldendeStønadsperiode(clock)
                 )
             }
     }

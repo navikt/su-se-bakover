@@ -3,16 +3,17 @@ package no.nav.su.se.bakover.web.routes.kontrollsamtale
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.contentType
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
-import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeKalleInnTilKontrollsamtale
+import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeHenteKontrollsamtale
+import no.nav.su.se.bakover.service.kontrollsamtale.KunneIkkeSetteNyDatoForKontrollsamtale
+import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.kontrollsamtale
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
@@ -20,117 +21,129 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import java.time.LocalDate
 import java.util.UUID
 
 internal class KontrollsamtaleRoutesKtTest {
 
     private val validBody = """
-        {"sakId": "${UUID.randomUUID()}"}
+        {"sakId": "${UUID.randomUUID()}", "nyDato": "${LocalDate.now(fixedClock).plusMonths(2)}"}
     """.trimIndent()
 
     @Test
-    fun `må være innlogget for å kalle inn til kontrollsamtale`() {
+    fun `må være innlogget for å endre dato på kontrollsamtale`() {
         withTestApplication(
             { testSusebakover() },
         ) {
-            handleRequest(HttpMethod.Post, "/kontrollsamtale/kallInn")
+            handleRequest(HttpMethod.Post, "/kontrollsamtale/nyDato")
         }.apply {
             response.status() shouldBe HttpStatusCode.Unauthorized
         }
     }
 
     @Test
-    fun `fant ikke sak`() {
-        verifiserFeilkode(
-            feilkode = KunneIkkeKalleInnTilKontrollsamtale.FantIkkeSak,
-            status = HttpStatusCode.NotFound,
-            body = "{\"message\":\"Fant ikke sak\",\"code\":\"fant_ikke_sak\"}",
-        )
-    }
-
-    @Test
-    fun `fant ikke person`() {
-        verifiserFeilkode(
-            feilkode = KunneIkkeKalleInnTilKontrollsamtale.FantIkkePerson,
-            status = HttpStatusCode.NotFound,
-            body = "{\"message\":\"Fant ikke person\",\"code\":\"fant_ikke_person\"}",
-        )
-    }
-
-    @Test
-    fun `kunne ikke generere dokument`() {
-        verifiserFeilkode(
-            feilkode = KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeGenerereDokument,
-            status = HttpStatusCode.InternalServerError,
-            body = "{\"message\":\"Feil ved generering av dokument\",\"code\":\"feil_ved_generering_av_dokument\"}",
-        )
-    }
-
-    @Test
-    fun `kunne ikke hente navn for saksbehandler eller attestant`() {
-        verifiserFeilkode(
-            feilkode = KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant,
-            status = HttpStatusCode.NotFound,
-            body = "{\"message\":\"Fant ikke saksbehandler eller attestant\",\"code\":\"fant_ikke_saksbehandler_eller_attestant\"}",
-        )
-    }
-
-    @Test
-    fun `kunne ikke kalle inn`() {
-        verifiserFeilkode(
-            feilkode = KunneIkkeKalleInnTilKontrollsamtale.KunneIkkeKalleInn,
-            status = HttpStatusCode.InternalServerError,
-            body = "{\"message\":\"Kunne ikke kalle inn til kontrollsamtale\",\"code\":\"kunne_ikke_kalle_inn_til_kontrollsamtale\"}",
-        )
-    }
-
-    private fun verifiserFeilkode(
-        feilkode: KunneIkkeKalleInnTilKontrollsamtale,
-        status: HttpStatusCode,
-        body: String,
-    ) {
-        val kontrollsamtaleServiceMock = mock<KontrollsamtaleService> {
-            on { kallInn(any(), any()) } doReturn feilkode.left()
+    fun `saksbehandler skal kunne endre dato`() {
+        val kontrollsamtaleMock = mock<KontrollsamtaleService> {
+            on { nyDato(any(), any()) } doReturn Unit.right()
         }
         withTestApplication(
             {
                 testSusebakover(
-                    services = TestServicesBuilder.services()
-                        .copy(kontrollsamtale = kontrollsamtaleServiceMock),
+                    services = TestServicesBuilder.services(kontrollsamtaleService = kontrollsamtaleMock),
                 )
             },
         ) {
-            defaultRequest(HttpMethod.Post, "/kontrollsamtale/kallInn", listOf(Brukerrolle.Saksbehandler)) {
+            defaultRequest(HttpMethod.Post, "/kontrollsamtale/nyDato", listOf(Brukerrolle.Saksbehandler)) {
                 setBody(validBody)
             }
         }.apply {
-            response.status() shouldBe status
-            response.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-            response.content shouldBe body
-        }
-    }
-
-    @Test
-    fun `saksbehandler kan kalle inn til kontrollsamtale`() {
-        val kontrollsamtaleServiceMock = mock<KontrollsamtaleService> {
-            on { kallInn(any(), any()) } doReturn Unit.right()
-        }
-        withTestApplication(
-            {
-                testSusebakover(
-                    services = TestServicesBuilder.services()
-                        .copy(kontrollsamtale = kontrollsamtaleServiceMock),
-                )
-            },
-        ) {
-            defaultRequest(HttpMethod.Post, "/kontrollsamtale/kallInn", listOf(Brukerrolle.Saksbehandler)) {
-                setBody(validBody)
-            }
-        }.apply {
-
             response.status() shouldBe HttpStatusCode.OK
-            response.contentType() shouldBe ContentType.parse("application/json; charset=UTF-8")
-            response.content shouldBe "{\"status\": \"OK\"}"
+        }
+    }
+
+    @Test
+    fun `verifiser feil for nyDato`() {
+        val kontrollsamtaleMock = mock<KontrollsamtaleService> {
+            on { nyDato(any(), any()) } doReturn KunneIkkeSetteNyDatoForKontrollsamtale.KunneIkkeEndreDato.left()
+        }
+        withTestApplication(
+            {
+                testSusebakover(
+                    services = TestServicesBuilder.services(kontrollsamtaleService = kontrollsamtaleMock),
+                )
+            },
+        ) {
+            defaultRequest(HttpMethod.Post, "/kontrollsamtale/nyDato", listOf(Brukerrolle.Saksbehandler)) {
+                setBody(validBody)
+            }
+        }.apply {
+            response.status() shouldBe HttpStatusCode.InternalServerError
+        }
+    }
+
+    @Test
+    fun `må være innlogget for å hente kontrollsamtale`() {
+        withTestApplication(
+            { testSusebakover() },
+        ) {
+            handleRequest(HttpMethod.Get, "/kontrollsamtale/hent/${UUID.randomUUID()}")
+        }.apply {
+            response.status() shouldBe HttpStatusCode.Unauthorized
+        }
+    }
+
+    @Test
+    fun `saksbehandler skal kunne hente neste planlagte kontrollsamtale`() {
+        val kontrollsamtaleMock = mock<KontrollsamtaleService> {
+            on { hentNestePlanlagteKontrollsamtale(any()) } doReturn kontrollsamtale().right()
+        }
+        withTestApplication(
+            {
+                testSusebakover(
+                    services = TestServicesBuilder.services(kontrollsamtaleService = kontrollsamtaleMock),
+                )
+            },
+        ) {
+            defaultRequest(HttpMethod.Get, "/kontrollsamtale/hent/${UUID.randomUUID()}", listOf(Brukerrolle.Saksbehandler))
+        }.apply {
+            response.status() shouldBe HttpStatusCode.OK
+        }
+    }
+
+    @Test
+    fun `hent neste planlagte kontrollsamtale skal returnere 'null' om man ikke finner noen planlagte`() {
+        val kontrollsamtaleMock = mock<KontrollsamtaleService> {
+            on { hentNestePlanlagteKontrollsamtale(any()) } doReturn KunneIkkeHenteKontrollsamtale.FantIkkeKontrollsamtale.left()
+        }
+        withTestApplication(
+            {
+                testSusebakover(
+                    services = TestServicesBuilder.services(kontrollsamtaleService = kontrollsamtaleMock),
+                )
+            },
+        ) {
+            defaultRequest(HttpMethod.Get, "/kontrollsamtale/hent/${UUID.randomUUID()}", listOf(Brukerrolle.Saksbehandler))
+        }.apply {
+            response.status() shouldBe HttpStatusCode.OK
+            response.content shouldBe "null"
+        }
+    }
+
+    @Test
+    fun `hent neste planlagte kontrollsamtale skal feile ved andre feil`() {
+        val kontrollsamtaleMock = mock<KontrollsamtaleService> {
+            on { hentNestePlanlagteKontrollsamtale(any()) } doReturn KunneIkkeHenteKontrollsamtale.KunneIkkeHenteKontrollsamtaler.left()
+        }
+        withTestApplication(
+            {
+                testSusebakover(
+                    services = TestServicesBuilder.services(kontrollsamtaleService = kontrollsamtaleMock),
+                )
+            },
+        ) {
+            defaultRequest(HttpMethod.Get, "/kontrollsamtale/hent/${UUID.randomUUID()}", listOf(Brukerrolle.Saksbehandler))
+        }.apply {
+            response.status() shouldBe HttpStatusCode.InternalServerError
         }
     }
 }

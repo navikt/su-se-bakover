@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
+import no.nav.su.se.bakover.service.kontrollsamtale.KontrollsamtaleService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
@@ -30,6 +31,7 @@ internal data class RevurderingServiceMocks(
     val grunnlagService: GrunnlagService = mock(),
     val vilkårsvurderingService: VilkårsvurderingService = mock(),
     val sakService: SakService = mock(),
+    val kontrollsamtaleService: KontrollsamtaleService = mock(),
     val sessionFactory: SessionFactory = TestSessionFactory(),
 ) {
     val revurderingService = RevurderingServiceImpl(
@@ -45,6 +47,7 @@ internal data class RevurderingServiceMocks(
         grunnlagService = grunnlagService,
         vedtakService = vedtakService,
         sakService = sakService,
+        kontrollsamtaleService = kontrollsamtaleService,
         sessionFactory = sessionFactory
     )
 

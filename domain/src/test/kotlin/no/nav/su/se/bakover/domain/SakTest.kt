@@ -242,6 +242,37 @@ internal class SakTest {
                 revurdering,
             )
         }
+
+        @Test
+        fun `slår sammen stønadsperioder som kommer etter hverandre`() {
+            val (sakStønadsperiode1, stønadsperiode1) = vedtakSøknadsbehandlingIverksattInnvilget(
+                stønadsperiode = stønadsperiode2021,
+            )
+
+            val stønadsperiode2022 = Stønadsperiode.create(
+                periode = Periode.create(1.januar(2022), 31.desember(2022)),
+                begrunnelse = "ny periode da vett",
+            )
+
+            val (sakStønadsperiode2, stønadsperiode2) = vedtakSøknadsbehandlingIverksattInnvilget(
+                stønadsperiode = stønadsperiode2022,
+            )
+
+            sakStønadsperiode1.copy(
+                søknadsbehandlinger = sakStønadsperiode1.søknadsbehandlinger + sakStønadsperiode2.søknadsbehandlinger,
+                revurderinger = sakStønadsperiode1.revurderinger + sakStønadsperiode2.revurderinger,
+                vedtakListe = sakStønadsperiode1.vedtakListe + sakStønadsperiode2.vedtakListe,
+                utbetalinger = sakStønadsperiode1.utbetalinger + sakStønadsperiode2.utbetalinger,
+            ).let {
+                it.hentPerioderMedLøpendeYtelse() shouldBe listOf(
+                    Periode.create(1.januar(2021), 31.desember(2022)),
+                )
+                it.vedtakListe shouldContainAll listOf(
+                    stønadsperiode1,
+                    stønadsperiode2,
+                )
+            }
+        }
     }
 
     @Nested

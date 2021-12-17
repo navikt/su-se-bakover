@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.grunnlag.UføreVilkårsvurderingRepo
 import no.nav.su.se.bakover.domain.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlagevedtakRepo
+import no.nav.su.se.bakover.domain.kontrollsamtale.KontrollsamtaleRepo
 import no.nav.su.se.bakover.domain.nøkkeltall.NøkkeltallRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
@@ -38,4 +39,5 @@ data class DatabaseRepos(
     val sessionFactory: SessionFactory,
     val klageRepo: KlageRepo,
     val klageVedtakRepo: KlagevedtakRepo,
+    val kontrollsamtaleRepo: KontrollsamtaleRepo,
 )
