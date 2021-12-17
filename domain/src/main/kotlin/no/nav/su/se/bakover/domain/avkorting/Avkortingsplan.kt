@@ -16,6 +16,10 @@ internal class Avkortingsplan constructor(
     beregning: Beregning,
     private val clock: Clock,
 ) {
+    init {
+        check(beregning.getFradrag().none { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold })
+    }
+
     private data class PeriodeOgBeløp(
         val periode: Periode,
         val beløp: Int,
@@ -43,28 +47,26 @@ internal class Avkortingsplan constructor(
         fun saldo() = feilutbetalinger.sumOf { it.beløp } - tilbakebetalinger.sumOf { it.beløp }
 
         fun kalkulerMaksbeløp(beløpsgrense: Int): Int {
-            return if (saldo() >= beløpsgrense) {
-                beløpsgrense
-            } else {
-                saldo()
-            }
+            return minOf(saldo(), beløpsgrense)
         }
 
-        tilbakebetalingsperiodeOgBeløpsgrense.filter { it.second > 0 }
+        tilbakebetalingsperiodeOgBeløpsgrense
+            .filter { it.second > 0 }
             .let { filtrert ->
-                var idx = 0
-                while (saldo() > 0 && idx <= filtrert.lastIndex) {
-                    filtrert[idx].let { (periode, beløpsgrense) ->
+                filtrert.forEach { (periode, beløpsgrense) ->
+                    if (saldo() > 0) {
                         tilbakebetalinger.add(
                             PeriodeOgBeløp(
                                 periode = periode,
                                 beløp = kalkulerMaksbeløp(beløpsgrense),
                             ),
                         )
+                    } else {
+                        return@let
                     }
-                    idx++
                 }
             }
+
         return tilbakebetalinger
     }
 

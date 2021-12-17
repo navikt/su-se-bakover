@@ -31,7 +31,7 @@ import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Opp
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.epsFormueMedFlereBosituasjonsperioderMåRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.formueSomFørerTilOpphørMåRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.måVelgeInformasjonSomRevurderes
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.revurderingsperiodeInneholderAvkortingPgaUtenlandsopphold
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.revurderingsperiodeInneholderUtbetalingerSomSkalAvkortes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.tidslinjeForVedtakErIkkeKontinuerlig
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.ugyldigÅrsak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
@@ -96,6 +96,6 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
         KunneIkkeOppretteRevurdering.BosituasjonMedFlerePerioderMåRevurderes -> bosituasjonMedFlerePerioderMåRevurderes
         KunneIkkeOppretteRevurdering.FormueSomFørerTilOpphørMåRevurderes -> formueSomFørerTilOpphørMåRevurderes
         KunneIkkeOppretteRevurdering.EpsFormueMedFlereBosituasjonsperioderMåRevurderes -> epsFormueMedFlereBosituasjonsperioderMåRevurderes
-        KunneIkkeOppretteRevurdering.RevurderingsperiodeInneholderAvkortingPgaUtenlandsopphold -> revurderingsperiodeInneholderAvkortingPgaUtenlandsopphold
+        KunneIkkeOppretteRevurdering.RevurderingsperiodeInneholderUtbetalingerSomSkalAvkortes -> revurderingsperiodeInneholderUtbetalingerSomSkalAvkortes
     }
 }

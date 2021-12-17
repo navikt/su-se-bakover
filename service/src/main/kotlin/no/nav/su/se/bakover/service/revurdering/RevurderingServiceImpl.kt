@@ -181,7 +181,7 @@ internal class RevurderingServiceImpl(
                         false
                     }
                     is Avkortingsvarsel.Utenlandsopphold -> {
-                        return KunneIkkeOppretteRevurdering.RevurderingsperiodeInneholderAvkortingPgaUtenlandsopphold.left()
+                        return KunneIkkeOppretteRevurdering.RevurderingsperiodeInneholderUtbetalingerSomSkalAvkortes.left()
                     }
                 }
             }
@@ -560,7 +560,7 @@ internal class RevurderingServiceImpl(
                         false
                     }
                     is Avkortingsvarsel.Utenlandsopphold -> {
-                        return KunneIkkeOppdatereRevurdering.RevurderingsperiodeInneholderAvkortingPgaUtenlandsopphold.left()
+                        return KunneIkkeOppdatereRevurdering.RevurderingsperiodeInneholderUtbetalingerSomSkalAvkortes.left()
                     }
                 }
             }

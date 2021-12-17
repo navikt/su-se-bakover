@@ -208,7 +208,7 @@ sealed class KunneIkkeOppretteRevurdering {
     object BosituasjonMedFlerePerioderMåRevurderes : KunneIkkeOppretteRevurdering()
     object FormueSomFørerTilOpphørMåRevurderes : KunneIkkeOppretteRevurdering()
     object EpsFormueMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppretteRevurdering()
-    object RevurderingsperiodeInneholderAvkortingPgaUtenlandsopphold : KunneIkkeOppretteRevurdering()
+    object RevurderingsperiodeInneholderUtbetalingerSomSkalAvkortes : KunneIkkeOppretteRevurdering()
 }
 
 sealed class KunneIkkeOppdatereRevurdering {
@@ -227,7 +227,7 @@ sealed class KunneIkkeOppdatereRevurdering {
     object BosituasjonMedFlerePerioderMåRevurderes : KunneIkkeOppdatereRevurdering()
     object FormueSomFørerTilOpphørMåRevurderes : KunneIkkeOppdatereRevurdering()
     object EpsFormueMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppdatereRevurdering()
-    object RevurderingsperiodeInneholderAvkortingPgaUtenlandsopphold : KunneIkkeOppdatereRevurdering()
+    object RevurderingsperiodeInneholderUtbetalingerSomSkalAvkortes : KunneIkkeOppdatereRevurdering()
 }
 
 sealed class KunneIkkeBeregneOgSimulereRevurdering {

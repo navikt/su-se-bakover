@@ -8,9 +8,7 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
-import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingId
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.test.getOrFail
@@ -28,51 +26,22 @@ import java.util.UUID
 internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
 
     @Test
-    fun `svarer med feil hvis man ikke finner behandling`() {
-        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn null
-        }
-
-        SøknadsbehandlingServiceAndMocks(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).let {
-            val response = it.søknadsbehandlingService.oppdaterStønadsperiode(
-                SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
-                    behandlingId = behandlingId,
-                    stønadsperiode = stønadsperiode2021,
-                ),
-            )
-            response shouldBe SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
-
-            verify(it.søknadsbehandlingRepo).hent(behandlingId)
-            it.verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
     fun `svarer med feil hvis man ikke finner sak`() {
         val (sak, behandling) = søknadsbehandlingVilkårsvurdertUavklart()
 
-        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn behandling
-        }
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(any<UUID>()) } doReturn FantIkkeSak.left()
-        }
-
         SøknadsbehandlingServiceAndMocks(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            sakService = sakServiceMock,
+            sakService = mock {
+                on { hentSak(any<UUID>()) } doReturn FantIkkeSak.left()
+            },
         ).let {
-            val response = it.søknadsbehandlingService.oppdaterStønadsperiode(
+            it.søknadsbehandlingService.oppdaterStønadsperiode(
                 SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
                     behandlingId = behandling.id,
                     stønadsperiode = stønadsperiode2021,
+                    sakId = sak.id,
                 ),
-            )
-            response shouldBe SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeSak.left()
+            ) shouldBe SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeSak.left()
 
-            verify(it.søknadsbehandlingRepo).hent(behandling.id)
             verify(it.sakService).hentSak(sak.id)
             it.verifyNoMoreInteractions()
         }
@@ -80,16 +49,7 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
 
     @Test
     fun `oppdaterer stønadsperiode for behandling, grunnlagsdata og vilkårsvurderinger`() {
-        val (sak, uavklart) = søknadsbehandlingVilkårsvurdertInnvilget()
-
-        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn uavklart
-            on { hentForSak(any(), anyOrNull()) } doReturn emptyList()
-        }
-
-        val sakServiceMock = mock<SakService>() {
-            on { hentSak(any<UUID>()) } doReturn sak.right()
-        }
+        val (sak, vilkårsvurdert) = søknadsbehandlingVilkårsvurdertInnvilget()
 
         val nyStønadsperiode = Stønadsperiode.create(
             periode = Periode.create(1.juni(2021), 31.mars(2022)),
@@ -97,19 +57,20 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
         )
 
         SøknadsbehandlingServiceAndMocks(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            sakService = sakServiceMock,
+            sakService = mock<SakService>() {
+                on { hentSak(any<UUID>()) } doReturn sak.right()
+            },
         ).let { it ->
             val response = it.søknadsbehandlingService.oppdaterStønadsperiode(
                 SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
-                    behandlingId = uavklart.id,
+                    behandlingId = vilkårsvurdert.id,
                     stønadsperiode = nyStønadsperiode,
+                    sakId = sak.id,
                 ),
-            ).getOrFail("feil i testdataoppsett")
+            ).getOrFail()
 
-            uavklart.stønadsperiode.periode shouldNotBe nyStønadsperiode
+            vilkårsvurdert.stønadsperiode.periode shouldNotBe nyStønadsperiode
 
-            verify(it.søknadsbehandlingRepo).hent(uavklart.id)
             verify(it.sakService).hentSak(sak.id)
             verify(it.søknadsbehandlingRepo).defaultTransactionContext()
             verify(it.søknadsbehandlingRepo).lagre(
@@ -124,13 +85,13 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
                 anyOrNull(),
             )
             verify(it.grunnlagService).lagreBosituasjongrunnlag(
-                argThat { it shouldBe uavklart.id },
+                argThat { it shouldBe vilkårsvurdert.id },
                 argThat { bosituasjon ->
                     bosituasjon.all { it.periode == nyStønadsperiode.periode } shouldBe true
                 },
             )
             verify(it.grunnlagService).lagreFradragsgrunnlag(
-                argThat { it shouldBe uavklart.id },
+                argThat { it shouldBe vilkårsvurdert.id },
                 argThat { fradrag ->
                     fradrag.all { it.periode == nyStønadsperiode.periode } shouldBe true
                 },

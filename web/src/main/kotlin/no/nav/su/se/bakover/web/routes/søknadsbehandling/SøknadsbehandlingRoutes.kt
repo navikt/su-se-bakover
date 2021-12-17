@@ -146,62 +146,64 @@ internal fun Route.søknadsbehandlingRoutes(
 
     authorize(Brukerrolle.Saksbehandler) {
         post("$behandlingPath/{behandlingId}/stønadsperiode") {
-
-            call.withBehandlingId { behandlingId ->
-                call.withBody<StønadsperiodeJson> { body ->
-                    body.toStønadsperiode()
-                        .mapLeft {
-                            call.svar(it)
-                        }
-                        .flatMap { stønadsperiode ->
-                            søknadsbehandlingService.oppdaterStønadsperiode(
-                                SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
-                                    behandlingId,
-                                    stønadsperiode,
-                                ),
-                            )
-                                .mapLeft { error ->
-                                    call.svar(
-                                        when (error) {
-                                            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> {
-                                                fantIkkeBehandling
-                                            }
-                                            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeSak -> {
-                                                fantIkkeSak
-                                            }
-                                            is SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode -> {
-                                                when (val feil = error.feil) {
-                                                    Sak.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> {
-                                                        fantIkkeBehandling
-                                                    }
-                                                    is Sak.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
-                                                        log.error("Feil ved oppdatering av stønadsperiode: ${feil.feil}")
-                                                        InternalServerError.errorJson(
-                                                            "Feil ved oppdatering av stønadsperiode",
-                                                            "oppdatering_av_stønadsperiode",
-                                                        )
-                                                    }
-                                                    Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer -> {
-                                                        BadRequest.errorJson(
-                                                            "Kan ikke legge til ny stønadsperiode forut for eksisterende stønadsperioder",
-                                                            "senere_stønadsperioder_eksisterer",
-                                                        )
-                                                    }
-                                                    Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode -> {
-                                                        BadRequest.errorJson(
-                                                            "Stønadsperioden overlapper med eksisterende stønadsperiode",
-                                                            "stønadsperioden_overlapper_med_eksisterende_søknadsbehandling",
-                                                        )
+            call.withSakId { sakId ->
+                call.withBehandlingId { behandlingId ->
+                    call.withBody<StønadsperiodeJson> { body ->
+                        body.toStønadsperiode()
+                            .mapLeft {
+                                call.svar(it)
+                            }
+                            .flatMap { stønadsperiode ->
+                                søknadsbehandlingService.oppdaterStønadsperiode(
+                                    SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
+                                        behandlingId = behandlingId,
+                                        stønadsperiode = stønadsperiode,
+                                        sakId = sakId,
+                                    ),
+                                )
+                                    .mapLeft { error ->
+                                        call.svar(
+                                            when (error) {
+                                                SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> {
+                                                    fantIkkeBehandling
+                                                }
+                                                SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeSak -> {
+                                                    fantIkkeSak
+                                                }
+                                                is SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereStønadsperiode -> {
+                                                    when (val feil = error.feil) {
+                                                        Sak.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> {
+                                                            fantIkkeBehandling
+                                                        }
+                                                        is Sak.KunneIkkeOppdatereStønadsperiode.KunneIkkeOppdatereGrunnlagsdata -> {
+                                                            log.error("Feil ved oppdatering av stønadsperiode: ${feil.feil}")
+                                                            InternalServerError.errorJson(
+                                                                "Feil ved oppdatering av stønadsperiode",
+                                                                "oppdatering_av_stønadsperiode",
+                                                            )
+                                                        }
+                                                        Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer -> {
+                                                            BadRequest.errorJson(
+                                                                "Kan ikke legge til ny stønadsperiode forut for eksisterende stønadsperioder",
+                                                                "senere_stønadsperioder_eksisterer",
+                                                            )
+                                                        }
+                                                        Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeOverlapperMedLøpendeStønadsperiode -> {
+                                                            BadRequest.errorJson(
+                                                                "Stønadsperioden overlapper med eksisterende stønadsperiode",
+                                                                "stønadsperioden_overlapper_med_eksisterende_søknadsbehandling",
+                                                            )
+                                                        }
                                                     }
                                                 }
-                                            }
-                                        },
-                                    )
-                                }
-                                .map {
-                                    call.svar(Created.jsonBody(it))
-                                }
-                        }
+                                            },
+                                        )
+                                    }
+                                    .map {
+                                        call.svar(Created.jsonBody(it))
+                                    }
+                            }
+                    }
                 }
             }
         }
@@ -211,7 +213,12 @@ internal fun Route.søknadsbehandlingRoutes(
         get("$behandlingPath/{behandlingId}") {
             call.withBehandlingId { behandlingId ->
                 søknadsbehandlingService.hent(HentRequest(behandlingId)).mapLeft {
-                    call.svar(NotFound.errorJson("Fant ikke behandling med id $behandlingId", "fant_ikke_behandling"))
+                    call.svar(
+                        NotFound.errorJson(
+                            "Fant ikke behandling med id $behandlingId",
+                            "fant_ikke_behandling",
+                        ),
+                    )
                 }.map {
                     call.sikkerlogg("Hentet behandling med id $behandlingId")
                     call.audit(it.fnr, AuditLogEvent.Action.ACCESS, it.id)

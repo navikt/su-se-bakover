@@ -646,8 +646,11 @@ internal class SøknadsbehandlingPostgresRepo(
                     is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
                         avkortingsvarselRepo.lagre(avkort, tx)
                     }
-                    else -> {
-                        throw IllegalStateException("Avkorting for søknadsbehandling:${søknadsbehandling.id} er i ugyldig tilstand: ${avkort::class} for å kunne iverksettes")
+                    is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
+                        throw IllegalStateException("Avkorting:${avkort.id} for søknadsbehandling:${søknadsbehandling.id} er i ugyldig tilstand: ${avkort::class} for å kunne iverksettes")
+                    }
+                    is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
+                        throw IllegalStateException("Avkorting:${avkort.id}} for søknadsbehandling:${søknadsbehandling.id} er i ugyldig tilstand: ${avkort::class} for å kunne iverksettes")
                     }
                 }
             }

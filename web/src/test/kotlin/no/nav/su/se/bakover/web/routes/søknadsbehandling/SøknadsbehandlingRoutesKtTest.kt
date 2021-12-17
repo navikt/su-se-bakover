@@ -842,6 +842,7 @@ internal class SøknadsbehandlingRoutesKtTest {
             SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
                 behandlingId = nySøknadsbehandling.id,
                 stønadsperiode = stønadsperiode,
+                sakId = sak.id,
             ),
         )
 

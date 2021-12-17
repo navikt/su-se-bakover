@@ -70,8 +70,8 @@ internal object Revurderingsfeilresponser {
             "eps_formue_med_flere_perioder_må_revurderes",
         )
 
-        val revurderingsperiodeInneholderAvkortingPgaUtenlandsopphold = InternalServerError.errorJson(
-            "Revurderingsperioden inneholder akortinger pga utenlandsopphold, dette støttes ikke",
+        val revurderingsperiodeInneholderUtbetalingerSomSkalAvkortes = InternalServerError.errorJson(
+            "Revurderingsperioden inneholder utbetalinger som skal avkortes pga utenlandsopphold.Dette støttes ikke.",
             "revurderingsperiode_inneholder_avkorting_utenlandsopphold"
         )
     }

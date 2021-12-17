@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.Opp
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.epsFormueMedFlereBosituasjonsperioderMåRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.formueSomFørerTilOpphørMåRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.måVelgeInformasjonSomRevurderes
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.revurderingsperiodeInneholderAvkortingPgaUtenlandsopphold
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.revurderingsperiodeInneholderUtbetalingerSomSkalAvkortes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.tidslinjeForVedtakErIkkeKontinuerlig
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.OpprettelseOgOppdateringAvRevurdering.ugyldigÅrsak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
@@ -94,6 +94,6 @@ private fun KunneIkkeOppdatereRevurdering.tilResultat(): Resultat {
         KunneIkkeOppdatereRevurdering.BosituasjonMedFlerePerioderMåRevurderes -> bosituasjonMedFlerePerioderMåRevurderes
         KunneIkkeOppdatereRevurdering.FormueSomFørerTilOpphørMåRevurderes -> formueSomFørerTilOpphørMåRevurderes
         KunneIkkeOppdatereRevurdering.EpsFormueMedFlereBosituasjonsperioderMåRevurderes -> epsFormueMedFlereBosituasjonsperioderMåRevurderes
-        KunneIkkeOppdatereRevurdering.RevurderingsperiodeInneholderAvkortingPgaUtenlandsopphold -> revurderingsperiodeInneholderAvkortingPgaUtenlandsopphold
+        KunneIkkeOppdatereRevurdering.RevurderingsperiodeInneholderUtbetalingerSomSkalAvkortes -> revurderingsperiodeInneholderUtbetalingerSomSkalAvkortes
     }
 }

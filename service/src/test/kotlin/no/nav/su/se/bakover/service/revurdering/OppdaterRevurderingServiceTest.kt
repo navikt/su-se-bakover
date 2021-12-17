@@ -812,7 +812,7 @@ internal class OppdaterRevurderingServiceTest {
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
                 ),
-            ) shouldBe KunneIkkeOppdatereRevurdering.RevurderingsperiodeInneholderAvkortingPgaUtenlandsopphold.left()
+            ) shouldBe KunneIkkeOppdatereRevurdering.RevurderingsperiodeInneholderUtbetalingerSomSkalAvkortes.left()
 
             verify(it.revurderingRepo).hent(any())
             verify(it.vedtakService).kopierGjeldendeVedtaksdata(any(), any())

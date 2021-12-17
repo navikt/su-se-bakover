@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 internal class AvkortingsvarselPostgresRepoTest {
@@ -144,6 +145,58 @@ internal class AvkortingsvarselPostgresRepoTest {
                     sakId = sak.id,
                     session = tx,
                 ) shouldBe skalAvkortes.skalAvkortes()
+            }
+        }
+    }
+
+    @Test
+    fun `kaster exception hvis det finnes flere utestående avkortinger`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val revurdering1 = testDataHelper.nyRevurdering(innvilget = vedtak, vedtak.periode)
+            val revurdering2 = testDataHelper.nyRevurdering(innvilget = vedtak, vedtak.periode)
+            val revurdering3 = testDataHelper.nyRevurdering(innvilget = vedtak, vedtak.periode)
+
+            val opprettet = Avkortingsvarsel.Utenlandsopphold.Opprettet(
+                id = UUID.randomUUID(),
+                sakId = sak.id,
+                revurderingId = revurdering1.id,
+                opprettet = fixedTidspunkt,
+                simulering = simuleringFeilutbetaling(),
+            )
+
+            val skalAvkortes1 = opprettet.copy(id = UUID.randomUUID(), revurderingId = revurdering2.id)
+            val skalAvkortes2 = opprettet.copy(id = UUID.randomUUID(), revurderingId = revurdering3.id)
+
+            testDataHelper.sessionFactory.withTransaction { tx ->
+                testDataHelper.avkortingsvarselRepo.lagre(
+                    revurderingId = revurdering2.id,
+                    avkortingsvarsel = skalAvkortes1,
+                    tx = tx,
+                )
+                testDataHelper.avkortingsvarselRepo.lagre(
+                    revurderingId = revurdering2.id,
+                    avkortingsvarsel = skalAvkortes1.skalAvkortes(),
+                    tx = tx,
+                )
+                testDataHelper.avkortingsvarselRepo.lagre(
+                    revurderingId = revurdering3.id,
+                    avkortingsvarsel = skalAvkortes2,
+                    tx = tx,
+                )
+                testDataHelper.avkortingsvarselRepo.lagre(
+                    revurderingId = revurdering3.id,
+                    avkortingsvarsel = skalAvkortes2.skalAvkortes(),
+                    tx = tx,
+                )
+                assertThrows<IllegalStateException> {
+                    testDataHelper.avkortingsvarselRepo.hentUteståendeAvkorting(
+                        sakId = sak.id,
+                        session = tx,
+                    )
+                }
             }
         }
     }

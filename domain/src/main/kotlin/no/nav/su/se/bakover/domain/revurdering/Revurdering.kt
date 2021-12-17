@@ -656,10 +656,15 @@ sealed class BeregnetRevurdering : Revurdering() {
                                         simulering = simulertUtbetaling.simulering,
                                     )
                                 }
-                                else -> Avkortingsvarsel.Ingen
+                                false -> Avkortingsvarsel.Ingen
                             }
                         }
-                        else -> Avkortingsvarsel.Ingen
+                        is Vilkårsvurderingsresultat.Innvilget -> {
+                            Avkortingsvarsel.Ingen
+                        }
+                        is Vilkårsvurderingsresultat.Uavklart -> {
+                            throw IllegalStateException("Kan ikke vurdere avkorting før vilkår er avklart.")
+                        }
                     }
                 }
                 else -> Avkortingsvarsel.Ingen
@@ -962,8 +967,11 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
                     avkortingsvarsel.skalAvkortes()
                 }
-                else -> {
-                    throw IllegalStateException("Avkortingsvarsel for revurdering:$id er i ugyldig tilstand: ${avkortingsvarsel::class} for å kunne iverksettes")
+                is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
+                    throw IllegalStateException("Avkortingsvarsel:${avkortingsvarsel.id} for revurdering:$id er i ugyldig tilstand: ${avkortingsvarsel::class} for å kunne iverksettes")
+                }
+                is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
+                    throw IllegalStateException("Avkortingsvarsel:${avkortingsvarsel.id} for revurdering:$id er i ugyldig tilstand: ${avkortingsvarsel::class} for å kunne iverksettes")
                 }
             }
 

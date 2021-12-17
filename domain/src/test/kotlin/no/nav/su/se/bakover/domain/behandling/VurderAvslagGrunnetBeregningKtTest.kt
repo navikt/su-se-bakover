@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.IngenMerknaderForAvslag
 import no.nav.su.se.bakover.domain.beregning.Merknad
-import no.nav.su.se.bakover.domain.beregning.PeriodisertBeregning
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.beregning.finnMerknaderForPeriode
 import no.nav.su.se.bakover.domain.beregning.finnFørsteMånedMedMerknadForAvslag
@@ -263,25 +262,6 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             begrunnelse = null,
         )
     }
-
-    private fun lagPeriodisertBeregning(
-        periode: Periode,
-        // forventetInntektPerMåned: Double,
-        // fradragstype: Fradragstype = Fradragstype.ForventetInntekt
-    ) = PeriodisertBeregning(
-        periode = periode,
-        sats = Sats.HØY,
-        fradrag = emptyList()
-        //     FradragFactory.periodiser(
-        //     FradragFactory.ny(
-        //         type = fradragstype,
-        //         månedsbeløp = forventetInntektPerMåned,
-        //         periode = periode,
-        //         utenlandskInntekt = null,
-        //         tilhører = FradragTilhører.BRUKER,
-        //     )
-        // )
-    )
 
     private fun lagFradrag(
         beløp: Double,

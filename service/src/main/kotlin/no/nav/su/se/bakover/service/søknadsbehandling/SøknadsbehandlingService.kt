@@ -151,6 +151,7 @@ interface SøknadsbehandlingService {
     data class OppdaterStønadsperiodeRequest(
         val behandlingId: UUID,
         val stønadsperiode: Stønadsperiode,
+        val sakId: UUID,
     )
 
     sealed class KunneIkkeLeggeTilUføreVilkår {

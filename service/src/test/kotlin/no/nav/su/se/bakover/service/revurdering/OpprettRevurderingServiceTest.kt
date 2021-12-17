@@ -976,7 +976,7 @@ internal class OpprettRevurderingServiceTest {
                     saksbehandler = saksbehandler,
                     informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt),
                 ),
-            ) shouldBe KunneIkkeOppretteRevurdering.RevurderingsperiodeInneholderAvkortingPgaUtenlandsopphold.left()
+            ) shouldBe KunneIkkeOppretteRevurdering.RevurderingsperiodeInneholderUtbetalingerSomSkalAvkortes.left()
 
             verify(it.vedtakService).kopierGjeldendeVedtaksdata(any(), any())
             it.verifyNoMoreInteractions()

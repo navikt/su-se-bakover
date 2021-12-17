@@ -129,7 +129,13 @@ internal class AvkortingsvarselPostgresRepo {
             session,
         ) {
             it.toAvkortingsvarsel() as Avkortingsvarsel.Utenlandsopphold.SkalAvkortes
-        }.singleOrNull() ?: Avkortingsvarsel.Ingen // skal maksimalt kunne ha 1 utestående til enhver tid
+        }.let {
+            when (it.size) {
+                0 -> Avkortingsvarsel.Ingen
+                1 -> it.first()
+                else -> throw IllegalStateException("Skal maksimalt kunne ha 1 utestående avkorting")
+            }
+        }
     }
 
     private fun slettForRevurdering(revurderingId: UUID, tx: TransactionalSession) {

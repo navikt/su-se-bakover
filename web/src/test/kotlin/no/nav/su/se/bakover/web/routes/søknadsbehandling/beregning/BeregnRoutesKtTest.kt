@@ -255,6 +255,7 @@ internal class BeregnRoutesKtTest {
             SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
                 behandlingId = nySøknadsbehandling.id,
                 stønadsperiode = stønadsperiode,
+                sakId = sak.id,
             ),
         )
 

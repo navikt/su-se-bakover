@@ -183,8 +183,11 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
                             return
                         }
                     }
-                    else -> {
-                        throw IllegalStateException("Avkorting for søknadsbehandling:${søknadsbehandling.id} er i ugyldig tilstand:${søknadsbehandling.avkorting} for å kunne iverksettes")
+                    is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
+                        throw IllegalStateException("Avkorting:${søknadsbehandling.avkorting.id} for søknadsbehandling:${søknadsbehandling.id} er i ugyldig tilstand:${søknadsbehandling.avkorting} for å kunne iverksettes")
+                    }
+                    is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
+                        throw IllegalStateException("Avkorting:${søknadsbehandling.avkorting.id} for søknadsbehandling:${søknadsbehandling.id} er i ugyldig tilstand:${søknadsbehandling.avkorting} for å kunne iverksettes")
                     }
                 }
 
