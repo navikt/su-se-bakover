@@ -1,7 +1,13 @@
 package no.nav.su.se.bakover.domain.avkorting
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.Beløp
+import no.nav.su.se.bakover.domain.MånedBeløp
+import no.nav.su.se.bakover.domain.Månedsbeløp
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -9,10 +15,9 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import java.time.Clock
 import java.util.UUID
-import kotlin.math.abs
 
 internal class Avkortingsplan constructor(
-    feilutbetalinger: List<Pair<Periode, Int>>,
+    private val feilutbetalinger: Månedsbeløp,
     beregning: Beregning,
     private val clock: Clock,
 ) {
@@ -20,20 +25,11 @@ internal class Avkortingsplan constructor(
         check(beregning.getFradrag().none { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold })
     }
 
-    private data class PeriodeOgBeløp(
-        val periode: Periode,
-        val beløp: Int,
-    )
-
-    private val feilutbetalinger: MutableList<PeriodeOgBeløp> = feilutbetalinger.map { (periode, beløp) ->
-        PeriodeOgBeløp(periode, abs(beløp))
-    }.toMutableList()
-
-    private val tilbakebetalinger: List<PeriodeOgBeløp> = lagTilbakebetalingsplan(beregning)
+    private val tilbakebetalinger: Månedsbeløp = lagTilbakebetalingsplan(beregning)
 
     private fun lagTilbakebetalingsplan(
         beregning: Beregning,
-    ): List<PeriodeOgBeløp> {
+    ): Månedsbeløp {
         return beregning.getMånedsberegninger()
             .map { it.periode to it.getSumYtelse() }
             .let { lagTilbakebetalingsplan(tilbakebetalingsperiodeOgBeløpsgrense = it) }
@@ -41,10 +37,10 @@ internal class Avkortingsplan constructor(
 
     private fun lagTilbakebetalingsplan(
         tilbakebetalingsperiodeOgBeløpsgrense: List<Pair<Periode, Int>>,
-    ): List<PeriodeOgBeløp> {
-        val tilbakebetalinger: MutableList<PeriodeOgBeløp> = mutableListOf()
+    ): Månedsbeløp {
+        val tilbakebetalinger: MutableList<MånedBeløp> = mutableListOf()
 
-        fun saldo() = feilutbetalinger.sumOf { it.beløp } - tilbakebetalinger.sumOf { it.beløp }
+        fun saldo() = feilutbetalinger.sum() - tilbakebetalinger.sumOf { it.beløp.sum() }
 
         fun kalkulerMaksbeløp(beløpsgrense: Int): Int {
             return minOf(saldo(), beløpsgrense)
@@ -56,9 +52,9 @@ internal class Avkortingsplan constructor(
                 filtrert.forEach { (periode, beløpsgrense) ->
                     if (saldo() > 0) {
                         tilbakebetalinger.add(
-                            PeriodeOgBeløp(
+                            MånedBeløp(
                                 periode = periode,
-                                beløp = kalkulerMaksbeløp(beløpsgrense),
+                                beløp = Beløp(kalkulerMaksbeløp(beløpsgrense)),
                             ),
                         )
                     } else {
@@ -67,22 +63,30 @@ internal class Avkortingsplan constructor(
                 }
             }
 
-        return tilbakebetalinger
+        return Månedsbeløp(tilbakebetalinger)
     }
 
-    fun lagFradrag(): List<Grunnlag.Fradragsgrunnlag> {
-        return tilbakebetalinger.map {
-            Grunnlag.Fradragsgrunnlag.create(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(clock),
-                fradrag = FradragFactory.ny(
-                    type = Fradragstype.AvkortingUtenlandsopphold,
-                    månedsbeløp = it.beløp.toDouble(),
-                    periode = it.periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-            )
+    fun lagFradrag(): Either<KunneIkkeLageAvkortingsplan, List<Grunnlag.Fradragsgrunnlag>> {
+        return if (feilutbetalinger.sum() == tilbakebetalinger.sum()) {
+            tilbakebetalinger.månedbeløp.map {
+                Grunnlag.Fradragsgrunnlag.create(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(clock),
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.AvkortingUtenlandsopphold,
+                        månedsbeløp = it.beløp.sum().toDouble(),
+                        periode = it.periode,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                )
+            }.right()
+        } else {
+            KunneIkkeLageAvkortingsplan.AvkortingErUfullstendig.left()
         }
+    }
+
+    sealed class KunneIkkeLageAvkortingsplan {
+        object AvkortingErUfullstendig : KunneIkkeLageAvkortingsplan()
     }
 }

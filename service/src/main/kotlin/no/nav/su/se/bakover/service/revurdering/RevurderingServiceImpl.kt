@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.persistence.SessionFactory
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
@@ -172,19 +171,9 @@ internal class RevurderingServiceImpl(
             if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
         }
 
-        gjeldendeVedtaksdata.periode.tilMånedsperioder()
-            .mapNotNull { gjeldendeVedtaksdata.gjeldendeVedtakPåDato(it.fraOgMed) }
-            .filterIsInstance<Vedtak.EndringIYtelse.OpphørtRevurdering>()
-            .any {
-                when (it.behandling.avkortingsvarsel) {
-                    Avkortingsvarsel.Ingen -> {
-                        false
-                    }
-                    is Avkortingsvarsel.Utenlandsopphold -> {
-                        return KunneIkkeOppretteRevurdering.RevurderingsperiodeInneholderUtbetalingerSomSkalAvkortes.left()
-                    }
-                }
-            }
+        if (gjeldendeVedtaksdata.inneholderUtbetalingerSomSkalAvkortes()) {
+            return KunneIkkeOppretteRevurdering.RevurderingsperiodeInneholderUtbetalingerSomSkalAvkortes.left()
+        }
 
         SjekkOmGrunnlagErKonsistent(
             formuegrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.formue.grunnlag,
@@ -551,19 +540,9 @@ internal class RevurderingServiceImpl(
             if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppdatereRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
         }
 
-        gjeldendeVedtaksdata.periode.tilMånedsperioder()
-            .mapNotNull { gjeldendeVedtaksdata.gjeldendeVedtakPåDato(it.fraOgMed) }
-            .filterIsInstance<Vedtak.EndringIYtelse.OpphørtRevurdering>()
-            .any {
-                when (it.behandling.avkortingsvarsel) {
-                    Avkortingsvarsel.Ingen -> {
-                        false
-                    }
-                    is Avkortingsvarsel.Utenlandsopphold -> {
-                        return KunneIkkeOppdatereRevurdering.RevurderingsperiodeInneholderUtbetalingerSomSkalAvkortes.left()
-                    }
-                }
-            }
+        if (gjeldendeVedtaksdata.inneholderUtbetalingerSomSkalAvkortes()) {
+            return KunneIkkeOppdatereRevurdering.RevurderingsperiodeInneholderUtbetalingerSomSkalAvkortes.left()
+        }
 
         SjekkOmGrunnlagErKonsistent(
             formuegrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.formue.grunnlag,

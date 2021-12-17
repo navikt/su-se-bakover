@@ -124,7 +124,8 @@ internal class SøknadsbehandlingJsonTest {
               "utenlandsopphold": $expectedUtenlandsoppholdVurdert
           },
           "fritekstTilBrev": "",
-          "erLukket": false
+          "erLukket": false,
+          "simuleringForAvkortingsvarsel": null
         }
             """.trimIndent()
     }
@@ -203,7 +204,8 @@ internal class SøknadsbehandlingJsonTest {
             "utenlandsopphold": null
           },
           "fritekstTilBrev": "",
-          "erLukket": false
+          "erLukket": false,
+          "simuleringForAvkortingsvarsel": null
         }
         """
 

@@ -729,14 +729,20 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             begrunnelse = begrunnelse,
                         )
 
-                        val avkortingsplan = Avkortingsplan(
-                            feilutbetalinger = avkort.simulering.hentUtbetalteBeløp(),
+                        val fradragForAvkorting = Avkortingsplan(
+                            feilutbetalinger = avkort.hentUtbetalteBeløp(),
                             beregning = beregningUtenAvkorting,
                             clock = clock,
-                        )
+                        ).lagFradrag().getOrHandle {
+                            return when (it) {
+                                Avkortingsplan.KunneIkkeLageAvkortingsplan.AvkortingErUfullstendig -> {
+                                    KunneIkkeBeregne.AvkortingErUfullstendig.left()
+                                }
+                            }
+                        }
 
                         val medAvkorting = utenAvkorting.leggTilFradragsgrunnlag(
-                            utenAvkorting.grunnlagsdata.fradragsgrunnlag + avkortingsplan.lagFradrag(),
+                            utenAvkorting.grunnlagsdata.fradragsgrunnlag + fradragForAvkorting,
                         ).getOrHandle { return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left() }
 
                         val beregningMedAvkorting = BeregningStrategyFactory(clock).beregn(
@@ -747,15 +753,13 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             beregningsPeriode = medAvkorting.periode,
                             begrunnelse = begrunnelse,
                         )
-
-                        if (!avkort.fullstendigAvkortetAv(beregningMedAvkorting)) {
-                            return KunneIkkeBeregne.AvkortingErUfullstendig.left()
-                        }
-
                         beregningMedAvkorting
                     }
-                    else -> {
-                        throw IllegalStateException("Avkorting for søknadsbehandling:${søknadsbehandling.id} er i ugyldig tilstand:${avkort::class} for å kunne beregnes")
+                    is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
+                        throw IllegalStateException("Avkorting:{${avkort.id} for søknadsbehandling:${søknadsbehandling.id} er i ugyldig tilstand:${avkort::class} for å kunne beregnes")
+                    }
+                    is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
+                        throw IllegalStateException("Avkorting:{${avkort.id} for søknadsbehandling:${søknadsbehandling.id} er i ugyldig tilstand:${avkort::class} for å kunne beregnes")
                     }
                 }
 

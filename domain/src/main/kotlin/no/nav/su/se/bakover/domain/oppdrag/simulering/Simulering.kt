@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Månedsbeløp
 import java.time.LocalDate
 
 data class Simulering(
@@ -20,7 +21,7 @@ data class Simulering(
         return TolketSimulering(this).simulertePerioder.any { it.harFeilutbetalinger() }
     }
 
-    fun hentUtbetalteBeløp(): List<Pair<Periode, Int>> {
+    fun hentUtbetalteBeløp(): Månedsbeløp {
         return TolketSimulering(this).hentUtbetalteBeløp(
             Periode.create(
                 periodeList.minOf { it.fraOgMed },

@@ -4,6 +4,7 @@ import arrow.core.Nel
 import arrow.core.NonEmptyList
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Bosituasjon.Companion.slåSammenPeriodeOgBosituasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Companion.slåSammenPeriodeOgFradrag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -92,6 +93,22 @@ data class GjeldendeVedtaksdata(
     fun tidslinjeForVedtakErSammenhengende(): Boolean = vedtakPåTidslinje
         .zipWithNext { a, b -> a.periode tilstøter b.periode }
         .all { it }
+
+    fun inneholderUtbetalingerSomSkalAvkortes(): Boolean {
+        return periode.tilMånedsperioder()
+            .mapNotNull { gjeldendeVedtakPåDato(it.fraOgMed) }
+            .filterIsInstance<Vedtak.EndringIYtelse.OpphørtRevurdering>()
+            .any {
+                when (it.behandling.avkortingsvarsel) {
+                    Avkortingsvarsel.Ingen -> {
+                        false
+                    }
+                    is Avkortingsvarsel.Utenlandsopphold -> {
+                        true
+                    }
+                }
+            }
+    }
 }
 
 private fun List<Vedtak.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurderinger.Revurdering {
@@ -114,8 +131,8 @@ private fun List<Vedtak.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurde
             this.map { it.vilkårsvurderinger.utenlandsoppholdVilkår() }
                 .filterIsInstance<UtenlandsoppholdVilkår.Vurdert>()
                 .flatMap { it.vurderingsperioder }
-                .let { Nel.fromListUnsafe(it) }
-        )
+                .let { Nel.fromListUnsafe(it) },
+        ),
     )
 }
 

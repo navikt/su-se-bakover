@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.avkorting
 
+import arrow.core.left
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
@@ -8,11 +9,18 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.april
+import no.nav.su.se.bakover.common.periode.desember
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.juni
 import no.nav.su.se.bakover.common.periode.mai
 import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.common.periode.november
+import no.nav.su.se.bakover.common.periode.oktober
+import no.nav.su.se.bakover.common.september
+import no.nav.su.se.bakover.domain.Beløp
+import no.nav.su.se.bakover.domain.MånedBeløp
+import no.nav.su.se.bakover.domain.Månedsbeløp
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -22,6 +30,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.shouldBeEqualToExceptId
 import no.nav.su.se.bakover.test.søknadsbehandlingBeregnetInnvilget
@@ -33,30 +42,26 @@ internal class AvkortingsplanTest {
     fun `avkorter ingenting dersom det ikke finnes noe å avkorte`() {
         val (_, søknadsbehandling) = søknadsbehandlingBeregnetInnvilget()
         Avkortingsplan(
-            feilutbetalinger = emptyList(),
+            feilutbetalinger = Månedsbeløp(emptyList()),
             beregning = søknadsbehandling.beregning,
             clock = fixedClock,
-        ).lagFradrag() shouldBe emptyList()
+        ).lagFradrag().getOrFail() shouldBe emptyList()
     }
 
     @Test
     fun `avkorter så mye som mulig, så fort som mulig`() {
         val (_, søknadsbehandling) = søknadsbehandlingBeregnetInnvilget()
         Avkortingsplan(
-            feilutbetalinger = listOf(
-                januar(2021).let {
-                    it to Sats.HØY.månedsbeløpSomHeltall(it.fraOgMed)
-                },
-                februar(2021).let {
-                    it to Sats.HØY.månedsbeløpSomHeltall(it.fraOgMed)
-                },
-                mars(2021).let {
-                    it to Sats.HØY.månedsbeløpSomHeltall(it.fraOgMed)
-                },
+            feilutbetalinger = Månedsbeløp(
+                listOf(
+                    MånedBeløp(januar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(januar(2021).fraOgMed))),
+                    MånedBeløp(februar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(februar(2021).fraOgMed))),
+                    MånedBeløp(mars(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(mars(2021).fraOgMed))),
+                ),
             ),
             beregning = søknadsbehandling.beregning,
             clock = fixedClock,
-        ).lagFradrag().let {
+        ).lagFradrag().getOrFail().let {
             it shouldHaveSize 3
             it[0].shouldBeEqualToExceptId(
                 expectAvkorting(
@@ -80,7 +85,71 @@ internal class AvkortingsplanTest {
     }
 
     @Test
-    fun `prioriterer andre fradrag høyere enn avkorting`() {
+    fun `avkorting går ikke på bekostning av vanlige fradrag`() {
+        val (_, søknadsbehandling) = søknadsbehandlingBeregnetInnvilget(
+            grunnlagsdata = Grunnlagsdata.create(
+                fradragsgrunnlag = listOf(
+                    Grunnlag.Fradragsgrunnlag.create(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        fradrag = FradragFactory.ny(
+                            type = Fradragstype.Sosialstønad,
+                            månedsbeløp = Sats.HØY.månedsbeløpSomHeltall(1.januar(2021)).toDouble(),
+                            periode = Periode.create(1.januar(2021), 30.april(2021)),
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                    Grunnlag.Fradragsgrunnlag.create(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        fradrag = FradragFactory.ny(
+                            type = Fradragstype.Sosialstønad,
+                            månedsbeløp = Sats.HØY.månedsbeløpSomHeltall(1.mai(2021)).toDouble(),
+                            periode = Periode.create(1.mai(2021), 30.september(2021)),
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                ),
+                bosituasjon = listOf(bosituasjongrunnlagEnslig(periode = periode2021)),
+            ),
+        )
+
+        Avkortingsplan(
+            feilutbetalinger = Månedsbeløp(
+                listOf(
+                    MånedBeløp(januar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(januar(2021).fraOgMed))),
+                    MånedBeløp(februar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(februar(2021).fraOgMed))),
+                    MånedBeløp(mars(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(mars(2021).fraOgMed))),
+                ),
+            ),
+            beregning = søknadsbehandling.beregning,
+            clock = fixedClock,
+        ).lagFradrag().getOrFail().let {
+            it[0].shouldBeEqualToExceptId(
+                expectAvkorting(
+                    beløp = 21989,
+                    periode = oktober(2021),
+                ),
+            )
+            it[1].shouldBeEqualToExceptId(
+                expectAvkorting(
+                    beløp = 21989,
+                    periode = november(2021),
+                ),
+            )
+            it[2].shouldBeEqualToExceptId(
+                expectAvkorting(
+                    beløp = 18860,
+                    periode = desember(2021),
+                ),
+            )
+        }
+    }
+
+    @Test
+    fun `svarer med feil dersom beløp til avkorting ikke lar seg akorte fullstendig for aktuell beregning`() {
         val (_, søknadsbehandling) = søknadsbehandlingBeregnetInnvilget(
             grunnlagsdata = Grunnlagsdata.create(
                 fradragsgrunnlag = listOf(
@@ -112,20 +181,16 @@ internal class AvkortingsplanTest {
         )
 
         Avkortingsplan(
-            feilutbetalinger = listOf(
-                januar(2021).let {
-                    it to Sats.HØY.månedsbeløpSomHeltall(it.fraOgMed)
-                },
-                februar(2021).let {
-                    it to Sats.HØY.månedsbeløpSomHeltall(it.fraOgMed)
-                },
-                mars(2021).let {
-                    it to Sats.HØY.månedsbeløpSomHeltall(it.fraOgMed)
-                },
+            feilutbetalinger = Månedsbeløp(
+                listOf(
+                    MånedBeløp(januar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(januar(2021).fraOgMed))),
+                    MånedBeløp(februar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(februar(2021).fraOgMed))),
+                    MånedBeløp(mars(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(mars(2021).fraOgMed))),
+                ),
             ),
             beregning = søknadsbehandling.beregning,
             clock = fixedClock,
-        ).lagFradrag() shouldBe emptyList()
+        ).lagFradrag() shouldBe Avkortingsplan.KunneIkkeLageAvkortingsplan.AvkortingErUfullstendig.left()
     }
 
     @Test
@@ -150,20 +215,16 @@ internal class AvkortingsplanTest {
         )
 
         Avkortingsplan(
-            feilutbetalinger = listOf(
-                januar(2021).let {
-                    it to Sats.HØY.månedsbeløpSomHeltall(it.fraOgMed)
-                },
-                februar(2021).let {
-                    it to Sats.HØY.månedsbeløpSomHeltall(it.fraOgMed)
-                },
-                mars(2021).let {
-                    it to Sats.HØY.månedsbeløpSomHeltall(it.fraOgMed)
-                },
+            feilutbetalinger = Månedsbeløp(
+                listOf(
+                    MånedBeløp(januar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(januar(2021).fraOgMed))),
+                    MånedBeløp(februar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(februar(2021).fraOgMed))),
+                    MånedBeløp(mars(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(mars(2021).fraOgMed))),
+                ),
             ),
             beregning = søknadsbehandling.beregning,
             clock = fixedClock,
-        ).lagFradrag().let {
+        ).lagFradrag().getOrFail().let {
             it shouldHaveSize 6
             it[0].shouldBeEqualToExceptId(
                 expectAvkorting(

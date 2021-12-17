@@ -26,7 +26,7 @@ internal class OpphørsdatoForUtbetalingerTest {
         val simulert = simulertRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
             revurderingsperiode = revurderingsperiode,
         ).second
-        OpphørsdatoForUtbetalinger(simulert).get() shouldBe revurderingsperiode.fraOgMed
+        OpphørsdatoForUtbetalinger(simulert).value shouldBe revurderingsperiode.fraOgMed
         simulert.avkortingsvarsel shouldBe Avkortingsvarsel.Ingen
     }
 
@@ -36,7 +36,7 @@ internal class OpphørsdatoForUtbetalingerTest {
         val simulert = simulertRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
             vilkårSomFørerTilOpphør = utlandsoppholdAvslag(),
         ).second
-        OpphørsdatoForUtbetalinger(simulert).get() shouldBe tidligsteFraOgMedSomIkkeErUtbetalt
+        OpphørsdatoForUtbetalinger(simulert).value shouldBe tidligsteFraOgMedSomIkkeErUtbetalt
         simulert.avkortingsvarsel shouldBe beOfType<Avkortingsvarsel.Utenlandsopphold.Opprettet>()
     }
 

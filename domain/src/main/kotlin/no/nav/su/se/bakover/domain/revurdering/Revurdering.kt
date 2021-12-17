@@ -608,7 +608,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                                 OpphørsdatoForUtbetalinger(
                                     revurdering = this,
                                     avkortingsvarsel = avkortingsvarsel,
-                                ).get(),
+                                ).value,
                             ).getOrHandle { return it.left() }
 
                             if (simuleringMedNyOpphørsdato.simulering.harFeilutbetalinger()) {
@@ -648,7 +648,7 @@ sealed class BeregnetRevurdering : Revurdering() {
                 true -> {
                     when (val vilkårsvurdering = vilkårsvurderinger.resultat) {
                         is Vilkårsvurderingsresultat.Avslag -> {
-                            when (vilkårsvurdering.erÅrsak(Inngangsvilkår.Utenlandsopphold)) {
+                            when (vilkårsvurdering.erNøyaktigÅrsak(Inngangsvilkår.Utenlandsopphold)) {
                                 true -> {
                                     Avkortingsvarsel.Utenlandsopphold.Opprettet(
                                         sakId = this.sakId,
@@ -975,7 +975,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 }
             }
 
-            return utbetal(sakId, attestant, OpphørsdatoForUtbetalinger(revurdering = this).get(), simulering)
+            return utbetal(sakId, attestant, OpphørsdatoForUtbetalinger(revurdering = this).value, simulering)
                 .map {
                     IverksattRevurdering.Opphørt(
                         id = id,

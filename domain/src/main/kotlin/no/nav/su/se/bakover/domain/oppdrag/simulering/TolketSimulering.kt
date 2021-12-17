@@ -1,6 +1,9 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.Beløp
+import no.nav.su.se.bakover.domain.MånedBeløp
+import no.nav.su.se.bakover.domain.Månedsbeløp
 import java.time.LocalDate
 
 data class TolketSimulering(
@@ -29,11 +32,12 @@ data class TolketSimulering(
 
     fun harFeilutbetalinger() = simulertePerioder.any { it.harFeilutbetalinger() }
 
-    fun hentUtbetalteBeløp(periode: Periode): List<Pair<Periode, Int>> {
-        return simulertePerioder
-            .filter { periode inneholder it.periode }
-            .map { it.hentUtbetaltBeløp() }
-            .filterNot { it.second == 0 }
+    fun hentUtbetalteBeløp(periode: Periode): Månedsbeløp {
+        return Månedsbeløp(
+            simulertePerioder
+                .filter { periode inneholder it.periode }
+                .map { it.hentUtbetaltBeløp() },
+        )
     }
 }
 
@@ -42,8 +46,8 @@ data class TolketPeriode(
     val utbetalinger: List<TolketUtbetaling>,
 ) {
     fun harFeilutbetalinger() = utbetalinger.any { it is TolketUtbetaling.Feilutbetaling }
-    fun hentUtbetaltBeløp(): Pair<Periode, Int> {
-        return periode to utbetalinger.sumOf { it.hentUtbetaltBeløp() }
+    fun hentUtbetaltBeløp(): MånedBeløp {
+        return MånedBeløp(periode, Beløp(utbetalinger.sumOf { it.hentUtbetaltBeløp().sum() }))
     }
 }
 
@@ -52,8 +56,8 @@ sealed class TolketUtbetaling {
 
     abstract fun bruttobeløp(): Int
 
-    fun hentUtbetaltBeløp(): Int {
-        return tolketDetalj.filterIsInstance<TolketDetalj.TidligereUtbetalt>().sumOf { it.beløp }
+    fun hentUtbetaltBeløp(): Beløp {
+        return Beløp(tolketDetalj.filterIsInstance<TolketDetalj.TidligereUtbetalt>().sumOf { it.beløp })
     }
 
     companion object {

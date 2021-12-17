@@ -149,7 +149,7 @@ internal object Feilresponser {
     )
 
     val avkortingErUfullstendig = InternalServerError.errorJson(
-        "Avkorting av utestående beløp er ufullstendig.",
+        "Hele det utestående beløpet som skal avkortes pga. utenlandsopphold kunne ikke trekkes fra i valgt stønadsperiode. Det er ikke støtte for å overføre restbeløp til neste stønadsperiode",
         "avkorting_er_ufullstendig"
     )
 

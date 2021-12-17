@@ -360,8 +360,8 @@ sealed class Vilkårsvurderingsresultat {
             }
         }
 
-        fun erÅrsak(inngangsvilkår: Inngangsvilkår): Boolean {
-            return vilkår.any { it.vilkår == inngangsvilkår }
+        fun erNøyaktigÅrsak(inngangsvilkår: Inngangsvilkår): Boolean {
+            return vilkår.singleOrNull { it.vilkår == inngangsvilkår }?.let { true } ?: if (vilkår.size == 1) false else throw IllegalStateException("Opphør av flere vilkår er ikke støttet, opphørte vilkår:$vilkår")
         }
     }
 

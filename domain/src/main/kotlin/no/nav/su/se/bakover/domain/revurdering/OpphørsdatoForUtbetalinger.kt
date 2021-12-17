@@ -6,40 +6,44 @@ import java.time.LocalDate
 
 @JvmInline
 value class OpphørsdatoForUtbetalinger private constructor(
-    private val opphørsdato: LocalDate,
+    val value: LocalDate,
 ) {
-    constructor(
-        revurdering: BeregnetRevurdering.Opphørt,
-        avkortingsvarsel: Avkortingsvarsel,
-    ) : this(bestem(revurdering, avkortingsvarsel))
+    companion object {
+        operator fun invoke(
+            revurdering: BeregnetRevurdering.Opphørt,
+            avkortingsvarsel: Avkortingsvarsel,
+        ): OpphørsdatoForUtbetalinger {
+            return bestem(revurdering, avkortingsvarsel)
+        }
 
-    constructor(
-        revurdering: SimulertRevurdering.Opphørt,
-    ) : this(bestem(revurdering, revurdering.avkortingsvarsel))
+        operator fun invoke(
+            revurdering: SimulertRevurdering.Opphørt,
+        ): OpphørsdatoForUtbetalinger {
+            return bestem(revurdering, revurdering.avkortingsvarsel)
+        }
 
-    constructor(
-        revurdering: RevurderingTilAttestering.Opphørt,
-    ) : this(bestem(revurdering, revurdering.avkortingsvarsel))
+        operator fun invoke(
+            revurdering: RevurderingTilAttestering.Opphørt,
+        ): OpphørsdatoForUtbetalinger {
+            return bestem(revurdering, revurdering.avkortingsvarsel)
+        }
 
-    fun get(): LocalDate = opphørsdato
-
-    private companion object {
-        fun bestem(
+        private fun bestem(
             revurdering: Revurdering,
             avkortingsvarsel: Avkortingsvarsel,
-        ): LocalDate {
+        ): OpphørsdatoForUtbetalinger {
             return when (avkortingsvarsel) {
                 is Avkortingsvarsel.Ingen -> {
-                    revurdering.periode.fraOgMed
+                    OpphørsdatoForUtbetalinger(revurdering.periode.fraOgMed)
                 }
                 is Avkortingsvarsel.Utenlandsopphold -> {
                     val tidligsteIkkeUtbetalteMåned = avkortingsvarsel.hentUtbetalteBeløp()
-                        .maxOf { it.first.tilOgMed }
+                        .senesteDato()
                         .plusMonths(1)
                         .startOfMonth()
 
                     check(revurdering.periode inneholder tidligsteIkkeUtbetalteMåned) { "Opphørsdato er utenfor revurderingsperioden" }
-                    tidligsteIkkeUtbetalteMåned
+                    OpphørsdatoForUtbetalinger(tidligsteIkkeUtbetalteMåned)
                 }
             }
         }

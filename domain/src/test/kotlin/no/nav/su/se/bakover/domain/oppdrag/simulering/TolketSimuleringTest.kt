@@ -12,7 +12,10 @@ import no.nav.su.se.bakover.common.periode.april
 import no.nav.su.se.bakover.common.periode.februar
 import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.mars
+import no.nav.su.se.bakover.domain.Beløp
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.MånedBeløp
+import no.nav.su.se.bakover.domain.Månedsbeløp
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test
@@ -294,9 +297,22 @@ internal class TolketSimuleringTest {
                     ),
                 ),
             )
-            it.hentUtbetalteBeløp(periode2021) shouldBe listOf(februar(2021) to -20779)
-            it.hentUtbetalteBeløp(februar(2021)) shouldBe listOf(februar(2021) to -20779)
-            it.hentUtbetalteBeløp(mars(2021)) shouldBe emptyList()
+            it.hentUtbetalteBeløp(periode2021) shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(februar(2021), Beløp(20779)),
+                    MånedBeløp(mars(2021), Beløp(0)),
+                ),
+            )
+            it.hentUtbetalteBeløp(februar(2021)) shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(februar(2021), Beløp(20779)),
+                ),
+            )
+            it.hentUtbetalteBeløp(mars(2021)) shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(mars(2021), Beløp(0)),
+                ),
+            )
         }
     }
 
@@ -386,7 +402,11 @@ internal class TolketSimuleringTest {
                     ),
                 ),
             )
-            it.hentUtbetalteBeløp(januar(2021)) shouldBe listOf(januar(2021) to -8949)
+            it.hentUtbetalteBeløp(januar(2021)) shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(januar(2021), Beløp(8949)),
+                ),
+            )
         }
     }
 
@@ -510,7 +530,12 @@ internal class TolketSimuleringTest {
                     ),
                 ),
             )
-            it.hentUtbetalteBeløp(periode2021) shouldBe listOf(februar(2021) to -20779)
+            it.hentUtbetalteBeløp(periode2021) shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(februar(2021), Beløp(20779)),
+                    MånedBeløp(mars(2021), Beløp(0)),
+                )
+            )
         }
     }
 
@@ -634,7 +659,12 @@ internal class TolketSimuleringTest {
                     ),
                 ),
             )
-            it.hentUtbetalteBeløp(periode2021) shouldBe listOf(februar(2021) to -20779)
+            it.hentUtbetalteBeløp(periode2021) shouldBe Månedsbeløp(
+                listOf(
+                    MånedBeløp(februar(2021), Beløp(20779)),
+                    MånedBeløp(mars(2021), Beløp(0)),
+                ),
+            )
         }
     }
 

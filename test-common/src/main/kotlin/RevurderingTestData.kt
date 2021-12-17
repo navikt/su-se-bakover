@@ -368,7 +368,7 @@ fun iverksattRevurdering(
             is RevurderingTilAttestering.Opphørt -> {
                 val utbetaling = opphørUtbetalingOversendUtenKvittering(
                     sakOgBehandling = sak to tilAttestering,
-                    opphørsdato = OpphørsdatoForUtbetalinger(tilAttestering).get(),
+                    opphørsdato = OpphørsdatoForUtbetalinger(tilAttestering).value,
                     clock = clock,
                 )
                 tilAttestering.tilIverksatt(
