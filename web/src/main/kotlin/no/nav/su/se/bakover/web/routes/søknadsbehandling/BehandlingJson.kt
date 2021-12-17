@@ -23,4 +23,5 @@ internal data class BehandlingJson(
     val stønadsperiode: StønadsperiodeJson?,
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
     val erLukket: Boolean,
+    val simuleringForAvkortingsvarsel: SimuleringJson?
 )
