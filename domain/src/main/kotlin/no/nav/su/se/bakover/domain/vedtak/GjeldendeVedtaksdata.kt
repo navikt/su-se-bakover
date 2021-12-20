@@ -90,7 +90,7 @@ data class GjeldendeVedtaksdata(
         .zipWithNext { a, b -> a.periode tilstøter b.periode }
         .all { it }
 
-    fun inneholderUtbetalingerSomSkalAvkortes(): Boolean {
+    fun inneholderOpphørsvedtakMedAvkortingUtenlandsopphold(): Boolean {
         return periode.tilMånedsperioder()
             .mapNotNull { gjeldendeVedtakPåDato(it.fraOgMed) }
             .filterIsInstance<Vedtak.EndringIYtelse.OpphørtRevurdering>()

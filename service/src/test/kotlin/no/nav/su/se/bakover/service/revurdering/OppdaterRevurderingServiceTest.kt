@@ -778,6 +778,7 @@ internal class OppdaterRevurderingServiceTest {
 
         val revurderingsperiode = Periode.create(1.februar(2021), 31.desember(2021))
         val sakOgSøknadsvedtakOgRevurderingsvedtak = vedtakRevurdering(
+            clock = tikkendeKlokke,
             revurderingsperiode = revurderingsperiode,
             sakOgVedtakSomKanRevurderes = sakOgSøknadsvedtak,
             vilkårOverrides = listOf(
@@ -785,7 +786,6 @@ internal class OppdaterRevurderingServiceTest {
                     periode = revurderingsperiode,
                 ),
             ),
-            clock = tikkendeKlokke,
         )
         val (sak3, opprettetRevurdering) = opprettetRevurdering(
             sakOgVedtakSomKanRevurderes = sakOgSøknadsvedtakOgRevurderingsvedtak as Pair<Sak, VedtakSomKanRevurderes>,
@@ -833,6 +833,7 @@ internal class OppdaterRevurderingServiceTest {
 
         val revurderingsperiode = Periode.create(1.oktober(2021), 31.desember(2021))
         val sakOgSøknadsvedtakOgRevurderingsvedtak = vedtakRevurdering(
+            clock = tikkendeKlokke,
             revurderingsperiode = revurderingsperiode,
             sakOgVedtakSomKanRevurderes = sakOgSøknadsvedtak,
             vilkårOverrides = listOf(
@@ -840,7 +841,6 @@ internal class OppdaterRevurderingServiceTest {
                     periode = revurderingsperiode,
                 ),
             ),
-            clock = tikkendeKlokke,
         )
         val (sak3, opprettetRevurdering) = opprettetRevurdering(
             sakOgVedtakSomKanRevurderes = sakOgSøknadsvedtakOgRevurderingsvedtak as Pair<Sak, VedtakSomKanRevurderes>,

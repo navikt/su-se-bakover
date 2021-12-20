@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
+import no.nav.su.se.bakover.domain.oppdrag.UtbetalingslinjePåTidslinje
 import no.nav.su.se.bakover.domain.revurdering.AbstraktRevurdering
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
@@ -225,8 +226,14 @@ data class Sak(
                 }
             },
             {
-                if (it.inneholderUtbetalingerSomSkalAvkortes()) {
-                    return KunneIkkeOppdatereStønadsperiode.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold.left()
+                if (it.inneholderOpphørsvedtakMedAvkortingUtenlandsopphold()) {
+                    val alleUtbetalingerErOpphørt =
+                        utbetalingstidslinje(periode = it.periode).tidslinje.all { utbetalingslinjePåTidslinje ->
+                            utbetalingslinjePåTidslinje is UtbetalingslinjePåTidslinje.Opphør
+                        }
+
+                    if (!alleUtbetalingerErOpphørt)
+                        return KunneIkkeOppdatereStønadsperiode.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold.left()
                 }
             },
         )

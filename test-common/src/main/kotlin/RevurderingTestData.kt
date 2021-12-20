@@ -318,6 +318,7 @@ fun revurderingTilAttestering(
 }
 
 fun iverksattRevurdering(
+    clock: Clock = fixedClock,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = periode2021,
@@ -325,9 +326,9 @@ fun iverksattRevurdering(
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
+        clock = clock,
     ),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-    clock: Clock = fixedClock,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
@@ -390,6 +391,7 @@ fun iverksattRevurdering(
 }
 
 fun vedtakRevurdering(
+    clock: Clock = fixedClock,
     saksnummer: Saksnummer = no.nav.su.se.bakover.test.saksnummer,
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = periode2021,
@@ -397,21 +399,21 @@ fun vedtakRevurdering(
     sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes> = vedtakSøknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
+        clock = clock,
     ),
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-    clock: Clock = fixedClock,
     vilkårOverrides: List<Vilkår> = emptyList(),
     grunnlagsdataOverrides: List<Grunnlag> = emptyList(),
     forhåndsvarsel: Forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
     attestering: Attestering = attesteringIverksatt(clock),
 ): Pair<Sak, Vedtak> {
     return iverksattRevurdering(
+        clock = clock,
         saksnummer = saksnummer,
         stønadsperiode = stønadsperiode,
         revurderingsperiode = revurderingsperiode,
         informasjonSomRevurderes = informasjonSomRevurderes,
         sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
-        clock = clock,
         revurderingsårsak = revurderingsårsak,
         vilkårOverrides = vilkårOverrides,
         grunnlagsdataOverrides = grunnlagsdataOverrides,

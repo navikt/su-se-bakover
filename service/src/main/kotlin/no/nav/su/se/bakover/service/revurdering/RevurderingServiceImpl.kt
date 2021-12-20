@@ -171,7 +171,7 @@ internal class RevurderingServiceImpl(
             if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
         }
 
-        if (gjeldendeVedtaksdata.inneholderUtbetalingerSomSkalAvkortes()) {
+        if (gjeldendeVedtaksdata.inneholderOpphørsvedtakMedAvkortingUtenlandsopphold()) {
             return KunneIkkeOppretteRevurdering.RevurderingsperiodeInneholderUtbetalingerSomSkalAvkortes.left()
         }
 
@@ -540,7 +540,7 @@ internal class RevurderingServiceImpl(
             if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppdatereRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
         }
 
-        if (gjeldendeVedtaksdata.inneholderUtbetalingerSomSkalAvkortes()) {
+        if (gjeldendeVedtaksdata.inneholderOpphørsvedtakMedAvkortingUtenlandsopphold()) {
             return KunneIkkeOppdatereRevurdering.RevurderingsperiodeInneholderUtbetalingerSomSkalAvkortes.left()
         }
 

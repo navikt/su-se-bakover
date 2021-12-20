@@ -948,6 +948,7 @@ internal class OpprettRevurderingServiceTest {
 
         val revurderingsperiode = Periode.create(1.februar(2021), 31.desember(2021))
         val (sak2, revurderingVedtak) = vedtakRevurdering(
+            clock = tikkendeKlokke,
             revurderingsperiode = revurderingsperiode,
             sakOgVedtakSomKanRevurderes = sakOgSøknadsvedtak,
             vilkårOverrides = listOf(
@@ -955,7 +956,6 @@ internal class OpprettRevurderingServiceTest {
                     periode = revurderingsperiode,
                 ),
             ),
-            clock = tikkendeKlokke,
         )
 
         RevurderingServiceMocks(
@@ -995,6 +995,7 @@ internal class OpprettRevurderingServiceTest {
 
         val revurderingsperiode = Periode.create(1.oktober(2021), 31.desember(2021))
         val (sak2, revurderingVedtak) = vedtakRevurdering(
+            clock = tikkendeKlokke,
             revurderingsperiode = revurderingsperiode,
             sakOgVedtakSomKanRevurderes = sakOgSøknadsvedtak,
             vilkårOverrides = listOf(
@@ -1002,7 +1003,6 @@ internal class OpprettRevurderingServiceTest {
                     periode = revurderingsperiode,
                 ),
             ),
-            clock = tikkendeKlokke,
         )
 
         RevurderingServiceMocks(
@@ -1018,7 +1018,7 @@ internal class OpprettRevurderingServiceTest {
             },
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn oppgaveIdRevurdering.right()
-            }
+            },
         ).let {
             it.revurderingService.opprettRevurdering(
                 opprettRevurderingRequest = OpprettRevurderingRequest(

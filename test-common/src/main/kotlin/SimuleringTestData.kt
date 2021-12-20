@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.test
 
 import no.nav.su.se.bakover.client.stubs.oppdrag.SimuleringStub
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
@@ -73,7 +74,7 @@ fun simuleringNy(
         uføregrunnlag = listOf(
             Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
-                opprettet = fixedTidspunkt,
+                opprettet = Tidspunkt.now(clock),
                 periode = beregning.periode,
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 0,
@@ -82,7 +83,7 @@ fun simuleringNy(
     ).generate().let {
         SimuleringStub(
             clock = nåtidForSimuleringStub, // Overstyr klokke slik at vi kan simulere feilutbetalinger tilbake i tid,
-            utbetalingRepo = UtbetalingRepoMock(eksisterendeUtbetalinger)
+            utbetalingRepo = UtbetalingRepoMock(eksisterendeUtbetalinger),
         ).simulerUtbetaling(it)
     }.orNull()!!
 }
@@ -105,7 +106,7 @@ fun simuleringStans(
     ).let {
         SimuleringStub(
             clock = clock,
-            utbetalingRepo = UtbetalingRepoMock(eksisterendeUtbetalinger)
+            utbetalingRepo = UtbetalingRepoMock(eksisterendeUtbetalinger),
         ).simulerUtbetaling(it)
     }.orNull()!!
 }
@@ -127,7 +128,7 @@ fun simuleringGjenopptak(
     ).generer().let {
         SimuleringStub(
             clock = clock,
-            utbetalingRepo = UtbetalingRepoMock(eksisterendeUtbetalinger)
+            utbetalingRepo = UtbetalingRepoMock(eksisterendeUtbetalinger),
         ).simulerUtbetaling(it.getOrFail("Skal kunne lage utbetaling for gjenopptak"))
     }.orNull()!!
 }
@@ -151,7 +152,7 @@ fun simuleringOpphørt(
     ).generate().let {
         SimuleringStub(
             clock = nåtidForSimuleringStub, // Overstyr klokke slik at vi kan simulere feilutbetalinger tilbake i tid,
-            utbetalingRepo = UtbetalingRepoMock(eksisterendeUtbetalinger)
+            utbetalingRepo = UtbetalingRepoMock(eksisterendeUtbetalinger),
         ).simulerUtbetaling(it)
     }.orNull()!!
 }

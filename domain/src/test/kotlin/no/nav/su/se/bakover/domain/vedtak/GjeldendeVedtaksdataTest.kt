@@ -29,8 +29,8 @@ internal class GjeldendeVedtaksdataTest {
             ),
         )
         val (_, revurderingsVedtak) = vedtakRevurdering(
-            sakOgVedtakSomKanRevurderes = sak to førstegangsvedtak,
             revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
+            sakOgVedtakSomKanRevurderes = sak to førstegangsvedtak,
         )
         val data = GjeldendeVedtaksdata(
             periode = Periode.create(1.januar(2021), 31.desember(2021)),
@@ -130,7 +130,7 @@ internal class GjeldendeVedtaksdataTest {
             vedtakListe = NonEmptyList.fromListUnsafe(sak.vedtakListe.filterIsInstance<VedtakSomKanRevurderes>()),
             clock = fixedClock,
         ).let {
-            it.inneholderUtbetalingerSomSkalAvkortes() shouldBe true
+            it.inneholderOpphørsvedtakMedAvkortingUtenlandsopphold() shouldBe true
         }
     }
 }

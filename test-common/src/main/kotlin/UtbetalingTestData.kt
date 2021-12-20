@@ -78,7 +78,7 @@ fun nyUtbetalingSimulert(
         nyUtbetalingForSimulering(
             sakOgBehandling = sakOgBehandling,
             beregning = beregning,
-            clock = fixedClock,
+            clock = clock,
         ).toSimulertUtbetaling(
             simuleringNy(
                 beregning = beregning,
@@ -135,7 +135,7 @@ fun opphørUtbetalingSimulert(
         opphørUtbetalingForSimulering(
             sakOgBehandling = sakOgBehandling,
             opphørsdato = opphørsdato,
-            clock = fixedClock,
+            clock = clock,
         ).toSimulertUtbetaling(
             simuleringOpphørt(
                 opphørsdato = opphørsdato,

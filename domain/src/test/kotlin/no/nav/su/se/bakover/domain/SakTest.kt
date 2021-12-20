@@ -5,6 +5,7 @@ import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.april
+import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
@@ -13,7 +14,9 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.november
+import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
@@ -322,7 +325,7 @@ internal class SakTest {
         }
 
         @Test
-        fun `stønadsperioder skal ikke kunne overlappe med perioder skom skal avkortes`() {
+        fun `stønadsperioder skal ikke kunne overlappe med perioder som skal avkortes`() {
             val tikkendeKlokke = TikkendeKlokke()
 
             val (sakMedSøknadVedtak, søknadsbehandlingVedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
@@ -349,18 +352,44 @@ internal class SakTest {
 
             sakMedRevurderingOgSøknadVedtak.copy(
                 søknadsbehandlinger = sakMedRevurderingOgSøknadVedtak.søknadsbehandlinger + nySøknadsbehandling,
-            ).let {
-                it.oppdaterStønadsperiodeForSøknadsbehandling(
+            ).let { sak ->
+                sak.oppdaterStønadsperiodeForSøknadsbehandling(
                     søknadsbehandlingId = nySøknadsbehandling.id,
                     stønadsperiode = nyStønadsperiode,
-                    clock = fixedClock,
+                    clock = tikkendeKlokke,
                 ).getOrFail() shouldBe nySøknadsbehandling
 
-                it.oppdaterStønadsperiodeForSøknadsbehandling(
-                    søknadsbehandlingId = nySøknadsbehandling.id,
-                    stønadsperiode = Stønadsperiode.create(periode = revurderingsperiode, begrunnelse = "crash"),
-                    clock = fixedClock,
-                ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold.left()
+                listOf(
+                    1.mai(2021),
+                    1.juni(2021),
+                ).map {
+                    Stønadsperiode.create(Periode.create(fraOgMed = it, tilOgMed = 31.desember(2021)))
+                }.forEach { stønadsperiode ->
+                    sak.oppdaterStønadsperiodeForSøknadsbehandling(
+                        søknadsbehandlingId = nySøknadsbehandling.id,
+                        stønadsperiode = stønadsperiode,
+                        clock = tikkendeKlokke,
+                    ) shouldBe Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold.left()
+                }
+
+                listOf(
+                    1.juli(2021),
+                    1.august(2021),
+                    1.september(2021),
+                    1.oktober(2021),
+                    1.november(2021),
+                    1.desember(2021),
+                ).map {
+                    Stønadsperiode.create(Periode.create(fraOgMed = it, tilOgMed = 31.desember(2021)))
+                }.forEach { stønadsperiode ->
+                    sak.oppdaterStønadsperiodeForSøknadsbehandling(
+                        søknadsbehandlingId = nySøknadsbehandling.id,
+                        stønadsperiode = stønadsperiode,
+                        clock = tikkendeKlokke,
+                    ).getOrFail() shouldBe nySøknadsbehandling.copy(
+                        stønadsperiode = stønadsperiode,
+                    )
+                }
             }
         }
     }
