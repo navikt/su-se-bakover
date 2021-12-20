@@ -39,11 +39,8 @@ internal class KabalHttpClientTest : WiremockBase {
             "fagsystem":"SUPSTONAD"
           },
           "hjemler":[
-            {
-              "kapittel":9,
-              "lov":"FOLKETRYGDLOVEN",
-              "paragraf":1
-            }
+            "SUP_ST_L_3",
+            "SUP_ST_L_4"
           ],
           "innsendtTilNav":"2021-12-01",
           "mottattFoersteinstans":"2021-01-01",
@@ -71,7 +68,7 @@ internal class KabalHttpClientTest : WiremockBase {
           "oversendtKaDato":null,
           "innsynUrl":null,
           "type":"KLAGE",
-          "ytelse":"OMS_OMP"
+          "ytelse":"SUP_UFF"
         }
     """.trimIndent()
 

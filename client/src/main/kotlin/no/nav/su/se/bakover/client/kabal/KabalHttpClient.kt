@@ -23,7 +23,7 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
 
-const val oversendelsePath = "/api/oversendelse/v1/klage"
+const val oversendelsePath = "/api/oversendelse/v2/klage"
 
 class KabalHttpClient(
     private val kabalConfig: ApplicationConfig.ClientsConfig.KabalConfig,
