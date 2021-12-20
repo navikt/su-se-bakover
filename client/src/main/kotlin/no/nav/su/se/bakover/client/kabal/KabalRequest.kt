@@ -1,6 +1,9 @@
 package no.nav.su.se.bakover.client.kabal
 
+import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.Hjemler
+import no.nav.su.se.bakover.domain.klage.Hjemmel
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -8,6 +11,7 @@ import java.time.LocalDateTime
  * Docs:
  *  https://confluence.adeo.no/pages/viewpage.action?pageId=441059973
  *  https://confluence.adeo.no/display/FIP/Kabaldata
+ *  https://kabal-api.dev.intern.nav.no/swagger-ui/?urls.primaryName=external#/kabal-api-external/sendInnKlageV2UsingPOST
  *
  *
  * @param avsenderSaksbehandlerIdent Ident til saksbehandler
@@ -28,9 +32,9 @@ import java.time.LocalDateTime
 internal data class KabalRequest(
     val avsenderEnhet: String = "4815",
     val avsenderSaksbehandlerIdent: String,
-    val dvhReferanse: String?,
-    val fagsak: Fagsak?,
-    val hjemler: List<Hjemler>?,
+    val dvhReferanse: String,
+    val fagsak: Fagsak,
+    val hjemler: List<Hjemmel>,
     val innsendtTilNav: LocalDate,
     val mottattFoersteinstans: LocalDate,
     val kilde: String = "SUPSTONAD",
@@ -43,10 +47,7 @@ internal data class KabalRequest(
     val oversendtKaDato: LocalDateTime? = null,
     val innsynUrl: String? = null,
     val type: String = "KLAGE",
-    /*
-    val ytelse: String = "SUP_UFF"
-    */
-    val ytelse: String = "OMS_OMP"
+    val ytelse: String = "SUP_UFF",
 ) {
     data class Klager(val id: PartId)
     data class SakenGjelder(val id: PartId, val skalMottaKopi: Boolean)
@@ -62,17 +63,37 @@ internal data class KabalRequest(
         }
     }
 
-    data class Hjemler(
-        val kapittel: Int?,
-        val lov: Lov,
-        val paragraf: Int?
-    ) {
-        enum class Lov(private val verdi: String) {
-            FOLKETRYGDLOVEN("FOLKETRYGDLOVEN"),
-            FORVALTNINGSLOVEN("FORVALTNINGSLOVEN"),
-            SUPPLERENDE_STONAD("LOV_OM_SUPPLERENDE_STØNAD");
+    enum class Hjemmel(@JsonValue private val verdi: String) {
+        LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_3("SUP_ST_L_3"),
+        LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_4("SUP_ST_L_4"),
+        LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_5("SUP_ST_L_5"),
+        LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_6("SUP_ST_L_6"),
+        LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_8("SUP_ST_L_8"),
+        LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_9("SUP_ST_L_9"),
+        LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_10("SUP_ST_L_10"),
+        LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_12("SUP_ST_L_12"),
+        LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_13("SUP_ST_L_13"),
+        LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_18("SUP_ST_L_18");
 
-            override fun toString(): String = this.verdi
+        override fun toString(): String = this.verdi
+
+        companion object {
+            fun Hjemler.toKabalHjemler(): List<Hjemmel> {
+                return this.map {
+                    when (it) {
+                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_3 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_3
+                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_4 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_4
+                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_5 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_5
+                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_6 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_6
+                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_8 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_8
+                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_9 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_9
+                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_10 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_10
+                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_12 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_12
+                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_13 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_13
+                        no.nav.su.se.bakover.domain.klage.Hjemmel.SU_PARAGRAF_18 -> LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_18
+                    }
+                }
+            }
         }
     }
 

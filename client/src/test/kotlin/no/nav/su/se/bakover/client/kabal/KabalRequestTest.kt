@@ -21,11 +21,8 @@ internal class KabalRequestTest {
             "fagsakId": "2021"
         },
         "hjemler": [
-          {
-            "kapittel": 9,
-            "lov": "FOLKETRYGDLOVEN",
-            "paragraf": 1
-          }
+            "SUP_ST_L_3",
+            "SUP_ST_L_4"
         ],
         "innsendtTilNav": "2021-01-01",
         "mottattFoersteinstans": "2021-01-01",

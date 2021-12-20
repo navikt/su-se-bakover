@@ -16,8 +16,8 @@ subprojects {
         maven("https://packages.confluent.io/maven/")
     }
     val junitJupiterVersion = "5.8.2"
-    val kotestVersion = "5.0.2"
-    val jacksonVersion = "2.13.0"
+    val kotestVersion = "5.0.3"
+    val jacksonVersion = "2.13.1"
     val kotlinVersion: String by this
     dependencies {
         api(kotlin("stdlib-jdk8"))
@@ -31,7 +31,7 @@ subprojects {
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
         implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
-        implementation("ch.qos.logback:logback-classic:1.2.8")
+        implementation("ch.qos.logback:logback-classic:1.2.9")
         implementation("net.logstash.logback:logstash-logback-encoder:7.0.1")
         implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
         implementation("org.apache.kafka:kafka-clients:3.0.0")
@@ -48,7 +48,7 @@ subprojects {
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
         testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
         testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
-        testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.2.0")
+        testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.2.1")
         testImplementation("io.kotest:kotest-extensions:$kotestVersion")
         testImplementation("org.skyscreamer:jsonassert:1.5.0")
         testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
