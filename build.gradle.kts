@@ -48,7 +48,7 @@ subprojects {
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
         testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
         testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
-        testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.2.0")
+        testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.2.1")
         testImplementation("io.kotest:kotest-extensions:$kotestVersion")
         testImplementation("org.skyscreamer:jsonassert:1.5.0")
         testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
