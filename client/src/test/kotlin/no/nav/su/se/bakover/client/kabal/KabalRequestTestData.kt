@@ -16,11 +16,8 @@ internal object KabalRequestTestData {
         dvhReferanse = "dvhReferanse",
         fagsak = KabalRequest.Fagsak(fagsakId = "2021"),
         hjemler = listOf(
-            KabalRequest.Hjemler(
-                kapittel = 9,
-                lov = KabalRequest.Hjemler.Lov.FOLKETRYGDLOVEN,
-                paragraf = 1,
-            ),
+            KabalRequest.Hjemmel.LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_3,
+            KabalRequest.Hjemmel.LOV_OM_SUPPLERENDE_STØNAD_PARAGRAF_4
         ),
         innsendtTilNav = LocalDate.now(fixedClock),
         mottattFoersteinstans = Tidspunkt.now(fixedClock).toLocalDate(ZoneOffset.UTC),
