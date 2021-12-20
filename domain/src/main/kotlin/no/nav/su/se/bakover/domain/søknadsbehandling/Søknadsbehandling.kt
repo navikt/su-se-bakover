@@ -1147,8 +1147,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
         fun tilAttestering(
             saksbehandler: NavIdentBruker.Saksbehandler,
             fritekstTilBrev: String,
-        ): TilAttestering.Innvilget =
-            TilAttestering.Innvilget(
+        ): TilAttestering.Innvilget {
+            if (simulering.harFeilutbetalinger()) {
+                /**
+                 * Kun en nødbrems for tilfeller som i utgangspunktet skal være håndtert og forhindret av andre mekanismer.
+                 */
+                throw IllegalStateException("Simulering inneholder feilutbetalinger")
+            }
+            return TilAttestering.Innvilget(
                 id,
                 opprettet,
                 sakId,
@@ -1167,6 +1173,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 attesteringer,
                 avkorting,
             )
+        }
 
         override fun leggTilUtenlandsopphold(
             utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,
@@ -1297,10 +1304,10 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             avkorting
                         }
                         is Avkortingsvarsel.Utenlandsopphold.Avkortet -> {
-                            throw IllegalStateException("")
+                            throw IllegalStateException("Avkorting:${avkorting.id} for søknadsbehandling:$id er i ugyldig tilstand:${avkorting::class} for å kunne iverksettes")
                         }
                         is Avkortingsvarsel.Utenlandsopphold.Opprettet -> {
-                            throw IllegalStateException("")
+                            throw IllegalStateException("Avkorting:${avkorting.id} for søknadsbehandling:$id er i ugyldig tilstand:${avkorting::class} for å kunne iverksettes")
                         }
                         is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
                             avkorting.avkortet(id)
@@ -1609,8 +1616,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     avkorting,
                 )
 
-            fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Innvilget =
-                TilAttestering.Innvilget(
+            fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Innvilget {
+                if (simulering.harFeilutbetalinger()) {
+                    /**
+                     * Kun en nødbrems for tilfeller som i utgangspunktet skal være håndtert og forhindret av andre mekanismer.
+                     */
+                    throw IllegalStateException("Simulering inneholder feilutbetalinger")
+                }
+                return TilAttestering.Innvilget(
                     id,
                     opprettet,
                     sakId,
@@ -1629,6 +1642,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     attesteringer,
                     avkorting,
                 )
+            }
 
             override fun leggTilUtenlandsopphold(
                 utenlandsopphold: UtenlandsoppholdVilkår.Vurdert,

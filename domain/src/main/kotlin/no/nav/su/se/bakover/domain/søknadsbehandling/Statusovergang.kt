@@ -191,6 +191,14 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
                     }
                 }
 
+                if (søknadsbehandling.simulering.harFeilutbetalinger()) {
+                    /**
+                     * Kun en nødbrems for tilfeller som i utgangspunktet skal være håndtert og forhindret av andre mekanismer.
+                     * //TODO erstatt statusovergang med funksjon
+                     */
+                    throw IllegalStateException("Simulering inneholder feilutbetalinger")
+                }
+
                 innvilget(søknadsbehandling)
                     .mapLeft { it }
                     .map { søknadsbehandling.tilIverksatt(attestering) }

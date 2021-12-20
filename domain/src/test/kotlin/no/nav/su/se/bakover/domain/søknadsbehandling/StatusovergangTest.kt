@@ -23,7 +23,11 @@ import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.innvilgetUførevilkårForventetInntekt12000
 import no.nav.su.se.bakover.test.saksbehandler
+import no.nav.su.se.bakover.test.simuleringFeilutbetaling
 import no.nav.su.se.bakover.test.stønadsperiode2021
+import no.nav.su.se.bakover.test.søknadsbehandlingSimulert
+import no.nav.su.se.bakover.test.søknadsbehandlingTilAttesteringInnvilget
+import no.nav.su.se.bakover.test.søknadsbehandlingUnderkjentInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertAvslag
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertInnvilget
 import no.nav.su.se.bakover.test.søknadsbehandlingVilkårsvurdertUavklart
@@ -618,6 +622,37 @@ internal class StatusovergangTest {
         }
 
         @Test
+        fun `kaster excepiton hvis innvilget simulering inneholder feilutbetalinger`() {
+            val simulertMedFeilutbetaling = søknadsbehandlingSimulert().let { (_, søknadsbehandling) ->
+                søknadsbehandling.copy(
+                    simulering = simuleringFeilutbetaling(
+                        søknadsbehandling.beregning.getMånedsberegninger().first().periode
+                    )
+                )
+            }
+            assertThrows<IllegalStateException> {
+                statusovergang(
+                    simulertMedFeilutbetaling,
+                    Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
+                )
+            }
+
+            val underkjentInnvilgetMedFeilutbetaling = søknadsbehandlingUnderkjentInnvilget().let { (_, søknadsbehandling) ->
+                søknadsbehandling.copy(
+                    simulering = simuleringFeilutbetaling(
+                        søknadsbehandling.beregning.getMånedsberegninger().first().periode
+                    )
+                )
+            }
+            assertThrows<IllegalStateException> {
+                statusovergang(
+                    underkjentInnvilgetMedFeilutbetaling,
+                    Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
+                )
+            }
+        }
+
+        @Test
         fun `ulovlige overganger`() {
             listOf(
                 opprettet,
@@ -799,6 +834,25 @@ internal class StatusovergangTest {
                     attestering = attestering,
                 ) { UUID30.randomUUID().right() },
             ) shouldBe KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        }
+
+        @Test
+        fun `kaster exception dersom simulering inneholder feilutbetaling`() {
+            val medFeilutbetaling = søknadsbehandlingTilAttesteringInnvilget().let { (_, tilAttestering) ->
+                tilAttestering.copy(
+                    simulering = simuleringFeilutbetaling(
+                        tilAttestering.beregning.getMånedsberegninger().first().periode
+                    )
+                )
+            }
+            assertThrows<IllegalStateException> {
+                forsøkStatusovergang(
+                    medFeilutbetaling,
+                    Statusovergang.TilIverksatt(
+                        attestering = attestering,
+                    ) { UUID30.randomUUID().right() },
+                )
+            }
         }
 
         @Test
