@@ -471,7 +471,7 @@ internal class SøknadsbehandlingServiceImpl(
         val sak = sakService.hentSak(request.sakId)
             .getOrHandle { return SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeSak.left() }
 
-        return sak.oppdaterStønadsperiode(
+        return sak.oppdaterStønadsperiodeForSøknadsbehandling(
             søknadsbehandlingId = request.behandlingId,
             stønadsperiode = request.stønadsperiode,
             clock = clock,

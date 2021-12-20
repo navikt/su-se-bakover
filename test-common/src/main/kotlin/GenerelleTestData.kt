@@ -22,7 +22,11 @@ import java.time.temporal.TemporalUnit
 /** Fixed UTC Clock at 2021-01-01T01:02:03.456789000Z */
 val fixedClock: Clock =
     Clock.fixed(1.januar(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
-val nåtidForSimuleringStub = fixedClock.plus(200, ChronoUnit.DAYS)
+
+/**
+ * Tilsvarer 2021-07-01T01:02:03.456789000Z
+ */
+val nåtidForSimuleringStub = fixedClock.plus(181, ChronoUnit.DAYS)
 
 /** Fixed UTC Clock */
 fun Clock.plus(amountToAdd: Long, unit: TemporalUnit): Clock =

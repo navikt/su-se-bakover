@@ -194,6 +194,18 @@ internal fun Route.søknadsbehandlingRoutes(
                                                                 "stønadsperioden_overlapper_med_eksisterende_søknadsbehandling",
                                                             )
                                                         }
+                                                        is Sak.KunneIkkeOppdatereStønadsperiode.KunneIkkeHenteGjeldendeVedtaksdata -> {
+                                                            InternalServerError.errorJson(
+                                                                "Kunne ikke hente gjeldende vedtaksdata",
+                                                                "kunne_ikke_hente_gjeldende_vedtaksdata",
+                                                            )
+                                                        }
+                                                        Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold -> {
+                                                            BadRequest.errorJson(
+                                                                "Stønadsperioden inneholder utbetalinger som skal avkortes pga utenlandsopphold. ∫Dette støttes ikke.",
+                                                                "stønadsperiode_inneholder_avkorting_utenlandsopphold",
+                                                            )
+                                                        }
                                                     }
                                                 }
                                             },

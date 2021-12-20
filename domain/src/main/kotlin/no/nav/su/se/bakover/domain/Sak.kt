@@ -81,18 +81,57 @@ data class Sak(
         )
     }
 
-    fun hentGjeldendeVilkårOgGrunnlag(periode: Periode, clock: Clock): GrunnlagsdataOgVilkårsvurderinger {
-        return GjeldendeVedtaksdata(
+    fun hentGjeldendeVilkårOgGrunnlag(
+        periode: Periode,
+        clock: Clock,
+    ): GrunnlagsdataOgVilkårsvurderinger {
+        return hentGjeldendeVedtaksdata(
             periode = periode,
-            vedtakListe = NonEmptyList.fromListUnsafe(
-                vedtakListe.filterIsInstance<VedtakSomKanRevurderes>().ifEmpty {
-                    return GrunnlagsdataOgVilkårsvurderinger.IkkeVurdert
-                },
-            ),
             clock = clock,
-        ).let {
-            GrunnlagsdataOgVilkårsvurderinger(it.grunnlagsdata, it.vilkårsvurderinger)
-        }
+        ).fold(
+            { GrunnlagsdataOgVilkårsvurderinger.IkkeVurdert },
+            {
+                GrunnlagsdataOgVilkårsvurderinger(
+                    grunnlagsdata = it.grunnlagsdata,
+                    vilkårsvurderinger = it.vilkårsvurderinger,
+                )
+            },
+        )
+    }
+
+    fun kopierGjeldendeVedtaksdata(
+        fraOgMed: LocalDate,
+        clock: Clock,
+    ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
+        return vedtakListe
+            .filterIsInstance<VedtakSomKanRevurderes>()
+            .ifEmpty { return KunneIkkeHenteGjeldendeVedtaksdata.FantIngenVedtak.left() }
+            .let { vedtakSomKanRevurderes ->
+                hentGjeldendeVedtaksdata(
+                    periode = Periode.create(fraOgMed, vedtakSomKanRevurderes.maxOf { it.periode.tilOgMed }),
+                    clock = clock,
+                )
+            }
+    }
+
+    private fun hentGjeldendeVedtaksdata(
+        periode: Periode,
+        clock: Clock,
+    ): Either<KunneIkkeHenteGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
+        return vedtakListe
+            .filterIsInstance<VedtakSomKanRevurderes>()
+            .ifEmpty { return KunneIkkeHenteGjeldendeVedtaksdata.FantIngenVedtak.left() }
+            .let { vedtakSomKanRevurderes ->
+                GjeldendeVedtaksdata(
+                    periode = periode,
+                    vedtakListe = NonEmptyList.fromListUnsafe(vedtakSomKanRevurderes),
+                    clock = clock,
+                ).right()
+            }
+    }
+
+    sealed class KunneIkkeHenteGjeldendeVedtaksdata {
+        object FantIngenVedtak : KunneIkkeHenteGjeldendeVedtaksdata()
     }
 
     /**
@@ -156,7 +195,7 @@ data class Sak(
 
     fun hentKlage(klageId: UUID): Klage? = klager.find { it.id == klageId }
 
-    fun oppdaterStønadsperiode(
+    fun oppdaterStønadsperiodeForSøknadsbehandling(
         søknadsbehandlingId: UUID,
         stønadsperiode: Stønadsperiode,
         clock: Clock,
@@ -173,6 +212,24 @@ data class Sak(
                 return KunneIkkeOppdatereStønadsperiode.StønadsperiodeForSenerePeriodeEksisterer.left()
             }
         }
+
+        hentGjeldendeVedtaksdata(
+            periode = stønadsperiode.periode,
+            clock = clock,
+        ).fold(
+            {
+                when (it) {
+                    KunneIkkeHenteGjeldendeVedtaksdata.FantIngenVedtak -> {
+                        // Ignoreres da dette er et gyldig og vanlig case for søknadsbehandling
+                    }
+                }
+            },
+            {
+                if (it.inneholderUtbetalingerSomSkalAvkortes()) {
+                    return KunneIkkeOppdatereStønadsperiode.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold.left()
+                }
+            },
+        )
 
         return søknadsbehandling.oppdaterStønadsperiode(
             oppdatertStønadsperiode = stønadsperiode,
@@ -195,6 +252,11 @@ data class Sak(
         object StønadsperiodeForSenerePeriodeEksisterer : KunneIkkeOppdatereStønadsperiode()
         data class KunneIkkeOppdatereGrunnlagsdata(val feil: Søknadsbehandling.KunneIkkeOppdatereStønadsperiode) :
             KunneIkkeOppdatereStønadsperiode()
+
+        data class KunneIkkeHenteGjeldendeVedtaksdata(val feil: Sak.KunneIkkeHenteGjeldendeVedtaksdata) :
+            KunneIkkeOppdatereStønadsperiode()
+
+        object StønadsperiodeInneholderAvkortingPgaUtenlandsopphold : KunneIkkeOppdatereStønadsperiode()
     }
 }
 
