@@ -93,7 +93,7 @@ data class BeregningMedFradragBeregnetMånedsvis(
 
         // hvis sum uten avkorting gjør at vi havner under 2% er det sosialstønad som har skylda
         if (sumYtelseUtenAvkorting(periode = periode) < Sats.toProsentAvHøy(periode) &&
-            sumYtelseUtenSosialstønad(periode) != getSumYtelse()  // se om det finnes sosialstønad
+            sumYtelseUtenSosialstønad(periode) != getSumYtelse() // se om det finnes sosialstønad
         ) return true
 
         // hvis vi er under 2% og har kommet hit, er det avkorting sin skyld og ikke sosialstønad
@@ -106,7 +106,7 @@ data class BeregningMedFradragBeregnetMånedsvis(
 
         // hvis sum uten avkorting gjør at vi havner under 2% er det sosialstønad som har skylda
         if (sumYtelseUtenAvkorting(periode = periode) < Sats.toProsentAvHøy(periode) &&
-            sumYtelseUtenSosialstønad(periode) != getSumYtelse()  // se om det finnes sosialstønad
+            sumYtelseUtenSosialstønad(periode) != getSumYtelse() // se om det finnes sosialstønad
         ) return false
 
         // hvis vi er under 2% og har kommet hit, er det avkorting sin skyld hvis det finnes noen avkorting

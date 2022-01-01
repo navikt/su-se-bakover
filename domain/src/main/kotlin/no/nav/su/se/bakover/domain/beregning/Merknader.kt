@@ -21,7 +21,7 @@ sealed class Merknader {
         }
 
         private fun gyldigKombinasjon(): Boolean {
-            return !harBeløpErNull() && !harBeløpOverNullMenUnderToProsent() && !harSosialstønadFørerTilBeløpUnderToProsent()  // TODO burde harAvkortingFørerTilBeløpUnderToProsent() være med her?
+            return !harBeløpErNull() && !harBeløpOverNullMenUnderToProsent() && !harSosialstønadFørerTilBeløpUnderToProsent() // TODO burde harAvkortingFørerTilBeløpUnderToProsent() være med her?
         }
 
         private fun harBeløpErNull() =
