@@ -8,18 +8,22 @@ internal fun List<Merknad.Beregning>.toJson() = map { it.toJson() }
 
 internal fun Merknad.Beregning.toJson(): MerknadJson.BeregningJson {
     return when (this) {
-        is Merknad.Beregning.BeløpErNull -> toJson()
-        is Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats -> toJson()
-        is Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats -> toJson()
+        is Merknad.Beregning.Avslag.BeløpErNull -> toJson()
+        is Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats -> toJson()
+        is Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats -> toJson()
+        is Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats -> toJson()
     }
 }
 
-internal fun Merknad.Beregning.BeløpErNull.toJson() = MerknadJson.BeregningJson.BeløpErNullJson
-internal fun Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats.toJson() =
+internal fun Merknad.Beregning.Avslag.BeløpErNull.toJson() = MerknadJson.BeregningJson.BeløpErNullJson
+internal fun Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats.toJson() =
     MerknadJson.BeregningJson.BeløpMellomNullOgToProsentAvHøySatsJson
 
-internal fun Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats.toJson() =
+internal fun Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats.toJson() =
     MerknadJson.BeregningJson.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySatsJson
+
+internal fun Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats.toJson() =
+    MerknadJson.BeregningJson.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySatsJson
 
 internal sealed class MerknadJson {
 
@@ -29,10 +33,6 @@ internal sealed class MerknadJson {
         property = "type",
     )
     @JsonSubTypes(
-        JsonSubTypes.Type(
-            value = BeregningJson.EndringGrunnbeløpJson::class,
-            name = "EndringGrunnbeløp",
-        ),
         JsonSubTypes.Type(
             value = BeregningJson.BeløpErNullJson::class,
             name = "BeløpErNull",
@@ -45,21 +45,14 @@ internal sealed class MerknadJson {
             value = BeregningJson.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySatsJson::class,
             name = "SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats",
         ),
+        JsonSubTypes.Type(
+            value = BeregningJson.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySatsJson::class,
+            name = "AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats",
+        ),
     )
     sealed class BeregningJson {
-
-        data class EndringGrunnbeløpJson(
-            val gammeltGrunnbeløp: DetaljJson,
-            val nyttGrunnbeløp: DetaljJson,
-        ) : MerknadJson.BeregningJson() {
-
-            data class DetaljJson(
-                val dato: String,
-                val grunnbeløp: Int,
-            )
-        }
-
         object SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySatsJson : MerknadJson.BeregningJson()
+        object AvkortingFørerTilBeløpLavereEnnToProsentAvHøySatsJson : MerknadJson.BeregningJson()
         object BeløpMellomNullOgToProsentAvHøySatsJson : MerknadJson.BeregningJson()
         object BeløpErNullJson : MerknadJson.BeregningJson()
     }

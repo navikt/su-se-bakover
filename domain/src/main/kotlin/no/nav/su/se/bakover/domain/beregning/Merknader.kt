@@ -21,36 +21,46 @@ sealed class Merknader {
         }
 
         private fun gyldigKombinasjon(): Boolean {
-            return !harBeløpErNull() && !harBeløpOverNullMenUnderToProsent() && !harSosialstønadFørerTilBeløpUnderToProsent()
+            return !harBeløpErNull() && !harBeløpOverNullMenUnderToProsent() && !harSosialstønadFørerTilBeløpUnderToProsent()  // TODO burde harAvkortingFørerTilBeløpUnderToProsent() være med her?
         }
 
         private fun harBeløpErNull() =
-            merknader.any { it is Merknad.Beregning.BeløpErNull }
+            merknader.any { it is Merknad.Beregning.Avslag.BeløpErNull }
 
         private fun harBeløpOverNullMenUnderToProsent() =
-            merknader.any { it is Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats }
+            merknader.any { it is Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats }
 
         private fun harSosialstønadFørerTilBeløpUnderToProsent() =
-            merknader.any { it is Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats }
+            merknader.any { it is Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats }
+
+        private fun harAvkortingFørerTilBeløpUnderToProsent() =
+            merknader.any { it is Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats }
     }
 }
 
 sealed class Merknad {
 
     sealed class Beregning {
+        sealed class Avslag : Beregning() {
+            /**
+             * Beregnet beløp for en måned (ex [Fradragstype.Sosialstønad]) er mellom 0 og 2% av [Sats.HØY]
+             */
+            object BeløpMellomNullOgToProsentAvHøySats : Avslag()
+
+            /**
+             * Beregnet beløp for en måned (ex [Fradragstype.Sosialstønad]) er 0.
+             */
+            object BeløpErNull : Avslag()
+        }
+
+        /**
+         * Beregnet beløp for en måned er lavere enn 2% av [Sats.HØY] som følge av avkorting.
+         */
+        object AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats : Beregning()
+
         /**
          * Beregnet beløp for en måned er lavere enn 2% av [Sats.HØY] som følge av sosialstønad.
          */
-        object SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats : Merknad.Beregning()
-
-        /**
-         * Beregnet beløp for en måned (ex [Fradragstype.Sosialstønad]) er mellom 0 og 2% av [Sats.HØY]
-         */
-        object BeløpMellomNullOgToProsentAvHøySats : Merknad.Beregning()
-
-        /**
-         * Beregnet beløp for en måned (ex [Fradragstype.Sosialstønad]) er 0.
-         */
-        object BeløpErNull : Merknad.Beregning()
+        object SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats : Beregning()
     }
 }

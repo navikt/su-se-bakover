@@ -8,7 +8,8 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.beregning.fradrag.utenSosialstønadOgAvkorting
+import no.nav.su.se.bakover.domain.beregning.fradrag.utenAvkorting
+import no.nav.su.se.bakover.domain.beregning.fradrag.utenSosialstønad
 import java.util.UUID
 
 data class BeregningMedFradragBeregnetMånedsvis(
@@ -47,8 +48,12 @@ data class BeregningMedFradragBeregnetMånedsvis(
                 fradrag = fradrag,
             ).let { månedsberegning ->
                 when {
-                    månedsberegning.sosialstønadOgAvkortingFørerTilBeløpUnderToProsentAvHøySats(månedsberegning.periode) -> {
-                        månedsberegning.leggTilMerknad(Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats)
+                    månedsberegning.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(månedsberegning.periode) -> {
+                        månedsberegning.leggTilMerknad(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats)
+                        månedsberegning
+                    }
+                    månedsberegning.avkortingFørerTilBeløpUnderToProsentAvHøySats(månedsberegning.periode) -> {
+                        månedsberegning.leggTilMerknad(Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats)
                         månedsberegning
                     }
                     månedsberegning.beløpStørreEnn0MenMindreEnnToProsentAvHøySats() -> {
@@ -56,12 +61,12 @@ data class BeregningMedFradragBeregnetMånedsvis(
                             periode = periode,
                             fradrag = fradrag + månedsberegning.lagFradragForBeløpUnderMinstegrense(),
                         ).let {
-                            it.leggTilMerknad(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats)
+                            it.leggTilMerknad(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats)
                             it
                         }
                     }
                     månedsberegning.getSumYtelse() == 0 -> {
-                        månedsberegning.leggTilMerknad(Merknad.Beregning.BeløpErNull)
+                        månedsberegning.leggTilMerknad(Merknad.Beregning.Avslag.BeløpErNull)
                         månedsberegning
                     }
                     else -> månedsberegning
@@ -82,9 +87,31 @@ data class BeregningMedFradragBeregnetMånedsvis(
         )
     }
 
-    private fun Månedsberegning.sosialstønadOgAvkortingFørerTilBeløpUnderToProsentAvHøySats(periode: Periode): Boolean {
-        return getSumYtelse() < Sats.toProsentAvHøy(periode) &&
-            sumYtelseUtenSosialstønadOgAvkorting(periode) >= Sats.toProsentAvHøy(periode)
+    private fun Månedsberegning.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(periode: Periode): Boolean {
+        // hvis sum er mer enn 2%, er alt good
+        if (getSumYtelse() >= Sats.toProsentAvHøy(periode)) return false
+
+        // hvis sum uten avkorting gjør at vi havner under 2% er det sosialstønad som har skylda
+        if (sumYtelseUtenAvkorting(periode = periode) < Sats.toProsentAvHøy(periode) &&
+            sumYtelseUtenSosialstønad(periode) != getSumYtelse()  // se om det finnes sosialstønad
+        ) return true
+
+        // hvis vi er under 2% og har kommet hit, er det avkorting sin skyld og ikke sosialstønad
+        return false
+    }
+
+    private fun Månedsberegning.avkortingFørerTilBeløpUnderToProsentAvHøySats(periode: Periode): Boolean {
+        // hvis sum er mer enn 2%, er alt good
+        if (getSumYtelse() >= Sats.toProsentAvHøy(periode)) return false
+
+        // hvis sum uten avkorting gjør at vi havner under 2% er det sosialstønad som har skylda
+        if (sumYtelseUtenAvkorting(periode = periode) < Sats.toProsentAvHøy(periode) &&
+            sumYtelseUtenSosialstønad(periode) != getSumYtelse()  // se om det finnes sosialstønad
+        ) return false
+
+        // hvis vi er under 2% og har kommet hit, er det avkorting sin skyld hvis det finnes noen avkorting
+        if (sumYtelseUtenAvkorting(periode) != getSumYtelse()) return true
+        return false
     }
 
     /**
@@ -92,10 +119,17 @@ data class BeregningMedFradragBeregnetMånedsvis(
      * filtrert vekk eventuell sosialstønad for EPS. Etter at fradragene har vært gjennom [FradragStrategy.beregnFradrag]
      * vil alle EPS sine fradrag være bakt sammen til et element av typen [Fradragstype.BeregnetFradragEPS]
      */
-    private fun sumYtelseUtenSosialstønadOgAvkorting(periode: Periode): Int {
+    private fun sumYtelseUtenSosialstønad(periode: Periode): Int {
         return beregnMåned(
             periode = periode,
-            fradrag = fradrag.utenSosialstønadOgAvkorting(),
+            fradrag = fradrag.utenSosialstønad(),
+        ).getSumYtelse()
+    }
+
+    private fun sumYtelseUtenAvkorting(periode: Periode): Int {
+        return beregnMåned(
+            periode = periode,
+            fradrag = fradrag.utenAvkorting(),
         ).getSumYtelse()
     }
 

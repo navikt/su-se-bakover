@@ -101,8 +101,8 @@ data class VurderOmBeregningGirOpphørVedRevurdering(
 
     fun Merknad.Beregning.tilOpphørsgrunn(): Opphørsgrunn {
         return when (this) {
-            is Merknad.Beregning.BeløpErNull -> Opphørsgrunn.FOR_HØY_INNTEKT
-            is Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats -> Opphørsgrunn.SU_UNDER_MINSTEGRENSE
+            is Merknad.Beregning.Avslag.BeløpErNull -> Opphørsgrunn.FOR_HØY_INNTEKT
+            is Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats -> Opphørsgrunn.SU_UNDER_MINSTEGRENSE
             else -> throw IllegalStateException("Merknad av type: ${this::class} skal ikke gi opphør.")
         }
     }

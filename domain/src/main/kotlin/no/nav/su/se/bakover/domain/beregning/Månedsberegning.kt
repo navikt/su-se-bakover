@@ -52,9 +52,8 @@ interface Månedsberegning : PeriodisertInformasjon {
 fun Månedsberegning.finnMerknadForAvslag(): Either<IngenMerknaderForAvslag, Merknad.Beregning> {
     return getMerknader().mapNotNull {
         when (it) {
-            is Merknad.Beregning.BeløpErNull -> it
-            is Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats -> it
-            is Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats -> null
+            is Merknad.Beregning.Avslag -> it
+            else -> null
         }
     }.let {
         when (it.isEmpty()) {

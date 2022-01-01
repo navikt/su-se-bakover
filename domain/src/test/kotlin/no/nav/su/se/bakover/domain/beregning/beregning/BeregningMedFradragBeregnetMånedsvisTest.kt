@@ -108,9 +108,9 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         )
 
         beregning.finnMånederMedMerknad().getOrFail() shouldContainAll listOf(
-            beregning.getMånedsberegninger()[0] to listOf(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats),
-            beregning.getMånedsberegninger()[4] to listOf(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats),
-            beregning.getMånedsberegninger()[11] to listOf(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats),
+            beregning.getMånedsberegninger()[0] to listOf(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats),
+            beregning.getMånedsberegninger()[4] to listOf(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats),
+            beregning.getMånedsberegninger()[11] to listOf(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats),
         )
     }
 
@@ -132,10 +132,10 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
 
         beregning.harAlleMånederMerknadForAvslag() shouldBe true
         beregning.finnFørsteMånedMedMerknadForAvslag()
-            .getOrFail() shouldBe (beregning.getMånedsberegninger()[0] to Merknad.Beregning.BeløpErNull)
+            .getOrFail() shouldBe (beregning.getMånedsberegninger()[0] to Merknad.Beregning.Avslag.BeløpErNull)
         beregning.finnMånederMedMerknadForAvslag().getOrFail() shouldContainAll listOf(
-            beregning.getMånedsberegninger()[0] to Merknad.Beregning.BeløpErNull,
-            beregning.getMånedsberegninger()[11] to Merknad.Beregning.BeløpErNull,
+            beregning.getMånedsberegninger()[0] to Merknad.Beregning.Avslag.BeløpErNull,
+            beregning.getMånedsberegninger()[11] to Merknad.Beregning.Avslag.BeløpErNull,
         )
     }
 
@@ -462,7 +462,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         beregning.finnMånederMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
         beregning.finnMånederMedMerknad().getOrFail()
             .map { it.second }
-            .all { it.contains(Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats) }
+            .all { it.contains(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats) }
     }
 
     @Test
@@ -491,7 +491,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         beregning.finnMånederMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
         beregning.finnMånederMedMerknad().getOrFail()
             .map { it.second }
-            .all { it.contains(Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats) }
+            .all { it.contains(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats) }
     }
 
     @Test
@@ -532,12 +532,12 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             fradragStrategy = FradragStrategy.Enslig,
         ).let {
             val sosialstønad =
-                it.getMånedsberegninger()[3] to listOf(Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats)
+                it.getMånedsberegninger()[3] to listOf(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats)
             val beløpNull = it.getMånedsberegninger()[5] to listOf(
-                Merknad.Beregning.BeløpErNull,
+                Merknad.Beregning.Avslag.BeløpErNull,
             )
             val beløpMellomNullOgToProsent = it.getMånedsberegninger()[11] to listOf(
-                Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats,
+                Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats,
             )
 
             it.finnMånederMedMerknad().getOrFail() shouldBe listOf(

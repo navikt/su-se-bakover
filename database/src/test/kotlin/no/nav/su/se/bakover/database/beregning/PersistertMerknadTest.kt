@@ -16,7 +16,7 @@ internal class PersistertMerknadTest {
             }
         """.trimIndent()
 
-        val merknad = Merknad.Beregning.BeløpErNull
+        val merknad = Merknad.Beregning.Avslag.BeløpErNull
         JSONAssert.assertEquals(expected, serialize(merknad.toSnapshot()), true)
 
         merknad shouldBe merknad.toSnapshot().toDomain()
@@ -31,7 +31,7 @@ internal class PersistertMerknadTest {
             }
         """.trimIndent()
 
-        val merknad = Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats
+        val merknad = Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats
         JSONAssert.assertEquals(expected, serialize(merknad.toSnapshot()), true)
 
         merknad shouldBe merknad.toSnapshot().toDomain()
@@ -46,7 +46,7 @@ internal class PersistertMerknadTest {
             }
         """.trimIndent()
 
-        val merknad = Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats
+        val merknad = Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats
         JSONAssert.assertEquals(expected, serialize(merknad.toSnapshot()), true)
 
         merknad shouldBe merknad.toSnapshot().toDomain()

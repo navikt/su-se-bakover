@@ -50,8 +50,8 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         )
         beregning.finnFørsteMånedMedMerknadForAvslag()
             .getOrFail("")
-            .second shouldBe Merknad.Beregning.BeløpErNull
-        beregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.BeløpErNull)
+            .second shouldBe Merknad.Beregning.Avslag.BeløpErNull
+        beregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpErNull)
     }
 
     @Test
@@ -66,9 +66,9 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         )
         beregning.finnFørsteMånedMedMerknadForAvslag()
             .getOrFail("")
-            .second shouldBe Merknad.Beregning.BeløpErNull
-        beregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.BeløpErNull)
-        beregning.finnMerknaderForPeriode(desember(2021)) shouldBe listOf(Merknad.Beregning.BeløpErNull)
+            .second shouldBe Merknad.Beregning.Avslag.BeløpErNull
+        beregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpErNull)
+        beregning.finnMerknaderForPeriode(desember(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpErNull)
     }
 
     @Test
@@ -83,10 +83,10 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         )
         beregning.finnFørsteMånedMedMerknadForAvslag()
             .getOrFail("")
-            .second shouldBe Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats
-        beregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats)
-        beregning.finnMerknaderForPeriode(august(2021)) shouldBe listOf(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats)
-        beregning.finnMerknaderForPeriode(desember(2021)) shouldBe listOf(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats)
+            .second shouldBe Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats
+        beregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats)
+        beregning.finnMerknaderForPeriode(august(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats)
+        beregning.finnMerknaderForPeriode(desember(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats)
     }
 
     @Test
@@ -100,8 +100,8 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         )
         beregning.finnFørsteMånedMedMerknadForAvslag()
             .getOrFail("")
-            .second shouldBe Merknad.Beregning.BeløpErNull
-        beregning.finnMerknaderForPeriode(mars(2021)) shouldBe listOf(Merknad.Beregning.BeløpErNull)
+            .second shouldBe Merknad.Beregning.Avslag.BeløpErNull
+        beregning.finnMerknaderForPeriode(mars(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpErNull)
     }
 
     @Test
@@ -128,8 +128,8 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         )
         beregning.finnFørsteMånedMedMerknadForAvslag()
             .getOrFail("")
-            .second shouldBe Merknad.Beregning.BeløpErNull
-        beregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.BeløpErNull)
+            .second shouldBe Merknad.Beregning.Avslag.BeløpErNull
+        beregning.finnMerknaderForPeriode(januar(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpErNull)
     }
 
     @Test
@@ -156,8 +156,8 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         )
         beregning.finnFørsteMånedMedMerknadForAvslag()
             .getOrFail("")
-            .second shouldBe Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats
-        beregning.finnMerknaderForPeriode(juni(2021)) shouldBe listOf(Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats)
+            .second shouldBe Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats
+        beregning.finnMerknaderForPeriode(juni(2021)) shouldBe listOf(Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats)
     }
 
     @Test
@@ -180,7 +180,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         val beregning = lagBeregningMedFradrag(januar, juni, desember, fradragStrategy = FradragStrategy.EpsUnder67År)
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Nei
         beregning.finnFørsteMånedMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
-        beregning.finnMerknaderForPeriode(juni(2021)) shouldBe listOf(Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats)
+        beregning.finnMerknaderForPeriode(juni(2021)) shouldBe listOf(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats)
     }
 
     @Test
@@ -193,7 +193,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         beregning.finnMånederMedMerknad()
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Nei
         beregning.finnFørsteMånedMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
-        beregning.finnMerknaderForPeriode(juni(2021)) shouldBe listOf(Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats)
+        beregning.finnMerknaderForPeriode(juni(2021)) shouldBe listOf(Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats)
     }
 
     @Test
@@ -203,12 +203,18 @@ internal class VurderAvslagGrunnetBeregningKtTest {
         val juniSosialstønad = lagFradrag(11000.0, juni(2021), Fradragstype.Sosialstønad)
         val desember = lagFradrag(5000.0, desember(2021))
 
-        val beregning = lagBeregningMedFradrag(januar, juniAvkorting, juniSosialstønad, desember, fradragStrategy = FradragStrategy.EpsUnder67År)
+        val beregning = lagBeregningMedFradrag(
+            januar,
+            juniAvkorting,
+            juniSosialstønad,
+            desember,
+            fradragStrategy = FradragStrategy.EpsUnder67År,
+        )
 
         beregning.finnMånederMedMerknad()
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Nei
         beregning.finnFørsteMånedMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
-        beregning.finnMerknaderForPeriode(juni(2021)) shouldBe listOf(Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats)
+        beregning.finnMerknaderForPeriode(juni(2021)) shouldBe listOf(Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats)
     }
 
     @Test
@@ -223,16 +229,16 @@ internal class VurderAvslagGrunnetBeregningKtTest {
 
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Nei
 
-        beregning.finnMerknaderForPeriode(juni(2021)) shouldBe listOf(Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats)
+        beregning.finnMerknaderForPeriode(juni(2021)) shouldBe listOf(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats)
     }
 
     @Test
     fun `avslagsgrunner for merknad`() {
-        Merknad.Beregning.BeløpErNull.tilAvslagsgrunn() shouldBe AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT
-        Merknad.Beregning.BeløpMellomNullOgToProsentAvHøySats.tilAvslagsgrunn() shouldBe AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE
+        Merknad.Beregning.Avslag.BeløpErNull.tilAvslagsgrunn() shouldBe AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT
+        Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats.tilAvslagsgrunn() shouldBe AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE
 
         listOf(
-            Merknad.Beregning.SosialstønadOgAvkortingFørerTilBeløpLavereEnnToProsentAvHøySats,
+            Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats,
         ).forEach {
             assertThrows<IllegalStateException> {
                 it.tilAvslagsgrunn()
