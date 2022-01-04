@@ -5,13 +5,23 @@ import kotliquery.Row
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
+import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.domain.klage.KlagevedtakRepo
 import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.postgresql.util.PSQLException
+import java.util.UUID
 
 internal class KlagevedtakPostgresRepo(private val sessionFactory: PostgresSessionFactory) : KlagevedtakRepo {
+    internal enum class KlagevedtakType(private val verdi: String) {
+        UPROSESSERT("UPROSESSERT"),
+        PROSESSERT("PROSESSERT"),
+        FEIL("FEIL");
+
+        override fun toString(): String = verdi
+    }
 
     override fun lagre(klagevedtak: UprosessertFattetKlagevedtak) {
         Either.catch {
@@ -24,7 +34,7 @@ internal class KlagevedtakPostgresRepo(private val sessionFactory: PostgresSessi
                         params = mapOf(
                             "id" to klagevedtak.id,
                             "opprettet" to klagevedtak.opprettet,
-                            "type" to "UPROSESSERT",
+                            "type" to KlagevedtakType.UPROSESSERT.toString(),
                             "metadata" to klagevedtak.metadata.toDatabaseJson(),
                         ),
                         session = session,
@@ -43,11 +53,31 @@ internal class KlagevedtakPostgresRepo(private val sessionFactory: PostgresSessi
     override fun hentUbehandlaKlagevedtak(): List<UprosessertFattetKlagevedtak> {
         return sessionFactory.withSession { session ->
             """
-                select * from klagevedtak where type = 'UPROSESSERT'
+                select * from klagevedtak where type = '${KlagevedtakType.UPROSESSERT}'
             """.trimIndent().hentListe(
                 emptyMap(),
                 session,
             ) { rowToKlage(it) }
+        }
+    }
+
+    override fun lagreOppgaveIdOgMarkerSomProssesert(id: UUID, oppgaveId: OppgaveId) {
+        TODO("Not yet implemented")
+    }
+
+    override fun markerSomProssesert(id: UUID) {
+        sessionFactory.withSession { session ->
+            """
+            update klagevedtak set type = '${KlagevedtakType.PROSESSERT}' where id = :id
+        """.trimIndent().oppdatering(mapOf("id" to id), session)
+        }
+    }
+
+    override fun markerSomFeil(id: UUID) {
+        sessionFactory.withSession { session ->
+            """
+            update klagevedtak set type = '${KlagevedtakType.FEIL}' where id = :id
+        """.trimIndent().oppdatering(mapOf("id" to id), session)
         }
     }
 

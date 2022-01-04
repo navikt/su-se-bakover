@@ -81,4 +81,29 @@ internal class KlagevedtakPostgresRepoTest {
             }
         }
     }
+
+    @Test
+    fun `Endrer og lagrer type til PROSESSERT`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val klagevedtakRepo = testDataHelper.klagevedtakPostgresRepo
+            val id = UUID.randomUUID()
+            UprosessertFattetKlagevedtak(
+                id = id,
+                opprettet = fixedTidspunkt,
+                metadata = UprosessertFattetKlagevedtak.Metadata(
+                    hendelseId = UUID.randomUUID().toString(),
+                    offset = 1,
+                    partisjon = 2,
+                    key = UUID.randomUUID().toString(),
+                    value = "{}",
+                ),
+            ).also {
+                klagevedtakRepo.lagre(it)
+                klagevedtakRepo.markerSomProssesert(it.id)
+                klagevedtakRepo.hentUbehandlaKlagevedtak() shouldBe emptyList()
+            }
+        }
+    }
+
 }

@@ -828,6 +828,9 @@ open class AccessCheckProxy(
             },
             klagevedtakService = object : KlagevedtakService {
                 override fun lagre(klageVedtak: UprosessertFattetKlagevedtak) = kastKanKunKallesFraAnnenService()
+                override fun håndterUtfallFraKlageinstans() {
+                    kastKanKunKallesFraAnnenService()
+                }
             },
         )
     }
