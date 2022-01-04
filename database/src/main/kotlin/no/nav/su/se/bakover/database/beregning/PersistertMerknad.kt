@@ -24,11 +24,16 @@ internal sealed class PersistertMerknad {
             value = Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats::class,
             name = "SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats",
         ),
+        JsonSubTypes.Type(
+            value = Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats::class,
+            name = "AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats",
+        ),
     )
     sealed class Beregning : PersistertMerknad() {
-        object SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats : PersistertMerknad.Beregning()
-        object BeløpMellomNullOgToProsentAvHøySats : PersistertMerknad.Beregning()
-        object BeløpErNull : PersistertMerknad.Beregning()
+        object AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats : Beregning()
+        object SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats : Beregning()
+        object BeløpMellomNullOgToProsentAvHøySats : Beregning()
+        object BeløpErNull : Beregning()
     }
 }
 
@@ -54,6 +59,7 @@ internal fun PersistertMerknad.Beregning.toDomain(): Merknad.Beregning {
         is PersistertMerknad.Beregning.BeløpErNull -> toDomain()
         is PersistertMerknad.Beregning.BeløpMellomNullOgToProsentAvHøySats -> toDomain()
         is PersistertMerknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats -> toDomain()
+        is PersistertMerknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats -> toDomain()
     }
 }
 
@@ -69,6 +75,10 @@ internal fun Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvH
     return PersistertMerknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats
 }
 
+internal fun Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats.toSnapshot(): PersistertMerknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats {
+    return PersistertMerknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats
+}
+
 internal fun PersistertMerknad.Beregning.BeløpErNull.toDomain(): Merknad.Beregning.Avslag.BeløpErNull {
     return Merknad.Beregning.Avslag.BeløpErNull
 }
@@ -79,4 +89,8 @@ internal fun PersistertMerknad.Beregning.BeløpMellomNullOgToProsentAvHøySats.t
 
 internal fun PersistertMerknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats.toDomain(): Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats {
     return Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats
+}
+
+internal fun PersistertMerknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats.toDomain(): Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats {
+    return Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats
 }

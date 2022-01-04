@@ -44,4 +44,17 @@ internal class MerknaderJsonKtTest {
         val merknad = Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats
         JSONAssert.assertEquals(expected, serialize(merknad.toJson()), true)
     }
+
+    @Test
+    fun `serialisering og av merknad for avkorting fører til under to prosent`() {
+        //language=json
+        val expected = """
+            {
+              "type": "AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats"
+            }
+        """.trimIndent()
+
+        val merknad = Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats
+        JSONAssert.assertEquals(expected, serialize(merknad.toJson()), true)
+    }
 }
