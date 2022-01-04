@@ -22,7 +22,7 @@ internal class Avkortingsplan constructor(
     private val clock: Clock,
 ) {
     init {
-        check(beregning.getFradrag().none { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold })
+        check(beregning.getFradrag().none { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }) { "Beregning inneholder allerede fradrag av type: ${Fradragstype.AvkortingUtenlandsopphold}. Gamle fradrag må fjenres før ny beregning kan gjennomføres." }
     }
 
     private val tilbakebetalinger: Månedsbeløp = lagTilbakebetalingsplan(beregning)

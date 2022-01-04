@@ -28,9 +28,17 @@ sealed class AvslagGrunnetBeregning {
 
 fun Merknad.Beregning.tilAvslagsgrunn(): AvslagGrunnetBeregning.Grunn {
     return when (this) {
-        is Merknad.Beregning.Avslag.BeløpErNull -> AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT
-        is Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats -> AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE
-        is Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats -> throw IllegalStateException("Ukjent merknad for avslag: ${this::class}")
-        is Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats -> throw IllegalStateException("Ukjent merknad for avslag: ${this::class}")
+        is Merknad.Beregning.Avslag.BeløpErNull -> {
+            AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT
+        }
+        is Merknad.Beregning.Avslag.BeløpMellomNullOgToProsentAvHøySats -> {
+            AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE
+        }
+        is Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats -> {
+            throw IllegalStateException("Ukjent merknad for avslag: ${this::class}")
+        }
+        is Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats -> {
+            throw IllegalStateException("Ukjent merknad for avslag: ${this::class}")
+        }
     }
 }

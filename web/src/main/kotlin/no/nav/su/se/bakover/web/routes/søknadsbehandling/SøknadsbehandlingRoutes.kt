@@ -202,7 +202,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                                         }
                                                         Sak.KunneIkkeOppdatereStønadsperiode.StønadsperiodeInneholderAvkortingPgaUtenlandsopphold -> {
                                                             BadRequest.errorJson(
-                                                                "Stønadsperioden inneholder utbetalinger som skal avkortes pga utenlandsopphold. ∫Dette støttes ikke.",
+                                                                "Stønadsperioden inneholder utbetalinger som skal avkortes pga utenlandsopphold. Dette støttes ikke.",
                                                                 "stønadsperiode_inneholder_avkorting_utenlandsopphold",
                                                             )
                                                         }
