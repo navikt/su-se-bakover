@@ -48,11 +48,11 @@ data class BeregningMedFradragBeregnetMånedsvis(
                 fradrag = fradrag,
             ).let { månedsberegning ->
                 when {
-                    månedsberegning.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(månedsberegning.periode) -> {
+                    månedsberegning.sosialstønadFørerTilBeløpUnderToProsentAvHøySats() -> {
                         månedsberegning.leggTilMerknad(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats)
                         månedsberegning
                     }
-                    månedsberegning.avkortingFørerTilBeløpUnderToProsentAvHøySats(månedsberegning.periode) -> {
+                    månedsberegning.avkortingFørerTilBeløpUnderToProsentAvHøySats() -> {
                         månedsberegning.leggTilMerknad(Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats)
                         månedsberegning
                     }
@@ -87,7 +87,7 @@ data class BeregningMedFradragBeregnetMånedsvis(
         )
     }
 
-    private fun Månedsberegning.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(periode: Periode): Boolean {
+    private fun Månedsberegning.sosialstønadFørerTilBeløpUnderToProsentAvHøySats(): Boolean {
         // hvis sum er mer enn 2%, er alt good
         if (getSumYtelse() >= Sats.toProsentAvHøy(periode)) return false
 
@@ -100,7 +100,7 @@ data class BeregningMedFradragBeregnetMånedsvis(
         return false
     }
 
-    private fun Månedsberegning.avkortingFørerTilBeløpUnderToProsentAvHøySats(periode: Periode): Boolean {
+    private fun Månedsberegning.avkortingFørerTilBeløpUnderToProsentAvHøySats(): Boolean {
         // hvis sum er mer enn 2%, er alt good
         if (getSumYtelse() >= Sats.toProsentAvHøy(periode)) return false
 

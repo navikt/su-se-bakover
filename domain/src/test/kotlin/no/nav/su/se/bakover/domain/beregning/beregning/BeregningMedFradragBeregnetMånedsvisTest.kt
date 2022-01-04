@@ -17,7 +17,10 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.periode.april
 import no.nav.su.se.bakover.common.periode.desember
+import no.nav.su.se.bakover.common.periode.februar
+import no.nav.su.se.bakover.common.periode.januar
 import no.nav.su.se.bakover.common.periode.juni
+import no.nav.su.se.bakover.common.periode.mars
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
@@ -495,7 +498,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
     }
 
     @Test
-    fun `merknader`() {
+    fun `merknader avslag`() {
         BeregningFactory(clock = fixedClock).ny(
             periode = periode2021,
             sats = Sats.HØY,
@@ -504,13 +507,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 0.0,
                     periode = periode2021,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-                FradragFactory.ny(
-                    type = Fradragstype.Sosialstønad,
-                    månedsbeløp = 20750.0,
-                    periode = april(2021),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -531,8 +527,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             ),
             fradragStrategy = FradragStrategy.Enslig,
         ).let {
-            val sosialstønad =
-                it.getMånedsberegninger()[3] to listOf(Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats)
             val beløpNull = it.getMånedsberegninger()[5] to listOf(
                 Merknad.Beregning.Avslag.BeløpErNull,
             )
@@ -541,7 +535,6 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             )
 
             it.finnMånederMedMerknad().getOrFail() shouldBe listOf(
-                sosialstønad,
                 beløpNull,
                 beløpMellomNullOgToProsent,
             )
@@ -551,6 +544,178 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             )
             it.finnFørsteMånedMedMerknadForAvslag().getOrFail() shouldBe (beløpNull.first to beløpNull.second[0])
             it.harAlleMånederMerknadForAvslag() shouldBe false
+        }
+    }
+
+    @Test
+    fun `merknader avkorting utenlandsopphold under 2 prosent`() {
+        BeregningFactory(clock = fixedClock).ny(
+            periode = periode2021,
+            sats = Sats.HØY,
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 0.0,
+                    periode = periode2021,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.AvkortingUtenlandsopphold,
+                    månedsbeløp = 20750.0,
+                    periode = januar(2021),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.AvkortingUtenlandsopphold,
+                    månedsbeløp = 20000.0,
+                    periode = februar(2021),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Sosialstønad,
+                    månedsbeløp = 900.0,
+                    periode = februar(2021),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 20000.0,
+                    periode = april(2021),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.AvkortingUtenlandsopphold,
+                    månedsbeløp = 900.0,
+                    periode = april(2021),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Sosialstønad,
+                    månedsbeløp = 200.0,
+                    periode = april(2021),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                )
+            ),
+            fradragStrategy = FradragStrategy.Enslig,
+        ).let {
+            val avkortingJanuar = it.getMånedsberegninger()[0] to listOf(
+                Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats,
+            )
+            it.getMånedsberegninger()[0].getSumYtelse() shouldBe 196
+
+            val avkortingFebruar = it.getMånedsberegninger()[1] to listOf(
+                Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats,
+            )
+            it.getMånedsberegninger()[1].getSumYtelse() shouldBe 46
+
+            val avkortingMars = it.getMånedsberegninger()[3] to listOf(
+                Merknad.Beregning.AvkortingFørerTilBeløpLavereEnnToProsentAvHøySats,
+            )
+            it.getMånedsberegninger()[3].getSumYtelse() shouldBe 0
+
+            it.finnMånederMedMerknad().getOrFail() shouldBe listOf(
+                avkortingJanuar,
+                avkortingFebruar,
+                avkortingMars
+            )
+            it.finnMånederMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
+        }
+    }
+
+    @Test
+    fun `merknader sosialstønad under 2 prosent`() {
+        BeregningFactory(clock = fixedClock).ny(
+            periode = periode2021,
+            sats = Sats.HØY,
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 0.0,
+                    periode = periode2021,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Sosialstønad,
+                    månedsbeløp = 20750.0,
+                    periode = januar(2021),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Sosialstønad,
+                    månedsbeløp = 20750.0,
+                    periode = februar(2021),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 150.0,
+                    periode = februar(2021),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Sosialstønad,
+                    månedsbeløp = 5000.0,
+                    periode = mars(2021),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 20000.0,
+                    periode = april(2021),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Sosialstønad,
+                    månedsbeløp = 900.0,
+                    periode = april(2021),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.AvkortingUtenlandsopphold,
+                    månedsbeløp = 200.0,
+                    periode = april(2021),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                )
+
+            ),
+            fradragStrategy = FradragStrategy.Enslig,
+        ).let {
+            val sosialstønadJanuar = it.getMånedsberegninger()[0] to listOf(
+                Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats,
+            )
+            it.getMånedsberegninger()[0].getSumYtelse() shouldBe 196
+
+            val sosialstønadFebruar = it.getMånedsberegninger()[1] to listOf(
+                Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats,
+            )
+            it.getMånedsberegninger()[1].getSumYtelse() shouldBe 46
+
+            val sosialstønadMars = it.getMånedsberegninger()[3] to listOf(
+                Merknad.Beregning.SosialstønadFørerTilBeløpLavereEnnToProsentAvHøySats,
+            )
+            it.getMånedsberegninger()[3].getSumYtelse() shouldBe 0
+
+            it.finnMånederMedMerknad().getOrFail() shouldBe listOf(
+                sosialstønadJanuar,
+                sosialstønadFebruar,
+                sosialstønadMars
+            )
+            it.finnMånederMedMerknadForAvslag() shouldBe IngenMerknaderForAvslag.left()
         }
     }
 
