@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -637,21 +638,36 @@ internal class RevurderingServiceImpl(
         return when (originalRevurdering) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering, is UnderkjentRevurdering -> {
                 val eksisterendeUtbetalinger = utbetalingService.hentUtbetalinger(originalRevurdering.sakId)
-
-                val beregnetRevurdering =
-                    originalRevurdering.beregn(eksisterendeUtbetalinger, clock).getOrHandle {
-                        return when (it) {
-                            is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
-                            is Revurdering.KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag(
-                                it.reason,
-                            )
-                            Revurdering.KunneIkkeBeregneRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps
-                        }.left()
+                val avkortingsgrunnlag = vedtakService.kopierGjeldendeVedtaksdata(
+                    sakId = originalRevurdering.sakId,
+                    fraOgMed = originalRevurdering.periode.fraOgMed,
+                ).getOrHandle { return KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering.left() }
+                    .let { gjeldendeVedtaksdata ->
+                        gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag.filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
                     }
+
+                val beregnetRevurdering = originalRevurdering.beregn(
+                    eksisterendeUtbetalinger = eksisterendeUtbetalinger,
+                    clock = clock,
+                    avkortingsgrunnlag = avkortingsgrunnlag,
+                ).getOrHandle {
+                    return when (it) {
+                        is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
+                        is Revurdering.KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag(
+                            it.reason,
+                        )
+                        Revurdering.KunneIkkeBeregneRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps
+                    }.left()
+                }
 
                 when (beregnetRevurdering) {
                     is BeregnetRevurdering.IngenEndring -> {
                         revurderingRepo.lagre(beregnetRevurdering)
+                        // må lagre fradrag på nytt, siden eventuelle avkortinger legges til ved beregning
+                        grunnlagService.lagreFradragsgrunnlag(
+                            behandlingId = revurderingId,
+                            fradragsgrunnlag = beregnetRevurdering.grunnlagsdata.fradragsgrunnlag,
+                        )
                         identifiserFeilOgLagResponse(beregnetRevurdering).right()
                     }
                     is BeregnetRevurdering.Innvilget -> {
@@ -665,6 +681,11 @@ internal class RevurderingServiceImpl(
                         }.map {
                             val simulert = beregnetRevurdering.toSimulert(it.simulering)
                             revurderingRepo.lagre(simulert)
+                            // må lagre fradrag på nytt, siden eventuelle avkortinger legges til ved beregning
+                            grunnlagService.lagreFradragsgrunnlag(
+                                behandlingId = revurderingId,
+                                fradragsgrunnlag = beregnetRevurdering.grunnlagsdata.fradragsgrunnlag,
+                            )
                             identifiserFeilOgLagResponse(simulert)
                         }
                     }
@@ -679,6 +700,11 @@ internal class RevurderingServiceImpl(
                         }.mapLeft { KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(it) }
                             .map {
                                 revurderingRepo.lagre(it)
+                                // må lagre fradrag på nytt, siden eventuelle avkortinger legges til ved beregning
+                                grunnlagService.lagreFradragsgrunnlag(
+                                    behandlingId = revurderingId,
+                                    fradragsgrunnlag = beregnetRevurdering.grunnlagsdata.fradragsgrunnlag,
+                                )
                                 identifiserFeilOgLagResponse(it)
                             }
                     }

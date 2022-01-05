@@ -138,6 +138,7 @@ fun søknadsbehandlingBeregnetInnvilget(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    avkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
 ): Pair<Sak, Søknadsbehandling.Beregnet.Innvilget> {
     return søknadsbehandlingVilkårsvurdertInnvilget(
         saksnummer = saksnummer,
@@ -145,6 +146,7 @@ fun søknadsbehandlingBeregnetInnvilget(
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
+        avkorting = avkorting,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.beregn(
             begrunnelse = null,
@@ -208,6 +210,7 @@ fun søknadsbehandlingSimulert(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    avkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
 ): Pair<Sak, Søknadsbehandling.Simulert> {
     return søknadsbehandlingBeregnetInnvilget(
         saksnummer = saksnummer,
@@ -215,6 +218,7 @@ fun søknadsbehandlingSimulert(
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
+        avkorting = avkorting,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling =
             søknadsbehandling.tilSimulert(
@@ -238,6 +242,7 @@ fun søknadsbehandlingTilAttesteringInnvilget(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
+    avkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
 ): Pair<Sak, Søknadsbehandling.TilAttestering.Innvilget> {
     return søknadsbehandlingSimulert(
         saksnummer = saksnummer,
@@ -245,6 +250,7 @@ fun søknadsbehandlingTilAttesteringInnvilget(
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
+        avkorting = avkorting,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.tilAttestering(
             saksbehandler = saksbehandler,
@@ -424,6 +430,7 @@ fun søknadsbehandlingIverksattInnvilget(
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
     clock: Clock = fixedClock,
+    avkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
 ): Pair<Sak, Søknadsbehandling.Iverksatt.Innvilget> {
     return søknadsbehandlingTilAttesteringInnvilget(
         saksnummer = saksnummer,
@@ -431,6 +438,7 @@ fun søknadsbehandlingIverksattInnvilget(
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
+        avkorting = avkorting,
     ).let { (sak, søknadsbehandling) ->
         val oppdatertSøknadsbehandling = søknadsbehandling.tilIverksatt(
             attestering = attesteringIverksatt(clock),

@@ -42,7 +42,7 @@ internal class AvkortingsplanTest {
     fun `avkorter ingenting dersom det ikke finnes noe å avkorte`() {
         val (_, søknadsbehandling) = søknadsbehandlingBeregnetInnvilget()
         Avkortingsplan(
-            feilutbetalinger = Månedsbeløp(emptyList()),
+            feilutbetaltBeløp = Månedsbeløp(emptyList()).sum(),
             beregning = søknadsbehandling.beregning,
             clock = fixedClock,
         ).lagFradrag().getOrFail() shouldBe emptyList()
@@ -52,13 +52,13 @@ internal class AvkortingsplanTest {
     fun `avkorter så mye som mulig, så fort som mulig`() {
         val (_, søknadsbehandling) = søknadsbehandlingBeregnetInnvilget()
         Avkortingsplan(
-            feilutbetalinger = Månedsbeløp(
+            feilutbetaltBeløp = Månedsbeløp(
                 listOf(
                     MånedBeløp(januar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(januar(2021).fraOgMed))),
                     MånedBeløp(februar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(februar(2021).fraOgMed))),
                     MånedBeløp(mars(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(mars(2021).fraOgMed))),
                 ),
-            ),
+            ).sum(),
             beregning = søknadsbehandling.beregning,
             clock = fixedClock,
         ).lagFradrag().getOrFail().let {
@@ -117,13 +117,13 @@ internal class AvkortingsplanTest {
         )
 
         Avkortingsplan(
-            feilutbetalinger = Månedsbeløp(
+            feilutbetaltBeløp = Månedsbeløp(
                 listOf(
                     MånedBeløp(januar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(januar(2021).fraOgMed))),
                     MånedBeløp(februar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(februar(2021).fraOgMed))),
                     MånedBeløp(mars(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(mars(2021).fraOgMed))),
                 ),
-            ),
+            ).sum(),
             beregning = søknadsbehandling.beregning,
             clock = fixedClock,
         ).lagFradrag().getOrFail().let {
@@ -181,13 +181,13 @@ internal class AvkortingsplanTest {
         )
 
         Avkortingsplan(
-            feilutbetalinger = Månedsbeløp(
+            feilutbetaltBeløp = Månedsbeløp(
                 listOf(
                     MånedBeløp(januar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(januar(2021).fraOgMed))),
                     MånedBeløp(februar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(februar(2021).fraOgMed))),
                     MånedBeløp(mars(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(mars(2021).fraOgMed))),
                 ),
-            ),
+            ).sum(),
             beregning = søknadsbehandling.beregning,
             clock = fixedClock,
         ).lagFradrag() shouldBe Avkortingsplan.KunneIkkeLageAvkortingsplan.AvkortingErUfullstendig.left()
@@ -215,13 +215,13 @@ internal class AvkortingsplanTest {
         )
 
         Avkortingsplan(
-            feilutbetalinger = Månedsbeløp(
+            feilutbetaltBeløp = Månedsbeløp(
                 listOf(
                     MånedBeløp(januar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(januar(2021).fraOgMed))),
                     MånedBeløp(februar(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(februar(2021).fraOgMed))),
                     MånedBeløp(mars(2021), Beløp(Sats.HØY.månedsbeløpSomHeltall(mars(2021).fraOgMed))),
                 ),
-            ),
+            ).sum(),
             beregning = søknadsbehandling.beregning,
             clock = fixedClock,
         ).lagFradrag().getOrFail().let {

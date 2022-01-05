@@ -1003,7 +1003,7 @@ internal class LagBrevRequestVisitorTest {
         )
 
         val iverksatt = revurdering
-            .beregn(eksisterendeUtbetalinger = emptyList(), clock = fixedClock)
+            .beregn(eksisterendeUtbetalinger = emptyList(), clock = fixedClock,)
             .getOrFail().let {
                 (it as BeregnetRevurdering.Opphørt).toSimulert { sakId, _, opphørsdato ->
                     simulertUtbetalingOpphør(
@@ -1077,7 +1077,7 @@ internal class LagBrevRequestVisitorTest {
             ),
         )
 
-        val bereget = revurdering.beregn(eksisterendeUtbetalinger = sak.utbetalinger, clock = fixedClock)
+        val bereget = revurdering.beregn(eksisterendeUtbetalinger = sak.utbetalinger, clock = fixedClock,)
             .getOrFail().let {
                 (it as BeregnetRevurdering.Opphørt).toSimulert { sakId, _, opphørsdato ->
                     simulertUtbetalingOpphør(

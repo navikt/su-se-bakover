@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
@@ -39,6 +40,7 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
     utbetalingId: UUID30 = UUID30.randomUUID(),
     clock: Clock = fixedClock,
+    avkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
 ): Pair<Sak, Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling> {
     return søknadsbehandlingIverksattInnvilget(
         saksnummer = saksnummer,
@@ -46,6 +48,7 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
+        avkorting = avkorting,
     ).let { (sak, søknadsbehandling) ->
         val utbetaling = oversendtUtbetalingMedKvittering(
             id = utbetalingId,

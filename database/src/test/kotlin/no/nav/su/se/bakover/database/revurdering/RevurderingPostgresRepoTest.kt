@@ -1055,7 +1055,7 @@ internal class RevurderingPostgresRepoTest {
 
                 testDataHelper.revurderingRepo.lagre(vilkårsvurdert)
 
-                val beregnet = vilkårsvurdert.beregn(sak.utbetalinger, fixedClock)
+                val beregnet = vilkårsvurdert.beregn(sak.utbetalinger, fixedClock,)
                     .getOrFail() as BeregnetRevurdering.Opphørt
 
                 testDataHelper.revurderingRepo.lagre(beregnet)
@@ -1146,7 +1146,7 @@ internal class RevurderingPostgresRepoTest {
 
                 testDataHelper.revurderingRepo.lagre(vilkårsvurdert)
 
-                val beregnet = vilkårsvurdert.beregn(sak.utbetalinger, fixedClock)
+                val beregnet = vilkårsvurdert.beregn(sak.utbetalinger, fixedClock,)
                     .getOrFail() as BeregnetRevurdering.Opphørt
 
                 testDataHelper.revurderingRepo.lagre(beregnet)

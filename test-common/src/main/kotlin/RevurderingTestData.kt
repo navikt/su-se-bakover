@@ -142,10 +142,10 @@ fun opprettetRevurdering(
             grunnlagsdata = grunnlagsdataOverrides.fold(it.grunnlagsdata) { acc, grunnlag ->
                 when (grunnlag) {
                     is Grunnlag.Bosituasjon -> {
-                        acc.copy(bosituasjon = listOf(grunnlag))
+                        acc.copy(bosituasjon = (acc.bosituasjon + grunnlag) - it.grunnlagsdata.bosituasjon.toSet())
                     }
                     is Grunnlag.Fradragsgrunnlag -> {
-                        acc.copy(fradragsgrunnlag = listOf(grunnlag))
+                        acc.copy(fradragsgrunnlag = (acc.fradragsgrunnlag + grunnlag) - it.grunnlagsdata.fradragsgrunnlag.toSet())
                     }
                     else -> {
                         // andre grunnlag legges til via sine respektive vilkår
@@ -197,6 +197,10 @@ fun beregnetRevurdering(
         val beregnet = opprettet.beregn(
             eksisterendeUtbetalinger = sak.utbetalinger,
             clock = clock,
+            avkortingsgrunnlag = sak.hentGjeldendeVilkårOgGrunnlag(
+                periode = revurderingsperiode,
+                clock = clock,
+            ).grunnlagsdata.fradragsgrunnlag.filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
         ).getOrFail()
 
         sak.copy(
@@ -546,7 +550,7 @@ fun beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
         val innvilgetBeregnetRevurdering =
-            revurdering.beregn(sak.utbetalinger, clock).orNull() as BeregnetRevurdering.Innvilget
+            revurdering.beregn(sak.utbetalinger, clock,).orNull() as BeregnetRevurdering.Innvilget
         Pair(
             sak.copy(
                 // Erstatter den gamle versjonen av samme revurderinger.
@@ -621,7 +625,7 @@ fun beregnetRevurderingIngenEndringFraInnvilgetSøknadsbehandlingsVedtak(
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
-        val innvilgetBeregnetRevurdering = revurdering.beregn(eksisterendeUtbetalinger, clock)
+        val innvilgetBeregnetRevurdering = revurdering.beregn(eksisterendeUtbetalinger, clock,)
             .orNull() as BeregnetRevurdering.IngenEndring
         Pair(
             sak.copy(
@@ -664,7 +668,7 @@ fun beregnetRevurderingOpphørtPgaVilkårFraInnvilgetSøknadsbehandlingsVedtak(
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
-        val opphørtBeregnetRevurdering = revurdering.beregn(sak.utbetalinger, clock)
+        val opphørtBeregnetRevurdering = revurdering.beregn(sak.utbetalinger, clock,)
             .getOrHandle { throw IllegalStateException("Kunne ikke instansiere testdata. Underliggende feil: $it") } as BeregnetRevurdering.Opphørt
         Pair(
             sak.copy(
@@ -714,7 +718,7 @@ fun beregnetRevurderingOpphørtUføreFraInnvilgetSøknadsbehandlingsVedtak(
         grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger,
         revurderingsårsak = revurderingsårsak,
     ).let { (sak, revurdering) ->
-        val opphørtBeregnetRevurdering = revurdering.beregn(sak.utbetalinger, clock)
+        val opphørtBeregnetRevurdering = revurdering.beregn(sak.utbetalinger, clock,)
             .getOrHandle { throw IllegalStateException("Kunne ikke instansiere testdata. Underliggende feil: $it") } as BeregnetRevurdering.Opphørt
         Pair(
             sak.copy(

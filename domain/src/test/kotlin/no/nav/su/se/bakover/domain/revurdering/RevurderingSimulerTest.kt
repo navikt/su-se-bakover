@@ -23,7 +23,7 @@ class RevurderingSimulerTest {
         opprettetRevurderingAvslagSpesifiktVilkår(
             avslåttVilkår = utlandsoppholdAvslag(),
         ).let { (sak, revurdering) ->
-            revurdering.beregn(sak.utbetalinger, fixedClock)
+            revurdering.beregn(sak.utbetalinger, fixedClock,)
                 .getOrFail().let { beregnet ->
                     (beregnet as BeregnetRevurdering.Opphørt)
                         .toSimulert { sakId, _, opphørsdato ->
@@ -57,7 +57,7 @@ class RevurderingSimulerTest {
             opprettetRevurderingAvslagSpesifiktVilkår(
                 avslåttVilkår = utlandsoppholdAvslag(),
             ).let { (sak, revurdering) ->
-                revurdering.beregn(sak.utbetalinger, fixedClock)
+                revurdering.beregn(sak.utbetalinger, fixedClock,)
                     .getOrFail().let { beregnet ->
                         (beregnet as BeregnetRevurdering.Opphørt)
                             .toSimulert { sakId, _, _ ->
@@ -78,7 +78,7 @@ class RevurderingSimulerTest {
         opprettetRevurderingAvslagSpesifiktVilkår(
             avslåttVilkår = avslåttUførevilkårUtenGrunnlag(),
         ).let { (sak, revurdering) ->
-            revurdering.beregn(sak.utbetalinger, fixedClock)
+            revurdering.beregn(sak.utbetalinger, fixedClock,)
                 .getOrFail().let {
                     (it as BeregnetRevurdering.Opphørt)
                         .toSimulert { sakId, _, opphørsdato ->
@@ -110,7 +110,7 @@ class RevurderingSimulerTest {
                     ),
                 ),
             ).getOrFail().let {
-                it.beregn(sak.utbetalinger, fixedClock)
+                it.beregn(sak.utbetalinger, fixedClock,)
                     .getOrFail().let {
                         (it as BeregnetRevurdering.Opphørt)
                             .toSimulert { sakId, _, opphørsdato ->

@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import java.time.Clock
 import java.util.UUID
 
-internal class Avkortingsplan constructor(
-    private val feilutbetalinger: Månedsbeløp,
+internal class Avkortingsplan(
+    private val feilutbetaltBeløp: Int,
     beregning: Beregning,
     private val clock: Clock,
 ) {
@@ -40,7 +40,7 @@ internal class Avkortingsplan constructor(
     ): Månedsbeløp {
         val tilbakebetalinger: MutableList<MånedBeløp> = mutableListOf()
 
-        fun saldo() = feilutbetalinger.sum() - tilbakebetalinger.sumOf { it.beløp.sum() }
+        fun saldo() = feilutbetaltBeløp - tilbakebetalinger.sumOf { it.beløp.sum() }
 
         fun kalkulerMaksbeløp(beløpsgrense: Int): Int {
             return minOf(saldo(), beløpsgrense)
@@ -67,7 +67,7 @@ internal class Avkortingsplan constructor(
     }
 
     fun lagFradrag(): Either<KunneIkkeLageAvkortingsplan, List<Grunnlag.Fradragsgrunnlag>> {
-        return if (feilutbetalinger.sum() == tilbakebetalinger.sum()) {
+        return if (feilutbetaltBeløp == tilbakebetalinger.sum()) {
             tilbakebetalinger.månedbeløp.map {
                 Grunnlag.Fradragsgrunnlag.create(
                     id = UUID.randomUUID(),

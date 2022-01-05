@@ -163,7 +163,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             attesteringer = Attesteringshistorikk.empty(),
-        ).beregn(eksisterendeUtbetalinger = emptyList(), clock = fixedClock).orNull()!!
+        ).beregn(eksisterendeUtbetalinger = emptyList(), clock = fixedClock,).orNull()!!
 
         val simulertRevurdering = when (beregnetRevurdering) {
             is BeregnetRevurdering.Innvilget -> {

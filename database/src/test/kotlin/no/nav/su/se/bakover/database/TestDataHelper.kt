@@ -506,6 +506,7 @@ internal class TestDataHelper(
         ).beregn(
             eksisterendeUtbetalinger = listOf(vedtak.second),
             clock = clock,
+            avkortingsgrunnlag = emptyList()
         ).getOrFail().let {
             revurderingRepo.lagre(it)
             it as BeregnetRevurdering.Innvilget

@@ -721,7 +721,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     }
                     is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
                         val fradragForAvkorting = Avkortingsplan(
-                            feilutbetalinger = avkort.hentUtbetalteBeløp(),
+                            feilutbetaltBeløp = avkort.hentUtbetalteBeløp().sum(),
                             beregning = beregningUtenAvkorting,
                             clock = clock,
                         ).lagFradrag().getOrHandle {

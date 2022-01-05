@@ -1,9 +1,7 @@
 package no.nav.su.se.bakover.service.revurdering
 
-import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
-import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.assertions.fail
 import io.kotest.matchers.should
@@ -29,11 +27,8 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.GrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageGrunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -86,9 +81,7 @@ import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
-import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
-import no.nav.su.se.bakover.test.grunnlagsdataEnsligMedFradrag
 import no.nav.su.se.bakover.test.iverksattGjenopptakelseAvYtelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.iverksattStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
 import no.nav.su.se.bakover.test.lagFradragsgrunnlag
@@ -102,11 +95,8 @@ import no.nav.su.se.bakover.test.saksnummer
 import no.nav.su.se.bakover.test.simulertGjenopptakelseAvytelseFraVedtakStansAvYtelse
 import no.nav.su.se.bakover.test.simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.simulertStansAvYtelseFraIverksattSøknadsbehandlingsvedtak
-import no.nav.su.se.bakover.test.stønadsperiode2021
 import no.nav.su.se.bakover.test.tilAttesteringRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak
-import no.nav.su.se.bakover.test.underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
 import no.nav.su.se.bakover.test.vedtakSøknadsbehandlingIverksattInnvilget
-import no.nav.su.se.bakover.test.vilkårsvurderingerAvslåttUføreOgAndreInnvilget
 import no.nav.su.se.bakover.test.vilkårsvurderingerInnvilget
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -125,161 +115,6 @@ import java.util.UUID
 import no.nav.su.se.bakover.service.brev.BrevService as BrevService1
 
 internal class RevurderingServiceImplTest {
-
-    @Test
-    fun `beregnOgSimuler - kan beregne og simulere`() {
-        val (sak, vedtak) = vedtakSøknadsbehandlingIverksattInnvilget(
-            saksnummer = saksnummer,
-            stønadsperiode = stønadsperiode2021,
-        )
-
-        val grunnlagsdataOgVilkårsvurderinger = sak.hentGjeldendeVilkårOgGrunnlag(stønadsperiode2021.periode, fixedClock)
-
-        val opprettetRevurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
-            sakOgVedtakSomKanRevurderes = sak to vedtak,
-            grunnlagsdataOgVilkårsvurderinger = grunnlagsdataOgVilkårsvurderinger.copy(
-                grunnlagsdata = grunnlagsdataEnsligMedFradrag(
-                    fradragsgrunnlag = nonEmptyListOf(
-                        fradragsgrunnlagArbeidsinntekt(arbeidsinntekt = 10000.0)
-                    )
-                )
-            )
-        ).second
-
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn opprettetRevurdering
-        }
-        val simulertUtbetaling = mock<Utbetaling.SimulertUtbetaling> {
-            on { simulering } doReturn mock()
-        }
-        val utbetalingMock = mock<Utbetaling> {
-            on { utbetalingslinjer } doReturn nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    opprettet = fixedTidspunkt,
-                    fraOgMed = opprettetRevurdering.periode.fraOgMed,
-                    tilOgMed = opprettetRevurdering.periode.tilOgMed,
-                    forrigeUtbetalingslinjeId = null,
-                    beløp = 20000,
-                    uføregrad = Uføregrad.parse(50),
-                ),
-            )
-        }
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerUtbetaling(any(), any(), any(), any()) } doReturn simulertUtbetaling.right()
-            on { hentUtbetalinger(any()) } doReturn listOf(utbetalingMock)
-        }
-
-        val actual = createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-            utbetalingService = utbetalingServiceMock,
-        ).beregnOgSimuler(
-            revurderingId = revurderingId,
-            saksbehandler = saksbehandler,
-        ).getOrHandle { throw Exception("Vi skal få tilbake en revurdering") }
-
-        actual.let {
-            it.revurdering shouldBe beOfType<SimulertRevurdering.Innvilget>()
-            it.feilmeldinger shouldBe emptyList()
-        }
-
-        inOrder(
-            revurderingRepoMock,
-            utbetalingServiceMock,
-        ) {
-            verify(revurderingRepoMock).hent(revurderingId)
-            verify(utbetalingServiceMock).hentUtbetalinger(sakId)
-            verify(utbetalingServiceMock).simulerUtbetaling(
-                sakId = argThat { it shouldBe sakId },
-                saksbehandler = argThat { it shouldBe saksbehandler },
-                beregning = argThat { it shouldBe (actual.revurdering as SimulertRevurdering).beregning },
-                uføregrunnlag = argThat { it shouldBe opprettetRevurdering.vilkårsvurderinger.uføre.grunnlag },
-            )
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.revurdering })
-        }
-        verifyNoMoreInteractions(revurderingRepoMock, utbetalingServiceMock)
-    }
-
-    @Test
-    fun `beregnOgSimuler - kan ikke beregne og simulere en revurdering som er til attestering`() {
-        val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
-            id = revurderingId,
-            periode = periodeNesteMånedOgTreMånederFram,
-            opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second,
-            saksbehandler = saksbehandler,
-            beregning = mock(),
-            simulering = mock(),
-            oppgaveId = mock(),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            grunnlagsdata = Grunnlagsdata.IkkeVurdert,
-            vilkårsvurderinger = Vilkårsvurderinger.Revurdering.IkkeVurdert,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-            attesteringer = Attesteringshistorikk.empty(),
-        )
-
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn revurderingTilAttestering
-        }
-
-        val result = createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-        ).beregnOgSimuler(
-            revurderingId = revurderingId,
-            saksbehandler = saksbehandler,
-        )
-        result shouldBe KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand(
-            RevurderingTilAttestering.Innvilget::class,
-            SimulertRevurdering::class,
-        )
-            .left()
-
-        verify(revurderingRepoMock).hent(revurderingId)
-        verifyNoMoreInteractions(revurderingRepoMock)
-    }
-
-    @Test
-    fun `beregnOgSimuler - får feil når simulering feiler`() {
-        val tilRevurdering = vedtakSøknadsbehandlingIverksattInnvilget().second
-
-        val beregnetRevurdering = beregnetRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak().second
-
-        val utbetalingMock = mock<Utbetaling> {
-            on { utbetalingslinjer } doReturn nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    opprettet = fixedTidspunkt,
-                    fraOgMed = tilRevurdering.periode.fraOgMed,
-                    tilOgMed = tilRevurdering.periode.tilOgMed,
-                    forrigeUtbetalingslinjeId = null,
-                    beløp = 20000,
-                    uføregrad = Uføregrad.parse(50),
-                ),
-            )
-        }
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerUtbetaling(any(), any(), any(), any()) } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
-            on { hentUtbetalinger(any()) } doReturn listOf(utbetalingMock)
-        }
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn beregnetRevurdering
-        }
-
-        val actual = createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-            utbetalingService = utbetalingServiceMock,
-        ).beregnOgSimuler(
-            revurderingId = revurderingId,
-            saksbehandler = saksbehandler,
-        )
-
-        actual shouldBe KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere(SimuleringFeilet.TEKNISK_FEIL).left()
-
-        inOrder(revurderingRepoMock) {
-            verify(revurderingRepoMock).hent(revurderingId)
-        }
-        verifyNoMoreInteractions(revurderingRepoMock)
-    }
 
     @Test
     fun `iverksett - iverksetter endring av ytelse`() {
@@ -532,64 +367,6 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
-    fun `beregnOgSimuler - kan beregne og simuler underkjent revurdering på nytt`() {
-        val underkjentRevurdering = underkjentInnvilgetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().second
-
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn underkjentRevurdering
-        }
-
-        val simulertUtbetaling = mock<Utbetaling.SimulertUtbetaling> {
-            on { simulering } doReturn mock()
-        }
-        val utbetalingMock = mock<Utbetaling> {
-            on { utbetalingslinjer } doReturn nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    opprettet = fixedTidspunkt,
-                    fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
-                    tilOgMed = periodeNesteMånedOgTreMånederFram.tilOgMed,
-                    forrigeUtbetalingslinjeId = null,
-                    beløp = 20000,
-                    uføregrad = Uføregrad.parse(50),
-                ),
-            )
-        }
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerUtbetaling(any(), any(), any(), any()) } doReturn simulertUtbetaling.right()
-            on { hentUtbetalinger(any()) } doReturn listOf(utbetalingMock)
-        }
-
-        val revurderingService = createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-            utbetalingService = utbetalingServiceMock,
-        )
-
-        val actual = revurderingService.beregnOgSimuler(
-            underkjentRevurdering.id,
-            saksbehandler,
-        ).getOrElse { throw RuntimeException("Noe gikk galt") }
-
-        actual.let {
-            it.revurdering shouldBe beOfType<SimulertRevurdering.Innvilget>()
-            it.feilmeldinger shouldBe emptyList()
-        }
-
-        inOrder(revurderingRepoMock, utbetalingServiceMock) {
-            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
-            verify(utbetalingServiceMock).hentUtbetalinger(sakId)
-            verify(utbetalingServiceMock).simulerUtbetaling(
-                sakId = argThat { it shouldBe sakId },
-                saksbehandler = argThat { it shouldBe saksbehandler },
-                beregning = argThat { it shouldBe (actual.revurdering as SimulertRevurdering).beregning },
-                uføregrunnlag = argThat { it shouldBe underkjentRevurdering.vilkårsvurderinger.uføre.grunnlag },
-            )
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.revurdering })
-        }
-
-        verifyNoMoreInteractions(revurderingRepoMock, utbetalingServiceMock)
-    }
-
-    @Test
     fun `lagBrevutkast - kan lage brev`() {
         val brevPdf = "".toByteArray()
 
@@ -747,8 +524,10 @@ internal class RevurderingServiceImplTest {
                     on { hent(any()) } doReturn beregnget
                 },
                 brevService = mock {
-                    on { lagDokument(any()) } doThrow LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(beregnget::class)
-                }
+                    on { lagDokument(any()) } doThrow LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(
+                        beregnget::class,
+                    )
+                },
             ).revurderingService.lagBrevutkastForRevurdering(
                 revurderingId = revurderingId,
                 fritekst = "",
@@ -1396,100 +1175,6 @@ internal class RevurderingServiceImplTest {
             UUID.randomUUID(),
             "fritekst til forhåndsvarsling",
         ) shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast.left()
-    }
-
-    @Test
-    fun `hvis vilkår ikke er oppfylt, fører revurderingen til et opphør`() {
-        val simulertUtbetalingMock = mock<Utbetaling.SimulertUtbetaling> {
-            on { simulering } doReturn mock()
-        }
-
-        val revurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
-            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
-                grunnlagsdata = grunnlagsdataEnsligMedFradrag(),
-                vilkårsvurderinger = vilkårsvurderingerAvslåttUføreOgAndreInnvilget(),
-            ),
-        ).second
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn revurdering
-        }
-        val utbetalingMock = mock<Utbetaling> {
-            on { utbetalingslinjer } doReturn nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    opprettet = fixedTidspunkt,
-                    fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
-                    tilOgMed = periodeNesteMånedOgTreMånederFram.tilOgMed,
-                    forrigeUtbetalingslinjeId = null,
-                    beløp = 20000,
-                    uføregrad = Uføregrad.parse(50),
-                ),
-            )
-        }
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on { simulerOpphør(any(), any(), any()) } doReturn simulertUtbetalingMock.right()
-            on { hentUtbetalinger(any()) } doReturn listOf(utbetalingMock)
-        }
-
-        val actual = createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-            utbetalingService = utbetalingServiceMock,
-        ).beregnOgSimuler(
-            revurderingId = revurderingId,
-            saksbehandler = NavIdentBruker.Saksbehandler("s1"),
-        ).orNull()!!.revurdering
-
-        actual shouldBe beOfType<SimulertRevurdering.Opphørt>()
-
-        inOrder(
-            revurderingRepoMock,
-            utbetalingServiceMock,
-        ) {
-            verify(revurderingRepoMock).hent(revurderingId)
-            verify(utbetalingServiceMock).hentUtbetalinger(sakId)
-            verify(utbetalingServiceMock).simulerOpphør(
-                sakId = argThat { it shouldBe sakId },
-                saksbehandler = argThat { it shouldBe NavIdentBruker.Saksbehandler("s1") },
-                opphørsdato = argThat { it shouldBe revurdering.periode.fraOgMed },
-            )
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
-        }
-        verifyNoMoreInteractions(revurderingRepoMock, utbetalingServiceMock)
-    }
-
-    @Test
-    fun `uavklarte vilkår kaster exception`() {
-        val revurdering = opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
-            grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger.IkkeVurdert,
-        ).second
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn revurdering
-        }
-        val utbetalingMock = mock<Utbetaling> {
-            on { utbetalingslinjer } doReturn nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    opprettet = fixedTidspunkt,
-                    fraOgMed = periodeNesteMånedOgTreMånederFram.fraOgMed,
-                    tilOgMed = periodeNesteMånedOgTreMånederFram.tilOgMed,
-                    forrigeUtbetalingslinjeId = null,
-                    beløp = 20000,
-                    uføregrad = Uføregrad.parse(50),
-                ),
-            )
-        }
-
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on { hentUtbetalinger(any()) } doReturn listOf(utbetalingMock)
-        }
-
-        assertThrows<IllegalStateException> {
-            createRevurderingService(
-                revurderingRepo = revurderingRepoMock,
-                utbetalingService = utbetalingServiceMock,
-            ).beregnOgSimuler(
-                revurderingId = revurderingId,
-                saksbehandler = NavIdentBruker.Saksbehandler("s1"),
-            )
-        }
     }
 
     @Test

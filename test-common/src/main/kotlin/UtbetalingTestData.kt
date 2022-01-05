@@ -342,8 +342,7 @@ fun oversendtUtbetalingMedKvittering(
         saksnummer = saksnummer,
         eksisterendeUtbetalinger = eksisterendeUtbetalinger,
         clock = clock,
-    )
-        .toKvittertUtbetaling(kvittering(utbetalingsstatus = utbetalingsstatus, clock = clock))
+    ).toKvittertUtbetaling(kvittering(utbetalingsstatus = utbetalingsstatus, clock = clock))
 }
 
 fun stansUtbetalingForSimulering(
