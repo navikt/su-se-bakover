@@ -2,15 +2,16 @@ package no.nav.su.se.bakover.database.klage
 
 import arrow.core.Either
 import kotliquery.Row
+import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.database.PostgresSessionFactory
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
+import no.nav.su.se.bakover.domain.klage.Klagevedtak
 import no.nav.su.se.bakover.domain.klage.KlagevedtakRepo
 import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.postgresql.util.PSQLException
 import java.util.UUID
 
@@ -50,6 +51,24 @@ internal class KlagevedtakPostgresRepo(private val sessionFactory: PostgresSessi
         }
     }
 
+    override fun lagreProsessertKlagevedtak(klagevedtak: Klagevedtak.Prosessert) {
+        sessionFactory.withSession { session ->
+            """
+                update klagevedtak
+                    set type = :type, oppgaveId = :oppgaveid
+                    where id = :id
+            """.trimIndent()
+                .insert(
+                    params = mapOf(
+                        "id" to klagevedtak.id,
+                        "type" to KlagevedtakType.PROSESSERT.toString(),
+                        "oppgaveid" to klagevedtak.oppgaveId,
+                    ),
+                    session = session,
+                )
+        }
+    }
+
     override fun hentUbehandlaKlagevedtak(): List<UprosessertFattetKlagevedtak> {
         return sessionFactory.withSession { session ->
             """
@@ -61,23 +80,11 @@ internal class KlagevedtakPostgresRepo(private val sessionFactory: PostgresSessi
         }
     }
 
-    override fun lagreOppgaveIdOgMarkerSomProssesert(id: UUID, oppgaveId: OppgaveId) {
-        TODO("Not yet implemented")
-    }
-
-    override fun markerSomProssesert(id: UUID) {
-        sessionFactory.withSession { session ->
-            """
-            update klagevedtak set type = '${KlagevedtakType.PROSESSERT}' where id = :id
-        """.trimIndent().oppdatering(mapOf("id" to id), session)
-        }
-    }
-
     override fun markerSomFeil(id: UUID) {
         sessionFactory.withSession { session ->
             """
             update klagevedtak set type = '${KlagevedtakType.FEIL}' where id = :id
-        """.trimIndent().oppdatering(mapOf("id" to id), session)
+            """.trimIndent().oppdatering(mapOf("id" to id), session)
         }
     }
 
@@ -87,5 +94,9 @@ internal class KlagevedtakPostgresRepo(private val sessionFactory: PostgresSessi
             opprettet = row.tidspunkt("opprettet"),
             metadata = KlagevedtakMetadataJson.toKlagevedtakMetadata(row.string("metadata")),
         )
+    }
+
+    override fun defaultTransactionContext(): TransactionContext {
+        return sessionFactory.newTransactionContext()
     }
 }

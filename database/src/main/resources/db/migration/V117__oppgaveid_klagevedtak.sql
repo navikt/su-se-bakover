@@ -1,0 +1,1 @@
+alter table klagevedtak add column oppgaveid text

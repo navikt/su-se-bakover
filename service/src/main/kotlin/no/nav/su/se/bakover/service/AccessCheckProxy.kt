@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
+import no.nav.su.se.bakover.domain.klage.Klagevedtak
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
@@ -828,7 +829,7 @@ open class AccessCheckProxy(
             },
             klagevedtakService = object : KlagevedtakService {
                 override fun lagre(klageVedtak: UprosessertFattetKlagevedtak) = kastKanKunKallesFraAnnenService()
-                override fun håndterUtfallFraKlageinstans() {
+                override fun håndterUtfallFraKlageinstans(deserializeAndMap: (id: UUID, json: String) -> Klagevedtak.Uprosessert) {
                     kastKanKunKallesFraAnnenService()
                 }
             },
