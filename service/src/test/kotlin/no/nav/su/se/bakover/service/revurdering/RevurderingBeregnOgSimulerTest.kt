@@ -10,8 +10,10 @@ import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
@@ -25,11 +27,11 @@ import no.nav.su.se.bakover.test.beregnetRevurdering
 import no.nav.su.se.bakover.test.bosituasjongrunnlagEnslig
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
-import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt1000
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.nyUtbetalingSimulert
 import no.nav.su.se.bakover.test.opphørUtbetalingSimulert
 import no.nav.su.se.bakover.test.opprettetRevurdering
+import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.revurderingTilAttestering
 import no.nav.su.se.bakover.test.sakId
 import no.nav.su.se.bakover.test.saksbehandler
@@ -55,7 +57,11 @@ class RevurderingBeregnOgSimulerTest {
         val (sak, opprettetRevurdering) = opprettetRevurdering(
             grunnlagsdataOverrides = listOf(
                 bosituasjongrunnlagEnslig(),
-                fradragsgrunnlagArbeidsinntekt1000(),
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = periode2021,
+                    arbeidsinntekt = 5000.0,
+                    tilhører = FradragTilhører.BRUKER
+                ),
             ),
         )
 
@@ -159,7 +165,15 @@ class RevurderingBeregnOgSimulerTest {
 
     @Test
     fun `beregnOgSimuler - kan ikke beregne og simulere en revurdering som er til attestering`() {
-        val (_, tilAttestring) = revurderingTilAttestering()
+        val (_, tilAttestring) = revurderingTilAttestering(
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = periode2021,
+                    arbeidsinntekt = 5000.0,
+                    tilhører = FradragTilhører.BRUKER,
+                )
+            )
+        )
 
         RevurderingServiceMocks(
             revurderingRepo = mock {
@@ -182,7 +196,15 @@ class RevurderingBeregnOgSimulerTest {
 
     @Test
     fun `beregnOgSimuler - får feil når simulering feiler`() {
-        val (sak, beregnet) = beregnetRevurdering()
+        val (sak, beregnet) = beregnetRevurdering(
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = periode2021,
+                    arbeidsinntekt = 5000.0,
+                    tilhører = FradragTilhører.BRUKER,
+                )
+            )
+        )
 
         RevurderingServiceMocks(
             revurderingRepo = mock {
@@ -364,7 +386,7 @@ class RevurderingBeregnOgSimulerTest {
          * default beløp satt av [no.nav.su.se.bakover.test.utbetalingslinje]
          * avkorting som følge av revurderingsperiode forut for [no.nav.su.se.bakover.test.nåtidForSimuleringStub] (fører til feilutbetaling)
          * */
-        val expectedAvkorting = 2 * 15000
+        val expectedAvkorting = 2 * 21989
 
         val tikkendeKlokke = TikkendeKlokke()
 
@@ -430,7 +452,7 @@ class RevurderingBeregnOgSimulerTest {
                 saksbehandler = saksbehandler,
             ).getOrFail().revurdering
 
-            (actual as SimulertRevurdering.Innvilget).let { simulert ->
+            (actual as BeregnetRevurdering.IngenEndring).let { simulert ->
                 simulert.grunnlagsdata.fradragsgrunnlag.filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }
                     .sumOf { it.månedsbeløp } shouldBe expectedAvkorting
                 simulert.beregning.getFradrag().filter { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold }

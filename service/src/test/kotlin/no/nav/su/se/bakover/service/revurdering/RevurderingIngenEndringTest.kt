@@ -5,14 +5,7 @@ import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.common.april
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -30,7 +23,6 @@ import no.nav.su.se.bakover.test.beregnetRevurderingIngenEndringFraInnvilgetSøk
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
-import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.oppgaveIdRevurdering
 import no.nav.su.se.bakover.test.opprettetRevurdering
@@ -47,22 +39,7 @@ class RevurderingIngenEndringTest {
 
     @Test
     fun `ingen endring dersom forskjell mellom eksisterende utbetalt beløp og nytt beløp er mindre enn 10 prosent`() {
-        val (sak, revurdering) = opprettetRevurdering(
-            grunnlagsdataOverrides = listOf(
-                fradragsgrunnlagArbeidsinntekt(
-                    periode = Periode.create(1.januar(2021), 30.april(2021)),
-                    // TODO 15000 er et bogus beløp satt default av utbetaling for søknadsbehandlingen, endre slike at dette beløpet er utledet fra grunnlag/beregning på samme måte som for revurdering
-                    arbeidsinntekt = Sats.HØY.månedsbeløp(1.januar(2021)) - 15000,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-                fradragsgrunnlagArbeidsinntekt(
-                    periode = Periode.create(1.mai(2021), 31.desember(2021)),
-                    // TODO 15000 er et bogus beløp satt default av utbetaling for søknadsbehandlingen, endre slike at dette beløpet er utledet fra grunnlag/beregning på samme måte som for revurdering
-                    arbeidsinntekt = Sats.HØY.månedsbeløp(1.mai(2021)) - 15000,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-            ),
-        )
+        val (sak, revurdering) = opprettetRevurdering()
 
         RevurderingServiceMocks(
             revurderingRepo = mock {
@@ -91,8 +68,10 @@ class RevurderingIngenEndringTest {
                 ingenEndring.vilkårsvurderinger shouldBe revurdering.vilkårsvurderinger
                 ingenEndring.beregning.getSumYtelse() shouldBe (
                     sak.utbetalinger.flatMap { it.utbetalingslinjer }
-                        .last().beløp
-                    ) * revurdering.periode.getAntallMåneder()
+                        .fold(0) { acc, utbetalingslinje ->
+                            acc + utbetalingslinje.beløp * utbetalingslinje.periode.getAntallMåneder()
+                        }
+                    )
             }
 
             inOrder(

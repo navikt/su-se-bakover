@@ -14,8 +14,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
-import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -53,7 +51,6 @@ import no.nav.su.se.bakover.test.aktørId
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fnr
-import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.innvilgetUførevilkår
 import no.nav.su.se.bakover.test.opprettetRevurdering
@@ -149,14 +146,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.toString(),
                 begrunnelse = "tjohei",
             ),
-            grunnlagsdataOverrides = listOf(
-                fradragsgrunnlagArbeidsinntekt(
-                    periode = Periode.create(1.mai(2021), 31.desember(2021)),
-                    // TODO 15000 er et bogus beløp satt default av utbetaling for søknadsbehandlingen, endre slike at dette beløpet er utledet fra grunnlag/beregning på samme måte som for revurdering
-                    arbeidsinntekt = Sats.HØY.månedsbeløp(1.mai(2021)) - 15000,
-                    tilhører = FradragTilhører.BRUKER,
-                )
-            )
         )
 
         RevurderingServiceMocks(
@@ -167,8 +156,13 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 on { hentUtbetalinger(any()) } doReturn sak.utbetalinger
             },
             vedtakService = mock {
-                on { kopierGjeldendeVedtaksdata(any(), any()) } doReturn sak.kopierGjeldendeVedtaksdata(revurdering.periode.fraOgMed, fixedClock).getOrFail().right()
-            }
+                on {
+                    kopierGjeldendeVedtaksdata(
+                        any(),
+                        any(),
+                    )
+                } doReturn sak.kopierGjeldendeVedtaksdata(revurdering.periode.fraOgMed, fixedClock).getOrFail().right()
+            },
         ).let { serviceAndMocks ->
             val actual = serviceAndMocks.revurderingService.beregnOgSimuler(
                 revurderingId = revurdering.id,
@@ -180,9 +174,15 @@ internal class RegulerGrunnbeløpServiceImplTest {
             ) {
                 verify(serviceAndMocks.revurderingRepo).hent(argThat { it shouldBe revurderingId })
                 verify(serviceAndMocks.utbetalingService).hentUtbetalinger(argThat { it shouldBe sakId })
-                verify(serviceAndMocks.vedtakService).kopierGjeldendeVedtaksdata(argThat { it shouldBe sakId }, argThat { it shouldBe revurdering.periode.fraOgMed })
+                verify(serviceAndMocks.vedtakService).kopierGjeldendeVedtaksdata(
+                    argThat { it shouldBe sakId },
+                    argThat { it shouldBe revurdering.periode.fraOgMed },
+                )
                 verify(serviceAndMocks.revurderingRepo).lagre(argThat { it shouldBe actual })
-                verify(serviceAndMocks.grunnlagService).lagreFradragsgrunnlag(argThat { it shouldBe revurdering.id }, argThat { it shouldBe revurdering.grunnlagsdata.fradragsgrunnlag })
+                verify(serviceAndMocks.grunnlagService).lagreFradragsgrunnlag(
+                    argThat { it shouldBe revurdering.id },
+                    argThat { it shouldBe revurdering.grunnlagsdata.fradragsgrunnlag },
+                )
                 serviceAndMocks.verifyNoMoreInteractions()
             }
         }
