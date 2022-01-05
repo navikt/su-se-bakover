@@ -92,6 +92,20 @@ fun nyUtbetalingSimulert(
     }
 }
 
+fun nyUtbetalingOversendtMedKvittering(
+    sakOgBehandling: Pair<Sak, Behandling>,
+    beregning: Beregning,
+    clock: Clock,
+): Utbetaling.OversendtUtbetaling.MedKvittering {
+    return sakOgBehandling.let { (_, _) ->
+        nyUtbetalingOversendUtenKvittering(
+            sakOgBehandling = sakOgBehandling,
+            beregning = beregning,
+            clock = clock,
+        ).toKvittertUtbetaling(kvittering())
+    }
+}
+
 fun nyUtbetalingOversendUtenKvittering(
     sakOgBehandling: Pair<Sak, Behandling>,
     beregning: Beregning,
@@ -103,7 +117,7 @@ fun nyUtbetalingOversendUtenKvittering(
             beregning = beregning,
             clock = clock,
         ).toOversendtUtbetaling(
-            oppdragsmelding = utbetalingsRequest,
+            oppdragsmelding = Utbetalingsrequest("<xml></xml>"),
         )
     }
 }
@@ -361,7 +375,7 @@ fun stansUtbetalingForSimulering(
         behandler = saksbehandler,
         clock = clock,
         stansDato = stansDato,
-    ).generer().getOrFail("Skal kunne lage utbetaling for stans")
+    ).generer().getOrFail()
 }
 
 fun simulertStansUtbetaling(

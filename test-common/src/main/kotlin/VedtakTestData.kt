@@ -38,7 +38,6 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
     behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonAlleVilkårInnvilget,
     grunnlagsdata: Grunnlagsdata = grunnlagsdataEnsligUtenFradrag(stønadsperiode.periode),
     vilkårsvurderinger: Vilkårsvurderinger.Søknadsbehandling = vilkårsvurderingerInnvilget(stønadsperiode.periode),
-    utbetalingId: UUID30 = UUID30.randomUUID(),
     clock: Clock = fixedClock,
     avkorting: Avkortingsvarsel = Avkortingsvarsel.Ingen,
 ): Pair<Sak, Vedtak.EndringIYtelse.InnvilgetSøknadsbehandling> {
@@ -50,18 +49,14 @@ fun vedtakSøknadsbehandlingIverksattInnvilget(
         vilkårsvurderinger = vilkårsvurderinger,
         avkorting = avkorting,
     ).let { (sak, søknadsbehandling) ->
-        val utbetaling = oversendtUtbetalingMedKvittering(
-            id = utbetalingId,
-            periode = stønadsperiode.periode,
-            fnr = fnr,
-            sakId = sakId,
-            saksnummer = saksnummer,
-            eksisterendeUtbetalinger = sak.utbetalinger,
+        val utbetaling = nyUtbetalingOversendtMedKvittering(
+            sakOgBehandling = sak to søknadsbehandling,
+            beregning = søknadsbehandling.beregning,
             clock = clock,
         )
         val vedtak = Vedtak.fromSøknadsbehandling(
             søknadsbehandling = søknadsbehandling,
-            utbetalingId = utbetalingId,
+            utbetalingId = utbetaling.id,
             clock = clock,
         )
         Pair(
@@ -90,7 +85,7 @@ fun vedtakSøknadsbehandlingIverksattAvslagMedBeregning(
             uføregrunnlag = uføregrunnlagForventetInntekt(
                 periode = stønadsperiode.periode,
                 forventetInntekt = 1_000_000,
-            )
+            ),
         ),
     ),
     clock: Clock = fixedClock,
@@ -121,14 +116,15 @@ fun vedtakSøknadsbehandlingIverksattAvslagMedBeregning(
 fun vedtakRevurderingIverksattInnvilget(
     stønadsperiode: Stønadsperiode = stønadsperiode2021,
     revurderingsperiode: Periode = periode2021,
-    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
-        grunnlagsdata = grunnlagsdataEnsligUtenFradrag(revurderingsperiode),
-        vilkårsvurderinger = vilkårsvurderingerInnvilget(revurderingsperiode),
+    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes>,
+    clock: Clock = fixedClock,
+    grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderinger = innvilgetGrunnlagsdataOgVilkårsvurderinger(
+        sakOgVedtakSomKanRevurderes = sakOgVedtakSomKanRevurderes,
+        revurderingsperiode = revurderingsperiode,
+        clock = clock,
     ),
     utbetalingId: UUID30 = UUID30.randomUUID(),
-    sakOgVedtakSomKanRevurderes: Pair<Sak, VedtakSomKanRevurderes>,
     revurderingsårsak: Revurderingsårsak = no.nav.su.se.bakover.test.revurderingsårsak,
-    clock: Clock = fixedClock,
 ): Pair<Sak, Vedtak.EndringIYtelse> {
     return iverksattRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
         stønadsperiode = stønadsperiode,

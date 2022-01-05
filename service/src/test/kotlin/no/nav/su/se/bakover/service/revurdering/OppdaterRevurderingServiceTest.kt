@@ -704,6 +704,7 @@ internal class OppdaterRevurderingServiceTest {
         val periodeMedEPS = Periode.create(1.juni(2021), 31.desember(2021))
         val vedtattRevurdering = vedtakRevurderingIverksattInnvilget(
             revurderingsperiode = periodeMedEPS,
+            sakOgVedtakSomKanRevurderes = vedtattSøknadsbehandling,
             grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderinger(
                 grunnlagsdata = Grunnlagsdata.create(
                     bosituasjon = listOf(
@@ -721,11 +722,15 @@ internal class OppdaterRevurderingServiceTest {
                             5000.0,
                             FradragTilhører.EPS,
                         ),
+                        fradragsgrunnlagArbeidsinntekt(
+                            periodeMedEPS,
+                            5000.0,
+                            FradragTilhører.BRUKER,
+                        ),
                     ),
                 ),
                 vilkårsvurderinger = vilkårsvurderingerInnvilget(periodeMedEPS),
             ),
-            sakOgVedtakSomKanRevurderes = vedtattSøknadsbehandling,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {

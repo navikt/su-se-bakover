@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.avkorting.Avkortingsvarsel
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -537,7 +538,9 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `forhåndsvarsler en simulert-revurdering`() {
-        val simulertRevurdering = simulertRevurderingInnvilget
+        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            revurderingsperiode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 30.september(2021)),
+        ).second
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn simulertRevurdering
@@ -619,7 +622,9 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `forhåndsvarsler ikke en allerede forhåndsvarslet revurdering`() {
-        val simulertRevurdering = simulertRevurderingInnvilget.copy(
+        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            revurderingsperiode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 30.september(2021)),
+        ).second.copy(
             forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt,
         )
 
@@ -639,7 +644,9 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `forhåndsvarsleEllerSendTilAttestering - kan endre fra ingen forhåndsvarsel til forhåndsvarsel`() {
-        val simulertRevurdering = simulertRevurderingInnvilget.copy(
+        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            revurderingsperiode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 30.september(2021)),
+        ).second.copy(
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
         )
 
@@ -770,7 +777,9 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `forhåndsvarsler men hentPerson failer`() {
-        val simulertRevurdering = simulertRevurderingInnvilget.copy(
+        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            revurderingsperiode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 30.september(2021)),
+        ).second.copy(
             forhåndsvarsel = null,
         )
 
@@ -796,7 +805,9 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `forhåndsvarsel - generering av dokument feiler`() {
-        val simulertRevurdering = simulertRevurderingInnvilget.copy(
+        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            revurderingsperiode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 30.september(2021)),
+        ).second.copy(
             forhåndsvarsel = null,
         )
 
@@ -835,9 +846,12 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `forhåndsvarsel - oppdatering av oppgave feiler`() {
-        val simulertRevurdering = simulertRevurderingInnvilget.copy(
+        val simulertRevurdering = simulertRevurderingInnvilgetFraInnvilgetSøknadsbehandlingsVedtak(
+            revurderingsperiode = Periode.create(fraOgMed = 1.juli(2021), tilOgMed = 30.september(2021)),
+        ).second.copy(
             forhåndsvarsel = null,
         )
+
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn simulertRevurdering
         }
@@ -1093,8 +1107,7 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `fortsettEtterForhåndsvarsling - beslutter ikke en allerede besluttet forhåndsvarsling ingenEndring`() {
-        val simulertRevurdering = simulertRevurderingInnvilget
-            .copy(forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel)
+        val simulertRevurdering = simulertRevurderingInnvilget.copy(forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel)
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn simulertRevurdering
@@ -1296,11 +1309,10 @@ internal class RevurderingServiceImplTest {
 
         revurderingService.leggTilFradragsgrunnlag(
             request,
-        ) shouldBe
-            KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
-                fra = eksisterendeRevurdering::class,
-                til = OpprettetRevurdering::class,
-            ).left()
+        ) shouldBe KunneIkkeLeggeTilFradragsgrunnlag.UgyldigTilstand(
+            fra = eksisterendeRevurdering::class,
+            til = OpprettetRevurdering::class,
+        ).left()
 
         inOrder(
             revurderingRepoMock,

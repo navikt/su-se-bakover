@@ -109,7 +109,7 @@ configure(listOf(project(":client"))) {
             events("skipped", "failed")
             exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
         }
-        failFast = true
+        failFast = false
     }
 }
 
@@ -132,7 +132,7 @@ configure(
             exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
         }
         // https://docs.gradle.org/current/userguide/performance.html#suggestions_for_java_projects
-        failFast = true
+        failFast = false
         maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
         // https://junit.org/junit5/docs/snapshot/user-guide/#writing-tests-parallel-execution
         systemProperties["junit.jupiter.execution.parallel.enabled"] = true

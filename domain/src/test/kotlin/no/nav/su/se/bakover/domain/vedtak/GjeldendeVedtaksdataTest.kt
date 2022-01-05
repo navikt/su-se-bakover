@@ -9,11 +9,13 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.test.TikkendeKlokke
 import no.nav.su.se.bakover.test.fixedClock
+import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.periode2021
 import no.nav.su.se.bakover.test.utlandsoppholdAvslag
 import no.nav.su.se.bakover.test.vedtakRevurdering
@@ -28,9 +30,17 @@ internal class GjeldendeVedtaksdataTest {
                 Periode.create(1.januar(2021), 31.desember(2021)), "",
             ),
         )
+        val revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021))
         val (_, revurderingsVedtak) = vedtakRevurdering(
-            revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
+            revurderingsperiode = revurderingsperiode,
             sakOgVedtakSomKanRevurderes = sak to førstegangsvedtak,
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = revurderingsperiode,
+                    arbeidsinntekt = 5000.0,
+                    tilhører = FradragTilhører.BRUKER,
+                )
+            )
         )
         val data = GjeldendeVedtaksdata(
             periode = Periode.create(1.januar(2021), 31.desember(2021)),

@@ -28,14 +28,15 @@ import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.tidslinje.TidslinjeForUtbetalinger
+import no.nav.su.se.bakover.test.avslåttUførevilkårUtenGrunnlag
 import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.fradragsgrunnlagArbeidsinntekt
 import no.nav.su.se.bakover.test.generer
 import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.test.opprettetRevurdering
-import no.nav.su.se.bakover.test.opprettetRevurderingAvslagUføre
 import no.nav.su.se.bakover.test.opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak
+import no.nav.su.se.bakover.test.periode2021
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import java.util.UUID
@@ -45,7 +46,18 @@ internal class RevurderingBeregnTest {
 
     @Test
     fun `beregning gir opphør hvis vilkår ikke er oppfylt`() {
-        opprettetRevurderingAvslagUføre().let { (sak, revurdering) ->
+        opprettetRevurdering(
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = periode2021,
+                    arbeidsinntekt = 5000.0,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+            vilkårOverrides = listOf(
+                avslåttUførevilkårUtenGrunnlag(),
+            ),
+        ).let { (sak, revurdering) ->
             revurdering.beregn(
                 eksisterendeUtbetalinger = sak.utbetalinger,
                 clock = fixedClock,
@@ -59,149 +71,131 @@ internal class RevurderingBeregnTest {
 
     @Test
     fun `beregning gir ikke opphør hvis vilkår er oppfylt`() {
-        opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().let { (sak, revurdering) ->
-            revurdering
-                .beregn(
-                    eksisterendeUtbetalinger = sak.utbetalinger,
-                    clock = fixedClock,
-                ).getOrFail().let {
-                    over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
-                    it shouldBe beOfType<BeregnetRevurdering.Innvilget>()
-                }
+        opprettetRevurdering(
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = periode2021,
+                    arbeidsinntekt = 5000.0,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+        ).let { (sak, revurdering) ->
+            revurdering.beregn(
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                clock = fixedClock,
+            ).getOrFail().let {
+                over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
+                it shouldBe beOfType<BeregnetRevurdering.Innvilget>()
+            }
         }
     }
 
     @Test
     fun `beregningen gir ikke opphør dersom beløpet er under minstegrense, men endringen er mindre enn 10 prosent`() {
         opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().let { (_, revurdering) ->
-            revurdering
-                .oppdaterFradragOgMarkerSomVurdert(
-                    fradragsgrunnlag = listOf(
-                        fradragsgrunnlagArbeidsinntekt(
-                            periode = Periode.create(1.januar(2021), 30.april(2021)),
-                            arbeidsinntekt = 20535.0,
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
-                        fradragsgrunnlagArbeidsinntekt(
-                            periode = Periode.create(1.mai(2021), 31.desember(2021)),
-                            arbeidsinntekt = 21735.0,
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
+            revurdering.oppdaterFradragOgMarkerSomVurdert(
+                fradragsgrunnlag = listOf(
+                    fradragsgrunnlagArbeidsinntekt(
+                        periode = Periode.create(1.januar(2021), 30.april(2021)),
+                        arbeidsinntekt = 20535.0,
+                        tilhører = FradragTilhører.BRUKER,
                     ),
-                )
-                .getOrFail()
-                .beregn(
-                    eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(440, revurdering.periode))),
-                    clock = fixedClock,
-                ).getOrFail().let {
-                    it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
-                    it.beregning.harAlleMånederMerknadForAvslag() shouldBe true
-                }
+                    fradragsgrunnlagArbeidsinntekt(
+                        periode = Periode.create(1.mai(2021), 31.desember(2021)),
+                        arbeidsinntekt = 21735.0,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+            ).getOrFail().beregn(
+                eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(440, revurdering.periode))),
+                clock = fixedClock,
+            ).getOrFail().let {
+                it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
+                it.beregning.harAlleMånederMerknadForAvslag() shouldBe true
+            }
         }
     }
 
     @Test
     fun `beregning med beløpsendring større enn 10 prosent fører til endring`() {
-        opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().let { (sak, revurdering) ->
-            revurdering
-                .beregn(
-                    eksisterendeUtbetalinger = sak.utbetalinger,
-                    clock = fixedClock,
-                ).getOrFail().let {
-                    over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
-                    it shouldBe beOfType<BeregnetRevurdering.Innvilget>()
-                }
+        opprettetRevurdering(
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = periode2021,
+                    arbeidsinntekt = 5000.0,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+        ).let { (sak, revurdering) ->
+            revurdering.beregn(
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                clock = fixedClock,
+            ).getOrFail().let {
+                over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
+                it shouldBe beOfType<BeregnetRevurdering.Innvilget>()
+            }
         }
     }
 
     @Test
     fun `beregning med beløpsendring mindre enn 10 prosent fører ikke til endring`() {
-        opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().let { (sak, revurdering) ->
-            revurdering
-                .oppdaterFradragOgMarkerSomVurdert(
-                    fradragsgrunnlag = listOf(
-                        fradragsgrunnlagArbeidsinntekt(
-                            periode = revurdering.periode,
-                            arbeidsinntekt = 6000.0,
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
-                    ),
-                )
-                .getOrFail()
-                .beregn(
-                    eksisterendeUtbetalinger = sak.utbetalinger,
-                    clock = fixedClock,
-                ).getOrFail().let {
-                    over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe false
-                    it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
-                }
+        opprettetRevurdering(
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = periode2021,
+                    arbeidsinntekt = 1000.0,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+        ).let { (sak, revurdering) ->
+            revurdering.beregn(
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                clock = fixedClock,
+            ).getOrFail().let {
+                over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe false
+                it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
+            }
         }
     }
 
     @Test
     fun `beregning med beløpsendring mindre enn 10 prosent fører til endring - g regulering`() {
-        opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+        opprettetRevurdering(
             revurderingsårsak = Revurderingsårsak.create(
                 årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.toString(), begrunnelse = "a",
             ),
+            grunnlagsdataOverrides = listOf(
+                fradragsgrunnlagArbeidsinntekt(
+                    periode = periode2021,
+                    arbeidsinntekt = 1000.0,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
         ).let { (sak, revurdering) ->
-            revurdering
-                .oppdaterFradragOgMarkerSomVurdert(
-                    fradragsgrunnlag = listOf(
-                        fradragsgrunnlagArbeidsinntekt(
-                            periode = revurdering.periode,
-                            arbeidsinntekt = 6000.0,
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
-                    ),
-                )
-                .getOrFail()
-                .beregn(
-                    eksisterendeUtbetalinger = sak.utbetalinger,
-                    clock = fixedClock,
-                ).getOrFail().let {
-                    over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe false
-                    it shouldBe beOfType<BeregnetRevurdering.Innvilget>()
-                }
+            revurdering.beregn(
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                clock = fixedClock,
+            ).getOrFail().let {
+                over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe false
+                it shouldBe beOfType<BeregnetRevurdering.Innvilget>()
+            }
         }
     }
 
     @Test
     fun `beregning uten beløpsendring fører til ingen endring - g regulering`() {
-        opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak(
+        opprettetRevurdering(
             revurderingsårsak = Revurderingsårsak.create(
                 årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.toString(), begrunnelse = "a",
             ),
         ).let { (sak, revurdering) ->
-            revurdering
-                .oppdaterFradragOgMarkerSomVurdert(
-                    fradragsgrunnlag = listOf(
-                        fradragsgrunnlagArbeidsinntekt(
-                            periode = Periode.create(1.januar(2021), 30.april(2021)),
-                            arbeidsinntekt = (
-                                Sats.HØY.månedsbeløp(1.januar(2021)) - sak.utbetalinger.flatMap { it.utbetalingslinjer }
-                                    .sumOf { it.beløp }
-                                ),
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
-                        fradragsgrunnlagArbeidsinntekt(
-                            periode = Periode.create(1.mai(2021), 31.desember(2021)),
-                            arbeidsinntekt = (
-                                Sats.HØY.månedsbeløp(1.mai(2021)) - sak.utbetalinger.flatMap { it.utbetalingslinjer }
-                                    .sumOf { it.beløp }
-                                ),
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
-                    ),
-                )
-                .getOrFail()
-                .beregn(
-                    eksisterendeUtbetalinger = sak.utbetalinger,
-                    clock = fixedClock,
-                ).getOrFail().let {
-                    over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe false
-                    it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
-                }
+            revurdering.beregn(
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                clock = fixedClock,
+            ).getOrFail().let {
+                over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe false
+                it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
+            }
         }
     }
 
@@ -212,80 +206,71 @@ internal class RevurderingBeregnTest {
                 årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.toString(), begrunnelse = "a",
             ),
         ).let { (sak, revurdering) ->
-            revurdering
-                .oppdaterFradragOgMarkerSomVurdert(
-                    fradragsgrunnlag = listOf(
-                        fradragsgrunnlagArbeidsinntekt(
-                            periode = revurdering.periode,
-                            arbeidsinntekt = 350_000.0,
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
+            revurdering.oppdaterFradragOgMarkerSomVurdert(
+                fradragsgrunnlag = listOf(
+                    fradragsgrunnlagArbeidsinntekt(
+                        periode = revurdering.periode,
+                        arbeidsinntekt = 350_000.0,
+                        tilhører = FradragTilhører.BRUKER,
                     ),
-                )
-                .getOrFail()
-                .beregn(
-                    eksisterendeUtbetalinger = sak.utbetalinger,
-                    clock = fixedClock,
-                ).getOrFail().let {
-                    over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
-                    it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
-                    (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.FOR_HØY_INNTEKT)
-                }
+                ),
+            ).getOrFail().beregn(
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                clock = fixedClock,
+            ).getOrFail().let {
+                over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
+                it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
+                (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.FOR_HØY_INNTEKT)
+            }
         }
     }
 
     @Test
     fun `beregning som fører til beløp lik 0 gir opphør`() {
         opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().let { (sak, revurdering) ->
-            revurdering
-                .oppdaterFradragOgMarkerSomVurdert(
-                    fradragsgrunnlag = listOf(
-                        fradragsgrunnlagArbeidsinntekt(
-                            periode = revurdering.periode,
-                            arbeidsinntekt = 350_000.0,
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
+            revurdering.oppdaterFradragOgMarkerSomVurdert(
+                fradragsgrunnlag = listOf(
+                    fradragsgrunnlagArbeidsinntekt(
+                        periode = revurdering.periode,
+                        arbeidsinntekt = 350_000.0,
+                        tilhører = FradragTilhører.BRUKER,
                     ),
-                )
-                .getOrFail()
-                .beregn(
-                    eksisterendeUtbetalinger = sak.utbetalinger,
-                    clock = fixedClock,
-                ).getOrFail().let {
-                    over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
-                    it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
-                    (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.FOR_HØY_INNTEKT)
-                }
+                ),
+            ).getOrFail().beregn(
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                clock = fixedClock,
+            ).getOrFail().let {
+                over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
+                it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
+                (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.FOR_HØY_INNTEKT)
+            }
         }
     }
 
     @Test
     fun `beregning som fører til beløp under minstegrense gir opphør`() {
         opprettetRevurderingFraInnvilgetSøknadsbehandlingsVedtak().let { (sak, revurdering) ->
-            revurdering
-                .oppdaterFradragOgMarkerSomVurdert(
-                    fradragsgrunnlag = listOf(
-                        fradragsgrunnlagArbeidsinntekt(
-                            periode = Periode.create(1.januar(2021), 30.april(2021)),
-                            arbeidsinntekt = (Sats.HØY.månedsbeløp(1.januar(2021)) - 250),
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
-                        fradragsgrunnlagArbeidsinntekt(
-                            periode = Periode.create(1.mai(2021), 31.desember(2021)),
-                            arbeidsinntekt = (Sats.HØY.månedsbeløp(1.mai(2021)) - 250),
-                            tilhører = FradragTilhører.BRUKER,
-                        ),
+            revurdering.oppdaterFradragOgMarkerSomVurdert(
+                fradragsgrunnlag = listOf(
+                    fradragsgrunnlagArbeidsinntekt(
+                        periode = Periode.create(1.januar(2021), 30.april(2021)),
+                        arbeidsinntekt = (Sats.HØY.månedsbeløp(1.januar(2021)) - 250),
+                        tilhører = FradragTilhører.BRUKER,
                     ),
-                )
-                .getOrFail()
-                .beregn(
-                    eksisterendeUtbetalinger = sak.utbetalinger,
-                    clock = fixedClock,
-                ).getOrFail().let {
-                    over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
-                    it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
-                    (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)
-                }
+                    fradragsgrunnlagArbeidsinntekt(
+                        periode = Periode.create(1.mai(2021), 31.desember(2021)),
+                        arbeidsinntekt = (Sats.HØY.månedsbeløp(1.mai(2021)) - 250),
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+            ).getOrFail().beregn(
+                eksisterendeUtbetalinger = sak.utbetalinger,
+                clock = fixedClock,
+            ).getOrFail().let {
+                over10ProsentEndring(it.beregning, sak.utbetalinger) shouldBe true
+                it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
+                (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)
+            }
         }
     }
 
