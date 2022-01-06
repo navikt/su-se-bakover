@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
+import no.nav.su.se.bakover.web.routes.Feilresponser.attestantOgSaksbehandlerKanIkkeVæreSammePerson
 import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeAktørId
 import no.nav.su.se.bakover.web.routes.Feilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigBody
@@ -80,6 +81,7 @@ internal fun Route.underkjennRevurdering(
                                                 it.fra,
                                                 it.til
                                             )
+                                            KunneIkkeUnderkjenneRevurdering.SaksbehandlerOgAttestantKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
                                         }
                                         call.svar(resultat)
                                     },

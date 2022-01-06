@@ -1104,6 +1104,10 @@ internal class RevurderingServiceImpl(
             ).left()
         }
 
+        if (revurdering.saksbehandler.navIdent == attestering.attestant.navIdent) {
+            return KunneIkkeUnderkjenneRevurdering.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
+        }
+
         val aktørId = personService.hentAktørId(revurdering.fnr).getOrElse {
             log.error("Fant ikke aktør-id for revurdering: ${revurdering.id}")
             return KunneIkkeUnderkjenneRevurdering.FantIkkeAktørId.left()
