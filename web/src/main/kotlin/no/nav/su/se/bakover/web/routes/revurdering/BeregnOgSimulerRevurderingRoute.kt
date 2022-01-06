@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
+import no.nav.su.se.bakover.web.routes.Feilresponser.avkortingErUfullstendig
 import no.nav.su.se.bakover.web.routes.Feilresponser.tilResultat
 import no.nav.su.se.bakover.web.routes.Feilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
@@ -89,20 +90,35 @@ internal fun RevurderingsutfallSomIkkeStøttes.toJson(): ErrorJson = when (this)
 
 private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
     return when (this) {
-        is FantIkkeRevurdering -> fantIkkeRevurdering
-        is UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
-        is KanIkkeVelgeSisteMånedVedNedgangIStønaden -> BadRequest.errorJson(
-            "Kan ikke velge siste måned av stønadsperioden ved nedgang i stønaden",
-            "siste_måned_ved_nedgang_i_stønaden",
-        )
-        is KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag -> BadRequest.errorJson(
-            "Ugyldig beregningsgrunnlag. Underliggende årsak: ${this.reason}",
-            "ugyldig_beregningsgrunnlag",
-        )
-        is KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> BadRequest.errorJson(
-            "Kan ikke ha fradrag knyttet til EPS når bruker ikke har EPS.",
-            "kan_ikke_ha_eps_fradrag_uten_eps",
-        )
-        is KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere -> this.simuleringFeilet.tilResultat()
+        is FantIkkeRevurdering -> {
+            fantIkkeRevurdering
+        }
+        is UgyldigTilstand -> {
+            ugyldigTilstand(this.fra, this.til)
+        }
+        is KanIkkeVelgeSisteMånedVedNedgangIStønaden -> {
+            BadRequest.errorJson(
+                "Kan ikke velge siste måned av stønadsperioden ved nedgang i stønaden",
+                "siste_måned_ved_nedgang_i_stønaden",
+            )
+        }
+        is KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag -> {
+            BadRequest.errorJson(
+                "Ugyldig beregningsgrunnlag. Underliggende årsak: ${this.reason}",
+                "ugyldig_beregningsgrunnlag",
+            )
+        }
+        is KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> {
+            BadRequest.errorJson(
+                "Kan ikke ha fradrag knyttet til EPS når bruker ikke har EPS.",
+                "kan_ikke_ha_eps_fradrag_uten_eps",
+            )
+        }
+        is KunneIkkeBeregneOgSimulereRevurdering.KunneIkkeSimulere -> {
+            this.simuleringFeilet.tilResultat()
+        }
+        KunneIkkeBeregneOgSimulereRevurdering.AvkortingErUfullstendig -> {
+            avkortingErUfullstendig
+        }
     }
 }

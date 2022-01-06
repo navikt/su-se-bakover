@@ -114,8 +114,10 @@ sealed class Revurdering :
 
     sealed class KunneIkkeLeggeTilFradrag {
         data class Valideringsfeil(val feil: KunneIkkeLageGrunnlagsdata) : KunneIkkeLeggeTilFradrag()
-        data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
-            KunneIkkeLeggeTilFradrag()
+        data class UgyldigTilstand(
+            val fra: KClass<out Revurdering>,
+            val til: KClass<out Revurdering> = OpprettetRevurdering::class,
+        ) : KunneIkkeLeggeTilFradrag()
     }
 
     sealed class KunneIkkeLeggeTilBosituasjon {
@@ -136,7 +138,7 @@ sealed class Revurdering :
         UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
 
     open fun oppdaterFradragOgMarkerSomVurdert(fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>): Either<KunneIkkeLeggeTilFradrag, OpprettetRevurdering> =
-        KunneIkkeLeggeTilFradrag.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
+        KunneIkkeLeggeTilFradrag.UgyldigTilstand(this::class).left()
 
     open fun oppdaterBosituasjonOgMarkerSomVurdert(bosituasjon: Grunnlag.Bosituasjon.Fullstendig): Either<KunneIkkeLeggeTilBosituasjon, OpprettetRevurdering> =
         KunneIkkeLeggeTilBosituasjon.UgyldigTilstand(this::class, OpprettetRevurdering::class).left()
@@ -150,7 +152,7 @@ sealed class Revurdering :
         ).right()
     }
 
-    sealed class KunneIkkeLeggeTilUtenlandsopphold() {
+    sealed class KunneIkkeLeggeTilUtenlandsopphold {
         data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
             KunneIkkeLeggeTilUtenlandsopphold()
 
@@ -267,36 +269,40 @@ sealed class Revurdering :
         clock: Clock,
         avkortingsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = emptyList(),
     ): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
-        val (oppdatertUtenAvkorting, beregningUtenAvkorting) = this.oppdaterFradragOgMarkerSomVurdert(
+        val (midelertidigRevurderingUtenAvkorting, midlertidigBeregningUtenAvkorting) = this.oppdaterFradragOgMarkerSomVurdert(
             fradragsgrunnlag = grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
-        ).getOrHandle { throw IllegalStateException() }
-            .let {
-                it to BeregningStrategyFactory(clock).beregn(
-                    GrunnlagsdataOgVilkårsvurderinger(
-                        grunnlagsdata = it.grunnlagsdata,
-                        vilkårsvurderinger = it.vilkårsvurderinger,
-                    ),
-                    it.periode,
-                    // kan ikke legge til begrunnelse for inntekt/fradrag
-                    null,
-                )
-            }
+        ).getOrHandle {
+            throw IllegalStateException(KunneIkkeLeggeTilFradrag.UgyldigTilstand(this::class).toString())
+        }.let {
+            it to BeregningStrategyFactory(clock).beregn(
+                GrunnlagsdataOgVilkårsvurderinger(
+                    grunnlagsdata = it.grunnlagsdata,
+                    vilkårsvurderinger = it.vilkårsvurderinger,
+                ),
+                it.periode,
+                // kan ikke legge til begrunnelse for inntekt/fradrag
+                null,
+            )
+        }
 
-        val (oppdatertRevurdering, revurdertBeregning) = when (avkortingsgrunnlag.isEmpty()) {
+        val (beregnetRevurdering, beregning) = when (avkortingsgrunnlag.isEmpty()) {
             true -> {
-                oppdatertUtenAvkorting to beregningUtenAvkorting
+                midelertidigRevurderingUtenAvkorting to midlertidigBeregningUtenAvkorting
             }
             false -> {
                 val fradragForAvkorting = Avkortingsplan(
                     feilutbetaltBeløp = avkortingsgrunnlag.sumOf { it.periode.getAntallMåneder() * it.månedsbeløp }
                         .roundToInt(),
-                    beregning = beregningUtenAvkorting,
+                    beregning = midlertidigBeregningUtenAvkorting,
                     clock = clock,
-                ).lagFradrag().getOrHandle { throw IllegalStateException() }
+                ).lagFradrag().getOrHandle { return KunneIkkeBeregneRevurdering.AvkortingErUfullstendig.left() }
 
-                val revurderingMedFradragForAvkorting = oppdatertUtenAvkorting.oppdaterFradragOgMarkerSomVurdert(
-                    fradragsgrunnlag = oppdatertUtenAvkorting.grunnlagsdata.fradragsgrunnlag + fradragForAvkorting,
-                ).getOrHandle { throw IllegalStateException() }
+                val revurderingMedFradragForAvkorting =
+                    midelertidigRevurderingUtenAvkorting.oppdaterFradragOgMarkerSomVurdert(
+                        fradragsgrunnlag = midelertidigRevurderingUtenAvkorting.grunnlagsdata.fradragsgrunnlag + fradragForAvkorting,
+                    ).getOrHandle {
+                        throw IllegalStateException(KunneIkkeLeggeTilFradrag.UgyldigTilstand(this::class).toString())
+                    }
 
                 revurderingMedFradragForAvkorting to BeregningStrategyFactory(clock).beregn(
                     GrunnlagsdataOgVilkårsvurderinger(
@@ -365,59 +371,59 @@ sealed class Revurdering :
             )
 
         // TODO jm: sjekk av vilkår og verifisering av dette bør sannsynligvis legges til et tidspunkt før selve beregningen finner sted. Snarvei inntil videre, da vi mangeler "infrastruktur" for dette pt.  Bør være en tydeligere del av modellen for revurdering.
-        if (VurderOmVilkårGirOpphørVedRevurdering(oppdatertRevurdering.vilkårsvurderinger).resultat is OpphørVedRevurdering.Ja) {
-            return opphør(oppdatertRevurdering, revurdertBeregning).right()
+        if (VurderOmVilkårGirOpphørVedRevurdering(beregnetRevurdering.vilkårsvurderinger).resultat is OpphørVedRevurdering.Ja) {
+            return opphør(beregnetRevurdering, beregning).right()
         }
 
-        return when (oppdatertRevurdering.revurderingsårsak.årsak) {
+        return when (beregnetRevurdering.revurderingsårsak.årsak) {
             Revurderingsårsak.Årsak.REGULER_GRUNNBELØP -> {
                 when (
                     VurderOmBeløpErForskjelligFraGjeldendeUtbetaling(
                         eksisterendeUtbetalinger = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer },
-                        nyBeregning = revurdertBeregning,
+                        nyBeregning = beregning,
                     ).resultat
                 ) {
                     true -> {
                         when (
                             VurderOmBeregningGirOpphørVedRevurdering(
-                                beregning = revurdertBeregning,
+                                beregning = beregning,
                                 clock = Clock.systemUTC(),
                             ).resultat
                         ) {
                             is OpphørVedRevurdering.Ja -> {
-                                opphør(oppdatertRevurdering, revurdertBeregning)
+                                opphør(beregnetRevurdering, beregning)
                             }
                             is OpphørVedRevurdering.Nei -> {
-                                innvilget(oppdatertRevurdering, revurdertBeregning)
+                                innvilget(beregnetRevurdering, beregning)
                             }
                         }
                     }
-                    false -> ingenEndring(oppdatertRevurdering, revurdertBeregning)
+                    false -> ingenEndring(beregnetRevurdering, beregning)
                 }
             }
             else -> {
                 when (
                     VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
                         eksisterendeUtbetalinger = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer },
-                        nyBeregning = revurdertBeregning,
+                        nyBeregning = beregning,
                     ).resultat
                 ) {
                     true -> {
                         when (
                             VurderOmBeregningGirOpphørVedRevurdering(
-                                beregning = revurdertBeregning,
+                                beregning = beregning,
                                 clock = Clock.systemUTC(),
                             ).resultat
                         ) {
                             is OpphørVedRevurdering.Ja -> {
-                                opphør(oppdatertRevurdering, revurdertBeregning)
+                                opphør(beregnetRevurdering, beregning)
                             }
                             is OpphørVedRevurdering.Nei -> {
-                                innvilget(oppdatertRevurdering, revurdertBeregning)
+                                innvilget(beregnetRevurdering, beregning)
                             }
                         }
                     }
-                    false -> ingenEndring(oppdatertRevurdering, revurdertBeregning)
+                    false -> ingenEndring(beregnetRevurdering, beregning)
                 }
             }
         }.right()
@@ -431,6 +437,7 @@ sealed class Revurdering :
         ) : KunneIkkeBeregneRevurdering()
 
         object KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps : KunneIkkeBeregneRevurdering()
+        object AvkortingErUfullstendig : KunneIkkeBeregneRevurdering()
     }
 }
 

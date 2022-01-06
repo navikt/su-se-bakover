@@ -652,11 +652,18 @@ internal class RevurderingServiceImpl(
                     avkortingsgrunnlag = avkortingsgrunnlag,
                 ).getOrHandle {
                     return when (it) {
-                        is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
-                        is Revurdering.KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag(
-                            it.reason,
-                        )
-                        Revurdering.KunneIkkeBeregneRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps
+                        is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> {
+                            KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
+                        }
+                        is Revurdering.KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> {
+                            KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag(it.reason)
+                        }
+                        Revurdering.KunneIkkeBeregneRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> {
+                            KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps
+                        }
+                        Revurdering.KunneIkkeBeregneRevurdering.AvkortingErUfullstendig -> {
+                            KunneIkkeBeregneOgSimulereRevurdering.AvkortingErUfullstendig
+                        }
                     }.left()
                 }
 

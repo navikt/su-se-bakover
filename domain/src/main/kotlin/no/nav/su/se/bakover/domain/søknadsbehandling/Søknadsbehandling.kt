@@ -700,7 +700,7 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                 begrunnelse: String?,
                 clock: Clock,
             ): Either<KunneIkkeBeregne, Beregnet> {
-                val (utenAvkorting, beregningUtenAvkorting) = søknadsbehandling.leggTilFradragsgrunnlag(
+                val (midlertidigRevurderingUtenAvkorting, midlertidigBeregningUtenAvkorting) = søknadsbehandling.leggTilFradragsgrunnlag(
                     søknadsbehandling.grunnlagsdata.fradragsgrunnlag.filterNot { it.fradragstype == Fradragstype.AvkortingUtenlandsopphold },
                 ).getOrHandle {
                     return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left()
@@ -715,14 +715,14 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                     )
                 }
 
-                val (oppdatertSøknadsbehandling, beregning) = when (val avkort = søknadsbehandling.avkorting) {
+                val (beregnetSøknadsbehandling, beregning) = when (val avkort = søknadsbehandling.avkorting) {
                     Avkortingsvarsel.Ingen -> {
-                        utenAvkorting to beregningUtenAvkorting
+                        midlertidigRevurderingUtenAvkorting to midlertidigBeregningUtenAvkorting
                     }
                     is Avkortingsvarsel.Utenlandsopphold.SkalAvkortes -> {
                         val fradragForAvkorting = Avkortingsplan(
                             feilutbetaltBeløp = avkort.hentUtbetalteBeløp().sum(),
-                            beregning = beregningUtenAvkorting,
+                            beregning = midlertidigBeregningUtenAvkorting,
                             clock = clock,
                         ).lagFradrag().getOrHandle {
                             return when (it) {
@@ -732,8 +732,8 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
                             }
                         }
 
-                        val medAvkorting = utenAvkorting.leggTilFradragsgrunnlag(
-                            utenAvkorting.grunnlagsdata.fradragsgrunnlag + fradragForAvkorting,
+                        val medAvkorting = midlertidigRevurderingUtenAvkorting.leggTilFradragsgrunnlag(
+                            midlertidigRevurderingUtenAvkorting.grunnlagsdata.fradragsgrunnlag + fradragForAvkorting,
                         ).getOrHandle { return KunneIkkeBeregne.UgyldigTilstandForEndringAvFradrag(it).left() }
 
                         medAvkorting to BeregningStrategyFactory(clock).beregn(
@@ -755,39 +755,39 @@ sealed class Søknadsbehandling : BehandlingMedOppgave, BehandlingMedAttestering
 
                 return when (VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
                     is AvslagGrunnetBeregning.Ja -> Avslag(
-                        id = oppdatertSøknadsbehandling.id,
-                        opprettet = oppdatertSøknadsbehandling.opprettet,
-                        sakId = oppdatertSøknadsbehandling.sakId,
-                        saksnummer = oppdatertSøknadsbehandling.saksnummer,
-                        søknad = oppdatertSøknadsbehandling.søknad,
-                        oppgaveId = oppdatertSøknadsbehandling.oppgaveId,
-                        behandlingsinformasjon = oppdatertSøknadsbehandling.behandlingsinformasjon,
-                        fnr = oppdatertSøknadsbehandling.fnr,
+                        id = beregnetSøknadsbehandling.id,
+                        opprettet = beregnetSøknadsbehandling.opprettet,
+                        sakId = beregnetSøknadsbehandling.sakId,
+                        saksnummer = beregnetSøknadsbehandling.saksnummer,
+                        søknad = beregnetSøknadsbehandling.søknad,
+                        oppgaveId = beregnetSøknadsbehandling.oppgaveId,
+                        behandlingsinformasjon = beregnetSøknadsbehandling.behandlingsinformasjon,
+                        fnr = beregnetSøknadsbehandling.fnr,
                         beregning = beregning,
-                        fritekstTilBrev = oppdatertSøknadsbehandling.fritekstTilBrev,
-                        stønadsperiode = oppdatertSøknadsbehandling.stønadsperiode,
-                        grunnlagsdata = oppdatertSøknadsbehandling.grunnlagsdata,
-                        vilkårsvurderinger = oppdatertSøknadsbehandling.vilkårsvurderinger,
-                        attesteringer = oppdatertSøknadsbehandling.attesteringer,
-                        avkorting = oppdatertSøknadsbehandling.avkorting,
+                        fritekstTilBrev = beregnetSøknadsbehandling.fritekstTilBrev,
+                        stønadsperiode = beregnetSøknadsbehandling.stønadsperiode,
+                        grunnlagsdata = beregnetSøknadsbehandling.grunnlagsdata,
+                        vilkårsvurderinger = beregnetSøknadsbehandling.vilkårsvurderinger,
+                        attesteringer = beregnetSøknadsbehandling.attesteringer,
+                        avkorting = beregnetSøknadsbehandling.avkorting,
                     )
                     AvslagGrunnetBeregning.Nei -> {
                         Innvilget(
-                            id = oppdatertSøknadsbehandling.id,
-                            opprettet = oppdatertSøknadsbehandling.opprettet,
-                            sakId = oppdatertSøknadsbehandling.sakId,
-                            saksnummer = oppdatertSøknadsbehandling.saksnummer,
-                            søknad = oppdatertSøknadsbehandling.søknad,
-                            oppgaveId = oppdatertSøknadsbehandling.oppgaveId,
-                            behandlingsinformasjon = oppdatertSøknadsbehandling.behandlingsinformasjon,
-                            fnr = oppdatertSøknadsbehandling.fnr,
+                            id = beregnetSøknadsbehandling.id,
+                            opprettet = beregnetSøknadsbehandling.opprettet,
+                            sakId = beregnetSøknadsbehandling.sakId,
+                            saksnummer = beregnetSøknadsbehandling.saksnummer,
+                            søknad = beregnetSøknadsbehandling.søknad,
+                            oppgaveId = beregnetSøknadsbehandling.oppgaveId,
+                            behandlingsinformasjon = beregnetSøknadsbehandling.behandlingsinformasjon,
+                            fnr = beregnetSøknadsbehandling.fnr,
                             beregning = beregning,
-                            fritekstTilBrev = oppdatertSøknadsbehandling.fritekstTilBrev,
-                            stønadsperiode = oppdatertSøknadsbehandling.stønadsperiode,
-                            grunnlagsdata = oppdatertSøknadsbehandling.grunnlagsdata,
-                            vilkårsvurderinger = oppdatertSøknadsbehandling.vilkårsvurderinger,
-                            attesteringer = oppdatertSøknadsbehandling.attesteringer,
-                            avkorting = oppdatertSøknadsbehandling.avkorting,
+                            fritekstTilBrev = beregnetSøknadsbehandling.fritekstTilBrev,
+                            stønadsperiode = beregnetSøknadsbehandling.stønadsperiode,
+                            grunnlagsdata = beregnetSøknadsbehandling.grunnlagsdata,
+                            vilkårsvurderinger = beregnetSøknadsbehandling.vilkårsvurderinger,
+                            attesteringer = beregnetSøknadsbehandling.attesteringer,
+                            avkorting = beregnetSøknadsbehandling.avkorting,
                         )
                     }
                 }.right()
