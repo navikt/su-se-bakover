@@ -306,6 +306,7 @@ sealed class KunneIkkeUnderkjenneRevurdering {
     ) : KunneIkkeUnderkjenneRevurdering()
 
     object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenneRevurdering()
+    object SaksbehandlerOgAttestantKanIkkeVæreSammePerson : KunneIkkeUnderkjenneRevurdering()
 }
 
 sealed class KunneIkkeLeggeTilGrunnlag {
