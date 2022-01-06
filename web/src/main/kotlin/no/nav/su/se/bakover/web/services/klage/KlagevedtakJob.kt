@@ -19,9 +19,23 @@ class KlagevedtakJob(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val jobName = "Håndter utfall fra Klageinstans"
-    private val periode = Duration.of(1, ChronoUnit.MINUTES).toMillis()
+    private val periode = Duration.of(10, ChronoUnit.MINUTES).toMillis()
 
     private val hostName = InetAddress.getLocalHost().hostName
+
+    companion object {
+        fun mapper(id: UUID, json: String): Klagevedtak.Uprosessert {
+            val klagevedtak = deserialize<FattetKlagevedtak>(json)
+
+            return Klagevedtak.Uprosessert(
+                id = id,
+                eventId = klagevedtak.eventId,
+                utfall = Klagevedtak.Utfall.valueOf(klagevedtak.utfall),
+                klageId = UUID.fromString(klagevedtak.kildeReferanse),
+                vedtaksbrevReferanse = klagevedtak.vedtaksbrevReferanse,
+            )
+        }
+    }
 
     fun schedule() {
         log.info(
@@ -45,17 +59,5 @@ class KlagevedtakJob(
                 log.error("Skeduleringsjobb '$jobName' feilet med stacktrace:", it)
             }
         }
-    }
-
-    private fun mapper(id: UUID, json: String): Klagevedtak.Uprosessert {
-        val klagevedtak = deserialize<FattetKlagevedtak>(json)
-
-        return Klagevedtak.Uprosessert(
-            id = id,
-            eventId = klagevedtak.eventId,
-            utfall = Klagevedtak.Utfall.valueOf(klagevedtak.utfall),
-            klageId = UUID.fromString(klagevedtak.kildeReferanse),
-            vedtaksbrevReferanse = klagevedtak.vedtaksbrevReferanse,
-        )
     }
 }
