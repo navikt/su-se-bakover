@@ -4,13 +4,14 @@ import arrow.core.Either
 import kotliquery.Row
 import no.nav.su.se.bakover.common.persistence.TransactionContext
 import no.nav.su.se.bakover.database.PostgresSessionFactory
+import no.nav.su.se.bakover.database.PostgresTransactionContext.Companion.withTransaction
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
-import no.nav.su.se.bakover.domain.klage.Klagevedtak
 import no.nav.su.se.bakover.domain.klage.KlagevedtakRepo
+import no.nav.su.se.bakover.domain.klage.ProsessertKlagevedtak
 import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak
 import org.postgresql.util.PSQLException
 import java.util.UUID
@@ -51,8 +52,8 @@ internal class KlagevedtakPostgresRepo(private val sessionFactory: PostgresSessi
         }
     }
 
-    override fun lagreProsessertKlagevedtak(klagevedtak: Klagevedtak.Prosessert) {
-        sessionFactory.withSession { session ->
+    override fun lagre(klagevedtak: ProsessertKlagevedtak, transactionContext: TransactionContext) {
+        transactionContext.withTransaction { transaction ->
             """
                 update klagevedtak
                     set type = :type, oppgaveId = :oppgaveid
@@ -64,7 +65,7 @@ internal class KlagevedtakPostgresRepo(private val sessionFactory: PostgresSessi
                         "type" to KlagevedtakType.PROSESSERT.toString(),
                         "oppgaveid" to klagevedtak.oppgaveId,
                     ),
-                    session = session,
+                    session = transaction,
                 )
         }
     }

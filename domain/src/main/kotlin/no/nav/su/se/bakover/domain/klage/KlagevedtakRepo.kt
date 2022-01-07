@@ -5,7 +5,7 @@ import java.util.UUID
 
 interface KlagevedtakRepo {
     fun lagre(klagevedtak: UprosessertFattetKlagevedtak)
-    fun lagreProsessertKlagevedtak(klagevedtak: Klagevedtak.Prosessert)
+    fun lagre(klagevedtak: ProsessertKlagevedtak, transactionContext: TransactionContext = defaultTransactionContext())
     fun hentUbehandlaKlagevedtak(): List<UprosessertFattetKlagevedtak>
     fun markerSomFeil(id: UUID)
     fun defaultTransactionContext(): TransactionContext

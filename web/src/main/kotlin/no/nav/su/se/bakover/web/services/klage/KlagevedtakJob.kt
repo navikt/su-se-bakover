@@ -1,8 +1,11 @@
 package no.nav.su.se.bakover.web.services.klage
 
 import arrow.core.Either
+import arrow.core.flatMap
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.domain.klage.Klagevedtak
+import no.nav.su.se.bakover.domain.klage.KanIkkeTolkeKlagevedtak
+import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
+import no.nav.su.se.bakover.domain.klage.UprosessertKlagevedtak
 import no.nav.su.se.bakover.domain.nais.LeaderPodLookup
 import no.nav.su.se.bakover.service.klage.KlagevedtakService
 import no.nav.su.se.bakover.web.services.erLeaderPod
@@ -24,17 +27,21 @@ class KlagevedtakJob(
     private val hostName = InetAddress.getLocalHost().hostName
 
     companion object {
-        fun mapper(id: UUID, json: String): Klagevedtak.Uprosessert {
-            val klagevedtak = deserialize<FattetKlagevedtak>(json)
-
-            return Klagevedtak.Uprosessert(
-                id = id,
-                eventId = klagevedtak.eventId,
-                utfall = Klagevedtak.Utfall.valueOf(klagevedtak.utfall),
-                klageId = UUID.fromString(klagevedtak.kildeReferanse),
-                vedtaksbrevReferanse = klagevedtak.vedtaksbrevReferanse,
-            )
-        }
+        fun mapper(id: UUID, json: String): Either<KanIkkeTolkeKlagevedtak, UprosessertKlagevedtak> =
+            Either.catch {
+                deserialize<FattetKlagevedtak>(json)
+            }.mapLeft { KanIkkeTolkeKlagevedtak.KunneIkkeDeserialisere }
+                .flatMap { klagevedtak ->
+                    Either.catch {
+                        UprosessertKlagevedtak(
+                            id = id,
+                            eventId = klagevedtak.eventId,
+                            utfall = KlagevedtakUtfall.valueOf(klagevedtak.utfall),
+                            klageId = UUID.fromString(klagevedtak.kildeReferanse),
+                            vedtaksbrevReferanse = klagevedtak.vedtaksbrevReferanse,
+                        )
+                    }.mapLeft { KanIkkeTolkeKlagevedtak.UgyldigeVerdier }
+                }
     }
 
     fun schedule() {

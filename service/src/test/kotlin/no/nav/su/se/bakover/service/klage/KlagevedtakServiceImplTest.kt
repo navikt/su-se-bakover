@@ -1,13 +1,16 @@
 package no.nav.su.se.bakover.service.klage
 
+import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.klage.KanIkkeTolkeKlagevedtak
 import no.nav.su.se.bakover.domain.klage.KlageRepo
-import no.nav.su.se.bakover.domain.klage.Klagevedtak
 import no.nav.su.se.bakover.domain.klage.KlagevedtakRepo
+import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
 import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak
+import no.nav.su.se.bakover.domain.klage.UprosessertKlagevedtak
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.argThat
@@ -31,10 +34,10 @@ internal class KlagevedtakServiceImplTest {
     fun `når deserializering feiler så markerer vi vedtaket med FEIL`() {
         val id = UUID.randomUUID()
         val klagevedtakRepoMock: KlagevedtakRepo = mock {
-            on { hentUbehandlaKlagevedtak() } doReturn listOf(UprosessertFattetKlagevedtak(id))
+            on { hentUbehandlaKlagevedtak() } doReturn listOf(uprosessertFattetKlagevedtak(id))
         }
 
-        buildKlagevedtakService(klagevedtakRepoMock).håndterUtfallFraKlageinstans { _, _ -> throw RuntimeException("feil") }
+        buildKlagevedtakService(klagevedtakRepoMock).håndterUtfallFraKlageinstans { _, _ -> KanIkkeTolkeKlagevedtak.KunneIkkeDeserialisere.left() }
         verify(klagevedtakRepoMock).markerSomFeil(argThat { it shouldBe id })
     }
 
@@ -42,7 +45,7 @@ internal class KlagevedtakServiceImplTest {
     fun `stadfestelse setter vedtaket som prosessert`() {
         val id = UUID.randomUUID()
         val klagevedtakRepoMock: KlagevedtakRepo = mock {
-            on { hentUbehandlaKlagevedtak() } doReturn listOf(UprosessertFattetKlagevedtak(id))
+            on { hentUbehandlaKlagevedtak() } doReturn listOf(uprosessertFattetKlagevedtak(id))
         }
         val klageRepoMock: KlageRepo = mock {
             on { hentKlage(any()) } doReturn klage
@@ -54,11 +57,11 @@ internal class KlagevedtakServiceImplTest {
         val oppgaveServiceMock: OppgaveService = mock {
             on { opprettOppgave(any()) } doReturn OppgaveId("212121").right()
         }
-        val mappedKlagevedtak = Klagevedtak.Uprosessert(
+        val mappedKlagevedtak = UprosessertKlagevedtak(
             id = id,
             eventId = UUID.randomUUID().toString(),
             klageId = klage.id,
-            utfall = Klagevedtak.Utfall.STADFESTELSE,
+            utfall = KlagevedtakUtfall.STADFESTELSE,
             vedtaksbrevReferanse = "123456",
         )
 
@@ -67,7 +70,7 @@ internal class KlagevedtakServiceImplTest {
             klageRepo = klageRepoMock,
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
-        ).håndterUtfallFraKlageinstans { _, _ -> mappedKlagevedtak }
+        ).håndterUtfallFraKlageinstans { _, _ -> mappedKlagevedtak.right() }
         verify(klagevedtakRepoMock).hentUbehandlaKlagevedtak()
         verify(klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(personServiceMock).hentAktørIdMedSystembruker(klage.fnr)
@@ -82,14 +85,14 @@ internal class KlagevedtakServiceImplTest {
                 )
             },
         )
-        verify(klagevedtakRepoMock).lagreProsessertKlagevedtak(mappedKlagevedtak.tilProsessert(OppgaveId("212121")))
+        verify(klagevedtakRepoMock).lagre(mappedKlagevedtak.tilProsessert(OppgaveId("212121")))
     }
 
     @Test
     fun `RETUR setter vedtaket som prosessert og lager ny oppgave for klagen`() {
         val id = UUID.randomUUID()
         val klagevedtakRepoMock: KlagevedtakRepo = mock {
-            on { hentUbehandlaKlagevedtak() } doReturn listOf(UprosessertFattetKlagevedtak(id))
+            on { hentUbehandlaKlagevedtak() } doReturn listOf(uprosessertFattetKlagevedtak(id))
         }
         val klageRepoMock: KlageRepo = mock {
             on { hentKlage(any()) } doReturn klage
@@ -101,11 +104,11 @@ internal class KlagevedtakServiceImplTest {
         val oppgaveServiceMock: OppgaveService = mock {
             on { opprettOppgave(any()) } doReturn OppgaveId("212121").right()
         }
-        val mappedKlagevedtak = Klagevedtak.Uprosessert(
+        val mappedKlagevedtak = UprosessertKlagevedtak(
             id = id,
             eventId = UUID.randomUUID().toString(),
             klageId = klage.id,
-            utfall = Klagevedtak.Utfall.RETUR,
+            utfall = KlagevedtakUtfall.RETUR,
             vedtaksbrevReferanse = "123456",
         )
 
@@ -114,7 +117,7 @@ internal class KlagevedtakServiceImplTest {
             klageRepo = klageRepoMock,
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
-        ).håndterUtfallFraKlageinstans { _, _ -> mappedKlagevedtak }
+        ).håndterUtfallFraKlageinstans { _, _ -> mappedKlagevedtak.right() }
         verify(klagevedtakRepoMock).hentUbehandlaKlagevedtak()
         verify(klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(personServiceMock).hentAktørIdMedSystembruker(klage.fnr)
@@ -123,17 +126,19 @@ internal class KlagevedtakServiceImplTest {
                 it shouldBe OppgaveConfig.Klage.Saksbehandler(
                     saksnummer = klage.saksnummer,
                     aktørId = AktørId(aktørId = ""),
-                    journalpostId = JournalpostId(value = mappedKlagevedtak.vedtaksbrevReferanse),
+                    journalpostId = JournalpostId(value = "123456"),
                     tilordnetRessurs = null,
                     clock = Clock.systemUTC(),
                 )
             },
         )
-        verify(klageRepoMock).lagre(klage.copy(oppgaveId = OppgaveId("212121")), TestSessionFactory.transactionContext)
-        verify(klagevedtakRepoMock).lagreProsessertKlagevedtak(mappedKlagevedtak.tilProsessert(OppgaveId("212121")))
+        TestSessionFactory().withTransactionContext { tx ->
+            verify(klageRepoMock).lagre(klage.copy(oppgaveId = OppgaveId("212121")), tx)
+            verify(klagevedtakRepoMock).lagre(mappedKlagevedtak.tilProsessert(OppgaveId("212121")), tx)
+        }
     }
 
-    private fun UprosessertFattetKlagevedtak(id: UUID) = UprosessertFattetKlagevedtak(
+    private fun uprosessertFattetKlagevedtak(id: UUID) = UprosessertFattetKlagevedtak(
         id = id,
         opprettet = fixedTidspunkt,
         metadata = UprosessertFattetKlagevedtak.Metadata(
@@ -150,12 +155,14 @@ internal class KlagevedtakServiceImplTest {
         klageRepo: KlageRepo = mock(),
         oppgaveService: OppgaveService = mock(),
         personService: PersonService = mock(),
+        sessionFactory: TestSessionFactory = TestSessionFactory(),
     ): KlagevedtakService {
         return KlagevedtakServiceImpl(
             klagevedtakRepo = klagevedtakRepo,
             klageRepo = klageRepo,
             oppgaveService = oppgaveService,
             personService = personService,
+            sessionFactory = sessionFactory
         )
     }
 }

@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.web.services.klage
 
+import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.domain.klage.Klagevedtak
+import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
+import no.nav.su.se.bakover.domain.klage.UprosessertKlagevedtak
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -23,13 +25,13 @@ internal class KlagevedtakJobTest {
                 kabalReferanse = kabalReferanse,
                 vedtaksbrevReferanse = "210219347"
             )
-        ) shouldBe Klagevedtak.Uprosessert(
+        ) shouldBe UprosessertKlagevedtak(
             id = klagevedtakId,
             eventId = eventId.toString(),
             klageId = kildeReferanse,
-            utfall = Klagevedtak.Utfall.STADFESTELSE,
+            utfall = KlagevedtakUtfall.STADFESTELSE,
             vedtaksbrevReferanse = "210219347",
-        )
+        ).right()
     }
 
     private fun jsonMelding(
