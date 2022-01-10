@@ -76,12 +76,13 @@ internal class KlagevedtakServiceImplTest {
         verify(personServiceMock).hentAktørIdMedSystembruker(klage.fnr)
         verify(oppgaveServiceMock).opprettOppgave(
             argThat {
-                it shouldBe OppgaveConfig.Klage.Saksbehandler(
+                it shouldBe OppgaveConfig.Klage.Vedtak.Informasjon(
                     saksnummer = klage.saksnummer,
                     aktørId = AktørId(aktørId = ""),
                     journalpostId = JournalpostId(value = mappedKlagevedtak.vedtaksbrevReferanse),
                     tilordnetRessurs = null,
                     clock = Clock.systemUTC(),
+                    utfall = KlagevedtakUtfall.STADFESTELSE
                 )
             },
         )
@@ -123,12 +124,13 @@ internal class KlagevedtakServiceImplTest {
         verify(personServiceMock).hentAktørIdMedSystembruker(klage.fnr)
         verify(oppgaveServiceMock).opprettOppgave(
             argThat {
-                it shouldBe OppgaveConfig.Klage.Saksbehandler(
+                it shouldBe OppgaveConfig.Klage.Vedtak.Handling(
                     saksnummer = klage.saksnummer,
                     aktørId = AktørId(aktørId = ""),
                     journalpostId = JournalpostId(value = "123456"),
                     tilordnetRessurs = null,
                     clock = Clock.systemUTC(),
+                    utfall = KlagevedtakUtfall.RETUR
                 )
             },
         )

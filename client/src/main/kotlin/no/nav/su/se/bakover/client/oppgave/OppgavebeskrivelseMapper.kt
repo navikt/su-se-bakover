@@ -1,9 +1,14 @@
 package no.nav.su.se.bakover.client.oppgave
 
 import no.nav.su.se.bakover.domain.hendelse.Personhendelse
+import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
 
 object OppgavebeskrivelseMapper {
+    fun map(Utfall: KlagevedtakUtfall) {
+        "Utfall: ${Utfall.toReadableName()}\n\n${Utfall.LukkBeskrivelse()}"
+    }
+
     fun map(hendelse: Personhendelse.Hendelse) = when (hendelse) {
         is Personhendelse.Hendelse.Dødsfall -> {
             "Dødsfall\n" +
@@ -32,5 +37,32 @@ object OppgavebeskrivelseMapper {
         SivilstandTyper.SEPARERT_PARTNER -> "Separert partner"
         SivilstandTyper.SKILT_PARTNER -> "Skilt partner"
         SivilstandTyper.GJENLEVENDE_PARTNER -> "Gjenlevende partner"
+    }
+
+    private fun KlagevedtakUtfall.toReadableName() = when (this) {
+        KlagevedtakUtfall.TRUKKET -> "Trukket"
+        KlagevedtakUtfall.RETUR -> "Retur"
+        KlagevedtakUtfall.OPPHEVET -> "Opphevet"
+        KlagevedtakUtfall.MEDHOLD -> "Medhold"
+        KlagevedtakUtfall.DELVIS_MEDHOLD -> "Delvis medhold"
+        KlagevedtakUtfall.STADFESTELSE -> "Stadfestelse"
+        KlagevedtakUtfall.UGUNST -> "Ugunst"
+        KlagevedtakUtfall.AVVIST -> "Avvist"
+    }
+    private fun KlagevedtakUtfall.LukkBeskrivelse() = when (this) {
+        /*
+        * Informasjonsoppgaver som må lukkes manuellt.
+        * */
+        KlagevedtakUtfall.TRUKKET,
+        KlagevedtakUtfall.STADFESTELSE,
+        KlagevedtakUtfall.AVVIST -> "Denna oppgaven er kun til opplysning. Oppgaven må lukkes manuellt."
+        /*
+        * Oppgaver som krever handling. Lukkes automatiskt av oss.
+        * */
+        KlagevedtakUtfall.RETUR,
+        KlagevedtakUtfall.OPPHEVET,
+        KlagevedtakUtfall.MEDHOLD,
+        KlagevedtakUtfall.DELVIS_MEDHOLD,
+        KlagevedtakUtfall.UGUNST -> "Klagen krever ytterliggere saksbehandling. Lukking av oppgaven håndteres automatiskt."
     }
 }

@@ -102,15 +102,32 @@ class KlagevedtakServiceImpl(
     private fun lagOppgaveConfig(
         klagevedtak: UprosessertKlagevedtak,
         klage: OversendtKlage,
-    ): Either<KunneIkkeHenteAktørId, OppgaveConfig.Klage.Saksbehandler> {
+    ): Either<KunneIkkeHenteAktørId, OppgaveConfig.Klage.Vedtak> {
         return personService.hentAktørIdMedSystembruker(klage.fnr).map { aktørId ->
-            OppgaveConfig.Klage.Saksbehandler(
-                saksnummer = klage.saksnummer,
-                aktørId = aktørId,
-                journalpostId = JournalpostId(klagevedtak.vedtaksbrevReferanse),
-                tilordnetRessurs = null,
-                clock = Clock.systemUTC(),
-            )
+            when (klagevedtak.utfall) {
+                KlagevedtakUtfall.TRUKKET,
+                KlagevedtakUtfall.AVVIST,
+                KlagevedtakUtfall.STADFESTELSE -> OppgaveConfig.Klage.Vedtak.Informasjon(
+                    saksnummer = klage.saksnummer,
+                    aktørId = aktørId,
+                    journalpostId = JournalpostId(klagevedtak.vedtaksbrevReferanse),
+                    tilordnetRessurs = null,
+                    clock = Clock.systemUTC(),
+                    utfall = klagevedtak.utfall
+                )
+                KlagevedtakUtfall.RETUR,
+                KlagevedtakUtfall.OPPHEVET,
+                KlagevedtakUtfall.MEDHOLD,
+                KlagevedtakUtfall.DELVIS_MEDHOLD,
+                KlagevedtakUtfall.UGUNST -> OppgaveConfig.Klage.Vedtak.Handling(
+                    saksnummer = klage.saksnummer,
+                    aktørId = aktørId,
+                    journalpostId = JournalpostId(klagevedtak.vedtaksbrevReferanse),
+                    tilordnetRessurs = null,
+                    clock = Clock.systemUTC(),
+                    utfall = klagevedtak.utfall
+                )
+            }
         }.mapLeft {
             KunneIkkeHenteAktørId
         }
