@@ -5,8 +5,8 @@ import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
 
 object OppgavebeskrivelseMapper {
-    fun map(Utfall: KlagevedtakUtfall) {
-        "Utfall: ${Utfall.toReadableName()}\n\n${Utfall.LukkBeskrivelse()}"
+    fun map(utfall: KlagevedtakUtfall) {
+        "Utfall: ${utfall.toReadableName()}\n\n${utfall.LukkBeskrivelse()}"
     }
 
     fun map(hendelse: Personhendelse.Hendelse) = when (hendelse) {
@@ -51,18 +51,18 @@ object OppgavebeskrivelseMapper {
     }
     private fun KlagevedtakUtfall.LukkBeskrivelse() = when (this) {
         /*
-        * Informasjonsoppgaver som må lukkes manuellt.
+        * Informasjonsoppgaver som må lukkes manuelt.
         * */
         KlagevedtakUtfall.TRUKKET,
         KlagevedtakUtfall.STADFESTELSE,
-        KlagevedtakUtfall.AVVIST -> "Denna oppgaven er kun til opplysning. Oppgaven må lukkes manuellt."
+        KlagevedtakUtfall.AVVIST -> "Denne oppgaven er kun til opplysning og må lukkes manuelt."
         /*
-        * Oppgaver som krever handling. Lukkes automatiskt av oss.
+        * Oppgaver som krever handling. Lukkes automatisk av `su-se-bakover`.
         * */
         KlagevedtakUtfall.RETUR,
         KlagevedtakUtfall.OPPHEVET,
         KlagevedtakUtfall.MEDHOLD,
         KlagevedtakUtfall.DELVIS_MEDHOLD,
-        KlagevedtakUtfall.UGUNST -> "Klagen krever ytterliggere saksbehandling. Lukking av oppgaven håndteres automatiskt."
+        KlagevedtakUtfall.UGUNST -> "Klagen krever ytterligere saksbehandling. Lukking av oppgaven håndteres automatisk."
     }
 }
