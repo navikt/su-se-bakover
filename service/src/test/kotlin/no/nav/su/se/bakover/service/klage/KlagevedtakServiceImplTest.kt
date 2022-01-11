@@ -55,7 +55,7 @@ internal class KlagevedtakServiceImplTest {
             on { hentAktørIdMedSystembruker(any()) } doReturn AktørId("").right()
         }
         val oppgaveServiceMock: OppgaveService = mock {
-            on { opprettOppgave(any()) } doReturn OppgaveId("212121").right()
+            on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("212121").right()
         }
         val mappedKlagevedtak = UprosessertKlagevedtak(
             id = id,
@@ -74,7 +74,7 @@ internal class KlagevedtakServiceImplTest {
         verify(klagevedtakRepoMock).hentUbehandlaKlagevedtak()
         verify(klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(personServiceMock).hentAktørIdMedSystembruker(klage.fnr)
-        verify(oppgaveServiceMock).opprettOppgave(
+        verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
             argThat {
                 it shouldBe OppgaveConfig.Klage.Vedtak.Informasjon(
                     saksnummer = klage.saksnummer,
@@ -103,7 +103,7 @@ internal class KlagevedtakServiceImplTest {
             on { hentAktørIdMedSystembruker(any()) } doReturn AktørId("").right()
         }
         val oppgaveServiceMock: OppgaveService = mock {
-            on { opprettOppgave(any()) } doReturn OppgaveId("212121").right()
+            on { opprettOppgaveMedSystembruker(any()) } doReturn OppgaveId("212121").right()
         }
         val mappedKlagevedtak = UprosessertKlagevedtak(
             id = id,
@@ -122,7 +122,7 @@ internal class KlagevedtakServiceImplTest {
         verify(klagevedtakRepoMock).hentUbehandlaKlagevedtak()
         verify(klageRepoMock).hentKlage(argThat { it shouldBe klage.id })
         verify(personServiceMock).hentAktørIdMedSystembruker(klage.fnr)
-        verify(oppgaveServiceMock).opprettOppgave(
+        verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
             argThat {
                 it shouldBe OppgaveConfig.Klage.Vedtak.Handling(
                     saksnummer = klage.saksnummer,

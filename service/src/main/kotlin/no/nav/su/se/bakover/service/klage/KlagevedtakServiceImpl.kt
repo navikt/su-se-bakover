@@ -82,7 +82,7 @@ class KlagevedtakServiceImpl(
 
     private fun håndterRetur(klagevedtak: UprosessertKlagevedtak, klage: OversendtKlage) {
         lagOppgaveConfig(klagevedtak, klage).map { oppgaveConfig ->
-            oppgaveService.opprettOppgave(oppgaveConfig).map { oppgaveId ->
+            oppgaveService.opprettOppgaveMedSystembruker(oppgaveConfig).map { oppgaveId ->
                 sessionFactory.withTransactionContext { tx ->
                     klageRepo.lagre(klage.copy(oppgaveId = oppgaveId), tx)
                     klagevedtakRepo.lagre(klagevedtak.tilProsessert(oppgaveId), tx)
@@ -93,7 +93,7 @@ class KlagevedtakServiceImpl(
 
     private fun håndterStadfestelse(klagevedtak: UprosessertKlagevedtak, klage: OversendtKlage) {
         lagOppgaveConfig(klagevedtak, klage).map { oppgaveConfig ->
-            oppgaveService.opprettOppgave(oppgaveConfig).map { oppgaveId ->
+            oppgaveService.opprettOppgaveMedSystembruker(oppgaveConfig).map { oppgaveId ->
                 klagevedtakRepo.lagre(klagevedtak.tilProsessert(oppgaveId))
             }
         }
