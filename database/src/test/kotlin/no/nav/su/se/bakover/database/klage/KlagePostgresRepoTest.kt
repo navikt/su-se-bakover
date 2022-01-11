@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
 import no.nav.su.se.bakover.domain.klage.UprosessertKlageinstansvedtak
 import no.nav.su.se.bakover.domain.klage.VilkårsvurderingerTilKlage
 import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
+import no.nav.su.se.bakover.test.getOrFail
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.getOrFail
@@ -47,7 +48,7 @@ internal class KlagePostgresRepoTest {
             val klage = testDataHelper.nyKlage().vilkårsvurder(
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerPåbegyntVilkårsvurderinger"),
                 vilkårsvurderinger = VilkårsvurderingerTilKlage.empty(),
-            ).also {
+            ).getOrFail().also {
                 klageRepo.lagre(it)
             }
 
@@ -67,7 +68,7 @@ internal class KlagePostgresRepoTest {
 
             val urelatertKlage = testDataHelper.nyKlage()
 
-            val klage = testDataHelper.utfyltVilkårsvurdertKlage()
+            val klage = testDataHelper.utfyltVilkårsvurdertKlageTilVurdering()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext) shouldBe listOf(klage)
@@ -85,7 +86,7 @@ internal class KlagePostgresRepoTest {
 
             val urelatertKlage = testDataHelper.nyKlage()
 
-            val klage = testDataHelper.bekreftetVilkårsvurdertKlage().vurder(
+            val klage = testDataHelper.bekreftetVilkårsvurdertKlageTilVurdering().vurder(
                 saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlerPåbegyntVurderinger"),
                 vurderinger = VurderingerTilKlage.empty(),
             ).also {
@@ -126,7 +127,7 @@ internal class KlagePostgresRepoTest {
 
             val urelatertKlage = testDataHelper.nyKlage()
 
-            val klage = testDataHelper.klageTilAttestering()
+            val klage = testDataHelper.klageTilAttesteringTilVurdering()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext) shouldBe listOf(klage)
@@ -144,7 +145,7 @@ internal class KlagePostgresRepoTest {
 
             val urelatertKlage = testDataHelper.nyKlage()
 
-            val klage = testDataHelper.underkjentKlage()
+            val klage = testDataHelper.underkjentKlageTilVurdering()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext) shouldBe listOf(klage)
@@ -163,6 +164,24 @@ internal class KlagePostgresRepoTest {
             val urelatertKlage = testDataHelper.nyKlage()
 
             val klage = testDataHelper.oversendtKlage()
+
+            testDataHelper.sessionFactory.withSessionContext { sessionContext ->
+                klageRepo.hentKlager(klage.sakId, sessionContext) shouldBe listOf(klage)
+            }
+            klageRepo.hentKlage(klage.id) shouldBe klage
+            klageRepo.hentKlage(urelatertKlage.id) shouldBe urelatertKlage
+        }
+    }
+
+    @Test
+    fun `lagrer en avvist klage`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val klageRepo = testDataHelper.klagePostgresRepo
+
+            val urelatertKlage = testDataHelper.nyKlage()
+
+            val klage = testDataHelper.avvistKlage()
 
             testDataHelper.sessionFactory.withSessionContext { sessionContext ->
                 klageRepo.hentKlager(klage.sakId, sessionContext) shouldBe listOf(klage)

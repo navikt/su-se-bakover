@@ -14,17 +14,21 @@ import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
-import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.klageTilAttestering
+import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
+import no.nav.su.se.bakover.test.påbegyntAvvistKlage
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
-import no.nav.su.se.bakover.test.underkjentKlage
-import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.underkjentKlageTilVurdering
+import no.nav.su.se.bakover.test.utfyltAvvistVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.utfyltVurdertKlage
+import no.nav.su.se.bakover.test.vurdertKlageTilAttestering
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
@@ -70,14 +74,35 @@ internal class BekreftVurdertKlageTest {
     @Test
     fun `Ugyldig tilstandsovergang fra utfylt vilkårsvurdering`() {
         verifiserUgyldigTilstandsovergang(
-            klage = utfyltVilkårsvurdertKlage().second,
+            klage = utfyltVilkårsvurdertKlageTilVurdering().second,
+        )
+    }
+
+    @Test
+    fun `Ugyldig tilstandsovergang fra utfylt avvist`() {
+        verifiserUgyldigTilstandsovergang(
+            klage = utfyltAvvistVilkårsvurdertKlage().second,
         )
     }
 
     @Test
     fun `Ugyldig tilstandsovergang fra bekreftet vilkårsvurdering`() {
         verifiserUgyldigTilstandsovergang(
-            klage = bekreftetVilkårsvurdertKlage().second,
+            klage = bekreftetVilkårsvurdertKlageTilVurdering().second,
+        )
+    }
+
+    @Test
+    fun `Ugyldig tilstandsovergang fra påbegynt avvist`() {
+        verifiserUgyldigTilstandsovergang(
+            klage = påbegyntAvvistKlage().second,
+        )
+    }
+
+    @Test
+    fun `Ugyldig tilstandsovergang fra bekreftet avvist`() {
+        verifiserUgyldigTilstandsovergang(
+            klage = bekreftetAvvistVilkårsvurdertKlage().second,
         )
     }
 
@@ -91,14 +116,21 @@ internal class BekreftVurdertKlageTest {
     @Test
     fun `Ugyldig tilstandsovergang fra til attestering`() {
         verifiserUgyldigTilstandsovergang(
-            klage = klageTilAttestering().second,
+            klage = vurdertKlageTilAttestering().second,
         )
     }
 
     @Test
-    fun `Ugyldig tilstandsovergang fra iverksatt`() {
+    fun `Ugyldig tilstandsovergang fra oversendt`() {
         verifiserUgyldigTilstandsovergang(
             klage = oversendtKlage().second,
+        )
+    }
+
+    @Test
+    fun `Ugyldig tilstandsovergang fra iverksattAvvist`() {
+        verifiserUgyldigTilstandsovergang(
+            klage = iverksattAvvistKlage().second,
         )
     }
 
@@ -145,13 +177,13 @@ internal class BekreftVurdertKlageTest {
 
     @Test
     fun `Skal kunne bekrefte underkjent klage`() {
-        underkjentKlage().let {
+        underkjentKlageTilVurdering().let {
             verifiserGyldigStatusovergang(
                 vedtak = it.first.vedtakListe.first(),
                 klage = it.second,
                 vilkårsvurderingerTilKlage = it.second.vilkårsvurderinger,
                 vurderingerTilKlage = it.second.vurderinger,
-                attesteringer = it.second.attesteringer
+                attesteringer = it.second.attesteringer,
             )
         }
     }

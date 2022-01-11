@@ -27,7 +27,7 @@ data class OversendtKlage private constructor(
     val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
     val vurderinger: VurderingerTilKlage.Utfylt,
     val attesteringer: Attesteringshistorikk,
-) : Klage() {
+) : Klage {
 
     companion object {
         fun create(

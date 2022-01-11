@@ -13,7 +13,7 @@ import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
 
-sealed class VurdertKlage : Klage() {
+sealed class VurdertKlage : Klage {
 
     abstract val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt
     abstract val vurderinger: VurderingerTilKlage
@@ -293,7 +293,8 @@ sealed class VurdertKlage : Klage() {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
-                    klagevedtakshistorikk = klagevedtakshistorikk
+                    fritekstTilBrev = null,
+                    klagevedtakshistorikk = klagevedtakshistorikk,
                 )
             }
         }

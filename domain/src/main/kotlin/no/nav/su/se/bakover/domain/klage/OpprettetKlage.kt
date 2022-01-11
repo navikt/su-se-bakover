@@ -23,7 +23,7 @@ data class OpprettetKlage private constructor(
     override val datoKlageMottatt: LocalDate,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
     override val klagevedtakshistorikk: Klagevedtakshistorikk,
-) : Klage() {
+) : Klage {
 
     companion object {
         fun create(
@@ -61,7 +61,7 @@ data class OpprettetKlage private constructor(
         }.right()
     }
 
-    fun vilkårsvurder(
+    private fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
         vilkårsvurderinger: VilkårsvurderingerTilKlage.Påbegynt,
     ): VilkårsvurdertKlage.Påbegynt {
@@ -82,7 +82,7 @@ data class OpprettetKlage private constructor(
         )
     }
 
-    fun vilkårsvurder(
+    private fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
         vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
     ): VilkårsvurdertKlage.Utfylt {

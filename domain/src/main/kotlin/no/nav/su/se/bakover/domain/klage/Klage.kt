@@ -18,25 +18,35 @@ import kotlin.reflect.KClass
 /**
  * Gyldige tilstandsoverganger klage:
  * - [OpprettetKlage] -> [VilkårsvurdertKlage.Påbegynt] og [VilkårsvurdertKlage.Utfylt]
+ *
  * - [VilkårsvurdertKlage.Påbegynt] -> [VilkårsvurdertKlage.Påbegynt] og [VilkårsvurdertKlage.Utfylt]
- * - [VilkårsvurdertKlage.Utfylt] -> [VilkårsvurdertKlage]
- * - [VilkårsvurdertKlage.Bekreftet] -> [VilkårsvurdertKlage] og [VurdertKlage.Påbegynt] og [VurdertKlage.Utfylt]
+ * - [VilkårsvurdertKlage.Utfylt] -> [VilkårsvurdertKlage.Bekreftet]
+ * - [VilkårsvurdertKlage.Bekreftet.TilVurdering] -> [VilkårsvurdertKlage] og [VurdertKlage.Påbegynt] og [VurdertKlage.Utfylt]
+ * - [VilkårsvurdertKlage.Bekreftet.Avvist] -> [VilkårsvurdertKlage] og [AvvistKlage.Påbegynt]
+ *
  * - [VurdertKlage.Påbegynt] -> [VilkårsvurdertKlage] og [VurdertKlage.Påbegynt] og [VurdertKlage.Utfylt]
  * - [VurdertKlage.Utfylt] -> [VilkårsvurdertKlage] og [VurdertKlage]
  * - [VurdertKlage.Bekreftet] -> [VilkårsvurdertKlage] og [VurdertKlage] og [KlageTilAttestering]
- * - [KlageTilAttestering] -> [OversendtKlage] og [VurdertKlage.Bekreftet]
+ *
+ * - [AvvistKlage.Påbegynt] -> [AvvistKlage.Bekreftet]
+ * - [AvvistKlage.Bekreftet] -> [KlageTilAttestering.Avvist]
+ *
+ * - [KlageTilAttestering.Vurdert] -> [OversendtKlage] og [VurdertKlage.Bekreftet]
+ * - [KlageTilAttestering.Avvist] -> [IverksattAvvistKlage], og [VilkårsvurdertKlage.Bekreftet]
+ *
  * - [OversendtKlage] -> ingen
+ * - [IverksattAvvistKlage] -> ingen
  */
-sealed class Klage {
-    abstract val id: UUID
-    abstract val opprettet: Tidspunkt
-    abstract val sakId: UUID
-    abstract val saksnummer: Saksnummer
-    abstract val fnr: Fnr
-    abstract val journalpostId: JournalpostId
-    abstract val oppgaveId: OppgaveId
-    abstract val datoKlageMottatt: LocalDate
-    abstract val saksbehandler: NavIdentBruker.Saksbehandler
+sealed interface Klage {
+    val id: UUID
+    val opprettet: Tidspunkt
+    val sakId: UUID
+    val saksnummer: Saksnummer
+    val fnr: Fnr
+    val journalpostId: JournalpostId
+    val oppgaveId: OppgaveId
+    val datoKlageMottatt: LocalDate
+    val saksbehandler: NavIdentBruker.Saksbehandler
     abstract val klagevedtakshistorikk: Klagevedtakshistorikk
 
     fun erÅpen(): Boolean {
@@ -47,7 +57,7 @@ sealed class Klage {
      * Dersom vi allerede har vurderinger vil vi ta vare på disse videre.
      * @return [VilkårsvurdertKlage.Påbegynt] eller [VilkårsvurdertKlage.Utfylt]
      */
-    open fun vilkårsvurder(
+    fun vilkårsvurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
         vilkårsvurderinger: VilkårsvurderingerTilKlage,
     ): Either<KunneIkkeVilkårsvurdereKlage, VilkårsvurdertKlage> {
@@ -55,14 +65,14 @@ sealed class Klage {
     }
 
     /** @return [VilkårsvurdertKlage.Bekreftet]  */
-    open fun bekreftVilkårsvurderinger(
+    fun bekreftVilkårsvurderinger(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, VilkårsvurdertKlage.Bekreftet> {
         return KunneIkkeBekrefteKlagesteg.UgyldigTilstand(this::class, VilkårsvurdertKlage.Bekreftet::class).left()
     }
 
     /** @return [VurdertKlage.Påbegynt] eller [VurdertKlage.Utfylt] */
-    open fun vurder(
+    fun vurder(
         saksbehandler: NavIdentBruker.Saksbehandler,
         vurderinger: VurderingerTilKlage,
     ): Either<KunneIkkeVurdereKlage.UgyldigTilstand, VurdertKlage> {
@@ -70,33 +80,55 @@ sealed class Klage {
     }
 
     /** @return [VurdertKlage.Bekreftet] */
-    open fun bekreftVurderinger(
+    fun bekreftVurderinger(
         saksbehandler: NavIdentBruker.Saksbehandler,
     ): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, VurdertKlage.Bekreftet> {
         return KunneIkkeBekrefteKlagesteg.UgyldigTilstand(this::class, VurdertKlage.Bekreftet::class).left()
     }
 
+    /** @return [AvvistKlage.Utfylt] */
+    fun leggTilAvvistFritekstTilBrev(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        fritekst: String?,
+    ): Either<KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand, AvvistKlage.Påbegynt> {
+        return KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand(this::class, AvvistKlage.Påbegynt::class).left()
+    }
+
+    /** @return [AvvistKlage.Bekreftet] */
+    fun bekreftAvvistFritekstTilBrev(
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeBekrefteKlagesteg.UgyldigTilstand, AvvistKlage.Bekreftet> {
+        return KunneIkkeBekrefteKlagesteg.UgyldigTilstand(this::class, AvvistKlage.Bekreftet::class).left()
+    }
+
     /** @return [KlageTilAttestering] */
-    open fun sendTilAttestering(
+    fun sendTilAttestering(
         saksbehandler: NavIdentBruker.Saksbehandler,
         opprettOppgave: () -> Either<KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave, OppgaveId>,
     ): Either<KunneIkkeSendeTilAttestering, KlageTilAttestering> {
         return KunneIkkeSendeTilAttestering.UgyldigTilstand(this::class, KlageTilAttestering::class).left()
     }
 
-    /** @return [VurdertKlage.Bekreftet] */
-    open fun underkjenn(
+    /** @return [VurdertKlage.Bekreftet] eller [VilkårsvurdertKlage.Bekreftet] */
+    fun underkjenn(
         underkjentAttestering: Attestering.Underkjent,
         opprettOppgave: () -> Either<KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave, OppgaveId>,
-    ): Either<KunneIkkeUnderkjenne, VurdertKlage.Bekreftet> {
+    ): Either<KunneIkkeUnderkjenne, Klage> {
         return KunneIkkeUnderkjenne.UgyldigTilstand(this::class, VurdertKlage.Bekreftet::class).left()
     }
 
     /** @return [OversendtKlage] */
-    open fun oversend(
+    fun oversend(
         iverksattAttestering: Attestering.Iverksatt,
     ): Either<KunneIkkeOversendeKlage, OversendtKlage> {
         return KunneIkkeOversendeKlage.UgyldigTilstand(this::class, OversendtKlage::class).left()
+    }
+
+    /** @return [IverksattAvvistKlage]*/
+    fun avvis(
+        iverksattAttestering: Attestering.Iverksatt,
+    ): Either<KunneIkkeIverksetteAvvistKlage, IverksattAvvistKlage> {
+        return KunneIkkeIverksetteAvvistKlage.UgyldigTilstand(this::class, IverksattAvvistKlage::class).left()
     }
 
     open fun leggTilNyttKlagevedtak(

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.klage
 
 import arrow.core.left
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attesteringshistorikk
@@ -14,17 +15,21 @@ import no.nav.su.se.bakover.domain.klage.VurderingerTilKlage
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.test.TestSessionFactory
-import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.klageTilAttestering
+import no.nav.su.se.bakover.test.getOrFail
+import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
-import no.nav.su.se.bakover.test.underkjentKlage
-import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.underkjentKlageTilVurdering
+import no.nav.su.se.bakover.test.utfyltAvvistVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.utfyltVurdertKlage
+import no.nav.su.se.bakover.test.vurdertKlageTilAttestering
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
@@ -36,7 +41,6 @@ internal class VilkårsvurderKlageTest {
 
     @Test
     fun `fant ikke klage`() {
-
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn null
@@ -60,7 +64,6 @@ internal class VilkårsvurderKlageTest {
 
     @Test
     fun `fant ikke vedtak`() {
-
         val mocks = KlageServiceMocks(
             vedtakRepoMock = mock {
                 on { hentForVedtakId(any()) } doReturn null
@@ -85,7 +88,7 @@ internal class VilkårsvurderKlageTest {
     @Test
     fun `Ugyldig tilstandsovergang fra til attestering`() {
         verifiserUgyldigTilstandsovergang(
-            klage = klageTilAttestering().second,
+            klage = vurdertKlageTilAttestering().second,
         )
     }
 
@@ -93,6 +96,13 @@ internal class VilkårsvurderKlageTest {
     fun `Ugyldig tilstandsovergang fra iverksatt`() {
         verifiserUgyldigTilstandsovergang(
             klage = oversendtKlage().second,
+        )
+    }
+
+    @Test
+    fun `ugyldig tilstandsovergang fra Avvist`() {
+        verifiserUgyldigTilstandsovergang(
+            klage = iverksattAvvistKlage().second,
         )
     }
 
@@ -152,8 +162,8 @@ internal class VilkårsvurderKlageTest {
     }
 
     @Test
-    fun `Skal kunne vilkårsvurdere utfylt vilkårsvurdert klage`() {
-        val (sak, klage) = utfyltVilkårsvurdertKlage()
+    fun `Skal kunne vilkårsvurdere utfylt vilkårsvurdert klage til vurdering`() {
+        val (sak, klage) = utfyltVilkårsvurdertKlageTilVurdering()
         val vedtak = sak.vedtakListe.first()
         verifiserGyldigStatusovergangTilPåbegynt(
             vedtak = vedtak,
@@ -166,8 +176,37 @@ internal class VilkårsvurderKlageTest {
     }
 
     @Test
-    fun `Skal kunne vilkårsvurdere bekreftet vilkårsvurdert klage`() {
-        val (sak, klage) = bekreftetVilkårsvurdertKlage()
+    fun `Skal kunne vilkårsvurdere utfylt avvist vilkårsvurdert klage`() {
+        val (sak, klage) = utfyltAvvistVilkårsvurdertKlage()
+        val vedtak = sak.vedtakListe.first()
+        verifiserGyldigStatusovergangTilPåbegynt(
+            vedtak = vedtak,
+            klage = klage,
+        )
+        verifiserGyldigStatusovergangTilUtfylt(
+            vedtak = vedtak,
+            klage = klage,
+        )
+    }
+
+    @Test
+    fun `Skal kunne vilkårsvurdere bekreftet vilkårsvurdert klage som er til vurdering`() {
+        val (sak, klage) = bekreftetVilkårsvurdertKlageTilVurdering()
+        val vedtak = sak.vedtakListe.first()
+
+        verifiserGyldigStatusovergangTilPåbegynt(
+            vedtak = vedtak,
+            klage = klage,
+        )
+        verifiserGyldigStatusovergangTilUtfylt(
+            vedtak = vedtak,
+            klage = klage,
+        )
+    }
+
+    @Test
+    fun `Skal kunne vilkårsvurdere bekreftet avvist vilkårsvurdert klage`() {
+        val (sak, klage) = bekreftetAvvistVilkårsvurdertKlage()
         val vedtak = sak.vedtakListe.first()
 
         verifiserGyldigStatusovergangTilPåbegynt(
@@ -232,7 +271,7 @@ internal class VilkårsvurderKlageTest {
 
     @Test
     fun `Skal kunne vilkårsvurdere underkjent klage`() {
-        val (sak, klage) = underkjentKlage()
+        val (sak, klage) = underkjentKlageTilVurdering()
         val vedtak = sak.vedtakListe.first()
 
         verifiserGyldigStatusovergangTilPåbegynt(
@@ -250,40 +289,19 @@ internal class VilkårsvurderKlageTest {
     }
 
     @Test
-    fun `får feil dersom man svarer nei`() {
-        val r1 = VurderKlagevilkårRequest(
-            saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
-            klageId = UUID.randomUUID(),
-            vedtakId = null,
-            innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI,
-            klagesDetPåKonkreteElementerIVedtaket = null,
-            erUnderskrevet = null,
-            begrunnelse = null,
-        )
+    fun `får tilbake en utfylt avvist vilkårsvurdert klage dersom minst et av feltene er besvart 'nei' eller false`() {
+        val forventetAvvistVilkårsvurdertKlage = påbegyntVilkårsvurdertKlage().second.vilkårsvurder(
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "saksbehandlerensen"),
+            vilkårsvurderinger = VilkårsvurderingerTilKlage.create(
+                vedtakId = UUID.randomUUID(),
+                innenforFristen = VilkårsvurderingerTilKlage.Svarord.NEI,
+                klagesDetPåKonkreteElementerIVedtaket = true,
+                erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.JA,
+                begrunnelse = "en god og fin begrunnelse",
+            ),
+        ).getOrFail()
 
-        val r2 = VurderKlagevilkårRequest(
-            saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
-            klageId = UUID.randomUUID(),
-            vedtakId = null,
-            innenforFristen = null,
-            klagesDetPåKonkreteElementerIVedtaket = null,
-            erUnderskrevet = VilkårsvurderingerTilKlage.Svarord.NEI,
-            begrunnelse = null,
-        )
-
-        val r3 = VurderKlagevilkårRequest(
-            saksbehandler = NavIdentBruker.Saksbehandler("nySaksbehandler"),
-            klageId = UUID.randomUUID(),
-            vedtakId = null,
-            innenforFristen = null,
-            klagesDetPåKonkreteElementerIVedtaket = false,
-            erUnderskrevet = null,
-            begrunnelse = null,
-        )
-
-        r1.toDomain() shouldBe KunneIkkeVilkårsvurdereKlage.NeiSvarErIkkeStøttet.left()
-        r2.toDomain() shouldBe KunneIkkeVilkårsvurdereKlage.NeiSvarErIkkeStøttet.left()
-        r3.toDomain() shouldBe KunneIkkeVilkårsvurdereKlage.NeiSvarErIkkeStøttet.left()
+        forventetAvvistVilkårsvurdertKlage.shouldBeTypeOf<VilkårsvurdertKlage.Utfylt.Avvist>()
     }
 
     private fun verifiserGyldigStatusovergangTilPåbegynt(

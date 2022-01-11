@@ -20,7 +20,9 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
+import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
@@ -146,10 +148,6 @@ internal fun Route.klageRoutes(
                             KunneIkkeVilkårsvurdereKlage.FantIkkeKlage -> fantIkkeKlage
                             KunneIkkeVilkårsvurdereKlage.FantIkkeVedtak -> fantIkkeVedtak
                             is KunneIkkeVilkårsvurdereKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
-                            KunneIkkeVilkårsvurdereKlage.NeiSvarErIkkeStøttet -> BadRequest.errorJson(
-                                "Vi har ikke støtte for å svare nei",
-                                "nei_er_ikke_støttet",
-                            )
                         }
                     }
                     call.svar(resultat)
@@ -173,6 +171,45 @@ internal fun Route.klageRoutes(
                     }
                 }
                 call.svar(resultat)
+            }
+        }
+    }
+
+    authorize(Brukerrolle.Saksbehandler) {
+        post("$klagePath/{klageId}/avvist/fritekstTilBrev") {
+            data class Body(val fritekst: String?)
+            call.withKlageId { klageId ->
+                call.withBody<Body> { body ->
+                    klageService.leggTilAvvistFritekstTilBrev(
+                        klageId = klageId,
+                        saksbehandler = call.suUserContext.saksbehandler,
+                        fritekst = body.fritekst,
+                    ).map {
+                        call.svar(Resultat.json(OK, serialize(it.toJson())))
+                    }.mapLeft {
+                        val error = when (it) {
+                            KunneIkkeLeggeTilFritekstForAvvist.FantIkkeKlage -> fantIkkeKlage
+                            is KunneIkkeLeggeTilFritekstForAvvist.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                        }
+                        call.svar(error)
+                    }
+                }
+            }
+        }
+    }
+
+    authorize(Brukerrolle.Saksbehandler) {
+        post("$klagePath/{klageId}/avvist/bekreft") {
+            call.withKlageId { klageId ->
+                klageService.bekreftAvvistFritekst(klageId, call.suUserContext.saksbehandler).map {
+                    call.svar(Resultat.json(OK, serialize(it.toJson())))
+                }.mapLeft {
+                    val error = when (it) {
+                        KunneIkkeBekrefteKlagesteg.FantIkkeKlage -> fantIkkeKlage
+                        is KunneIkkeBekrefteKlagesteg.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                    }
+                    call.svar(error)
+                }
             }
         }
     }
@@ -383,6 +420,28 @@ internal fun Route.klageRoutes(
                             )
                         },
                     )
+                }
+            }
+        }
+    }
+
+    authorize(Brukerrolle.Attestant) {
+        post("$klagePath/{klageId}/avvis") {
+            call.withKlageId { klageId ->
+                klageService.avvis(
+                    klageId = klageId,
+                    attestant = NavIdentBruker.Attestant(
+                        call.suUserContext.navIdent,
+                    ),
+                ).map {
+                    call.svar(Resultat.json(OK, serialize(it.toJson())))
+                }.mapLeft {
+                    when (it) {
+                        KunneIkkeIverksetteAvvistKlage.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> attestantOgSaksbehandlerKanIkkeVæreSammePerson
+                        KunneIkkeIverksetteAvvistKlage.FantIkkeKlage -> fantIkkeKlage
+                        is KunneIkkeIverksetteAvvistKlage.KunneIkkeLageBrev -> it.feil.toErrorJson()
+                        is KunneIkkeIverksetteAvvistKlage.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
+                    }
                 }
             }
         }

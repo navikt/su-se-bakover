@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
 import no.nav.su.se.bakover.domain.klage.OpprettetKlage
 import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.service.klage.KlageService
-import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -117,7 +117,7 @@ internal class BekreftVilkårsvurderingerForKlageTest {
 
     @Test
     fun `kan bekrefte utfylt vilkårsvurdert klage`() {
-        val bekreftetVilkårsvurdertKlage = bekreftetVilkårsvurdertKlage().second
+        val bekreftetVilkårsvurdertKlage = bekreftetVilkårsvurdertKlageTilVurdering().second
         val klageServiceMock = mock<KlageService> {
             on { bekreftVilkårsvurderinger(any(), any()) } doReturn bekreftetVilkårsvurdertKlage.right()
         }
@@ -142,7 +142,7 @@ internal class BekreftVilkårsvurderingerForKlageTest {
                   "journalpostId":"klageJournalpostId",
                   "saksbehandler":"saksbehandler",
                   "datoKlageMottatt":"2021-12-01",
-                  "status":"VILKÅRSVURDERT_BEKREFTET",
+                  "status":"VILKÅRSVURDERT_BEKREFTET_TIL_VURDERING",
                   "vedtakId":"${bekreftetVilkårsvurdertKlage.vilkårsvurderinger.vedtakId}",
                   "innenforFristen":"JA",
                   "klagesDetPåKonkreteElementerIVedtaket":true,

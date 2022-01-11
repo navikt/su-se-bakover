@@ -24,19 +24,23 @@ import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.test.TestSessionFactory
-import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.bekreftetAvvistVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.bekreftetVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.bekreftetVurdertKlage
 import no.nav.su.se.bakover.test.fixedLocalDate
 import no.nav.su.se.bakover.test.fixedTidspunkt
-import no.nav.su.se.bakover.test.klageTilAttestering
+import no.nav.su.se.bakover.test.iverksattAvvistKlage
 import no.nav.su.se.bakover.test.opprettetKlage
 import no.nav.su.se.bakover.test.oversendtKlage
 import no.nav.su.se.bakover.test.person
 import no.nav.su.se.bakover.test.påbegyntVilkårsvurdertKlage
 import no.nav.su.se.bakover.test.påbegyntVurdertKlage
-import no.nav.su.se.bakover.test.underkjentKlage
-import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.underkjentAvvistKlage
+import no.nav.su.se.bakover.test.underkjentKlageTilVurdering
+import no.nav.su.se.bakover.test.utfyltAvvistVilkårsvurdertKlage
+import no.nav.su.se.bakover.test.utfyltVilkårsvurdertKlageTilVurdering
 import no.nav.su.se.bakover.test.utfyltVurdertKlage
+import no.nav.su.se.bakover.test.vurdertKlageTilAttestering
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.any
@@ -67,7 +71,7 @@ internal class OversendKlageTest {
 
     @Test
     fun `Attestant og saksbehandler kan ikke være samme person`() {
-        val klage = klageTilAttestering().second
+        val klage = vurdertKlageTilAttestering().second
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
@@ -86,7 +90,7 @@ internal class OversendKlageTest {
 
     @Test
     fun `kunne ikke lage brevrequest`() {
-        val klage = klageTilAttestering().second
+        val klage = vurdertKlageTilAttestering().second
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
                 on { hentKlage(any()) } doReturn klage
@@ -109,7 +113,7 @@ internal class OversendKlageTest {
 
     @Test
     fun `Dokumentgenerering feilet`() {
-        val (sak, klage) = klageTilAttestering()
+        val (sak, klage) = vurdertKlageTilAttestering()
         val person = person(fnr = sak.fnr)
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
@@ -154,7 +158,7 @@ internal class OversendKlageTest {
 
     @Test
     fun `Fant ikke journalpost-id knyttet til vedtaket`() {
-        val (sak, klage) = klageTilAttestering()
+        val (sak, klage) = vurdertKlageTilAttestering()
         val person = person(fnr = sak.fnr)
         val mocks = KlageServiceMocks(
             klageRepoMock = mock {
@@ -203,7 +207,7 @@ internal class OversendKlageTest {
 
     @Test
     fun `Kunne ikke oversende til klageinstans`() {
-        val (sak, klage) = klageTilAttestering()
+        val (sak, klage) = vurdertKlageTilAttestering()
         val person = person(fnr = sak.fnr)
         val journalpostIdKnyttetTilVedtakDetKlagePå = JournalpostId("journalpostIdKnyttetTilVedtakDetKlagePå")
         val pdfAsBytes = "brevbytes".toByteArray()
@@ -326,7 +330,7 @@ internal class OversendKlageTest {
 
     @Test
     fun `Ugyldig tilstandsovergang fra utfylt vilkårsvurdering`() {
-        utfyltVilkårsvurdertKlage().also {
+        utfyltVilkårsvurdertKlageTilVurdering().also {
             verifiserUgyldigTilstandsovergang(
                 klage = it.second,
             )
@@ -334,8 +338,26 @@ internal class OversendKlageTest {
     }
 
     @Test
-    fun `Ugyldig tilstandsovergang fra bekreftet vilkårsvurdering`() {
-        bekreftetVilkårsvurdertKlage().also {
+    fun `Ugyldig tilstandsovergang fra utfylt vilkårsvurdering avvist`() {
+        utfyltAvvistVilkårsvurdertKlage().also {
+            verifiserUgyldigTilstandsovergang(
+                klage = it.second,
+            )
+        }
+    }
+
+    @Test
+    fun `Ugyldig tilstandsovergang fra bekreftet vilkårsvurdering til vurdering`() {
+        bekreftetVilkårsvurdertKlageTilVurdering().also {
+            verifiserUgyldigTilstandsovergang(
+                klage = it.second,
+            )
+        }
+    }
+
+    @Test
+    fun `Ugyldig tilstandsovergang fra bekreftet vilkårsvurdering avvist`() {
+        bekreftetAvvistVilkårsvurdertKlage().also {
             verifiserUgyldigTilstandsovergang(
                 klage = it.second,
             )
@@ -371,7 +393,16 @@ internal class OversendKlageTest {
 
     @Test
     fun `Ugyldig tilstandsovergang underkjent vurdering`() {
-        underkjentKlage().also {
+        underkjentKlageTilVurdering().also {
+            verifiserUgyldigTilstandsovergang(
+                klage = it.second,
+            )
+        }
+    }
+
+    @Test
+    fun `Ugyldig tilstandsovergang underkjent vurdering avvist`() {
+        underkjentAvvistKlage().also {
             verifiserUgyldigTilstandsovergang(
                 klage = it.second,
             )
@@ -381,6 +412,15 @@ internal class OversendKlageTest {
     @Test
     fun `Ugyldig tilstandsovergang fra iverksatt`() {
         oversendtKlage().also {
+            verifiserUgyldigTilstandsovergang(
+                klage = it.second,
+            )
+        }
+    }
+
+    @Test
+    fun `Ugyldig tilstandsovergang fra avvist`() {
+        iverksattAvvistKlage().also {
             verifiserUgyldigTilstandsovergang(
                 klage = it.second,
             )
@@ -404,7 +444,7 @@ internal class OversendKlageTest {
 
     @Test
     fun `Skal kunne iverksette klage som er til attestering`() {
-        val (sak, klage) = klageTilAttestering()
+        val (sak, klage) = vurdertKlageTilAttestering()
         val journalpostIdForVedtak = JournalpostId(UUID.randomUUID().toString())
         val person = person(fnr = sak.fnr)
         val pdfAsBytes = "brevbytes".toByteArray()

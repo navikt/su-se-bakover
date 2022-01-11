@@ -15,12 +15,16 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.dokument.Dokument
+import no.nav.su.se.bakover.domain.klage.AvvistKlage
+import no.nav.su.se.bakover.domain.klage.IverksattAvvistKlage
 import no.nav.su.se.bakover.domain.klage.Klage
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlageTilAttestering
 import no.nav.su.se.bakover.domain.klage.KunneIkkeBekrefteKlagesteg
+import no.nav.su.se.bakover.domain.klage.KunneIkkeIverksetteAvvistKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeLageBrevForKlage
+import no.nav.su.se.bakover.domain.klage.KunneIkkeLeggeTilFritekstForAvvist
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOppretteKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeOversendeKlage
 import no.nav.su.se.bakover.domain.klage.KunneIkkeSendeTilAttestering
@@ -145,6 +149,29 @@ class KlageServiceImpl(
         }
     }
 
+    override fun leggTilAvvistFritekstTilBrev(
+        klageId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        fritekst: String?,
+    ): Either<KunneIkkeLeggeTilFritekstForAvvist, AvvistKlage.Påbegynt> {
+        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeLeggeTilFritekstForAvvist.FantIkkeKlage.left()
+
+        return klage.leggTilAvvistFritekstTilBrev(saksbehandler = saksbehandler, fritekst = fritekst).tap {
+            klageRepo.lagre(it)
+        }
+    }
+
+    override fun bekreftAvvistFritekst(
+        klageId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+    ): Either<KunneIkkeBekrefteKlagesteg, AvvistKlage.Bekreftet> {
+        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeBekrefteKlagesteg.FantIkkeKlage.left()
+
+        return klage.bekreftAvvistFritekstTilBrev(saksbehandler).tap {
+            klageRepo.lagre(it)
+        }
+    }
+
     override fun sendTilAttestering(
         klageId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
@@ -158,7 +185,13 @@ class KlageServiceImpl(
                         saksnummer = klage.saksnummer,
                         aktørId = aktørId,
                         journalpostId = klage.journalpostId,
-                        tilordnetRessurs = (klage as? VurdertKlage)?.attesteringer?.map { it.attestant }?.lastOrNull(),
+                        tilordnetRessurs = when (klage) {
+                            is VurdertKlage -> klage.attesteringer.map { it.attestant }
+                                .lastOrNull()
+                            is AvvistKlage.Bekreftet -> klage.attesteringer.map { it.attestant }
+                                .lastOrNull()
+                            else -> null
+                        },
                         clock = clock,
                     ),
                 )
@@ -171,7 +204,7 @@ class KlageServiceImpl(
         }
     }
 
-    override fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenne, VurdertKlage.Bekreftet> {
+    override fun underkjenn(request: UnderkjennKlageRequest): Either<KunneIkkeUnderkjenne, Klage> {
         val klage = klageRepo.hentKlage(request.klageId) ?: return KunneIkkeUnderkjenne.FantIkkeKlage.left()
         val oppgaveIdSomSkalLukkes = klage.oppgaveId
         return klage.underkjenn(
@@ -259,6 +292,28 @@ class KlageServiceImpl(
         }
         oppgaveService.lukkOppgave(oversendtKlage.oppgaveId)
         return oversendtKlage.right()
+    }
+
+    override fun avvis(
+        klageId: UUID,
+        attestant: NavIdentBruker.Attestant,
+    ): Either<KunneIkkeIverksetteAvvistKlage, IverksattAvvistKlage> {
+        val klage = klageRepo.hentKlage(klageId) ?: return KunneIkkeIverksetteAvvistKlage.FantIkkeKlage.left()
+
+        val avvistKlage = klage.avvis(
+            Attestering.Iverksatt(
+                attestant = attestant,
+                opprettet = Tidspunkt.now(clock),
+            ),
+        ).getOrHandle {
+            return it.left()
+        }
+
+        // TODO: Litt brev ting, og snacks
+
+        klageRepo.lagre(avvistKlage)
+        oppgaveService.lukkOppgave(avvistKlage.oppgaveId)
+        return avvistKlage.right()
     }
 
     override fun brevutkast(
