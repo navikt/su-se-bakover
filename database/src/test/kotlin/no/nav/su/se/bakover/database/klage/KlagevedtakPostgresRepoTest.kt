@@ -5,6 +5,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
+import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
+import no.nav.su.se.bakover.domain.klage.ProsessertKlagevedtak
 import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import org.junit.jupiter.api.Test
@@ -78,6 +80,39 @@ internal class KlagevedtakPostgresRepoTest {
                 shouldThrow<PSQLException> {
                     klagevedtakRepo.lagre(it)
                 }.message shouldContain "duplicate key value violates unique constraint \"klagevedtak_pkey\""
+            }
+        }
+    }
+
+    @Test
+    fun `Endrer og lagrer type til PROSESSERT`() {
+        withMigratedDb { dataSource ->
+            val testDataHelper = TestDataHelper(dataSource)
+            val klagevedtakRepo = testDataHelper.klagevedtakPostgresRepo
+            val id = UUID.randomUUID()
+            UprosessertFattetKlagevedtak(
+                id = id,
+                opprettet = fixedTidspunkt,
+                metadata = UprosessertFattetKlagevedtak.Metadata(
+                    hendelseId = UUID.randomUUID().toString(),
+                    offset = 1,
+                    partisjon = 2,
+                    key = UUID.randomUUID().toString(),
+                    value = "{}",
+                ),
+            ).also {
+                klagevedtakRepo.lagre(it)
+                klagevedtakRepo.lagre(
+                    ProsessertKlagevedtak(
+                        id = it.id,
+                        eventId = it.metadata.hendelseId,
+                        klageId = UUID.randomUUID(),
+                        utfall = KlagevedtakUtfall.STADFESTELSE,
+                        vedtaksbrevReferanse = UUID.randomUUID().toString(),
+                        oppgaveId = null
+                    )
+                )
+                klagevedtakRepo.hentUbehandlaKlagevedtak() shouldBe emptyList()
             }
         }
     }

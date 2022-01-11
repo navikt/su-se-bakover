@@ -25,7 +25,7 @@ internal data class FattetKlagevedtak(
      */
     val utfall: String,
     /** Journalpost id til vedtaksbrev. */
-    val vedtaksbrevReferanse: String?,
+    val vedtaksbrevReferanse: String,
     /** Intern referanse fra kabal. Er per i dag vedtak_id i deres database. Kan i fremtiden brukes for å hente data om vedtak fra Kabal (se Swagger doc) */
     val kabalReferanse: String,
 )

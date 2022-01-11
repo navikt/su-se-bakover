@@ -158,6 +158,10 @@ object ServiceBuilder {
         )
         val klagevedtakService = KlagevedtakServiceImpl(
             klagevedtakRepo = databaseRepos.klageVedtakRepo,
+            klageRepo = databaseRepos.klageRepo,
+            oppgaveService = oppgaveService,
+            personService = personService,
+            sessionFactory = databaseRepos.sessionFactory
         )
         return Services(
             avstemming = AvstemmingServiceImpl(
