@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.grunnlag
 
-import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.GrunnlagRepo
 import java.util.UUID
 
 interface GrunnlagService {

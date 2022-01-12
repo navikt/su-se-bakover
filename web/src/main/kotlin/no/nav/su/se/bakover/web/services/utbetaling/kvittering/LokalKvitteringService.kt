@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.services.utbetaling.kvittering
 
-import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import org.slf4j.LoggerFactory
 
 /**

@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
@@ -55,12 +56,6 @@ import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 import javax.sql.DataSource
-
-interface RevurderingRepo {
-    fun hent(id: UUID): AbstraktRevurdering?
-    fun lagre(revurdering: AbstraktRevurdering, transactionContext: TransactionContext = defaultTransactionContext())
-    fun defaultTransactionContext(): TransactionContext
-}
 
 enum class RevurderingsType {
     OPPRETTET,

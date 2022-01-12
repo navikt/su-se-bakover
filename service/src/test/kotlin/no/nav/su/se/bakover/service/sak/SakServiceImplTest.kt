@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.service.sak
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.SakRestans
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.statistikk.Event

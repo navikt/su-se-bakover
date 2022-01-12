@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -17,6 +16,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService

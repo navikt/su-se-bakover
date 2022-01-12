@@ -5,7 +5,6 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -16,6 +15,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger

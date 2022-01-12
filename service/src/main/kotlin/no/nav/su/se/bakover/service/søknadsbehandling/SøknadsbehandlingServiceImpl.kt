@@ -8,8 +8,6 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.TransactionContext
-import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
-import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.BehandlingMedOppgave
@@ -34,10 +32,12 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.GrunnlagetMåVæreInneforBehandlingsperioden
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.IkkeLovÅLeggeTilFradragIDenneStatusen
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.KunneIkkeLeggeTilFradragsgrunnlag.PeriodeMangler
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.medFritekstTilBrev
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vilkår.UtenlandsoppholdVilkår
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageDokument

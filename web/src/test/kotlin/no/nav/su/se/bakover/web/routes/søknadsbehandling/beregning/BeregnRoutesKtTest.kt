@@ -13,9 +13,9 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.DatabaseBuilder
-import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory

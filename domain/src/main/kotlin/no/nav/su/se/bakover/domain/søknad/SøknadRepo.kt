@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.database.søknad
+package no.nav.su.se.bakover.domain.søknad
 
 import no.nav.su.se.bakover.common.persistence.SessionContext
 import no.nav.su.se.bakover.domain.Søknad

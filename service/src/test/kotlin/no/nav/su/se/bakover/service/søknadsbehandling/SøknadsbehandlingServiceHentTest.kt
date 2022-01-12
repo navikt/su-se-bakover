@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn

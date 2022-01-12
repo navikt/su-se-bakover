@@ -10,14 +10,14 @@ import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
-import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
-import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.UtbetalingFeilet
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.sak.SakService

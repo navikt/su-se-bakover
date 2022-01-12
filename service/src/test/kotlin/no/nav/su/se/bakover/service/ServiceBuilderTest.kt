@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.service
 
 import io.kotest.matchers.collections.shouldContain
 import no.nav.su.se.bakover.client.Clients
-import no.nav.su.se.bakover.database.DatabaseRepos
+import no.nav.su.se.bakover.domain.DatabaseRepos
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl

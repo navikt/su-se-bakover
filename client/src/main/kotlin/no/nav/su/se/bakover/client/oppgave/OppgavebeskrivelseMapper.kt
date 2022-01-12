@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.client.oppgave
 
-import no.nav.su.se.bakover.domain.hendelse.Personhendelse
 import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
 import no.nav.su.se.bakover.domain.person.SivilstandTyper
+import no.nav.su.se.bakover.domain.personhendelse.Personhendelse
 
 object OppgavebeskrivelseMapper {
     fun map(utfall: KlagevedtakUtfall) {

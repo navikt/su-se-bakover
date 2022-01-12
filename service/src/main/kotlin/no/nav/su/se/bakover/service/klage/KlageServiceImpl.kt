@@ -9,8 +9,6 @@ import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.database.sak.SakRepo
-import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -34,6 +32,8 @@ import no.nav.su.se.bakover.domain.klage.OversendtKlage
 import no.nav.su.se.bakover.domain.klage.VilkårsvurdertKlage
 import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService

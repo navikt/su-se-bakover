@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
@@ -30,6 +29,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils

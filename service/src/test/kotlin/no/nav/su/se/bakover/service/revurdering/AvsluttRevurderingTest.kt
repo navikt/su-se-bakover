@@ -5,12 +5,12 @@ import arrow.core.right
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.dokument.Dokument
 import no.nav.su.se.bakover.domain.revurdering.AvsluttetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.GjenopptaYtelseRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KunneIkkeAvslutteRevurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.revurdering.StansAvYtelseRevurdering
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.BrevService

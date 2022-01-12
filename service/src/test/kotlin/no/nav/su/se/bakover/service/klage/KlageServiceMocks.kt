@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.service.klage
 
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.persistence.SessionFactory
-import no.nav.su.se.bakover.database.sak.SakRepo
-import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.klage.KlageClient
 import no.nav.su.se.bakover.domain.klage.KlageRepo
+import no.nav.su.se.bakover.domain.sak.SakRepo
+import no.nav.su.se.bakover.domain.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService

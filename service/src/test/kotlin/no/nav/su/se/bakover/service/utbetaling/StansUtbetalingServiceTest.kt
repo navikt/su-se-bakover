@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
-import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
@@ -32,6 +31,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
+import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.test.fixedClock

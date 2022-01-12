@@ -89,7 +89,7 @@ sealed class OppgaveConfig {
 
     data class Personhendelse(
         val saksnummer: Saksnummer,
-        val personhendelsestype: no.nav.su.se.bakover.domain.hendelse.Personhendelse.Hendelse,
+        val personhendelsestype: no.nav.su.se.bakover.domain.personhendelse.Personhendelse.Hendelse,
         override val aktørId: AktørId,
         override val clock: Clock,
     ) : OppgaveConfig() {

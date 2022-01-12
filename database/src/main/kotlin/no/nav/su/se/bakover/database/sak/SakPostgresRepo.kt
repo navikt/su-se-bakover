@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.sak.SakIdOgNummer
+import no.nav.su.se.bakover.domain.sak.SakRepo
 import no.nav.su.se.bakover.domain.sak.SakRestans
 import java.util.UUID
 

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.database.utbetaling
+package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling

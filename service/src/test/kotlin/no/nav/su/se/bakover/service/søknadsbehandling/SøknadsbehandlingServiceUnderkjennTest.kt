@@ -10,8 +10,6 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
-import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -24,6 +22,7 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -34,6 +33,7 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
