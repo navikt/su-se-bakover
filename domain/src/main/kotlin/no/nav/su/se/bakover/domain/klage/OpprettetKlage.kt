@@ -22,6 +22,7 @@ data class OpprettetKlage private constructor(
     override val oppgaveId: OppgaveId,
     override val datoKlageMottatt: LocalDate,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
+    override val klagevedtakshistorikk: Klagevedtakshistorikk,
 ) : Klage() {
 
     companion object {
@@ -35,6 +36,7 @@ data class OpprettetKlage private constructor(
             oppgaveId: OppgaveId,
             datoKlageMottatt: LocalDate,
             saksbehandler: NavIdentBruker.Saksbehandler,
+            klagevedtakshistorikk: Klagevedtakshistorikk
         ): OpprettetKlage = OpprettetKlage(
             id = id,
             opprettet = opprettet,
@@ -45,6 +47,7 @@ data class OpprettetKlage private constructor(
             oppgaveId = oppgaveId,
             datoKlageMottatt = datoKlageMottatt,
             saksbehandler = saksbehandler,
+            klagevedtakshistorikk = klagevedtakshistorikk,
         )
     }
 
@@ -74,7 +77,8 @@ data class OpprettetKlage private constructor(
             vilkårsvurderinger = vilkårsvurderinger,
             vurderinger = null,
             attesteringer = Attesteringshistorikk.empty(),
-            datoKlageMottatt = datoKlageMottatt
+            datoKlageMottatt = datoKlageMottatt,
+            klagevedtakshistorikk = klagevedtakshistorikk
         )
     }
 
@@ -93,7 +97,9 @@ data class OpprettetKlage private constructor(
             saksbehandler = saksbehandler,
             vilkårsvurderinger = vilkårsvurderinger,
             vurderinger = null,
-            attesteringer = Attesteringshistorikk.empty(), datoKlageMottatt = datoKlageMottatt
+            attesteringer = Attesteringshistorikk.empty(),
+            datoKlageMottatt = datoKlageMottatt,
+            klagevedtakshistorikk = klagevedtakshistorikk
         )
     }
 }

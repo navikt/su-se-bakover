@@ -36,6 +36,7 @@ sealed class Klage {
     abstract val oppgaveId: OppgaveId
     abstract val datoKlageMottatt: LocalDate
     abstract val saksbehandler: NavIdentBruker.Saksbehandler
+    abstract val klagevedtakshistorikk: Klagevedtakshistorikk
 
     fun erÅpen(): Boolean {
         return this !is OversendtKlage
@@ -97,6 +98,20 @@ sealed class Klage {
         return KunneIkkeOversendeKlage.UgyldigTilstand(this::class, OversendtKlage::class).left()
     }
 
+    /** @return [OversendtKlage] */
+    open fun leggTilNyttKlagevedtak(
+        vedtattUtfall: VedtattUtfall,
+    ): Either<KunneIkkeLeggeTilVedtak, OversendtKlage> {
+        return KunneIkkeLeggeTilVedtak.left()
+    }
+
+    /** @return [OversendtKlage] */
+    open fun nyOppgaveId(
+        oppgaveId: OppgaveId,
+    ): Either<KunneIkkeLeggeTilNyOppgaveId, OversendtKlage> {
+        return KunneIkkeLeggeTilNyOppgaveId.left()
+    }
+
     companion object {
         fun ny(
             sakId: UUID,
@@ -118,6 +133,7 @@ sealed class Klage {
                 oppgaveId = oppgaveId,
                 datoKlageMottatt = datoKlageMottatt,
                 saksbehandler = saksbehandler,
+                klagevedtakshistorikk = Klagevedtakshistorikk.empty()
             )
         }
     }

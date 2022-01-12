@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain.klage
 
+import arrow.core.Either
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -21,6 +23,7 @@ data class OversendtKlage private constructor(
     override val oppgaveId: OppgaveId,
     override val saksbehandler: NavIdentBruker.Saksbehandler,
     override val datoKlageMottatt: LocalDate,
+    override val klagevedtakshistorikk: Klagevedtakshistorikk,
     val vilkårsvurderinger: VilkårsvurderingerTilKlage.Utfylt,
     val vurderinger: VurderingerTilKlage.Utfylt,
     val attesteringer: Attesteringshistorikk,
@@ -40,6 +43,7 @@ data class OversendtKlage private constructor(
             vurderinger: VurderingerTilKlage.Utfylt,
             attesteringer: Attesteringshistorikk,
             datoKlageMottatt: LocalDate,
+            klagevedtakshistorikk: Klagevedtakshistorikk,
         ): OversendtKlage {
             return OversendtKlage(
                 id = id,
@@ -53,9 +57,18 @@ data class OversendtKlage private constructor(
                 vilkårsvurderinger = vilkårsvurderinger,
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
-                datoKlageMottatt = datoKlageMottatt
+                datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk,
             )
         }
+    }
+
+    override fun leggTilNyttKlagevedtak(vedtattUtfall: VedtattUtfall): Either<KunneIkkeLeggeTilVedtak, OversendtKlage> {
+        return this.copy(klagevedtakshistorikk = klagevedtakshistorikk.leggTilNyttVedtak(vedtattUtfall)).right()
+    }
+
+    override fun nyOppgaveId(oppgaveId: OppgaveId): Either<KunneIkkeLeggeTilNyOppgaveId, OversendtKlage> {
+        return this.copy(oppgaveId = oppgaveId).right()
     }
 }
 
@@ -67,3 +80,6 @@ sealed class KunneIkkeOversendeKlage {
     object FantIkkeJournalpostIdKnyttetTilVedtaket : KunneIkkeOversendeKlage()
     object KunneIkkeOversendeTilKlageinstans : KunneIkkeOversendeKlage()
 }
+
+object KunneIkkeLeggeTilVedtak
+object KunneIkkeLeggeTilNyOppgaveId

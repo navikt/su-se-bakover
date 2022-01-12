@@ -1,7 +1,35 @@
 package no.nav.su.se.bakover.domain.klage
 
+import com.fasterxml.jackson.annotation.JsonValue
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.UUID
+
+data class VedtattUtfall(
+    val id: UUID,
+    val klagevedtakUtfall: KlagevedtakUtfall,
+    val opprettet: Tidspunkt,
+)
+
+data class Klagevedtakshistorikk private constructor(
+    @JsonValue private val underlying: List<VedtattUtfall>
+) : List<VedtattUtfall> by underlying {
+    companion object {
+        fun empty() = Klagevedtakshistorikk(emptyList())
+
+        fun create(vedtattUtfall: List<VedtattUtfall>): Klagevedtakshistorikk {
+            return Klagevedtakshistorikk(vedtattUtfall.sortedBy { it.opprettet.instant })
+        }
+    }
+
+    fun leggTilNyttVedtak(vedtattUtfall: VedtattUtfall): Klagevedtakshistorikk {
+        assert(this.all { it.opprettet.instant < vedtattUtfall.opprettet.instant }) {
+            "Kan ikke legge til ett vedtak som er eldre enn det forrige vedtaket"
+        }
+
+        return Klagevedtakshistorikk.create(vedtattUtfall = this + vedtattUtfall)
+    }
+}
 
 /**
  * Representerer ett fattet klagevedtak av Kabal.

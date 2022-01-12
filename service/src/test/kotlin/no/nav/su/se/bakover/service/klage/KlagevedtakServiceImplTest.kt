@@ -9,14 +9,17 @@ import no.nav.su.se.bakover.domain.klage.KanIkkeTolkeKlagevedtak
 import no.nav.su.se.bakover.domain.klage.KlageRepo
 import no.nav.su.se.bakover.domain.klage.KlagevedtakRepo
 import no.nav.su.se.bakover.domain.klage.KlagevedtakUtfall
+import no.nav.su.se.bakover.domain.klage.Klagevedtakshistorikk
 import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak
 import no.nav.su.se.bakover.domain.klage.UprosessertKlagevedtak
+import no.nav.su.se.bakover.domain.klage.VedtattUtfall
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.test.TestSessionFactory
+import no.nav.su.se.bakover.test.fixedClock
 import no.nav.su.se.bakover.test.fixedTidspunkt
 import no.nav.su.se.bakover.test.oversendtKlage
 import org.junit.jupiter.api.Test
@@ -135,7 +138,21 @@ internal class KlagevedtakServiceImplTest {
             },
         )
         TestSessionFactory().withTransactionContext { tx ->
-            verify(klageRepoMock).lagre(klage.copy(oppgaveId = OppgaveId("212121")), tx)
+            verify(klageRepoMock).lagre(
+                klage.copy(
+                    oppgaveId = OppgaveId("212121"),
+                    klagevedtakshistorikk = Klagevedtakshistorikk.create(
+                        listOf(
+                            VedtattUtfall(
+                                id = mappedKlagevedtak.id,
+                                klagevedtakUtfall = mappedKlagevedtak.utfall,
+                                opprettet = fixedTidspunkt,
+                            )
+                        )
+                    )
+                ),
+                tx
+            )
             verify(klagevedtakRepoMock).lagre(mappedKlagevedtak.tilProsessert(OppgaveId("212121")), tx)
         }
     }
@@ -164,7 +181,8 @@ internal class KlagevedtakServiceImplTest {
             klageRepo = klageRepo,
             oppgaveService = oppgaveService,
             personService = personService,
-            sessionFactory = sessionFactory
+            sessionFactory = sessionFactory,
+            clock = fixedClock
         )
     }
 }

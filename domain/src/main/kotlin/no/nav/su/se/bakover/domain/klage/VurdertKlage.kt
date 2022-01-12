@@ -37,6 +37,7 @@ sealed class VurdertKlage : Klage() {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk
             )
             is VilkårsvurderingerTilKlage.Utfylt -> VilkårsvurdertKlage.Utfylt.create(
                 id = id,
@@ -51,6 +52,7 @@ sealed class VurdertKlage : Klage() {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk
             )
         }.right()
     }
@@ -73,6 +75,7 @@ sealed class VurdertKlage : Klage() {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk
             )
             is VurderingerTilKlage.Utfylt -> Utfylt.create(
                 id = id,
@@ -87,6 +90,7 @@ sealed class VurdertKlage : Klage() {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk
             )
         }.right()
     }
@@ -105,6 +109,7 @@ sealed class VurdertKlage : Klage() {
             vurderinger = vurderinger,
             attesteringer = attesteringer,
             datoKlageMottatt = datoKlageMottatt,
+            klagevedtakshistorikk = klagevedtakshistorikk
         ).right()
     }
 
@@ -121,6 +126,7 @@ sealed class VurdertKlage : Klage() {
         override val vurderinger: VurderingerTilKlage.Påbegynt,
         override val attesteringer: Attesteringshistorikk,
         override val datoKlageMottatt: LocalDate,
+        override val klagevedtakshistorikk: Klagevedtakshistorikk,
     ) : VurdertKlage() {
         companion object {
 
@@ -137,6 +143,7 @@ sealed class VurdertKlage : Klage() {
                 vurderinger: VurderingerTilKlage.Påbegynt,
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
+                klagevedtakshistorikk: Klagevedtakshistorikk
             ): Påbegynt {
                 return Påbegynt(
                     id = id,
@@ -151,6 +158,7 @@ sealed class VurdertKlage : Klage() {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
+                    klagevedtakshistorikk = klagevedtakshistorikk
                 )
             }
         }
@@ -169,6 +177,7 @@ sealed class VurdertKlage : Klage() {
         override val vurderinger: VurderingerTilKlage.Utfylt,
         override val attesteringer: Attesteringshistorikk,
         override val datoKlageMottatt: LocalDate,
+        override val klagevedtakshistorikk: Klagevedtakshistorikk,
     ) : VurdertKlage() {
 
         override fun bekreftVurderinger(
@@ -187,6 +196,7 @@ sealed class VurdertKlage : Klage() {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk
             ).right()
         }
 
@@ -204,6 +214,7 @@ sealed class VurdertKlage : Klage() {
                 vurderinger: VurderingerTilKlage.Utfylt,
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
+                klagevedtakshistorikk: Klagevedtakshistorikk
             ): Utfylt {
                 return Utfylt(
                     id = id,
@@ -218,6 +229,7 @@ sealed class VurdertKlage : Klage() {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
+                    klagevedtakshistorikk = klagevedtakshistorikk
                 )
             }
         }
@@ -240,6 +252,7 @@ sealed class VurdertKlage : Klage() {
         override val vurderinger: VurderingerTilKlage.Utfylt,
         override val attesteringer: Attesteringshistorikk,
         override val datoKlageMottatt: LocalDate,
+        override val klagevedtakshistorikk: Klagevedtakshistorikk,
     ) : VurdertKlage() {
 
         override fun bekreftVurderinger(
@@ -258,6 +271,7 @@ sealed class VurdertKlage : Klage() {
                 vurderinger = vurderinger,
                 attesteringer = attesteringer,
                 datoKlageMottatt = datoKlageMottatt,
+                klagevedtakshistorikk = klagevedtakshistorikk
             ).right()
         }
 
@@ -279,6 +293,7 @@ sealed class VurdertKlage : Klage() {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
+                    klagevedtakshistorikk = klagevedtakshistorikk
                 )
             }
         }
@@ -297,6 +312,7 @@ sealed class VurdertKlage : Klage() {
                 vurderinger: VurderingerTilKlage.Utfylt,
                 attesteringer: Attesteringshistorikk,
                 datoKlageMottatt: LocalDate,
+                klagevedtakshistorikk: Klagevedtakshistorikk
             ): Bekreftet {
                 return Bekreftet(
                     id = id,
@@ -311,6 +327,7 @@ sealed class VurdertKlage : Klage() {
                     vurderinger = vurderinger,
                     attesteringer = attesteringer,
                     datoKlageMottatt = datoKlageMottatt,
+                    klagevedtakshistorikk = klagevedtakshistorikk
                 )
             }
         }
