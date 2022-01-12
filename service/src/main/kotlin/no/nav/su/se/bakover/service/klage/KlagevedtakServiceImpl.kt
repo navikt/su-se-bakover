@@ -90,7 +90,7 @@ class KlagevedtakServiceImpl(
                                 opprettet = Tidspunkt.now(clock),
                             ),
                         ).tap {
-                            it.nyOppgaveId(oppgaveId)
+                            it.krevYtterligereHandling(oppgaveId)
                                 .tapLeft {
                                     log.error("Kunne ikke prosessere melding fra Klageinstans. Feil skjedde ved oppdatering av OppgaveId")
                                     klagevedtakRepo.markerSomFeil(klagevedtak.id)

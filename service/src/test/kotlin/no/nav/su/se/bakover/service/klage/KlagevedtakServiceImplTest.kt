@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.klage.Klagevedtakshistorikk
 import no.nav.su.se.bakover.domain.klage.UprosessertFattetKlagevedtak
 import no.nav.su.se.bakover.domain.klage.UprosessertKlagevedtak
 import no.nav.su.se.bakover.domain.klage.VedtattUtfall
+import no.nav.su.se.bakover.domain.klage.VurdertKlage
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.argThat
@@ -139,8 +140,19 @@ internal class KlagevedtakServiceImplTest {
         )
         TestSessionFactory().withTransactionContext { tx ->
             verify(klageRepoMock).lagre(
-                klage.copy(
+                VurdertKlage.Bekreftet.create(
+                    id = klage.id,
+                    opprettet = klage.opprettet,
+                    sakId = klage.sakId,
+                    saksnummer = klage.saksnummer,
+                    fnr = klage.fnr,
+                    journalpostId = klage.journalpostId,
                     oppgaveId = OppgaveId("212121"),
+                    saksbehandler = klage.saksbehandler,
+                    vilkårsvurderinger = klage.vilkårsvurderinger,
+                    vurderinger = klage.vurderinger,
+                    attesteringer = klage.attesteringer,
+                    datoKlageMottatt = klage.datoKlageMottatt,
                     klagevedtakshistorikk = Klagevedtakshistorikk.create(
                         listOf(
                             VedtattUtfall(

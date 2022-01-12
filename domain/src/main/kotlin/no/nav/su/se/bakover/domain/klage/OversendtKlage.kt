@@ -67,8 +67,22 @@ data class OversendtKlage private constructor(
         return this.copy(klagevedtakshistorikk = klagevedtakshistorikk.leggTilNyttVedtak(vedtattUtfall)).right()
     }
 
-    override fun nyOppgaveId(oppgaveId: OppgaveId): Either<KunneIkkeLeggeTilNyOppgaveId, OversendtKlage> {
-        return this.copy(oppgaveId = oppgaveId).right()
+    override fun krevYtterligereHandling(oppgaveId: OppgaveId): Either<KunneIkkeLeggeTilNyOppgaveId, VurdertKlage.Bekreftet> {
+        return VurdertKlage.Bekreftet.create(
+            id = id,
+            opprettet = opprettet,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            journalpostId = journalpostId,
+            oppgaveId = oppgaveId,
+            saksbehandler = saksbehandler,
+            vilkårsvurderinger = vilkårsvurderinger,
+            vurderinger = vurderinger,
+            attesteringer = attesteringer,
+            datoKlageMottatt = datoKlageMottatt,
+            klagevedtakshistorikk = klagevedtakshistorikk
+        ).right()
     }
 }
 

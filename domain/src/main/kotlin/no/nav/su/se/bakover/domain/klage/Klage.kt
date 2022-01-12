@@ -105,10 +105,13 @@ sealed class Klage {
         return KunneIkkeLeggeTilVedtak.left()
     }
 
-    /** @return [OversendtKlage] */
-    open fun nyOppgaveId(
+    /**
+     * Klagen kan komma i retur fra Klageinstans og trenger da ny handling
+     * @return [VurdertKlage.Bekreftet]
+     * */
+    open fun krevYtterligereHandling(
         oppgaveId: OppgaveId,
-    ): Either<KunneIkkeLeggeTilNyOppgaveId, OversendtKlage> {
+    ): Either<KunneIkkeLeggeTilNyOppgaveId, VurdertKlage.Bekreftet> {
         return KunneIkkeLeggeTilNyOppgaveId.left()
     }
 
