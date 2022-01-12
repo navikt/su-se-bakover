@@ -159,7 +159,8 @@ internal class SendKlageTilAttesteringTest {
                       ]
                     }
                   },
-                  "attesteringer":[]
+                  "attesteringer":[],
+                  "klagevedtakshistorikk":[]
                 }
                     """.trimIndent(),
                     response.content,
